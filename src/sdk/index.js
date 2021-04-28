@@ -46,7 +46,7 @@ export default ({
   const makeSDKChart = (attributes = {}) => {
     const chart = makeChartCore(attributes)
     const ui = makeChartUI(chart)
-    chart.setUi(ui)
+    chart.setUI(ui)
 
     return chart
   }

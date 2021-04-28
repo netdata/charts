@@ -38,10 +38,10 @@ export default () => {
     })
   }
 
-  const clearListeners = () => {
+  const offAll = () => {
     listenersByEvent = {}
     onceListenersByEvent = {}
   }
 
-  return { off, on, once, trigger, clearListeners }
+  return { off, on, once, trigger, offAll }
 }
