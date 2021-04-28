@@ -58,6 +58,7 @@ export default ({
   const appendChild = (node, { inherit = true } = {}) => root.appendChild(node, { inherit })
 
   const instance = {
+    ...listeners,
     getRoot,
     register,
     unregister,
