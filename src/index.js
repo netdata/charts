@@ -1,5 +1,5 @@
 import makeDygraph from "./chartLibraries/dygraph"
-import makeSDK from "./makeSDK"
+import makeSDK from "./sdk"
 import parseDOM from "./sdk/parseDOM"
 import hover from "./sdk/plugins/hover"
 import pan from "./sdk/plugins/pan"
@@ -23,5 +23,12 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   })
 
-  parseDOM(sdk)
+  const { elements, nodeByElement } = parseDOM(sdk)
+
+  elements.forEach(element => {
+    const node = nodeByElement.get(element)
+    if (node.type === "chart") {
+      node.getUI().mount(node, element)
+    }
+  })
 })
