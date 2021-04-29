@@ -5,7 +5,7 @@
 npm:
 
 ```shell
-  $ npm install @netdata/charts --save
+  $ npm install @netdata/charts
 ```
 
 yarn:
