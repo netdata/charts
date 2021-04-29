@@ -4,7 +4,7 @@ import initialChartAttributes from "./initialChartAttributes"
 import initialPayload from "./initialPayload"
 
 export default ({ sdk, parent, attributes } = {}) => {
-  const node = makeNode(sdk, parent, { ...initialChartAttributes, ...attributes })
+  const node = makeNode({ sdk, parent, attributes: { ...initialChartAttributes, ...attributes } })
   let ui = null
   let payload = initialPayload
 

@@ -7,6 +7,10 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   const attributeListeners = makeListeners()
   let attributes = { ...initialAttributes }
 
+  const init = () => {
+    setParent(parent)
+  }
+
   const setAttribute = (name, value) => {
     attributes[name] = value
   }
@@ -48,7 +52,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     while (container?.match(attributes)) {
       container = container.parent
     }
-    return container || sdk.root
+    return container || sdk.getRoot()
   }
 
   const getApplicableNodes = attributes => {
@@ -72,7 +76,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     attributes = null
   }
 
-  setParent(parent)
+  init()
 
   const instance = {
     ...listeners,
