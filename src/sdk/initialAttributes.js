@@ -11,4 +11,11 @@ export default {
   syncHighlight: true,
   highlighting: false,
   highlight: null,
+  unitsConversionMethod: "",
+  unitsConversionDivider: -1,
+  unitsConversionFractionDigits: 0,
+  unit: "",
+  temperature: "celsius",
+  secondsAsTime: true,
+  timezone: "default",
 }
