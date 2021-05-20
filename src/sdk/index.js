@@ -1,6 +1,7 @@
 import makeListeners from "@/helpers/makeListeners"
 import makeContainer from "./makeContainer"
 import makeChart from "./makeChart"
+import makeChartsMetadata from "./makeChartsMetadata"
 import initialAttributes from "./initialAttributes"
 
 export default ({
@@ -9,8 +10,10 @@ export default ({
   plugins: defaultPlugins = {},
   attributes: defaultAttributes,
   on = {},
+  getChartMetadata,
 }) => {
   const listeners = makeListeners()
+  const chartsMetadata = makeChartsMetadata({ getChart: getChartMetadata })
   const attributes = { defaultUI, ui }
   const plugins = {}
   let root
@@ -36,7 +39,7 @@ export default ({
     attributes.ui[type] = chartLibrary
   }
 
-  const makeChartCore = attributes => makeChart({ sdk: instance, attributes })
+  const makeChartCore = options => makeChart({ sdk: instance, ...options })
 
   const makeChartUI = chart => {
     const type = chart.getAttribute("type") || attributes.defaultUI
@@ -45,8 +48,8 @@ export default ({
     return makeChartUI(instance, chart)
   }
 
-  const makeSDKChart = (attributes = {}) => {
-    const chart = makeChartCore(attributes)
+  const makeSDKChart = options => {
+    const chart = makeChartCore(options)
     const ui = makeChartUI(chart)
     chart.setUI(ui)
 
@@ -61,6 +64,7 @@ export default ({
 
   const instance = {
     ...listeners,
+    chartsMetadata,
     getRoot,
     register,
     unregister,

@@ -6,9 +6,12 @@ export default sdk => {
   })
 
   const offEnd = sdk.on("panEnd", (chart, [after, before]) => {
+    if (before > Date.now()) return chart.updateAttributes({ enabledHover: true, panning: false })
+
     chart.getApplicableNodes({ syncPanning: true }).forEach(node => {
       node.updateAttributes({ enabledHover: true, panning: false })
-      node.moveX(after, before)
+      node.moveX(Math.round(after / 1000), Math.round(before / 1000))
+      if (node.type === "chart") node.fetch()
     })
   })
 

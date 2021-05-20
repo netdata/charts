@@ -19,6 +19,8 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
 
   const updateAttribute = (name, value) => {
     const prevValue = attributes[name]
+    if (prevValue === value) return
+
     setAttribute(name, value)
     attributeListeners.trigger(name, value, prevValue)
   }

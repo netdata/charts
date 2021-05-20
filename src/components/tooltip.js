@@ -54,10 +54,10 @@ const Container = ({ chart }) => {
 
   useEffect(() => {
     const events = [
-      chart.on("hover", (x, y) => {
+      chart.getUI().on("mousemove", event => {
+        const { x, y } = event
         setOpen(true)
         if (!ref.current) return
-
         ref.current.style.left = `${x + 25}px`
         ref.current.style.top = `${y + 20}px`
       }),

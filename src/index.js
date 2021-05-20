@@ -2,7 +2,7 @@ import mount from "./components/mount"
 import parseDOM from "./sdk/parseDOM"
 import makeDefaultSDK from "./makeDefaultSDK"
 
-import payloads from "./payloads"
+import payloads from "@/fixtures/dimension3points90"
 
 document.addEventListener("DOMContentLoaded", () => {
   const sdk = makeDefaultSDK()
