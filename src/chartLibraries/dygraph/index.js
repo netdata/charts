@@ -8,7 +8,16 @@ import makeHighlight from "./highlight"
 
 const axisLabelFormatter = time => {
   const midnight = time.getSeconds() === 0 && time.getMinutes() === 0 && time.getHours() === 0
-  return format(time, midnight ? "HH:mm:SS" : "MM:dd")
+  return format(time, midnight ? "MM:dd" : "HH:mm:SS")
+}
+
+const getDateWindow = chart => {
+  const { after, before } = chart.getAttributes()
+
+  if (after > 0) return [after * 1000, before * 1000]
+
+  const now = Date.now()
+  return [now + after * 1000, now]
 }
 
 export default (sdk, chart) => {
@@ -25,6 +34,9 @@ export default (sdk, chart) => {
     const attributes = chart.getAttributes()
     const payload = chart.getPayload()
 
+    let prevMin
+    let prevMax
+
     dygraph = new Dygraph(element, payload.result.data, {
       showLabelsOnHighlight: false,
       labels: payload.result.labels,
@@ -33,6 +45,19 @@ export default (sdk, chart) => {
           ticker: Dygraph.dateTicker,
           axisLabelFormatter,
         },
+        y: {
+          axisLabelFormatter: (y, granularity, opts, d) => {
+            const [min, max] = d.axes_[0].extremeRange
+
+            if (min !== prevMin || max !== prevMax) {
+              prevMin = min
+              prevMax = max
+              chartUI.sdk.trigger("yAxisChange", chart, min, max)
+            }
+
+            return chart.getConvertedValue(y)
+          },
+        },
       },
       highlightCircleSize: 2,
       highlightSeriesOpts: {
@@ -40,15 +65,17 @@ export default (sdk, chart) => {
         strokeBorderWidth: 1,
         highlightCircleSize: 3,
       },
-      dateWindow: [attributes.after, attributes.before],
+      dateWindow: getDateWindow(chart),
       highlightCallback: executeLatest((event, x, points, row, seriesName) =>
         chartUI.trigger("highlightCallback", event, x, points, row, seriesName)
       ),
-      unhighlightCallback: executeLatest(() => chartUI.trigger("unhighlightCallback")),
+      unhighlightCallback: () => executeLatest(() => chartUI.trigger("unhighlightCallback")),
       underlayCallback: (canvas, area, g) => chartUI.trigger("underlayCallback", canvas, area, g),
       interactionModel: {
+        mouseout: executeLatest((...args) => chartUI.trigger("mouseout", ...args)),
         mousedown: executeLatest((...args) => chartUI.trigger("mousedown", ...args)),
         mousemove: executeLatest((...args) => chartUI.trigger("mousemove", ...args)),
+        mouseover: executeLatest((...args) => chartUI.trigger("mouseover", ...args)),
         mouseup: executeLatest((...args) => chartUI.trigger("mouseup", ...args)),
         touchstart: executeLatest((...args) => chartUI.trigger("touchstart", ...args)),
         touchmove: executeLatest((...args) => chartUI.trigger("touchmove", ...args)),
@@ -60,14 +87,33 @@ export default (sdk, chart) => {
     hover.toggle(attributes.enabledHover)
     navigation.set(attributes.navigation)
 
+    // const yAxisChange = () => {
+    //   const [[min, max]] = dygraph.yAxisExtremes()
+    //   console.log("yAxisChange")
+    //   chartUI.sdk.trigger("yAxisChange", chart, min, max)
+    // }
+    // successFetch
+    // yAxisChange()
+
     listeners = [
-      chart.onAttributeChange("hover", dimensions =>
+      chart.onAttributeChange("hoverX", dimensions =>
         dygraph.setSelection(dimensions ? dimensions[0] : -1)
       ),
-      chart.on("moveX", (after, before) => dygraph.updateOptions({ dateWindow: [after, before] })),
+      chart.on("moveX", (after, before) =>
+        dygraph.updateOptions({ dateWindow: [after * 1000, before * 1000] })
+      ),
       chart.onAttributeChange("enabledHover", hover.toggle),
       chart.onAttributeChange("navigation", navigation.set),
       chart.onAttributeChange("highlight", highlight.toggle),
+      chart.on("successFetch", payload => {
+        const dateWindow = getDateWindow(chart)
+        dygraph.updateOptions({
+          file: payload.result.data,
+          labels: payload.result.labels,
+          dateWindow,
+        })
+      }),
+      // chartUI.on("underlayCallback", yAxisChange),
     ]
   }
 
@@ -84,7 +130,7 @@ export default (sdk, chart) => {
 
   const getDygraph = () => dygraph
 
-  const instance = { ...chartUI, mount, unmount, getDygraph }
+  const instance = { ...chartUI, mount, unmount, getDygraph, getNavigation: () => navigation }
 
   navigation = makeNavigation(instance)
   hover = makeHover(instance)

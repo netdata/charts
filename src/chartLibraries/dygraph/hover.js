@@ -3,18 +3,23 @@ import { removeEvent, addEvent } from "dygraphs/src/dygraph-utils"
 export default chartUI => {
   let listeners = []
 
-  const unhighlightCallback = () => {
+  const mouseout = () => {
     chartUI.sdk.trigger("blur", chartUI.chart)
     chartUI.chart.trigger("blur")
   }
 
-  const highlightCallback = (event, x, points, row, seriesName) => {
+  const mouseover = () => {
+    chartUI.sdk.trigger("hover", chartUI.chart)
+    chartUI.chart.trigger("hover")
+  }
+
+  const highlight = (event, x, points, row, seriesName) => {
     if (!seriesName) return
 
     const { offsetX, offsetY } = event
     const { column } = chartUI.getDygraph().getPropertiesForSeries(seriesName)
-    chartUI.sdk.trigger("hover", chartUI.chart, offsetX, offsetY, row, column)
-    chartUI.chart.trigger("hover", offsetX, offsetY, row, column)
+    chartUI.sdk.trigger("hoverX", chartUI.chart, offsetX, offsetY, row, column)
+    chartUI.chart.trigger("hoverX", offsetX, offsetY, row, column)
   }
 
   const destroy = () => {
@@ -24,7 +29,7 @@ export default chartUI => {
       chartUI.getDygraph().mouseMoveHandler_
     )
     listeners.forEach(listener => listener())
-    unhighlightCallback()
+    mouseout()
   }
 
   const toggle = enabled => {
@@ -39,8 +44,9 @@ export default chartUI => {
     )
 
     listeners = [
-      chartUI.on("highlightCallback", highlightCallback),
-      chartUI.on("unhighlightCallback", unhighlightCallback),
+      chartUI.on("highlightCallback", highlight),
+      chartUI.on("mouseout", mouseout),
+      chartUI.on("mouseover", mouseover),
     ]
   }
 

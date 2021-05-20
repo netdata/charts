@@ -43,8 +43,10 @@ export default chartUI => {
 
   const getRange = g => {
     if (endX === -1 || Math.abs(startX - endX) < 5) return null
-    if (startX > endX) return [g.toDataXCoord(endX), g.toDataXCoord(startX)]
-    return [g.toDataXCoord(startX), g.toDataXCoord(endX)]
+    const after = Math.round(g.toDataXCoord(startX) / 1000)
+    const before = Math.round(g.toDataXCoord(endX) / 1000)
+    if (startX > endX) return [before, after]
+    return [after, before]
   }
 
   const mouseup = (event, g, context) => {
