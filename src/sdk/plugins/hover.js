@@ -5,13 +5,13 @@ export default sdk => {
 
   const offHover = sdk.on("hoverX", (chart, x, y, dimensionX, dimensionY) => {
     chart.getApplicableNodes({ syncHover: true }).forEach(node => {
-      node.updateAttribute("hover", [dimensionX, dimensionY])
+      node.updateAttribute("hoverX", [dimensionX, dimensionY])
     })
   })
 
   const offBlur = sdk.on("blur", chart => {
     chart.getApplicableNodes({ syncHover: true }).forEach(node => {
-      node.updateAttribute("hover", null)
+      node.updateAttribute("hoverX", null)
     })
   })
 

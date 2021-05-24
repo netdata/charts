@@ -2,18 +2,19 @@ export default sdk => {
   let timeoutId
 
   const getNext = () => {
+    sdk.getNodes().forEach(node => {
+      // or is loading
+      if (node.type !== "chart") return
+
+      node.fetch()
+    })
+
     timeoutId = setTimeout(() => {
-      sdk.getNodes().forEach(node => {
-        // or is loading
-        if (node.type !== "chart") return
-        // console.log("test")
-        node.fetch()
-        getNext()
-      })
+      getNext()
     }, 1000)
   }
 
-  // getNext()
+  getNext()
 
   sdk.on("hover", () => {
     console.log("hover")

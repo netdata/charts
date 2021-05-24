@@ -4,6 +4,7 @@ import makeChartUI from "@/sdk/makeChartUI"
 import executeLatest from "@/helpers/executeLatest"
 import makeNavigation from "./navigation"
 import makeHover from "./hover"
+import makeHoverX from "./hoverX"
 import makeHighlight from "./highlight"
 
 const axisLabelFormatter = time => {
@@ -26,6 +27,7 @@ export default (sdk, chart) => {
   let listeners = []
   let navigation = null
   let hover = null
+  let hoverX = null
   let highlight = null
 
   const mount = element => {
@@ -84,7 +86,7 @@ export default (sdk, chart) => {
       },
     })
 
-    hover.toggle(attributes.enabledHover)
+    hoverX.toggle(attributes.enabledHover)
     navigation.set(attributes.navigation)
 
     listeners = [
@@ -94,7 +96,7 @@ export default (sdk, chart) => {
       chart.on("moveX", (after, before) =>
         dygraph.updateOptions({ dateWindow: [after * 1000, before * 1000] })
       ),
-      chart.onAttributeChange("enabledHover", hover.toggle),
+      chart.onAttributeChange("enabledHover", hoverX.toggle),
       chart.onAttributeChange("navigation", navigation.set),
       chart.onAttributeChange("highlight", highlight.toggle),
       chart.on("successFetch", payload => {
@@ -106,13 +108,16 @@ export default (sdk, chart) => {
         })
       }),
     ]
+
+    hover = makeHover(instance)
   }
 
   const unmount = () => {
     listeners.forEach(listener => listener())
     listeners = []
     chartUI.unmount()
-    hover.destroy()
+    hover()
+    hoverX.destroy()
     highlight.destroy()
     navigation.destroy()
     dygraph.destroy()
@@ -124,7 +129,7 @@ export default (sdk, chart) => {
   const instance = { ...chartUI, mount, unmount, getDygraph }
 
   navigation = makeNavigation(instance)
-  hover = makeHover(instance)
+  hoverX = makeHoverX(instance)
   highlight = makeHighlight(instance)
 
   return instance

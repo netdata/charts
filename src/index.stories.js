@@ -9,7 +9,7 @@ import chartMetadata from "@/fixtures/dimensions3points90Chart"
 import payloads from "@/fixtures/dimension3points90"
 
 const getChartMetadata = () => chartMetadata
-const getChart = makeMockPayload(payloads[0])
+const getChart = makeMockPayload(payloads[0], { delay: 2000 })
 
 export const Simple = () => {
   const sdk = makeDefaultSDK({ getChartMetadata })
@@ -24,6 +24,7 @@ export const Simple = () => {
 }
 
 export const Multiple = () => {
+  console.log("render")
   const sdk = makeDefaultSDK({ getChartMetadata })
 
   const charts = Array.from(Array(5)).map((v, index) => {
@@ -63,8 +64,6 @@ export const Sync = () => {
     </ThemeProvider>
   )
 }
-
-export const AutoPlay = () => {}
 
 export default {
   title: "Charts",

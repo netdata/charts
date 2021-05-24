@@ -4,7 +4,7 @@ export default {
   after: 0,
   enabledHover: true,
   syncHover: true,
-  hover: null,
+  hoverX: null,
   navigation: "",
   syncPanning: true,
   panning: false,
