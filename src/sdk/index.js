@@ -12,12 +12,14 @@ export default ({
 }) => {
   const listeners = makeListeners()
   const attributes = { defaultUI, ui }
-  const root = makeContainer({ id: "root", ...initialAttributes, ...defaultAttributes })
-
   const plugins = {}
-  Object.keys(defaultPlugins).forEach(name => register(name, defaultPlugins[name]))
+  let root
 
-  Object.keys(on).forEach(name => listeners.on(name, on[name]))
+  const init = () => {
+    root = makeSDKContainer({ id: "root", ...initialAttributes, ...defaultAttributes })
+    Object.keys(defaultPlugins).forEach(name => register(name, defaultPlugins[name]))
+    Object.keys(on).forEach(name => listeners.on(name, on[name]))
+  }
 
   const getRoot = () => root
 
@@ -70,6 +72,8 @@ export default ({
     getNodes,
     appendChild,
   }
+
+  init()
 
   return instance
 }

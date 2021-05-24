@@ -12,7 +12,7 @@ export default chartUI => {
     if (!seriesName) return
 
     const { offsetX, offsetY } = event
-    const column = parseInt(seriesName.substr(1))
+    const { column } = chartUI.getDygraph().getPropertiesForSeries(seriesName)
     chartUI.sdk.trigger("hover", chartUI.chart, offsetX, offsetY, row, column)
     chartUI.chart.trigger("hover", offsetX, offsetY, row, column)
   }

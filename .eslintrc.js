@@ -16,4 +16,9 @@ module.exports = {
     sourceType: "module",
   },
   plugins: ["react", "react-hooks"],
-};
+  rules: {
+    "react/prop-types": [0],
+    "react-hooks/rules-of-hooks": "error",
+    "react/display-name": 0,
+  },
+}
