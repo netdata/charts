@@ -39,11 +39,11 @@ const parseTag = element =>
   }, {})
 
 export default sdk => {
-  const elementsMap = new Map()
+  const nodeByElement = new Map()
 
   const getParent = element => {
     const ancestor = findContainerAncestor(element)
-    return ancestor ? elementsMap.get(ancestor) : sdk.getRoot()
+    return ancestor ? nodeByElement.get(ancestor) : sdk.getRoot()
   }
 
   const makeNode = element => {
@@ -52,7 +52,7 @@ export default sdk => {
     const attributes = parseTag(element)
     const node = isContainer ? sdk.makeContainer(attributes) : sdk.makeChart(attributes)
 
-    elementsMap.set(element, node)
+    nodeByElement.set(element, node)
 
     return node
   }
@@ -64,4 +64,6 @@ export default sdk => {
     const node = makeNode(element)
     parent.appendChild(node)
   })
+
+  return { elements, nodeByElement }
 }

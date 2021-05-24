@@ -68,7 +68,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   }
 
   const destroy = () => {
-    attributeListeners.clearListeners()
+    attributeListeners.offAll()
     attributes = null
   }
 

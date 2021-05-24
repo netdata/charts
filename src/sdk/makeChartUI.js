@@ -11,11 +11,11 @@ export default (sdk, chart) => {
 
   const unmount = () => {
     sdk.trigger("unmountChartUI", chart)
-    listeners.clearListeners()
+    listeners.offAll()
     element = null
   }
 
   const getElement = () => element
 
-  return { ...listeners, mount, unmount, getElement }
+  return { ...listeners, sdk, chart, mount, unmount, getElement }
 }

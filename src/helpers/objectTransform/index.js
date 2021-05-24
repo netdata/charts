@@ -32,14 +32,14 @@ export const objectTransformator = (data, { func, action, omit = defaultOmit }) 
   return data
 }
 
-export const underscoredKeys = (data, { omit = defaultOmit }) =>
+export const underscoredKeys = (data, { omit = defaultOmit } = {}) =>
   objectTransformator(data, {
     func: underscoredKeys,
     action: underscoredKey,
     omit,
   })
 
-export const camelizeKeys = (data, { omit = defaultOmit }) =>
+export const camelizeKeys = (data, { omit = defaultOmit } = {}) =>
   objectTransformator(data, {
     func: camelizeKeys,
     action: camelizeKey,

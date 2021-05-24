@@ -10,15 +10,15 @@ export default ({ sdk, parent, attributes } = {}) => {
 
   const getPayload = () => payload
 
-  const doneFetch = payload => {
-    payload = { ...initialPayload, ...camelizeKeys(payload) }
+  const doneFetch = nextPayload => {
+    payload = { ...initialPayload, ...camelizeKeys(nextPayload) }
     node.updateAttributes({ loaded: true, loading: false })
   }
 
-  const getUi = ui
-  const setUi = newUi => {
+  const getUI = () => ui
+  const setUI = newUi => {
     ui = newUi
   }
 
-  return { ...node, type: "chart", getUi, setUi, getPayload, doneFetch }
+  return { ...node, type: "chart", getUI, setUI, getPayload, doneFetch }
 }

@@ -46,7 +46,7 @@ export default ({
   const makeSDKChart = (attributes = {}) => {
     const chart = makeChartCore(attributes)
     const ui = makeChartUI(chart)
-    chart.setUi(ui)
+    chart.setUI(ui)
 
     return chart
   }
@@ -58,6 +58,7 @@ export default ({
   const appendChild = (node, { inherit = true } = {}) => root.appendChild(node, { inherit })
 
   const instance = {
+    ...listeners,
     getRoot,
     register,
     unregister,
