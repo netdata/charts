@@ -30,7 +30,7 @@ module.exports = {
   plugins: [new CleanWebpackPlugin()],
   resolve: {
     alias: {
-      sdk: path.resolve(__dirname, "src/sdk"),
+      "@": path.resolve(__dirname, "src"),
     },
   },
 }
