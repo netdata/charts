@@ -69,7 +69,7 @@ export default (sdk, chart) => {
       highlightCallback: executeLatest((event, x, points, row, seriesName) =>
         chartUI.trigger("highlightCallback", event, x, points, row, seriesName)
       ),
-      unhighlightCallback: () => executeLatest(() => chartUI.trigger("unhighlightCallback")),
+      unhighlightCallback: executeLatest(() => chartUI.trigger("unhighlightCallback")),
       underlayCallback: (canvas, area, g) => chartUI.trigger("underlayCallback", canvas, area, g),
       interactionModel: {
         mouseout: executeLatest((...args) => chartUI.trigger("mouseout", ...args)),
@@ -86,14 +86,6 @@ export default (sdk, chart) => {
 
     hover.toggle(attributes.enabledHover)
     navigation.set(attributes.navigation)
-
-    // const yAxisChange = () => {
-    //   const [[min, max]] = dygraph.yAxisExtremes()
-    //   console.log("yAxisChange")
-    //   chartUI.sdk.trigger("yAxisChange", chart, min, max)
-    // }
-    // successFetch
-    // yAxisChange()
 
     listeners = [
       chart.onAttributeChange("hoverX", dimensions =>
@@ -113,7 +105,6 @@ export default (sdk, chart) => {
           dateWindow,
         })
       }),
-      // chartUI.on("underlayCallback", yAxisChange),
     ]
   }
 
@@ -130,7 +121,7 @@ export default (sdk, chart) => {
 
   const getDygraph = () => dygraph
 
-  const instance = { ...chartUI, mount, unmount, getDygraph, getNavigation: () => navigation }
+  const instance = { ...chartUI, mount, unmount, getDygraph }
 
   navigation = makeNavigation(instance)
   hover = makeHover(instance)
