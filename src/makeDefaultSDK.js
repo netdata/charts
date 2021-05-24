@@ -6,6 +6,8 @@ import pan from "./sdk/plugins/pan"
 import highlight from "./sdk/plugins/highlight"
 import play from "./sdk/plugins/play"
 
+const Minutes15 = 15 * 60
+
 export default options =>
   makeSDK({
     defaultUI: "dygraph",
@@ -21,7 +23,7 @@ export default options =>
     },
     attributes: {
       navigation: "pan",
-      after: -1 * 15 * 60,
+      after: -1 * Minutes15,
     },
     ...options,
   })

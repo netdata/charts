@@ -9,7 +9,7 @@ const Chart = ({ chart }) => {
   useLayoutEffect(() => {
     chart.getUI().mount(ref.current)
     return () => chart.getUI().unmount()
-  })
+  }, [])
 
   return (
     <div>
