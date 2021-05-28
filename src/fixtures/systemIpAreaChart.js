@@ -1,0 +1,32 @@
+export default {
+  id: "system.ip",
+  name: "system.ip",
+  type: "system",
+  family: "network",
+  context: "system.ip",
+  title: "IP Bandwidth (system.ip)",
+  priority: 501,
+  plugin: "proc.plugin",
+  module: "/proc/net/netstat",
+  enabled: true,
+  units: "kilobits/s",
+  data_url: "/api/v1/data?chart=system.ip",
+  chart_type: "area",
+  duration: 172957,
+  first_entry: 1621940082,
+  last_entry: 1622113038,
+  update_every: 1,
+  dimensions: {
+    InOctets: {
+      name: "received",
+    },
+    OutOctets: {
+      name: "sent",
+    },
+  },
+  chart_variables: {},
+  green: null,
+  red: null,
+  alarms: {},
+  chart_labels: {},
+}

@@ -2,7 +2,8 @@ import conversableUnits, { makeConversableKey } from "./conversableUnits"
 
 const converts = Object.keys(conversableUnits).reduce((acc, unit) => {
   Object.keys(conversableUnits[unit]).forEach(scale => {
-    acc[makeConversableKey(unit, scale)] = conversableUnits[unit][scale].convert
+    acc[makeConversableKey(unit, scale)] = (chart, value) =>
+      conversableUnits[unit][scale].convert(value)
   })
   return acc
 }, {})
