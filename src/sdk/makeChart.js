@@ -72,6 +72,8 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
     } = node.getAttributes()
     const converted = convert(instance, unitsConversionMethod, value, unitsConversionDivider)
 
+    if (unitsConversionFractionDigits === -1) return converted
+
     return Intl.NumberFormat(undefined, {
       useGrouping: true,
       minimumFractionDigits: unitsConversionFractionDigits,

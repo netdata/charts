@@ -35,6 +35,14 @@ export default (sdk, chart) => {
 
     const attributes = chart.getAttributes()
     const payload = chart.getPayload()
+    const { chartType } = chart.getMetadata()
+    const stacked = chartType === "stacked"
+    const area = chartType === "area"
+    const line = chartType === "line"
+    const sparkline = false
+    const logScale = false
+    console.log(chart.getMetadata())
+    const smooth = line && !sparkline
 
     let prevMin
     let prevMax
@@ -46,6 +54,7 @@ export default (sdk, chart) => {
         x: {
           ticker: Dygraph.dateTicker,
           axisLabelFormatter,
+          axisLabelWidth: 60,
         },
         y: {
           axisLabelFormatter: (y, granularity, opts, d) => {
@@ -59,13 +68,14 @@ export default (sdk, chart) => {
 
             return chart.getConvertedValue(y)
           },
+          pixelsPerLabel: 15,
         },
       },
-      highlightCircleSize: 2,
+
       highlightSeriesOpts: {
-        strokeWidth: 1,
+        //   strokeWidth: 1,
         strokeBorderWidth: 1,
-        highlightCircleSize: 3,
+        //   highlightCircleSize: 3,
       },
       dateWindow: getDateWindow(chart),
       highlightCallback: executeLatest((event, x, points, row, seriesName) =>
@@ -84,6 +94,50 @@ export default (sdk, chart) => {
         touchend: executeLatest((...args) => chartUI.trigger("touchend", ...args)),
         dblclick: executeLatest((...args) => chartUI.trigger("dblclick", ...args)),
       },
+      strokeBorderColor: "#FFFFFF",
+      strokeBorderWidth: 0,
+      stackedGraph: stacked,
+      fillGraph: stacked || area,
+      fillAlpha: stacked ? 0.8 : 0.2,
+      axisLabelFontSize: 10,
+      axisLineColor: "#F0F0F0",
+      axisLineWidth: 1,
+      gridLineWidth: 1,
+      gridLineColor: "#F0F0F0",
+      maxNumberWidth: 8,
+      highlightCircleSize: sparkline ? 3 : 4,
+      highlightSeriesBackgroundAlpha: null,
+      strokeWidth: stacked ? 0.1 : smooth ? 1.5 : 0.7,
+      drawGapEdgePoints: true,
+      ylabel: attributes.unit,
+      yLabelWidth: 12,
+      yRangePad: 1,
+      includeZero: stacked,
+      labelsSeparateLines: true,
+      colors: [
+        "#3366CC",
+        "#DC3912",
+        "#109618",
+        "#FF9900",
+        "#990099",
+        "#DD4477",
+        "#3B3EAC",
+        "#66AA00",
+        "#0099C6",
+        "#B82E2E",
+        "#AAAA11",
+        "#5574A6",
+        "#994499",
+        "#22AA99",
+        "#6633CC",
+        "#E67300",
+        "#316395",
+        "#8B0707",
+        "#329262",
+        "#3B3EAC",
+      ],
+      // visibility return selected dimensions
+      // logscale
     })
 
     hoverX.toggle(attributes.enabledHover)

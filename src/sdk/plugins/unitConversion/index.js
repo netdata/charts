@@ -31,7 +31,7 @@ export default sdk => {
       return chart.getApplicableNodes({ syncUnits: true }).forEach(node => {
         if (node === chart) return updateChart()
 
-        node.updateAttributes({
+        node.setAttributes({
           unitsConversionMethod: method,
           unitsConversionDivider: divider,
           unit: unit,

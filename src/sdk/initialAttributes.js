@@ -11,6 +11,8 @@ export default {
   syncHighlight: true,
   highlighting: false,
   highlight: null,
+  desiredUnits: "auto",
+  syncUnits: true,
   unitsConversionMethod: "",
   unitsConversionDivider: -1,
   unitsConversionFractionDigits: 0,

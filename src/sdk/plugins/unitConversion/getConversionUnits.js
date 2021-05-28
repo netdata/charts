@@ -20,18 +20,22 @@ const scalable = (units, min, max, desiredUnits) => {
   return scale ? ["divide", scales[scale], scale] : ["original"]
 }
 
-const conversable = (units, max, desiredUnits) => {
+const conversable = (chart, units, max, desiredUnits) => {
   const scales = conversableUnits[units]
 
   if (desiredUnits !== "auto") {
     return desiredUnits in scales
-      ? [makeConversableKey(desiredUnits, scale), scales[desiredUnits], desiredUnits]
+      ? [makeConversableKey(units, desiredUnits), undefined, desiredUnits]
       : ["original"]
   }
 
-  const scale = Object.keys(scales).find(scale => scales[scale].check(max))
+  const scaleKeys = Object.keys(scales)
+  const scaleIndex = scaleKeys.findIndex(scale => scales[scale].check(chart, max))
 
-  return scale ? [makeConversableKey(units, scale), scales[scale], scale] : ["original"]
+  if (scaleIndex === -1) return ["original"]
+
+  const key = scaleKeys[scaleIndex]
+  return [makeConversableKey(units, key), undefined, key]
 }
 
 const getMethod = (chart, min, max) => {
@@ -42,7 +46,7 @@ const getMethod = (chart, min, max) => {
 
   if (scalableUnits[units]) return scalable(units, min, max, desiredUnits)
 
-  if (conversableUnits[units]) return conversable(units, max, desiredUnits)
+  if (conversableUnits[units]) return conversable(chart, units, max, desiredUnits)
 
   return ["original"]
 }
@@ -62,7 +66,8 @@ export default (chart, min, max) => {
 
   const delta = Math.abs(cMin === cMax ? cMin : cMax - cMin)
 
-  const fractionDigits = getFractionDigits(delta)
+  const fractionDigits =
+    method === "original" || method === "divide" ? getFractionDigits(delta) : -1
 
   return { method, divider, unit, fractionDigits }
 }
