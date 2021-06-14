@@ -1,8 +1,9 @@
 import React from "react"
 import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
 
-const LegendName = ({ chart, index, ...rest }) => {
-  const name = chart.getPayload().dimensionNames[index]
+const LegendName = ({ chart, id, ...rest }) => {
+  const name = chart.getDimensionName(id)
+
   return (
     <TextMicro whiteSpace="nowrap" truncate {...rest}>
       {name}

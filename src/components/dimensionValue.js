@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from "react"
 import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
 
-const DimensionValue = ({ chart, index, ...rest }) => {
+const DimensionValue = ({ chart, id, ...rest }) => {
   const getValue = () => {
     const hover = chart.getAttribute("hoverX")
     const { result } = chart.getPayload()
-    const x = hover ? hover[0] : result.data.length - 1
-    return chart.getConvertedValue(result.data[x][index + 1])
+    const index = hover ? hover[0] : result.data.length - 1
+    const value = chart.getDimensionValue(id, index)
+    return chart.getConvertedValue(value)
   }
 
   const [value, setState] = useState(getValue)
@@ -32,7 +33,11 @@ const DimensionValue = ({ chart, index, ...rest }) => {
     }
   }, [])
 
-  return <TextMicro {...rest}>{value}</TextMicro>
+  return (
+    <TextMicro strong {...rest}>
+      {value}
+    </TextMicro>
+  )
 }
 
 export default DimensionValue

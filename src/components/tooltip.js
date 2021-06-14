@@ -4,24 +4,23 @@ import LegendColor from "./legendColor"
 import LegendName from "./legendName"
 import DimensionValue from "./dimensionValue"
 
-const Dimension = ({ chart, index }) => {
+const Dimension = ({ chart, id }) => {
   return (
     <Flex gap={1}>
-      <LegendColor chart={chart} index={index} width="2px" height="12px" color="bright" />
-      <Flex as={LegendName} flex chart={chart} index={index} color="bright" margin={[0, "auto"]} />
-      <DimensionValue chart={chart} index={index} color="bright" />
+      <LegendColor chart={chart} id={id} height="12px" color="bright" />
+      <Flex as={LegendName} flex chart={chart} id={id} color="bright" margin={[0, "auto"]} />
+      <DimensionValue chart={chart} id={id} color="bright" />
     </Flex>
   )
 }
 
 const Dimensions = ({ chart }) => {
-  const { dimensionIds } = chart.getPayload()
-  const list = useMemo(() => [...Array(Math.min(10, dimensionIds.length))], [dimensionIds.length])
+  const dimensionIds = chart.getDimensionIds()
 
   return (
     <Flex background={["gray", "cod"]} width="196px" column gap={1} padding={[1, 2]}>
-      {list.map((v, index) => (
-        <Dimension key={dimensionIds[index]} chart={chart} index={index} />
+      {dimensionIds.map(id => (
+        <Dimension key={id} chart={chart} id={id} />
       ))}
     </Flex>
   )
@@ -48,7 +47,7 @@ const Container = ({ chart }) => {
         ref.current.style.left = `${x + 25}px`
         ref.current.style.top = `${y + 20}px`
       }),
-      chart.on("blur", () => setOpen(false)),
+      chart.on("blurChart", () => setOpen(false)),
     ]
     return () => events.forEach(event => event())
   }, [])
