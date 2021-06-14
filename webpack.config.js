@@ -25,6 +25,15 @@ module.exports = {
         exclude: /node_modules/,
         loader: "babel-loader",
       },
+      {
+        //svg-sprite-loader
+        test: /\.svg$/,
+        include: /node_modules\/@netdata\/netdata-ui/,
+        loader: "raw-loader",
+        options: {
+          esModule: false,
+        },
+      },
     ],
   },
   plugins: [new CleanWebpackPlugin()],

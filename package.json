@@ -48,8 +48,10 @@
     "jest": "^26.6.3",
     "jest-canvas-mock": "^2.3.1",
     "prettier": "^2.2.1",
+    "raw-loader": "^4.0.2",
     "rimraf": "^3.0.2",
     "storybook": "^6.2.9",
+    "svg-sprite-loader": "^6.0.7",
     "webpack": "^5.36.0",
     "webpack-cli": "^4.6.0",
     "webpack-plugin": "^1.0.5"
@@ -58,6 +60,7 @@
     "@netdata/netdata-ui": "^1.4.9",
     "date-fns": "^2.21.1",
     "dygraphs": "^2.1.0",
+    "md5": "^2.3.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "styled-components": "^5.2.3"
