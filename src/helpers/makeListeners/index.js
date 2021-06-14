@@ -7,11 +7,17 @@ export default () => {
     onceListenersByEvent[eventName]?.delete(handler)
   }
 
-  const on = (eventName, handler) => {
+  const on = (eventName, handler, offs = []) => {
     listenersByEvent[eventName] = listenersByEvent[eventName] || new Set()
     listenersByEvent[eventName].add(handler)
 
-    return () => off(eventName, handler)
+    offs.push(() => off(eventName, handler))
+
+    const remove = () => offs.forEach(o => o())
+
+    remove.on = (eventName, handler) => on(eventName, handler, offs)
+
+    return remove
   }
 
   const once = (eventName, handler) => {
@@ -43,5 +49,14 @@ export default () => {
     onceListenersByEvent = {}
   }
 
-  return { off, on, once, trigger, offAll }
+  return {
+    off,
+    on,
+    once,
+    trigger,
+    offAll,
+    log: () => {
+      console.log("listenersByEvent", listenersByEvent)
+    },
+  }
 }
