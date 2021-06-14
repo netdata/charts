@@ -26,11 +26,49 @@ import systemIpArea from "@/fixtures/systemIpArea"
 import systemIpAreaChart from "@/fixtures/systemIpAreaChart"
 
 const getChartMetadata = () => camelizeKeys(systemLoadLineChart, { omit: ["dimensions"] })
-const getChart = makeMockPayload(systemLoadLine[0], { delay: 1000 })
+const getChart = makeMockPayload(systemLoadLine[0], { delay: 600 })
 
 export const Simple = () => {
   const sdk = makeDefaultSDK({ getChartMetadata })
   const chart = sdk.makeChart({ getChart })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Chart chart={chart} />
+    </ThemeProvider>
+  )
+}
+
+export const Timeout = () => {
+  let requests = 0
+  const sdk = makeDefaultSDK({ getChartMetadata })
+  const chart = sdk.makeChart({
+    getChart: params => {
+      if (requests++ % 2 === 1)
+        return new Promise(r => setTimeout(() => getChart(params).then(r), 10000))
+      return getChart(params)
+    },
+  })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Chart chart={chart} />
+    </ThemeProvider>
+  )
+}
+
+export const Error = () => {
+  let requests = 0
+  const sdk = makeDefaultSDK({ getChartMetadata })
+  const chart = sdk.makeChart({
+    getChart: params => {
+      if (requests++ % 2 === 1)
+        return new Promise((resolve, reject) => setTimeout(() => reject(), 200))
+      return getChart(params)
+    },
+  })
   sdk.appendChild(chart)
 
   return (
