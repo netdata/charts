@@ -2,6 +2,10 @@ export default {
   host: "",
   before: 0,
   after: 0,
+  loaded: false,
+  loading: false,
+  updatedAt: 0,
+  focused: false,
   enabledHover: true,
   syncHover: true,
   hoverX: null,
@@ -20,4 +24,5 @@ export default {
   temperature: "celsius",
   secondsAsTime: true,
   timezone: "default",
+  dimensionsSort: "default",
 }
