@@ -19,17 +19,18 @@ const DimensionValue = ({ chart, id, ...rest }) => {
       setState(getValue())
     })
 
-    chart.on("successFetch", () => {
-      setState(getValue())
-    })
-
-    chart.on("convertedValuesChange", () => {
-      setState(getValue())
-    })
+    const offs = chart
+      .on("successFetch", () => {
+        setState(getValue())
+      })
+      .on("convertedValuesChange", () => {
+        setState(getValue())
+      })
 
     return () => {
       unmount.current = true
       remove()
+      offs()
     }
   }, [])
 

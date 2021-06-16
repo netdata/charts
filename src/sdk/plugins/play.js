@@ -3,34 +3,27 @@ export default sdk => {
 
   const getNext = () => {
     sdk.getNodes().forEach(node => {
-      // or is loading
       if (node.type !== "chart") return
-
-      const { loading, loaded, updatedAt } = node.getAttributes()
-      const { updateEvery } = node.getMetadata()
-
       node.getUI().render()
-
-      // console.log(updatedAt, updateEvery)
-      if (loading) return
-      if (!loaded || updatedAt + updateEvery * 1000 < Date.now()) {
-        return node.fetch()
-      }
     })
     timeoutId = setTimeout(() => {
       getNext()
     }, 1000)
   }
 
-  getNext()
-
   const start = () => {
     if (!timeoutId) getNext()
+    sdk.getNodes().forEach(node => {
+      node.updateAttribute("autofetch", true)
+    })
   }
 
   const stop = () => {
     clearTimeout(timeoutId)
     timeoutId = null
+    sdk.getNodes().forEach(node => {
+      node.updateAttribute("autofetch", false)
+    })
   }
 
   sdk.getRoot().onAttributeChange("after", after => {
@@ -39,14 +32,23 @@ export default sdk => {
     stop()
   })
 
-  sdk.on("hoverChart", () => {
+  const offs = sdk
+    .on("hoverChart", () => {
+      stop()
+    })
+    .on("blurChart", () => {
+      const after = sdk.getRoot().getAttribute("after")
+      if (after < 0) start()
+    })
+    .on("nodeAdded", node => {
+      if (timeoutId && node.type === "chart") return node.startAutofetch()
+    })
+
+  start()
+
+  return () => {
+    console.log("unmount")
     stop()
-  })
-
-  sdk.on("blurChart", () => {
-    const after = sdk.getRoot().getAttribute("after")
-    if (after < 0) start()
-  })
-
-  return () => {}
+    offs()
+  }
 }

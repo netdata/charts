@@ -16,7 +16,7 @@ const fade = css`
 `
 
 const Logo = styled(Icon)`
-  ${({ loading }) => loading && fade}
+  ${({ isLoading }) => isLoading && fade}
 `
 
 const Status = ({ chart, ...rest }) => {
@@ -41,7 +41,7 @@ const Status = ({ chart, ...rest }) => {
 
   return (
     <Flex gap={3} {...rest}>
-      <Logo svg={netdata} width="20px" color="primary" loading={!loaded} />
+      <Logo svg={netdata} width="20px" color="primary" isLoading={!loaded} />
       <Button icon={<Icon svg={reload2} />} onClick={fetch} />
       {delayed && <Badge type="warning">Timeout</Badge>}
       {error && <Badge type="error">Error</Badge>}

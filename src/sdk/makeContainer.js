@@ -7,6 +7,7 @@ export default ({ sdk, parent, attributes } = {}) => {
   const appendChild = (node, { inherit = true } = {}) => {
     node.setParent(instance, { inherit })
     children.push(node)
+    sdk.trigger("nodeAdded", node)
   }
 
   const getNodes = (attributes, nodes = []) => {

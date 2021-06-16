@@ -162,6 +162,7 @@ export default (sdk, chart) => {
   const getDygraph = () => dygraph
 
   const render = () => {
+    chartUI.render()
     const { result } = chart.getPayload()
     const dateWindow = getDateWindow(chart)
     dygraph.updateOptions({

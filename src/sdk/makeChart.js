@@ -11,7 +11,8 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
   let ui = null
   let fetchPromise = null
   let payload = initialPayload
-  let timeoutId
+  let fetchDelayTimeoutId = null
+  let fetchTimeoutId = null
 
   const getPayload = () => payload
 
@@ -22,10 +23,47 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
     return sdk.chartsMetadata.get(host, context)
   }
 
-  const clearFetchTimeout = () => {
-    if (timeoutId === null) node.trigger("timeout", false)
-    clearTimeout(timeoutId)
+  const clearFetchDelayTimeout = () => {
+    if (fetchDelayTimeoutId === null) node.trigger("timeout", false)
+    clearTimeout(fetchDelayTimeoutId)
   }
+
+  const startAutofetch = () => {
+    node.updateAttribute("autofetch", true)
+    const { fetchStatedAt, loading, autofetch } = node.getAttributes()
+
+    if (!autofetch || loading) return
+
+    const { updateEvery = 1 } = getMetadata()
+
+    if (fetchStatedAt === 0) return fetch()
+
+    const fetchingPeriod = Date.now() - fetchStatedAt
+    const updateEveryMs = updateEvery * 1000
+    const div = fetchingPeriod / updateEveryMs
+    const updateEveryMultiples = Math.floor(div)
+
+    if (updateEveryMultiples >= 1) return fetch()
+
+    const remaining = updateEveryMs - Math.round((div - Math.floor(div)) * updateEveryMs)
+
+    fetchTimeoutId = setTimeout(() => {
+      fetch()
+    }, remaining)
+  }
+
+  const stopAutofetch = () => {
+    clearTimeout(fetchTimeoutId)
+    fetchTimeoutId = null
+  }
+
+  node.onAttributeChange("autofetch", autofetch => {
+    if (autofetch) {
+      startAutofetch()
+    } else {
+      stopAutofetch()
+    }
+  })
 
   const doneFetch = nextPayload => {
     const { dimensionIds, result, ...restPayload } = camelizeKeys(nextPayload, {
@@ -52,25 +90,32 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
     })
 
     node.trigger("successFetch", payload, prevPayload)
-    clearFetchTimeout()
+    clearFetchDelayTimeout()
+
+    startAutofetch()
   }
 
   const failFetch = error => {
     node.updateAttribute("loading", false)
     node.trigger("failFetch", error)
-    clearFetchTimeout()
+    clearFetchDelayTimeout()
+
+    startAutofetch()
   }
 
   const fetch = () => {
+    console.log("fetch")
     node.trigger("startFetch")
-    node.updateAttribute("loading", true)
+    node.updateAttributes({ loading: true, fetchStatedAt: Date.now() })
+    node.updateAttribute()
     const attributes = node.getAttributes()
     const { host, context } = attributes
 
     const { updateEvery = 5 } = getMetadata() || {}
-    timeoutId = setTimeout(() => {
+    clearTimeout(fetchDelayTimeoutId)
+    fetchDelayTimeoutId = setTimeout(() => {
       node.trigger("timeout", true)
-      timeoutId = null
+      fetchDelayTimeoutId = null
     }, updateEvery * 1000)
 
     return sdk.chartsMetadata.fetch(host, context).then(() => {
@@ -116,6 +161,7 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
     doneFetch,
     cancelFetch,
     getConvertedValue,
+    startAutofetch,
     focus,
     blur,
   }

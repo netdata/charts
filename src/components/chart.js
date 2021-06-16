@@ -6,8 +6,9 @@ import Toolbox from "./toolbox"
 import Header from "./header"
 import Details from "./details"
 import DimensionFilter from "./dimensionFilter"
+import withIntersection from "./withIntersection"
 
-const Chart = ({ chart }) => {
+export const Chart = ({ chart }) => {
   const ref = useRef()
   const chartRef = useRef()
   const [detailsOpen, setDetailsOpen] = useState(false)

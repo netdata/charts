@@ -5,6 +5,7 @@ export default {
   loaded: false,
   loading: false,
   updatedAt: 0,
+  fetchStatedAt: 0,
   focused: false,
   enabledHover: true,
   syncHover: true,
@@ -25,4 +26,5 @@ export default {
   secondsAsTime: true,
   timezone: "default",
   dimensionsSort: "default",
+  autofetch: false,
 }
