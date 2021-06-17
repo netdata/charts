@@ -46,9 +46,8 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     )
   }
 
-  const onAttributeChange = (name, handler) => {
-    return attributeListeners.on(name, handler)
-  }
+  const onAttributeChange = (name, handler) => attributeListeners.on(name, handler)
+  const onceAttributeChange = (name, handler) => attributeListeners.once(name, handler)
 
   const match = attrs =>
     !attrs || !Object.keys(attrs).some(name => attrs[name] !== attributes[name])
@@ -103,6 +102,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     getAttributes,
     updateAttributes,
     onAttributeChange,
+    onceAttributeChange,
     match,
     getUuid,
     setParent,

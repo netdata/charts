@@ -55,8 +55,5 @@ export default () => {
     once,
     trigger,
     offAll,
-    log: () => {
-      console.log("listenersByEvent", listenersByEvent)
-    },
   }
 }

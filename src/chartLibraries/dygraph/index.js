@@ -145,9 +145,13 @@ export default (sdk, chart) => {
     ]
 
     hover = makeHover(instance)
+
+    render()
   }
 
   const unmount = () => {
+    if (!dygraph) return
+
     listeners.forEach(listener => listener())
     listeners = []
     chartUI.unmount()
@@ -165,6 +169,7 @@ export default (sdk, chart) => {
     chartUI.render()
     const { result } = chart.getPayload()
     const dateWindow = getDateWindow(chart)
+
     dygraph.updateOptions({
       file: result.data,
       labels: result.labels,

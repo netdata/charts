@@ -30,9 +30,9 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
 
   const startAutofetch = () => {
     node.updateAttribute("autofetch", true)
-    const { fetchStatedAt, loading, autofetch } = node.getAttributes()
+    const { fetchStatedAt, loading, autofetch, active } = node.getAttributes()
 
-    if (!autofetch || loading) return
+    if (!autofetch || loading || !active) return
 
     const { updateEvery = 1 } = getMetadata()
 
@@ -52,18 +52,10 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
     }, remaining)
   }
 
-  const stopAutofetch = () => {
-    clearTimeout(fetchTimeoutId)
-    fetchTimeoutId = null
+  const finishFetch = () => {
+    clearFetchDelayTimeout()
+    startAutofetch()
   }
-
-  node.onAttributeChange("autofetch", autofetch => {
-    if (autofetch) {
-      startAutofetch()
-    } else {
-      stopAutofetch()
-    }
-  })
 
   const doneFetch = nextPayload => {
     const { dimensionIds, result, ...restPayload } = camelizeKeys(nextPayload, {
@@ -90,21 +82,16 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
     })
 
     node.trigger("successFetch", payload, prevPayload)
-    clearFetchDelayTimeout()
-
-    startAutofetch()
+    finishFetch()
   }
 
   const failFetch = error => {
     node.updateAttribute("loading", false)
     node.trigger("failFetch", error)
-    clearFetchDelayTimeout()
-
-    startAutofetch()
+    finishFetch()
   }
 
   const fetch = () => {
-    console.log("fetch")
     node.trigger("startFetch")
     node.updateAttributes({ loading: true, fetchStatedAt: Date.now() })
     node.updateAttribute()
@@ -147,8 +134,38 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
   }
 
   const focus = () => node.updateAttribute("focused", true)
-
   const blur = () => node.updateAttribute("focused", false)
+  const activate = () => {
+    node.updateAttribute("active", true)
+    sdk.trigger("active", instance)
+  }
+  const deactivate = () => {
+    node.updateAttribute("active", false)
+    sdk.trigger("deactivate", instance)
+  }
+
+  const stopAutofetch = () => {
+    clearTimeout(fetchTimeoutId)
+    fetchTimeoutId = null
+  }
+
+  node.onAttributeChange("autofetch", autofetch => {
+    if (autofetch) {
+      startAutofetch()
+    } else {
+      stopAutofetch()
+    }
+  })
+
+  node.onAttributeChange("active", active => {
+    if (!active) return stopAutofetch()
+    if (node.getAttribute("autofetch")) return startAutofetch()
+  })
+
+  const getUnitSign = () => {
+    const unit = node.getAttribute("unit")
+    return unit === "percentage" ? "%" : unit.replace(/milliseconds/, "ms")
+  }
 
   const instance = {
     ...node,
@@ -164,6 +181,9 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
     startAutofetch,
     focus,
     blur,
+    activate,
+    deactivate,
+    getUnitSign,
   }
 
   return { ...instance, ...makeDimensions(instance) }

@@ -81,7 +81,7 @@ export const Error = () => {
 export const Multiple = () => {
   const sdk = makeDefaultSDK({ getChartMetadata })
 
-  const charts = Array.from(Array(5)).map((v, index) => {
+  const charts = Array.from(Array(3)).map((v, index) => {
     const chart = sdk.makeChart({ attributes: { id: index }, getChart })
     sdk.appendChild(chart)
 

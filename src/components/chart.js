@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef, useState } from "react"
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import Tooltip from "./tooltip"
 import Legend from "./legend"
@@ -8,15 +8,20 @@ import Details from "./details"
 import DimensionFilter from "./dimensionFilter"
 import withIntersection from "./withIntersection"
 
-export const Chart = ({ chart }) => {
+export const Chart = ({ chart, ...rest }) => {
   const ref = useRef()
   const chartRef = useRef()
   const [detailsOpen, setDetailsOpen] = useState(false)
 
   useLayoutEffect(() => {
-    chart.getUI().mount(chartRef.current)
-    return () => chart.getUI().unmount()
+    if (chart.getAttribute("loaded")) {
+      return chart.getUI().mount(chartRef.current)
+    }
+
+    return chart.onceAttributeChange("loaded", () => chart.getUI().mount(chartRef.current))
   }, [])
+
+  useEffect(() => () => chart.getUI().unmount(), [])
 
   useLayoutEffect(() => {
     const mouseout = e => {
@@ -37,19 +42,19 @@ export const Chart = ({ chart }) => {
   }, [])
 
   return (
-    <Flex ref={ref} round border={{ color: "borderSecondary", side: "all" }} column>
+    <Flex ref={ref} round border={{ color: "borderSecondary", side: "all" }} column {...rest}>
       <Header
         chart={chart}
         detailsOpen={detailsOpen}
         toggleDetails={() => setDetailsOpen(s => !s)}
       />
-      <Flex style={{ position: "relative" }} column>
-        <Flex style={{ position: "relative" }} padding={[0, 0, 4, 0]}>
+      <Flex style={{ position: "relative" }} column flex>
+        <Flex style={{ position: "relative" }} padding={[0, 0, 4, 0]} flex>
           <div style={{ width: "100%" }} ref={chartRef}></div>
           <Toolbox chart={chart} />
           <Tooltip chart={chart} />
         </Flex>
-        <Flex>
+        <Flex border={{ side: "top", color: "borderSecondary" }}>
           <DimensionFilter chart={chart} />
           <Legend chart={chart} flex />
         </Flex>
@@ -59,4 +64,4 @@ export const Chart = ({ chart }) => {
   )
 }
 
-export default Chart
+export default withIntersection(Chart)

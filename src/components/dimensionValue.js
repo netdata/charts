@@ -5,6 +5,7 @@ const DimensionValue = ({ chart, id, ...rest }) => {
   const getValue = () => {
     const hover = chart.getAttribute("hoverX")
     const { result } = chart.getPayload()
+
     const index = hover ? hover[0] : result.data.length - 1
     const value = chart.getDimensionValue(id, index)
     return chart.getConvertedValue(value)
@@ -34,11 +35,7 @@ const DimensionValue = ({ chart, id, ...rest }) => {
     }
   }, [])
 
-  return (
-    <TextMicro strong {...rest}>
-      {value}
-    </TextMicro>
-  )
+  return <TextMicro {...rest}>{value}</TextMicro>
 }
 
 export default DimensionValue

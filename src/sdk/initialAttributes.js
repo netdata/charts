@@ -7,6 +7,7 @@ export default {
   updatedAt: 0,
   fetchStatedAt: 0,
   focused: false,
+  active: false,
   enabledHover: true,
   syncHover: true,
   hoverX: null,
@@ -26,5 +27,5 @@ export default {
   secondsAsTime: true,
   timezone: "default",
   dimensionsSort: "default",
-  autofetch: false,
+  autofetch: true,
 }

@@ -3,7 +3,8 @@ export default sdk => {
 
   const getNext = () => {
     sdk.getNodes().forEach(node => {
-      if (node.type !== "chart") return
+      const { active, loaded } = node.getAttributes()
+      if (node.type !== "chart" || !active || !loaded) return
       node.getUI().render()
     })
     timeoutId = setTimeout(() => {
@@ -47,7 +48,6 @@ export default sdk => {
   start()
 
   return () => {
-    console.log("unmount")
     stop()
     offs()
   }
