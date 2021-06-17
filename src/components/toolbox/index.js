@@ -3,9 +3,9 @@ import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import panIcon from "@netdata/netdata-ui/lib/components/icon/assets/pan.svg"
 import selectedArea from "@netdata/netdata-ui/lib/components/icon/assets/selected_area.svg"
+import selectIcon from "@netdata/netdata-ui/lib/components/icon/assets/select.svg"
 import zoomInIcon from "@netdata/netdata-ui/lib/components/icon/assets/zoom_in.svg"
 import zoomOutIcon from "@netdata/netdata-ui/lib/components/icon/assets/zoom_out.svg"
-import Add from "@netdata/netdata-ui/lib/components/icon/assets/selected_area.svg"
 import Icon, { Button } from "@/components/icon"
 
 const Container = styled(Flex).attrs({
@@ -26,6 +26,10 @@ const Toolbox = forwardRef(({ chart }, ref) => {
 
   const pan = () => {
     chart.updateAttribute("navigation", "pan")
+  }
+
+  const select = () => {
+    chart.updateAttribute("navigation", "select")
   }
 
   const highlight = () => {
@@ -54,11 +58,16 @@ const Toolbox = forwardRef(({ chart }, ref) => {
       />
       <Button
         icon={<Icon svg={selectedArea} />}
-        title="Highlight"
+        title="Select"
+        onClick={select}
+        active={navigation === "select"}
+      />
+      <Button
+        icon={<Icon svg={selectIcon} />}
+        title="Select Area"
         onClick={highlight}
         active={navigation === "highlight"}
       />
-      {/* <Button icon={<Icon svg={Add} />} /> */}
       <Button icon={<Icon svg={zoomInIcon} />} title="Zoom in" onClick={zoomIn} />
       <Button icon={<Icon svg={zoomOutIcon} />} title="Zoom out" onClick={zoomOut} />
     </Container>

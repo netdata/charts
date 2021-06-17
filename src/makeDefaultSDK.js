@@ -5,6 +5,7 @@ import hover from "./sdk/plugins/hover"
 import pan from "./sdk/plugins/pan"
 import move from "./sdk/plugins/move"
 import highlight from "./sdk/plugins/highlight"
+import select from "./sdk/plugins/select"
 import play from "./sdk/plugins/play"
 
 const minutes15 = 15 * 60
@@ -20,6 +21,7 @@ export default options =>
       hover,
       pan,
       highlight,
+      select,
       play,
       move,
     },

@@ -1,7 +1,7 @@
 import highlight from "./highlight"
 import pan from "./pan"
 
-const navigations = { highlight, pan }
+const navigations = { highlight, select: highlight, pan }
 
 export default chartUI => {
   let unregister
