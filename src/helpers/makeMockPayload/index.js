@@ -1,4 +1,5 @@
-export default (payload, { delay = 0 } = {}) => async ({ after, before }) => {
+export default (payload, { delay = 0 } = {}) => async chart => {
+  const { after, before } = chart.getAttributes()
   const { data } = payload.result
   const [first] = data
   const points = data.length

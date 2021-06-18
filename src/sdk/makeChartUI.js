@@ -4,6 +4,7 @@ export default (sdk, chart) => {
   const listeners = makeListeners()
   let element = null
   let renderedAt = 0
+  let estimatedWidth = 0
 
   const mount = el => {
     element = el
@@ -24,5 +25,29 @@ export default (sdk, chart) => {
 
   const getElement = () => element
 
-  return { ...listeners, sdk, chart, mount, unmount, render, getRenderedAt, getElement }
+  const setEstimatedWidth = width => {
+    estimatedWidth = width
+  }
+
+  const getEstimatedChartWidth = () => {
+    const width = element ? element.offsetWidth : estimatedWidth || 300
+    const legendWidth = chart.getAttribute("legend") ? 140 : 0
+    return width - legendWidth
+  }
+
+  const getPixelsPerPoint = () => 1
+
+  return {
+    ...listeners,
+    sdk,
+    chart,
+    mount,
+    unmount,
+    render,
+    getRenderedAt,
+    getElement,
+    setEstimatedWidth,
+    getEstimatedChartWidth,
+    getPixelsPerPoint,
+  }
 }

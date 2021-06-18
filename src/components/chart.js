@@ -15,7 +15,8 @@ export const Chart = ({ chart, ...rest }) => {
 
   useLayoutEffect(() => {
     if (chart.getAttribute("loaded")) {
-      return chart.getUI().mount(chartRef.current)
+      chart.getUI().mount(chartRef.current)
+      return
     }
 
     return chart.onceAttributeChange("loaded", () => chart.getUI().mount(chartRef.current))

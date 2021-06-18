@@ -27,5 +27,13 @@ export default {
   secondsAsTime: true,
   timezone: "default",
   dimensionsSort: "default",
+  dimensions: null,
   autofetch: true,
+  pixelsPerPoint: 1,
+  legend: true,
+  groupingMethod: "average",
+  groupingTime: 0,
+  chartUrlOptions: null,
+  urlOptions: [],
+  eliminateZeroDimensions: false,
 }

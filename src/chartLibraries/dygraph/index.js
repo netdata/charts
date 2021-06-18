@@ -32,6 +32,8 @@ export default (sdk, chart) => {
   let highlight = null
 
   const mount = element => {
+    if (dygraph) return
+
     chartUI.mount(element)
 
     const attributes = chart.getAttributes()
@@ -178,7 +180,22 @@ export default (sdk, chart) => {
     chart.updateDimensions()
   }
 
-  const instance = { ...chartUI, mount, unmount, getDygraph, render }
+  const getPixelsPerPoint = () => 3
+
+  const getChartWidth = () => (dygraph ? dygraph.getArea().w : chartUI.getEstimatedChartWidth())
+
+  const getUrlOptions = () => ["ms", "flip"]
+
+  const instance = {
+    ...chartUI,
+    getChartWidth,
+    getPixelsPerPoint,
+    getUrlOptions,
+    mount,
+    unmount,
+    getDygraph,
+    render,
+  }
 
   navigation = makeNavigation(instance)
   hoverX = makeHoverX(instance)

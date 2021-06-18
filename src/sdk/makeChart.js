@@ -58,6 +58,7 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
   }
 
   const doneFetch = nextPayload => {
+    console.log("doneFetch")
     const { dimensionIds, result, ...restPayload } = camelizeKeys(nextPayload, {
       omit: ["result"],
     })
@@ -86,6 +87,7 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
   }
 
   const failFetch = error => {
+    console.log("failFetch", error)
     node.updateAttribute("loading", false)
     node.trigger("failFetch", error)
     finishFetch()
@@ -106,7 +108,7 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
     }, updateEvery * 1000)
 
     return sdk.chartsMetadata.fetch(host, context).then(() => {
-      fetchPromise = getChart(attributes)
+      fetchPromise = getChart(instance)
       return fetchPromise.then(doneFetch).catch(failFetch)
     })
   }
