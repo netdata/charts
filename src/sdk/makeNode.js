@@ -81,8 +81,6 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   }
 
   const moveX = (after, before) => {
-    // setAttributes({ after, before })
-    // listeners.trigger("moveX", after, before)
     sdk.trigger("moveX", instance, after, before)
   }
 

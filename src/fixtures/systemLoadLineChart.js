@@ -7,7 +7,7 @@ export default {
   module: "/proc/loadavg",
   units: "load",
   chartType: "line",
-  updateEvery: 5,
+  updateEvery: 1,
   firstEntry: 1619892420,
   lastEntry: 1620204945,
   dimensions: { load1: { name: "load1" }, load15: { name: "load15" }, load5: { name: "load5" } },

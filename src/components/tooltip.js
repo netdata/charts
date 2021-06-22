@@ -51,7 +51,7 @@ const Dimensions = ({ chart }) => {
 
 const Tooltip = forwardRef(({ chart }, ref) => {
   return (
-    <div ref={ref} style={{ position: "fixed" }}>
+    <div ref={ref} style={{ position: "absolute" }}>
       <Dimensions chart={chart} />
     </div>
   )
@@ -64,11 +64,11 @@ const Container = ({ chart }) => {
   useEffect(() => {
     const events = [
       chart.getUI().on("mousemove", event => {
-        const { x, y } = event
+        const { offsetX, offsetY } = event
         setOpen(true)
         if (!ref.current) return
-        ref.current.style.left = `${x + 25}px`
-        ref.current.style.top = `${y + 20}px`
+        ref.current.style.left = `${offsetX + 25}px`
+        ref.current.style.top = `${offsetY + 20}px`
       }),
       chart.on("blurChart", () => setOpen(false)),
     ]

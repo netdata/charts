@@ -22,8 +22,25 @@ const injectContainer = () => {
   document.body.insertBefore(container.firstChild.cloneNode(true), document.body.firstChild)
 }
 
+const getElement = (svg, id) => {
+  const container = document.createElement("div")
+  container.innerHTML = svg
+
+  if (container.firstChild.tagName === "SVG") {
+    container.firstChild.id = id
+    return container.firstChild
+  }
+
+  const viewbox = container.firstChild.getAttribute("viewBox")
+  const xmlns = container.firstChild.getAttribute("xmlns")
+  container.innerHTML = `<svg viewbox="${viewbox}" id="${id}" xmlns="${xmlns}">${container.firstChild.innerHTML}</svg>`
+
+  return container.firstChild
+}
+
 const Icon = ({ svg, size = "24px", width = size, height = size, ...rest }) => {
-  const id = useMemo(() => md5(svg), [])
+  const rowSvg = svg.content || svg
+  const id = useMemo(() => md5(rowSvg), [])
 
   useEffect(() => {
     if (document.getElementById(id)) return
@@ -32,11 +49,8 @@ const Icon = ({ svg, size = "24px", width = size, height = size, ...rest }) => {
 
     const defs = document.querySelector(`#${iconsContainerId} defs`)
 
-    const svgContainer = document.createElement("div")
-    svgContainer.innerHTML = svg
-    svgContainer.firstChild.id = id
-
-    defs.appendChild(svgContainer.firstChild)
+    const element = getElement(rowSvg, id)
+    defs.appendChild(element)
   }, [])
 
   return (

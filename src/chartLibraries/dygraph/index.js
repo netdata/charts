@@ -136,14 +136,6 @@ export default (sdk, chart) => {
       chart.onAttributeChange("enabledHover", hoverX.toggle),
       chart.onAttributeChange("navigation", navigation.set),
       chart.onAttributeChange("highlight", highlight.toggle),
-      // chart.on("successFetch", payload => {
-      //   const dateWindow = getDateWindow(chart)
-      //   dygraph.updateOptions({
-      //     file: payload.result.data,
-      //     labels: payload.result.labels,
-      //     dateWindow,
-      //   })
-      // }),
     ]
 
     hover = makeHover(instance)

@@ -21,7 +21,7 @@ const DimensionValue = ({ chart, id, ...rest }) => {
     })
 
     const offs = chart
-      .on("successFetch", () => {
+      .on("finishFetch", () => {
         setState(getValue())
       })
       .on("convertedValuesChange", () => {

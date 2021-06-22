@@ -19,13 +19,14 @@ export default Component => {
     return (
       <Intersection
         height="450px"
+        width="100%"
         fallback={chart.getAttribute("id")}
         onVisibility={onVisibility}
         ref={ref}
         {...rest}
       >
         {() => {
-          return <Component chart={chart} height="450px" flex />
+          return <Component chart={chart} height="450px" width="100%" flex {...rest} />
         }}
       </Intersection>
     )

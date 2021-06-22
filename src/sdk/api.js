@@ -34,7 +34,7 @@ const getChartPayload = chart => {
 }
 
 export const fetchChartData = chart => {
-  console.log("fetchChartData")
+  // console.log("fetchChartData")
   const { host } = chart.getAttributes()
 
   const payload = getChartPayload(chart)

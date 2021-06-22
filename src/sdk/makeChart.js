@@ -29,7 +29,7 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
   }
 
   const startAutofetch = () => {
-    node.updateAttribute("autofetch", true)
+    // node.updateAttribute("autofetch", true)
     const { fetchStatedAt, loading, autofetch, active } = node.getAttributes()
 
     if (!autofetch || loading || !active) return
@@ -48,17 +48,18 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
     const remaining = updateEveryMs - Math.round((div - Math.floor(div)) * updateEveryMs)
 
     fetchTimeoutId = setTimeout(() => {
-      fetch()
+      startAutofetch()
     }, remaining)
   }
 
   const finishFetch = () => {
     clearFetchDelayTimeout()
     startAutofetch()
+    node.trigger("finishFetch")
   }
 
   const doneFetch = nextPayload => {
-    console.log("doneFetch")
+    // console.log("doneFetch")
     const { dimensionIds, result, ...restPayload } = camelizeKeys(nextPayload, {
       omit: ["result"],
     })
@@ -87,7 +88,8 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
   }
 
   const failFetch = error => {
-    console.log("failFetch", error)
+    // console.log("failFetch", error)
+    payload = initialPayload
     node.updateAttribute("loading", false)
     node.trigger("failFetch", error)
     finishFetch()
@@ -139,11 +141,11 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
   const blur = () => node.updateAttribute("focused", false)
   const activate = () => {
     node.updateAttribute("active", true)
-    sdk.trigger("active", instance)
+    sdk.trigger("active", instance, true)
   }
   const deactivate = () => {
     node.updateAttribute("active", false)
-    sdk.trigger("deactivate", instance)
+    sdk.trigger("active", instance, false)
   }
 
   const stopAutofetch = () => {

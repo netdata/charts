@@ -2,12 +2,17 @@ import makeNode from "./makeNode"
 
 export default ({ sdk, parent, attributes } = {}) => {
   const node = makeNode({ sdk, parent, attributes })
-  const children = []
+  let children = []
 
   const appendChild = (node, { inherit = true } = {}) => {
     node.setParent(instance, { inherit })
     children.push(node)
     sdk.trigger("nodeAdded", node)
+  }
+
+  const removeChild = node => {
+    children = children.filter(n => n !== node)
+    sdk.trigger("nodeRemoved", node)
   }
 
   const getNodes = (attributes, nodes = []) => {
@@ -21,7 +26,7 @@ export default ({ sdk, parent, attributes } = {}) => {
     return nodes
   }
 
-  const instance = { ...node, type: "container", appendChild, getNodes }
+  const instance = { ...node, type: "container", appendChild, removeChild, getNodes }
 
   return instance
 }

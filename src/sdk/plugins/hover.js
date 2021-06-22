@@ -1,26 +1,18 @@
 export default sdk => {
-  sdk.getNodes().forEach(node => {
-    node.updateAttribute("enabledHover", true)
-  })
-
-  const offHoverX = sdk.on("hoverX", (chart, x, y, dimensionX, dimensionY) => {
-    chart.getApplicableNodes({ syncHover: true }).forEach(node => {
-      node.updateAttribute("hoverX", [dimensionX, dimensionY])
+  return sdk
+    .on("highlightHover", (chart, x, y, dimensionX, dimensionY) => {
+      chart.getApplicableNodes({ syncHover: true }).forEach(node => {
+        node.updateAttribute("hoverX", [dimensionX, dimensionY])
+      })
     })
-  })
-
-  const offBlurChart = sdk.on("blurChart", chart => {
-    chart.getApplicableNodes({ syncHover: true }).forEach(node => {
-      node.updateAttribute("hoverX", null)
+    .on("hoverChart", chart => {
+      chart.getApplicableNodes({ syncHover: true }).forEach(node => {
+        node.updateAttribute("hovering", true)
+      })
     })
-  })
-
-  return () => {
-    offHoverX()
-    offBlurChart()
-
-    sdk.getNodes().forEach(node => {
-      node.updateAttribute("enabledHover", false)
+    .on("blurChart", chart => {
+      chart.getApplicableNodes({ syncHover: true }).forEach(node => {
+        node.updateAttributes({ hoverX: null, hovering: false })
+      })
     })
-  }
 }
