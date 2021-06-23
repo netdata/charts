@@ -57,7 +57,7 @@
     "webpack-plugin": "^1.0.5"
   },
   "dependencies": {
-    "@netdata/netdata-ui": "^1.4.9",
+    "@netdata/netdata-ui": "^1.6.2",
     "date-fns": "^2.21.1",
     "dygraphs": "^2.1.0",
     "md5": "^2.3.0",

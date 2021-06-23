@@ -6,7 +6,7 @@ const color = (active, disabled) => {
   if (active) return "separator"
   if (disabled) return "disabled"
 
-  return ["gray", "aluminium"]
+  return "border"
 }
 
 const Button = styled.button.attrs(({ icon }) => ({ children: icon }))`

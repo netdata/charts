@@ -14,6 +14,12 @@ yarn:
   $ yarn add @netdata/charts
 ```
 
+## Develop
+
+```shell
+  $ yarn storybook
+```
+
 ## Build
 
 There are 3 different distributions. The following command creates the different distributions in the `./dist` folder

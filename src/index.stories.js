@@ -28,7 +28,7 @@ import systemIpAreaChart from "@/fixtures/systemIpAreaChart"
 const getChartMetadata = () => camelizeKeys(systemLoadLineChart, { omit: ["dimensions"] })
 const getChart = makeMockPayload(systemLoadLine[0], { delay: 600 })
 
-export const Simple = () => {
+export const SimpleReal = () => {
   const sdk = makeDefaultSDK({ getChartMetadata })
   const chart = sdk.makeChart({ attributes: { host: "http://d1.firehol.org/api/v1/data" } })
   sdk.appendChild(chart)
@@ -40,45 +40,57 @@ export const Simple = () => {
   )
 }
 
-// export const Timeout = () => {
-//   let requests = 0
-//   const sdk = makeDefaultSDK({ getChartMetadata })
-//   const chart = sdk.makeChart({
-//     getChart: params => {
-//       if (requests++ % 2 === 1)
-//         return new Promise(r => setTimeout(() => getChart(params).then(r), 10000))
-//       return getChart(params)
-//     },
-//   })
-//   sdk.appendChild(chart)
+export const Simple = () => {
+  const sdk = makeDefaultSDK({ getChartMetadata })
+  const chart = sdk.makeChart({ getChart })
+  sdk.appendChild(chart)
 
-//   return (
-//     <ThemeProvider theme={DefaultTheme}>
-//       <Chart chart={chart} />
-//     </ThemeProvider>
-//   )
-// }
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Chart chart={chart} />
+    </ThemeProvider>
+  )
+}
 
-// export const Error = () => {
-//   let requests = 0
-//   const sdk = makeDefaultSDK({ getChartMetadata })
-//   const chart = sdk.makeChart({
-//     getChart: params => {
-//       if (requests++ % 2 === 1)
-//         return new Promise((resolve, reject) => setTimeout(() => reject(), 200))
-//       return getChart(params)
-//     },
-//   })
-//   sdk.appendChild(chart)
+export const Timeout = () => {
+  let requests = 0
+  const sdk = makeDefaultSDK({ getChartMetadata })
+  const chart = sdk.makeChart({
+    getChart: params => {
+      if (requests++ % 2 === 1)
+        return new Promise(r => setTimeout(() => getChart(params).then(r), 10000))
+      return getChart(params)
+    },
+  })
+  sdk.appendChild(chart)
 
-//   return (
-//     <ThemeProvider theme={DefaultTheme}>
-//       <Chart chart={chart} />
-//     </ThemeProvider>
-//   )
-// }
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Chart chart={chart} />
+    </ThemeProvider>
+  )
+}
 
-export const Multiple = () => {
+export const Error = () => {
+  let requests = 0
+  const sdk = makeDefaultSDK({ getChartMetadata })
+  const chart = sdk.makeChart({
+    getChart: params => {
+      if (requests++ % 2 === 1)
+        return new Promise((resolve, reject) => setTimeout(() => reject(), 200))
+      return getChart(params)
+    },
+  })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Chart chart={chart} />
+    </ThemeProvider>
+  )
+}
+
+export const MultipleReal = () => {
   const sdk = makeDefaultSDK({ getChartMetadata })
 
   const charts = Array.from(Array(3)).map((v, index) => {
@@ -101,101 +113,122 @@ export const Multiple = () => {
   )
 }
 
-// export const Sync = () => {
-//   const sdk = makeDefaultSDK({ getChartMetadata })
+export const Multiple = () => {
+  const sdk = makeDefaultSDK({ getChartMetadata })
 
-//   const charts = Array.from(Array(3)).map((v, index) => {
-//     const chart = sdk.makeChart({ attributes: { id: index, syncHover: index !== 1 }, getChart })
-//     sdk.appendChild(chart)
-//     return chart
-//   })
+  const charts = Array.from(Array(3)).map((v, index) => {
+    const chart = sdk.makeChart({ attributes: { id: index }, getChart })
+    sdk.appendChild(chart)
 
-//   return (
-//     <ThemeProvider theme={DefaultTheme}>
-//       <Flex column gap={2}>
-//         {charts.map(chart => (
-//           <Chart key={chart.getUuid()} chart={chart} />
-//         ))}
-//       </Flex>
-//     </ThemeProvider>
-//   )
-// }
+    return chart
+  })
 
-// export const SystemCpuStackedChart = () => {
-//   const getChartMetadata = () => camelizeKeys(systemCpuStackedChart, { omit: ["dimensions"] })
-//   const getChart = makeMockPayload(systemCpuStacked, { delay: 1000 })
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Flex column gap={2}>
+        {charts.map(chart => (
+          <Chart key={chart.getUuid()} chart={chart} />
+        ))}
+      </Flex>
+    </ThemeProvider>
+  )
+}
 
-//   const sdk = makeDefaultSDK({ getChartMetadata })
-//   const chart = sdk.makeChart({ getChart })
-//   sdk.appendChild(chart)
+export const Sync = () => {
+  const sdk = makeDefaultSDK({ getChartMetadata })
 
-//   return (
-//     <ThemeProvider theme={DefaultTheme}>
-//       <Chart chart={chart} />
-//     </ThemeProvider>
-//   )
-// }
+  const charts = Array.from(Array(3)).map((v, index) => {
+    const chart = sdk.makeChart({ attributes: { id: index, syncHover: index !== 1 }, getChart })
+    sdk.appendChild(chart)
+    return chart
+  })
 
-// export const SystemRamStacked = () => {
-//   const getChartMetadata = () => camelizeKeys(systemRamStackedChart, { omit: ["dimensions"] })
-//   const getChart = makeMockPayload(systemRamStacked, { delay: 1000 })
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Flex column gap={2}>
+        {charts.map(chart => (
+          <Chart key={chart.getUuid()} chart={chart} />
+        ))}
+      </Flex>
+    </ThemeProvider>
+  )
+}
 
-//   const sdk = makeDefaultSDK({ getChartMetadata })
-//   const chart = sdk.makeChart({ getChart })
-//   sdk.appendChild(chart)
+export const SystemCpuStackedChart = () => {
+  const getChartMetadata = () => camelizeKeys(systemCpuStackedChart, { omit: ["dimensions"] })
+  const getChart = makeMockPayload(systemCpuStacked, { delay: 1000 })
 
-//   return (
-//     <ThemeProvider theme={DefaultTheme}>
-//       <Chart chart={chart} />
-//     </ThemeProvider>
-//   )
-// }
+  const sdk = makeDefaultSDK({ getChartMetadata })
+  const chart = sdk.makeChart({ getChart })
+  sdk.appendChild(chart)
 
-// export const AreaWebLogNginxResponseTimeArea = () => {
-//   const getChartMetadata = () =>
-//     camelizeKeys(webLogNginxResponseTimeAreaChart, { omit: ["dimensions"] })
-//   const getChart = makeMockPayload(webLogNginxResponseTimeArea, { delay: 1000 })
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Chart chart={chart} />
+    </ThemeProvider>
+  )
+}
 
-//   const sdk = makeDefaultSDK({ getChartMetadata })
-//   const chart = sdk.makeChart({ getChart })
-//   sdk.appendChild(chart)
+export const SystemRamStacked = () => {
+  const getChartMetadata = () => camelizeKeys(systemRamStackedChart, { omit: ["dimensions"] })
+  const getChart = makeMockPayload(systemRamStacked, { delay: 1000 })
 
-//   return (
-//     <ThemeProvider theme={DefaultTheme}>
-//       <Chart chart={chart} />
-//     </ThemeProvider>
-//   )
-// }
+  const sdk = makeDefaultSDK({ getChartMetadata })
+  const chart = sdk.makeChart({ getChart })
+  sdk.appendChild(chart)
 
-// export const SystemIpv6Area = () => {
-//   const getChartMetadata = () => camelizeKeys(systemIpv6AreaChart, { omit: ["dimensions"] })
-//   const getChart = makeMockPayload(systemIpv6Area, { delay: 1000 })
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Chart chart={chart} />
+    </ThemeProvider>
+  )
+}
 
-//   const sdk = makeDefaultSDK({ getChartMetadata })
-//   const chart = sdk.makeChart({ getChart })
-//   sdk.appendChild(chart)
+export const AreaWebLogNginxResponseTimeArea = () => {
+  const getChartMetadata = () =>
+    camelizeKeys(webLogNginxResponseTimeAreaChart, { omit: ["dimensions"] })
+  const getChart = makeMockPayload(webLogNginxResponseTimeArea, { delay: 1000 })
 
-//   return (
-//     <ThemeProvider theme={DefaultTheme}>
-//       <Chart chart={chart} />
-//     </ThemeProvider>
-//   )
-// }
+  const sdk = makeDefaultSDK({ getChartMetadata })
+  const chart = sdk.makeChart({ getChart })
+  sdk.appendChild(chart)
 
-// export const SystemIpArea = () => {
-//   const getChartMetadata = () => camelizeKeys(systemIpAreaChart, { omit: ["dimensions"] })
-//   const getChart = makeMockPayload(systemIpArea, { delay: 1000 })
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Chart chart={chart} />
+    </ThemeProvider>
+  )
+}
 
-//   const sdk = makeDefaultSDK({ getChartMetadata })
-//   const chart = sdk.makeChart({ getChart })
-//   sdk.appendChild(chart)
+export const SystemIpv6Area = () => {
+  const getChartMetadata = () => camelizeKeys(systemIpv6AreaChart, { omit: ["dimensions"] })
+  const getChart = makeMockPayload(systemIpv6Area, { delay: 1000 })
 
-//   return (
-//     <ThemeProvider theme={DefaultTheme}>
-//       <Chart chart={chart} />
-//     </ThemeProvider>
-//   )
-// }
+  const sdk = makeDefaultSDK({ getChartMetadata })
+  const chart = sdk.makeChart({ getChart })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Chart chart={chart} />
+    </ThemeProvider>
+  )
+}
+
+export const SystemIpArea = () => {
+  const getChartMetadata = () => camelizeKeys(systemIpAreaChart, { omit: ["dimensions"] })
+  const getChart = makeMockPayload(systemIpArea, { delay: 1000 })
+
+  const sdk = makeDefaultSDK({ getChartMetadata })
+  const chart = sdk.makeChart({ getChart })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Chart chart={chart} />
+    </ThemeProvider>
+  )
+}
 
 export default {
   title: "Charts",
