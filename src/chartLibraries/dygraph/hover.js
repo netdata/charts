@@ -1,14 +1,14 @@
 import { removeEvent, addEvent } from "dygraphs/src/dygraph-utils"
 
 export default chartUI => {
-  const mouseout = () => {
-    chartUI.sdk.trigger("blur", chartUI.chart)
-    chartUI.chart.trigger("blur")
+  const mouseout = event => {
+    chartUI.sdk.trigger("blurChart", chartUI.chart, event)
+    chartUI.chart.trigger("blurChart", event)
   }
 
-  const mouseover = () => {
-    chartUI.sdk.trigger("hover", chartUI.chart)
-    chartUI.chart.trigger("hover")
+  const mouseover = event => {
+    chartUI.sdk.trigger("hoverChart", chartUI.chart, event)
+    chartUI.chart.trigger("hoverChart", event)
   }
 
   const listeners = [chartUI.on("mouseout", mouseout), chartUI.on("mouseover", mouseover)]

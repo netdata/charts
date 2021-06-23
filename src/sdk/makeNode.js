@@ -30,12 +30,24 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
 
   const getAttributes = () => attributes
 
-  const updateAttributes = values =>
-    Object.keys(values).forEach(name => updateAttribute(name, values[name]))
+  const updateAttributes = values => {
+    const prevValues = Object.keys(values).reduce((acc, name) => {
+      const value = values[name]
+      const prevValue = attributes[name]
+      if (prevValue !== value) {
+        setAttribute(name, value)
+        acc[name] = prevValue
+      }
+      return acc
+    }, {})
 
-  const onAttributeChange = (name, handler) => {
-    return attributeListeners.on(name, handler)
+    Object.keys(prevValues).forEach(name =>
+      attributeListeners.trigger(name, values[name], prevValues[name])
+    )
   }
+
+  const onAttributeChange = (name, handler) => attributeListeners.on(name, handler)
+  const onceAttributeChange = (name, handler) => attributeListeners.once(name, handler)
 
   const match = attrs =>
     !attrs || !Object.keys(attrs).some(name => attrs[name] !== attributes[name])
@@ -69,8 +81,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   }
 
   const moveX = (after, before) => {
-    setAttributes({ after, before })
-    listeners.trigger("moveX", after, before)
+    sdk.trigger("moveX", instance, after, before)
   }
 
   const destroy = () => {
@@ -89,6 +100,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     getAttributes,
     updateAttributes,
     onAttributeChange,
+    onceAttributeChange,
     match,
     getUuid,
     setParent,

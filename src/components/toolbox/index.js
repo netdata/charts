@@ -1,25 +1,35 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, forwardRef, useRef } from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import panIcon from "@netdata/netdata-ui/lib/components/icon/assets/pan.svg"
+import selectedArea from "@netdata/netdata-ui/lib/components/icon/assets/selected_area.svg"
+import selectIcon from "@netdata/netdata-ui/lib/components/icon/assets/select.svg"
+import zoomInIcon from "@netdata/netdata-ui/lib/components/icon/assets/zoom_in.svg"
+import zoomOutIcon from "@netdata/netdata-ui/lib/components/icon/assets/zoom_out.svg"
+import Icon, { Button } from "@/components/icon"
 
-const Container = styled(Flex)`
+const Container = styled(Flex).attrs({
+  padding: [3],
+  gap: 3,
+  background: "elementBackground",
+  round: true,
+})`
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 8px;
+  right: 8px;
 `
 
-const Button = styled.button`
-  width: 20px;
-  height: 20px;
-`
-
-const Toolbox = ({ chart }) => {
+const Toolbox = forwardRef(({ chart }, ref) => {
   const [navigation, setNavigation] = useState(chart.getAttribute("navigation"))
 
   useEffect(() => chart.onAttributeChange("navigation", setNavigation), [])
 
   const pan = () => {
     chart.updateAttribute("navigation", "pan")
+  }
+
+  const select = () => {
+    chart.updateAttribute("navigation", "select")
   }
 
   const highlight = () => {
@@ -30,28 +40,57 @@ const Toolbox = ({ chart }) => {
     const { after, before } = chart.getAttributes()
     const diff = Math.round((before - after) / 4)
     chart.moveX(after + diff, before - diff)
-    chart.fetch()
   }
 
   const zoomOut = () => {
     const { after, before } = chart.getAttributes()
     const diff = Math.round((before - after) / 4)
     chart.moveX(after - diff, before + diff)
-    chart.fetch()
   }
 
   return (
-    <Container>
-      <Button disabled={navigation === "pan"} onClick={pan}>
-        p
-      </Button>
-      <Button disabled={navigation === "highlight"} onClick={highlight}>
-        h
-      </Button>
-      <Button onClick={zoomIn}>zi</Button>
-      <Button onClick={zoomOut}>zo</Button>
+    <Container ref={ref}>
+      <Button
+        icon={<Icon svg={panIcon} />}
+        title="Pan"
+        onClick={pan}
+        active={navigation === "pan"}
+      />
+      <Button
+        icon={<Icon svg={selectedArea} />}
+        title="Select"
+        onClick={select}
+        active={navigation === "select"}
+      />
+      <Button
+        icon={<Icon svg={selectIcon} />}
+        title="Select Area"
+        onClick={highlight}
+        active={navigation === "highlight"}
+      />
+      <Button icon={<Icon svg={zoomInIcon} />} title="Zoom in" onClick={zoomIn} />
+      <Button icon={<Icon svg={zoomOutIcon} />} title="Zoom out" onClick={zoomOut} />
     </Container>
   )
+})
+
+const ToolboxContainer = ({ chart }) => {
+  const [open, setOpen] = useState(false)
+  const ref = useRef()
+
+  useEffect(() => {
+    const hover = chart.on("hoverChart", () => setOpen(true))
+    const blur = chart.on("blurChart", ({ relatedTarget }) => {
+      if (relatedTarget !== ref.current) setOpen(false)
+    })
+
+    return () => {
+      hover()
+      blur()
+    }
+  }, [])
+
+  return open ? <Toolbox chart={chart} ref={ref} /> : null
 }
 
-export default Toolbox
+export default ToolboxContainer

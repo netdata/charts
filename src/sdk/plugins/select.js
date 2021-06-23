@@ -1,6 +1,6 @@
 export default sdk => {
   const offStart = sdk.on("highlightStart", chart => {
-    if (chart.getAttribute("navigation") !== "highlight") return
+    if (chart.getAttribute("navigation") !== "select") return
 
     chart.getApplicableNodes({ syncHighlight: true }).forEach(node => {
       node.updateAttributes({ enabledHover: false, highlighting: true })
@@ -8,15 +8,19 @@ export default sdk => {
   })
 
   const offEnd = sdk.on("highlightEnd", (chart, highlight) => {
-    if (chart.getAttribute("navigation") !== "highlight") return
+    if (chart.getAttribute("navigation") !== "select") return
 
     chart.getApplicableNodes({ syncHighlight: true }).forEach(node => {
       node.updateAttributes({
         enabledHover: true,
         highlighting: false,
-        highlight,
       })
     })
+
+    if (highlight === null) return
+
+    const [after, before] = highlight
+    chart.moveX(after, before)
   })
 
   return () => {

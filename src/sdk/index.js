@@ -20,8 +20,8 @@ export default ({
 
   const init = () => {
     root = makeSDKContainer({ id: "root", ...initialAttributes, ...defaultAttributes })
-    Object.keys(defaultPlugins).forEach(name => register(name, defaultPlugins[name]))
     Object.keys(on).forEach(name => listeners.on(name, on[name]))
+    Object.keys(defaultPlugins).forEach(name => register(name, defaultPlugins[name]))
   }
 
   const getRoot = () => root
@@ -62,6 +62,8 @@ export default ({
 
   const appendChild = (node, { inherit = true } = {}) => root.appendChild(node, { inherit })
 
+  const removeChild = node => root.removeChild(node)
+
   const instance = {
     ...listeners,
     chartsMetadata,
@@ -75,6 +77,7 @@ export default ({
     makeContainer: makeSDKContainer,
     getNodes,
     appendChild,
+    removeChild,
   }
 
   init()

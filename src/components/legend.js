@@ -1,29 +1,40 @@
-import React, { useMemo } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import LegendColor from "./legendColor"
 import LegendName from "./legendName"
 import DimensionValue from "./dimensionValue"
 
-const Dimension = ({ chart, index }) => {
+const Dimension = ({ chart, id }) => {
   return (
     <Flex width="88px" gap={1}>
-      <LegendColor chart={chart} index={index} />
-      <Flex column overflow="hidden">
-        <LegendName chart={chart} index={index} />
-        <DimensionValue chart={chart} index={index} />
+      <LegendColor chart={chart} id={id} />
+      <Flex flex column overflow="hidden">
+        <LegendName chart={chart} id={id} />
+        <DimensionValue chart={chart} id={id} strong />
       </Flex>
     </Flex>
   )
 }
 
-const Legend = ({ chart }) => {
-  const { dimensionIds } = chart.getPayload()
-  const list = useMemo(() => [...Array(Math.min(10, dimensionIds.length))], [dimensionIds.length])
+const Legend = ({ chart, ...rest }) => {
+  const getList = () => chart.getDimensionIds()
+
+  const [dimensionIds, setDimensionIds] = useState(getList)
+
+  useEffect(() => {
+    const off = chart.on("dimensionChanged", () => {
+      setDimensionIds(getList)
+    })
+
+    return () => {
+      off()
+    }
+  }, [])
 
   return (
-    <Flex gap={1} overflow={{ horizontal: "auto" }}>
-      {list.map((v, index) => (
-        <Dimension key={dimensionIds[index]} chart={chart} index={index} />
+    <Flex gap={1} overflow={{ horizontal: "auto" }} padding={[3, 0]} {...rest}>
+      {dimensionIds.map(id => (
+        <Dimension key={id} chart={chart} id={id} />
       ))}
     </Flex>
   )

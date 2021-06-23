@@ -1,6 +1,7 @@
 import Dygraph from "dygraphs"
 import { format } from "date-fns"
 import makeChartUI from "@/sdk/makeChartUI"
+import dimensionColors from "@/sdk/theme/dimensionColors"
 import executeLatest from "@/helpers/executeLatest"
 import makeNavigation from "./navigation"
 import makeHover from "./hover"
@@ -31,6 +32,8 @@ export default (sdk, chart) => {
   let highlight = null
 
   const mount = element => {
+    if (dygraph) return
+
     chartUI.mount(element)
 
     const attributes = chart.getAttributes()
@@ -41,7 +44,7 @@ export default (sdk, chart) => {
     const line = chartType === "line"
     const sparkline = false
     const logScale = false
-    console.log(chart.getMetadata())
+
     const smooth = line && !sparkline
 
     let prevMin
@@ -114,28 +117,7 @@ export default (sdk, chart) => {
       yRangePad: 1,
       includeZero: stacked,
       labelsSeparateLines: true,
-      colors: [
-        "#3366CC",
-        "#DC3912",
-        "#109618",
-        "#FF9900",
-        "#990099",
-        "#DD4477",
-        "#3B3EAC",
-        "#66AA00",
-        "#0099C6",
-        "#B82E2E",
-        "#AAAA11",
-        "#5574A6",
-        "#994499",
-        "#22AA99",
-        "#6633CC",
-        "#E67300",
-        "#316395",
-        "#8B0707",
-        "#329262",
-        "#3B3EAC",
-      ],
+      colors: dimensionColors,
       // visibility return selected dimensions
       // logscale
     })
@@ -147,26 +129,23 @@ export default (sdk, chart) => {
       chart.onAttributeChange("hoverX", dimensions =>
         dygraph.setSelection(dimensions ? dimensions[0] : -1)
       ),
-      chart.on("moveX", (after, before) =>
+      chart.on("after", () => {
+        const { after, before } = chart.getAttributes()
         dygraph.updateOptions({ dateWindow: [after * 1000, before * 1000] })
-      ),
+      }),
       chart.onAttributeChange("enabledHover", hoverX.toggle),
       chart.onAttributeChange("navigation", navigation.set),
       chart.onAttributeChange("highlight", highlight.toggle),
-      chart.on("successFetch", payload => {
-        const dateWindow = getDateWindow(chart)
-        dygraph.updateOptions({
-          file: payload.result.data,
-          labels: payload.result.labels,
-          dateWindow,
-        })
-      }),
     ]
 
     hover = makeHover(instance)
+
+    render()
   }
 
   const unmount = () => {
+    if (!dygraph) return
+
     listeners.forEach(listener => listener())
     listeners = []
     chartUI.unmount()
@@ -180,7 +159,35 @@ export default (sdk, chart) => {
 
   const getDygraph = () => dygraph
 
-  const instance = { ...chartUI, mount, unmount, getDygraph }
+  const render = () => {
+    chartUI.render()
+    const { result } = chart.getPayload()
+    const dateWindow = getDateWindow(chart)
+
+    dygraph.updateOptions({
+      file: result.data,
+      labels: result.labels,
+      dateWindow,
+    })
+    chart.updateDimensions()
+  }
+
+  const getPixelsPerPoint = () => 3
+
+  const getChartWidth = () => (dygraph ? dygraph.getArea().w : chartUI.getEstimatedChartWidth())
+
+  const getUrlOptions = () => ["ms", "flip"]
+
+  const instance = {
+    ...chartUI,
+    getChartWidth,
+    getPixelsPerPoint,
+    getUrlOptions,
+    mount,
+    unmount,
+    getDygraph,
+    render,
+  }
 
   navigation = makeNavigation(instance)
   hoverX = makeHoverX(instance)

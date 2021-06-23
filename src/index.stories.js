@@ -26,7 +26,19 @@ import systemIpArea from "@/fixtures/systemIpArea"
 import systemIpAreaChart from "@/fixtures/systemIpAreaChart"
 
 const getChartMetadata = () => camelizeKeys(systemLoadLineChart, { omit: ["dimensions"] })
-const getChart = makeMockPayload(systemLoadLine[0], { delay: 1000 })
+const getChart = makeMockPayload(systemLoadLine[0], { delay: 600 })
+
+export const SimpleReal = () => {
+  const sdk = makeDefaultSDK({ getChartMetadata })
+  const chart = sdk.makeChart({ attributes: { host: "http://d1.firehol.org/api/v1/data" } })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Chart chart={chart} />
+    </ThemeProvider>
+  )
+}
 
 export const Simple = () => {
   const sdk = makeDefaultSDK({ getChartMetadata })
@@ -40,10 +52,71 @@ export const Simple = () => {
   )
 }
 
+export const Timeout = () => {
+  let requests = 0
+  const sdk = makeDefaultSDK({ getChartMetadata })
+  const chart = sdk.makeChart({
+    getChart: params => {
+      if (requests++ % 2 === 1)
+        return new Promise(r => setTimeout(() => getChart(params).then(r), 10000))
+      return getChart(params)
+    },
+  })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Chart chart={chart} />
+    </ThemeProvider>
+  )
+}
+
+export const Error = () => {
+  let requests = 0
+  const sdk = makeDefaultSDK({ getChartMetadata })
+  const chart = sdk.makeChart({
+    getChart: params => {
+      if (requests++ % 2 === 1)
+        return new Promise((resolve, reject) => setTimeout(() => reject(), 200))
+      return getChart(params)
+    },
+  })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Chart chart={chart} />
+    </ThemeProvider>
+  )
+}
+
+export const MultipleReal = () => {
+  const sdk = makeDefaultSDK({ getChartMetadata })
+
+  const charts = Array.from(Array(3)).map((v, index) => {
+    const chart = sdk.makeChart({
+      attributes: { id: index, host: "http://d1.firehol.org/api/v1/data" },
+    })
+    sdk.appendChild(chart)
+
+    return chart
+  })
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Flex column gap={2}>
+        {charts.map(chart => (
+          <Chart key={chart.getUuid()} chart={chart} />
+        ))}
+      </Flex>
+    </ThemeProvider>
+  )
+}
+
 export const Multiple = () => {
   const sdk = makeDefaultSDK({ getChartMetadata })
 
-  const charts = Array.from(Array(5)).map((v, index) => {
+  const charts = Array.from(Array(3)).map((v, index) => {
     const chart = sdk.makeChart({ attributes: { id: index }, getChart })
     sdk.appendChild(chart)
 
