@@ -13,11 +13,17 @@ module.exports = {
     library: "NetdataSDK",
     libraryTarget: "var",
   },
-  externals: {
-    react: "React",
-    "react-dom": "ReactDOM",
-    "styled-components": "styled",
-  },
+  externals: [
+    "react",
+    "react-dom",
+    "styled-components",
+    ({ request }, callback) => {
+      if (/@netdata\/netdata-ui\/.+$/.test(request)) {
+        return callback(null, "commonjs " + request)
+      }
+      callback()
+    },
+  ],
   module: {
     rules: [
       {
