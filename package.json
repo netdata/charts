@@ -1,6 +1,6 @@
 {
   "name": "@netdata/charts",
-  "version": "0.0.3",
+  "version": "0.0.2",
   "description": "Netdata frontend SDK and chart utilities",
   "main": "index.js",
   "module": "es6/index.js",
@@ -39,6 +39,10 @@
     "styled-components": "^5.2.1"
   },
   "devDependencies": {
+    "@netdata/netdata-ui": "^1.6.2",
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0",
+    "styled-components": "^5.2.1",
     "@babel/cli": "^7.13.16",
     "@babel/core": "^7.13.16",
     "@babel/plugin-proposal-object-rest-spread": "^7.13.8",
