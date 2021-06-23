@@ -3,10 +3,10 @@ import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
 
 const DimensionValue = ({ chart, index, ...rest }) => {
   const getValue = () => {
-    const hover = chart.getAttribute("hover")
+    const hover = chart.getAttribute("hoverX")
     const { result } = chart.getPayload()
     const x = hover ? hover[0] : result.data.length - 1
-    return result.data[x][index + 1]
+    return chart.getConvertedValue(result.data[x][index + 1])
   }
 
   const [value, setState] = useState(getValue)
@@ -14,7 +14,15 @@ const DimensionValue = ({ chart, index, ...rest }) => {
   const unmount = useRef(false)
 
   useEffect(() => {
-    const remove = chart.onAttributeChange("hover", () => {
+    const remove = chart.onAttributeChange("hoverX", () => {
+      setState(getValue())
+    })
+
+    chart.on("successFetch", () => {
+      setState(getValue())
+    })
+
+    chart.on("convertedValuesChange", () => {
       setState(getValue())
     })
 

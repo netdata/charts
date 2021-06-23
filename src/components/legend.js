@@ -1,15 +1,15 @@
 import React, { useMemo } from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import DimensionColor from "./dimensionColor"
-import DimensionName from "./dimensionName"
+import LegendColor from "./legendColor"
+import LegendName from "./legendName"
 import DimensionValue from "./dimensionValue"
 
 const Dimension = ({ chart, index }) => {
   return (
     <Flex width="88px" gap={1}>
-      <DimensionColor chart={chart} index={index} />
+      <LegendColor chart={chart} index={index} />
       <Flex column overflow="hidden">
-        <DimensionName chart={chart} index={index} />
+        <LegendName chart={chart} index={index} />
         <DimensionValue chart={chart} index={index} />
       </Flex>
     </Flex>

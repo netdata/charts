@@ -1,28 +1,15 @@
 import React, { useEffect, useState, useRef, forwardRef, useMemo } from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import DimensionColor from "./dimensionColor"
-import DimensionName from "./dimensionName"
+import LegendColor from "./legendColor"
+import LegendName from "./legendName"
 import DimensionValue from "./dimensionValue"
 
 const Dimension = ({ chart, index }) => {
   return (
     <Flex gap={1}>
-      <DimensionColor
-        chart={chart}
-        index={index}
-        width="2px"
-        height="12px"
-        color={["pure", "white"]}
-      />
-      <Flex
-        as={DimensionName}
-        flex
-        chart={chart}
-        index={index}
-        color={["pure", "white"]}
-        margin={[0, "auto"]}
-      />
-      <DimensionValue chart={chart} index={index} color={["pure", "white"]} />
+      <LegendColor chart={chart} index={index} width="2px" height="12px" color="bright" />
+      <Flex as={LegendName} flex chart={chart} index={index} color="bright" margin={[0, "auto"]} />
+      <DimensionValue chart={chart} index={index} color="bright" />
     </Flex>
   )
 }
@@ -54,10 +41,10 @@ const Container = ({ chart }) => {
 
   useEffect(() => {
     const events = [
-      chart.on("hover", (x, y) => {
+      chart.getUI().on("mousemove", event => {
+        const { x, y } = event
         setOpen(true)
         if (!ref.current) return
-
         ref.current.style.left = `${x + 25}px`
         ref.current.style.top = `${y + 20}px`
       }),
