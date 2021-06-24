@@ -29,7 +29,6 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
   }
 
   const startAutofetch = () => {
-    // node.updateAttribute("autofetch", true)
     const { fetchStatedAt, loading, autofetch, active } = node.getAttributes()
 
     if (!autofetch || loading || !active) return
@@ -59,7 +58,6 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
   }
 
   const doneFetch = nextPayload => {
-    // console.log("doneFetch")
     const { dimensionIds, result, ...restPayload } = camelizeKeys(nextPayload, {
       omit: ["result"],
     })
@@ -88,7 +86,6 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
   }
 
   const failFetch = error => {
-    // console.log("failFetch", error)
     payload = initialPayload
     node.updateAttribute("loading", false)
     node.trigger("failFetch", error)

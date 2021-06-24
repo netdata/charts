@@ -84,6 +84,21 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     sdk.trigger("moveX", instance, after, before)
   }
 
+  const zoomX = multiplier => {
+    let { after, before } = getAttributes()
+
+    if (after < 0) {
+      after = Date.now() / 1000 + after
+      before = Date.now() / 1000
+    }
+
+    const diff = multiplier * Math.round((before - after) / 4)
+    moveX(after + diff, before - diff)
+  }
+
+  const zoomIn = () => zoomX(1)
+  const zoomOut = () => zoomX(-1)
+
   const destroy = () => {
     attributeListeners.offAll()
     attributes = null
@@ -109,6 +124,8 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     getApplicableNodes,
     inherit,
     moveX,
+    zoomIn,
+    zoomOut,
     destroy,
   }
 

@@ -36,18 +36,6 @@ const Toolbox = forwardRef(({ chart }, ref) => {
     chart.updateAttribute("navigation", "highlight")
   }
 
-  const zoomIn = () => {
-    const { after, before } = chart.getAttributes()
-    const diff = Math.round((before - after) / 4)
-    chart.moveX(after + diff, before - diff)
-  }
-
-  const zoomOut = () => {
-    const { after, before } = chart.getAttributes()
-    const diff = Math.round((before - after) / 4)
-    chart.moveX(after - diff, before + diff)
-  }
-
   return (
     <Container ref={ref}>
       <Button
@@ -68,8 +56,8 @@ const Toolbox = forwardRef(({ chart }, ref) => {
         onClick={highlight}
         active={navigation === "highlight"}
       />
-      <Button icon={<Icon svg={zoomInIcon} />} title="Zoom in" onClick={zoomIn} />
-      <Button icon={<Icon svg={zoomOutIcon} />} title="Zoom out" onClick={zoomOut} />
+      <Button icon={<Icon svg={zoomInIcon} />} title="Zoom in" onClick={chart.zoomIn} />
+      <Button icon={<Icon svg={zoomOutIcon} />} title="Zoom out" onClick={chart.zoomOut} />
     </Container>
   )
 })
