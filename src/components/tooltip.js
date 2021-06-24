@@ -51,9 +51,9 @@ const Dimensions = ({ chart }) => {
 
 const Tooltip = forwardRef(({ chart }, ref) => {
   return (
-    <div ref={ref} style={{ position: "absolute" }}>
+    <Flex position="absolute" ref={ref}>
       <Dimensions chart={chart} />
-    </div>
+    </Flex>
   )
 })
 
@@ -64,11 +64,26 @@ const Container = ({ chart }) => {
   useEffect(() => {
     const events = [
       chart.getUI().on("mousemove", event => {
-        const { offsetX, offsetY } = event
+        let { offsetX, offsetY } = event
         setOpen(true)
         if (!ref.current) return
-        ref.current.style.left = `${offsetX + 25}px`
-        ref.current.style.top = `${offsetY + 20}px`
+
+        const tooltipWidth = ref.current.offsetWidth
+        const chartWidth = chart.getUI().getChartWidth()
+        if (offsetX + tooltipWidth > chartWidth) {
+          ref.current.style.left = `${offsetX - tooltipWidth - 25}px`
+        } else {
+          ref.current.style.left = `${offsetX + 25}px`
+        }
+
+        const tooltipHeight = ref.current.offsetHeight
+        const chartHeight = chart.getUI().getChartHeight()
+
+        if (offsetY + tooltipHeight > chartHeight) {
+          ref.current.style.top = `${offsetY - tooltipHeight - 20}px`
+        } else {
+          ref.current.style.top = `${offsetY + 20}px`
+        }
       }),
       chart.on("blurChart", () => setOpen(false)),
     ]

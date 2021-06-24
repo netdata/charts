@@ -175,12 +175,14 @@ export default (sdk, chart) => {
   const getPixelsPerPoint = () => 3
 
   const getChartWidth = () => (dygraph ? dygraph.getArea().w : chartUI.getEstimatedChartWidth())
+  const getChartHeight = () => (dygraph ? dygraph.getArea().h : 100)
 
   const getUrlOptions = () => ["ms", "flip"]
 
   const instance = {
     ...chartUI,
     getChartWidth,
+    getChartHeight,
     getPixelsPerPoint,
     getUrlOptions,
     mount,

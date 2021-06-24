@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react"
+import React, { useEffect, useRef, memo } from "react"
 import Intersection from "@netdata/netdata-ui/lib/components/intersection"
 
 export default Component => {
@@ -6,12 +6,10 @@ export default Component => {
     const ref = useRef()
 
     const onVisibility = visible => {
-      if (visible) {
-        chart.activate()
-        chart.getUI().setEstimatedWidth(ref.current.offsetWidth)
-      } else {
-        chart.deactivate()
-      }
+      if (!visible) return chart.deactivate()
+
+      chart.activate()
+      chart.getUI().setEstimatedWidth(ref.current.offsetWidth)
     }
 
     useEffect(() => () => chart.deactivate(), [])
@@ -32,5 +30,5 @@ export default Component => {
     )
   }
 
-  return IntersectionComponent
+  return memo(IntersectionComponent)
 }

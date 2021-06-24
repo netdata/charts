@@ -93,7 +93,7 @@ export const Error = () => {
 export const MultipleReal = () => {
   const sdk = makeDefaultSDK({ getChartMetadata })
 
-  const charts = Array.from(Array(3)).map((v, index) => {
+  const charts = Array.from(Array(10)).map((v, index) => {
     const chart = sdk.makeChart({
       attributes: { id: index, host: "http://d1.firehol.org/api/v1/data" },
     })
