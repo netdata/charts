@@ -9,14 +9,14 @@ import makeDimensions from "./makeDimensions"
 export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => {
   const node = makeNode({ sdk, parent, attributes })
   let ui = null
-  let fetchPromise = null
+  let abortController = null
   let payload = initialPayload
   let fetchDelayTimeoutId = null
   let fetchTimeoutId = null
 
   const getPayload = () => payload
 
-  const cancelFetch = () => fetchPromise?.cancel()
+  const cancelFetch = () => abortController && abortController.abort()
 
   const getMetadata = () => {
     const { host, context } = node.getAttributes()
@@ -86,9 +86,8 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
   }
 
   const failFetch = error => {
-    payload = initialPayload
     node.updateAttribute("loading", false)
-    node.trigger("failFetch", error)
+    if (error.name !== "AbortError") node.trigger("failFetch", error)
     finishFetch()
   }
 
@@ -106,9 +105,10 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
       fetchDelayTimeoutId = null
     }, updateEvery * 1000)
 
-    return sdk.chartsMetadata.fetch(host, context).then(() => {
-      fetchPromise = getChart(instance)
-      return fetchPromise.then(doneFetch).catch(failFetch)
+    abortController = new AbortController()
+    const options = { signal: abortController.signal }
+    return sdk.chartsMetadata.fetch(host, context, options).then(() => {
+      return getChart(instance, options).then(doneFetch).catch(failFetch)
     })
   }
 
@@ -148,6 +148,14 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
   const stopAutofetch = () => {
     clearTimeout(fetchTimeoutId)
     fetchTimeoutId = null
+
+    if (
+      !node.getAttribute("active") ||
+      node.getAttribute("loaded") ||
+      !node.getAttribute("loading")
+    ) {
+      cancelFetch()
+    }
   }
 
   node.onAttributeChange("autofetch", autofetch => {

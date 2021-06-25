@@ -33,8 +33,7 @@ const getChartPayload = chart => {
   }
 }
 
-export const fetchChartData = chart => {
-  // console.log("fetchChartData")
+export const fetchChartData = (chart, options) => {
   const { host } = chart.getAttributes()
 
   const payload = getChartPayload(chart)
@@ -42,7 +41,7 @@ export const fetchChartData = chart => {
   const query = new URLSearchParams(payload).toString()
   const url = `${host}?${query}`
 
-  return fetch(url).then(response => response.json())
+  return fetch(url, options).then(response => response.json())
 }
 
 export const fetchChartMetadata = () => {
