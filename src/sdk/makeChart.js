@@ -18,10 +18,7 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
 
   const cancelFetch = () => abortController && abortController.abort()
 
-  const getMetadata = () => {
-    const { host, context } = node.getAttributes()
-    return sdk.chartsMetadata.get(host, context)
-  }
+  const getMetadata = () => sdk.chartsMetadata.get(instance)
 
   const clearFetchDelayTimeout = () => {
     if (fetchDelayTimeoutId === null) node.trigger("timeout", false)
@@ -94,9 +91,6 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
   const fetch = () => {
     node.trigger("startFetch")
     node.updateAttributes({ loading: true, fetchStatedAt: Date.now() })
-    node.updateAttribute()
-    const attributes = node.getAttributes()
-    const { host, context } = attributes
 
     const { updateEvery = 5 } = getMetadata() || {}
     clearTimeout(fetchDelayTimeoutId)
@@ -107,7 +101,7 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
 
     abortController = new AbortController()
     const options = { signal: abortController.signal }
-    return sdk.chartsMetadata.fetch(host, context, options).then(() => {
+    return sdk.chartsMetadata.fetch(instance).then(() => {
       return getChart(instance, options).then(doneFetch).catch(failFetch)
     })
   }

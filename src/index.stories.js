@@ -29,8 +29,11 @@ const getChartMetadata = () => camelizeKeys(systemLoadLineChart, { omit: ["dimen
 const getChart = makeMockPayload(systemLoadLine[0], { delay: 600 })
 
 export const SimpleReal = () => {
+  const { id, context } = getChartMetadata()
   const sdk = makeDefaultSDK({ getChartMetadata })
-  const chart = sdk.makeChart({ attributes: { host: "http://d1.firehol.org/api/v1/data" } })
+  const chart = sdk.makeChart({
+    attributes: { host: "http://d1.firehol.org/api/v1/data", id, context },
+  })
   sdk.appendChild(chart)
 
   return (
@@ -91,11 +94,12 @@ export const Error = () => {
 }
 
 export const MultipleReal = () => {
+  const { id, context } = getChartMetadata()
   const sdk = makeDefaultSDK({ getChartMetadata })
 
   const charts = Array.from(Array(10)).map((v, index) => {
     const chart = sdk.makeChart({
-      attributes: { id: index, host: "http://d1.firehol.org/api/v1/data" },
+      attributes: { id, context, host: "http://d1.firehol.org/api/v1/data" },
     })
     sdk.appendChild(chart)
 

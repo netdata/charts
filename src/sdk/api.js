@@ -16,11 +16,11 @@ const getChartPayload = chart => {
 
   const width = ui.getChartWidth()
   const pixelsPerPoint = ui.getPixelsPerPoint()
-  const { context } = chart.getMetadata()
+  const { id, context } = chart.getMetadata()
   const { after, before, dimensions, groupingMethod, groupingTime } = chart.getAttributes()
 
   return {
-    chart: context,
+    chart: id || context,
     format: "json",
     points: Math.round(width / pixelsPerPoint),
     group: groupingMethod,

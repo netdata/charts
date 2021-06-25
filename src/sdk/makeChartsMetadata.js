@@ -3,20 +3,23 @@ import { fetchChartMetadata } from "./api"
 export default ({ getChart }) => {
   const byId = {}
 
-  const makeKey = (host, context) => `${host}-${context}`
+  const makeKey = node => {
+    const { host, context, id } = node.getAttributes()
+    return `${host}-${context}-${id}`
+  }
 
-  const get = (host, context) => {
-    if (getChart) return getChart(host, context)
+  const get = node => {
+    if (getChart) return getChart(node)
 
-    const id = makeKey(host, context)
+    const id = makeKey(node)
     return byId[id]
   }
 
-  const fetch = async (host, context) => {
+  const fetch = async node => {
     if (getChart) return
 
-    const response = await fetchChartMetadata(host, context)
-    const id = makeKey(host, context)
+    const response = await fetchChartMetadata(node)
+    const id = makeKey(node)
     byId[id] = response
 
     return response
