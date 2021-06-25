@@ -1,16 +1,16 @@
 import React, { useEffect, useState, useRef, forwardRef } from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import LegendColor from "./legendColor"
-import LegendName from "./legendName"
-import DimensionValue from "./dimensionValue"
+import Color from "./dimensions/color"
+import Name from "./dimensions/name"
+import Value from "./dimensions/value"
 
 const Dimension = ({ chart, id, strong }) => {
   return (
-    <Flex gap={1}>
-      <LegendColor chart={chart} id={id} height="12px" />
-      <Flex as={LegendName} flex chart={chart} id={id} margin={[0, "auto"]} strong={strong} />
-      <DimensionValue chart={chart} id={id} strong={strong} />
+    <Flex gap={1} data-testid="chartTooltip-dimension">
+      <Color chart={chart} id={id} height="12px" />
+      <Flex as={Name} flex chart={chart} id={id} margin={[0, "auto"]} strong={strong} />
+      <Value chart={chart} id={id} strong={strong} />
     </Flex>
   )
 }
@@ -41,7 +41,7 @@ const Dimensions = ({ chart }) => {
   )
 
   return (
-    <DimensionsContainer>
+    <DimensionsContainer data-testid="chartTooltip-dimensions">
       {dimensionIds.map(id => (
         <Dimension key={id} chart={chart} id={id} strong={hoveredId === id} />
       ))}
@@ -51,7 +51,7 @@ const Dimensions = ({ chart }) => {
 
 const Tooltip = forwardRef(({ chart }, ref) => {
   return (
-    <Flex position="absolute" ref={ref}>
+    <Flex position="absolute" data-testid="chartTooltip" ref={ref}>
       <Dimensions chart={chart} />
     </Flex>
   )
@@ -64,6 +64,8 @@ const Container = ({ chart }) => {
   useEffect(() => {
     const events = [
       chart.getUI().on("mousemove", event => {
+        if (chart.getAttribute("panning") || chart.getAttribute("highlighting")) return
+
         let { offsetX, offsetY } = event
         setOpen(true)
         if (!ref.current) return
@@ -86,6 +88,9 @@ const Container = ({ chart }) => {
         }
       }),
       chart.on("blurChart", () => setOpen(false)),
+      chart.onAttributeChange("panning", panning => {
+        if (panning) setOpen(false)
+      }),
     ]
     return () => events.forEach(event => event())
   }, [])

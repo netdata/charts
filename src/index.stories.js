@@ -104,7 +104,7 @@ export const MultipleReal = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Flex column gap={2}>
+      <Flex column gap={20}>
         {charts.map(chart => (
           <Chart key={chart.getUuid()} chart={chart} />
         ))}

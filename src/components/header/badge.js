@@ -10,7 +10,7 @@ const types = {
   },
 }
 
-const Badge = ({ type, children }) => {
+const Badge = ({ type, children, ...rest }) => {
   const { background, color } = types[type]
 
   return (
@@ -20,6 +20,8 @@ const Badge = ({ type, children }) => {
       round={3}
       border={{ color, size: "1px", side: "all" }}
       alignItems="center"
+      data-testid="chartHeader-badge"
+      {...rest}
     >
       <TextMicro color={color}>{children}</TextMicro>
     </Flex>

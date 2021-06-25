@@ -59,7 +59,8 @@ const getFractionDigits = value => {
 }
 
 export default (chart, min, max) => {
-  const [method, divider, unit] = getMethod(chart, min, max)
+  const { units } = chart.getMetadata()
+  const [method, divider, unit = units] = getMethod(chart, min, max)
 
   const cMin = convert(chart, method, min, divider)
   const cMax = convert(chart, method, max, divider)

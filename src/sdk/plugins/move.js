@@ -1,10 +1,8 @@
-const minutes15 = -1 * 15 * 60
-
 export default sdk => {
   return sdk.on("moveX", (chart, after, before) => {
     const move =
       before > Date.now() / 1000
-        ? { after: after - before }
+        ? { after: Math.round(after - before) }
         : { after: Math.round(after), before: Math.round(before) }
 
     chart.getApplicableNodes({ syncPanning: true }).forEach(node => {

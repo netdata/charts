@@ -17,16 +17,22 @@ const Toolbox = ({ chart, detailsOpen, toggleDetails, ...rest }) => {
   }, [])
 
   return (
-    <Flex gap={3} justifyContent="end" {...rest}>
+    <Flex gap={3} justifyContent="end" data-testid="chartHeaderToolbox" {...rest}>
       <Button
         icon={<Icon svg={information} />}
         title="Information"
         disabled={disabled}
         onClick={toggleDetails}
         active={detailsOpen}
+        data-testid="chartHeaderToolbox-information"
       />
       <Flex width="1px" background="placeholder" />
-      <Button icon={<Icon svg={expand} />} title="Full screen" disabled={disabled} />
+      <Button
+        icon={<Icon svg={expand} />}
+        title="Full screen"
+        disabled={disabled}
+        data-testid="chartHeaderToolbox-fullscreen"
+      />
     </Flex>
   )
 }

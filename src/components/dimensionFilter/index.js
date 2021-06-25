@@ -17,9 +17,18 @@ const Input = styled.input.attrs({ type: "radio" })`
 
 const Item = ({ item: { value, label }, value: selectedValue, onItemClick }) => {
   return (
-    <ItemContainer gap={2} onClick={() => onItemClick(value)}>
-      <Input name="dimensionsSort" value={value} checked={value === selectedValue} />
-      <Text>{label}</Text>
+    <ItemContainer
+      gap={2}
+      onClick={() => onItemClick(value)}
+      data-testid={`chartDimensionFilter-${value}`}
+    >
+      <Input
+        name="dimensionsSort"
+        value={value}
+        defaultChecked={value === selectedValue}
+        data-testid="chartDimensionFilter-input"
+      />
+      <Text data-testid="chartDimensionFilter-label">{label}</Text>
     </ItemContainer>
   )
 }
@@ -45,7 +54,7 @@ const DimensionFilter = ({ chart }) => {
   useEffect(() => chart.onAttributeChange("dimensionsSort", setValue), [])
 
   return (
-    <Flex padding={[3, 5]}>
+    <Flex padding={[3, 5]} data-testid="chartDimensionFilter">
       <Menu
         value={value}
         items={sortings}
@@ -53,7 +62,7 @@ const DimensionFilter = ({ chart }) => {
         renderItem={renderItem}
         onChange={onChange}
       >
-        <Button icon={<Icon svg={sortDesc} />} />
+        <Button icon={<Icon svg={sortDesc} />} data-testid="chartDimensionFilter-toggle" />
       </Menu>
     </Flex>
   )

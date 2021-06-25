@@ -6,7 +6,7 @@ const Title = ({ chart, ...rest }) => {
   const { title } = chart.getMetadata()
 
   return (
-    <Flex {...rest}>
+    <Flex data-testid="chartHeaderStatus-title" {...rest}>
       <Text strong>{title}</Text>
     </Flex>
   )

@@ -37,27 +37,40 @@ const Toolbox = forwardRef(({ chart }, ref) => {
   }
 
   return (
-    <Container ref={ref}>
+    <Container data-testid="chartToolbox" ref={ref}>
       <Button
         icon={<Icon svg={panIcon} />}
         title="Pan"
         onClick={pan}
         active={navigation === "pan"}
+        data-testid="chartToolbox-pan"
       />
       <Button
         icon={<Icon svg={selectedArea} />}
         title="Select"
         onClick={select}
         active={navigation === "select"}
+        data-testid="chartToolbox-select"
       />
       <Button
         icon={<Icon svg={selectIcon} />}
         title="Select Area"
         onClick={highlight}
         active={navigation === "highlight"}
+        data-testid="chartToolbox-highlight"
       />
-      <Button icon={<Icon svg={zoomInIcon} />} title="Zoom in" onClick={chart.zoomIn} />
-      <Button icon={<Icon svg={zoomOutIcon} />} title="Zoom out" onClick={chart.zoomOut} />
+      <Button
+        icon={<Icon svg={zoomInIcon} />}
+        title="Zoom in"
+        onClick={chart.zoomIn}
+        data-testid="chartToolbox-zoomIn"
+      />
+      <Button
+        icon={<Icon svg={zoomOutIcon} />}
+        title="Zoom out"
+        onClick={chart.zoomOut}
+        data-testid="chartToolbox-zoomOut"
+      />
     </Container>
   )
 })

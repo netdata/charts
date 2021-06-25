@@ -17,11 +17,15 @@ export default chartUI => {
     chartUI.sdk.trigger("panEnd", chartUI.chart, g.dateWindow_)
   }
 
-  const listeners = [
-    chartUI.on("mousedown", mousedown),
-    chartUI.on("mousemove", mousemove),
-    chartUI.on("mouseup", mouseup),
-  ]
+  const mouseout = (event, g, context) => {
+    if (!context.isPanning) return
+    Dygraph.endPan(event, g, context)
+    chartUI.sdk.trigger("panEnd", chartUI.chart, g.dateWindow_)
+  }
 
-  return () => listeners.forEach(listener => listener())
+  return chartUI
+    .on("mousedown", mousedown)
+    .on("mousemove", mousemove)
+    .on("mouseup", mouseup)
+    .on("mouseout", mouseout)
 }

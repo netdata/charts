@@ -32,19 +32,26 @@ export const Chart = ({ chart, ...rest }) => {
   useEffect(() => () => chart.getUI().unmount(), [])
 
   return (
-    <Flex ref={ref} round border={{ color: "borderSecondary", side: "all" }} column {...rest}>
+    <Flex
+      ref={ref}
+      round
+      border={{ color: "borderSecondary", side: "all" }}
+      column
+      data-testid="chart"
+      {...rest}
+    >
       <Header
         chart={chart}
         detailsOpen={detailsOpen}
         toggleDetails={() => setDetailsOpen(s => !s)}
       />
-      <Flex position="relative" column flex>
-        <Flex position="relative" padding={[0, 0, 4, 0]} flex>
-          <ChartContainer ref={chartRef} />
+      <Flex position="relative" column flex data-testid="chartContainer">
+        <Flex position="relative" padding={[0, 0, 4, 0]} flex data-testid="chartContentWrapper">
+          <ChartContainer data-testid="chartContent" ref={chartRef} />
           <Toolbox chart={chart} />
           <Tooltip chart={chart} />
         </Flex>
-        <Flex border={{ side: "top", color: "borderSecondary" }}>
+        <Flex border={{ side: "top", color: "borderSecondary" }} data-testid="chartLegend">
           <DimensionFilter chart={chart} />
           <Legend chart={chart} flex />
         </Flex>

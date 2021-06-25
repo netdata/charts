@@ -1,8 +1,3 @@
-const canAutofetch = chart => {
-  const { after, hovering, active } = chart.getAttributes()
-  return active && after < 0 && !hovering
-}
-
 export default sdk => {
   let timeoutId
 
@@ -24,8 +19,9 @@ export default sdk => {
   }
 
   return sdk
-    .on("active", (chart, active) => {
-      const autofetch = canAutofetch(chart)
+    .on("active", chart => {
+      const { after, hovering, active } = chart.getAttributes()
+      const autofetch = active && after < 0 && !hovering
 
       if (active && !autofetch) chart.fetch().then(() => chart.getUI().render())
 
@@ -34,7 +30,7 @@ export default sdk => {
     })
     .on("hoverChart", chart => {
       const autofetch = false
-
+      // console.log("hoverChart")
       if (autofetch === chart.getAttribute("autofetch")) return
 
       toggleRender(autofetch)
@@ -44,6 +40,7 @@ export default sdk => {
     })
     .on("blurChart", chart => {
       const autofetch = chart.getAttribute("after") < 0 && chart.getAttribute("active")
+      // console.log("blurChart", autofetch, chart.getAttribute("autofetch"))
 
       if (autofetch === chart.getAttribute("autofetch")) return
 

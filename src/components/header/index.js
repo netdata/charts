@@ -10,6 +10,7 @@ const Header = ({ chart, toggleDetails, detailsOpen }) => {
       justifyContent="between"
       padding={[3]}
       border={{ side: "bottom", color: "borderSecondary" }}
+      data-testid="chartHeader"
     >
       <Status chart={chart} flex basis="0" />
       <Title chart={chart} justifyContent="center" />

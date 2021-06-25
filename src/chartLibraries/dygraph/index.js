@@ -160,6 +160,8 @@ export default (sdk, chart) => {
   const getDygraph = () => dygraph
 
   const render = () => {
+    if (!dygraph) return
+
     chartUI.render()
     const { result } = chart.getPayload()
     const dateWindow = getDateWindow(chart)
