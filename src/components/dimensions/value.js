@@ -6,7 +6,9 @@ const Value = ({ chart, id, ...rest }) => {
     const hover = chart.getAttribute("hoverX")
     const { result } = chart.getPayload()
 
-    const index = hover && hover[0] < result.data.length ? hover[0] : result.data.length - 1
+    let index = hover ? chart.getClosestRow(hover[0]) : -1
+    index = index === -1 ? result.data.length - 1 : index
+
     const value = chart.getDimensionValue(id, index)
     return chart.getConvertedValue(value)
   }

@@ -40,7 +40,7 @@ const getElement = (svg, id) => {
 
 const Icon = ({ svg, size = "24px", width = size, height = size, ...rest }) => {
   const rowSvg = svg.content || svg
-  const id = useMemo(() => md5(rowSvg), [])
+  const id = useMemo(() => md5(rowSvg), [rowSvg])
 
   useEffect(() => {
     if (document.getElementById(id)) return
@@ -51,7 +51,7 @@ const Icon = ({ svg, size = "24px", width = size, height = size, ...rest }) => {
 
     const element = getElement(rowSvg, id)
     defs.appendChild(element)
-  }, [])
+  }, [rowSvg])
 
   return (
     <StyledIcon width={width} height={height} {...rest}>

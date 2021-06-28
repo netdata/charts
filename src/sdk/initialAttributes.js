@@ -37,4 +37,5 @@ export default {
   chartUrlOptions: null,
   urlOptions: [],
   eliminateZeroDimensions: false,
+  fullscreen: false,
 }

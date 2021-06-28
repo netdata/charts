@@ -1,6 +1,6 @@
 export default sdk => {
   return sdk
-    .on("highlightHover", (chart, x, y, dimensionX, dimensionY) => {
+    .on("highlightHover", (chart, dimensionX, dimensionY) => {
       chart.getApplicableNodes({ syncHover: true }).forEach(node => {
         node.updateAttribute("hoverX", [dimensionX, dimensionY])
       })

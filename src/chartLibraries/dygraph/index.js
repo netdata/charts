@@ -7,6 +7,7 @@ import makeNavigation from "./navigation"
 import makeHover from "./hover"
 import makeHoverX from "./hoverX"
 import makeHighlight from "./highlight"
+import crosshair from "./crosshair"
 
 const axisLabelFormatter = time => {
   const midnight = time.getSeconds() === 0 && time.getMinutes() === 0 && time.getHours() === 0
@@ -126,9 +127,18 @@ export default (sdk, chart) => {
     navigation.set(attributes.navigation)
 
     listeners = [
-      chart.onAttributeChange("hoverX", dimensions =>
-        dygraph.setSelection(dimensions ? dimensions[0] : -1)
-      ),
+      chart.onAttributeChange("hoverX", dimensions => {
+        const prevSelection = dygraph.getSelection()
+        const nextSelection = dimensions ? chart.getClosestRow(dimensions[0]) : -1
+
+        if (prevSelection !== nextSelection) {
+          dygraph.setSelection(nextSelection)
+        }
+
+        if (nextSelection !== -1) {
+          crosshair(instance, nextSelection)
+        }
+      }),
       chart.on("after", () => {
         const { after, before } = chart.getAttributes()
         dygraph.updateOptions({ dateWindow: [after * 1000, before * 1000] })

@@ -5,6 +5,7 @@ import initialPayload from "./initialPayload"
 import convert from "./unitConversion"
 import { fetchChartData } from "./api"
 import makeDimensions from "./makeDimensions"
+import makeGetClosestRow from "./makeGetClosestRow"
 
 export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => {
   const node = makeNode({ sdk, parent, attributes })
@@ -15,6 +16,8 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
   let fetchTimeoutId = null
 
   const getPayload = () => payload
+
+  const { invalidateClosestRowCache, getClosestRow } = makeGetClosestRow(getPayload)
 
   const cancelFetch = () => abortController && abortController.abort()
 
@@ -71,6 +74,8 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
     } else {
       payload = { ...initialPayload, ...camelizeKeys(nextPayload) }
     }
+
+    invalidateClosestRowCache()
 
     node.updateAttributes({
       loaded: true,
@@ -186,6 +191,7 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
     blur,
     activate,
     deactivate,
+    getClosestRow,
     getUnitSign,
   }
 

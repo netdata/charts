@@ -8,6 +8,7 @@ import Header from "./header"
 import Details from "./details"
 import DimensionFilter from "./dimensionFilter"
 import withIntersection from "./withIntersection"
+import withFullscreen from "./withFullscreen"
 import useHover from "./useHover"
 
 const ChartContainer = styled.div`
@@ -34,10 +35,10 @@ export const Chart = ({ chart, ...rest }) => {
   return (
     <Flex
       ref={ref}
-      round
-      border={{ color: "borderSecondary", side: "all" }}
-      column
       data-testid="chart"
+      round={true}
+      border={{ color: "borderSecondary", side: "all" }}
+      column={true}
       {...rest}
     >
       <Header
@@ -47,18 +48,18 @@ export const Chart = ({ chart, ...rest }) => {
       />
       <Flex position="relative" column flex data-testid="chartContainer">
         <Flex position="relative" padding={[0, 0, 4, 0]} flex data-testid="chartContentWrapper">
-          <ChartContainer data-testid="chartContent" ref={chartRef} />
+          <ChartContainer style={{ height: "100%" }} data-testid="chartContent" ref={chartRef} />
           <Toolbox chart={chart} />
           <Tooltip chart={chart} />
         </Flex>
-        <Flex border={{ side: "top", color: "borderSecondary" }} data-testid="chartLegend">
-          <DimensionFilter chart={chart} />
-          <Legend chart={chart} flex />
-        </Flex>
         {detailsOpen && <Details chart={chart} />}
+      </Flex>
+      <Flex border={{ side: "top", color: "borderSecondary" }} data-testid="chartLegend">
+        <DimensionFilter chart={chart} />
+        <Legend chart={chart} flex />
       </Flex>
     </Flex>
   )
 }
 
-export default withIntersection(Chart)
+export default withFullscreen(withIntersection(Chart))
