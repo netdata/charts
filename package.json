@@ -1,6 +1,6 @@
 {
   "name": "@netdata/charts",
-  "version": "0.0.10",
+  "version": "0.0.8",
   "description": "Netdata frontend SDK and chart utilities",
   "main": "index.js",
   "module": "es6/index.js",
@@ -22,9 +22,6 @@
     "clean": "rimraf lib dist es coverage",
     "prepublish": "yarn clean && yarn build",
     "storybook": "start-storybook -p 6006"
-  },
-  "engines": {
-    "node": "12.10"
   },
   "keywords": [
     "netdata",
