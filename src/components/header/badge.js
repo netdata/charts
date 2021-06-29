@@ -3,11 +3,12 @@ import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
 
 const types = {
-  error: { background: ["red", "roseWhite"], color: "error" },
+  error: { background: "errorBackground", color: "errorText" },
   warning: {
-    background: ["yellow", "safronMango"],
-    color: "warning",
+    background: "warningBackground",
+    color: "warningText",
   },
+  neutral: { background: "elementBackground", color: "textLite" },
 }
 
 const Badge = ({ type, children, ...rest }) => {

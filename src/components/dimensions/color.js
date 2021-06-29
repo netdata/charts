@@ -2,7 +2,7 @@ import React from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 
-const Container = styled(Flex).attrs({ width: "2px", round: true })`
+export const Container = styled(Flex).attrs({ width: "2px", round: true })`
   background-color: ${({ bg }) => bg};
 `
 

@@ -1,6 +1,8 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react"
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import { useInitialLoading } from "@/components/useAttribute"
+import skeletonChart from "@/components/icon/assets/skeleton_chart.svg"
 import Tooltip from "./tooltip"
 import Legend from "./legend"
 import Toolbox from "./toolbox"
@@ -10,27 +12,27 @@ import DimensionFilter from "./dimensionFilter"
 import withIntersection from "./withIntersection"
 import withFullscreen from "./withFullscreen"
 import useHover from "./useHover"
+import Icon from "@/components/icon"
 
-const ChartContainer = styled.div`
+const ChartContainer2 = styled.div`
   width: 100%;
 `
 
-export const Chart = ({ chart, ...rest }) => {
-  const chartRef = useRef()
-  const [detailsOpen, setDetailsOpen] = useState(false)
-
-  const ref = useHover(chart)
+const ChartContainer = ({ chart }) => {
+  const ref = useRef()
 
   useLayoutEffect(() => {
-    if (chart.getAttribute("loaded")) {
-      chart.getUI().mount(chartRef.current)
-      return
-    }
-
-    return chart.onceAttributeChange("loaded", () => chart.getUI().mount(chartRef.current))
+    chart.getUI().mount(ref.current)
+    return () => chart.getUI().unmount()
   }, [])
 
-  useEffect(() => () => chart.getUI().unmount(), [])
+  return <ChartContainer2 style={{ height: "100%" }} data-testid="chartContent" ref={ref} />
+}
+
+export const Chart = ({ chart, ...rest }) => {
+  const [detailsOpen, setDetailsOpen] = useState(false)
+  const initialLoading = useInitialLoading(chart)
+  const ref = useHover(chart)
 
   return (
     <Flex
@@ -48,7 +50,12 @@ export const Chart = ({ chart, ...rest }) => {
       />
       <Flex position="relative" column flex data-testid="chartContainer">
         <Flex position="relative" padding={[0, 0, 4, 0]} flex data-testid="chartContentWrapper">
-          <ChartContainer style={{ height: "100%" }} data-testid="chartContent" ref={chartRef} />
+          {!initialLoading && <ChartContainer chart={chart} />}
+          {initialLoading && (
+            <Flex flex padding={[0, 0, 0, 10]}>
+              <Icon svg={skeletonChart} width="100%" height="90%" />
+            </Flex>
+          )}
           <Toolbox chart={chart} />
           <Tooltip chart={chart} />
         </Flex>

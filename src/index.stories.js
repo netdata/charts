@@ -93,6 +93,18 @@ export const Error = () => {
   )
 }
 
+export const InitialLoading = () => {
+  const sdk = makeDefaultSDK({ getChartMetadata })
+  const chart = sdk.makeChart({ getChart: () => new Promise(() => {}) })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Chart chart={chart} />
+    </ThemeProvider>
+  )
+}
+
 export const MultipleReal = () => {
   const { id, context } = getChartMetadata()
   const sdk = makeDefaultSDK({ getChartMetadata })

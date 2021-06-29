@@ -34,7 +34,7 @@ module.exports = {
       {
         //svg-sprite-loader
         test: /\.svg$/,
-        include: /node_modules\/@netdata\/netdata-ui/,
+        include: [/node_modules\/@netdata\/netdata-ui/, /src\/components\/icon\/assets/],
         loader: "raw-loader",
         options: {
           esModule: false,

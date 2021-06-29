@@ -30,7 +30,6 @@ export default sdk => {
     })
     .on("hoverChart", chart => {
       const autofetch = false
-      // console.log("hoverChart")
       if (autofetch === chart.getAttribute("autofetch")) return
 
       toggleRender(autofetch)
@@ -40,7 +39,6 @@ export default sdk => {
     })
     .on("blurChart", chart => {
       const autofetch = chart.getAttribute("after") < 0 && chart.getAttribute("active")
-      // console.log("blurChart", autofetch, chart.getAttribute("autofetch"))
 
       if (autofetch === chart.getAttribute("autofetch")) return
 
