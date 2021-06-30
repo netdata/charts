@@ -1,4 +1,6 @@
 export default {
+  chartLibrary: "",
+  theme: "default",
   host: "",
   before: 0,
   after: 0,
@@ -38,4 +40,6 @@ export default {
   urlOptions: [],
   eliminateZeroDimensions: false,
   fullscreen: false,
+  themeGridColor: ["#F7F8F8", "#282827"],
+  themeCrosshair: ["#536775", "#536775"],
 }

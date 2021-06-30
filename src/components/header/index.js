@@ -8,7 +8,8 @@ const Header = ({ chart, toggleDetails, detailsOpen }) => {
   return (
     <Flex
       justifyContent="between"
-      padding={[3]}
+      alignItems="center"
+      padding={[1.5, 3]}
       border={{ side: "bottom", color: "borderSecondary" }}
       data-testid="chartHeader"
     >

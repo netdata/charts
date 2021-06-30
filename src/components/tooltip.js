@@ -19,7 +19,7 @@ const DimensionsContainer = styled(Flex).attrs({
   round: true,
   border: { side: "all", color: "elementBackground" },
   width: "196px",
-  background: ["white", "pure"],
+  background: "dropdown",
   column: true,
   gap: 1,
   padding: [4],

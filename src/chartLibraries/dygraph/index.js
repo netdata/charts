@@ -37,6 +37,9 @@ export default (sdk, chart) => {
 
     chartUI.mount(element)
 
+    const theme = chart.getAttribute("theme")
+    element.classList.add(theme)
+
     const attributes = chart.getAttributes()
     const payload = chart.getPayload()
     const { chartType } = chart.getMetadata()
@@ -50,6 +53,8 @@ export default (sdk, chart) => {
 
     let prevMin
     let prevMax
+
+    const strokeWidth = stacked ? 0.1 : smooth ? 1.5 : 0.7
 
     dygraph = new Dygraph(element, payload.result.data, {
       showLabelsOnHighlight: false,
@@ -76,11 +81,6 @@ export default (sdk, chart) => {
         },
       },
 
-      highlightSeriesOpts: {
-        //   strokeWidth: 1,
-        strokeBorderWidth: 1,
-        //   highlightCircleSize: 3,
-      },
       dateWindow: getDateWindow(chart),
       highlightCallback: executeLatest((event, x, points, row, seriesName) =>
         chartUI.trigger("highlightCallback", event, x, points, row, seriesName)
@@ -98,20 +98,24 @@ export default (sdk, chart) => {
         touchend: executeLatest((...args) => chartUI.trigger("touchend", ...args)),
         dblclick: executeLatest((...args) => chartUI.trigger("dblclick", ...args)),
       },
-      strokeBorderColor: "#FFFFFF",
+
+      highlightSeriesOpts: {
+        strokeWidth: strokeWidth * 1.5,
+        // strokeBorderWidth: stacked ? null : 1,
+        // highlightCircleSize: 3,
+      },
+      // strokeBorderColor: "#FFFFFF",
       strokeBorderWidth: 0,
       stackedGraph: stacked,
       fillGraph: stacked || area,
       fillAlpha: stacked ? 0.8 : 0.2,
       axisLabelFontSize: 10,
-      axisLineColor: "#F0F0F0",
       axisLineWidth: 1,
       gridLineWidth: 1,
-      gridLineColor: "#F0F0F0",
       maxNumberWidth: 8,
       highlightCircleSize: sparkline ? 3 : 4,
-      highlightSeriesBackgroundAlpha: null,
-      strokeWidth: stacked ? 0.1 : smooth ? 1.5 : 0.7,
+      highlightSeriesBackgroundAlpha: 1,
+      strokeWidth,
       drawGapEdgePoints: true,
       ylabel: attributes.unit,
       yLabelWidth: 12,
@@ -119,6 +123,7 @@ export default (sdk, chart) => {
       includeZero: stacked,
       labelsSeparateLines: true,
       colors: dimensionColors,
+      ...makeTheming(),
       // visibility return selected dimensions
       // logscale
     })
@@ -146,11 +151,17 @@ export default (sdk, chart) => {
       chart.onAttributeChange("enabledHover", hoverX.toggle),
       chart.onAttributeChange("navigation", navigation.set),
       chart.onAttributeChange("highlight", highlight.toggle),
+      chart.onAttributeChange("theme", () => dygraph.updateOptions(makeTheming())),
     ]
 
     hover = makeHover(instance)
 
     render()
+  }
+
+  const makeTheming = () => {
+    const themeGridColor = chartUI.getThemeAttribute("themeGridColor")
+    return { axisLineColor: themeGridColor, gridLineColor: themeGridColor }
   }
 
   const unmount = () => {

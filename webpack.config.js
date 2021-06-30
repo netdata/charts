@@ -32,13 +32,14 @@ module.exports = {
         loader: "babel-loader",
       },
       {
-        //svg-sprite-loader
         test: /\.svg$/,
         include: [/node_modules\/@netdata\/netdata-ui/, /src\/components\/icon\/assets/],
         loader: "raw-loader",
-        options: {
-          esModule: false,
-        },
+      },
+      {
+        test: /\.css$/,
+        exclude: /node_modules/,
+        loader: "raw-loader",
       },
     ],
   },

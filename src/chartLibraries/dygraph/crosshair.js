@@ -6,10 +6,12 @@ export default (chartUI, row) => {
 
   const x = dygraph.toDomXCoord(chartUI.chart.getPayload().result.data[row][0])
 
+  const themeCrosshair = chartUI.getThemeAttribute("themeCrosshair")
+
   ctx.save()
   ctx.beginPath()
   ctx.setLineDash([5, 5])
-  ctx.strokeStyle = "rgb(83,103,117,0.3)"
+  ctx.strokeStyle = themeCrosshair
   ctx.moveTo(x, 0)
   ctx.lineTo(x, h)
 

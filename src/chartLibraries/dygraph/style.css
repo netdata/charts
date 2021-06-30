@@ -1,0 +1,7 @@
+.default .dygraph-axis-label {
+  color: #35414a;
+}
+
+.dark .dygraph-axis-label {
+  color: #fff;
+}

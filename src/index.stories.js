@@ -1,6 +1,6 @@
 import React from "react"
 import { ThemeProvider } from "styled-components"
-import { DefaultTheme } from "@netdata/netdata-ui/lib/theme/default"
+import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui/lib/theme"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { camelizeKeys } from "@/helpers/objectTransform"
 import Chart from "@/components/chart"
@@ -55,6 +55,20 @@ export const Simple = () => {
   )
 }
 
+export const SimpleDark = () => {
+  const sdk = makeDefaultSDK({ getChartMetadata, attributes: { theme: "dark" } })
+  const chart = sdk.makeChart({ getChart })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DarkTheme}>
+      <Flex background="mainBackground">
+        <Chart chart={chart} />
+      </Flex>
+    </ThemeProvider>
+  )
+}
+
 export const Timeout = () => {
   let requests = 0
   const sdk = makeDefaultSDK({ getChartMetadata })
@@ -96,12 +110,24 @@ export const Error = () => {
 export const InitialLoading = () => {
   const sdk = makeDefaultSDK({ getChartMetadata })
   const chart = sdk.makeChart({ getChart: () => new Promise(() => {}) })
+  const darkChart = sdk.makeChart({
+    getChart: () => new Promise(() => {}),
+    attributes: { theme: "dark" },
+  })
   sdk.appendChild(chart)
+  sdk.appendChild(darkChart)
 
   return (
-    <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} />
-    </ThemeProvider>
+    <div>
+      <ThemeProvider theme={DefaultTheme}>
+        <Chart chart={chart} />
+      </ThemeProvider>
+      <ThemeProvider theme={DarkTheme}>
+        <Flex background="mainBackground" margin={[10, 0, 0]}>
+          <Chart chart={darkChart} />
+        </Flex>
+      </ThemeProvider>
+    </div>
   )
 }
 

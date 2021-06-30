@@ -18,21 +18,21 @@ const Status = ({ chart, ...rest }) => {
   )
 
   return (
-    <Flex gap={3} data-testid="chartHeaderStatus" {...rest}>
-      <Logo chart={chart} />
+    <Flex data-testid="chartHeaderStatus" {...rest}>
+      <Flex as={Logo} padding={[0.5, 0.5, 0]} chart={chart} />
       <Reload chart={chart} />
       {delayed && (
-        <Badge type="warning" data-testid="chartHeaderStatus-timeout">
+        <Badge type="warning" margin={[0, 0, 0, 1]} data-testid="chartHeaderStatus-timeout">
           Timeout
         </Badge>
       )}
       {error && (
-        <Badge type="error" data-testid="chartHeaderStatus-error">
+        <Badge type="error" margin={[0, 0, 0, 1]} data-testid="chartHeaderStatus-error">
           Error
         </Badge>
       )}
       {initialLoading && (
-        <Badge type="neutral" data-testid="chartHeaderStatus-loading">
+        <Badge type="neutral" margin={[0, 0, 0, 1]} data-testid="chartHeaderStatus-loading">
           Loading
         </Badge>
       )}

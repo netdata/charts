@@ -1,6 +1,6 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react"
+import { useLayoutEffect, useRef } from "react"
 
-export default chart => {
+export default ({ onHover, onBlur }) => {
   const ref = useRef()
 
   useLayoutEffect(() => {
@@ -10,14 +10,14 @@ export default chart => {
         node = node.parentElement
       }
 
-      if (node !== ref.current) chart.blur()
+      if (node !== ref.current) onBlur()
     }
-    ref.current.addEventListener("mouseover", chart.focus)
+    ref.current.addEventListener("mouseover", onHover)
     ref.current.addEventListener("mouseout", mouseout)
 
     return () => {
-      ref.current.removeEventListener("mouseover", chart.focus)
-      ref.current.removeEventListener("mouseout", chart.blur)
+      ref.current.removeEventListener("mouseover", onHover)
+      ref.current.removeEventListener("mouseout", onBlur)
     }
   }, [])
 

@@ -10,9 +10,8 @@ import play from "./sdk/plugins/play"
 
 const minutes15 = 15 * 60
 
-export default options =>
+export default ({ attributes, ...options } = {}) =>
   makeSDK({
-    defaultUI: "dygraph",
     ui: {
       dygraph: makeDygraph,
     },
@@ -26,8 +25,10 @@ export default options =>
       move,
     },
     attributes: {
+      chartLibrary: "dygraph",
       navigation: "pan",
       after: -1 * minutes15,
+      ...attributes,
     },
     ...options,
   })

@@ -1,5 +1,10 @@
 import makeListeners from "@/helpers/makeListeners"
 
+const themeIndex = {
+  default: 0,
+  dark: 1,
+}
+
 export default (sdk, chart) => {
   const listeners = makeListeners()
   let element = null
@@ -37,6 +42,12 @@ export default (sdk, chart) => {
 
   const getPixelsPerPoint = () => 1
 
+  const getThemeAttribute = name => {
+    const attributes = chart.getAttributes()
+    const index = themeIndex[attributes.theme] || themeIndex.default
+    return attributes[name][index]
+  }
+
   return {
     ...listeners,
     sdk,
@@ -49,5 +60,6 @@ export default (sdk, chart) => {
     setEstimatedWidth,
     getEstimatedChartWidth,
     getPixelsPerPoint,
+    getThemeAttribute,
   }
 }

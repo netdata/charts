@@ -33,13 +33,13 @@
     "charts"
   ],
   "peerDependencies": {
-    "@netdata/netdata-ui": "^1.6.7",
+    "@netdata/netdata-ui": "^1.6.9",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "styled-components": "^5.2.1"
   },
   "devDependencies": {
-    "@netdata/netdata-ui": "^1.6.7",
+    "@netdata/netdata-ui": "^1.6.9",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "styled-components": "^5.2.1",

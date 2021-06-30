@@ -5,7 +5,6 @@ import makeChartsMetadata from "./makeChartsMetadata"
 import initialAttributes from "./initialAttributes"
 
 export default ({
-  defaultUI,
   ui,
   plugins: defaultPlugins = {},
   attributes: defaultAttributes,
@@ -14,7 +13,7 @@ export default ({
 }) => {
   const listeners = makeListeners()
   const chartsMetadata = makeChartsMetadata({ getChart: getChartMetadata })
-  const attributes = { defaultUI, ui }
+  const attributes = { ui }
   const plugins = {}
   let root
 
@@ -42,10 +41,16 @@ export default ({
   const makeChartCore = options => makeChart({ sdk: instance, ...options })
 
   const makeChartUI = chart => {
-    const type = chart.getAttribute("type") || attributes.defaultUI
-    const makeChartUI = attributes.ui[type]
+    const chartLibrary = chart.getAttribute("chartLibrary") || defaultAttributes.chartLibrary
 
-    return makeChartUI(instance, chart)
+    if (!(chartLibrary in attributes.ui))
+      console.error(
+        `Chart library "${chartLibrary}" does not exist in ${Object.keys(attributes.ui).join(", ")}`
+      )
+
+    const makeChartLibrary = attributes.ui[chartLibrary]
+
+    return makeChartLibrary(instance, chart)
   }
 
   const makeSDKChart = options => {

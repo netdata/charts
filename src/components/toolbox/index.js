@@ -1,7 +1,7 @@
 import React, { useEffect, useState, forwardRef, useRef } from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import panIcon from "@netdata/netdata-ui/lib/components/icon/assets/pan.svg"
+import panTool from "@netdata/netdata-ui/lib/components/icon/assets/pan_tool.svg"
 import selectedArea from "@netdata/netdata-ui/lib/components/icon/assets/selected_area.svg"
 import selectIcon from "@netdata/netdata-ui/lib/components/icon/assets/select.svg"
 import zoomInIcon from "@netdata/netdata-ui/lib/components/icon/assets/zoom_in.svg"
@@ -9,7 +9,7 @@ import zoomOutIcon from "@netdata/netdata-ui/lib/components/icon/assets/zoom_out
 import Icon, { Button } from "@/components/icon"
 
 const Container = styled(Flex).attrs({
-  padding: [3],
+  padding: [2, 3],
   gap: 3,
   background: "elementBackground",
   round: true,
@@ -39,11 +39,12 @@ const Toolbox = forwardRef(({ chart }, ref) => {
   return (
     <Container data-testid="chartToolbox" ref={ref}>
       <Button
-        icon={<Icon svg={panIcon} />}
+        icon={<Icon svg={panTool} />}
         title="Pan"
         onClick={pan}
         active={navigation === "pan"}
         data-testid="chartToolbox-pan"
+        stroked
       />
       <Button
         icon={<Icon svg={selectedArea} />}
@@ -75,23 +76,4 @@ const Toolbox = forwardRef(({ chart }, ref) => {
   )
 })
 
-const ToolboxContainer = ({ chart }) => {
-  const [open, setOpen] = useState(false)
-  const ref = useRef()
-
-  useEffect(() => {
-    const hover = chart.on("hoverChart", () => setOpen(true))
-    const blur = chart.on("blurChart", ({ relatedTarget }) => {
-      if (relatedTarget !== ref.current) setOpen(false)
-    })
-
-    return () => {
-      hover()
-      blur()
-    }
-  }, [])
-
-  return open ? <Toolbox chart={chart} ref={ref} /> : null
-}
-
-export default ToolboxContainer
+export default Toolbox

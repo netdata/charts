@@ -7,6 +7,8 @@ import { fetchChartData } from "./api"
 import makeDimensions from "./makeDimensions"
 import makeGetClosestRow from "./makeGetClosestRow"
 
+const requestTimeoutMs = 5 * 1000
+
 export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => {
   const node = makeNode({ sdk, parent, attributes })
   let ui = null
@@ -97,12 +99,11 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
     node.trigger("startFetch")
     node.updateAttributes({ loading: true, fetchStatedAt: Date.now() })
 
-    const { updateEvery = 5 } = getMetadata() || {}
     clearTimeout(fetchDelayTimeoutId)
     fetchDelayTimeoutId = setTimeout(() => {
       node.trigger("timeout", true)
       fetchDelayTimeoutId = null
-    }, updateEvery * 1000)
+    }, requestTimeoutMs)
 
     abortController = new AbortController()
     const options = { signal: abortController.signal }
