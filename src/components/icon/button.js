@@ -10,7 +10,7 @@ const color = (active, disabled) => {
 
 const Button = styled.button.attrs(({ icon }) => ({ children: icon }))`
   border: initial;
-  padding: 2px 3px 0;
+  padding: 3px 3px 0;
   background: ${({ theme, active }) =>
     active ? getColor("borderSecondary")({ theme }) : "initial"};
   cursor: pointer;

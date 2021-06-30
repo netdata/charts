@@ -151,7 +151,11 @@ export default (sdk, chart) => {
       chart.onAttributeChange("enabledHover", hoverX.toggle),
       chart.onAttributeChange("navigation", navigation.set),
       chart.onAttributeChange("highlight", highlight.toggle),
-      chart.onAttributeChange("theme", () => dygraph.updateOptions(makeTheming())),
+      chart.onAttributeChange("theme", (nextTheme, prevTheme) => {
+        element.classList.remove(prevTheme)
+        element.classList.add(nextTheme)
+        dygraph.updateOptions(makeTheming())
+      }),
     ]
 
     hover = makeHover(instance)
