@@ -1636,10 +1636,10 @@
     call-me-maybe "^1.0.1"
     glob-to-regexp "^0.3.0"
 
-"@netdata/netdata-ui@^1.6.7":
-  version "1.6.7"
-  resolved "https://registry.yarnpkg.com/@netdata/netdata-ui/-/netdata-ui-1.6.7.tgz#2c81690ac260e2688a299c55e49943d9a3cbe4f3"
-  integrity sha512-mCZyhWQvMz0QwkDGCF5MlmThcqUP4iBjwnDbms0oW/kbiMVvLTHm89Q46u25f4Vuz/+tFDTdy4ZwKeXS0Mt6nQ==
+"@netdata/netdata-ui@^1.6.9":
+  version "1.6.9"
+  resolved "https://registry.yarnpkg.com/@netdata/netdata-ui/-/netdata-ui-1.6.9.tgz#c44dabc754141cd06f4a751aee1f492d13c863b1"
+  integrity sha512-VNTxqY4HSqyfD0yAd0A2I2ED/+3TQ1JMvA3Hjb9vZ4M1b0yT3k0Gwgi/sat7AhtajR4laDbQ795p435FOHESQA==
   dependencies:
     "@elastic/react-search-ui" "^1.5.1"
     "@elastic/search-ui-site-search-connector" "^1.5.1"
