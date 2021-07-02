@@ -1,7 +1,11 @@
 import React, { useEffect, useRef, useState } from "react"
 import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
 
-const Value = ({ chart, id, ...rest }) => {
+export const Value = props => (
+  <TextMicro color="textDescription" data-testid="chartDimensions-value" {...props} />
+)
+
+const Container = ({ chart, id, ...rest }) => {
   const getValue = () => {
     const hover = chart.getAttribute("hoverX")
     const { result } = chart.getPayload()
@@ -33,11 +37,7 @@ const Value = ({ chart, id, ...rest }) => {
     }
   }, [])
 
-  return (
-    <TextMicro data-testid="chartDimensions-value" {...rest}>
-      {value}
-    </TextMicro>
-  )
+  return <Value {...rest}>{value}</Value>
 }
 
-export default Value
+export default Container

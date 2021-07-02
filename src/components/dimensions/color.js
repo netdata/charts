@@ -2,14 +2,18 @@ import React from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 
-export const Container = styled(Flex).attrs({ width: "2px", round: true })`
+export const Color = styled(Flex).attrs({
+  width: "2px",
+  round: true,
+  "data-testid": "chartDimensions-color",
+})`
   background-color: ${({ bg }) => bg};
 `
 
-const Color = ({ chart, id, ...rest }) => {
+const Container = ({ chart, id, ...rest }) => {
   const bg = chart.getDimensionColor(id)
 
-  return <Container bg={bg} data-testid="chartDimensions-color" {...rest} />
+  return <Color bg={bg} {...rest} />
 }
 
-export default Color
+export default Container
