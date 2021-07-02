@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, forwardRef } from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { unregister } from "@/helpers/makeListeners"
-import { useAttributeValue } from "@/components/useAttribute"
+import { useChart, useAttributeValue } from "@/components/provider"
 import UpdateEvery from "./updateEvery"
 import Timestamp from "./timestamp"
 import Dimension from "./dimension"
@@ -21,32 +21,34 @@ const DimensionsContainer = styled(Flex).attrs({
 
 const emptyArray = [null, null]
 
-const Dimensions = ({ chart }) => {
-  const [x, row] = useAttributeValue(chart, "hoverX") || emptyArray
+const Dimensions = () => {
+  const chart = useChart()
+  const [x, row] = useAttributeValue("hoverX") || emptyArray
   const dimensionIds = chart.getDimensionIds()
 
   return (
     <DimensionsContainer data-testid="chartTooltip-dimensions">
       <Flex column>
         {x && <Timestamp value={x} />}
-        <UpdateEvery chart={chart} />
+        <UpdateEvery />
       </Flex>
       <Flex gap={1} column>
         {dimensionIds.map(id => (
-          <Dimension key={id} chart={chart} id={id} strong={row === id} />
+          <Dimension key={id} id={id} strong={row === id} />
         ))}
       </Flex>
     </DimensionsContainer>
   )
 }
 
-const Tooltip = forwardRef(({ chart }, ref) => (
+const Tooltip = forwardRef((props, ref) => (
   <Flex position="absolute" data-testid="chartTooltip" ref={ref}>
-    <Dimensions chart={chart} />
+    <Dimensions />
   </Flex>
 ))
 
-const Container = ({ chart }) => {
+const Container = () => {
+  const chart = useChart()
   const ref = useRef()
   const [open, setOpen] = useState(false)
 
@@ -90,7 +92,7 @@ const Container = ({ chart }) => {
 
   if (!open) return null
 
-  return <Tooltip ref={ref} chart={chart} />
+  return <Tooltip ref={ref} />
 }
 
 export default Container

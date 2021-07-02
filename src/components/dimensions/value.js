@@ -1,11 +1,14 @@
 import React, { useEffect, useRef, useState } from "react"
 import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
+import { useChart } from "@/components/provider"
 
 export const Value = props => (
   <TextMicro color="textDescription" data-testid="chartDimensions-value" {...props} />
 )
 
-const Container = ({ chart, id, ...rest }) => {
+const Container = ({ id, ...rest }) => {
+  const chart = useChart()
+
   const getValue = () => {
     const hover = chart.getAttribute("hoverX")
     const { result } = chart.getPayload()

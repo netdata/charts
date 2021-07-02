@@ -1,4 +1,4 @@
-import React, { useEffect, useState, forwardRef, useRef } from "react"
+import React, { forwardRef } from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import panTool from "@netdata/netdata-ui/lib/components/icon/assets/pan_tool.svg"
@@ -7,9 +7,10 @@ import selectIcon from "@netdata/netdata-ui/lib/components/icon/assets/select.sv
 import zoomInIcon from "@netdata/netdata-ui/lib/components/icon/assets/zoom_in.svg"
 import zoomOutIcon from "@netdata/netdata-ui/lib/components/icon/assets/zoom_out.svg"
 import Icon, { Button } from "@/components/icon"
+import { useAttributeValue, useChart } from "@/components/provider"
 
 const Container = styled(Flex).attrs({
-  padding: [2, 3],
+  padding: [1, 3],
   gap: 3,
   background: "elementBackground",
   round: true,
@@ -19,10 +20,9 @@ const Container = styled(Flex).attrs({
   right: 8px;
 `
 
-const Toolbox = forwardRef(({ chart }, ref) => {
-  const [navigation, setNavigation] = useState(chart.getAttribute("navigation"))
-
-  useEffect(() => chart.onAttributeChange("navigation", setNavigation), [])
+const Toolbox = forwardRef((props, ref) => {
+  const chart = useChart()
+  const navigation = useAttributeValue("navigation")
 
   const pan = () => {
     chart.updateAttribute("navigation", "pan")
@@ -37,7 +37,7 @@ const Toolbox = forwardRef(({ chart }, ref) => {
   }
 
   return (
-    <Container data-testid="chartToolbox" ref={ref}>
+    <Container data-testid="chartToolbox" {...props} ref={ref}>
       <Button
         icon={<Icon svg={panTool} />}
         title="Pan"

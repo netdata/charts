@@ -3,8 +3,8 @@ import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
 import lineChart from "@netdata/netdata-ui/lib/components/icon/assets/line_chart.svg"
 import stackedChart from "@netdata/netdata-ui/lib/components/icon/assets/stacked_chart.svg"
 import areaChart from "@netdata/netdata-ui/lib/components/icon/assets/area_chart.svg"
-import useAttribute from "@/components/useAttribute"
 import Icon, { Button } from "@/components/icon"
+import { useChart, useAttribute } from "@/components/provider"
 
 const items = [
   {
@@ -24,9 +24,10 @@ const items = [
   },
 ]
 
-const ChartType = ({ chart }) => {
+const ChartType = () => {
+  const chart = useChart()
   const { chartType: metaChartType } = chart.getMetadata()
-  const [chartTypeAttribute, setChartType] = useAttribute(chart, "chartType")
+  const [chartTypeAttribute, setChartType] = useAttribute("chartType")
   const chartType = chartTypeAttribute || metaChartType
 
   const onChange = value => setChartType(chart.getMetadata().chartType === value ? "" : value)

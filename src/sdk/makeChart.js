@@ -91,7 +91,7 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
 
   const failFetch = error => {
     node.updateAttribute("loading", false)
-    if (error.name !== "AbortError") node.trigger("failFetch", error)
+    if (!error || error.name !== "AbortError") node.trigger("failFetch", error)
     finishFetch()
   }
 

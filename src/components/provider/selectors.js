@@ -1,7 +1,11 @@
-import { useCallback, useEffect, useLayoutEffect, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useState, useContext } from "react"
 import { unregister } from "@/helpers/makeListeners"
+import context from "./context"
 
-export const useAttributeValue = (chart, name) => {
+export const useChart = () => useContext(context)
+
+export const useAttributeValue = name => {
+  const chart = useChart()
   const getValue = () => chart.getAttribute(name)
 
   const [value, setValue] = useState(getValue)
@@ -11,7 +15,9 @@ export const useAttributeValue = (chart, name) => {
   return value
 }
 
-export const useInitialLoading = chart => {
+export const useInitialLoading = () => {
+  const chart = useChart()
+
   const getValue = () =>
     !chart.getAttribute("loaded") &&
     chart.getAttribute("loading") &&
@@ -31,7 +37,9 @@ export const useInitialLoading = chart => {
   return value
 }
 
-export const useEmpty = chart => {
+export const useEmpty = () => {
+  const chart = useChart()
+
   const getValue = () => {
     const { result } = chart.getPayload()
     return result.data.length === 0
@@ -44,7 +52,9 @@ export const useEmpty = chart => {
   return empty
 }
 
-export default (chart, name) => {
+export const useAttribute = name => {
+  const chart = useChart()
+
   const getValue = () => chart.getAttribute(name)
 
   const [value, setValue] = useState(getValue)

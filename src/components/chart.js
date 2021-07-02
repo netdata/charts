@@ -8,8 +8,10 @@ import withIntersection from "./withIntersection"
 import withFullscreen from "./withFullscreen"
 import useHover from "./useHover"
 import ChartContentWrapper from "./chartContentWrapper"
+import { withChartProvider, useChart } from "./provider"
 
-export const Chart = ({ chart, ...rest }) => {
+export const Chart = props => {
+  const chart = useChart()
   const [detailsOpen, setDetailsOpen] = useState(false)
   const ref = useHover({ onHover: chart.focus, onBlur: chart.blur })
 
@@ -22,16 +24,16 @@ export const Chart = ({ chart, ...rest }) => {
       border={{ color: "borderSecondary", side: "all" }}
       column
       round
-      {...rest}
+      {...props}
     >
-      <Header chart={chart} detailsOpen={detailsOpen} toggleDetails={toggleDetails} />
+      <Header detailsOpen={detailsOpen} toggleDetails={toggleDetails} />
       <Flex position="relative" column flex data-testid="chartContainer">
-        <ChartContentWrapper chart={chart} />
-        {detailsOpen && <Details chart={chart} />}
+        <ChartContentWrapper />
+        {detailsOpen && <Details />}
       </Flex>
       <Flex border={{ side: "top", color: "borderSecondary" }} data-testid="chartLegend">
-        <DimensionFilter chart={chart} />
-        <Legend chart={chart} flex />
+        <DimensionFilter />
+        <Legend flex />
       </Flex>
     </Flex>
   )
@@ -41,4 +43,6 @@ const ChartWithIntersection = withIntersection(Chart)
 
 const ChartWithFullscreen = withFullscreen(ChartWithIntersection)
 
-export default ChartWithFullscreen
+const ChartWithProvider = withChartProvider(ChartWithFullscreen)
+
+export default ChartWithProvider

@@ -1,5 +1,6 @@
 import React from "react"
 import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
+import { useChart } from "@/components/provider"
 
 export const Name = props => (
   <TextMicro
@@ -11,7 +12,8 @@ export const Name = props => (
   />
 )
 
-const Container = ({ chart, id, ...rest }) => {
+const Container = ({ id, ...rest }) => {
+  const chart = useChart()
   const name = chart.getDimensionName(id)
 
   return <Name {...rest}>{name}</Name>

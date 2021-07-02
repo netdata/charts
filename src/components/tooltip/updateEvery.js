@@ -1,8 +1,10 @@
 import React from "react"
 import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import { useChart } from "@/components/provider"
 
-const UpdateEvery = ({ chart }) => {
+const UpdateEvery = () => {
+  const chart = useChart()
   const { updateEvery } = chart.getPayload()
 
   return (

@@ -3,9 +3,10 @@ import { useTheme } from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
 import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
-import Color, { Container as ColorContainer } from "@/components/dimensions/color"
-import Name from "@/components/dimensions/name"
-import Value from "@/components/dimensions/value"
+import Color, { Color as ColorContainer } from "@/components/dimensions/color"
+import Name, { Name as NameContainer } from "@/components/dimensions/name"
+import Value, { Value as ValueContainer } from "@/components/dimensions/value"
+import { useChart } from "@/components/provider"
 
 const DimensionContainer = props => (
   <Flex width="88px" flex={false} gap={1} data-testid="chartLegendDimension" {...props} />
@@ -31,19 +32,34 @@ export const SkeletonDimension = () => {
   )
 }
 
-const Dimension = ({ chart, id }) => {
+export const EmptyDimension = () => {
+  const theme = useTheme()
+
+  return (
+    <DimensionContainer>
+      <ColorContainer bg={getColor("placeholder")({ theme })} />
+      <Flex flex gap={1} column overflow="hidden" data-testid="chartLegendDimension-details">
+        <NameContainer>No data</NameContainer>
+        <ValueContainer>-</ValueContainer>
+      </Flex>
+    </DimensionContainer>
+  )
+}
+
+const Dimension = ({ id }) => {
+  const chart = useChart()
   const [unit, setUnit] = useState(chart.getUnitSign)
 
   useEffect(() => chart.on("convertedValuesChange", () => setUnit(chart.getUnitSign)), [])
 
   return (
     <DimensionContainer>
-      <Color chart={chart} id={id} />
+      <Color id={id} />
       <Flex flex column overflow="hidden" data-testid="chartLegendDimension-details">
-        <Name chart={chart} id={id} />
+        <Name id={id} />
         <Flex gap={1} data-testid="chartLegendDimension-valueContainer">
-          <Value chart={chart} id={id} strong />
-          <TextMicro whiteSpace="nowrap" truncate>
+          <Value id={id} strong />
+          <TextMicro whiteSpace="nowrap" truncate color="textDescription">
             {unit}
           </TextMicro>
         </Flex>

@@ -1,6 +1,7 @@
 import React, { useLayoutEffect, useState } from "react"
 import styled, { keyframes, css } from "styled-components"
 import netdata from "@netdata/netdata-ui/lib/components/icon/assets/netdata.svg"
+import { useChart } from "@/components/provider"
 import Icon from "@/components/icon"
 
 const frames = keyframes`
@@ -16,7 +17,8 @@ const StyledIcon = styled(Icon)`
   ${({ isLoading }) => isLoading && fade}
 `
 
-const Logo = ({ chart, ...rest }) => {
+const Logo = props => {
+  const chart = useChart()
   const [autofetch, setAutofetch] = useState(chart.getAttribute("autofetch"))
 
   useLayoutEffect(() => chart.onAttributeChange("autofetch", setAutofetch), [])
@@ -28,7 +30,7 @@ const Logo = ({ chart, ...rest }) => {
       isLoading={autofetch}
       title={autofetch ? "Playing" : "Paused"}
       data-testid="chartHeaderStatus-logo"
-      {...rest}
+      {...props}
     />
   )
 }

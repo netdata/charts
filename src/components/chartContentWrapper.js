@@ -1,7 +1,7 @@
-import React, { useState } from "react"
+import React, { forwardRef, useState } from "react"
 import styled, { css } from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { useInitialLoading, useEmpty } from "@/components/useAttribute"
+import { useInitialLoading, useEmpty, useAttributeValue } from "@/components/provider"
 import Tooltip from "./tooltip"
 import Toolbox from "./toolbox"
 import useHover from "./useHover"
@@ -16,33 +16,40 @@ const chartLibraries = {
   `,
 }
 
-const Container = styled(Flex)`
+const StyledContainer = styled(Flex)`
   ${({ chartLibrary }) => chartLibraries[chartLibrary] || ""}
 `
 
-const ChartContentWrapper = ({ chart }) => {
-  const [focused, setFocused] = useState(false)
-  const ref = useHover({ onHover: () => setFocused(true), onBlur: () => setFocused(false) })
-  const initialLoading = useInitialLoading(chart)
-  const empty = useEmpty(chart)
-
-  const chartLibrary = chart.getAttribute("chartLibrary")
+const Container = forwardRef((props, ref) => {
+  const chartLibrary = useAttributeValue("chartLibrary")
 
   return (
-    <Container
+    <StyledContainer
       ref={ref}
       chartLibrary={chartLibrary}
       position="relative"
       padding={[0, 0, 4, 0]}
       flex
       data-testid="chartContentWrapper"
-    >
-      {!initialLoading && !empty && <ChartContainer chart={chart} />}
-      {!initialLoading && !empty && <HorizontalNoData chart={chart} />}
-      {!initialLoading && empty && <CenterNoData chart={chart} />}
+      {...props}
+    />
+  )
+})
+
+const ChartContentWrapper = () => {
+  const [focused, setFocused] = useState(false)
+  const ref = useHover({ onHover: () => setFocused(true), onBlur: () => setFocused(false) })
+  const initialLoading = useInitialLoading()
+  const empty = useEmpty()
+
+  return (
+    <Container ref={ref}>
+      {!initialLoading && !empty && <ChartContainer />}
+      {!initialLoading && !empty && <HorizontalNoData />}
+      {!initialLoading && empty && <CenterNoData />}
       {initialLoading && <SkeletonChart />}
-      {focused && !empty && <Toolbox chart={chart} />}
-      <Tooltip chart={chart} />
+      {focused && !empty && <Toolbox />}
+      <Tooltip />
     </Container>
   )
 }

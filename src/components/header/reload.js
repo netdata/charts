@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import styled, { keyframes, css } from "styled-components"
 import reload2 from "@netdata/netdata-ui/lib/components/icon/assets/reload2.svg"
 import Icon, { Button } from "@/components/icon"
+import { useChart } from "@/components/provider"
 
 const frames = keyframes`
   from { transform: rotate(360deg); }
@@ -16,7 +17,8 @@ const StyledIcon = styled(Icon)`
   ${({ isLoading }) => isLoading && fade}
 `
 
-const Reload = ({ chart, ...rest }) => {
+const Reload = props => {
+  const chart = useChart()
   const [loading, setLoading] = useState(false)
 
   const fetch = () => {
@@ -31,7 +33,7 @@ const Reload = ({ chart, ...rest }) => {
       onClick={fetch}
       title="Refresh"
       data-testid="chartHeaderStatus-reload"
-      {...rest}
+      {...props}
     />
   )
 }

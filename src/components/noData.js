@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, forwardRef, useLayoutEffect } from 
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { TextMicro, TextSmall } from "@netdata/netdata-ui/lib/components/typography"
+import { useChart } from "@/components/provider"
 
 const LinkContainer = styled(Flex).attrs({
   as: "a",
@@ -70,7 +71,8 @@ const HorizontalContainer = styled(Flex)`
   pointer-events: none;
 `
 
-export const HorizontalNoData = ({ chart }) => {
+export const HorizontalNoData = () => {
+  const chart = useChart()
   const ref = useRef()
 
   const getValue = () => chart.getUI().getPreceded()

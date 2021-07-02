@@ -6,17 +6,16 @@ import share from "@netdata/netdata-ui/lib/components/icon/assets/share.svg"
 import dashboardAdd from "@netdata/netdata-ui/lib/components/icon/assets/dashboard_add.svg"
 import pin from "@netdata/netdata-ui/lib/components/icon/assets/pin.svg"
 import stackedChart from "@netdata/netdata-ui/lib/components/icon/assets/stacked_chart.svg"
-import useAttribute from "@/components/useAttribute"
 import Icon, { Button } from "@/components/icon"
+import { useAttributeValue } from "@/components/provider"
 import Fullscreen from "./fullscreen"
 import ChartType from "./chartType"
 
 const Separator = () => <Flex width="1px" background="placeholder" />
 
-const Toolbox = ({ chart, detailsOpen, toggleDetails, ...rest }) => {
-  const [disabled, setDisabled] = useState(() => !chart.getAttribute("focused"))
-
-  useEffect(() => chart.onAttributeChange("focused", v => setDisabled(!v)), [])
+const Toolbox = ({ detailsOpen, toggleDetails, ...rest }) => {
+  const focused = useAttributeValue("focused")
+  const disabled = !focused
 
   return (
     <Flex gap={3} justifyContent="end" data-testid="chartHeaderToolbox" {...rest}>
@@ -29,9 +28,9 @@ const Toolbox = ({ chart, detailsOpen, toggleDetails, ...rest }) => {
         data-testid="chartHeaderToolbox-information"
       />
       <Separator />
-      <ChartType disabled={disabled} chart={chart} />
+      <ChartType disabled={disabled} />
       <Separator />
-      <Fullscreen disabled={disabled} chart={chart} />
+      <Fullscreen disabled={disabled} />
     </Flex>
   )
 }

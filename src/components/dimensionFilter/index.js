@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react"
+import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
 import { ItemContainer } from "@netdata/netdata-ui/lib/components/drops/menu/dropdownItem"
 import { Text } from "@netdata/netdata-ui/lib/components/typography"
 import sortDesc from "@netdata/netdata-ui/lib/components/icon/assets/sort_desc.svg"
 import Icon, { Button } from "@/components/icon"
-import styled from "styled-components"
+import { useChart } from "@/components/provider"
 
 const Input = styled.input.attrs({ type: "radio" })`
   width: 16px;
@@ -45,7 +46,8 @@ const sortings = [
   { value: "valueDesc", label: "Sort by value Min→Max " },
 ]
 
-const DimensionFilter = ({ chart }) => {
+const DimensionFilter = () => {
+  const chart = useChart()
   const [value, setValue] = useState(chart.getAttribute("dimensionsSort"))
 
   const onChange = value => chart.updateAttribute("dimensionsSort", value)

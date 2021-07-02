@@ -1,4 +1,5 @@
 import React from "react"
+import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { TextSmall, Text } from "@netdata/netdata-ui/lib/components/typography"
 import information from "@netdata/netdata-ui/lib/components/icon/assets/information.svg"
@@ -6,7 +7,7 @@ import information from "@netdata/netdata-ui/lib/components/icon/assets/informat
 import plugins from "@netdata/netdata-ui/lib/components/icon/assets/plugins.svg"
 import metrics from "@netdata/netdata-ui/lib/components/icon/assets/metrics.svg"
 import Icon from "@/components/icon"
-import styled from "styled-components"
+import { useChart } from "@/components/provider"
 
 const Row = ({ icon, title, children, ...rest }) => {
   return (
@@ -40,7 +41,8 @@ const Container = styled(Flex)`
   inset: 0;
 `
 
-const Details = ({ chart }) => {
+const Details = () => {
+  const chart = useChart()
   const { title, chartType, plugin, context } = chart.getMetadata()
 
   return (

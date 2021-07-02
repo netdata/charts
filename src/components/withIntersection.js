@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, memo } from "react"
 import Intersection from "@netdata/netdata-ui/lib/components/intersection"
-import { useAttributeValue } from "./useAttribute"
+import { useAttributeValue, useChart } from "./provider"
 
 export default Component => {
-  const IntersectionComponent = ({ chart, ...rest }) => {
+  const IntersectionComponent = props => {
+    const chart = useChart()
     const ref = useRef()
-    const fullscreen = useAttributeValue(chart, "fullscreen")
+    const fullscreen = useAttributeValue("fullscreen")
 
     const onVisibility = visible => {
       if (!visible) return chart.deactivate()
@@ -26,10 +27,10 @@ export default Component => {
         onVisibility={onVisibility}
         ref={ref}
         data-testid="chartIntersector"
-        {...rest}
+        {...props}
       >
         {() => {
-          return <Component chart={chart} height={height} width="100%" flex {...rest} />
+          return <Component height={height} width="100%" flex {...props} />
         }}
       </Intersection>
     )
