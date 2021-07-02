@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid"
 import makeListeners from "@/helpers/makeListeners"
+import makeGetUnitSign from "./makeGetUnitSign"
 
 export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   const listeners = makeListeners()
@@ -129,5 +130,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     destroy,
   }
 
-  return instance
+  const getUnitSign = makeGetUnitSign(instance)
+
+  return { ...instance, getUnitSign }
 }

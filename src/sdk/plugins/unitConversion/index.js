@@ -6,37 +6,34 @@ export default sdk => {
     const ancestor = chart.getAncestor({ syncUnits: true })
 
     if (!ancestor) {
-      chart.setAttributes({
+      chart.updateAttributes({
         unitsConversionMethod: method,
         unitsConversionDivider: divider,
         unit: unit,
         unitsConversionFractionDigits: fractionDigits,
       })
-      return chart.trigger("convertedValuesChange")
     }
 
     const { unitsConversionDivider } = ancestor.getAttributes()
 
     const updateChart = () => {
-      chart.setAttributes({
+      chart.updateAttributes({
         unitsConversionMethod: method,
         unitsConversionDivider: divider,
         unitsConversionFractionDigits: fractionDigits,
         unit,
       })
-      return chart.trigger("convertedValuesChange")
     }
 
     if (divider > unitsConversionDivider) {
       return chart.getApplicableNodes({ syncUnits: true }).forEach(node => {
         if (node === chart) return updateChart()
 
-        node.setAttributes({
+        node.updateAttributes({
           unitsConversionMethod: method,
           unitsConversionDivider: divider,
           unit: unit,
         })
-        chart.trigger("convertedValuesChange")
       })
     }
 

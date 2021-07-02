@@ -171,11 +171,6 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
     if (node.getAttribute("autofetch")) return startAutofetch()
   })
 
-  const getUnitSign = () => {
-    const unit = node.getAttribute("unit")
-    return unit === "percentage" ? "%" : unit.replace(/milliseconds/, "ms")
-  }
-
   const instance = {
     ...node,
     type: "chart",
@@ -193,7 +188,6 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
     activate,
     deactivate,
     getClosestRow,
-    getUnitSign,
   }
 
   return { ...instance, ...makeDimensions(instance) }

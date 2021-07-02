@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React from "react"
 import { useTheme } from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
@@ -6,7 +6,7 @@ import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
 import Color, { Color as ColorContainer } from "@/components/dimensions/color"
 import Name, { Name as NameContainer } from "@/components/dimensions/name"
 import Value, { Value as ValueContainer } from "@/components/dimensions/value"
-import { useChart } from "@/components/provider"
+import { useUnitSign } from "@/components/provider"
 
 const DimensionContainer = props => (
   <Flex width="88px" flex={false} gap={1} data-testid="chartLegendDimension" {...props} />
@@ -47,10 +47,7 @@ export const EmptyDimension = () => {
 }
 
 const Dimension = ({ id }) => {
-  const chart = useChart()
-  const [unit, setUnit] = useState(chart.getUnitSign)
-
-  useEffect(() => chart.on("convertedValuesChange", () => setUnit(chart.getUnitSign)), [])
+  const unit = useUnitSign()
 
   return (
     <DimensionContainer>

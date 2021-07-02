@@ -72,3 +72,13 @@ export const useAttribute = name => {
 
   return [value, updateValue]
 }
+
+export const useUnitSign = () => {
+  const chart = useChart()
+
+  const [unit, setUnit] = useState(chart.getUnitSign)
+
+  useEffect(() => chart.onAttributeChange("unit", () => setUnit(chart.getUnitSign())), [])
+
+  return unit
+}
