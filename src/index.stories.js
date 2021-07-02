@@ -7,6 +7,8 @@ import Chart from "@/components/chart"
 import makeMockPayload from "@/helpers/makeMockPayload"
 import makeDefaultSDK from "./makeDefaultSDK"
 
+import noData from "@/fixtures/noData"
+
 import systemLoadLineChart from "@/fixtures/systemLoadLineChart"
 import systemLoadLine from "@/fixtures/systemLoadLine"
 
@@ -65,6 +67,56 @@ export const SimpleDark = () => {
       <Flex background="mainBackground">
         <Chart chart={chart} />
       </Flex>
+    </ThemeProvider>
+  )
+}
+
+export const NoData = () => {
+  const sdk = makeDefaultSDK({ getChartMetadata })
+  const chart = sdk.makeChart({
+    getChart: () => new Promise(r => setTimeout(() => r(noData), 600)),
+  })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Chart chart={chart} />
+    </ThemeProvider>
+  )
+}
+
+export const PrecededData = () => {
+  let metadata
+  let fromTimestamp
+  const sdk = makeDefaultSDK({
+    getChartMetadata: () => {
+      metadata = getChartMetadata()
+      metadata.firstEntry = Math.floor(fromTimestamp / 1000)
+      return metadata
+    },
+  })
+  const chart = sdk.makeChart({
+    getChart: chart =>
+      getChart(chart).then(payload => {
+        if (!fromTimestamp) {
+          fromTimestamp = payload.result.data[Math.floor(payload.result.data.length / 3)][0]
+          metadata.firstEntry = Math.floor(fromTimestamp / 1000)
+        }
+
+        return {
+          ...payload,
+          result: {
+            ...payload.result,
+            data: payload.result.data.filter(d => d[0] > fromTimestamp),
+          },
+        }
+      }),
+  })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Chart chart={chart} />
     </ThemeProvider>
   )
 }

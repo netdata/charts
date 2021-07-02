@@ -31,6 +31,19 @@ export const useInitialLoading = chart => {
   return value
 }
 
+export const useEmpty = chart => {
+  const getValue = () => {
+    const { result } = chart.getPayload()
+    return result.data.length === 0
+  }
+
+  const [empty, setEmpty] = useState(getValue)
+
+  useEffect(() => chart.on("finishFetch", () => setEmpty(getValue)), [])
+
+  return empty
+}
+
 export default (chart, name) => {
   const getValue = () => chart.getAttribute(name)
 
@@ -38,7 +51,14 @@ export default (chart, name) => {
 
   useLayoutEffect(() => chart.onAttributeChange(name, () => setValue(getValue)), [])
 
-  const updateValue = useCallback(nextValue => chart.updateAttribute(name, nextValue), [])
+  const updateValue = useCallback(
+    nextValue =>
+      chart.updateAttribute(
+        name,
+        typeof nextValue === "function" ? nextValue(getValue()) : nextValue
+      ),
+    []
+  )
 
   return [value, updateValue]
 }

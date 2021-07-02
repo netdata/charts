@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { useInitialLoading } from "@/components/useAttribute"
+import { useInitialLoading, useEmpty } from "@/components/useAttribute"
 import Badge from "./badge"
 import Logo from "./logo"
 import Reload from "./reload"
@@ -9,6 +9,7 @@ const Status = ({ chart, ...rest }) => {
   const [delayed, setDelayed] = useState(false)
   const [error, setError] = useState(false)
   const initialLoading = useInitialLoading(chart)
+  const empty = useEmpty(chart)
 
   useEffect(() => chart.on("timeout", setDelayed), [])
 
@@ -34,6 +35,11 @@ const Status = ({ chart, ...rest }) => {
       {initialLoading && (
         <Badge type="neutral" margin={[0, 0, 0, 1]} data-testid="chartHeaderStatus-loading">
           Loading
+        </Badge>
+      )}
+      {!initialLoading && empty && (
+        <Badge type="neutral" margin={[0, 0, 0, 1]} data-testid="chartHeaderStatus-empty">
+          No data
         </Badge>
       )}
     </Flex>

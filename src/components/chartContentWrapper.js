@@ -1,12 +1,13 @@
 import React, { useState } from "react"
 import styled, { css } from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { useInitialLoading } from "@/components/useAttribute"
+import { useInitialLoading, useEmpty } from "@/components/useAttribute"
 import Tooltip from "./tooltip"
 import Toolbox from "./toolbox"
 import useHover from "./useHover"
 import ChartContainer from "./chartContainer"
 import SkeletonChart from "./skeletonChart"
+import { CenterNoData, HorizontalNoData } from "./noData"
 import dygraphStyle from "@/chartLibraries/dygraph/style.css"
 
 const chartLibraries = {
@@ -23,6 +24,7 @@ const ChartContentWrapper = ({ chart }) => {
   const [focused, setFocused] = useState(false)
   const ref = useHover({ onHover: () => setFocused(true), onBlur: () => setFocused(false) })
   const initialLoading = useInitialLoading(chart)
+  const empty = useEmpty(chart)
 
   const chartLibrary = chart.getAttribute("chartLibrary")
 
@@ -35,9 +37,11 @@ const ChartContentWrapper = ({ chart }) => {
       flex
       data-testid="chartContentWrapper"
     >
-      {!initialLoading && <ChartContainer chart={chart} />}
+      {!initialLoading && !empty && <ChartContainer chart={chart} />}
+      {!initialLoading && !empty && <HorizontalNoData chart={chart} />}
+      {!initialLoading && empty && <CenterNoData chart={chart} />}
       {initialLoading && <SkeletonChart />}
-      {focused && <Toolbox chart={chart} />}
+      {focused && !empty && <Toolbox chart={chart} />}
       <Tooltip chart={chart} />
     </Container>
   )
