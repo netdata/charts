@@ -42,19 +42,9 @@ export default (sdk, chart) => {
 
     const attributes = chart.getAttributes()
     const payload = chart.getPayload()
-    const { chartType } = chart.getMetadata()
-    const stacked = chartType === "stacked"
-    const area = chartType === "area"
-    const line = chartType === "line"
-    const sparkline = false
-    const logScale = false
-
-    const smooth = line && !sparkline
 
     let prevMin
     let prevMax
-
-    const strokeWidth = stacked ? 0.1 : smooth ? 1.5 : 0.7
 
     dygraph = new Dygraph(element, payload.result.data, {
       showLabelsOnHighlight: false,
@@ -86,7 +76,7 @@ export default (sdk, chart) => {
         chartUI.trigger("highlightCallback", event, x, points, row, seriesName)
       ),
       unhighlightCallback: executeLatest(() => chartUI.trigger("unhighlightCallback")),
-      underlayCallback: (canvas, area, g) => chartUI.trigger("underlayCallback", canvas, area, g),
+      underlayCallback: executeLatest((...args) => chartUI.trigger("underlayCallback", ...args)),
       interactionModel: {
         mouseout: executeLatest((...args) => chartUI.trigger("mouseout", ...args)),
         mousedown: executeLatest((...args) => chartUI.trigger("mousedown", ...args)),
@@ -99,31 +89,20 @@ export default (sdk, chart) => {
         dblclick: executeLatest((...args) => chartUI.trigger("dblclick", ...args)),
       },
 
-      highlightSeriesOpts: {
-        strokeWidth: strokeWidth * 1.5,
-        // strokeBorderWidth: stacked ? null : 1,
-        // highlightCircleSize: 3,
-      },
-      // strokeBorderColor: "#FFFFFF",
       strokeBorderWidth: 0,
-      stackedGraph: stacked,
-      fillGraph: stacked || area,
-      fillAlpha: stacked ? 0.8 : 0.2,
       axisLabelFontSize: 10,
       axisLineWidth: 1,
       gridLineWidth: 1,
       maxNumberWidth: 8,
-      highlightCircleSize: sparkline ? 3 : 4,
       highlightSeriesBackgroundAlpha: 1,
-      strokeWidth,
       drawGapEdgePoints: true,
       ylabel: attributes.unit,
       yLabelWidth: 12,
       yRangePad: 1,
-      includeZero: stacked,
       labelsSeparateLines: true,
       colors: dimensionColors,
-      ...makeTheming(),
+      ...makeChartTypeOptions(),
+      ...makeThemingOptions(),
       // visibility return selected dimensions
       // logscale
     })
@@ -154,8 +133,9 @@ export default (sdk, chart) => {
       chart.onAttributeChange("theme", (nextTheme, prevTheme) => {
         element.classList.remove(prevTheme)
         element.classList.add(nextTheme)
-        dygraph.updateOptions(makeTheming())
+        dygraph.updateOptions(makeThemingOptions())
       }),
+      chart.onAttributeChange("chartType", () => dygraph.updateOptions(makeChartTypeOptions())),
     ]
 
     hover = makeHover(instance)
@@ -163,7 +143,33 @@ export default (sdk, chart) => {
     render()
   }
 
-  const makeTheming = () => {
+  const makeChartTypeOptions = () => {
+    const chartType = chart.getAttribute("chartType") || chart.getMetadata().chartType
+
+    const stacked = chartType === "stacked"
+    const area = chartType === "area"
+    const line = chartType === "line"
+    const sparkline = false
+    const logScale = false
+
+    const smooth = line && !sparkline
+
+    const strokeWidth = stacked ? 0.1 : smooth ? 1.5 : 0.7
+
+    return {
+      highlightSeriesOpts: {
+        strokeWidth: strokeWidth * 1.5,
+      },
+      stackedGraph: stacked,
+      fillGraph: stacked || area,
+      fillAlpha: stacked ? 0.8 : 0.2,
+      highlightCircleSize: sparkline ? 3 : 4,
+      strokeWidth,
+      includeZero: stacked,
+    }
+  }
+
+  const makeThemingOptions = () => {
     const themeGridColor = chartUI.getThemeAttribute("themeGridColor")
     return { axisLineColor: themeGridColor, gridLineColor: themeGridColor }
   }
@@ -199,6 +205,18 @@ export default (sdk, chart) => {
     chart.updateDimensions()
   }
 
+  const getPreceded = () => {
+    if (!dygraph) return -1
+    const { firstEntry } = chartUI.chart.getMetadata()
+    const firstEntryMs = firstEntry * 1000
+    const [after] = dygraph.xAxisRange()
+
+    if (firstEntryMs < after) return -1
+
+    const [afterExtreme] = dygraph.xAxisExtremes()
+    return dygraph.toDomXCoord(afterExtreme)
+  }
+
   const getPixelsPerPoint = () => 3
 
   const getChartWidth = () => (dygraph ? dygraph.getArea().w : chartUI.getEstimatedChartWidth())
@@ -212,6 +230,7 @@ export default (sdk, chart) => {
     getChartHeight,
     getPixelsPerPoint,
     getUrlOptions,
+    getPreceded,
     mount,
     unmount,
     getDygraph,
