@@ -98,6 +98,14 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
   }
 
   const fetch = () => {
+    const { firstEntry } = getMetadata()
+    const { after, before } = node.getAttributes()
+    const absoluteBefore = after >= 0 ? before : Date.now() / 1000
+    if (firstEntry > absoluteBefore) {
+      clearFetchDelayTimeout()
+      return Promise.resolve()
+    }
+
     node.trigger("startFetch")
     node.updateAttributes({ loading: true, fetchStatedAt: Date.now() })
 
