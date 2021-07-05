@@ -11,7 +11,7 @@ import { useAttributeValue } from "@/components/provider"
 import Fullscreen from "./fullscreen"
 import ChartType from "./chartType"
 
-const Separator = () => <Flex width="1px" background="placeholder" />
+const Separator = () => <Flex width="1px" background="tabsBorder" />
 
 const Toolbox = ({ detailsOpen, toggleDetails, ...rest }) => {
   const focused = useAttributeValue("focused")

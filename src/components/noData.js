@@ -79,20 +79,22 @@ export const HorizontalNoData = () => {
 
   const [visible, setVisible] = useState(getValue)
 
-  useEffect(() => {
-    return chart.getUI().on("underlayCallback", () => {
-      const preceded = getValue()
-      if (preceded === -1) return setVisible(false)
+  useEffect(
+    () =>
+      chart.getUI().on("underlayCallback", () => {
+        const preceded = getValue()
+        if (preceded === -1) return setVisible(false)
 
-      setVisible(true)
+        setVisible(true)
 
-      if (!ref.current) return
+        if (!ref.current) return
 
-      const width = chart.getUI().getChartWidth()
-      const pr = Math.min(preceded - 24, 60 + width / 2 + ref.current.firstChild.offsetWidth / 2)
-      ref.current.style.right = `calc(100% - ${pr}px)`
-    })
-  }, [])
+        const width = chart.getUI().getChartWidth()
+        const pr = Math.min(preceded - 24, 60 + width / 2 + ref.current.firstChild.offsetWidth / 2)
+        ref.current.style.right = `calc(100% - ${pr}px)`
+      }),
+    []
+  )
 
   if (!visible) return null
 

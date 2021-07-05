@@ -14,7 +14,7 @@ const Header = ({ toggleDetails, detailsOpen }) => (
     data-testid="chartHeader"
   >
     <Status flex basis="0" />
-    <Title justifyContent="center" />
+    <Title flex="shrink" justifyContent="center" />
     <Toolbox flex basis="0" detailsOpen={detailsOpen} toggleDetails={toggleDetails} />
   </Flex>
 )

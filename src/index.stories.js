@@ -105,6 +105,7 @@ export const PrecededData = () => {
 
         return {
           ...payload,
+          firstEntry: Math.floor(fromTimestamp / 1000),
           result: {
             ...payload.result,
             data: payload.result.data.filter(d => d[0] > fromTimestamp),
