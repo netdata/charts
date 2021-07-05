@@ -2,9 +2,18 @@ export default sdk => {
   let timeoutId
 
   const getNext = () => {
-    sdk.getNodes({ loaded: true, active: true }).forEach(node => {
-      if (node.type === "chart") node.getUI().render()
-    })
+    sdk
+      .getRoot()
+      .getNodes(
+        (node, { loaded, active }) => {
+          return node.type === "chart" && loaded && active
+        },
+        {
+          inherit: false,
+        }
+      )
+      .forEach(node => node.getUI().render())
+
     timeoutId = setTimeout(() => {
       getNext()
     }, 1000)

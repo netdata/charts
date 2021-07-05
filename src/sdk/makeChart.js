@@ -9,7 +9,7 @@ import makeGetClosestRow from "./makeGetClosestRow"
 
 const requestTimeoutMs = 5 * 1000
 
-export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => {
+export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attributes } = {}) => {
   const node = makeNode({ sdk, parent, attributes })
   let ui = null
   let abortController = null
@@ -17,13 +17,15 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
   let fetchDelayTimeoutId = null
   let fetchTimeoutId = null
 
+  const getMetadataDecorator = () => chartsMetadata || sdk.chartsMetadata
+
   const getPayload = () => payload
 
   const { invalidateClosestRowCache, getClosestRow } = makeGetClosestRow(getPayload)
 
   const cancelFetch = () => abortController && abortController.abort()
 
-  const getMetadata = () => sdk.chartsMetadata.get(instance)
+  const getMetadata = () => getMetadataDecorator().get(instance)
 
   const clearFetchDelayTimeout = () => {
     if (fetchDelayTimeoutId === null) node.trigger("timeout", false)
@@ -107,9 +109,11 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
 
     abortController = new AbortController()
     const options = { signal: abortController.signal }
-    return sdk.chartsMetadata.fetch(instance).then(() => {
-      return getChart(instance, options).then(doneFetch).catch(failFetch)
-    })
+    return getMetadataDecorator()
+      .fetch(instance)
+      .then(() => {
+        return getChart(instance, options).then(doneFetch).catch(failFetch)
+      })
   }
 
   const getUI = () => ui
@@ -171,9 +175,10 @@ export default ({ sdk, parent, getChart = fetchChartData, attributes } = {}) => 
     if (node.getAttribute("autofetch")) return startAutofetch()
   })
 
+  node.type = "chart"
+
   const instance = {
     ...node,
-    type: "chart",
     getUI,
     setUI,
     getMetadata,

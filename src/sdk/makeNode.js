@@ -50,8 +50,11 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   const onAttributeChange = (name, handler) => attributeListeners.on(name, handler)
   const onceAttributeChange = (name, handler) => attributeListeners.once(name, handler)
 
-  const match = attrs =>
-    !attrs || !Object.keys(attrs).some(name => attrs[name] !== attributes[name])
+  const match = attrs => {
+    if (typeof attrs === "function") return attrs(instance, attributes)
+
+    return !attrs || !Object.keys(attrs).some(name => attrs[name] !== attributes[name])
+  }
 
   const getUuid = () => uuid
 
@@ -70,11 +73,11 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     return container || sdk.getRoot()
   }
 
-  const getApplicableNodes = attributes => {
+  const getApplicableNodes = (attributes, options) => {
     if (!match(attributes)) return [instance]
 
     const ancestor = getAncestor(attributes)
-    return ancestor.getNodes(attributes, [ancestor])
+    return ancestor.getNodes(attributes, options, [ancestor])
   }
 
   const inherit = () => {
@@ -130,7 +133,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     destroy,
   }
 
-  const getUnitSign = makeGetUnitSign(instance)
+  instance.getUnitSign = makeGetUnitSign(instance)
 
-  return { ...instance, getUnitSign }
+  return instance
 }
