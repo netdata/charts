@@ -18,7 +18,9 @@ export default ({
   let root
 
   const init = () => {
-    root = makeSDKContainer({ id: "root", ...initialAttributes, ...defaultAttributes })
+    root = makeSDKContainer({
+      attributes: { id: "root", ...initialAttributes, ...defaultAttributes },
+    })
     Object.keys(on).forEach(name => listeners.on(name, on[name]))
     Object.keys(defaultPlugins).forEach(name => register(name, defaultPlugins[name]))
   }
@@ -61,9 +63,9 @@ export default ({
     return chart
   }
 
-  const makeSDKContainer = (attributes = {}) => makeContainer({ sdk: instance, attributes })
+  const makeSDKContainer = options => makeContainer({ sdk: instance, ...options })
 
-  const getNodes = attributes => root.getNodes(attributes, [root])
+  const getNodes = (attributes, options) => root.getNodes(attributes, options, [root])
 
   const appendChild = (node, { inherit = true } = {}) => root.appendChild(node, { inherit })
 

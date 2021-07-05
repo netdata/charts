@@ -10,11 +10,11 @@ const Title = props => {
 
   return (
     <Flex data-testid="chartHeaderStatus-title" gap={1} {...props}>
-      <Text strong color="textDescription">
+      <Text strong color="textDescription" truncate>
         {title}
       </Text>
       {unit && (
-        <Text strong color="textLite">
+        <Text strong color="textLite" whiteSpace="nowrap">
           • [{unit}]
         </Text>
       )}

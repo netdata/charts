@@ -15,18 +15,23 @@ export default ({ sdk, parent, attributes } = {}) => {
     sdk.trigger("nodeRemoved", node)
   }
 
-  const getNodes = (attributes, nodes = []) => {
-    children.forEach(node => {
-      if (!node.match(attributes)) return
+  const getNodes = (attributes, options, nodes = []) => {
+    children.forEach(child => {
+      const match = child.match(attributes)
 
-      nodes.push(node)
-      if (node.type === "container") node.getNodes(attributes, nodes)
+      if (!match && (!options || ("inherit" in options && options.inherit))) return
+      if (match) nodes.push(child)
+
+      if (child.type === "container") child.getNodes(attributes, options, nodes)
     })
 
     return nodes
   }
 
-  const instance = { ...node, type: "container", appendChild, removeChild, getNodes }
+  const getChildren = () => children
+
+  node.type = "container"
+  const instance = { ...node, appendChild, removeChild, getNodes, getChildren }
 
   return instance
 }

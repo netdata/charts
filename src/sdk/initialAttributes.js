@@ -38,7 +38,7 @@ export default {
   groupingTime: 0,
   chartUrlOptions: null,
   urlOptions: [],
-  eliminateZeroDimensions: false,
+  eliminateZeroDimensions: true,
   fullscreen: false,
   themeGridColor: ["#F7F8F8", "#282827"],
   themeCrosshair: ["#536775", "#536775"],

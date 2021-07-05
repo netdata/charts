@@ -1,6 +1,6 @@
 import React, { memo } from "react"
 import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
-import lineChart from "@netdata/netdata-ui/lib/components/icon/assets/line_chart.svg"
+import lineChart from "@netdata/netdata-ui/lib/components/icon/assets/line_chart2.svg"
 import stackedChart from "@netdata/netdata-ui/lib/components/icon/assets/stacked_chart.svg"
 import areaChart from "@netdata/netdata-ui/lib/components/icon/assets/area_chart.svg"
 import Icon, { Button } from "@/components/icon"
@@ -10,21 +10,21 @@ const items = [
   {
     value: "line",
     label: "Line",
-    icon: <Icon svg={lineChart} margin={[0, 2, 0, 0]} size="16px" />,
+    icon: <Icon svg={lineChart} margin={[0, 2, 0, 0]} />,
   },
   {
     value: "stacked",
     label: "Stacked",
-    icon: <Icon svg={stackedChart} margin={[0, 2, 0, 0]} size="16px" />,
+    icon: <Icon svg={stackedChart} margin={[0, 2, 0, 0]} />,
   },
   {
     value: "area",
     label: "Area",
-    icon: <Icon svg={areaChart} margin={[0, 2, 0, 0]} size="16px" />,
+    icon: <Icon svg={areaChart} margin={[0, 2, 0, 0]} />,
   },
 ]
 
-const ChartType = () => {
+const ChartType = ({ disabled }) => {
   const chart = useChart()
   const { chartType: metaChartType } = chart.getMetadata()
   const [chartTypeAttribute, setChartType] = useAttribute("chartType")
@@ -41,7 +41,12 @@ const ChartType = () => {
       dropProps={{ align: { top: "bottom", right: "right" } }}
       onChange={onChange}
     >
-      <Button icon={icon} title={label} data-testid="chartHeaderToolbox-chartType" />
+      <Button
+        icon={icon}
+        title={label}
+        disabled={disabled}
+        data-testid="chartHeaderToolbox-chartType"
+      />
     </Menu>
   )
 }
