@@ -6,21 +6,23 @@ import areaChart from "@netdata/netdata-ui/lib/components/icon/assets/area_chart
 import Icon, { Button } from "@/components/icon"
 import { useChart, useAttribute } from "@/components/provider"
 
+const iconProps = { color: "border", margin: [0, 2, 0, 0] }
+
 const items = [
   {
     value: "line",
     label: "Line",
-    icon: <Icon svg={lineChart} margin={[0, 2, 0, 0]} />,
+    icon: <Icon svg={lineChart} {...iconProps} />,
   },
   {
     value: "stacked",
     label: "Stacked",
-    icon: <Icon svg={stackedChart} margin={[0, 2, 0, 0]} />,
+    icon: <Icon svg={stackedChart} {...iconProps} />,
   },
   {
     value: "area",
     label: "Area",
-    icon: <Icon svg={areaChart} margin={[0, 2, 0, 0]} />,
+    icon: <Icon svg={areaChart} {...iconProps} />,
   },
 ]
 

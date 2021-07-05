@@ -96,7 +96,7 @@ export default (sdk, chart) => {
       maxNumberWidth: 8,
       highlightSeriesBackgroundAlpha: 1,
       drawGapEdgePoints: true,
-      ylabel: attributes.unit,
+      // ylabel: attributes.unit,
       yLabelWidth: 12,
       yRangePad: 1,
       labelsSeparateLines: true,
@@ -207,6 +207,7 @@ export default (sdk, chart) => {
 
   const getPreceded = () => {
     if (!dygraph) return -1
+
     const { firstEntry } = chartUI.chart.getMetadata()
     const firstEntryMs = firstEntry * 1000
     const [after] = dygraph.xAxisRange()

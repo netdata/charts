@@ -9,7 +9,7 @@ const Title = props => {
   const unit = useUnitSign()
 
   return (
-    <Flex data-testid="chartHeaderStatus-title" gap={1} {...props}>
+    <Flex overflow="hidden" data-testid="chartHeaderStatus-title" gap={1} {...props}>
       <Text strong color="textDescription" truncate>
         {title}
       </Text>
