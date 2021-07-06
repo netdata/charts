@@ -1,6 +1,5 @@
 import React from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { useChart } from "@/components/provider"
 import Color from "@/components/dimensions/color"
 import Name from "@/components/dimensions/name"
 import Value from "@/components/dimensions/value"

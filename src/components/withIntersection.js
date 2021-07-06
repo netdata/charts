@@ -30,7 +30,7 @@ export default Component => {
         {...props}
       >
         {() => {
-          return <Component height={height} width="100%" flex {...props} />
+          return <Component height={height} width="100%" flex />
         }}
       </Intersection>
     )

@@ -55,6 +55,8 @@ export default chart => {
     sortDimensions()
   }
 
+  const getDimensionIndex = id => dimensionsById[id]
+
   const getDimensionIds = () => sortedDimensionIds
 
   const getDimensionColor = id => dimensionColors[dimensionsById[id] % dimensionColors.length]
@@ -74,6 +76,7 @@ export default chart => {
   return {
     sortDimensions,
     updateDimensions,
+    getDimensionIndex,
     getDimensionIds,
     getDimensionColor,
     getDimensionName,

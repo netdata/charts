@@ -27,6 +27,9 @@ import systemIpv6AreaChart from "@/fixtures/systemIpv6AreaChart"
 import systemIpArea from "@/fixtures/systemIpArea"
 import systemIpAreaChart from "@/fixtures/systemIpAreaChart"
 
+import appVmsStacked from "@/fixtures/appVmsStacked"
+import appVmsStackedChart from "@/fixtures/appVmsStackedChart"
+
 const getChartMetadata = () => camelizeKeys(systemLoadLineChart, { omit: ["dimensions"] })
 const getChart = makeMockPayload(systemLoadLine[0], { delay: 600 })
 
@@ -313,6 +316,21 @@ export const SystemIpv6Area = () => {
 export const SystemIpArea = () => {
   const getChartMetadata = () => camelizeKeys(systemIpAreaChart, { omit: ["dimensions"] })
   const getChart = makeMockPayload(systemIpArea, { delay: 1000 })
+
+  const sdk = makeDefaultSDK({ getChartMetadata })
+  const chart = sdk.makeChart({ getChart })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Chart chart={chart} />
+    </ThemeProvider>
+  )
+}
+
+export const AppVmsStacked = () => {
+  const getChartMetadata = () => camelizeKeys(appVmsStackedChart, { omit: ["dimensions"] })
+  const getChart = makeMockPayload(appVmsStacked, { delay: 1000 })
 
   const sdk = makeDefaultSDK({ getChartMetadata })
   const chart = sdk.makeChart({ getChart })

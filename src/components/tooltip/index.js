@@ -1,56 +1,44 @@
-import React, { useEffect, useState, useRef, forwardRef } from "react"
-import styled from "styled-components"
+import React, { useEffect, useState, useRef, forwardRef, Fragment } from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { unregister } from "@/helpers/makeListeners"
-import { useChart, useAttributeValue } from "@/components/provider"
-import UpdateEvery from "./updateEvery"
-import Timestamp from "./timestamp"
-import Dimension from "./dimension"
-
-const DimensionsContainer = styled(Flex).attrs({
-  round: true,
-  border: { side: "all", color: "elementBackground" },
-  width: "196px",
-  background: "dropdown",
-  column: true,
-  gap: 2,
-  padding: [4],
-})`
-  box-shadow: 0px 8px 12px rgba(9, 30, 66, 0.15), 0px 0px 1px rgba(9, 30, 66, 0.31);
-`
-
-const emptyArray = [null, null]
-
-const Dimensions = () => {
-  const chart = useChart()
-  const [x, row] = useAttributeValue("hoverX") || emptyArray
-  const dimensionIds = chart.getDimensionIds()
-
-  return (
-    <DimensionsContainer data-testid="chartTooltip-dimensions">
-      <Flex column>
-        {x && <Timestamp value={x} />}
-        <UpdateEvery />
-      </Flex>
-      <Flex gap={1} column>
-        {dimensionIds.map(id => (
-          <Dimension key={id} id={id} strong={row === id} />
-        ))}
-      </Flex>
-    </DimensionsContainer>
-  )
-}
+import { useChart } from "@/components/provider"
+import ReactDOM from "react-dom"
+import DropContainer from "@netdata/netdata-ui/lib/components/drops/drop/container"
+import useMakeUpdatePosition from "@netdata/netdata-ui/lib/components/drops/drop/useMakeUpdatePosition"
+import useDropElement from "@netdata/netdata-ui/lib/hooks/use-drop-element"
+import Dimensions from "./dimensions"
 
 const Tooltip = forwardRef((props, ref) => (
-  <Flex position="absolute" data-testid="chartTooltip" ref={ref}>
+  <Flex data-testid="chartTooltip" ref={ref}>
     <Dimensions />
   </Flex>
 ))
 
+const leftTopAlign = { right: "left", bottom: "top" }
+const leftBottomAlign = { right: "left", top: "bottom" }
+const rightTopAlign = { left: "right", bottom: "top" }
+const rightBottomAlign = { left: "right", top: "bottom" }
+const stretch = "width"
+
+const getAlign = (left, top) => {
+  if (left && top) return leftTopAlign
+  if (left) return leftBottomAlign
+  if (top) return rightTopAlign
+  return rightBottomAlign
+}
+
 const Container = () => {
   const chart = useChart()
-  const ref = useRef()
+  const dropRef = useRef()
+  const [target, setTarget] = useState()
+  const targetRef = useRef()
+
+  const updatePositionRef = useRef()
   const [open, setOpen] = useState(false)
+  const [align, setAlign] = useState(leftTopAlign)
+
+  targetRef.current = target
+  updatePositionRef.current = useMakeUpdatePosition(target, dropRef, align, stretch)
 
   useEffect(
     () =>
@@ -60,24 +48,21 @@ const Container = () => {
 
           let { offsetX, offsetY } = event
           setOpen(true)
-          if (!ref.current) return
 
-          const tooltipWidth = ref.current.offsetWidth
+          if (!targetRef.current) return
+
+          targetRef.current.style.left = `${offsetX}px`
+          targetRef.current.style.top = `${offsetY}px`
+
+          updatePositionRef.current()
+
           const chartWidth = chart.getUI().getChartWidth()
-          if (offsetX + tooltipWidth > chartWidth) {
-            ref.current.style.left = `${offsetX - tooltipWidth - 25}px`
-          } else {
-            ref.current.style.left = `${offsetX + 25}px`
-          }
-
-          const tooltipHeight = ref.current.offsetHeight
           const chartHeight = chart.getUI().getChartHeight()
 
-          if (offsetY + tooltipHeight > chartHeight) {
-            ref.current.style.top = `${offsetY - tooltipHeight - 20}px`
-          } else {
-            ref.current.style.top = `${offsetY + 20}px`
-          }
+          const left = offsetX > chartWidth / 2
+          const top = offsetY > chartHeight / 2
+
+          setAlign(getAlign(left, top))
         }),
         chart.on("blurChart", () => setOpen(false)),
         chart.onAttributeChange("panning", panning => {
@@ -90,9 +75,27 @@ const Container = () => {
     []
   )
 
+  const el = useDropElement()
+
   if (!open) return null
 
-  return <Tooltip ref={ref} />
+  return (
+    <Fragment>
+      <Flex ref={r => setTarget(r)} position="absolute" />
+      {ReactDOM.createPortal(
+        <DropContainer
+          margin={[align.top ? 4 : -4, align.right ? -5 : 5]}
+          ref={dropRef}
+          width={{ max: "100%" }}
+          column
+          data-testid="drop"
+        >
+          <Tooltip />
+        </DropContainer>,
+        el
+      )}
+    </Fragment>
+  )
 }
 
 export default Container
