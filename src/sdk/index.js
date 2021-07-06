@@ -65,7 +65,7 @@ export default ({
 
   const makeSDKContainer = options => makeContainer({ sdk: instance, ...options })
 
-  const getNodes = (attributes, options) => root.getNodes(attributes, options, [root])
+  const getNodes = (attributes, options) => root.getNodes(attributes, options)
 
   const appendChild = (node, { inherit = true } = {}) => root.appendChild(node, { inherit })
 

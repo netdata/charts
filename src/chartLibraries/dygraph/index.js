@@ -10,8 +10,8 @@ import makeHighlight from "./highlight"
 import crosshair from "./crosshair"
 
 const axisLabelFormatter = time => {
-  const midnight = time.getSeconds() === 0 && time.getMinutes() === 0 && time.getHours() === 0
-  return format(time, midnight ? "MM:dd" : "HH:mm:SS")
+  const midnight = time.getHours() === 0 && time.getMinutes() === 0 && time.getSeconds() === 0
+  return format(time, midnight ? "MM:dd" : "HH:mm:ss")
 }
 
 const getDateWindow = chart => {
@@ -123,10 +123,7 @@ export default (sdk, chart) => {
           crosshair(instance, nextSelection)
         }
       }),
-      chart.on("after", () => {
-        const { after, before } = chart.getAttributes()
-        dygraph.updateOptions({ dateWindow: [after * 1000, before * 1000] })
-      }),
+      chart.onAttributeChange("after", render),
       chart.onAttributeChange("enabledHover", hoverX.toggle),
       chart.onAttributeChange("navigation", navigation.set),
       chart.onAttributeChange("highlight", highlight.toggle),

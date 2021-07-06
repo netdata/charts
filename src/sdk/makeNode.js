@@ -77,7 +77,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     if (!match(attributes)) return [instance]
 
     const ancestor = getAncestor(attributes)
-    return ancestor.getNodes(attributes, options, [ancestor])
+    return ancestor.getNodes(attributes, options)
   }
 
   const inherit = () => {
@@ -92,8 +92,9 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     let { after, before } = getAttributes()
 
     if (after < 0) {
-      after = Date.now() / 1000 + after
-      before = Date.now() / 1000
+      const now = Date.now() / 1000
+      after = now + after
+      before = now
     }
 
     const diff = multiplier * Math.round((before - after) / 4)

@@ -1,18 +1,23 @@
 export default sdk => {
+  let windowFocused = true
   let timeoutId
 
   const getNext = () => {
     sdk
       .getRoot()
       .getNodes(
-        (node, { loaded, active }) => {
-          return node.type === "chart" && loaded && active
+        (node, { loaded, active, autofetchOnWindowBlur }) => {
+          return (
+            node.type === "chart" && loaded && active && (windowFocused || autofetchOnWindowBlur)
+          )
         },
         {
           inherit: false,
         }
       )
-      .forEach(node => node.getUI().render())
+      .forEach(node => {
+        node.getUI().render()
+      })
 
     timeoutId = setTimeout(() => {
       getNext()
@@ -27,16 +32,35 @@ export default sdk => {
     }
   }
 
-  return sdk
-    .on("active", chart => {
-      const { after, hovering, active } = chart.getAttributes()
-      const autofetch = active && after < 0 && !hovering
+  const autofetchIfActive = chart => {
+    const { after, hovering, active } = chart.getAttributes()
+    const autofetch = active && after < 0 && !hovering
 
-      if (active && !autofetch) chart.fetch().then(() => chart.getUI().render())
+    if (active && !autofetch) chart.fetch().then(() => chart.getUI().render())
 
-      toggleRender(autofetch)
-      chart.updateAttribute("autofetch", autofetch)
+    if (autofetch) toggleRender(autofetch)
+    chart.updateAttribute("autofetch", autofetch)
+  }
+
+  const blur = () => {
+    windowFocused = false
+    sdk.getNodes({ autofetchOnWindowBlur: false }).forEach(node => {
+      if (node.type === "chart") node.updateAttributes({ autofetch: false })
     })
+  }
+
+  const focus = () => {
+    windowFocused = true
+    sdk.getNodes({ autofetchOnWindowBlur: false }).forEach(node => {
+      if (node.type === "chart") autofetchIfActive(node)
+    })
+  }
+
+  window.addEventListener("blur", blur)
+  window.addEventListener("focus", focus)
+
+  const offs = sdk
+    .on("active", autofetchIfActive)
     .on("hoverChart", chart => {
       const autofetch = false
       if (autofetch === chart.getAttribute("autofetch")) return
@@ -66,4 +90,10 @@ export default sdk => {
         node.updateAttribute("autofetch", autofetch)
       })
     })
+
+  return () => {
+    offs()
+    window.removeEventListener("blur", blur)
+    window.removeEventListener("focus", focus)
+  }
 }

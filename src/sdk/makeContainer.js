@@ -8,6 +8,7 @@ export default ({ sdk, parent, attributes } = {}) => {
     node.setParent(instance, { inherit })
     children.push(node)
     sdk.trigger("nodeAdded", node)
+    sdk.trigger(`${node.type}Added`, node)
   }
 
   const removeChild = node => {
@@ -15,8 +16,11 @@ export default ({ sdk, parent, attributes } = {}) => {
     sdk.trigger("nodeRemoved", node)
   }
 
-  const getNodes = (attributes, options, nodes = []) => {
-    children.forEach(child => {
+  const getNodes = (attributes, options, nodes = null) => {
+    const list = nodes ? children : [instance]
+    nodes = nodes || []
+
+    list.forEach(child => {
       const match = child.match(attributes)
 
       if (!match && (!options || ("inherit" in options && options.inherit))) return
