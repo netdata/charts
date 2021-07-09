@@ -10,6 +10,7 @@ export default {
   fetchStatedAt: 0,
   focused: false,
   active: false,
+  selectedDimensions: null,
   enabledHover: true,
   syncHover: true,
   hoverX: null,

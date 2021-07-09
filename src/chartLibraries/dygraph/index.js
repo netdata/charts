@@ -134,6 +134,7 @@ export default (sdk, chart) => {
         dygraph.updateOptions(makeThemingOptions())
       }),
       chart.onAttributeChange("chartType", () => dygraph.updateOptions(makeChartTypeOptions())),
+      chart.onAttributeChange("selectedDimensions", updateVisibilityOptions),
     ]
 
     hover = makeHover(instance)
@@ -171,6 +172,21 @@ export default (sdk, chart) => {
   const makeThemingOptions = () => {
     const themeGridColor = chartUI.getThemeAttribute("themeGridColor")
     return { axisLineColor: themeGridColor, gridLineColor: themeGridColor }
+  }
+
+  const updateVisibilityOptions = () => {
+    const selectedDimensions = chart.getAttribute("selectedDimensions")
+
+    const {
+      result: { labels },
+    } = chart.getPayload()
+
+    const selectedDimensionsSet = new Set(selectedDimensions)
+    const visibility = selectedDimensions
+      ? labels.map(label => selectedDimensionsSet.has(label))
+      : labels.map(() => true)
+
+    dygraph.updateOptions({ visibility })
   }
 
   const unmount = () => {

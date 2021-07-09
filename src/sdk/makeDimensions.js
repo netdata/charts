@@ -4,6 +4,7 @@ export default chart => {
   let prevDimensionIds = []
   let dimensionsById = {}
   let sortedDimensionIds = []
+  let visibleDimensionIds = []
 
   const getSourceDimensionIds = () => {
     const { dimensionIds } = chart.getPayload()
@@ -38,10 +39,18 @@ export default chart => {
     },
   }
 
+  const updateVisibleDimensions = () => {
+    const selectedDimensions = chart.getAttribute("selectedDimensions")
+    visibleDimensionIds = selectedDimensions
+      ? sortedDimensionIds.filter(id => selectedDimensions.includes(id))
+      : sortedDimensionIds
+  }
+
   const sortDimensions = () => {
     const dimensionsSort = chart.getAttribute("dimensionsSort")
     const sort = bySortMethod[dimensionsSort]
     sortedDimensionIds = sort()
+    updateVisibleDimensions()
 
     chart.trigger("dimensionChanged")
   }
@@ -64,6 +73,8 @@ export default chart => {
 
   const getDimensionIds = () => sortedDimensionIds
 
+  const getVisibleDimensionIds = () => visibleDimensionIds
+
   const getDimensionColor = id => dimensionColors[dimensionsById[id] % dimensionColors.length]
 
   const getDimensionName = id => {
@@ -77,12 +88,14 @@ export default chart => {
   }
 
   chart.onAttributeChange("dimensionsSort", sortDimensions)
+  chart.onAttributeChange("selectedDimensions", updateVisibleDimensions)
 
   return {
     sortDimensions,
     updateDimensions,
     getDimensionIndex,
     getDimensionIds,
+    getVisibleDimensionIds,
     getDimensionColor,
     getDimensionName,
     getDimensionValue,
