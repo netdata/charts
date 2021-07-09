@@ -8,6 +8,7 @@ import useHover from "./useHover"
 import ChartContainer from "./chartContainer"
 import SkeletonChart from "./skeletonChart"
 import { CenterNoData, HorizontalNoData } from "./noData"
+import Highlight from "./highlight"
 import dygraphStyle from "@/chartLibraries/dygraph/style.css"
 
 const chartLibraries = {
@@ -46,6 +47,7 @@ const ChartContentWrapper = () => {
     <Container ref={ref}>
       {!initialLoading && !empty && <ChartContainer />}
       {!initialLoading && !empty && <HorizontalNoData />}
+      {!initialLoading && !empty && <Highlight />}
       {!initialLoading && empty && <CenterNoData />}
       {initialLoading && <SkeletonChart />}
       {focused && !empty && <Toolbox />}

@@ -43,9 +43,12 @@ export default chartUI => {
 
   const getRange = g => {
     if (endX === -1 || Math.abs(startX - endX) < 5) return null
+
     const after = Math.round(g.toDataXCoord(startX) / 1000)
     const before = Math.round(g.toDataXCoord(endX) / 1000)
+
     if (startX > endX) return [before, after]
+
     return [after, before]
   }
 
@@ -54,7 +57,9 @@ export default chartUI => {
     context.isZooming = false
     context.dragStartX = null
 
-    chartUI.sdk.trigger("highlightEnd", chartUI.chart, getRange(g))
+    const range = getRange(g)
+
+    chartUI.sdk.trigger("highlightEnd", chartUI.chart, range)
   }
 
   const listeners = [

@@ -1,27 +1,78 @@
+const getArea = (dygraph, range) => {
+  const [after, before] = dygraph.xAxisRange()
+  const afterTimestamp = after
+  const beforeTimestamp = before
+
+  const [hAfter, hBefore] = range
+  const hAfterTimestamp = hAfter * 1000
+  const hBeforeTimestamp = hBefore * 1000
+
+  const fromX = Math.max(afterTimestamp, hAfterTimestamp)
+  const toX = Math.min(beforeTimestamp, hBeforeTimestamp)
+
+  if (hBeforeTimestamp < afterTimestamp || hAfterTimestamp > beforeTimestamp) return null
+
+  const from = dygraph.toDomXCoord(fromX)
+  const to = dygraph.toDomXCoord(toX)
+  const width = to - from
+
+  return { from, to, width }
+}
+
 export default chartUI => {
-  const drawHighlight = (canvas, area, g) => {
-    const { highlight, after, before } = chartUI.chart.getAttributes()
-    const [hAfter, hBefore] = highlight
+  let off = null
 
-    const now = Date.now() / 1000
-    const afterTimestamp = after > 0 ? after : now + after
-    const beforeTimestamp = after > 0 ? before : now
+  const drawHighlight = () => {
+    const highlight = chartUI.chart.getAttribute("highlight")
+    if (!highlight) return
 
-    if (hAfter > afterTimestamp && hBefore < beforeTimestamp) {
-      const x = g.toDomXCoord(hAfter * 1000)
-      const width = g.toDomXCoord(hBefore * 1000) - x
+    const dygraph = chartUI.getDygraph()
 
-      canvas.fillStyle = "rgba(128,128,128,0.5)"
-      canvas.fillRect(x, 0, width, area.h)
+    const { h } = dygraph.getArea()
+    const { hidden_ctx_: ctx } = dygraph
+
+    const area = getArea(dygraph, highlight)
+
+    if (!area) {
+      chartUI.trigger("highlightedAreaChanged")
+      return
     }
+
+    const { from, width } = area
+
+    chartUI.trigger("highlightedAreaChanged", area)
+
+    ctx.save()
+    ctx.beginPath()
+
+    ctx.rect(from, 0, width, h - 1)
+
+    ctx.fillStyle = "rgba(207, 213, 218, 0.12)"
+    ctx.fill()
+    ctx.setLineDash([2, 4])
+    ctx.lineWidth = 1
+    ctx.strokeStyle = "#CFD5DA"
+
+    ctx.stroke()
+    ctx.closePath()
+    ctx.restore()
   }
 
-  const destroy = () => chartUI.off("underlayCallback", drawHighlight)
+  const destroy = () => {
+    chartUI.trigger("highlightedAreaChanged")
+    chartUI.getDygraph().renderGraph_(false)
+    if (!off) return
+    off()
+    off = null
+  }
 
-  const toggle = range => {
-    destroy()
+  const toggle = () => {
+    const highlight = chartUI.chart.getAttribute("highlight")
+    if (!highlight) return destroy()
 
-    if (range) chartUI.on("underlayCallback", drawHighlight)
+    if (!off) {
+      off = chartUI.on("drawCallback", drawHighlight)
+    }
 
     chartUI.getDygraph().renderGraph_(false)
   }
