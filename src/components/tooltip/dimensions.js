@@ -1,4 +1,4 @@
-import React, { useMemo } from "react"
+import React, { useMemo, memo } from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { useChart, useAttributeValue } from "@/components/provider"
@@ -46,15 +46,20 @@ const getTo = (total, index) => {
 const Dimensions = () => {
   const chart = useChart()
   const [x, row] = useAttributeValue("hoverX") || emptyArray
-  const dimensionIds = chart.getDimensionIds()
 
-  const rowIndex = chart.getDimensionIndex(row)
+  const [from, to, total, ids] = useMemo(() => {
+    const dimensionIds = chart.getDimensionIds()
 
-  const total = dimensionIds.length
-  const from = getFrom(total, rowIndex)
-  const to = getTo(total, rowIndex)
+    const rowIndex = chart.getDimensionIndex(row)
 
-  const ids = useMemo(() => dimensionIds.slice(from, to), [dimensionIds, from])
+    const total = dimensionIds.length
+    const from = getFrom(total, rowIndex)
+    const to = getTo(total, rowIndex)
+
+    const ids = dimensionIds.slice(from, to)
+
+    return [from, to, total, ids]
+  }, [row])
 
   return (
     <Container data-testid="chartTooltip-dimensions">
@@ -77,4 +82,4 @@ const Dimensions = () => {
   )
 }
 
-export default Dimensions
+export default memo(Dimensions)

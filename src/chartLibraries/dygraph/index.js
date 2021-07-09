@@ -76,6 +76,7 @@ export default (sdk, chart) => {
         chartUI.trigger("highlightCallback", event, x, points, row, seriesName)
       ),
       unhighlightCallback: executeLatest(() => chartUI.trigger("unhighlightCallback")),
+      drawCallback: (...args) => chartUI.trigger("drawCallback", ...args),
       underlayCallback: executeLatest((...args) => chartUI.trigger("underlayCallback", ...args)),
       interactionModel: {
         mouseout: executeLatest((...args) => chartUI.trigger("mouseout", ...args)),
@@ -136,6 +137,7 @@ export default (sdk, chart) => {
     ]
 
     hover = makeHover(instance)
+    highlight.toggle()
 
     render()
   }

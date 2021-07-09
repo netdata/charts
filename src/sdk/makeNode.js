@@ -113,6 +113,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
 
   const instance = {
     ...listeners,
+    sdk,
     setAttribute,
     getAttribute,
     updateAttribute,

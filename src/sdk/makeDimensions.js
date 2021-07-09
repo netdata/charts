@@ -5,38 +5,43 @@ export default chart => {
   let dimensionsById = {}
   let sortedDimensionIds = []
 
+  const getSourceDimensionIds = () => {
+    const { dimensionIds } = chart.getPayload()
+    return [...dimensionIds]
+  }
+
   const bySortMethod = {
-    default: chart => chart.getPayload().dimensionIds,
-    nameAsc: chart => {
-      const { dimensionIds } = chart.getPayload()
-      return [...dimensionIds].sort((a, b) =>
+    default: () => chart.getPayload().dimensionIds,
+    nameAsc: () =>
+      getSourceDimensionIds().sort((a, b) =>
         getDimensionName(a).localeCompare(getDimensionName(b))
-      )
-    },
-    nameDesc: chart => {
-      const { dimensionIds } = chart.getPayload()
-      return [...dimensionIds].sort((a, b) =>
+      ),
+    nameDesc: () =>
+      getSourceDimensionIds().sort((a, b) =>
         getDimensionName(b).localeCompare(getDimensionName(a))
+      ),
+    valueAsc: () => {
+      const { result } = chart.getPayload()
+      const x = result.data.length - 1
+
+      return getSourceDimensionIds().sort(
+        (a, b) => getDimensionValue(b, x) - getDimensionValue(a, x)
       )
     },
-    valueAsc: chart => {
-      const { dimensionIds, result } = chart.getPayload()
+    valueDesc: () => {
+      const { result } = chart.getPayload()
       const x = result.data.length - 1
 
-      return [...dimensionIds].sort((a, b) => getDimensionValue(b, x) - getDimensionValue(a, x))
-    },
-    valueDesc: chart => {
-      const { dimensionIds, result } = chart.getPayload()
-      const x = result.data.length - 1
-
-      return [...dimensionIds].sort((a, b) => getDimensionValue(a, x) - getDimensionValue(b, x))
+      return getSourceDimensionIds().sort(
+        (a, b) => getDimensionValue(a, x) - getDimensionValue(b, x)
+      )
     },
   }
 
   const sortDimensions = () => {
     const dimensionsSort = chart.getAttribute("dimensionsSort")
     const sort = bySortMethod[dimensionsSort]
-    sortedDimensionIds = sort(chart)
+    sortedDimensionIds = sort()
 
     chart.trigger("dimensionChanged")
   }

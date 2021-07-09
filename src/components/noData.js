@@ -24,15 +24,18 @@ const Link = ({ to, children }) => (
   </LinkContainer>
 )
 
+const NoDataContainer = styled(Flex).attrs({
+  column: true,
+  round: true,
+  border: { side: "all", color: "borderSecondary" },
+  gap: 1,
+  padding: [1, 2],
+})`
+  direction: initial;
+`
+
 const NoData = props => (
-  <Flex
-    column
-    round
-    border={{ side: "all", color: "borderSecondary" }}
-    gap={1}
-    padding={[1, 2]}
-    {...props}
-  >
+  <NoDataContainer {...props}>
     <TextSmall textAlign="center">Missing key historical data for this period?</TextSmall>
     <Flex alignItems="baseline" gap={1}>
       <Link to="https://learn.netdata.cloud/docs/agent/streaming#database-replication">
@@ -43,7 +46,7 @@ const NoData = props => (
         Review Netdata's history configurations
       </Link>
     </Flex>
-  </Flex>
+  </NoDataContainer>
 )
 
 const CenterContainer = styled(Flex)`
