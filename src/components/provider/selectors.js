@@ -73,6 +73,17 @@ export const useAttribute = name => {
   return [value, updateValue]
 }
 
+export const useVisibleDimensionId = id => {
+  const chart = useChart()
+
+  const getValue = () => chart.isDimensionVisible(id)
+  const [visible, setVisible] = useState(getValue)
+
+  useEffect(() => chart.onAttributeChange("selectedDimensions", () => setVisible(getValue())), [])
+
+  return visible
+}
+
 export const useUnitSign = () => {
   const chart = useChart()
 

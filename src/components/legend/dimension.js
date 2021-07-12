@@ -6,7 +6,7 @@ import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
 import Color, { Color as ColorContainer } from "@/components/dimensions/color"
 import Name, { Name as NameContainer } from "@/components/dimensions/name"
 import Value, { Value as ValueContainer } from "@/components/dimensions/value"
-import { useUnitSign } from "@/components/provider"
+import { useUnitSign, useVisibleDimensionId, useChart } from "@/components/provider"
 
 const DimensionContainer = props => (
   <Flex width="88px" flex={false} gap={1} data-testid="chartLegendDimension" {...props} />
@@ -48,18 +48,29 @@ export const EmptyDimension = () => {
 
 const Dimension = ({ id }) => {
   const unit = useUnitSign()
+  const visible = useVisibleDimensionId(id)
+  const chart = useChart()
+
+  const onClick = () => chart.toggleDimensionId(id)
 
   return (
-    <DimensionContainer>
+    <DimensionContainer
+      id={id}
+      opacity={visible ? null : "weak"}
+      cursor="pointer"
+      onClick={onClick}
+    >
       <Color id={id} />
       <Flex flex column overflow="hidden" data-testid="chartLegendDimension-details">
         <Name id={id} />
-        <Flex gap={1} data-testid="chartLegendDimension-valueContainer">
-          <Value id={id} strong />
-          <TextMicro whiteSpace="nowrap" truncate color="textDescription">
-            {unit}
-          </TextMicro>
-        </Flex>
+        {visible && (
+          <Flex gap={1} data-testid="chartLegendDimension-valueContainer">
+            <Value id={id} strong />
+            <TextMicro whiteSpace="nowrap" truncate color="textDescription">
+              {unit}
+            </TextMicro>
+          </Flex>
+        )}
       </Flex>
     </DimensionContainer>
   )

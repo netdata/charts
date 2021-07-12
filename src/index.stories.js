@@ -88,6 +88,23 @@ export const NoData = () => {
   )
 }
 
+export const SelectedDimensions = () => {
+  const sdk = makeDefaultSDK({ getChartMetadata })
+  const chart = sdk.makeChart({
+    getChart,
+    attributes: {
+      selectedDimensions: ["load5", "load15"],
+    },
+  })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Chart chart={chart} />
+    </ThemeProvider>
+  )
+}
+
 export const PrecededData = () => {
   let metadata
   let fromTimestamp

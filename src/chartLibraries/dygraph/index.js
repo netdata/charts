@@ -104,6 +104,7 @@ export default (sdk, chart) => {
       colors: dimensionColors,
       ...makeChartTypeOptions(),
       ...makeThemingOptions(),
+      ...makeVisibilityOptions(),
       // visibility return selected dimensions
       // logscale
     })
@@ -134,7 +135,9 @@ export default (sdk, chart) => {
         dygraph.updateOptions(makeThemingOptions())
       }),
       chart.onAttributeChange("chartType", () => dygraph.updateOptions(makeChartTypeOptions())),
-      chart.onAttributeChange("selectedDimensions", updateVisibilityOptions),
+      chart.onAttributeChange("selectedDimensions", () => {
+        dygraph.updateOptions(makeVisibilityOptions())
+      }),
     ]
 
     hover = makeHover(instance)
@@ -174,19 +177,17 @@ export default (sdk, chart) => {
     return { axisLineColor: themeGridColor, gridLineColor: themeGridColor }
   }
 
-  const updateVisibilityOptions = () => {
+  const makeVisibilityOptions = () => {
     const selectedDimensions = chart.getAttribute("selectedDimensions")
 
-    const {
-      result: { labels },
-    } = chart.getPayload()
+    const { dimensionIds } = chart.getPayload()
 
     const selectedDimensionsSet = new Set(selectedDimensions)
     const visibility = selectedDimensions
-      ? labels.map(label => selectedDimensionsSet.has(label))
-      : labels.map(() => true)
+      ? dimensionIds.map(id => selectedDimensionsSet.has(id))
+      : dimensionIds.map(() => true)
 
-    dygraph.updateOptions({ visibility })
+    return { visibility }
   }
 
   const unmount = () => {

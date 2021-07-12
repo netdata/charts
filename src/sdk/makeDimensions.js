@@ -5,6 +5,7 @@ export default chart => {
   let dimensionsById = {}
   let sortedDimensionIds = []
   let visibleDimensionIds = []
+  let visibleDimensionSet = new Set()
 
   const getSourceDimensionIds = () => {
     const { dimensionIds } = chart.getPayload()
@@ -44,6 +45,7 @@ export default chart => {
     visibleDimensionIds = selectedDimensions
       ? sortedDimensionIds.filter(id => selectedDimensions.includes(id))
       : sortedDimensionIds
+    visibleDimensionSet = new Set(visibleDimensionIds)
   }
 
   const sortDimensions = () => {
@@ -75,6 +77,8 @@ export default chart => {
 
   const getVisibleDimensionIds = () => visibleDimensionIds
 
+  const isDimensionVisible = id => visibleDimensionSet.has(id)
+
   const getDimensionColor = id => dimensionColors[dimensionsById[id] % dimensionColors.length]
 
   const getDimensionName = id => {
@@ -87,6 +91,15 @@ export default chart => {
     return result.data[index][dimensionsById[id] + 1]
   }
 
+  const toggleDimensionId = id => {
+    chart.updateAttribute(
+      "selectedDimensions",
+      visibleDimensionIds.length === sortedDimensionIds.length || !visibleDimensionSet.has(id)
+        ? [id]
+        : null
+    )
+  }
+
   chart.onAttributeChange("dimensionsSort", sortDimensions)
   chart.onAttributeChange("selectedDimensions", updateVisibleDimensions)
 
@@ -96,6 +109,8 @@ export default chart => {
     getDimensionIndex,
     getDimensionIds,
     getVisibleDimensionIds,
+    isDimensionVisible,
+    toggleDimensionId,
     getDimensionColor,
     getDimensionName,
     getDimensionValue,
