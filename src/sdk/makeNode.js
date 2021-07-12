@@ -105,8 +105,10 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   const zoomOut = () => zoomX(-1)
 
   const destroy = () => {
+    listeners.offAll()
     attributeListeners.offAll()
     attributes = null
+    parent = null
   }
 
   init()

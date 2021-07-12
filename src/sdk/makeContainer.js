@@ -1,7 +1,7 @@
 import makeNode from "./makeNode"
 
 export default ({ sdk, parent, attributes } = {}) => {
-  const node = makeNode({ sdk, parent, attributes })
+  let node = makeNode({ sdk, parent, attributes })
   let children = []
 
   const appendChild = (node, { inherit = true } = {}) => {
@@ -34,8 +34,18 @@ export default ({ sdk, parent, attributes } = {}) => {
 
   const getChildren = () => children
 
+  const destroy = () => {
+    const parent = node.getParent()
+    if (parent) parent.removeChild(instance)
+
+    node.destroy()
+    children.forEach(node => node.destroy())
+    children = []
+    node = null
+  }
+
   node.type = "container"
-  const instance = { ...node, appendChild, removeChild, getNodes, getChildren }
+  const instance = { ...node, destroy, appendChild, removeChild, getNodes, getChildren }
 
   return instance
 }

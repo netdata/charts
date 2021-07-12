@@ -10,7 +10,7 @@ import makeGetClosestRow from "./makeGetClosestRow"
 const requestTimeoutMs = 5 * 1000
 
 export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attributes } = {}) => {
-  const node = makeNode({ sdk, parent, attributes })
+  let node = makeNode({ sdk, parent, attributes })
   let ui = null
   let abortController = null
   let payload = initialPayload
@@ -92,6 +92,8 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
   }
 
   const failFetch = error => {
+    if (!node) return
+
     node.updateAttribute("loading", false)
     if (!error || error.name !== "AbortError") node.trigger("failFetch", error)
     finishFetch()
@@ -153,6 +155,7 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     sdk.trigger("active", instance, true)
   }
   const deactivate = () => {
+    if (!node) return
     node.updateAttribute("active", false)
     sdk.trigger("active", instance, false)
   }
@@ -183,6 +186,24 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     if (node.getAttribute("autofetch")) return startAutofetch()
   })
 
+  const destroy = () => {
+    cancelFetch()
+    stopAutofetch()
+    clearFetchDelayTimeout()
+
+    if (ui) ui.unmount()
+    ui = null
+
+    const parent = node.getParent()
+    if (parent) parent.removeChild(instance)
+
+    node.destroy()
+    node = null
+    payload = null
+    chartsMetadata = null
+    attributes = null
+  }
+
   node.type = "chart"
 
   const instance = {
@@ -203,5 +224,5 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     getClosestRow,
   }
 
-  return { ...instance, ...makeDimensions(instance) }
+  return { ...instance, ...makeDimensions(instance), destroy }
 }
