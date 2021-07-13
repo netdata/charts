@@ -36,7 +36,13 @@ const Plugin = ({ title, children }) => (
   </Flex>
 )
 
-const Container = styled(Flex)`
+const Container = styled(Flex).attrs({
+  column: true,
+  padding: [4, 3],
+  gap: 5,
+  background: "mainBackground",
+  overflow: { vertical: "aut0" },
+})`
   position: absolute;
   inset: 0;
 `
@@ -46,13 +52,7 @@ const Details = () => {
   const { title, chartType, plugin, context } = chart.getMetadata()
 
   return (
-    <Container
-      column
-      padding={[4, 3]}
-      gap={5}
-      background="mainBackground"
-      data-testid="cartDetails"
-    >
+    <Container data-testid="cartDetails">
       <Row
         icon={<Icon svg={information} color="key" />}
         title={title}

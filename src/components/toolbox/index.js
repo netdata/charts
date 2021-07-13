@@ -48,17 +48,17 @@ const Toolbox = forwardRef((props, ref) => {
       />
       <Button
         icon={<Icon svg={selectedArea} />}
-        title="Select"
-        onClick={select}
-        active={navigation === "select"}
-        data-testid="chartToolbox-select"
-      />
-      <Button
-        icon={<Icon svg={selectIcon} />}
-        title="Select Area"
+        title="Highlight"
         onClick={highlight}
         active={navigation === "highlight"}
         data-testid="chartToolbox-highlight"
+      />
+      <Button
+        icon={<Icon svg={selectIcon} />}
+        title="Select and Zoom "
+        onClick={select}
+        active={navigation === "select"}
+        data-testid="chartToolbox-select"
       />
       <Button
         icon={<Icon svg={zoomInIcon} />}

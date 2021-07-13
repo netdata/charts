@@ -31,10 +31,12 @@ export const Chart = props => {
         <ChartContentWrapper />
         {detailsOpen && <Details />}
       </Flex>
-      <Flex border={{ side: "top", color: "borderSecondary" }} data-testid="chartLegend">
-        <DimensionFilter />
-        <Legend flex />
-      </Flex>
+      {!detailsOpen && (
+        <Flex border={{ side: "top", color: "borderSecondary" }} data-testid="chartLegend">
+          <DimensionFilter />
+          <Legend flex />
+        </Flex>
+      )}
     </Flex>
   )
 }
