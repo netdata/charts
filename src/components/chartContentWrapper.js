@@ -29,7 +29,7 @@ const Container = forwardRef((props, ref) => {
       ref={ref}
       chartLibrary={chartLibrary}
       position="relative"
-      padding={[0, 0, 4, 0]}
+      padding={[0, 0, 2]}
       flex
       data-testid="chartContentWrapper"
       {...props}

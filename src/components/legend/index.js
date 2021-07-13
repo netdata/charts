@@ -1,23 +1,17 @@
 import React, { useEffect, useState } from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { getSizeBy } from "@netdata/netdata-ui/lib/theme/utils"
-import { webkitVisibleScrollbar } from "@netdata/netdata-ui/lib/mixins/webkit-visible-scrollbar"
+// import { getSizeBy, getRgbColor } from "@netdata/netdata-ui/lib/theme/utils"
+// import { webkitVisibleScrollbar } from "@netdata/netdata-ui/lib/mixins/webkit-visible-scrollbar"
 import { useInitialLoading, useEmpty, useChart } from "@/components/provider"
 import Dimension, { SkeletonDimension, EmptyDimension } from "./dimension"
 
 const Container = styled(Flex).attrs({
   gap: 1,
   overflow: { horizontal: "auto" },
-  padding: [3, 0, 1],
+  padding: [2, 0],
   alignItems: "start",
-})`
-  ${webkitVisibleScrollbar}
-
-  &::-webkit-scrollbar {
-    height: ${getSizeBy(1)};
-  }
-`
+})``
 
 const SkeletonDimensions = Array.from(Array(5))
 

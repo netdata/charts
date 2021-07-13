@@ -10,7 +10,8 @@ const color = (active, disabled) => {
 
 const Button = styled.button.attrs(({ icon }) => ({ children: icon }))`
   border: initial;
-  padding: 3px 3px 0;
+  padding: 0;
+  line-height: 0;
   background: ${({ theme, active }) =>
     active ? getColor("borderSecondary")({ theme }) : "initial"};
   cursor: pointer;
@@ -25,7 +26,7 @@ const Button = styled.button.attrs(({ icon }) => ({ children: icon }))`
   ${({ active }) =>
     active &&
     `
-    border-radius: 100%;
+    border-radius: 4px;
   `}
 
   &:hover {

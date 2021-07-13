@@ -4,7 +4,7 @@ import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { useChart } from "@/components/provider"
 
 export const Color = styled(Flex).attrs({
-  width: "2px",
+  width: "4px",
   round: true,
   "data-testid": "chartDimensions-color",
 })`

@@ -10,8 +10,8 @@ import Icon, { Button } from "@/components/icon"
 import { useAttributeValue, useChart } from "@/components/provider"
 
 const Container = styled(Flex).attrs({
-  padding: [1, 3],
-  gap: 3,
+  padding: [1],
+  gap: 2,
   background: "elementBackground",
   round: true,
 })`

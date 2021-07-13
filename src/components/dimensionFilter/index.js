@@ -55,7 +55,7 @@ const DimensionFilter = () => {
   useEffect(() => chart.onAttributeChange("dimensionsSort", setValue), [])
 
   return (
-    <Flex padding={[3, 5]} data-testid="chartDimensionFilter">
+    <Flex padding={[2, 4]} data-testid="chartDimensionFilter">
       <Menu
         value={value}
         items={sortings}

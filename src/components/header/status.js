@@ -20,26 +20,26 @@ const Status = props => {
   )
 
   return (
-    <Flex data-testid="chartHeaderStatus" {...props}>
-      <Flex as={Logo} padding={[0.5, 0.5, 0]} />
+    <Flex gap={2} data-testid="chartHeaderStatus" {...props}>
+      <Flex as={Logo} />
       <Reload />
       {delayed && (
-        <Badge type="warning" margin={[0, 0, 0, 1]} data-testid="chartHeaderStatus-timeout">
+        <Badge type="warning" data-testid="chartHeaderStatus-timeout">
           Timeout
         </Badge>
       )}
       {error && (
-        <Badge type="error" margin={[0, 0, 0, 1]} data-testid="chartHeaderStatus-error">
+        <Badge type="error" data-testid="chartHeaderStatus-error">
           Error
         </Badge>
       )}
       {initialLoading && (
-        <Badge type="neutral" margin={[0, 0, 0, 1]} data-testid="chartHeaderStatus-loading">
+        <Badge type="neutral" data-testid="chartHeaderStatus-loading">
           Loading
         </Badge>
       )}
       {!initialLoading && empty && (
-        <Badge type="neutral" margin={[0, 0, 0, 1]} data-testid="chartHeaderStatus-empty">
+        <Badge type="neutral" data-testid="chartHeaderStatus-empty">
           No data
         </Badge>
       )}
