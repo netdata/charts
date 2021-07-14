@@ -8,10 +8,14 @@ import Dimension, { SkeletonDimension, EmptyDimension } from "./dimension"
 
 const Container = styled(Flex).attrs({
   gap: 1,
-  overflow: { horizontal: "auto" },
+  overflow: { horizontal: "overlay" },
   padding: [2, 0],
   alignItems: "start",
-})``
+})`
+  ::-webkit-scrollbar {
+    height: 6px;
+  }
+`
 
 const SkeletonDimensions = Array.from(Array(5))
 

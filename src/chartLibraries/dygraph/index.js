@@ -116,11 +116,9 @@ export default (sdk, chart) => {
       chart.onAttributeChange("hoverX", dimensions => {
         const prevSelection = dygraph.getSelection()
         const nextSelection = dimensions ? chart.getClosestRow(dimensions[0]) : -1
-
         if (prevSelection !== nextSelection) {
           dygraph.setSelection(nextSelection)
         }
-
         if (nextSelection !== -1) {
           crosshair(instance, nextSelection)
         }
@@ -160,9 +158,6 @@ export default (sdk, chart) => {
     const strokeWidth = stacked ? 0.1 : smooth ? 1.5 : 0.7
 
     return {
-      highlightSeriesOpts: {
-        strokeWidth: strokeWidth * 1.5,
-      },
       stackedGraph: stacked,
       fillGraph: stacked || area,
       fillAlpha: stacked ? 0.8 : 0.2,

@@ -21,7 +21,7 @@
     "lint": "eslint './src/**/*.js'",
     "clean": "rimraf lib dist es coverage",
     "prepublish": "yarn clean && yarn build",
-    "storybook": "start-storybook -p 6006"
+    "start": "start-storybook -p 6006"
   },
   "keywords": [
     "netdata",

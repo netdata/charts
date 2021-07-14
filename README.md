@@ -17,7 +17,7 @@ yarn:
 ## Develop
 
 ```shell
-  $ yarn storybook
+  $ yarn start
 ```
 
 ## Build
