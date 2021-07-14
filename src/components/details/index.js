@@ -7,7 +7,7 @@ import information from "@netdata/netdata-ui/lib/components/icon/assets/informat
 import plugins from "@netdata/netdata-ui/lib/components/icon/assets/plugins.svg"
 import metrics from "@netdata/netdata-ui/lib/components/icon/assets/metrics.svg"
 import Icon from "@/components/icon"
-import { useChart } from "@/components/provider"
+import { useChart, useAttributeValue } from "@/components/provider"
 
 const Row = ({ icon, title, children, ...rest }) => {
   return (
@@ -29,12 +29,33 @@ const Row = ({ icon, title, children, ...rest }) => {
 
 const Plugin = ({ title, children }) => (
   <Flex gap={2}>
-    <TextSmall>{title}</TextSmall>
+    <TextSmall color="textDescription">{title}</TextSmall>
     <Flex as={TextSmall} background="elementBackground">
       {children}
     </Flex>
   </Flex>
 )
+
+const Description = ({ children }) => {
+  const chart = useChart()
+
+  const click = event => {
+    const { hash = "" } = event.target
+
+    if (!hash.startsWith("#menu")) return
+
+    event.preventDefault()
+    chart.sdk.trigger("goToLink", hash.substr(1))
+  }
+
+  return (
+    <TextSmall
+      color="textDescription"
+      dangerouslySetInnerHTML={{ __html: children }}
+      onClick={click}
+    />
+  )
+}
 
 const Container = styled(Flex).attrs({
   column: true,
@@ -49,6 +70,7 @@ const Container = styled(Flex).attrs({
 
 const Details = () => {
   const chart = useChart()
+  const description = useAttributeValue("description")
   const { title, chartType, plugin, context } = chart.getMetadata()
 
   return (
@@ -57,7 +79,9 @@ const Details = () => {
         icon={<Icon svg={information} color="key" />}
         title={title}
         data-testid="cartDetails-information"
-      ></Row>
+      >
+        {description && <Description>{description}</Description>}
+      </Row>
       <Row
         icon={<Icon svg={plugins} color="key" />}
         title="Plugin and chart context"
@@ -73,7 +97,7 @@ const Details = () => {
         color="key"
         data-testid="cartDetails-chartType"
       >
-        <TextSmall>{chartType}</TextSmall>
+        <TextSmall color="textDescription">{chartType}</TextSmall>
       </Row>
     </Container>
   )

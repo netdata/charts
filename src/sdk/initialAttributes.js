@@ -2,6 +2,7 @@ export default {
   chartLibrary: "",
   theme: "default",
   host: "",
+  description: "",
   before: 0,
   after: 0,
   loaded: false,
