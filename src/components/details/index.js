@@ -3,7 +3,7 @@ import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { TextSmall, Text } from "@netdata/netdata-ui/lib/components/typography"
 import information from "@netdata/netdata-ui/lib/components/icon/assets/information.svg"
-// import database from "@netdata/netdata-ui/lib/components/icon/assets/database.svg"
+import database from "@netdata/netdata-ui/lib/components/icon/assets/database.svg"
 import plugins from "@netdata/netdata-ui/lib/components/icon/assets/plugins.svg"
 import metrics from "@netdata/netdata-ui/lib/components/icon/assets/metrics.svg"
 import Icon from "@/components/icon"
@@ -13,7 +13,7 @@ const Row = ({ icon, title, children, ...rest }) => {
   return (
     <Flex gap={4} {...rest}>
       {icon}
-      <Flex column gap={1}>
+      <Flex column gap={1} flex="grow" basis={0}>
         <Text strong color="key">
           {title}
         </Text>
@@ -62,7 +62,7 @@ const Container = styled(Flex).attrs({
   padding: [4, 3],
   gap: 5,
   background: "mainBackground",
-  overflow: { vertical: "aut0" },
+  overflow: { vertical: "auto" },
 })`
   position: absolute;
   inset: 0;
@@ -71,6 +71,7 @@ const Container = styled(Flex).attrs({
 const Details = () => {
   const chart = useChart()
   const description = useAttributeValue("description")
+  const nodeName = useAttributeValue("nodeName")
   const { title, chartType, plugin, context } = chart.getMetadata()
 
   return (
@@ -82,6 +83,16 @@ const Details = () => {
       >
         {description && <Description>{description}</Description>}
       </Row>
+      {nodeName && (
+        <Row
+          icon={<Icon svg={database} color="key" />}
+          title="Source"
+          color="key"
+          data-testid="cartDetails-source"
+        >
+          <TextSmall color="textDescription">{nodeName}</TextSmall>
+        </Row>
+      )}
       <Row
         icon={<Icon svg={plugins} color="key" />}
         title="Plugin and chart context"

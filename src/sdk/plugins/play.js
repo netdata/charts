@@ -36,7 +36,11 @@ export default sdk => {
     const { after, hovering, active } = chart.getAttributes()
     const autofetch = active && after < 0 && !hovering
 
-    if (active && !autofetch) chart.fetch().then(() => chart.getUI().render())
+    if (active && !autofetch)
+      chart.fetch().then(() => {
+        const ui = chart.getUI()
+        if (ui) ui.render()
+      })
 
     if (autofetch) toggleRender(autofetch)
     chart.updateAttribute("autofetch", autofetch)

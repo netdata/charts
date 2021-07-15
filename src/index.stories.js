@@ -88,6 +88,36 @@ export const NoData = () => {
   )
 }
 
+export const BeforeFirstEntry = () => {
+  const fromTimestamp = Math.floor(Date.now() - 10 * 60 * 1000)
+  const firstEntry = Math.floor(fromTimestamp / 1000)
+
+  const after = firstEntry - 100 * 60
+  const before = after + 15 * 60
+
+  const sdk = makeDefaultSDK({
+    getChartMetadata: () => ({ ...getChartMetadata(), firstEntry }),
+    attributes: { after, before },
+  })
+  const chart = sdk.makeChart({
+    getChart: chart =>
+      getChart(chart).then(payload => ({
+        ...payload,
+        result: {
+          ...payload.result,
+          data: payload.result.data.filter(d => d[0] > fromTimestamp),
+        },
+      })),
+  })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Chart chart={chart} />
+    </ThemeProvider>
+  )
+}
+
 export const SelectedDimensions = () => {
   const sdk = makeDefaultSDK({ getChartMetadata })
   const chart = sdk.makeChart({

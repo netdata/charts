@@ -194,6 +194,7 @@ export default (sdk, chart) => {
     hover()
     hoverX.destroy()
     navigation.destroy()
+    overlays.destroy()
     dygraph.destroy()
     dygraph = null
   }

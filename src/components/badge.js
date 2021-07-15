@@ -25,7 +25,9 @@ const Badge = ({ type, children, ...rest }) => {
       data-testid="badge"
       {...rest}
     >
-      <TextMicro color={color}>{children}</TextMicro>
+      <TextMicro color={color} whiteSpace="nowrap">
+        {children}
+      </TextMicro>
     </Flex>
   )
 }

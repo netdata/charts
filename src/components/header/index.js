@@ -10,6 +10,7 @@ const Header = ({ toggleDetails, detailsOpen }) => (
     justifyContent="between"
     alignItems="center"
     padding={[1, 3]}
+    gap={1}
     border={{ side: "bottom", color: "borderSecondary" }}
     data-testid="chartHeader"
   >
