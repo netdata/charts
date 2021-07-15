@@ -7,6 +7,7 @@ import makeNavigation from "./navigation"
 import makeHover from "./hover"
 import makeHoverX from "./hoverX"
 import makeHighlight from "./highlight"
+import makeOverlays from "./overlays"
 import crosshair from "./crosshair"
 
 const axisLabelFormatter = time => {
@@ -31,6 +32,7 @@ export default (sdk, chart) => {
   let hover = null
   let hoverX = null
   let highlight = null
+  let overlays = null
 
   const mount = element => {
     if (dygraph) return
@@ -127,6 +129,7 @@ export default (sdk, chart) => {
       chart.onAttributeChange("enabledHover", hoverX.toggle),
       chart.onAttributeChange("navigation", navigation.set),
       chart.onAttributeChange("highlight", highlight.toggle),
+      chart.onAttributeChange("overlays", overlays.toggle),
       chart.onAttributeChange("theme", (nextTheme, prevTheme) => {
         element.classList.remove(prevTheme)
         element.classList.add(nextTheme)
@@ -140,6 +143,7 @@ export default (sdk, chart) => {
 
     hover = makeHover(instance)
     highlight.toggle()
+    overlays.toggle()
 
     render()
   }
@@ -252,6 +256,7 @@ export default (sdk, chart) => {
   navigation = makeNavigation(instance)
   hoverX = makeHoverX(instance)
   highlight = makeHighlight(instance)
+  overlays = makeOverlays(instance)
 
   return instance
 }

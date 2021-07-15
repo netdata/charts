@@ -8,6 +8,7 @@ const types = {
     background: "warningBackground",
     color: "warningText",
   },
+  success: { background: ["green", "frostee"], color: "success" },
   neutral: { background: "elementBackground", color: "textLite" },
 }
 
@@ -21,7 +22,7 @@ const Badge = ({ type, children, ...rest }) => {
       round={3}
       border={{ color, size: "1px", side: "all" }}
       alignItems="center"
-      data-testid="chartHeader-badge"
+      data-testid="badge"
       {...rest}
     >
       <TextMicro color={color}>{children}</TextMicro>

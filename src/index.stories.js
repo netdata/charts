@@ -106,32 +106,83 @@ export const SelectedDimensions = () => {
 }
 
 export const PrecededData = () => {
-  let metadata
-  let fromTimestamp
+  const fromTimestamp = Math.floor(Date.now() - 10 * 60 * 1000)
+  const firstEntry = Math.floor(fromTimestamp / 1000)
+
   const sdk = makeDefaultSDK({
-    getChartMetadata: () => {
-      metadata = getChartMetadata()
-      metadata.firstEntry = Math.floor(fromTimestamp / 1000)
-      return metadata
-    },
+    getChartMetadata: () => ({ ...getChartMetadata(), firstEntry }),
   })
   const chart = sdk.makeChart({
     getChart: chart =>
-      getChart(chart).then(payload => {
-        if (!fromTimestamp) {
-          fromTimestamp = payload.result.data[Math.floor(payload.result.data.length / 3)][0]
-          metadata.firstEntry = Math.floor(fromTimestamp / 1000)
-        }
+      getChart(chart).then(payload => ({
+        ...payload,
+        result: {
+          ...payload.result,
+          data: payload.result.data.filter(d => d[0] > fromTimestamp),
+        },
+      })),
+  })
+  sdk.appendChild(chart)
 
-        return {
-          ...payload,
-          firstEntry: Math.floor(fromTimestamp / 1000),
-          result: {
-            ...payload.result,
-            data: payload.result.data.filter(d => d[0] > fromTimestamp),
-          },
-        }
-      }),
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Chart chart={chart} />
+    </ThemeProvider>
+  )
+}
+
+export const AlertInTimeWindow = () => {
+  const sdk = makeDefaultSDK({ getChartMetadata })
+
+  const chart = sdk.makeChart({
+    getChart,
+    attributes: {
+      overlays: {
+        alarm: {
+          type: "alarm",
+          status: "warning",
+          value: 538,
+          when: Math.floor(Date.now() / 1000 - 5 * 60),
+        },
+      },
+    },
+  })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Chart chart={chart} />
+    </ThemeProvider>
+  )
+}
+
+export const AlertBeforeFirstEntry = () => {
+  const fromTimestamp = Math.floor(Date.now() - 10 * 60 * 1000)
+  const firstEntry = Math.floor(fromTimestamp / 1000)
+
+  const sdk = makeDefaultSDK({
+    getChartMetadata: () => ({ ...getChartMetadata(), firstEntry }),
+  })
+
+  const chart = sdk.makeChart({
+    getChart: chart =>
+      getChart(chart).then(payload => ({
+        ...payload,
+        result: {
+          ...payload.result,
+          data: payload.result.data.filter(d => d[0] > fromTimestamp),
+        },
+      })),
+    attributes: {
+      overlays: {
+        alarm: {
+          type: "alarm",
+          status: "critical",
+          value: 136,
+          when: firstEntry - 1 * 60,
+        },
+      },
+    },
   })
   sdk.appendChild(chart)
 

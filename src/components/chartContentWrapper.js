@@ -9,6 +9,7 @@ import ChartContainer from "./chartContainer"
 import SkeletonChart from "./skeletonChart"
 import { CenterNoData, HorizontalNoData } from "./noData"
 import Highlight from "./highlight"
+import Overlays from "./overlays"
 import dygraphStyle from "@/chartLibraries/dygraph/style.css"
 
 const chartLibraries = {
@@ -48,6 +49,7 @@ const ChartContentWrapper = () => {
       {!initialLoading && !empty && <ChartContainer />}
       {!initialLoading && !empty && <HorizontalNoData />}
       {!initialLoading && !empty && <Highlight />}
+      {!initialLoading && !empty && <Overlays />}
       {!initialLoading && empty && <CenterNoData />}
       {initialLoading && <SkeletonChart />}
       {focused && !empty && <Toolbox />}
