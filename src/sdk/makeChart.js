@@ -121,9 +121,7 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     const options = { signal: abortController.signal }
     return getMetadataDecorator()
       .fetch(instance)
-      .then(() => {
-        return getChart(instance, options).then(doneFetch).catch(failFetch)
-      })
+      .then(() => getChart(instance, options).then(doneFetch).catch(failFetch))
   }
 
   const getUI = () => ui

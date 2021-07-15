@@ -28,6 +28,7 @@ export default ({ attributes, ...options } = {}) =>
       chartLibrary: "dygraph",
       navigation: "pan",
       after: -1 * minutes15,
+      overlays: { proceeded: { type: "proceeded" } },
       ...attributes,
     },
     ...options,

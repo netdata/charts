@@ -9,14 +9,24 @@ const HorizontalContainer = styled(Flex)`
   transform: translateY(-50%);
   right: calc(0);
   left: 60px;
-  ${({ top }) => (top === undefined ? "" : `top: ${top}px;`)};
-  ${({ bottom }) => (bottom === undefined ? "" : `bottom: ${bottom}px;`)};
+  ${({ top }) => (top === undefined ? "" : `top: ${top};`)};
+  ${({ bottom }) => (bottom === undefined ? "" : `bottom: ${bottom};`)};
 
   direction: rtl;
   overflow: hidden;
 `
 
-const Container = ({ id, children, ...rest }) => {
+const getRight = (alignMiddle, chart, area, element) => {
+  const { from, width } = area
+
+  if (!alignMiddle) return from + width / 2 + element.firstChild.offsetWidth / 2
+
+  const chartWidth = chart.getUI().getChartWidth()
+
+  return Math.min(from - 24, 60 + chartWidth / 2 + element.firstChild.offsetWidth / 2)
+}
+
+const Container = ({ id, alignMiddle, children, ...rest }) => {
   const ref = useRef()
   const [area, setArea] = useState()
   const chart = useChart()
@@ -24,8 +34,7 @@ const Container = ({ id, children, ...rest }) => {
   const updateRight = area => {
     if (!area || !ref.current) return
 
-    const { from, width } = area
-    const right = from + width / 2 + ref.current.firstChild.offsetWidth / 2
+    const right = getRight(alignMiddle, chart, area, ref.current)
     ref.current.style.right = `calc(100% - ${right}px)`
   }
 

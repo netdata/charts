@@ -144,6 +144,7 @@ export const AlertInTimeWindow = () => {
           value: 538,
           when: Math.floor(Date.now() / 1000 - 5 * 60),
         },
+        proceeded: { type: "proceeded" },
       },
     },
   })
@@ -175,6 +176,7 @@ export const AlertBeforeFirstEntry = () => {
       })),
     attributes: {
       overlays: {
+        proceeded: { type: "proceeded" },
         alarm: {
           type: "alarm",
           status: "critical",
