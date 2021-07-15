@@ -28,6 +28,44 @@ const borderColorMap = {
 export default chartUI => {
   let off = null
 
+  const trigger = (id, area) =>
+    requestAnimationFrame(() => chartUI.trigger(`overlayedAreaChanged:${id}`, area))
+
+  const drawHighlight = id => {
+    const overlays = chartUI.chart.getAttribute("overlays")
+    const { range } = overlays[id]
+
+    if (!range) return
+
+    const dygraph = chartUI.getDygraph()
+
+    const { h } = dygraph.getArea()
+    const { hidden_ctx_: ctx } = dygraph
+
+    const area = getArea(dygraph, range)
+
+    if (!area) return trigger(id)
+
+    const { from, width } = area
+
+    trigger(id, area)
+
+    ctx.save()
+    ctx.beginPath()
+
+    ctx.rect(from, 0, width, h - 1)
+
+    ctx.fillStyle = "rgba(207, 213, 218, 0.12)"
+    ctx.fill()
+    ctx.setLineDash([2, 4])
+    ctx.lineWidth = 1
+    ctx.strokeStyle = "#CFD5DA"
+
+    ctx.stroke()
+    ctx.closePath()
+    ctx.restore()
+  }
+
   const drawAlarm = id => {
     const overlays = chartUI.chart.getAttribute("overlays")
     const { when, status } = overlays[id]
@@ -39,16 +77,13 @@ export default chartUI => {
 
     const area = getArea(dygraph, [when, when])
 
-    if (!area) {
-      chartUI.trigger(`overlayedAreaChanged:${id}`)
-      return
-    }
+    if (!area) return trigger(id)
 
     const horizontalPadding = 3
     const from = area.from - horizontalPadding
     const width = 2 * horizontalPadding
 
-    chartUI.trigger(`overlayedAreaChanged:${id}`, area)
+    trigger(id, area)
 
     ctx.save()
     ctx.beginPath()
@@ -68,6 +103,7 @@ export default chartUI => {
 
   const byType = {
     alarm: drawAlarm,
+    highlight: drawHighlight,
   }
 
   const drawOverlay = id => {

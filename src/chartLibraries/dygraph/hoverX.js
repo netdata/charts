@@ -20,7 +20,7 @@ export default chartUI => {
   let lastTimestamp
 
   const triggerHighlight = (event, x, points) => {
-    const seriesName = getClosestSeries(event, points)
+    const seriesName = points && getClosestSeries(event, points)
 
     if (!seriesName) return
 

@@ -26,7 +26,7 @@ export default ({ attributes, ...options } = {}) =>
     },
     attributes: {
       chartLibrary: "dygraph",
-      navigation: "pan",
+      navigation: "highlight",
       after: -1 * minutes15,
       ...attributes,
     },

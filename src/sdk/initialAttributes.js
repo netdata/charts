@@ -21,7 +21,7 @@ export default {
   hovering: false,
   syncHighlight: true,
   highlighting: false,
-  highlight: null,
+  // highlight: null,
   desiredUnits: "auto",
   syncUnits: true,
   unitsConversionMethod: "",

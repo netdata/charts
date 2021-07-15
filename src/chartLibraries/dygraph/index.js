@@ -6,7 +6,6 @@ import executeLatest from "@/helpers/executeLatest"
 import makeNavigation from "./navigation"
 import makeHover from "./hover"
 import makeHoverX from "./hoverX"
-import makeHighlight from "./highlight"
 import makeOverlays from "./overlays"
 import crosshair from "./crosshair"
 
@@ -31,7 +30,6 @@ export default (sdk, chart) => {
   let navigation = null
   let hover = null
   let hoverX = null
-  let highlight = null
   let overlays = null
 
   const mount = element => {
@@ -128,7 +126,6 @@ export default (sdk, chart) => {
       chart.onAttributeChange("after", render),
       chart.onAttributeChange("enabledHover", hoverX.toggle),
       chart.onAttributeChange("navigation", navigation.set),
-      chart.onAttributeChange("highlight", highlight.toggle),
       chart.onAttributeChange("overlays", overlays.toggle),
       chart.onAttributeChange("theme", (nextTheme, prevTheme) => {
         element.classList.remove(prevTheme)
@@ -142,7 +139,6 @@ export default (sdk, chart) => {
     ]
 
     hover = makeHover(instance)
-    highlight.toggle()
     overlays.toggle()
 
     render()
@@ -197,7 +193,6 @@ export default (sdk, chart) => {
     chartUI.unmount()
     hover()
     hoverX.destroy()
-    highlight.destroy()
     navigation.destroy()
     dygraph.destroy()
     dygraph = null
@@ -255,7 +250,6 @@ export default (sdk, chart) => {
 
   navigation = makeNavigation(instance)
   hoverX = makeHoverX(instance)
-  highlight = makeHighlight(instance)
   overlays = makeOverlays(instance)
 
   return instance
