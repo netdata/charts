@@ -1,5 +1,5 @@
+import React, { memo } from "react"
 import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
-import React from "react"
 import { useAttribute } from "@/components/provider"
 import Label from "./label"
 
@@ -11,15 +11,15 @@ const items = [
 ]
 
 const Aggregate = () => {
-  const [aggregateMethod, setAggregateMethod] = useAttribute("aggregateMethod")
+  const [value, setValue] = useAttribute("aggregationMethod")
 
-  const { short } = items.find(item => item.value === aggregateMethod) || items[0]
+  const { short } = items.find(item => item.value === value)
 
   return (
-    <Menu value={aggregateMethod} onChange={setAggregateMethod} items={items}>
+    <Menu value={value} onChange={setValue} items={items}>
       <Label secondaryLabel="Select" label={short} />
     </Menu>
   )
 }
 
-export default Aggregate
+export default memo(Aggregate)

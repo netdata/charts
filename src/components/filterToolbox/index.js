@@ -1,22 +1,24 @@
 import React from "react"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { useInitialLoading, useEmpty } from "@/components/provider"
+import FiltersContainer from "./filtersContainer"
 import Filters from "./filters"
+import Skeleton from "./skeleton"
 
 const FilterToolbox = () => {
-  const initialLoading = useInitialLoading()
-  const empty = useEmpty()
-
   return (
-    <Flex
-      justifyContent="between"
-      border={{ side: "bottom", color: "borderSecondary" }}
-      padding={[0.5]}
-    >
+    <FiltersContainer>
       <Filters />
+
       {/* <Reset /> */}
-    </Flex>
+    </FiltersContainer>
   )
 }
 
-export default FilterToolbox
+const Container = props => {
+  const initialLoading = useInitialLoading()
+  // const empty = useEmpty()
+
+  return initialLoading ? <Skeleton /> : <FilterToolbox {...props} />
+}
+
+export default Container

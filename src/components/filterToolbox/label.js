@@ -6,10 +6,10 @@ import chevronDown from "@netdata/netdata-ui/lib/components/icon/assets/chevron_
 import Icon from "@/components/icon"
 import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
 
-const Container = styled(Flex).attrs({
+export const Container = styled(Flex).attrs({
   cursor: "pointer",
   role: "button",
-  padding: [1, 3],
+  padding: [1, 2],
   round: true,
 })`
   &:hover {
@@ -17,12 +17,17 @@ const Container = styled(Flex).attrs({
   }
 `
 
+const StyledLabel = styled(TextSmall).attrs({
+  strong: true,
+  margin: [0, 0, 0, 2],
+})`
+  flex: 1;
+`
+
 const Label = forwardRef(({ secondaryLabel, label, ...rest }, ref) => (
   <Container ref={ref} {...rest}>
     <TextSmall color="textLite">{secondaryLabel}</TextSmall>
-    <TextSmall strong margin={[0, 0, 0, 2]}>
-      {label}
-    </TextSmall>
+    <StyledLabel>{label}</StyledLabel>
     <Icon svg={chevronDown} size="16px" color="selected" />
   </Container>
 ))

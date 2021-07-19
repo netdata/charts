@@ -1,18 +1,18 @@
 import React from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import Separator from "@/components/separator"
 import Aggregate from "./aggregate"
 import Dimensions from "./dimensions"
-
-const Separator = ({ disabled }) => (
-  <Flex width="1px" background={disabled ? "disabled" : "borderSecondary"} />
-)
+import GroupBy from "./groupBy"
 
 const FilterToolbox = () => {
   return (
-    <Flex>
+    <Flex gap={1}>
       <Aggregate />
       <Separator />
       <Dimensions />
+      <Separator />
+      <GroupBy />
     </Flex>
   )
 }

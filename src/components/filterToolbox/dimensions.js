@@ -48,23 +48,25 @@ const renderItem = props => {
 
 const Dimensions = () => {
   const chart = useChart()
-  const [dimensions, setDimensions] = useAttribute("dimensions")
+  const [value, setValue] = useAttribute("dimensions")
 
   const options = useMemo(() => getItems(chart), [])
 
-  const label = getLabel(dimensions)
+  const label = getLabel(value)
 
-  const onChange = value => {
-    setDimensions(state => {
-      if (value === "all") return []
-      const nextState = state.includes(value) ? state.filter(v => v !== value) : [...state, value]
+  const onChange = nextValue => {
+    setValue(state => {
+      if (nextValue === "all") return []
+      const nextState = state.includes(nextValue)
+        ? state.filter(v => v !== nextValue)
+        : [...state, nextValue]
       return nextState.length === options.length - 1 || nextState.length === 0 ? [] : nextState
     })
   }
 
   return (
     <Menu
-      value={dimensions}
+      value={value}
       onChange={onChange}
       items={options}
       renderItem={renderItem}
