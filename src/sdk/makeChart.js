@@ -6,6 +6,7 @@ import convert from "./unitConversion"
 import { fetchChartData } from "./api"
 import makeDimensions from "./makeDimensions"
 import makeGetClosestRow from "./makeGetClosestRow"
+import getInitialFilterAttributes from "./filters/getInitialAttributes"
 
 const requestTimeoutMs = 5 * 1000
 
@@ -16,6 +17,7 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
   let payload = initialPayload
   let fetchDelayTimeoutId = null
   let fetchTimeoutId = null
+  let prevMetadata = null
 
   const getMetadataDecorator = () => chartsMetadata || sdk.chartsMetadata
 
@@ -121,7 +123,14 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     const options = { signal: abortController.signal }
     return getMetadataDecorator()
       .fetch(instance)
-      .then(() => getChart(instance, options).then(doneFetch).catch(failFetch))
+      .then(() => {
+        if (node.getAttribute("composite") && getMetadata() !== prevMetadata) {
+          prevMetadata = getMetadata()
+          const attributes = getInitialFilterAttributes(instance)
+          node.setAttributes(attributes)
+        }
+        return getChart(instance, options).then(doneFetch).catch(failFetch)
+      })
   }
 
   const getUI = () => ui
@@ -200,6 +209,7 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     payload = null
     chartsMetadata = null
     attributes = null
+    prevMetadata = null
   }
 
   node.type = "chart"
