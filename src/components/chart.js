@@ -8,10 +8,12 @@ import withIntersection from "./withIntersection"
 import withFullscreen from "./withFullscreen"
 import useHover from "./useHover"
 import ChartContentWrapper from "./chartContentWrapper"
-import { withChartProvider, useChart } from "./provider"
+import { withChartProvider, useChart, useAttributeValue } from "./provider"
+import FilterToolbox from "./filterToolbox"
 
 export const Chart = props => {
   const chart = useChart()
+  const composite = useAttributeValue("composite")
   const [detailsOpen, setDetailsOpen] = useState(false)
   const ref = useHover({ onHover: chart.focus, onBlur: chart.blur })
 
@@ -27,6 +29,7 @@ export const Chart = props => {
       {...props}
     >
       <Header detailsOpen={detailsOpen} toggleDetails={toggleDetails} />
+      {composite && <FilterToolbox />}
       <Flex position="relative" column flex data-testid="chartContainer">
         <ChartContentWrapper />
         {detailsOpen && <Details />}
