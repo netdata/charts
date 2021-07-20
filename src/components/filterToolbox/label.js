@@ -24,11 +24,11 @@ const StyledLabel = styled(TextSmall).attrs({
   flex: 1;
 `
 
-const Label = forwardRef(({ secondaryLabel, label, ...rest }, ref) => (
+const Label = forwardRef(({ secondaryLabel, label, chevron = true, ...rest }, ref) => (
   <Container ref={ref} {...rest}>
     <TextSmall color="textLite">{secondaryLabel}</TextSmall>
     <StyledLabel>{label}</StyledLabel>
-    <Icon svg={chevronDown} size="16px" color="selected" />
+    {chevron && <Icon svg={chevronDown} size="16px" color="selected" />}
   </Container>
 ))
 

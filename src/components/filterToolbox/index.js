@@ -3,20 +3,17 @@ import { useInitialLoading, useEmpty } from "@/components/provider"
 import FiltersContainer from "./filtersContainer"
 import Filters from "./filters"
 import Skeleton from "./skeleton"
+import Reset from "./reset"
 
-const FilterToolbox = () => {
-  return (
-    <FiltersContainer>
-      <Filters />
-
-      {/* <Reset /> */}
-    </FiltersContainer>
-  )
-}
+const FilterToolbox = () => (
+  <FiltersContainer>
+    <Filters />
+    <Reset />
+  </FiltersContainer>
+)
 
 const Container = props => {
   const initialLoading = useInitialLoading()
-  // const empty = useEmpty()
 
   return initialLoading ? <Skeleton /> : <FilterToolbox {...props} />
 }

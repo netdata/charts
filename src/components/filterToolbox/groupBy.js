@@ -1,13 +1,13 @@
 import React, { useMemo, memo } from "react"
 import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
-import { useChart, useAttribute } from "@/components/provider"
+import { useChart, useAttributeValue } from "@/components/provider"
 import Label from "./label"
 
 const defaultItems = ["dimension", "node", "chart"]
 
 const GroupBy = () => {
   const chart = useChart()
-  const [value, setValue] = useAttribute("groupBy")
+  const value = useAttributeValue("groupBy")
 
   const items = useMemo(() => {
     const { chartLabels } = chart.getMetadata()
@@ -18,7 +18,7 @@ const GroupBy = () => {
   }, [])
 
   return (
-    <Menu value={value} onChange={setValue} items={items}>
+    <Menu value={value} onChange={chart.updateGroupBy} items={items}>
       <Label secondaryLabel="Group by" label={value} />
     </Menu>
   )

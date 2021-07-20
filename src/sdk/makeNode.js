@@ -1,6 +1,16 @@
 import { v4 as uuidv4 } from "uuid"
 import makeListeners from "@/helpers/makeListeners"
+import makePristine from "@/helpers/makePristine"
 import makeGetUnitSign from "./makeGetUnitSign"
+
+const pristineCompositeKey = "pristineComposite"
+
+const { updatePristine, resetPristine } = makePristine(pristineCompositeKey, [
+  "aggregationMethod",
+  "dimensions",
+  "dimensionsAggregationMethod",
+  "groupBy",
+])
 
 export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   const listeners = makeListeners()
@@ -22,8 +32,17 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     const prevValue = attributes[name]
     if (prevValue === value) return
 
+    const prevPristine = updatePristine(attributes, name, value)
     setAttribute(name, value)
     attributeListeners.trigger(name, value, prevValue)
+
+    if (prevPristine) {
+      attributeListeners.trigger(
+        pristineCompositeKey,
+        attributes[pristineCompositeKey],
+        prevPristine
+      )
+    }
   }
 
   const setAttributes = values =>
@@ -32,22 +51,51 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   const getAttributes = () => attributes
 
   const updateAttributes = values => {
+    let prevPristine = null
+
     const prevValues = Object.keys(values).reduce((acc, name) => {
       const value = values[name]
       const prevValue = attributes[name]
-      if (prevValue !== value) {
-        setAttribute(name, value)
-        acc[name] = prevValue
+      if (prevValue === value) return acc
+
+      const prev = updatePristine(attributes, name, value)
+      if (prev && !prevPristine) {
+        prevPristine = prev
       }
+
+      setAttribute(name, value)
+      acc[name] = prevValue
+
       return acc
     }, {})
 
     Object.keys(prevValues).forEach(name =>
       attributeListeners.trigger(name, values[name], prevValues[name])
     )
+
+    if (prevPristine) {
+      attributeListeners.trigger(
+        pristineCompositeKey,
+        attributes[pristineCompositeKey],
+        prevPristine
+      )
+    }
+  }
+
+  const resetPristineComposite = () => {
+    const prev = { ...attributes[pristineCompositeKey] }
+    resetPristine(attributes)
+    attributeListeners.trigger(pristineCompositeKey, attributes[pristineCompositeKey], prev)
+    Object.keys(prev).forEach(key => attributeListeners.trigger(key, attributes[key], prev[key]))
   }
 
   const onAttributeChange = (name, handler) => attributeListeners.on(name, handler)
+  const onAttributesChange = (names, handler) =>
+    names.reduce(
+      (func, name) => (func ? func.on(name, handler) : attributeListeners.on(name, handler)),
+      null
+    )
+
   const onceAttributeChange = (name, handler) => attributeListeners.once(name, handler)
 
   const match = attrs => {
@@ -123,7 +171,9 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     getAttributes,
     updateAttributes,
     onAttributeChange,
+    onAttributesChange,
     onceAttributeChange,
+    resetPristineComposite,
     match,
     getUuid,
     setParent,

@@ -48,9 +48,12 @@ export default {
   composite: false,
   aggregationMethod: "",
   dimensions: [],
-  dimensionsAggregationMethod: "",
+  dimensionsAggregationMethod: "sum-of-abs",
+  groupBy: "",
+
   postAggregationMethod: "",
   postGroupBy: "",
-  groupBy: "",
   selectedChart: "",
+
+  pristineComposite: {},
 }
