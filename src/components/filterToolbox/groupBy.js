@@ -15,7 +15,7 @@ const GroupBy = () => {
       value,
       label: `By ${value}`,
     }))
-  }, [])
+  }, [chart])
 
   return (
     <Menu value={value} onChange={chart.updateGroupByAttribute} items={items}>

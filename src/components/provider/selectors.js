@@ -10,7 +10,7 @@ export const useAttributeValue = name => {
 
   const [value, setValue] = useState(getValue)
 
-  useLayoutEffect(() => chart.onAttributeChange(name, () => setValue(getValue)), [])
+  useLayoutEffect(() => chart.onAttributeChange(name, () => setValue(getValue)), [chart])
 
   return value
 }
@@ -31,7 +31,7 @@ export const useInitialLoading = () => {
         chart.onAttributeChange("loaded", () => setValue(getValue)),
         chart.onAttributeChange("loading", () => setValue(getValue))
       ),
-    []
+    [chart]
   )
 
   return value
@@ -47,7 +47,7 @@ export const useEmpty = () => {
 
   const [empty, setEmpty] = useState(getValue)
 
-  useEffect(() => chart.on("finishFetch", () => setEmpty(getValue)), [])
+  useEffect(() => chart.on("finishFetch", () => setEmpty(getValue)), [chart])
 
   return empty
 }
@@ -67,7 +67,7 @@ export const useAttribute = name => {
         name,
         typeof nextValue === "function" ? nextValue(getValue()) : nextValue
       ),
-    []
+    [chart]
   )
 
   return [value, updateValue]
@@ -84,7 +84,9 @@ export const useVisibleDimensionId = id => {
   const getValue = () => chart.isDimensionVisible(id)
   const [visible, setVisible] = useState(getValue)
 
-  useEffect(() => chart.onAttributeChange("selectedDimensions", () => setVisible(getValue())), [])
+  useEffect(() => chart.onAttributeChange("selectedDimensions", () => setVisible(getValue())), [
+    chart,
+  ])
 
   return visible
 }
@@ -96,7 +98,7 @@ export const useDimensionIds = () => {
 
   const [dimensionIds, setDimensionIds] = useState(getList)
 
-  useEffect(() => chart.on("dimensionChanged", () => setDimensionIds(getList)), [])
+  useEffect(() => chart.on("dimensionChanged", () => setDimensionIds(getList)), [chart])
 
   return dimensionIds
 }
@@ -106,7 +108,7 @@ export const useUnitSign = () => {
 
   const [unit, setUnit] = useState(chart.getUnitSign)
 
-  useEffect(() => chart.onAttributeChange("unit", () => setUnit(chart.getUnitSign())), [])
+  useEffect(() => chart.onAttributeChange("unit", () => setUnit(chart.getUnitSign())), [chart])
 
   return unit
 }

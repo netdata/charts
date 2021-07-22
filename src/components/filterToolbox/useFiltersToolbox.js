@@ -19,7 +19,7 @@ export default () => {
       unregister(
         chart.onAttributeChange("dimensions", () => setHasDimensions(getDimensionAggregation()))
       ),
-    []
+    [chart]
   )
 
   const getTotalChartIds = () => {
@@ -35,7 +35,7 @@ export default () => {
         "successFetch",
         (next, prev) => next.nodes !== prev.nodes && setTotalChartIds(getTotalChartIds())
       ),
-    []
+    [chart]
   )
 
   return {

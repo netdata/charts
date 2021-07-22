@@ -59,7 +59,7 @@ const Dimensions = () => {
     const ids = dimensionIds.slice(from, to)
 
     return [from, to, total, ids]
-  }, [row])
+  }, [chart, row])
 
   return (
     <Container data-testid="chartTooltip-dimensions">

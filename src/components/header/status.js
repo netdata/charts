@@ -12,11 +12,11 @@ const Status = props => {
   const initialLoading = useInitialLoading()
   const empty = useEmpty()
 
-  useEffect(() => chart.on("timeout", setDelayed), [])
+  useEffect(() => chart.on("timeout", setDelayed), [chart])
 
   useEffect(
     () => chart.on("successFetch", () => setError(false)).on("failFetch", () => setError(true)),
-    []
+    [chart]
   )
 
   return (

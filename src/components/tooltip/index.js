@@ -72,7 +72,7 @@ const Container = () => {
           if (panning) setOpen(false)
         })
       ),
-    []
+    [chart]
   )
 
   const el = useDropElement()

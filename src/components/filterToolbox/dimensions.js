@@ -50,7 +50,7 @@ const Dimensions = () => {
   const chart = useChart()
   const value = useAttributeValue("dimensions")
 
-  const options = useMemo(() => getItems(chart), [])
+  const options = useMemo(() => getItems(chart), [chart])
 
   const label = getLabel(value)
 

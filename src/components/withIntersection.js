@@ -15,7 +15,7 @@ export default Component => {
       chart.getUI().setEstimatedWidth(ref.current.offsetWidth)
     }
 
-    useEffect(() => () => chart.deactivate(), [])
+    useEffect(() => () => chart.deactivate(), [chart])
 
     const height = fullscreen ? "500px" : "315px"
 

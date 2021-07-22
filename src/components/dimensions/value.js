@@ -38,7 +38,7 @@ const Container = ({ id, ...rest }) => {
       remove()
       off()
     }
-  }, [])
+  }, [chart])
 
   return <Value {...rest}>{value}</Value>
 }

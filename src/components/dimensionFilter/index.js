@@ -52,7 +52,7 @@ const DimensionFilter = props => {
 
   const onChange = value => chart.updateAttribute("dimensionsSort", value)
 
-  useEffect(() => chart.onAttributeChange("dimensionsSort", setValue), [])
+  useEffect(() => chart.onAttributeChange("dimensionsSort", setValue), [chart])
 
   return (
     <Flex padding={[2, 4]} data-testid="chartDimensionFilter" {...props}>
