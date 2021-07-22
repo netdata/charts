@@ -32,20 +32,19 @@ export const ContentWrapper = props => (
 export const Chart = props => {
   const chart = useChart()
   const composite = useAttributeValue("composite")
-  const [detailsOpen, setDetailsOpen] = useState(false)
-  const ref = useHover({ onHover: chart.focus, onBlur: chart.blur })
+  const detailed = useAttributeValue("detailed")
 
-  const toggleDetails = useCallback(() => setDetailsOpen(s => !s), [])
+  const ref = useHover({ onHover: chart.focus, onBlur: chart.blur })
 
   return (
     <Container ref={ref} {...props}>
-      <Header detailsOpen={detailsOpen} toggleDetails={toggleDetails} />
+      <Header />
       {composite && <FilterToolbox />}
       <ContentWrapper>
         <ChartContentWrapper />
-        {detailsOpen && <Details />}
+        {detailed && <Details />}
       </ContentWrapper>
-      {!detailsOpen && (
+      {!detailed && (
         <Footer>
           <DimensionFilter />
           <Legend />

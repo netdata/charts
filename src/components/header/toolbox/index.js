@@ -15,12 +15,12 @@ export const Container = props => (
   <Flex gap={2} justifyContent="end" flex basis="0" data-testid="chartHeaderToolbox" {...props} />
 )
 
-const Toolbox = ({ detailsOpen, toggleDetails, ...rest }) => {
+const Toolbox = props => {
   const disabled = !useAttributeValue("focused")
 
   return (
-    <Container {...rest}>
-      <Information disabled={disabled} onClick={toggleDetails} active={detailsOpen} />
+    <Container {...props}>
+      <Information disabled={disabled} />
       <Separator disabled={disabled} />
       <ChartType disabled={disabled} />
       <Separator disabled={disabled} />

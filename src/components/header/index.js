@@ -16,11 +16,11 @@ export const Container = props => (
   />
 )
 
-const Header = ({ toggleDetails, detailsOpen }) => (
+const Header = () => (
   <Container>
     <Status />
     <Title />
-    <Toolbox detailsOpen={detailsOpen} toggleDetails={toggleDetails} />
+    <Toolbox />
   </Container>
 )
 

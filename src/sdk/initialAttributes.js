@@ -45,6 +45,7 @@ export default {
   overlays: {},
   themeGridColor: ["#F7F8F8", "#282827"],
   themeCrosshair: ["#536775", "#536775"],
+  detailed: false,
 
   composite: false,
   aggregationMethod: "",
