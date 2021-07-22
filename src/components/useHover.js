@@ -1,6 +1,6 @@
-import { useLayoutEffect, useRef } from "react"
+import { useLayoutEffect, useRef, useState } from "react"
 
-export default ({ onHover, onBlur }) => {
+const useHover = ({ onHover, onBlur }) => {
   const ref = useRef()
 
   useLayoutEffect(() => {
@@ -23,3 +23,12 @@ export default ({ onHover, onBlur }) => {
 
   return ref
 }
+
+export const useHovered = () => {
+  const [focused, setFocused] = useState(false)
+  const ref = useHover({ onHover: () => setFocused(true), onBlur: () => setFocused(false) })
+
+  return [ref, focused]
+}
+
+export default useHover

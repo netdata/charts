@@ -3,36 +3,52 @@ import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 // import { getSizeBy, getRgbColor } from "@netdata/netdata-ui/lib/theme/utils"
 // import { webkitVisibleScrollbar } from "@netdata/netdata-ui/lib/mixins/webkit-visible-scrollbar"
-import { useInitialLoading, useEmpty, useChart } from "@/components/provider"
+import { useInitialLoading, useEmpty, useDimensionIds } from "@/components/provider"
 import Dimension, { SkeletonDimension, EmptyDimension } from "./dimension"
+import { Fragment } from "react"
 
 const Container = styled(Flex).attrs({
   gap: 1,
   overflow: { horizontal: "overlay" },
   padding: [2, 0],
   alignItems: "start",
+  flex: true,
+  "data-testid": "chartLegend",
 })`
   ::-webkit-scrollbar {
     height: 6px;
   }
 `
 
-const SkeletonDimensions = Array.from(Array(5))
+const skeletonDimensions = Array.from(Array(5))
 
-const Legend = props => {
-  const chart = useChart()
-  const initialLoading = useInitialLoading()
-  const empty = useEmpty()
-  const getList = () => chart.getDimensionIds()
+const SkeletonDimensions = () => (
+  <Fragment>
+    {skeletonDimensions.map((v, index) => (
+      <SkeletonDimension key={index} />
+    ))}
+  </Fragment>
+)
 
-  const [dimensionIds, setDimensionIds] = useState(getList)
-
-  useEffect(() => chart.on("dimensionChanged", () => setDimensionIds(getList)), [])
+const Dimensions = () => {
+  const dimensionIds = useDimensionIds()
 
   return (
-    <Container data-testid="chartLegend" {...props}>
-      {!initialLoading && !empty && dimensionIds.map(id => <Dimension key={id} id={id} />)}
-      {initialLoading && SkeletonDimensions.map((v, index) => <SkeletonDimension key={index} />)}
+    <Fragment>
+      {dimensionIds.map(id => (
+        <Dimension key={id} id={id} />
+      ))}
+    </Fragment>
+  )
+}
+const Legend = props => {
+  const initialLoading = useInitialLoading()
+  const empty = useEmpty()
+
+  return (
+    <Container {...props}>
+      {!initialLoading && !empty && <Dimensions />}
+      {initialLoading && <SkeletonDimensions />}
       {!initialLoading && empty && <EmptyDimension />}
     </Container>
   )

@@ -14,6 +14,7 @@ export default ({ sdk, parent, attributes } = {}) => {
   const removeChild = node => {
     children = children.filter(n => n !== node)
     sdk.trigger("nodeRemoved", node)
+    sdk.trigger(`${node.type}Removed`, node)
   }
 
   const getNodes = (attributes, options, nodes = null) => {

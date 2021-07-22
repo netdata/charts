@@ -1,11 +1,10 @@
 import React from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { useChart } from "@/components/provider"
 import Status from "./status"
 import Title from "./title"
 import Toolbox from "./toolbox"
 
-const Header = ({ toggleDetails, detailsOpen }) => (
+export const Container = props => (
   <Flex
     justifyContent="between"
     alignItems="center"
@@ -13,11 +12,16 @@ const Header = ({ toggleDetails, detailsOpen }) => (
     gap={1}
     border={{ side: "bottom", color: "borderSecondary" }}
     data-testid="chartHeader"
-  >
-    <Status flex basis="0" />
-    <Title flex="shrink" justifyContent="center" />
-    <Toolbox flex basis="0" detailsOpen={detailsOpen} toggleDetails={toggleDetails} />
-  </Flex>
+    {...props}
+  />
+)
+
+const Header = ({ toggleDetails, detailsOpen }) => (
+  <Container>
+    <Status />
+    <Title />
+    <Toolbox detailsOpen={detailsOpen} toggleDetails={toggleDetails} />
+  </Container>
 )
 
 export default Header

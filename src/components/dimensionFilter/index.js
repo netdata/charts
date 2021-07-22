@@ -46,7 +46,7 @@ const sortings = [
   { value: "valueDesc", label: "Sort by value Min→Max " },
 ]
 
-const DimensionFilter = () => {
+const DimensionFilter = props => {
   const chart = useChart()
   const [value, setValue] = useState(chart.getAttribute("dimensionsSort"))
 
@@ -55,7 +55,7 @@ const DimensionFilter = () => {
   useEffect(() => chart.onAttributeChange("dimensionsSort", setValue), [])
 
   return (
-    <Flex padding={[2, 4]} data-testid="chartDimensionFilter">
+    <Flex padding={[2, 4]} data-testid="chartDimensionFilter" {...props}>
       <Menu
         value={value}
         items={sortings}

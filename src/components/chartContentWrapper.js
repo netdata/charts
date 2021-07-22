@@ -1,11 +1,11 @@
-import React, { forwardRef, useState } from "react"
+import React, { forwardRef } from "react"
 import styled, { css } from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { useInitialLoading, useEmpty, useAttributeValue } from "@/components/provider"
 import { CenterNoData } from "./overlays/proceeded"
 import Tooltip from "./tooltip"
 import Toolbox from "./toolbox"
-import useHover from "./useHover"
+import { useHovered } from "./useHover"
 import ChartContainer from "./chartContainer"
 import SkeletonChart from "./skeletonChart"
 import Overlays from "./overlays"
@@ -21,7 +21,7 @@ const StyledContainer = styled(Flex)`
   ${({ chartLibrary }) => chartLibraries[chartLibrary] || ""}
 `
 
-const Container = forwardRef((props, ref) => {
+export const Container = forwardRef((props, ref) => {
   const chartLibrary = useAttributeValue("chartLibrary")
 
   return (
@@ -38,8 +38,7 @@ const Container = forwardRef((props, ref) => {
 })
 
 const ChartContentWrapper = () => {
-  const [focused, setFocused] = useState(false)
-  const ref = useHover({ onHover: () => setFocused(true), onBlur: () => setFocused(false) })
+  const [ref, hovered] = useHovered()
   const initialLoading = useInitialLoading()
   const empty = useEmpty()
 
@@ -49,7 +48,7 @@ const ChartContentWrapper = () => {
       {!initialLoading && !empty && <Overlays />}
       {!initialLoading && empty && <CenterNoData />}
       {initialLoading && <SkeletonChart />}
-      {focused && !empty && <Toolbox />}
+      {hovered && !empty && <Toolbox />}
       <Tooltip />
     </Container>
   )

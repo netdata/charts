@@ -20,7 +20,7 @@ const Status = props => {
   )
 
   return (
-    <Flex gap={2} data-testid="chartHeaderStatus" {...props}>
+    <Flex gap={2} data-testid="chartHeaderStatus" flex basis="0" {...props}>
       <Flex as={Logo} />
       <Reload />
       {delayed && (

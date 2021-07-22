@@ -84,6 +84,18 @@ export const useVisibleDimensionId = id => {
   return visible
 }
 
+export const useDimensionIds = () => {
+  const chart = useChart()
+
+  const getList = () => chart.getDimensionIds()
+
+  const [dimensionIds, setDimensionIds] = useState(getList)
+
+  useEffect(() => chart.on("dimensionChanged", () => setDimensionIds(getList)), [])
+
+  return dimensionIds
+}
+
 export const useUnitSign = () => {
   const chart = useChart()
 

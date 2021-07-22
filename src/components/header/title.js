@@ -9,7 +9,14 @@ const Title = props => {
   const unit = useAttributeValue("unit")
 
   return (
-    <Flex overflow="hidden" data-testid="chartHeaderStatus-title" gap={1} {...props}>
+    <Flex
+      overflow="hidden"
+      data-testid="chartHeaderStatus-title"
+      gap={1}
+      flex="shrink"
+      justifyContent="center"
+      {...props}
+    >
       <Text strong color="textDescription" truncate>
         {title}
       </Text>
