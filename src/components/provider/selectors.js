@@ -73,6 +73,11 @@ export const useAttribute = name => {
   return [value, updateValue]
 }
 
+export const useMetadata = () => {
+  const chart = useChart()
+  return chart.getMetadata()
+}
+
 export const useVisibleDimensionId = id => {
   const chart = useChart()
 

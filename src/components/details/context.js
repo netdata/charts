@@ -3,7 +3,7 @@ import plugins from "@netdata/netdata-ui/lib/components/icon/assets/plugins.svg"
 import { TextSmall } from "@netdata/netdata-ui/lib/components/typography"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import Icon from "@/components/icon"
-import { useChart } from "@/components/provider"
+import { useMetadata } from "@/components/provider"
 import Row from "./row"
 
 const Info = ({ title, children }) => (
@@ -16,8 +16,7 @@ const Info = ({ title, children }) => (
 )
 
 const Context = () => {
-  const chart = useChart()
-  const { plugin, context } = chart.getMetadata()
+  const { plugin, context } = useMetadata()
 
   return (
     <Row

@@ -1,11 +1,10 @@
 import React from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { Text } from "@netdata/netdata-ui/lib/components/typography"
-import { useChart, useAttributeValue } from "@/components/provider"
+import { useMetadata, useAttributeValue } from "@/components/provider"
 
 const Title = props => {
-  const chart = useChart()
-  const { title } = chart.getMetadata()
+  const { title } = useMetadata()
   const unit = useAttributeValue("unit")
 
   return (
