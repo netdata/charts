@@ -102,6 +102,7 @@ export default (sdk, chart) => {
       yRangePad: 1,
       labelsSeparateLines: true,
       colors: dimensionColors,
+      valueRange: attributes.valueRange,
       ...makeChartTypeOptions(),
       ...makeThemingOptions(),
       ...makeVisibilityOptions(),

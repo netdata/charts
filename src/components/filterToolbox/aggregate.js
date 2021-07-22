@@ -1,6 +1,6 @@
 import React, { memo } from "react"
 import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
-import { useAttribute } from "@/components/provider"
+import { useAttributeValue, useChart } from "@/components/provider"
 import Label from "./label"
 
 const items = [
@@ -11,12 +11,13 @@ const items = [
 ]
 
 const Aggregate = () => {
-  const [value, setValue] = useAttribute("aggregationMethod")
+  const chart = useChart()
+  const value = useAttributeValue("aggregationMethod")
 
   const { short } = items.find(item => item.value === value)
 
   return (
-    <Menu value={value} onChange={setValue} items={items}>
+    <Menu value={value} onChange={chart.updateAggregationMethodAttribute} items={items}>
       <Label secondaryLabel="Select" label={short} />
     </Menu>
   )

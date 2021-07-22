@@ -7,23 +7,25 @@ import GroupBy from "./groupBy"
 import DimensionsAggregation from "./dimensionsAggregation"
 import useFiltersToolbox from "./useFiltersToolbox"
 
-const FilterToolbox = () => {
+export const Container = props => <Flex gap={1} {...props} />
+
+const FilterToolbox = props => {
   const { aggregate, dimensionAggregation } = useFiltersToolbox()
 
   return (
-    <Flex gap={1}>
+    <Container {...props}>
       {aggregate && <Aggregate />}
       {dimensionAggregation && (
         <Fragment>
-          <Separator />
+          {aggregate && <Separator />}
           <DimensionsAggregation />
         </Fragment>
       )}
-      <Separator />
+      {(aggregate || dimensionAggregation) && <Separator />}
       <Dimensions />
       <Separator />
       <GroupBy />
-    </Flex>
+    </Container>
   )
 }
 

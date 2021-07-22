@@ -1,16 +1,7 @@
 import { v4 as uuidv4 } from "uuid"
 import makeListeners from "@/helpers/makeListeners"
-import makePristine from "@/helpers/makePristine"
 import makeGetUnitSign from "./makeGetUnitSign"
-
-const pristineCompositeKey = "pristineComposite"
-
-const { updatePristine, resetPristine } = makePristine(pristineCompositeKey, [
-  "aggregationMethod",
-  "dimensions",
-  "dimensionsAggregationMethod",
-  "groupBy",
-])
+import pristineComposite, { pristineCompositeKey } from "./pristineComposite"
 
 export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   const listeners = makeListeners()
@@ -32,7 +23,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     const prevValue = attributes[name]
     if (prevValue === value) return
 
-    const prevPristine = updatePristine(attributes, name, value)
+    const prevPristine = pristineComposite.update(attributes, name, value)
     setAttribute(name, value)
     attributeListeners.trigger(name, value, prevValue)
 
@@ -58,7 +49,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
       const prevValue = attributes[name]
       if (prevValue === value) return acc
 
-      const prev = updatePristine(attributes, name, value)
+      const prev = pristineComposite.update(attributes, name, value)
       if (prev && !prevPristine) {
         prevPristine = prev
       }
@@ -80,13 +71,6 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
         prevPristine
       )
     }
-  }
-
-  const resetPristineComposite = () => {
-    const prev = { ...attributes[pristineCompositeKey] }
-    resetPristine(attributes)
-    attributeListeners.trigger(pristineCompositeKey, attributes[pristineCompositeKey], prev)
-    Object.keys(prev).forEach(key => attributeListeners.trigger(key, attributes[key], prev[key]))
   }
 
   const onAttributeChange = (name, handler) => attributeListeners.on(name, handler)
@@ -162,6 +146,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   init()
 
   const instance = {
+    attributeListeners,
     ...listeners,
     sdk,
     setAttribute,
@@ -173,7 +158,6 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     onAttributeChange,
     onAttributesChange,
     onceAttributeChange,
-    resetPristineComposite,
     match,
     getUuid,
     setParent,

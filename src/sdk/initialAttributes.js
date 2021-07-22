@@ -27,6 +27,7 @@ export default {
   unitsConversionDivider: -1,
   unitsConversionFractionDigits: 0,
   unit: "",
+  valueRange: [null, null],
   temperature: "celsius",
   secondsAsTime: true,
   timezone: "default",

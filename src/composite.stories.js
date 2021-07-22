@@ -1,6 +1,7 @@
 import React from "react"
 import { ThemeProvider } from "styled-components"
-import { DefaultTheme } from "@netdata/netdata-ui/lib/theme"
+import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui/lib/theme"
+import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { camelizeKeys } from "@/helpers/objectTransform"
 import Chart from "@/components/chart"
 import makeMockPayload from "@/helpers/makeMockPayload"
@@ -16,12 +17,26 @@ const getChart = makeMockPayload(systemCpu, { delay: 600 })
 
 export const Simple = () => {
   const sdk = makeDefaultSDK({ getChartMetadata })
-  const chart = sdk.makeChart({ getChart, attributes: { composite: true } })
+  const chart = sdk.makeChart({ getChart, attributes: { composite: true, valueRange: [0, 100] } })
   sdk.appendChild(chart)
 
   return (
     <ThemeProvider theme={DefaultTheme}>
       <Chart chart={chart} />
+    </ThemeProvider>
+  )
+}
+
+export const SimpleDark = () => {
+  const sdk = makeDefaultSDK({ getChartMetadata, attributes: { theme: "dark" } })
+  const chart = sdk.makeChart({ getChart, attributes: { composite: true } })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DarkTheme}>
+      <Flex background="mainBackground">
+        <Chart chart={chart} />
+      </Flex>
     </ThemeProvider>
   )
 }

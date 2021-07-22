@@ -4,7 +4,7 @@ import { ItemContainer } from "@netdata/netdata-ui/lib/components/drops/menu/dro
 import { Text } from "@netdata/netdata-ui/lib/components/typography"
 import checkmark from "@netdata/netdata-ui/lib/components/icon/assets/checkmark_s.svg"
 import { Checkbox } from "@netdata/netdata-ui/lib/components/checkbox"
-import { useChart, useAttribute } from "@/components/provider"
+import { useChart, useAttributeValue } from "@/components/provider"
 import Icon from "@/components/icon"
 import Label from "./label"
 
@@ -48,26 +48,16 @@ const renderItem = props => {
 
 const Dimensions = () => {
   const chart = useChart()
-  const [value, setValue] = useAttribute("dimensions")
+  const value = useAttributeValue("dimensions")
 
   const options = useMemo(() => getItems(chart), [])
 
   const label = getLabel(value)
 
-  const onChange = nextValue => {
-    setValue(state => {
-      if (nextValue === "all") return []
-      const nextState = state.includes(nextValue)
-        ? state.filter(v => v !== nextValue)
-        : [...state, nextValue]
-      return nextState.length === options.length - 1 || nextState.length === 0 ? [] : nextState
-    })
-  }
-
   return (
     <Menu
       value={value}
-      onChange={onChange}
+      onChange={chart.updateDimensionsAttribute}
       items={options}
       renderItem={renderItem}
       closeOnClick={false}

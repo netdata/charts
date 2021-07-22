@@ -89,7 +89,7 @@ export const NoData = () => {
 }
 
 export const BeforeFirstEntry = () => {
-  const fromTimestamp = Math.floor(Date.now() - 10 * 60 * 1000)
+  const fromTimestamp = Date.now() - 10 * 60 * 1000
   const firstEntry = Math.floor(fromTimestamp / 1000)
 
   const after = firstEntry - 100 * 60

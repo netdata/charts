@@ -7,6 +7,7 @@ import { fetchChartData } from "./api"
 import makeDimensions from "./makeDimensions"
 import makeGetClosestRow from "./makeGetClosestRow"
 import getInitialFilterAttributes from "./filters/getInitialAttributes"
+import makeFilterControllers from "./filters/makeControllers"
 
 const requestTimeoutMs = 5 * 1000
 
@@ -138,6 +139,8 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     ui = newUi
   }
 
+  const fetchAndRender = () => fetch().then(() => ui && ui.render())
+
   const getConvertedValue = value => {
     const {
       unitsConversionMethod,
@@ -193,12 +196,6 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     if (node.getAttribute("autofetch")) return startAutofetch()
   })
 
-  const updateGroupBy = value => {
-    node.updateAttribute("groupBy", value)
-    const attributes = getInitialFilterAttributes(instance)
-    node.updateAttributes(attributes)
-  }
-
   const destroy = () => {
     cancelFetch()
     stopAutofetch()
@@ -229,9 +226,9 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     fetch,
     doneFetch,
     cancelFetch,
+    fetchAndRender,
     getConvertedValue,
     startAutofetch,
-    updateGroupBy,
     focus,
     blur,
     activate,
@@ -239,5 +236,5 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     getClosestRow,
   }
 
-  return { ...instance, ...makeDimensions(instance), destroy }
+  return { ...instance, ...makeDimensions(instance), ...makeFilterControllers(instance), destroy }
 }
