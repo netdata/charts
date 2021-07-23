@@ -1,4 +1,4 @@
-import React, { Fragment } from "react"
+import React from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import Separator from "@/components/separator"
 import Aggregate from "./aggregate"
@@ -7,7 +7,21 @@ import GroupBy from "./groupBy"
 import DimensionsAggregation from "./dimensionsAggregation"
 import useFiltersToolbox from "./useFiltersToolbox"
 
-export const Container = props => <Flex gap={1} {...props} />
+export const Container = ({ children, ...rest }) => {
+  const elements = children.reduce((acc, element) => {
+    if (!element) return acc
+
+    acc.push(element)
+    acc.push(<Separator />)
+    return acc
+  }, [])
+
+  return (
+    <Flex gap={1} {...rest}>
+      {elements}
+    </Flex>
+  )
+}
 
 const FilterToolbox = props => {
   const { aggregate, dimensionAggregation } = useFiltersToolbox()
@@ -15,15 +29,8 @@ const FilterToolbox = props => {
   return (
     <Container {...props}>
       {aggregate && <Aggregate />}
-      {dimensionAggregation && (
-        <Fragment>
-          {aggregate && <Separator />}
-          <DimensionsAggregation />
-        </Fragment>
-      )}
-      {(aggregate || dimensionAggregation) && <Separator />}
+      {dimensionAggregation && <DimensionsAggregation />}
       <Dimensions />
-      <Separator />
       <GroupBy />
     </Container>
   )

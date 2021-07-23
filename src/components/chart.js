@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback, useState } from "react"
+import React, { forwardRef } from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import Legend from "./legend"
 import Header from "./header"

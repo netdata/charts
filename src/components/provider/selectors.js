@@ -91,6 +91,17 @@ export const useVisibleDimensionId = id => {
   return visible
 }
 
+export const usePayload = () => {
+  const chart = useChart()
+
+  const getValue = () => chart.getPayload()
+  const [visible, setVisible] = useState(getValue)
+
+  useEffect(() => chart.on("successFetch", () => setVisible(getValue())), [chart])
+
+  return visible
+}
+
 export const useDimensionIds = () => {
   const chart = useChart()
 

@@ -4,8 +4,8 @@ import Filters from "./filters"
 import Reset from "./reset"
 import withLoader from "./withLoader"
 
-const FilterToolbox = () => (
-  <FiltersContainer>
+const FilterToolbox = props => (
+  <FiltersContainer {...props}>
     <Filters />
     <Reset />
   </FiltersContainer>

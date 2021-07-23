@@ -41,5 +41,6 @@ export default () => {
   return {
     aggregate: totalChartIds > 0 && groupBy !== "chart",
     dimensionAggregation: groupBy === "dimension" && hasDimensions,
+    totalChartIds,
   }
 }
