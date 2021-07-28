@@ -3,7 +3,7 @@ import Intersection from "@netdata/netdata-ui/lib/components/intersection"
 import { useAttributeValue, useChart } from "./provider"
 
 export default Component => {
-  const IntersectionComponent = props => {
+  const IntersectionComponent = ({ height: defaultHeight = "100%", readOnly, rest }) => {
     const chart = useChart()
     const ref = useRef()
     const fullscreen = useAttributeValue("fullscreen")
@@ -17,20 +17,21 @@ export default Component => {
 
     useEffect(() => () => chart.deactivate(), [chart])
 
-    const height = fullscreen ? "500px" : "315px"
+    const height = fullscreen ? "500px" : defaultHeight
 
     return (
       <Intersection
         height={height}
         width="100%"
+        flex={true}
         fallback={chart.getAttribute("id")}
         onVisibility={onVisibility}
         ref={ref}
         data-testid="chartIntersector"
-        {...props}
+        {...rest}
       >
         {() => {
-          return <Component height={height} width="100%" flex />
+          return <Component readOnly={readOnly} height={height} width="100%" flex />
         }}
       </Intersection>
     )

@@ -16,7 +16,7 @@ const ChartContainer = () => {
     return () => chart.getUI().unmount()
   }, [])
 
-  return <Container data-testid="chartContent" ref={ref} />
+  return <Container style={{ height: "100%" }} data-testid="chartContent" ref={ref} />
 }
 
 export default ChartContainer

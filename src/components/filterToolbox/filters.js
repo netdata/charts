@@ -8,11 +8,11 @@ import DimensionsAggregation from "./dimensionsAggregation"
 import useFiltersToolbox from "./useFiltersToolbox"
 
 export const Container = ({ children, ...rest }) => {
-  const elements = children.reduce((acc, element) => {
+  const elements = children.reduce((acc, element, index) => {
     if (!element) return acc
 
     acc.push(element)
-    acc.push(<Separator />)
+    if (index < children.length - 1) acc.push(<Separator key={index} />)
     return acc
   }, [])
 

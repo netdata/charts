@@ -20,13 +20,16 @@ export const Container = styled(Flex).attrs({
 const StyledLabel = styled(TextSmall).attrs({
   strong: true,
   margin: [0, 0, 0, 2],
+  whiteSpace: "nowrap",
 })`
   flex: 1;
 `
 
 const Label = forwardRef(({ secondaryLabel, label, chevron = true, ...rest }, ref) => (
   <Container ref={ref} {...rest}>
-    <TextSmall color="textLite">{secondaryLabel}</TextSmall>
+    <TextSmall color="textLite" whiteSpace="nowrap" truncate>
+      {secondaryLabel}
+    </TextSmall>
     <StyledLabel>{label}</StyledLabel>
     {chevron && <Icon svg={chevronDown} size="16px" color="selected" />}
   </Container>

@@ -26,7 +26,7 @@ export const Footer = props => (
 )
 
 export const ContentWrapper = props => (
-  <Flex position="relative" column flex data-testid="chartContainer" {...props} />
+  <Flex position="relative" column flex={true} data-testid="contentWrapper" {...props} />
 )
 
 export const Chart = props => {

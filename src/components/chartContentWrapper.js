@@ -32,6 +32,7 @@ export const Container = forwardRef((props, ref) => {
       padding={[0, 0, 2]}
       flex
       data-testid="chartContentWrapper"
+      height="100%"
       {...props}
     />
   )
