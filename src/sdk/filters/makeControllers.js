@@ -42,9 +42,23 @@ export default chart => {
     const prev = { ...attributes[pristineCompositeKey] }
     pristineComposite.reset(attributes)
     chart.attributeListeners.trigger(pristineCompositeKey, attributes[pristineCompositeKey], prev)
+    chart.sdk.trigger(
+      "pristineChanged",
+      chart,
+      pristineCompositeKey,
+      attributes[pristineCompositeKey],
+      prev
+    )
     Object.keys(prev).forEach(key =>
       chart.attributeListeners.trigger(key, attributes[key], prev[key])
     )
+  }
+
+  const removePristineComposite = () => {
+    const prev = chart.getAttribute(pristineCompositeKey)
+    const next = {}
+    chart.updateAttribute(pristineCompositeKey, next)
+    chart.sdk.trigger("pristineChanged", chart, pristineCompositeKey, next, prev)
   }
 
   return {
@@ -52,5 +66,6 @@ export default chart => {
     updateDimensionsAttribute,
     updateAggregationMethodAttribute,
     resetPristineComposite,
+    removePristineComposite,
   }
 }

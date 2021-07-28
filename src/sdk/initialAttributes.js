@@ -50,7 +50,7 @@ export default {
   composite: false,
   aggregationMethod: "",
   dimensions: [],
-  dimensionsAggregationMethod: "sum-of-abs",
+  dimensionsAggregationMethod: "",
   groupBy: "",
 
   postAggregationMethod: "",

@@ -19,20 +19,19 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
 
   const getAttribute = key => attributes[key]
 
+  const trigger = (name, value, prevValue) => attributeListeners.trigger(name, value, prevValue)
+
   const updateAttribute = (name, value) => {
     const prevValue = attributes[name]
     if (prevValue === value) return
 
     const prevPristine = pristineComposite.update(attributes, name, value)
     setAttribute(name, value)
-    attributeListeners.trigger(name, value, prevValue)
+    trigger(name, value, prevValue)
 
     if (prevPristine) {
-      attributeListeners.trigger(
-        pristineCompositeKey,
-        attributes[pristineCompositeKey],
-        prevPristine
-      )
+      trigger(pristineCompositeKey, attributes[pristineCompositeKey], prevPristine)
+      sdk.trigger("pristineChanged", pristineCompositeKey, instance, value, prevValue)
     }
   }
 
@@ -60,13 +59,14 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
       return acc
     }, {})
 
-    Object.keys(prevValues).forEach(name =>
-      attributeListeners.trigger(name, values[name], prevValues[name])
-    )
+    Object.keys(prevValues).forEach(name => trigger(name, values[name], prevValues[name]))
 
     if (prevPristine) {
-      attributeListeners.trigger(
+      trigger(pristineCompositeKey, attributes[pristineCompositeKey], prevPristine)
+      sdk.trigger(
+        "pristineChanged",
         pristineCompositeKey,
+        instance,
         attributes[pristineCompositeKey],
         prevPristine
       )

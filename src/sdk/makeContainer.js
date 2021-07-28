@@ -7,14 +7,18 @@ export default ({ sdk, parent, attributes } = {}) => {
   const appendChild = (node, { inherit = true } = {}) => {
     node.setParent(instance, { inherit })
     children.push(node)
-    sdk.trigger("nodeAdded", node)
-    sdk.trigger(`${node.type}Added`, node)
+    instance.trigger("nodeAdded", node)
+    sdk.trigger("nodeAdded", instance, node)
+    instance.trigger(`${node.type}Added`, node)
+    sdk.trigger(`${node.type}Added`, instance, node)
   }
 
   const removeChild = node => {
     children = children.filter(n => n !== node)
-    sdk.trigger("nodeRemoved", node)
-    sdk.trigger(`${node.type}Removed`, node)
+    instance.trigger("nodeRemoved", node)
+    sdk.trigger("nodeRemoved", instance, node)
+    instance.trigger(`${node.type}Removed`, node)
+    sdk.trigger(`${node.type}Removed`, instance, node)
   }
 
   const getNodes = (attributes, options, nodes = null) => {
