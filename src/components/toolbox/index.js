@@ -3,17 +3,18 @@ import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import panTool from "@netdata/netdata-ui/lib/components/icon/assets/pan_tool.svg"
 import selectedArea from "@netdata/netdata-ui/lib/components/icon/assets/selected_area.svg"
-import selectIcon from "@netdata/netdata-ui/lib/components/icon/assets/select.svg"
 import zoomInIcon from "@netdata/netdata-ui/lib/components/icon/assets/zoom_in.svg"
 import zoomOutIcon from "@netdata/netdata-ui/lib/components/icon/assets/zoom_out.svg"
 import Icon, { Button } from "@/components/icon"
-import { useAttributeValue, useChart } from "@/components/provider"
+import { useAttribute, useChart } from "@/components/provider"
+import Select from "./select"
 
 const Container = styled(Flex).attrs({
   padding: [1],
   gap: 2,
-  background: "elementBackground",
+  background: "dropdown",
   round: true,
+  border: { side: "all", color: "borderSecondary" },
 })`
   position: absolute;
   top: 8px;
@@ -22,26 +23,14 @@ const Container = styled(Flex).attrs({
 
 const Toolbox = forwardRef((props, ref) => {
   const chart = useChart()
-  const navigation = useAttributeValue("navigation")
-
-  const pan = () => {
-    chart.updateAttribute("navigation", "pan")
-  }
-
-  const select = () => {
-    chart.updateAttribute("navigation", "select")
-  }
-
-  const highlight = () => {
-    chart.updateAttribute("navigation", "highlight")
-  }
+  const [navigation, setNavigation] = useAttribute("navigation")
 
   return (
     <Container data-testid="chartToolbox" {...props} ref={ref}>
       <Button
         icon={<Icon svg={panTool} />}
         title="Pan"
-        onClick={pan}
+        onClick={() => setNavigation("pan")}
         active={navigation === "pan"}
         data-testid="chartToolbox-pan"
         stroked
@@ -49,17 +38,11 @@ const Toolbox = forwardRef((props, ref) => {
       <Button
         icon={<Icon svg={selectedArea} />}
         title="Highlight"
-        onClick={highlight}
+        onClick={() => setNavigation("highlight")}
         active={navigation === "highlight"}
         data-testid="chartToolbox-highlight"
       />
-      <Button
-        icon={<Icon svg={selectIcon} />}
-        title="Select and Zoom "
-        onClick={select}
-        active={navigation === "select"}
-        data-testid="chartToolbox-select"
-      />
+      <Select />
       <Button
         icon={<Icon svg={zoomInIcon} />}
         title="Zoom in"

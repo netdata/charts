@@ -6,6 +6,7 @@ import pan from "./sdk/plugins/pan"
 import move from "./sdk/plugins/move"
 import highlight from "./sdk/plugins/highlight"
 import select from "./sdk/plugins/select"
+import selectVertical from "./sdk/plugins/selectVertical"
 import play from "./sdk/plugins/play"
 
 const minutes15 = 15 * 60
@@ -21,6 +22,7 @@ export default ({ attributes, ...options } = {}) =>
       pan,
       highlight,
       select,
+      selectVertical,
       play,
       move,
     },

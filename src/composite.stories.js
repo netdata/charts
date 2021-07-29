@@ -22,7 +22,7 @@ export const Simple = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} />
+      <Chart chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -35,7 +35,7 @@ export const SimpleDark = () => {
   return (
     <ThemeProvider theme={DarkTheme}>
       <Flex background="mainBackground">
-        <Chart chart={chart} />
+        <Chart chart={chart} height="315px" />
       </Flex>
     </ThemeProvider>
   )

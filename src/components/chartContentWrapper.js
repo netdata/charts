@@ -39,7 +39,7 @@ export const Container = forwardRef((props, ref) => {
 })
 
 const ChartContentWrapper = () => {
-  const [ref, hovered] = useHovered()
+  const [ref, hovered] = useHovered({ isOut: node => !node || !node.hasAttribute("data-toolbox") })
   const initialLoading = useInitialLoading()
   const empty = useEmpty()
 

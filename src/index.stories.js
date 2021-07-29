@@ -43,19 +43,19 @@ export const SimpleReal = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} />
+      <Chart chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
 
 export const Simple = () => {
   const sdk = makeDefaultSDK({ getChartMetadata })
-  const chart = sdk.makeChart({ getChart })
+  const chart = sdk.makeChart({ getChart, attributes: { navigation: "selectVertical" } })
   sdk.appendChild(chart)
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} />
+      <Chart chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -68,7 +68,7 @@ export const SimpleDark = () => {
   return (
     <ThemeProvider theme={DarkTheme}>
       <Flex background="mainBackground">
-        <Chart chart={chart} />
+        <Chart chart={chart} height="315px" />
       </Flex>
     </ThemeProvider>
   )
@@ -83,7 +83,7 @@ export const NoData = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} />
+      <Chart chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -113,7 +113,7 @@ export const BeforeFirstEntry = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} />
+      <Chart chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -130,7 +130,7 @@ export const SelectedDimensions = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} />
+      <Chart chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -156,7 +156,7 @@ export const PrecededData = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} />
+      <Chart chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -182,7 +182,7 @@ export const AlertInTimeWindow = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} />
+      <Chart chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -220,7 +220,7 @@ export const AlertBeforeFirstEntry = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} />
+      <Chart chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -239,7 +239,7 @@ export const Timeout = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} />
+      <Chart chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -258,7 +258,7 @@ export const Error = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} />
+      <Chart chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -276,11 +276,11 @@ export const InitialLoading = () => {
   return (
     <div>
       <ThemeProvider theme={DefaultTheme}>
-        <Chart chart={chart} />
+        <Chart chart={chart} height="315px" />
       </ThemeProvider>
       <ThemeProvider theme={DarkTheme}>
         <Flex background="mainBackground" margin={[10, 0, 0]}>
-          <Chart chart={darkChart} />
+          <Chart chart={darkChart} height="315px" />
         </Flex>
       </ThemeProvider>
     </div>
@@ -304,7 +304,7 @@ export const MultipleReal = () => {
     <ThemeProvider theme={DefaultTheme}>
       <Flex column gap={20}>
         {charts.map(chart => (
-          <Chart key={chart.getUuid()} chart={chart} />
+          <Chart key={chart.getUuid()} chart={chart} height="315px" />
         ))}
       </Flex>
     </ThemeProvider>
@@ -325,7 +325,7 @@ export const Multiple = () => {
     <ThemeProvider theme={DefaultTheme}>
       <Flex column gap={2}>
         {charts.map(chart => (
-          <Chart key={chart.getUuid()} chart={chart} />
+          <Chart key={chart.getUuid()} chart={chart} height="315px" />
         ))}
       </Flex>
     </ThemeProvider>
@@ -345,7 +345,7 @@ export const Sync = () => {
     <ThemeProvider theme={DefaultTheme}>
       <Flex column gap={2}>
         {charts.map(chart => (
-          <Chart key={chart.getUuid()} chart={chart} />
+          <Chart key={chart.getUuid()} chart={chart} height="315px" />
         ))}
       </Flex>
     </ThemeProvider>
@@ -362,7 +362,7 @@ export const SystemCpuStackedChart = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} />
+      <Chart chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -377,7 +377,7 @@ export const SystemRamStacked = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} />
+      <Chart chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -393,7 +393,7 @@ export const AreaWebLogNginxResponseTimeArea = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} />
+      <Chart chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -408,7 +408,7 @@ export const SystemIpv6Area = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} />
+      <Chart chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -423,7 +423,7 @@ export const SystemIpArea = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} />
+      <Chart chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -438,7 +438,7 @@ export const AppVmsStacked = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} />
+      <Chart chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
