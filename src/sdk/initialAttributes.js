@@ -5,6 +5,7 @@ export default {
   description: "",
   before: 0,
   after: 0,
+  title: "",
   loaded: false,
   loading: false,
   updatedAt: 0,
@@ -58,4 +59,7 @@ export default {
   selectedChart: "",
 
   pristineComposite: {},
+
+  themeTrackColor: ["#f0f0f0", "#373b40"],
+  themeScaleColor: ["#dfe0e0", "#373b40"],
 }

@@ -5,6 +5,10 @@ const themeIndex = {
   dark: 1,
 }
 
+const getUrlOptions = () => []
+
+const getPixelsPerPoint = () => 1
+
 export default (sdk, chart) => {
   const listeners = makeListeners()
   let element = null
@@ -40,8 +44,6 @@ export default (sdk, chart) => {
     return width - legendWidth
   }
 
-  const getPixelsPerPoint = () => 1
-
   const getThemeAttribute = name => {
     const attributes = chart.getAttributes()
     const index = themeIndex[attributes.theme] || themeIndex.default
@@ -61,5 +63,6 @@ export default (sdk, chart) => {
     getEstimatedChartWidth,
     getPixelsPerPoint,
     getThemeAttribute,
+    getUrlOptions,
   }
 }

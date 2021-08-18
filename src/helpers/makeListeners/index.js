@@ -1,4 +1,4 @@
-export const unregister = (...funcs) => () => funcs.forEach(func => func())
+export const unregister = (...funcs) => () => funcs.forEach(func => func && func())
 
 export default () => {
   let onceListenersByEvent = {}

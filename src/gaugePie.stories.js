@@ -3,45 +3,47 @@ import { ThemeProvider } from "styled-components"
 import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui/lib/theme"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { camelizeKeys } from "@/helpers/objectTransform"
-import Line from "@/components/line"
+import EasyPie from "@/components/easyPie"
 import makeMockPayload from "@/helpers/makeMockPayload"
 import makeDefaultSDK from "./makeDefaultSDK"
 
-import systemCpuChart from "@/fixtures/compositeSystemCpuChart"
-import systemCpu from "@/fixtures/compositeSystemCpu"
+import systemIoChart from "@/fixtures/systemIoChart"
+import systemIoInGaugePie from "@/fixtures/systemIoInGaugePie"
 
-const metadata = camelizeKeys(systemCpuChart, { omit: ["dimensions"] })
+const metadata = camelizeKeys(systemIoChart, { omit: ["dimensions"] })
 
 const getChartMetadata = () => metadata
-const getChart = makeMockPayload(systemCpu, { delay: 600 })
+const getChart = makeMockPayload(systemIoInGaugePie, { delay: 600 })
 
 export const Simple = () => {
   const sdk = makeDefaultSDK({ getChartMetadata })
-  const chart = sdk.makeChart({ getChart, attributes: { composite: true, valueRange: [0, 100] } })
+  const chart = sdk.makeChart({ getChart, attributes: { chartLibrary: "easyPie" } })
   sdk.appendChild(chart)
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Line chart={chart} height="315px" />
+      <Flex width="100px">
+        <EasyPie chart={chart} />
+      </Flex>
     </ThemeProvider>
   )
 }
 
 export const SimpleDark = () => {
-  const sdk = makeDefaultSDK({ getChartMetadata, attributes: { theme: "dark" } })
-  const chart = sdk.makeChart({ getChart, attributes: { composite: true } })
+  const sdk = makeDefaultSDK({ getChartMetadata })
+  const chart = sdk.makeChart({ getChart, attributes: { chartLibrary: "easyPie", theme: "dark" } })
   sdk.appendChild(chart)
 
   return (
     <ThemeProvider theme={DarkTheme}>
-      <Flex background="mainBackground">
-        <Line chart={chart} height="315px" />
+      <Flex background="mainBackground" width="100px">
+        <EasyPie chart={chart} />
       </Flex>
     </ThemeProvider>
   )
 }
 
 export default {
-  title: "Composite",
+  title: "Easypie",
   component: Simple,
 }

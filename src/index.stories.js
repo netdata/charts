@@ -3,7 +3,7 @@ import { ThemeProvider } from "styled-components"
 import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui/lib/theme"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { camelizeKeys } from "@/helpers/objectTransform"
-import Chart from "@/components/chart"
+import Line from "@/components/line"
 import makeMockPayload from "@/helpers/makeMockPayload"
 import makeDefaultSDK from "./makeDefaultSDK"
 
@@ -34,16 +34,16 @@ const getChartMetadata = () => camelizeKeys(systemLoadLineChart, { omit: ["dimen
 const getChart = makeMockPayload(systemLoadLine[0], { delay: 600 })
 
 export const SimpleReal = () => {
-  const { id, context } = getChartMetadata()
+  const { id } = getChartMetadata()
   const sdk = makeDefaultSDK({ getChartMetadata })
   const chart = sdk.makeChart({
-    attributes: { host: "http://d1.firehol.org/api/v1/data", id, context },
+    attributes: { host: "http://d1.firehol.org/api/v1/data", id },
   })
   sdk.appendChild(chart)
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} height="315px" />
+      <Line chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -55,7 +55,7 @@ export const Simple = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} height="315px" />
+      <Line chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -68,7 +68,7 @@ export const SimpleDark = () => {
   return (
     <ThemeProvider theme={DarkTheme}>
       <Flex background="mainBackground">
-        <Chart chart={chart} height="315px" />
+        <Line chart={chart} height="315px" />
       </Flex>
     </ThemeProvider>
   )
@@ -83,7 +83,7 @@ export const NoData = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} height="315px" />
+      <Line chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -113,7 +113,7 @@ export const BeforeFirstEntry = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} height="315px" />
+      <Line chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -130,7 +130,7 @@ export const SelectedDimensions = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} height="315px" />
+      <Line chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -156,7 +156,7 @@ export const PrecededData = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} height="315px" />
+      <Line chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -182,7 +182,7 @@ export const AlertInTimeWindow = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} height="315px" />
+      <Line chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -220,7 +220,7 @@ export const AlertBeforeFirstEntry = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} height="315px" />
+      <Line chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -239,7 +239,7 @@ export const Timeout = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} height="315px" />
+      <Line chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -258,7 +258,7 @@ export const Error = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} height="315px" />
+      <Line chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -276,11 +276,11 @@ export const InitialLoading = () => {
   return (
     <div>
       <ThemeProvider theme={DefaultTheme}>
-        <Chart chart={chart} height="315px" />
+        <Line chart={chart} height="315px" />
       </ThemeProvider>
       <ThemeProvider theme={DarkTheme}>
         <Flex background="mainBackground" margin={[10, 0, 0]}>
-          <Chart chart={darkChart} height="315px" />
+          <Line chart={darkChart} height="315px" />
         </Flex>
       </ThemeProvider>
     </div>
@@ -288,12 +288,12 @@ export const InitialLoading = () => {
 }
 
 export const MultipleReal = () => {
-  const { id, context } = getChartMetadata()
+  const { id } = getChartMetadata()
   const sdk = makeDefaultSDK({ getChartMetadata })
 
   const charts = Array.from(Array(10)).map((v, index) => {
     const chart = sdk.makeChart({
-      attributes: { id, context, host: "http://d1.firehol.org/api/v1/data" },
+      attributes: { id, host: "http://d1.firehol.org/api/v1/data" },
     })
     sdk.appendChild(chart)
 
@@ -304,7 +304,7 @@ export const MultipleReal = () => {
     <ThemeProvider theme={DefaultTheme}>
       <Flex column gap={20}>
         {charts.map(chart => (
-          <Chart key={chart.getUuid()} chart={chart} height="315px" />
+          <Line key={chart.getUuid()} chart={chart} height="315px" />
         ))}
       </Flex>
     </ThemeProvider>
@@ -325,7 +325,7 @@ export const Multiple = () => {
     <ThemeProvider theme={DefaultTheme}>
       <Flex column gap={2}>
         {charts.map(chart => (
-          <Chart key={chart.getUuid()} chart={chart} height="315px" />
+          <Line key={chart.getUuid()} chart={chart} height="315px" />
         ))}
       </Flex>
     </ThemeProvider>
@@ -345,7 +345,7 @@ export const Sync = () => {
     <ThemeProvider theme={DefaultTheme}>
       <Flex column gap={2}>
         {charts.map(chart => (
-          <Chart key={chart.getUuid()} chart={chart} height="315px" />
+          <Line key={chart.getUuid()} chart={chart} height="315px" />
         ))}
       </Flex>
     </ThemeProvider>
@@ -362,7 +362,7 @@ export const SystemCpuStackedChart = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} height="315px" />
+      <Line chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -377,7 +377,7 @@ export const SystemRamStacked = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} height="315px" />
+      <Line chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -393,7 +393,7 @@ export const AreaWebLogNginxResponseTimeArea = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} height="315px" />
+      <Line chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -408,7 +408,7 @@ export const SystemIpv6Area = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} height="315px" />
+      <Line chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -423,7 +423,7 @@ export const SystemIpArea = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} height="315px" />
+      <Line chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -438,7 +438,7 @@ export const AppVmsStacked = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Chart chart={chart} height="315px" />
+      <Line chart={chart} height="315px" />
     </ThemeProvider>
   )
 }

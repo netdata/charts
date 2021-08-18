@@ -4,8 +4,8 @@ export default ({ getChart }) => {
   const byId = {}
 
   const makeKey = node => {
-    const { host, context, id } = node.getAttributes()
-    return `${host}-${context}-${id}`
+    const { host, id } = node.getAttributes()
+    return `${host}-${id}`
   }
 
   const get = node => {

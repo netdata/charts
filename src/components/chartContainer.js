@@ -7,7 +7,7 @@ const Container = styled.div`
   height: 100%;
 `
 
-const ChartContainer = () => {
+const ChartContainer = props => {
   const chart = useChart()
   const ref = useRef()
 
@@ -16,7 +16,7 @@ const ChartContainer = () => {
     return () => chart.getUI().unmount()
   }, [])
 
-  return <Container style={{ height: "100%" }} data-testid="chartContent" ref={ref} />
+  return <Container style={{ height: "100%" }} data-testid="chartContent" ref={ref} {...props} />
 }
 
 export default ChartContainer
