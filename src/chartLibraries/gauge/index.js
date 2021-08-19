@@ -1,4 +1,4 @@
-import EasyPie from "easy-pie-chart"
+import { Gauge } from "gaugeJS"
 import dimensionColors from "@/sdk/theme/dimensionColors"
 import makeChartUI from "@/sdk/makeChartUI"
 import { unregister } from "@/helpers/makeListeners"
@@ -7,62 +7,74 @@ const getUrlOptions = () => ["absolute"]
 
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
-  let easyPie = null
-  let renderedValue = 0
+  let gauge = null
   let listeners
-
+  let renderedValue = 0
   let prevMin
   let prevMax
 
   const mount = element => {
-    if (easyPie) return
+    if (gauge) return
 
     chartUI.mount(element)
 
-    const theme = chart.getAttribute("theme")
-    element.classList.add(theme)
+    const { color, strokeColor } = makeThemingOptions()
+
+    gauge = new Gauge(element).setOptions({
+      angle: 0.14,
+      lineWidth: 0.57,
+      pointer: {
+        length: 0.85,
+        strokeWidth: 0.045,
+        color,
+      },
+      limitMax: true,
+      limitMin: true,
+      colorStart: dimensionColors[0],
+      strokeColor,
+      generateGradient: false,
+    })
+
+    gauge.maxValue = 100
+    gauge.setMinValue(0)
 
     const { loaded } = chart.getAttributes()
-
-    easyPie = new EasyPie(element, {
-      barColor: dimensionColors[0],
-      animate: { duration: 500, enabled: true },
-      ...makeThemingOptions(),
-      ...makeDimensionOptions(element),
-    })
 
     listeners = unregister(
       chart.onAttributeChange("hoverX", render),
       !loaded && chart.onceAttributeChange("loaded", render),
       chart.onAttributeChange("theme", () => {
-        Object.assign(easyPie.options, makeThemingOptions())
+        // Object.assign(easyPie.options, makeThemingOptions())
         render()
       })
     )
 
     render()
   }
-
   const makeThemingOptions = () => ({
-    trackColor: chartUI.getThemeAttribute("themeTrackColor"),
-    scaleColor: chartUI.getThemeAttribute("themeScaleColor"),
+    color: chartUI.getThemeAttribute("themeGaugePointer"),
+    strokeColor: chartUI.getThemeAttribute("themeGaugeStroke"),
   })
 
-  const makeDimensionOptions = element => {
-    const { clientWidth } = element
-    const multiplier = clientWidth / 22
-    return { lineWidth: multiplier < 4 ? 2 : Math.floor(multiplier), size: clientWidth }
+  const getMinMax = value => {
+    const { units } = chart.getAttributes()
+    if (units === "percentage") return [0, 100]
+
+    const { min, max } = chart.getPayload()
+
+    return [Math.min(Math.min(min, 0), value), Math.max(Math.max(max, 0), value)]
   }
 
   const render = () => {
     const { hoverX, loaded } = chart.getAttributes()
 
-    if (!easyPie || !loaded) return
+    if (!gauge || !loaded) return
 
-    const { min, max, result } = chart.getPayload()
+    const { result } = chart.getPayload()
 
     const row = hoverX ? chart.getClosestRow(hoverX[0]) : 0
     const [, value] = result.data[row]
+    const [min, max] = getMinMax(value)
 
     if (renderedValue === value && min === prevMin && max === prevMax) return
 
@@ -79,7 +91,7 @@ export default (sdk, chart) => {
 
     renderedValue = value
     const percentage = ((value - min) / (max - min)) * 100
-    easyPie.update(percentage)
+    gauge.set(percentage)
 
     chartUI.trigger("rendered")
   }
@@ -89,10 +101,9 @@ export default (sdk, chart) => {
   const unmount = () => {
     if (listeners) listeners()
 
-    if (!easyPie) return
+    if (!gauge) return
 
-    easyPie.renderer.clear()
-    easyPie = null
+    gauge = null
   }
 
   const instance = {

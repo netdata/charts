@@ -6,6 +6,8 @@ export default {
   before: 0,
   after: 0,
   title: "",
+  min: 0,
+  max: 0,
   loaded: false,
   loading: false,
   updatedAt: 0,
@@ -62,4 +64,7 @@ export default {
 
   themeTrackColor: ["#f0f0f0", "#373b40"],
   themeScaleColor: ["#dfe0e0", "#373b40"],
+
+  themeGaugePointer: ["#C0C0C0", "#474b50"],
+  themeGaugeStroke: ["#F0F0F0", "#373b40"],
 }

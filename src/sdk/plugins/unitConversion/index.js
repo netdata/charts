@@ -11,6 +11,8 @@ export default sdk => {
         unitsConversionDivider: divider,
         unit: unit,
         unitsConversionFractionDigits: fractionDigits,
+        min,
+        max,
       })
     }
 
@@ -22,6 +24,8 @@ export default sdk => {
         unitsConversionDivider: divider,
         unitsConversionFractionDigits: fractionDigits,
         unit,
+        min,
+        max,
       })
     }
 
@@ -33,6 +37,8 @@ export default sdk => {
           unitsConversionMethod: method,
           unitsConversionDivider: divider,
           unit: unit,
+          min,
+          max,
         })
       })
     }

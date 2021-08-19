@@ -50,6 +50,14 @@ export default (sdk, chart) => {
     return attributes[name][index]
   }
 
+  const getChartWidth = () => {
+    return element ? element.offsetWidth : getEstimatedChartWidth()
+  }
+
+  const getChartHeight = () => {
+    return element ? element.offsetHeight : getEstimatedChartWidth()
+  }
+
   return {
     ...listeners,
     sdk,
@@ -61,6 +69,8 @@ export default (sdk, chart) => {
     getElement,
     setEstimatedWidth,
     getEstimatedChartWidth,
+    getChartWidth,
+    getChartHeight,
     getPixelsPerPoint,
     getThemeAttribute,
     getUrlOptions,

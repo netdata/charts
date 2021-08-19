@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import ChartContainer from "@/components/chartContainer"
 import withChart from "@/components/withChart"
 import { useChart, useMetadata, useUnitSign, useAttributeValue } from "@/components/provider"
@@ -51,7 +51,12 @@ const Container = styled(ChartContainer)`
   position: relative;
 `
 
-const StatsContainer = styled(Flex)`
+const StatsContainer = styled(Flex).attrs({
+  alignContent: "center",
+  position: "absolute",
+  column: true,
+  justifyContent: "between",
+})`
   inset: ${({ inset }) => inset};
   text-align: center;
   font-size: ${({ fontSize }) => fontSize};
@@ -60,17 +65,9 @@ const StatsContainer = styled(Flex)`
 const Stats = () => {
   const chart = useChart()
   const width = chart.getUI().getChartWidth()
-  const rootFontSize = width > 400 ? `${width / 10}px` : `${width / 15}px`
 
   return (
-    <StatsContainer
-      position="absolute"
-      column
-      justifyContent="between"
-      inset={`${width > 400 ? width * 0.3 : width * 0.3}px 0`}
-      alignContent="center"
-      fontSize={rootFontSize}
-    >
+    <StatsContainer inset={`${width * 0.3}px 0`} fontSize={`${width / 15}px`}>
       <Title />
       <Value />
       <Unit />
