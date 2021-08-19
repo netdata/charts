@@ -7,7 +7,7 @@ export default sdk => {
     })
   })
 
-  const offEnd = sdk.on("highlightVerticalEnd", chart => {
+  const offEnd = sdk.on("highlightVerticalEnd", (chart, valueRange) => {
     if (chart.getAttribute("navigation") !== "selectVertical") return
 
     chart.getApplicableNodes({ syncHighlight: true }).forEach(node => {
@@ -17,9 +17,8 @@ export default sdk => {
       })
     })
 
-    // chart.once("blurChart", chart => {
-    // reset zoom
-    // })
+    chart.updateAttributes({ valueRange })
+    chart.once("blurChart", () => chart.updateAttributes({ valueRange: null }))
   })
 
   return () => {

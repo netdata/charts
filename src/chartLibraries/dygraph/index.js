@@ -23,6 +23,8 @@ const getDateWindow = chart => {
   return [now + after * 1000, now]
 }
 
+const getUrlOptions = () => ["ms", "flip"]
+
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
   let dygraph = null
@@ -137,6 +139,9 @@ export default (sdk, chart) => {
       chart.onAttributeChange("selectedDimensions", () => {
         dygraph.updateOptions(makeVisibilityOptions())
       }),
+      chart.onAttributeChange("valueRange", valueRange => {
+        dygraph.updateOptions({ valueRange })
+      }),
     ]
 
     hover = makeHover(instance)
@@ -234,8 +239,6 @@ export default (sdk, chart) => {
 
   const getChartWidth = () => (dygraph ? dygraph.getArea().w : chartUI.getEstimatedChartWidth())
   const getChartHeight = () => (dygraph ? dygraph.getArea().h : 100)
-
-  const getUrlOptions = () => ["ms", "flip"]
 
   const instance = {
     ...chartUI,

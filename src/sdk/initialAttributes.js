@@ -8,6 +8,7 @@ export default {
   title: "",
   min: 0,
   max: 0,
+  valueRange: null,
   loaded: false,
   loading: false,
   updatedAt: 0,

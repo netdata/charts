@@ -47,9 +47,7 @@ export default chartUI => {
     const after = Math.round(g.toDataXCoord(startX) / 1000)
     const before = Math.round(g.toDataXCoord(endX) / 1000)
 
-    if (startX > endX) return [before, after]
-
-    return [after, before]
+    return [after, before].sort()
   }
 
   const mouseup = (event, g, context) => {

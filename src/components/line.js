@@ -29,7 +29,7 @@ export const ContentWrapper = props => (
   <Flex position="relative" column flex={true} data-testid="contentWrapper" {...props} />
 )
 
-export const Chart = props => {
+export const Line = props => {
   const chart = useChart()
   const composite = useAttributeValue("composite")
   const detailed = useAttributeValue("detailed")
@@ -54,4 +54,4 @@ export const Chart = props => {
   )
 }
 
-export default withChart(Chart)
+export default withChart(Line)
