@@ -1,8 +1,8 @@
-import highlight from "./highlight"
+import select from "./select"
 import pan from "./pan"
 import selectVertical from "./selectVertical"
 
-const navigations = { highlight, select: highlight, selectVertical, pan }
+const navigations = { highlight: select, select, selectVertical, pan }
 
 export default chartUI => {
   let unregister
