@@ -116,6 +116,10 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     attributes = { ...parent.getAttributes(), ...attributes }
   }
 
+  const moveY = (min, max) => {
+    sdk.trigger("moveY", instance, min, max)
+  }
+
   const moveX = (after, before) => {
     sdk.trigger("moveX", instance, after, before)
   }
@@ -165,6 +169,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     getAncestor,
     getApplicableNodes,
     inherit,
+    moveY,
     moveX,
     zoomIn,
     zoomOut,

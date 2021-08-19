@@ -50,7 +50,7 @@ export const SimpleReal = () => {
 
 export const Simple = () => {
   const sdk = makeDefaultSDK({ getChartMetadata })
-  const chart = sdk.makeChart({ getChart })
+  const chart = sdk.makeChart({ getChart, attributes: { navigation: "selectVertical" } })
   sdk.appendChild(chart)
 
   return (

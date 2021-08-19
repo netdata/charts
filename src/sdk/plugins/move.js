@@ -1,4 +1,4 @@
-const getMove = (after, before) => {
+const getMoveX = (after, before) => {
   if (after < 0) return { after }
 
   if (before > Date.now() / 1000) return { after: Math.round(after - before) }
@@ -7,13 +7,29 @@ const getMove = (after, before) => {
 }
 
 export default sdk => {
-  return sdk.on("moveX", (chart, after, before) => {
-    const move = getMove(after, before)
+  return sdk
+    .on("moveX", (chart, after, before) => {
+      const move = getMoveX(after, before)
 
-    chart.getApplicableNodes({ syncPanning: true }).forEach(node => {
-      node.updateAttributes(move)
-      if (node.type === "chart" && node.getAttribute("active"))
-        node.fetch().then(() => node.getUI().render())
+      chart.getApplicableNodes({ syncPanning: true }).forEach(node => {
+        node.updateAttributes(move)
+        if (node.type === "chart" && node.getAttribute("active"))
+          node.fetch().then(() => node.getUI().render())
+      })
     })
-  })
+    .on("moveY", (chart, min, max) => {
+      chart.updateAttribute("valueRange", [min, max])
+      const after = chart.getAttribute("after")
+      if (after > 0) return
+
+      const now = Date.now() / 1000
+      chart.moveX(now + after, now)
+
+      let offAfter = chart.onAttributeChange("after", after => {
+        if (after > 0) return
+
+        chart.updateAttribute("valueRange", null)
+        offAfter()
+      })
+    })
 }

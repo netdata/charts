@@ -17,8 +17,8 @@ export default sdk => {
       })
     })
 
-    chart.updateAttributes({ valueRange })
-    chart.once("blurChart", () => chart.updateAttributes({ valueRange: null }))
+    const [min, max] = valueRange
+    chart.moveY(min, max)
   })
 
   return () => {
