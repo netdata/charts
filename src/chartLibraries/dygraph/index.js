@@ -109,6 +109,7 @@ export default (sdk, chart) => {
       ...makeChartTypeOptions(),
       ...makeThemingOptions(),
       ...makeVisibilityOptions(),
+      ...makeDataOptions(),
       // visibility return selected dimensions
       // logscale
     })
@@ -173,7 +174,8 @@ export default (sdk, chart) => {
     hover = makeHover(instance)
     overlays.toggle()
 
-    render()
+    chartUI.render()
+    chartUI.trigger("rendered")
   }
 
   const makeChartTypeOptions = () => {
@@ -217,6 +219,17 @@ export default (sdk, chart) => {
     return { visibility }
   }
 
+  const makeDataOptions = () => {
+    const { result } = chart.getPayload()
+    const dateWindow = getDateWindow(chart)
+
+    return {
+      file: result.data,
+      labels: result.labels,
+      dateWindow,
+    }
+  }
+
   const unmount = () => {
     if (!dygraph) return
 
@@ -238,14 +251,8 @@ export default (sdk, chart) => {
     if (!dygraph) return
 
     chartUI.render()
-    const { result } = chart.getPayload()
-    const dateWindow = getDateWindow(chart)
 
-    dygraph.updateOptions({
-      file: result.data,
-      labels: result.labels,
-      dateWindow,
-    })
+    dygraph.updateOptions(makeDataOptions())
     chart.updateDimensions()
     chartUI.trigger("rendered")
   }

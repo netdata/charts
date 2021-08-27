@@ -68,7 +68,7 @@ export default (chart, min, max) => {
   const delta = Math.abs(cMin === cMax ? cMin : cMax - cMin)
 
   const fractionDigits =
-    method === "original" || method === "divide" ? getFractionDigits(delta) : -1
+    (method === "original" || method === "divide") && min !== max ? getFractionDigits(delta) : -1
 
   return { method, divider, unit, fractionDigits }
 }

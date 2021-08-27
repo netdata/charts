@@ -1,12 +1,27 @@
 export default (payload, { delay = 0 } = {}) => async chart => {
+  await new Promise(r => setTimeout(r, delay))
+
   const { after, before } = chart.getAttributes()
+
+  const now = Date.now()
+
+  if (Array.isArray(payload.result)) {
+    before, after
+
+    if (after > 0) return { ...payload, after, before }
+
+    const nowSec = now / 1000
+    return { ...payload, after: nowSec + after, before: nowSec }
+  }
+
   const { data } = payload.result
+
   const [first] = data
   const points = data.length
   const last = data[data.length - 1]
 
   const duration = last[0] - first[0]
-  const now = Date.now()
+
   const nextFirst = after > 0 ? after * 1000 : now + after * 1000
   const nextLast = after > 0 ? before * 1000 : now
 
@@ -21,8 +36,6 @@ export default (payload, { delay = 0 } = {}) => async chart => {
 
     return [timestamp, ...row]
   })
-
-  await new Promise(r => setTimeout(r, delay))
 
   return { ...payload, result: { ...payload.result, data: nextData } }
 }

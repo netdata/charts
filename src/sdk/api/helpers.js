@@ -14,12 +14,14 @@ export const getChartURLOptions = chart => {
 export const getChartPayload = chart => {
   const ui = chart.getUI()
 
+  const { format } = ui
   const width = ui.getChartWidth()
   const pixelsPerPoint = ui.getPixelsPerPoint()
   const { after, before, groupingMethod, groupingTime } = chart.getAttributes()
 
   return {
     points: Math.round(width / pixelsPerPoint),
+    format,
     group: groupingMethod,
     gtime: groupingTime,
     after,

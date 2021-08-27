@@ -109,8 +109,7 @@ export default (sdk, chart) => {
     if (!result.data[row]) {
       debugger
     }
-    const [, ...rows] = result.data[row]
-    const value = rows.reduce((acc, v) => acc + v, 0)
+    const [, value] = result.data[row]
     let [min, max] = getMinMax(value)
 
     if (renderedValue === value && min === prevMin && max === prevMax) return
@@ -150,6 +149,7 @@ export default (sdk, chart) => {
 
   const instance = {
     ...chartUI,
+    format: "array",
     mount,
     unmount,
     render,

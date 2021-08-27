@@ -73,11 +73,27 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     node.trigger("finishFetch")
   }
 
-  const doneFetch = nextPayload => {
-    const { dimensionIds, result, ...restPayload } = camelizeKeys(nextPayload, {
+  const transformResult = ({ viewUpdateEvery, before, after, result }) => {
+    const { format } = ui
+
+    if (format === "json") return result
+
+    // const step = Math.floor((before - after) / result.length)
+    const data = result.map((point, index) => [
+      (after + viewUpdateEvery * (index + 1)) * 1000,
+      point,
+    ])
+
+    return { labels: ["time", "sum"], data }
+  }
+
+  const doneFetch = nextRawPayload => {
+    const nextPayload = camelizeKeys(nextRawPayload, {
       omit: ["result"],
     })
-    const { data } = result
+    const { labels, data } = transformResult(nextPayload)
+
+    const { dimensionIds, ...restPayload } = nextPayload
 
     const prevPayload = payload
     if (deepEqual(payload.dimensionIds, dimensionIds)) {
@@ -85,10 +101,10 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
         ...initialPayload,
         ...payload,
         ...restPayload,
-        result: { ...payload.result, data },
+        result: { labels, data },
       }
     } else {
-      payload = { ...initialPayload, ...camelizeKeys(nextPayload) }
+      payload = { ...initialPayload, ...camelizeKeys(nextPayload), result: { labels, data } }
     }
 
     invalidateClosestRowCache()

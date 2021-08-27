@@ -80,5 +80,6 @@ export default (sdk, chart) => {
     getThemeIndex,
     getThemeAttribute,
     getUrlOptions,
+    format: "json",
   }
 }

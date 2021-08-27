@@ -74,7 +74,7 @@ export default (sdk, chart) => {
       max = 100
     }
 
-    const minMax = [Math.min(min, value), Math.max(max, value)].sort()
+    const minMax = [Math.min(min, value), Math.max(max, value)].sort((a, b) => a - b)
 
     return minMax[0] === minMax[1] ? [minMax[0], minMax[1] + 1] : minMax
   }
@@ -96,8 +96,7 @@ export default (sdk, chart) => {
     if (!result.data[row]) {
       debugger
     }
-    const [, ...rows] = result.data[row]
-    const value = rows.reduce((acc, v) => acc + v, 0)
+    const [, value] = result.data[row]
 
     let [min, max] = getMinMax(value)
 
@@ -133,6 +132,7 @@ export default (sdk, chart) => {
 
   const instance = {
     ...chartUI,
+    format: "array",
     mount,
     unmount,
     render,

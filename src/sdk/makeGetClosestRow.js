@@ -24,7 +24,7 @@ export default getPayload => {
     while (start <= end) {
       const mid = Math.floor((start + end) / 2)
 
-      if (data[mid][0] === timestamp) return mid
+      if (data[mid][0] === timestamp) return mid === data.length - 1 ? mid : mid + 1
 
       if (data[mid][0] < timestamp) start = mid + 1
       else end = mid - 1
