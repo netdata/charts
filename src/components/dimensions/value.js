@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react"
 import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
 import { useChart } from "@/components/provider"
+import { unregister } from "@/helpers/makeListeners"
 
 export const Value = props => (
   <TextMicro color="textDescription" data-testid="chartDimensions-value" {...props} />
@@ -25,17 +26,14 @@ const Container = ({ id, ...rest }) => {
   const unmount = useRef(false)
 
   useEffect(() => {
-    const remove = chart.onAttributeChange("hoverX", () => {
-      setState(getValue())
-    })
-
-    const off = chart.on("dimensionChanged", () => {
-      setState(getValue())
-    })
+    const off = unregister(
+      chart.onAttributeChange("hoverX", () => setState(getValue())),
+      chart.on("dimensionChanged", () => setState(getValue())),
+      chart.getUI().on("rendered", () => setState(getValue()))
+    )
 
     return () => {
       unmount.current = true
-      remove()
       off()
     }
   }, [chart])

@@ -1,13 +1,14 @@
 import Dygraph from "dygraphs"
 import { format } from "date-fns"
 import makeChartUI from "@/sdk/makeChartUI"
-import dimensionColors from "@/sdk/theme/dimensionColors"
 import executeLatest from "@/helpers/executeLatest"
 import makeNavigation from "./navigation"
 import makeHover from "./hover"
 import makeHoverX from "./hoverX"
 import makeOverlays from "./overlays"
 import crosshair from "./crosshair"
+import makeResizeObserver from "./makeResizeObserver"
+import { removeEvent, addEvent } from "dygraphs/src/dygraph-utils"
 
 const axisLabelFormatter = time => {
   const midnight = time.getHours() === 0 && time.getMinutes() === 0 && time.getSeconds() === 0
@@ -23,8 +24,6 @@ const getDateWindow = chart => {
   return [now + after * 1000, now]
 }
 
-const getUrlOptions = () => ["ms", "flip"]
-
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
   let dygraph = null
@@ -33,6 +32,7 @@ export default (sdk, chart) => {
   let hover = null
   let hoverX = null
   let overlays = null
+  let resizeObserver = null
 
   const mount = element => {
     if (dygraph) return
@@ -42,6 +42,7 @@ export default (sdk, chart) => {
     const theme = chart.getAttribute("theme")
     element.classList.add(theme)
 
+    chart.updateDimensions()
     const attributes = chart.getAttributes()
     const payload = chart.getPayload()
 
@@ -103,7 +104,7 @@ export default (sdk, chart) => {
       yLabelWidth: 12,
       yRangePad: 1,
       labelsSeparateLines: true,
-      colors: dimensionColors,
+      colors: chart.getColors(),
       valueRange: attributes.valueRange,
       ...makeChartTypeOptions(),
       ...makeThemingOptions(),
@@ -112,20 +113,45 @@ export default (sdk, chart) => {
       // logscale
     })
 
+    // dygraph.mouseMoveHandler_
+    // removeEvent(dygraph.mouseEventElement_, "mousemove", dygraph.mouseMoveHandler_)
+    // dygraph.mouseMoveHandler_ = null
+
+    // const mousemove = event => {
+    //   const callback = dygraph.getFunctionOption("highlightCallback")
+
+    //   callback.call(
+    //     dygraph,
+    //     event,
+    //     dygraph.lastx_,
+    //     dygraph.selPoints_,
+    //     dygraph.lastRow_,
+    //     dygraph.highlightSet_
+    //   )
+    // }
+    // dygraph.addAndTrackEvent(dygraph.mouseEventElement_, "mousemove", mousemove)
+
+    resizeObserver = makeResizeObserver(element, () => dygraph.resize())
+
     hoverX.toggle(attributes.enabledHover)
     navigation.set(attributes.navigation)
 
     listeners = [
-      chart.onAttributeChange("hoverX", dimensions => {
-        const prevSelection = dygraph.getSelection()
-        const nextSelection = dimensions ? chart.getClosestRow(dimensions[0]) : -1
-        if (prevSelection !== nextSelection) {
+      chart.onAttributeChange(
+        "hoverX",
+        executeLatest(dimensions => {
+          const nextSelection = dimensions ? chart.getClosestRow(dimensions[0]) : -1
+          // const { canvas_ctx_: ctx } = dygraph
+          // const { w, h } = dygraph.getArea()
+          // ctx.clearRect(0, 0, w, h)
+          // dygraph.previousVerticalX_ = null
           dygraph.setSelection(nextSelection)
-        }
-        if (nextSelection !== -1) {
+
+          if (nextSelection === -1) return
+
           crosshair(instance, nextSelection)
-        }
-      }),
+        })
+      ),
       chart.onAttributeChange("after", render),
       chart.onAttributeChange("enabledHover", hoverX.toggle),
       chart.onAttributeChange("navigation", navigation.set),
@@ -194,6 +220,7 @@ export default (sdk, chart) => {
   const unmount = () => {
     if (!dygraph) return
 
+    resizeObserver()
     listeners.forEach(listener => listener())
     listeners = []
     chartUI.unmount()
@@ -220,6 +247,7 @@ export default (sdk, chart) => {
       dateWindow,
     })
     chart.updateDimensions()
+    chartUI.trigger("rendered")
   }
 
   const getPreceded = () => {
@@ -237,15 +265,22 @@ export default (sdk, chart) => {
 
   const getPixelsPerPoint = () => 3
 
+  const getEstimatedChartWidth = () => {
+    const element = dygraph.getElement()
+    const width = element ? element.offsetWidth : chartUI.getEstimatedWidth() || 300
+    const legendWidth = chart.getAttribute("legend") ? 140 : 0
+    return width - legendWidth
+  }
+
   const getChartWidth = () => (dygraph ? dygraph.getArea().w : chartUI.getEstimatedChartWidth())
   const getChartHeight = () => (dygraph ? dygraph.getArea().h : 100)
 
   const instance = {
     ...chartUI,
+    getEstimatedChartWidth,
     getChartWidth,
     getChartHeight,
     getPixelsPerPoint,
-    getUrlOptions,
     getPreceded,
     mount,
     unmount,

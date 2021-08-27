@@ -6,6 +6,8 @@ export const getChartURLOptions = chart => {
     ...urlOptions,
     "jsonwrap",
     eliminateZeroDimensions && "nonzero",
+    "flip",
+    "ms",
   ].filter(Boolean)
 }
 

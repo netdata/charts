@@ -1,7 +1,13 @@
-import React, { useEffect, useState } from "react"
+import React, { useState } from "react"
 import ChartContainer from "@/components/chartContainer"
 import withChart from "@/components/withChart"
-import { useChart, useMetadata, useUnitSign, useAttributeValue } from "@/components/provider"
+import {
+  useChart,
+  useTitle,
+  useUnitSign,
+  useAttributeValue,
+  useListener,
+} from "@/components/provider"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { Text } from "@netdata/netdata-ui/lib/components/typography"
@@ -15,12 +21,15 @@ const Value = () => {
   const chart = useChart()
 
   const getValue = () => {
+    const { hoverX, after } = chart.getAttributes()
+    if (!hoverX && after > 0) return "-"
+
     const v = chart.getUI().getValue()
     return chart.getConvertedValue(v)
   }
   const [value, setValue] = useState(getValue)
 
-  useEffect(() => chart.getUI().on("rendered", () => setValue(getValue())), [])
+  useListener(() => chart.getUI().on("rendered", () => setValue(getValue())), [])
 
   return (
     <Label color="main" fontSize="2em">
@@ -30,7 +39,7 @@ const Value = () => {
 }
 
 const Title = () => {
-  const { title } = useMetadata()
+  const title = useTitle()
   return (
     <Label color="border" fontSize="1.2em" strong>
       {title}
@@ -56,6 +65,7 @@ const StatsContainer = styled(Flex).attrs({
   position: "absolute",
   column: true,
   justifyContent: "between",
+  width: "100%",
 })`
   inset: ${({ inset }) => inset};
   text-align: center;
@@ -75,8 +85,20 @@ const Stats = () => {
   )
 }
 
+const Skeleton = styled(Flex).attrs({
+  height: "0",
+  background: "borderSecondary",
+  flex: true,
+})`
+  border-radius: 100%;
+  padding-bottom: 100%;
+`
+
 export const EasyPie = props => {
   const loaded = useAttributeValue("loaded")
+
+  if (!loaded) return <Skeleton {...props} />
+
   return <Container {...props}>{loaded && <Stats />}</Container>
 }
 

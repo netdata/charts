@@ -35,17 +35,26 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     clearTimeout(fetchDelayTimeoutId)
   }
 
+  const getUpdateEvery = () => {
+    const { loaded, updateEvery: updateEveryAttribute } = node.getAttributes()
+    if (updateEveryAttribute) return updateEveryAttribute * 1000
+
+    const { viewUpdateEvery } = getPayload()
+    if (loaded && viewUpdateEvery) return viewUpdateEvery * 1000
+
+    const { updateEvery = 2 } = getMetadata()
+    return updateEvery * 1000
+  }
+
   const startAutofetch = () => {
     const { fetchStatedAt, loading, autofetch, active } = node.getAttributes()
 
     if (!autofetch || loading || !active) return
 
-    const { updateEvery = 1 } = getMetadata()
-
     if (fetchStatedAt === 0) return fetch()
 
     const fetchingPeriod = Date.now() - fetchStatedAt
-    const updateEveryMs = updateEvery * 1000
+    const updateEveryMs = getUpdateEvery()
     const div = fetchingPeriod / updateEveryMs
     const updateEveryMultiples = Math.floor(div)
 

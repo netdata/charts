@@ -1,15 +1,15 @@
 import { getChartURLOptions, getChartPayload } from "./helpers"
 
-const getCompositeChartURLOptions = chart => {
-  const { dimensionsAggregationMethod, groupBy } = chart.getAttributes()
-  const options = getChartURLOptions(chart)
+// const getCompositeChartURLOptions = chart => {
+//   const { dimensionsAggregationMethod, groupBy } = chart.getAttributes()
+//   const options = getChartURLOptions(chart)
 
-  return [
-    ...options,
-    // (dimensionsAggregationMethod === "sum" || (groupBy && groupBy !== "dimension")) && "absolute",
-    "flip",
-  ].filter(Boolean)
-}
+//   return [
+//     ...options,
+//     // (dimensionsAggregationMethod === "sum" || (groupBy && groupBy !== "dimension")) && "absolute",
+//     "flip",
+//   ].filter(Boolean)
+// }
 
 const getGroupByValues = groupBy => {
   if (groupBy === "chart") return "node"
@@ -51,7 +51,7 @@ const getCompositeChartPayload = chart => {
   return {
     filter,
     aggregations,
-    agent_options: getCompositeChartURLOptions(chart),
+    agent_options: getChartURLOptions(chart),
     ...getChartPayload(chart),
   }
 }

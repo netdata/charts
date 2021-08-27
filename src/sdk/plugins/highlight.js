@@ -1,5 +1,5 @@
 const getMove = node => {
-  const ancestor = node.getAncestor({ syncHighlight: true })
+  const ancestor = node.getAncestor({ syncHighlight: true }) || node
   const after = ancestor.getAttribute("after")
   if (after > 0) return null
 

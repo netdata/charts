@@ -6,7 +6,7 @@ export default sdk => {
     const ancestor = chart.getAncestor({ syncUnits: true })
 
     if (!ancestor) {
-      chart.updateAttributes({
+      return chart.updateAttributes({
         unitsConversionMethod: method,
         unitsConversionDivider: divider,
         unit: unit,

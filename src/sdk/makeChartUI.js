@@ -38,15 +38,19 @@ export default (sdk, chart) => {
     estimatedWidth = width
   }
 
-  const getEstimatedChartWidth = () => {
-    const width = element ? element.offsetWidth : estimatedWidth || 300
-    const legendWidth = chart.getAttribute("legend") ? 140 : 0
-    return width - legendWidth
+  const getEstimatedWidth = width => {
+    estimatedWidth = width
   }
+
+  const getEstimatedChartWidth = () => {
+    return element ? element.offsetWidth : estimatedWidth || 300
+  }
+
+  const getThemeIndex = () => themeIndex[chart.getAttribute("theme")] || themeIndex.default
 
   const getThemeAttribute = name => {
     const attributes = chart.getAttributes()
-    const index = themeIndex[attributes.theme] || themeIndex.default
+    const index = getThemeIndex()
     return attributes[name][index]
   }
 
@@ -68,10 +72,12 @@ export default (sdk, chart) => {
     getRenderedAt,
     getElement,
     setEstimatedWidth,
+    getEstimatedWidth,
     getEstimatedChartWidth,
     getChartWidth,
     getChartHeight,
     getPixelsPerPoint,
+    getThemeIndex,
     getThemeAttribute,
     getUrlOptions,
   }

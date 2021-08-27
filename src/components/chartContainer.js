@@ -3,8 +3,8 @@ import styled from "styled-components"
 import { useChart } from "@/components/provider"
 
 const Container = styled.div`
-  width: 100%;
-  height: 100%;
+  height: auto !important;
+  width: 100% !important;
 `
 
 const ChartContainer = props => {
@@ -16,7 +16,7 @@ const ChartContainer = props => {
     return () => chart.getUI().unmount()
   }, [])
 
-  return <Container style={{ height: "100%" }} data-testid="chartContent" ref={ref} {...props} />
+  return <Container data-testid="chartContent" ref={ref} {...props} />
 }
 
 export default ChartContainer

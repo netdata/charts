@@ -6,6 +6,9 @@ export default chart => {
   let sortedDimensionIds = []
   let visibleDimensionIds = []
   let visibleDimensionSet = new Set()
+  let colorsById = {}
+  let colorsLength = 0
+  let colors = []
 
   const getSourceDimensionIds = () => {
     const { dimensionIds } = chart.getPayload()
@@ -57,16 +60,43 @@ export default chart => {
     chart.trigger("dimensionChanged")
   }
 
+  const getNextColor = () => {
+    const colorsAttribute = chart.getAttribute("colors")
+    const index = colorsLength % (colorsAttribute.length + dimensionColors.length)
+
+    if (index < colorsAttribute.length) return colorsAttribute[index]
+
+    return dimensionColors[index - colorsAttribute.length]
+  }
+
+  const updateDimensionColor = id => {
+    if (id in colorsById) return
+
+    const color = getNextColor()
+    colorsById[id] = color
+    colorsLength = colorsLength + 1
+  }
+
+  const updateDimensionsColor = () => {
+    const { dimensionIds } = chart.getPayload()
+    colors = dimensionIds.map(id => {
+      updateDimensionColor(id)
+      return getDimensionColor(id)
+    })
+  }
+
   const updateDimensions = () => {
     const { dimensionIds } = chart.getPayload()
 
-    if (prevDimensionIds !== dimensionIds) {
-      prevDimensionIds = dimensionIds
-      dimensionsById = dimensionIds.reduce((acc, id, index) => {
-        acc[id] = index
-        return acc
-      }, {})
-    }
+    if (prevDimensionIds === dimensionIds) return
+
+    prevDimensionIds = dimensionIds
+    dimensionsById = dimensionIds.reduce((acc, id, index) => {
+      acc[id] = index
+      return acc
+    }, {})
+
+    updateDimensionsColor()
 
     sortDimensions()
   }
@@ -79,7 +109,15 @@ export default chart => {
 
   const isDimensionVisible = id => visibleDimensionSet.has(id)
 
-  const getDimensionColor = id => dimensionColors[dimensionsById[id] % dimensionColors.length]
+  const getDimensionColor = id => {
+    const color = colorsById[id]
+    if (typeof color === "string") return color
+
+    const index = chart.getUI().getThemeIndex()
+    return color[index]
+  }
+
+  const getColors = () => colors
 
   const getDimensionName = id => {
     const { dimensionNames } = chart.getPayload()
@@ -111,6 +149,7 @@ export default chart => {
     getVisibleDimensionIds,
     isDimensionVisible,
     toggleDimensionId,
+    getColors,
     getDimensionColor,
     getDimensionName,
     getDimensionValue,

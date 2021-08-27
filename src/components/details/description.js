@@ -2,7 +2,7 @@ import React from "react"
 import information from "@netdata/netdata-ui/lib/components/icon/assets/information.svg"
 import { TextSmall } from "@netdata/netdata-ui/lib/components/typography"
 import Icon from "@/components/icon"
-import { useAttributeValue, useChart, useMetadata } from "@/components/provider"
+import { useAttributeValue, useChart, useTitle } from "@/components/provider"
 import Row from "./row"
 
 const DescriptionText = ({ children }) => {
@@ -27,7 +27,7 @@ const DescriptionText = ({ children }) => {
 }
 
 const Description = () => {
-  const { title } = useMetadata()
+  const title = useTitle()
   const description = useAttributeValue("description")
 
   return (

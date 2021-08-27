@@ -98,17 +98,21 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   const getParent = () => parent
 
   const getAncestor = attributes => {
-    let container = parent
-    while (container?.match(attributes)) {
-      container = container.parent
+    let current = instance
+    let parent = null
+    while (current.getParent()?.match(attributes)) {
+      parent = current.getParent()
+      current = parent
     }
-    return container || sdk.getRoot()
+    return parent
   }
 
   const getApplicableNodes = (attributes, options) => {
     if (!match(attributes)) return [instance]
 
     const ancestor = getAncestor(attributes)
+    if (!ancestor) return [instance]
+
     return ancestor.getNodes(attributes, options)
   }
 

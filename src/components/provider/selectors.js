@@ -1,8 +1,13 @@
-import { useCallback, useEffect, useLayoutEffect, useState, useContext } from "react"
+import { useCallback, useEffect, useState, useContext, useMemo } from "react"
 import { unregister } from "@/helpers/makeListeners"
 import context from "./context"
 
 export const useChart = () => useContext(context)
+
+export const useListener = (func, deps) => {
+  const off = useMemo(func, deps)
+  useEffect(() => off, [off])
+}
 
 export const useAttributeValue = name => {
   const chart = useChart()
@@ -10,7 +15,7 @@ export const useAttributeValue = name => {
 
   const [value, setValue] = useState(getValue)
 
-  useLayoutEffect(() => chart.onAttributeChange(name, () => setValue(getValue)), [chart])
+  useListener(() => chart.onAttributeChange(name, () => setValue(getValue)), [chart])
 
   return value
 }
@@ -25,7 +30,7 @@ export const useInitialLoading = () => {
 
   const [value, setValue] = useState(getValue)
 
-  useEffect(
+  useListener(
     () =>
       unregister(
         chart.onAttributeChange("loaded", () => setValue(getValue)),
@@ -47,7 +52,7 @@ export const useEmpty = () => {
 
   const [empty, setEmpty] = useState(getValue)
 
-  useEffect(() => chart.on("finishFetch", () => setEmpty(getValue)), [chart])
+  useListener(() => chart.on("finishFetch", () => setEmpty(getValue)), [chart])
 
   return empty
 }
@@ -59,7 +64,7 @@ export const useAttribute = name => {
 
   const [value, setValue] = useState(getValue)
 
-  useLayoutEffect(() => chart.onAttributeChange(name, () => setValue(getValue)), [])
+  useListener(() => chart.onAttributeChange(name, () => setValue(getValue)), [chart])
 
   const updateValue = useCallback(
     nextValue =>
@@ -78,13 +83,20 @@ export const useMetadata = () => {
   return chart.getMetadata()
 }
 
+export const useTitle = () => {
+  const { title } = useMetadata()
+  const attributeTitle = useAttributeValue("title")
+
+  return attributeTitle || title
+}
+
 export const useVisibleDimensionId = id => {
   const chart = useChart()
 
   const getValue = () => chart.isDimensionVisible(id)
   const [visible, setVisible] = useState(getValue)
 
-  useEffect(() => chart.onAttributeChange("selectedDimensions", () => setVisible(getValue())), [
+  useListener(() => chart.onAttributeChange("selectedDimensions", () => setVisible(getValue())), [
     chart,
   ])
 
@@ -97,7 +109,7 @@ export const usePayload = () => {
   const getValue = () => chart.getPayload()
   const [visible, setVisible] = useState(getValue)
 
-  useEffect(() => chart.on("successFetch", () => setVisible(getValue())), [chart])
+  useListener(() => chart.on("successFetch", () => setVisible(getValue())), [chart])
 
   return visible
 }
@@ -109,7 +121,7 @@ export const useDimensionIds = () => {
 
   const [dimensionIds, setDimensionIds] = useState(getList)
 
-  useEffect(() => chart.on("dimensionChanged", () => setDimensionIds(getList)), [chart])
+  useListener(() => chart.on("dimensionChanged", () => setDimensionIds(getList)), [chart])
 
   return dimensionIds
 }
@@ -119,7 +131,7 @@ export const useUnitSign = () => {
 
   const [unit, setUnit] = useState(chart.getUnitSign)
 
-  useEffect(() => chart.onAttributeChange("unit", () => setUnit(chart.getUnitSign())), [chart])
+  useListener(() => chart.onAttributeChange("unit", () => setUnit(chart.getUnitSign())), [chart])
 
   return unit
 }

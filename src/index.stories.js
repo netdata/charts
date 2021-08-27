@@ -1,7 +1,8 @@
-import React from "react"
+import React, { useMemo, useState } from "react"
 import { ThemeProvider } from "styled-components"
 import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui/lib/theme"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import { Button } from "@netdata/netdata-ui/lib/components/button"
 import { camelizeKeys } from "@/helpers/objectTransform"
 import Line from "@/components/line"
 import makeMockPayload from "@/helpers/makeMockPayload"
@@ -56,6 +57,27 @@ export const Simple = () => {
   return (
     <ThemeProvider theme={DefaultTheme}>
       <Line chart={chart} height="315px" />
+    </ThemeProvider>
+  )
+}
+
+export const Width = () => {
+  const [width, setWidth] = useState(false)
+  const chart = useMemo(() => {
+    const sdk = makeDefaultSDK({ getChartMetadata })
+    const chart = sdk.makeChart({ getChart, attributes: { navigation: "selectVertical" } })
+    sdk.appendChild(chart)
+    return chart
+  }, [])
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Flex column width="500px" gap={4}>
+        <Button onClick={() => setWidth(s => !s)} label="Add space" />
+        <Flex padding={[0, 0, 0, width ? 12 : 0]}>
+          <Line chart={chart} height="315px" />
+        </Flex>
+      </Flex>
     </ThemeProvider>
   )
 }

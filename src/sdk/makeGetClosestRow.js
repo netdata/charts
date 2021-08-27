@@ -12,8 +12,11 @@ export default getPayload => {
       result: { data },
     } = getPayload()
 
-    if (data.length === 0 || timestamp < data[0][0] || timestamp > data[data.length - 1][0])
-      return -1
+    if (data.length === 0) return -1
+
+    if (timestamp < data[0][0]) return 0
+
+    if (timestamp > data[data.length - 1][0]) return data.length - 1
 
     let start = 0
     let end = data.length - 1
