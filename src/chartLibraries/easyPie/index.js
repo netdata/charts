@@ -109,7 +109,8 @@ export default (sdk, chart) => {
     if (!result.data[row]) {
       debugger
     }
-    const [, value] = result.data[row]
+    const [, ...rows] = result.data[row]
+    const value = rows.reduce((acc, v) => acc + v, 0)
     let [min, max] = getMinMax(value)
 
     if (renderedValue === value && min === prevMin && max === prevMax) return

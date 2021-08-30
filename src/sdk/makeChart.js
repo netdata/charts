@@ -73,12 +73,9 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     node.trigger("finishFetch")
   }
 
-  const transformResult = ({ viewUpdateEvery, before, after, result }) => {
-    const { format } = ui
+  const transformResult = ({ viewUpdateEvery, after, result }) => {
+    if (!Array.isArray(result)) return result
 
-    if (format === "json") return result
-
-    // const step = Math.floor((before - after) / result.length)
     const data = result.map((point, index) => [
       (after + viewUpdateEvery * (index + 1)) * 1000,
       point,
