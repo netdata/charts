@@ -1,12 +1,15 @@
 import React from "react"
+import { withChartProvider } from "@/components/provider"
 import withIntersection from "./withIntersection"
 import withFullscreen from "./withFullscreen"
-import { withChartProvider } from "./provider"
+import withDifferedMount from "./withDifferedMount"
 
 export default Component => {
   const ChartWithIntersection = withIntersection(Component)
 
-  const ChartWithFullscreen = withFullscreen(ChartWithIntersection)
+  const ChartWithDifferedMount = withDifferedMount(ChartWithIntersection)
+
+  const ChartWithFullscreen = withFullscreen(ChartWithDifferedMount)
 
   const ChartWithProvider = withChartProvider(ChartWithFullscreen)
 
