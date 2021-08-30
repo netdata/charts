@@ -336,7 +336,7 @@ export const MultipleReal = () => {
 export const Multiple = () => {
   const sdk = makeDefaultSDK({ getChartMetadata })
 
-  const charts = Array.from(Array(3)).map((v, index) => {
+  const charts = Array.from(Array(10)).map((v, index) => {
     const chart = sdk.makeChart({ attributes: { id: index }, getChart })
     sdk.appendChild(chart)
 

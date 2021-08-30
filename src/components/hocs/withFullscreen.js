@@ -1,7 +1,7 @@
 import React from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import Layer from "@netdata/netdata-ui/lib/components/templates/layer"
-import { useAttributeValue, useChart } from "./provider"
+import { useAttributeValue } from "@/components/provider"
 
 export default Component => {
   const FullscreenComponent = props => {

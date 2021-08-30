@@ -8,7 +8,7 @@ import useHover from "./useHover"
 import ChartContentWrapper from "./chartContentWrapper"
 import { useChart, useAttributeValue } from "./provider"
 import FilterToolbox from "./filterToolbox"
-import withChart from "./withChart"
+import withChart from "./hocs/withChart"
 
 export const Container = forwardRef((props, ref) => (
   <Flex

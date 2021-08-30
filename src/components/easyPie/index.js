@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import ChartContainer from "@/components/chartContainer"
-import withChart from "@/components/withChart"
+import withChart from "@/components/hocs/withChart"
 import {
   useChart,
   useTitle,
@@ -94,12 +94,16 @@ const Skeleton = styled(Flex).attrs({
   padding-bottom: 100%;
 `
 
-export const EasyPie = props => {
+export const EasyPie = ({ width = "100%", rest }) => {
   const loaded = useAttributeValue("loaded")
 
-  if (!loaded) return <Skeleton {...props} />
+  if (!loaded) return <Skeleton width={width} {...rest} />
 
-  return <Container {...props}>{loaded && <Stats />}</Container>
+  return (
+    <Container width={width} {...rest}>
+      {loaded && <Stats />}
+    </Container>
+  )
 }
 
 export default withChart(EasyPie)

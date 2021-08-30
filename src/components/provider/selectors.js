@@ -23,21 +23,10 @@ export const useAttributeValue = name => {
 export const useInitialLoading = () => {
   const chart = useChart()
 
-  const getValue = () =>
-    !chart.getAttribute("loaded") &&
-    chart.getAttribute("loading") &&
-    chart.getPayload().result.data.length === 0
-
+  const getValue = () => !chart.getAttribute("loaded")
   const [value, setValue] = useState(getValue)
 
-  useListener(
-    () =>
-      unregister(
-        chart.onAttributeChange("loaded", () => setValue(getValue)),
-        chart.onAttributeChange("loading", () => setValue(getValue))
-      ),
-    [chart]
-  )
+  useListener(() => chart.onAttributeChange("loaded", () => setValue(getValue)), [chart])
 
   return value
 }
