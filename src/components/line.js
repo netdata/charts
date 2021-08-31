@@ -34,7 +34,11 @@ export const Line = props => {
   const composite = useAttributeValue("composite")
   const detailed = useAttributeValue("detailed")
 
-  const ref = useHover({ onHover: chart.focus, onBlur: chart.blur })
+  const ref = useHover({
+    onHover: chart.focus,
+    onBlur: chart.blur,
+    isOut: node => !node || !node.closest("[data-toolbox]"),
+  })
 
   return (
     <Container ref={ref} {...props}>
