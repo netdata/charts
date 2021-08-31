@@ -134,13 +134,25 @@ export default chart => {
     return result.data[index][dimensionsById[id] + 1]
   }
 
-  const toggleDimensionId = id => {
-    chart.updateAttribute(
-      "selectedDimensions",
-      visibleDimensionIds.length === sortedDimensionIds.length || !visibleDimensionSet.has(id)
-        ? [id]
-        : null
-    )
+  const toggleDimensionId = (id, { merge = false } = {}) => {
+    const selectedDimensions = chart.getAttribute("selectedDimensions")
+
+    if (!selectedDimensions) {
+      chart.updateAttribute("selectedDimensions", [id])
+      return
+    }
+
+    if (isDimensionVisible(id)) {
+      const newSelectedDimensions = selectedDimensions.filter(d => d !== id)
+      chart.updateAttribute(
+        "selectedDimensions",
+        newSelectedDimensions.length ? newSelectedDimensions : null
+      )
+      return
+    }
+
+    const newSelectedDimensions = merge ? [...selectedDimensions, id] : [id]
+    chart.updateAttribute("selectedDimensions", newSelectedDimensions)
   }
 
   chart.onAttributeChange("dimensionsSort", sortDimensions)
