@@ -8,7 +8,7 @@ export const Container = props => (
   <Flex
     justifyContent="between"
     alignItems="center"
-    padding={[1, 3]}
+    padding={[1, 2]}
     gap={1}
     border={{ side: "bottom", color: "borderSecondary" }}
     data-testid="chartHeader"
