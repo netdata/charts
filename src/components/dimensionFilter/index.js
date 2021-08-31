@@ -42,8 +42,8 @@ const sortings = [
   { value: "default", label: "Default" },
   { value: "nameAsc", label: "Sort by name A→Z" },
   { value: "nameDesc", label: "Sort by name Z→A" },
-  { value: "valueAsc", label: "Sort by value Max→Min " },
-  { value: "valueDesc", label: "Sort by value Min→Max " },
+  { value: "valueAsc", label: "Sort by value Min→Max " },
+  { value: "valueDesc", label: "Sort by value Max→Min " },
 ]
 
 const DimensionFilter = props => {
