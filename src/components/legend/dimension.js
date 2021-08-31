@@ -52,7 +52,7 @@ const Dimension = ({ id }) => {
   const chart = useChart()
 
   const onClick = e => {
-    const merge = e.shiftKey || e.ctrlKey || e.metaKey
+    const merge = e.shiftKey
     chart.toggleDimensionId(id, { merge })
   }
 

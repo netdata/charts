@@ -5,15 +5,31 @@ import { useChart, useAttributeValue } from "@/components/provider"
 const cursorByNavigation = {
   default: "default",
   selectVertical: "row-resize",
-  select: "cell",
-  pan: "move",
+  select: "col-resize",
   highlight: "crosshair",
+}
+
+const activeCursorByNavigation = {
+  pan: "grabbing",
 }
 
 const Container = styled.div`
   height: auto !important;
   width: 100% !important;
   cursor: ${props => cursorByNavigation[props.navigation] || cursorByNavigation.default};
+
+  ${props => {
+    const activeCursor = activeCursorByNavigation[props.navigation]
+    if (!activeCursor) return ""
+    return `
+      &:active {
+        cursor: ${activeCursor};
+      }
+    `
+  }}
+  &:active {
+    cursor: ${props => activeCursorByNavigation[props.navigation] || cursorByNavigation.default};
+  }
 `
 
 const ChartContainer = props => {

@@ -8,7 +8,11 @@ const color = (active, disabled) => {
   return "border"
 }
 
-const Button = styled.button.attrs(({ icon }) => ({ children: icon }))`
+const Button = styled.button.attrs(({ icon, ...rest }) => ({
+  ...rest,
+  children: icon,
+  active: rest.active || rest["aria-expanded"],
+}))`
   border: initial;
   padding: 0;
   line-height: 0;
