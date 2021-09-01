@@ -1,5 +1,6 @@
-import React from "react"
+import React, { useEffect } from "react"
 import Icon, { Button } from "@/components/icon"
+import useHover from "@/components/useHover"
 import correlationsIcon from "@netdata/netdata-ui/lib/components/icon/assets/correlations.svg"
 import { useChart, useAttributeValue } from "@/components/provider"
 import Badge from "@/components/badge"
@@ -13,42 +14,48 @@ const validatePeriodSelected = total => {
   return ""
 }
 
-export const Period = ({ id, showInstructions }) => {
+export const Period = ({ id, showWarning }) => {
   const overlays = useAttributeValue("overlays")
   const { range } = overlays[id]
 
   const [after, before] = range
-  const total = (before - after) / 1000
-  const errorMessage = validatePeriodSelected(total)
-  const status = errorMessage ? "success" : "warning"
+  const total = before - after
+  const errorMessage = showWarning ? validatePeriodSelected(total) : ""
+  const status = errorMessage ? "warning" : "success"
 
   return (
-    <Badge type={showInstructions ? status : "neutral"}>
-      {total}sec. {errorMessage}
+    <Badge type={showWarning ? status : "neutral"}>
+      {total}sec {errorMessage}
     </Badge>
   )
 }
 
-const Correlation = ({ id, correlationRef }) => {
+const Correlation = ({ id, setShowWarning }) => {
   const overlays = useAttributeValue("overlays")
   const { range } = overlays[id]
 
   const [after, before] = range
 
-  const total = (before - after) / 1000
-  const periodSelectedError = validatePeriodSelected(total)
+  const total = before - after
+  const errorMessage = validatePeriodSelected(total)
 
   const chart = useChart()
 
+  const ref = useHover({
+    onBlur: () => setShowWarning(false),
+    onHover: () => setShowWarning(true),
+  })
+
   return (
-    <Button
-      ref={correlationRef}
-      icon={<Icon svg={correlationsIcon} />}
-      title={["Metrics Correlations", periodSelectedError].join(" ")}
-      onClick={() => chart.sdk.trigger("correlation", chart, range)}
-      data-testid="highlight-correlations"
-      disabled={!!periodSelectedError}
-    />
+    <div ref={ref}>
+      <Button
+        icon={<Icon svg={correlationsIcon} />}
+        title="Metrics Correlations"
+        onClick={() => chart.sdk.trigger("correlation", chart, range)}
+        data-testid="highlight-correlations"
+        disabled={!!errorMessage}
+      />
+    </div>
   )
 }
 

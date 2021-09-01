@@ -1,7 +1,7 @@
 import React, { memo } from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import Correlation, { Period } from "./zoomIn"
+import Correlation, { Period } from "./correlation"
 import ZoomIn from "./zoomIn"
 
 const HighlightContainer = styled(Flex).attrs({
@@ -13,9 +13,9 @@ const HighlightContainer = styled(Flex).attrs({
   direction: initial;
 `
 
-const Highlight = ({ id, correlationRef }) => (
+const Highlight = ({ id, correlationProps }) => (
   <HighlightContainer>
-    <Correlation id={id} correlationRef={correlationRef} />
+    <Correlation id={id} {...correlationProps} />
     <ZoomIn id={id} />
   </HighlightContainer>
 )

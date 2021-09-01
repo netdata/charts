@@ -1,11 +1,11 @@
 import styled from "styled-components"
 import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
 
-const color = (active, disabled) => {
+const color = ({ active, disabled, defaultColor = "border" }) => {
   if (active) return "textDescription"
   if (disabled) return "disabled"
 
-  return "border"
+  return defaultColor
 }
 
 const Button = styled.button.attrs(({ icon, ...rest }) => ({
@@ -22,9 +22,9 @@ const Button = styled.button.attrs(({ icon, ...rest }) => ({
 
   svg {
     fill: ${({ active, disabled, theme, stroked }) =>
-      stroked ? "none" : getColor(color(active, disabled))({ theme })};
+      stroked ? "none" : getColor(color({ active, disabled }))({ theme })};
     stroke: ${({ active, disabled, theme, stroked }) =>
-      stroked ? getColor(color(active, disabled))({ theme }) : "none"};
+      stroked ? getColor(color({ active, disabled }))({ theme }) : "none"};
   }
 
   ${({ active }) =>
@@ -35,9 +35,14 @@ const Button = styled.button.attrs(({ icon, ...rest }) => ({
 
   &:hover {
     svg {
-      fill: ${({ theme, stroked }) => (stroked ? "none" : getColor("textDescription")({ theme }))};
-      stroke: ${({ theme, stroked }) =>
-        stroked ? getColor("textDescription")({ theme }) : "none"};
+      fill: ${({ theme, stroked, disabled }) =>
+        stroked
+          ? "none"
+          : getColor(color({ defaultColor: "textDescription", disabled }))({ theme })};
+      stroke: ${({ theme, stroked, disabled }) =>
+        stroked
+          ? getColor(color({ defaultColor: "textDescription", disabled }))({ theme })
+          : "none"};
     }
   }
 `
