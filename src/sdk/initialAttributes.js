@@ -58,6 +58,7 @@ export default {
   dimensionsAggregationMethod: "",
   groupBy: "",
 
+  aggregationGroups: [],
   postAggregationMethod: "",
   postGroupBy: "",
   selectedChart: "",
