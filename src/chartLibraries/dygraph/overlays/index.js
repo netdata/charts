@@ -16,22 +16,20 @@ export default chartUI => {
 
   const destroy = () => {
     if (!off) return
+    chartUI.getDygraph().renderGraph_(false)
     off()
     off = null
   }
 
   const toggle = () => {
     const overlays = chartUI.chart.getAttribute("overlays")
-    if (Object.keys(overlays).length === 0) {
-      // chartUI.getDygraph().renderGraph_(false)
-      return destroy()
-    }
+    if (Object.keys(overlays).length === 0) return destroy()
 
     if (!off) {
       off = chartUI.on("drawCallback", drawOverlays)
+    } else {
+      chartUI.getDygraph().renderGraph_(false)
     }
-
-    // chartUI.getDygraph().renderGraph_(false)
   }
 
   return { toggle, destroy }

@@ -8,7 +8,6 @@ import makeHoverX from "./hoverX"
 import makeOverlays from "./overlays"
 import crosshair from "./crosshair"
 import makeResizeObserver from "./makeResizeObserver"
-import { removeEvent, addEvent } from "dygraphs/src/dygraph-utils"
 
 const axisLabelFormatter = time => {
   const midnight = time.getHours() === 0 && time.getMinutes() === 0 && time.getSeconds() === 0
