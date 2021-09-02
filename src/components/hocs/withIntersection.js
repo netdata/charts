@@ -7,6 +7,7 @@ export default Component => {
     height: defaultHeight = "100%",
     width: defaultWidth = "100%",
     readOnly,
+    flex = true,
     ...rest
   }) => {
     const chart = useChart()
@@ -23,7 +24,7 @@ export default Component => {
         ref={ref}
         height={height}
         width={defaultWidth}
-        flex={true}
+        flex={flex}
         fallback={chart.getAttribute("id")}
         onVisibility={onVisibility}
         data-testid="chartIntersector"

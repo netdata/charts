@@ -5,13 +5,11 @@ const mount = window.requestIdleCallback || window.requestAnimationFrame
 const unmount = window.cancelIdleCallback || window.cancelAnimationFrame
 
 export default Component => {
-  const DifferedMount = ({ ...rest }) => {
+  const DifferedMount = props => {
     const chart = useChart()
 
     useEffect(() => {
-      const id = mount(() => {
-        chart.activate()
-      })
+      const id = mount(chart.activate)
 
       return () => {
         unmount(id)
@@ -19,7 +17,7 @@ export default Component => {
       }
     }, [chart])
 
-    return <Component {...rest} />
+    return <Component {...props} />
   }
 
   return DifferedMount
