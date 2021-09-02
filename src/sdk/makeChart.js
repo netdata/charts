@@ -1,4 +1,3 @@
-import { camelizeKeys } from "@/helpers/objectTransform"
 import deepEqual from "@/helpers/deepEqual"
 import makeNode from "./makeNode"
 import initialPayload from "./initialPayload"
@@ -8,6 +7,7 @@ import makeDimensions from "./makeDimensions"
 import makeGetClosestRow from "./makeGetClosestRow"
 import getInitialFilterAttributes from "./filters/getInitialAttributes"
 import makeFilterControllers from "./filters/makeControllers"
+import camelizePayload from "./camelizePayload"
 
 const requestTimeoutMs = 5 * 1000
 
@@ -85,10 +85,9 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
   }
 
   const doneFetch = nextRawPayload => {
-    const nextPayload = camelizeKeys(nextRawPayload, {
-      omit: ["result"],
-    })
-    const { labels, data } = transformResult(nextPayload)
+    const nextPayload = camelizePayload(nextRawPayload)
+
+    const result = transformResult(nextPayload)
 
     const { dimensionIds, ...restPayload } = nextPayload
 
@@ -98,10 +97,10 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
         ...initialPayload,
         ...payload,
         ...restPayload,
-        result: { labels, data },
+        result,
       }
     } else {
-      payload = { ...initialPayload, ...camelizeKeys(nextPayload), result: { labels, data } }
+      payload = { ...initialPayload, ...nextPayload, result }
     }
 
     invalidateClosestRowCache()

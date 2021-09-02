@@ -9,7 +9,9 @@ export default Component => {
     const chart = useChart()
 
     useEffect(() => {
-      const id = mount(chart.activate)
+      const id = mount(() => {
+        chart.activate()
+      })
 
       return () => {
         unmount(id)

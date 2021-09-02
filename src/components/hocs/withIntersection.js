@@ -27,9 +27,8 @@ export default Component => {
         fallback={chart.getAttribute("id")}
         onVisibility={onVisibility}
         data-testid="chartIntersector"
-        {...rest}
       >
-        {() => <Component readOnly={readOnly} height={height} width="100%" flex />}
+        {() => <Component readOnly={readOnly} height={height} width="100%" flex {...rest} />}
       </Intersection>
     )
   }
