@@ -1,3 +1,11 @@
+const camelizeResult = result => {
+  if (Array.isArray(result)) return result
+
+  const { labels, data, post_aggregated_data } = result
+
+  return { labels, data, postAggregatedData: post_aggregated_data }
+}
+
 export default payload => {
   const {
     update_every,
@@ -12,8 +20,6 @@ export default payload => {
     ...rest
   } = payload
 
-  const { labels, data, post_aggregated_data } = result
-
   return {
     updateEvery: update_every,
     viewUpdateEvery: view_update_every,
@@ -23,11 +29,7 @@ export default payload => {
     dimensionIds: dimension_ids,
     latestValues: latest_values,
     viewLatestValues: view_latest_values,
-    result: {
-      labels,
-      data,
-      postAggregatedData: post_aggregated_data,
-    },
+    result: camelizeResult(result),
     ...rest,
   }
 }

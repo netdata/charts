@@ -3,19 +3,20 @@ import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import withChart from "@/components/hocs/withChart"
 import { useAttributeValue } from "@/components/provider"
-import GroupBoxes from "./groupBoxes"
+import ChartContainer from "@/components/chartContainer"
+import Container from "./container"
 
 const Skeleton = styled(Flex).attrs({
   background: "borderSecondary",
   flex: true,
 })``
 
-export const Kubernetes = props => {
+export const GroupBoxesContainer = props => {
   const loaded = useAttributeValue("loaded")
 
   if (!loaded) return <Skeleton {...props} />
 
-  return <GroupBoxes {...props} />
+  return <ChartContainer as={Container} {...props} />
 }
 
-export default withChart(Kubernetes)
+export default withChart(GroupBoxesContainer)

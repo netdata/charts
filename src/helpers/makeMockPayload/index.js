@@ -1,3 +1,14 @@
+const getPostAggregatedData = (postAggregatedData, index) => {
+  if (!postAggregatedData) return null
+
+  return Object.keys(postAggregatedData).reduce((acc, key) => {
+    const series = postAggregatedData[key]
+    acc[key] = [...series.slice(index), ...series.slice(0, index)]
+
+    return acc
+  }, {})
+}
+
 export default (payload, { delay = 0 } = {}) => async chart => {
   await new Promise(r => setTimeout(r, delay))
 
@@ -14,7 +25,7 @@ export default (payload, { delay = 0 } = {}) => async chart => {
     return { ...payload, after: nowSec + after, before: nowSec }
   }
 
-  const { data } = payload.result
+  const { data, post_aggregated_data } = payload.result
 
   const [first] = data
   const points = data.length
@@ -27,15 +38,31 @@ export default (payload, { delay = 0 } = {}) => async chart => {
 
   const nextFreq = Math.round(nextLast - nextFirst) / points
 
+  let nextIndex
   const nextData = Array.from(Array(points)).map((v, index) => {
     const timestamp = nextFirst + nextFreq * index
 
     const targetTimestamp = first[0] + (timestamp % duration)
 
-    const [, ...row] = data.find(([t]) => t >= targetTimestamp)
+    const dataIndex = data.findIndex(([t]) => t >= targetTimestamp)
+    if (index === 0) {
+      nextIndex = dataIndex
+    }
+
+    const [, ...row] = data[dataIndex]
 
     return [timestamp, ...row]
   })
 
-  return { ...payload, result: { ...payload.result, data: nextData } }
+  const nextPostAggregatedData =
+    post_aggregated_data && getPostAggregatedData(post_aggregated_data, nextIndex)
+
+  return {
+    ...payload,
+    result: {
+      ...payload.result,
+      data: nextData,
+      ...(nextPostAggregatedData && { post_aggregated_data: nextPostAggregatedData }),
+    },
+  }
 }

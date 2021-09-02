@@ -1,9 +1,14 @@
 export default (chart, filteredRows) => {
-  const { keys, labels: labelValues } = chart.getPayload()
+  const {
+    keys,
+    labels: labelValues,
+    result: { postAggregatedData },
+  } = chart.getPayload()
   const { groupBy, postGroupBy, aggregationGroups, postAggregationMethod } = chart.getAttributes()
 
   const groupValues = keys[groupBy]
   const postGroupValues = keys[postGroupBy]
+  const postAggregatedValues = postAggregatedData[postAggregationMethod]
   const indexes = filteredRows || [...Array(groupValues.length)].map((v, index) => index)
 
   const postGroupData = indexes.reduce((acc, index) => {
@@ -13,13 +18,13 @@ export default (chart, filteredRows) => {
         labels: [],
         indexes: [],
         chartLabels: [],
-        postAggregationMethod: [],
+        postAggregations: [],
       }
     }
     const boxes = acc[groupValue]
     boxes.indexes.push(index)
     boxes.labels.push(postGroupValues[index])
-    boxes.postAggregationMethod.push(postAggregationMethod[index])
+    boxes.postAggregations.push(postAggregatedValues[index])
 
     const chartLabels = aggregationGroups.reduce((labelsAcc, label) => {
       if (labelValues[label][index]) {

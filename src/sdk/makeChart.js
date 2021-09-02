@@ -100,7 +100,7 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
         result,
       }
     } else {
-      payload = { ...initialPayload, ...camelizeKeys(nextPayload), result }
+      payload = { ...initialPayload, ...nextPayload, result }
     }
 
     invalidateClosestRowCache()

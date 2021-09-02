@@ -29,10 +29,10 @@ const defaultColorRange = ["rgba(198, 227, 246, 0.9)", "rgba(14, 154, 255, 0.9)"
 
 const makeGetColor = (values, colorRange = defaultColorRange) => {
   const minMax = values.reduce(
-    ([minMax, value]) => {
-      if (value < minMax[0]) minMax[0] = value
-      if (value > minMax[1]) minMax[1] = value
-      return minMax
+    (acc, value) => {
+      if (value < acc[0]) acc[0] = value
+      if (value > acc[1]) acc[1] = value
+      return acc
     },
     [values[0], values[0]]
   )
