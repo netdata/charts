@@ -19,7 +19,7 @@ const useHover = ({ onHover, onBlur, isOut = defaultIsOut }) => {
 
     return () => {
       ref.current.removeEventListener("mouseover", onHover)
-      ref.current.removeEventListener("mouseout", onBlur)
+      ref.current.removeEventListener("mouseout", mouseout)
     }
   }, [])
 

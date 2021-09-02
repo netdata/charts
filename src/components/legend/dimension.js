@@ -51,7 +51,10 @@ const Dimension = ({ id }) => {
   const visible = useVisibleDimensionId(id)
   const chart = useChart()
 
-  const onClick = () => chart.toggleDimensionId(id)
+  const onClick = e => {
+    const merge = e.shiftKey
+    chart.toggleDimensionId(id, { merge })
+  }
 
   return (
     <DimensionContainer

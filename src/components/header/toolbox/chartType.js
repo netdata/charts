@@ -13,16 +13,19 @@ const items = [
     value: "line",
     label: "Line",
     icon: <Icon svg={lineChart} {...iconProps} />,
+    svg: lineChart,
   },
   {
     value: "stacked",
     label: "Stacked",
     icon: <Icon svg={stackedChart} {...iconProps} />,
+    svg: stackedChart,
   },
   {
     value: "area",
     label: "Area",
     icon: <Icon svg={areaChart} {...iconProps} />,
+    svg: areaChart,
   },
 ]
 
@@ -33,17 +36,17 @@ const ChartType = ({ disabled }) => {
 
   const onChange = value => setChartType(metaChartType === value ? "" : value)
 
-  const { label, icon } = items.find(({ value }) => value === chartType)
+  const { label, svg } = items.find(({ value }) => value === chartType)
 
   return (
     <Menu
       value={chartType}
       items={items}
-      dropProps={{ align: { top: "bottom", right: "right" } }}
+      dropProps={{ align: { top: "bottom", right: "right" }, "data-toolbox": true }}
       onChange={onChange}
     >
       <Button
-        icon={icon}
+        icon={<Icon svg={svg} />}
         title={label}
         disabled={disabled}
         data-testid="chartHeaderToolbox-chartType"

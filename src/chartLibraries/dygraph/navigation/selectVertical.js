@@ -47,7 +47,7 @@ export default chartUI => {
     var min = g.toDataYCoord(startY)
     var max = g.toDataYCoord(endY)
 
-    const range = [min, max].sort()
+    const range = [min, max].sort((a, b) => a - b)
 
     chartUI.sdk.trigger("highlightVerticalEnd", chartUI.chart, range)
 

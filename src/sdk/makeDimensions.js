@@ -25,17 +25,17 @@ export default chart => {
       getSourceDimensionIds().sort((a, b) =>
         getDimensionName(b).localeCompare(getDimensionName(a))
       ),
-    valueAsc: () => {
+    valueDesc: x => {
       const { result } = chart.getPayload()
-      const x = result.data.length - 1
+      x = x || result.data.length - 1
 
       return getSourceDimensionIds().sort(
         (a, b) => getDimensionValue(b, x) - getDimensionValue(a, x)
       )
     },
-    valueDesc: () => {
+    valueAsc: x => {
       const { result } = chart.getPayload()
-      const x = result.data.length - 1
+      x = x || result.data.length - 1
 
       return getSourceDimensionIds().sort(
         (a, b) => getDimensionValue(a, x) - getDimensionValue(b, x)
@@ -53,11 +53,16 @@ export default chart => {
 
   const sortDimensions = () => {
     const dimensionsSort = chart.getAttribute("dimensionsSort")
-    const sort = bySortMethod[dimensionsSort]
+    const sort = bySortMethod[dimensionsSort] || bySortMethod.default
     sortedDimensionIds = sort()
     updateVisibleDimensions()
 
     chart.trigger("dimensionChanged")
+  }
+
+  const onHoverSortDimensions = (x, dimensionsSort = chart.getAttribute("dimensionsSort")) => {
+    const sort = bySortMethod[dimensionsSort] || bySortMethod.default
+    return sort(x)
   }
 
   const getNextColor = () => {
@@ -129,13 +134,25 @@ export default chart => {
     return result.data[index][dimensionsById[id] + 1]
   }
 
-  const toggleDimensionId = id => {
-    chart.updateAttribute(
-      "selectedDimensions",
-      visibleDimensionIds.length === sortedDimensionIds.length || !visibleDimensionSet.has(id)
-        ? [id]
-        : null
-    )
+  const toggleDimensionId = (id, { merge = false } = {}) => {
+    const selectedDimensions = chart.getAttribute("selectedDimensions")
+
+    if (!selectedDimensions) {
+      chart.updateAttribute("selectedDimensions", [id])
+      return
+    }
+
+    if (isDimensionVisible(id)) {
+      const newSelectedDimensions = selectedDimensions.filter(d => d !== id)
+      chart.updateAttribute(
+        "selectedDimensions",
+        newSelectedDimensions.length ? newSelectedDimensions : null
+      )
+      return
+    }
+
+    const newSelectedDimensions = merge ? [...selectedDimensions, id] : [id]
+    chart.updateAttribute("selectedDimensions", newSelectedDimensions)
   }
 
   chart.onAttributeChange("dimensionsSort", sortDimensions)
@@ -153,5 +170,6 @@ export default chart => {
     getDimensionColor,
     getDimensionName,
     getDimensionValue,
+    onHoverSortDimensions,
   }
 }

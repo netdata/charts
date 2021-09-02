@@ -88,7 +88,7 @@ export default (sdk, chart) => {
       max = 100
     }
 
-    const minMax = [Math.min(min, value), Math.max(max, value)].sort()
+    const minMax = [Math.min(min, value), Math.max(max, value)].sort((a, b) => a - b)
 
     return minMax[0] === minMax[1] ? [minMax[0], minMax[1] + 1] : minMax
   }

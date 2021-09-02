@@ -47,7 +47,7 @@ const Dimensions = () => {
   const chart = useChart()
   const [x, row] = useAttributeValue("hoverX") || emptyArray
 
-  const [from, to, total, ids] = useMemo(() => {
+  const [from, to, total, getIds] = useMemo(() => {
     const dimensionIds = chart.getDimensionIds()
 
     const rowIndex = chart.getDimensionIndex(row)
@@ -56,9 +56,11 @@ const Dimensions = () => {
     const from = getFrom(total, rowIndex)
     const to = getTo(total, rowIndex)
 
-    const ids = dimensionIds.slice(from, to)
-
-    return [from, to, total, ids]
+    const getIds = positionX => {
+      const index = chart.getClosestRow(positionX)
+      return chart.onHoverSortDimensions(index, "valueDesc").slice(from, to)
+    }
+    return [from, to, total, getIds]
   }, [chart, row])
 
   return (
@@ -69,7 +71,7 @@ const Dimensions = () => {
       </Flex>
       {from > 0 && <TextNano color="textLite">↑{from} more values</TextNano>}
       <Flex gap={1} column margin={[2, 0, 0]}>
-        {ids.map(id => (
+        {getIds(x).map(id => (
           <Dimension key={id} id={id} strong={row === id} />
         ))}
       </Flex>

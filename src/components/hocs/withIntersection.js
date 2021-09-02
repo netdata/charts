@@ -13,7 +13,7 @@ export default Component => {
     const ref = useRef()
     const fullscreen = useAttributeValue("fullscreen")
 
-    const height = fullscreen ? "500px" : defaultHeight
+    const height = fullscreen ? "100%" : defaultHeight
 
     const onVisibility = visible =>
       visible && chart.getUI().setEstimatedWidth(ref.current.offsetWidth)
