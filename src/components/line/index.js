@@ -1,14 +1,14 @@
 import React, { forwardRef } from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import useHover from "@/components/useHover"
+import withChart from "@/components/hocs/withChart"
+import { useChart, useAttributeValue } from "@/components/provider"
 import Legend from "./legend"
 import Header from "./header"
 import Details from "./details"
 import DimensionFilter from "./dimensionFilter"
-import useHover from "./useHover"
 import ChartContentWrapper from "./chartContentWrapper"
-import { useChart, useAttributeValue } from "./provider"
 import FilterToolbox from "./filterToolbox"
-import withChart from "./hocs/withChart"
 
 export const Container = forwardRef((props, ref) => (
   <Flex

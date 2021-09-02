@@ -3,9 +3,9 @@ import { useTheme } from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
 import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
-import Color, { Color as ColorContainer } from "@/components/dimensions/color"
-import Name, { Name as NameContainer } from "@/components/dimensions/name"
-import Value, { Value as ValueContainer } from "@/components/dimensions/value"
+import Color, { Color as ColorContainer } from "@/components/line/dimensions/color"
+import Name, { Name as NameContainer } from "@/components/line/dimensions/name"
+import Value, { Value as ValueContainer } from "@/components/line/dimensions/value"
 import { useUnitSign, useVisibleDimensionId, useChart } from "@/components/provider"
 
 const DimensionContainer = props => (

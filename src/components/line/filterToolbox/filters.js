@@ -1,6 +1,6 @@
 import React from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import Separator from "@/components/separator"
+import Separator from "@/components/line/separator"
 import Aggregate from "./aggregate"
 import Dimensions from "./dimensions"
 import GroupBy from "./groupBy"

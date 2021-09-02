@@ -2,12 +2,12 @@ import React, { forwardRef } from "react"
 import styled, { css } from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { useInitialLoading, useEmpty, useAttributeValue } from "@/components/provider"
+import { useHovered } from "@/components/useHover"
+import ChartContainer from "@/components/chartContainer"
 import { CenterNoData } from "./overlays/proceeded"
 import Tooltip from "./tooltip"
 import Toolbox from "./toolbox"
-import { useHovered } from "./useHover"
-import ChartContainer from "./chartContainer"
-import SkeletonChart from "./skeletonChart"
+import Skeleton from "./skeleton"
 import Overlays from "./overlays"
 import dygraphStyle from "@/chartLibraries/dygraph/style.css"
 
@@ -50,7 +50,7 @@ const ChartContentWrapper = () => {
       {!initialLoading && !empty && <ChartContainer />}
       {!initialLoading && !empty && <Overlays />}
       {!initialLoading && empty && <CenterNoData />}
-      {initialLoading && <SkeletonChart />}
+      {initialLoading && <Skeleton />}
       {hovered && !empty && <Toolbox />}
       <Tooltip />
     </Container>

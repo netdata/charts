@@ -33,7 +33,7 @@ module.exports = {
       },
       {
         test: /\.svg$/,
-        include: [/node_modules\/@netdata\/netdata-ui/, /src\/components\/icon\/assets/],
+        include: [/node_modules\/@netdata\/netdata-ui/, /src\/components\/line\/skeleton/],
         loader: "raw-loader",
       },
       {
