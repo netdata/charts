@@ -1,6 +1,6 @@
 import React, { memo } from "react"
 import { useAttributeValue } from "@/components/provider"
-import Badge from "@/components/badge"
+import Badge from "@/components/line/badge"
 
 const badgeByStatus = {
   critical: "error",

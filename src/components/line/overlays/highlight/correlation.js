@@ -3,7 +3,7 @@ import Icon, { Button } from "@/components/icon"
 import useHover from "@/components/useHover"
 import correlationsIcon from "@netdata/netdata-ui/lib/components/icon/assets/correlations.svg"
 import { useChart, useAttributeValue } from "@/components/provider"
-import Badge from "@/components/badge"
+import Badge from "@/components/line/badge"
 
 const minTimeframe = 15
 const maxTimeframe = 180

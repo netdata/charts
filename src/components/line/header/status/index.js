@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { useChart, useInitialLoading, useEmpty } from "@/components/provider"
-import Badge from "@/components/badge"
+import Badge from "@/components/line/badge"
 import { useHovered } from "@/components/useHover"
 import Logo from "./logo"
 import Reload from "./reload"
