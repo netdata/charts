@@ -1,4 +1,4 @@
-import mount from "./components/line/mount"
+import mount from "./mount"
 import parseDOM from "./sdk/parseDOM"
 import makeDefaultSDK from "./makeDefaultSDK"
 
