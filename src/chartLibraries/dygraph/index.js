@@ -238,7 +238,7 @@ export default (sdk, chart) => {
     chartUI.unmount()
     hover()
     hoverX.destroy()
-    navigation.destroy()
+    navigation.destroyAll()
     overlays.destroy()
     dygraph.destroy()
     dygraph = null

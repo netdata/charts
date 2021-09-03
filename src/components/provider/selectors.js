@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState, useContext, useMemo } from "react"
-import { unregister } from "@/helpers/makeListeners"
 import context from "./context"
 
 export const useChart = () => useContext(context)
