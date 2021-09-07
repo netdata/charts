@@ -1,19 +1,9 @@
-import React, { useState, forwardRef } from "react"
+import React, { forwardRef } from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { useChart, useMetadata, useListener } from "@/components/provider"
+import { useMetadata } from "@/components/provider"
 import GroupBoxes from "./groupBoxes"
 import Legend from "./legend"
-
-const useGroupBoxLayout = () => {
-  const chart = useChart()
-
-  const getValue = () => chart.getUI().getGroupBoxLayout()
-  const [value, setValue] = useState(getValue)
-
-  useListener(() => chart.getUI().on("groupBoxLayoutChanged", () => setValue(getValue)), [chart])
-
-  return value
-}
+import useGroupBoxLayout from "./useGroupBoxLayout"
 
 const Container = forwardRef(({ renderBoxPopover, renderGroupPopover, ...rest }, ref) => {
   const { labels, data } = useGroupBoxLayout()

@@ -269,8 +269,6 @@ export default (sdk, chart) => {
     return dygraph.toDomXCoord(afterExtreme)
   }
 
-  const getPixelsPerPoint = () => 3
-
   const getEstimatedChartWidth = () => {
     const element = dygraph.getElement()
     const width = element ? element.offsetWidth : chartUI.getEstimatedWidth() || 300
@@ -286,7 +284,6 @@ export default (sdk, chart) => {
     getEstimatedChartWidth,
     getChartWidth,
     getChartHeight,
-    getPixelsPerPoint,
     getPreceded,
     mount,
     unmount,
