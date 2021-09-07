@@ -7,7 +7,7 @@ const themeIndex = {
 
 const getUrlOptions = () => []
 
-const getPixelsPerPoint = () => 1
+const getPixelsPerPoint = () => 3
 
 export default (sdk, chart) => {
   const listeners = makeListeners()

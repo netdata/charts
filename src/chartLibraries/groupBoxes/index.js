@@ -32,6 +32,7 @@ export default (sdk, chart) => {
   }
 
   const updateGroupBoxLayout = () => {
+    const { result } = chart.getPayload()
     const hoverX = chart.getAttribute("hoverX")
     const row = hoverX ? chart.getClosestRow(hoverX[0]) : -1
 
@@ -41,7 +42,7 @@ export default (sdk, chart) => {
         data:
           row === -1
             ? groupedBox.postAggregations
-            : groupedBox.indexes.map(index => data[row][index + 1]) || [],
+            : groupedBox.indexes.map(index => result.data[row][index + 1]),
       }
     })
 

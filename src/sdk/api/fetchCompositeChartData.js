@@ -23,6 +23,7 @@ const getAggregations = chart => {
     dimensionsAggregationMethod,
     groupBy,
     postGroupBy,
+    aggregationGroups,
   } = chart.getAttributes()
 
   const groupValues = [getGroupByValues(groupBy), postGroupBy && `label=${postGroupBy}`].filter(
@@ -37,21 +38,28 @@ const getAggregations = chart => {
     groupBy !== "chart" && {
       method: aggregationMethod,
       groupBy: groupValues,
+      ...(aggregationGroups.length && { labels: aggregationGroups }),
     },
   ].filter(Boolean)
 }
 
 const getCompositeChartPayload = chart => {
   const { context } = chart.getMetadata()
-  const { nodeIds, dimensions } = chart.getAttributes()
+  const { nodeIds, dimensions, postAggregationMethod, filteredLabels } = chart.getAttributes()
 
-  const filter = { nodeIDs: nodeIds, context, ...(dimensions.length && { dimensions }) }
+  const filter = {
+    nodeIDs: nodeIds,
+    context,
+    ...(dimensions.length && { dimensions }),
+    labels: filteredLabels,
+  }
   const aggregations = getAggregations(chart)
 
   return {
     filter,
     aggregations,
     agent_options: getChartURLOptions(chart),
+    ...(postAggregationMethod && { post_aggregation_methods: [postAggregationMethod] }),
     ...getChartPayload(chart),
   }
 }
