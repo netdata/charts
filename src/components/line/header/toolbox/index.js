@@ -8,10 +8,9 @@ import { useAttributeValue } from "@/components/provider"
 import Separator from "@/components/line/separator"
 import ChartType from "./chartType"
 import Fullscreen from "./fullscreen"
-import AddDashboard from "./addDashboard"
 import Information from "./information"
 
-export const Container = props => (
+const Container = props => (
   <Flex gap={2} justifyContent="end" flex basis="0" data-testid="chartHeaderToolbox" {...props} />
 )
 
@@ -25,9 +24,10 @@ const Toolbox = props => {
       <ChartType disabled={disabled} />
       <Separator disabled={disabled} />
       <Fullscreen disabled={disabled} />
-      <AddDashboard disabled={disabled} />
     </Container>
   )
 }
+
+export { Container, Separator, ChartType, Fullscreen, Information }
 
 export default Toolbox
