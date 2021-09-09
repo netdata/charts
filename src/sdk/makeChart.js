@@ -1,4 +1,5 @@
 import deepEqual from "@/helpers/deepEqual"
+import makeKeyboardListener from "@/helpers/makeKeyboardListener"
 import makeNode from "./makeNode"
 import initialPayload from "./initialPayload"
 import convert from "./unitConversion"
@@ -213,9 +214,23 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     }
   })
 
+  const {
+    onKeyChange,
+    onKeyAndClick,
+    addKeyboardListener,
+    removeKeyboardListener,
+  } = makeKeyboardListener()
+  onKeyChange(["Alt", "Shift", "KeyF"], () => {
+    node.updateAttribute("fullscreen", !node.getAttribute("fullscreen"))
+  })
+
   node.onAttributeChange("active", active => {
     if (!active) return stopAutofetch()
     if (node.getAttribute("autofetch")) return startAutofetch()
+  })
+
+  node.onAttributeChange("focused", focused => {
+    focused ? addKeyboardListener() : removeKeyboardListener()
   })
 
   const destroy = () => {
@@ -258,5 +273,21 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     getClosestRow,
   }
 
-  return { ...instance, ...makeDimensions(instance), ...makeFilterControllers(instance), destroy }
+  const dimensions = makeDimensions(instance)
+
+  const onDimensionToggle = onKeyAndClick(
+    ["Shift"],
+    id => ({ allPressed: merge }) => dimensions.toggleDimensionId(id, { merge }),
+    { allPressed: false }
+  )
+
+  return {
+    ...instance,
+    ...dimensions,
+    ...makeFilterControllers(instance),
+    destroy,
+    onKeyChange,
+    onKeyAndClick,
+    onDimensionToggle,
+  }
 }
