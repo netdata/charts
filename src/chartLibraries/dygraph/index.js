@@ -110,6 +110,7 @@ export default (sdk, chart) => {
       ...makeThemingOptions(),
       ...makeVisibilityOptions(),
       ...makeDataOptions(),
+      ...makeSparklineOptions(),
       // visibility return selected dimensions
       // logscale
     })
@@ -184,7 +185,7 @@ export default (sdk, chart) => {
     const stacked = chartType === "stacked"
     const area = chartType === "area"
     const line = chartType === "line"
-    const sparkline = false
+    const sparkline = chart.getAttribute("sparkline")
     const logScale = false
 
     const smooth = line && !sparkline
@@ -227,6 +228,33 @@ export default (sdk, chart) => {
       file: result.data,
       labels: result.labels,
       dateWindow,
+    }
+  }
+
+  const makeSparklineOptions = () => {
+    const sparkline = chart.getAttribute("sparkline")
+
+    if (!sparkline) return null
+
+    return {
+      drawGrid: false,
+      drawAxis: false,
+      title: undefined,
+      ylabel: undefined,
+      yLabelWidth: 0,
+      labelsSeparateLines: true,
+      rightGap: 0,
+      yRangePad: 1,
+      axis: {
+        x: {
+          drawGrid: false,
+          drawAxis: false,
+        },
+        y: {
+          drawGrid: false,
+          drawAxis: false,
+        },
+      },
     }
   }
 

@@ -16,6 +16,8 @@ export default {
   fetchStatedAt: 0,
   focused: false,
   active: false,
+  sparkline: false,
+  chartType: "",
   selectedDimensions: null,
   enabledHover: true,
   syncHover: true,
