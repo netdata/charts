@@ -1,14 +1,15 @@
-export default (chart, filteredRows) => {
+export default chart => {
   const {
     keys,
     labels: labelValues,
-    result: { postAggregatedData },
+    result: { postAggregatedData = {} },
   } = chart.getPayload()
-  const { groupBy, postGroupBy, aggregationGroups, postAggregationMethod } = chart.getAttributes()
+  const { groupBy, postGroupBy, aggregationGroups, filteredRows } = chart.getAttributes()
 
   const groupValues = keys[groupBy]
   const postGroupValues = keys[postGroupBy]
-  const postAggregatedValues = postAggregatedData[postAggregationMethod]
+
+  const postAggregatedValues = postAggregatedData[Object.keys(postAggregatedData)[0]]
   const indexes = filteredRows || [...Array(groupValues.length)].map((v, index) => index)
 
   const postGroupData = indexes.reduce((acc, index) => {
@@ -45,15 +46,14 @@ export default (chart, filteredRows) => {
   const groupChartLabels = groupData.map(boxes => {
     return aggregationGroups.reduce((acc, label) => {
       const groupLabels = new Set(
-        boxes.chartLabels.reduce((accChartLabels, chartLabels) => {
-          if (chartLabels[label]) {
-            accChartLabels.push(chartLabels[label])
-          }
-          return accChartLabels
-        }, [])
+        boxes.chartLabels.reduce(
+          (accChartLabels, chartLabels) =>
+            chartLabels[label] ? [...accChartLabels, ...chartLabels[label]] : accChartLabels,
+          []
+        )
       )
 
-      if (groupLabels.size === 0) {
+      if (groupLabels.size > 0) {
         acc[label] = Array.from(groupLabels)
       }
       return acc
