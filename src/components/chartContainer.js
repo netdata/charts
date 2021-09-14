@@ -10,6 +10,7 @@ const cursorByNavigation = {
 }
 
 const activeCursorByNavigation = {
+  ...cursorByNavigation,
   pan: "grabbing",
 }
 

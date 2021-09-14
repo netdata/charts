@@ -60,11 +60,9 @@ export default chartUI => {
     // chartUI.sdk.trigger("highlightVerticalEnd", chartUI.chart, range)
   }
 
-  const listeners = [
-    chartUI.on("mousedown", mousedown),
-    chartUI.on("mousemove", mousemove),
-    chartUI.on("mouseup", mouseup),
-  ]
-
-  return () => listeners.forEach(listener => listener())
+  return chartUI
+    .on("mousedown", mousedown)
+    .on("mousemove", mousemove)
+    .on("mouseup", mouseup)
+    .on("mouseout", mouseup)
 }

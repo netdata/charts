@@ -216,13 +216,10 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
 
   const {
     onKeyChange,
-    onKeyAndClick,
+    onKeyAndMouse,
     addKeyboardListener,
     removeKeyboardListener,
   } = makeKeyboardListener()
-  onKeyChange(["Alt", "Shift", "KeyF"], () => {
-    node.updateAttribute("fullscreen", !node.getAttribute("fullscreen"))
-  })
 
   node.onAttributeChange("active", active => {
     if (!active) return stopAutofetch()
@@ -273,12 +270,37 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     getClosestRow,
   }
 
+  onKeyChange(["Alt", "Shift", "KeyF"], () => {
+    node.updateAttribute("fullscreen", !node.getAttribute("fullscreen"))
+  })
+
   const dimensions = makeDimensions(instance)
 
-  const onDimensionToggle = onKeyAndClick(
+  const onDimensionToggle = onKeyAndMouse(
     ["Shift"],
     id => ({ allPressed: merge }) => dimensions.toggleDimensionId(id, { merge }),
     { allPressed: false }
+  )
+
+  const onHighlight = onKeyAndMouse("Alt", () => ({ allPressed }) =>
+    allPressed &&
+    node.updateAttributes({
+      navigation: "highlight",
+      prevNavigation: node.getAttribute("navigation"),
+    })
+  )
+
+  const onSelectVerticalAndZoom = onKeyAndMouse(["Shift", "Alt"], () => ({ allPressed }) =>
+    allPressed &&
+    node.updateAttributes({
+      navigation: "selectVertical",
+      prevNavigation: node.getAttribute("navigation"),
+    })
+  )
+
+  const onSelectAndZoom = onKeyAndMouse("Shift", () => ({ allPressed }) =>
+    allPressed &&
+    node.updateAttributes({ navigation: "select", prevNavigation: node.getAttribute("navigation") })
   )
 
   return {
@@ -287,7 +309,10 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     ...makeFilterControllers(instance),
     destroy,
     onKeyChange,
-    onKeyAndClick,
+    onKeyAndMouse,
     onDimensionToggle,
+    onHighlight,
+    onSelectAndZoom,
+    onSelectVerticalAndZoom,
   }
 }

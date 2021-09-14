@@ -13,7 +13,7 @@ const equalByPolicy = {
 }
 
 export default () => {
-  const keyMap = new Map()
+  const handlers = []
   const pressedSet = new Set()
 
   const onKeyChange = (
@@ -28,15 +28,17 @@ export default () => {
 
     const check = equalByPolicy[policy] || equalByPolicy.intersection
     const handler = eventType => {
-      if (eventType !== fireOn) return
-      if (!check(keysSet, pressedSet)) return
+      if (eventType !== fireOn) return false
+      if (!check(keysSet, pressedSet)) return false
       action()
+      return true
     }
-    keyMap.set(keysSet, handler)
-    return () => keyMap.delete(keysSet)
+    handlers.push(handler)
+    const i = handlers.length - 1
+    return () => handlers.splice(i, 1)
   }
 
-  const onKeyAndClick = (keys, action, { policy, allPressed = true } = {}) => {
+  const onKeyAndMouse = (keys, action, { policy, allPressed = true } = {}) => {
     const keysSet = new Set(Array.isArray(keys) ? keys : [keys])
 
     const check = equalByPolicy[policy] || equalByPolicy.intersection
@@ -44,8 +46,9 @@ export default () => {
     return (...args) => {
       const handle = action(...args)
       const checkPressed = check(keysSet, pressedSet)
-      if (allPressed && !checkPressed) return
+      if (allPressed && !checkPressed) return false
       handle({ allPressed: checkPressed })
+      return true
     }
   }
 
@@ -53,9 +56,12 @@ export default () => {
     const code = event.code || keyCodes[event.keyCode || event.which]
     const eventType = event.type
 
-    if (eventType === types.keydown && !pressedSet.has(code)) pressedSet.add(code)
+    if (eventType === types.keydown) {
+      if (pressedSet.has(code)) return
+      pressedSet.add(code)
+    }
 
-    keyMap.forEach(handler => handler(eventType))
+    handlers.some(handler => handler(eventType))
 
     if (eventType === types.keyup && pressedSet.has(code)) pressedSet.delete(code)
   }
@@ -70,5 +76,5 @@ export default () => {
     window.removeEventListener("keyup", eventListener)
   }
 
-  return { onKeyChange, onKeyAndClick, addKeyboardListener, removeKeyboardListener }
+  return { onKeyChange, onKeyAndMouse, addKeyboardListener, removeKeyboardListener, eventListener }
 }
