@@ -217,8 +217,8 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
   const {
     onKeyChange,
     onKeyAndMouse,
-    addKeyboardListener,
-    removeKeyboardListener,
+    initKeyboardListener,
+    clearKeyboardListener,
   } = makeKeyboardListener()
 
   node.onAttributeChange("active", active => {
@@ -227,13 +227,14 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
   })
 
   node.onAttributeChange("focused", focused => {
-    focused ? addKeyboardListener() : removeKeyboardListener()
+    focused ? initKeyboardListener() : clearKeyboardListener()
   })
 
   const destroy = () => {
     cancelFetch()
     stopAutofetch()
     clearFetchDelayTimeout()
+    clearKeyboardListener()
 
     if (ui) ui.unmount()
     ui = null

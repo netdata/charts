@@ -31,11 +31,9 @@ export default chartUI => {
     }
 
     const offsetToPercentage = (g, offsetX) => {
-      const xOffset = g.toDomCoords(g.xAxisRange()[0], null)[0]
-
-      const x = offsetX - xOffset
-
-      const w = g.toDomCoords(g.xAxisRange()[1], null)[0] - xOffset
+      const [axisAfterOffset] = g.toDomCoords(g.xAxisRange()[0], null)
+      const x = offsetX - axisAfterOffset
+      const w = g.toDomCoords(g.xAxisRange()[1], null)[0] - axisAfterOffset
 
       // Percentage from the left.
       return w == 0 ? 0 : x / w

@@ -66,15 +66,15 @@ export default () => {
     if (eventType === types.keyup && pressedSet.has(code)) pressedSet.delete(code)
   }
 
-  const addKeyboardListener = () => {
+  const initKeyboardListener = () => {
     window.addEventListener("keydown", eventListener)
     window.addEventListener("keyup", eventListener)
   }
 
-  const removeKeyboardListener = () => {
+  const clearKeyboardListener = () => {
     window.removeEventListener("keydown", eventListener)
     window.removeEventListener("keyup", eventListener)
   }
 
-  return { onKeyChange, onKeyAndMouse, addKeyboardListener, removeKeyboardListener, eventListener }
+  return { onKeyChange, onKeyAndMouse, initKeyboardListener, clearKeyboardListener, eventListener }
 }
