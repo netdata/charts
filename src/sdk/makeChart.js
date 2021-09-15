@@ -214,17 +214,17 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     }
   })
 
+  node.onAttributeChange("active", active => {
+    if (!active) return stopAutofetch()
+    if (node.getAttribute("autofetch")) return startAutofetch()
+  })
+
   const {
     onKeyChange,
     onKeyAndMouse,
     initKeyboardListener,
     clearKeyboardListener,
   } = makeKeyboardListener()
-
-  node.onAttributeChange("active", active => {
-    if (!active) return stopAutofetch()
-    if (node.getAttribute("autofetch")) return startAutofetch()
-  })
 
   node.onAttributeChange("focused", focused => {
     focused ? initKeyboardListener() : clearKeyboardListener()
@@ -284,27 +284,6 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     { allPressed: false }
   )
 
-  const onHighlight = onKeyAndMouse("Alt", () => ({ allPressed }) =>
-    allPressed &&
-    node.updateAttributes({
-      navigation: "highlight",
-      prevNavigation: node.getAttribute("navigation"),
-    })
-  )
-
-  const onSelectVerticalAndZoom = onKeyAndMouse(["Shift", "Alt"], () => ({ allPressed }) =>
-    allPressed &&
-    node.updateAttributes({
-      navigation: "selectVertical",
-      prevNavigation: node.getAttribute("navigation"),
-    })
-  )
-
-  const onSelectAndZoom = onKeyAndMouse("Shift", () => ({ allPressed }) =>
-    allPressed &&
-    node.updateAttributes({ navigation: "select", prevNavigation: node.getAttribute("navigation") })
-  )
-
   return {
     ...instance,
     ...dimensions,
@@ -313,8 +292,5 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     onKeyChange,
     onKeyAndMouse,
     onDimensionToggle,
-    onHighlight,
-    onSelectAndZoom,
-    onSelectVerticalAndZoom,
   }
 }

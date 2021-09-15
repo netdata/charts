@@ -1,19 +1,46 @@
+import makeKeyboardListener from "@/helpers/makeKeyboardListener"
+
 export default chartUI => {
+  const { onKeyAndMouse, initKeyboardListener, clearKeyboardListener } = makeKeyboardListener()
+
+  initKeyboardListener()
+  const updateNavigation = (
+    navigation,
+    prevNavigation = chartUI.chart.getAttribute("navigation")
+  ) =>
+    chartUI.chart.updateAttributes({
+      navigation,
+      prevNavigation,
+    })
+
+  const onSelectVerticalAndZoom = onKeyAndMouse(["Shift", "Alt"], () => ({ allPressed }) =>
+    allPressed && updateNavigation("selectVertical")
+  )
+
+  const onHighlight = onKeyAndMouse("Alt", () => ({ allPressed }) =>
+    allPressed && updateNavigation("highlight")
+  )
+
+  const onSelectAndZoom = onKeyAndMouse("Shift", () => ({ allPressed }) =>
+    allPressed && updateNavigation("select")
+  )
+
   const mousedown = () => {
-    if (chartUI.chart.onSelectVerticalAndZoom()) return
-    if (chartUI.chart.onHighlight()) return
-    if (chartUI.chart.onSelectAndZoom()) return
+    if (onSelectVerticalAndZoom()) return
+    if (onHighlight()) return
+    if (onSelectAndZoom()) return
   }
 
   const mouseup = () => {
     setTimeout(() => {
       const navigation = chartUI.chart.getAttribute("prevNavigation")
-      if (navigation) chartUI.chart.updateAttributes({ navigation, prevNavigation: null })
+      if (navigation) updateNavigation(navigation, null)
     })
   }
 
-  const wheel = (event, g) => {
-    if (!event.shiftKey && !event.altKey) return
+  const onZoom = onKeyAndMouse(["Shift", "Alt"], (event, g) => ({ allPressed }) => {
+    if (!allPressed) return
+
     event.preventDefault()
     event.stopPropagation()
 
@@ -46,7 +73,12 @@ export default chartUI => {
     const xPct = offsetToPercentage(g, event.offsetX)
 
     zoom(g, percentage, xPct)
-  }
+  })
 
-  return chartUI.on("mousedown", mousedown).on("mouseup", mouseup).on("wheel", wheel)
+  const unregister = chartUI.on("mousedown", mousedown).on("mouseup", mouseup).on("wheel", onZoom)
+
+  return () => {
+    unregister()
+    clearKeyboardListener()
+  }
 }
