@@ -13,7 +13,7 @@ const ChartContainer = props => {
 
   useLayoutEffect(() => {
     chart.getUI().mount(ref.current)
-    return () => chart.getUI().unmount()
+    return () => chart.getUI() && chart.getUI().unmount()
   }, [])
 
   return <Container data-testid="chartContent" ref={ref} {...props} />

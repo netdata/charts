@@ -30,6 +30,13 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
   const cancelFetch = () => abortController && abortController.abort()
 
   const getMetadata = () => getMetadataDecorator().get(instance)
+  const fetchMetadata = () => getMetadataDecorator().fetch(instance)
+
+  const setMetadata = nextChartsMetadata => {
+    const prev = chartsMetadata
+    chartsMetadata = nextChartsMetadata
+    node.trigger("metadataChanged", nextChartsMetadata.get(), prev.get())
+  }
 
   const clearFetchDelayTimeout = () => {
     if (fetchDelayTimeoutId === null) node.trigger("timeout", false)
@@ -145,16 +152,14 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
 
     abortController = new AbortController()
     const options = { signal: abortController.signal }
-    return getMetadataDecorator()
-      .fetch(instance)
-      .then(() => {
-        if (node.getAttribute("composite") && getMetadata() !== prevMetadata) {
-          prevMetadata = getMetadata()
-          const attributes = getInitialFilterAttributes(instance)
-          node.setAttributes(attributes)
-        }
-        return getChart(instance, options).then(doneFetch).catch(failFetch)
-      })
+    return fetchMetadata().then(() => {
+      if (node.getAttribute("composite") && getMetadata() !== prevMetadata) {
+        prevMetadata = getMetadata()
+        const attributes = getInitialFilterAttributes(instance)
+        node.setAttributes(attributes)
+      }
+      return getChart(instance, options).then(doneFetch).catch(failFetch)
+    })
   }
 
   const getUI = () => ui
@@ -165,11 +170,8 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
   const fetchAndRender = () => fetch().then(() => ui && ui.render())
 
   const getConvertedValue = value => {
-    const {
-      unitsConversionMethod,
-      unitsConversionDivider,
-      unitsConversionFractionDigits,
-    } = node.getAttributes()
+    const { unitsConversionMethod, unitsConversionDivider, unitsConversionFractionDigits } =
+      node.getAttributes()
     const converted = convert(instance, unitsConversionMethod, value, unitsConversionDivider)
 
     if (unitsConversionFractionDigits === -1) return converted
@@ -258,6 +260,7 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     getUI,
     setUI,
     getMetadata,
+    setMetadata,
     getPayload,
     fetch,
     doneFetch,

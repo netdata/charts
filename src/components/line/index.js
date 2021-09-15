@@ -34,7 +34,7 @@ export const Footer = props => (
 )
 
 export const ContentWrapper = props => (
-  <Flex position="relative" column flex={true} data-testid="contentWrapper" {...props} />
+  <Flex position="relative" column flex data-testid="contentWrapper" {...props} />
 )
 
 export const Line = props => {
