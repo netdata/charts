@@ -63,14 +63,15 @@ const Dimension = ({ id }) => {
       <Color id={id} />
       <Flex flex column overflow="hidden" data-testid="chartLegendDimension-details">
         <Name id={id} />
-        {visible && (
-          <Flex gap={1} data-testid="chartLegendDimension-valueContainer">
-            <Value id={id} strong />
+
+        <Flex gap={1} data-testid="chartLegendDimension-valueContainer">
+          <Value id={id} strong visible={visible} />
+          {visible && (
             <TextMicro whiteSpace="nowrap" truncate color="textDescription">
               {unit}
             </TextMicro>
-          </Flex>
-        )}
+          )}
+        </Flex>
       </Flex>
     </DimensionContainer>
   )

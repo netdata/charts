@@ -60,9 +60,5 @@ export default chartUI => {
     chartUI.sdk.trigger("highlightEnd", chartUI.chart, range)
   }
 
-  return chartUI
-    .on("mousedown", mousedown)
-    .on("mousemove", mousemove)
-    .on("mouseup", mouseup)
-    .on("mouseout", mouseup)
+  return chartUI.on("mousedown", mousedown).on("mousemove", mousemove).on("mouseup", mouseup)
 }

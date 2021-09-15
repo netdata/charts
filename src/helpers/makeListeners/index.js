@@ -13,7 +13,7 @@ export default () => {
     listenersByEvent[eventName] = listenersByEvent[eventName] || new Set()
     listenersByEvent[eventName].add(handler)
 
-    offs.push(() => off(eventName, handler))
+    offs.unshift(() => off(eventName, handler))
 
     const remove = () => offs.forEach(o => o())
 

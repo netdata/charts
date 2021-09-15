@@ -3,7 +3,6 @@ import keyCodes, { aliasByCode } from "./keys"
 const types = {
   keydown: "keydown",
   keyup: "keyup",
-  click: "click",
 }
 
 const equalByPolicy = {
