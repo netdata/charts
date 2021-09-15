@@ -226,9 +226,10 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     if (node.getAttribute("autofetch")) return startAutofetch()
   })
 
-  node.onAttributeChange("focused", focused =>
+  node.onAttributeChange("focused", focused => {
     focused ? initKeyboardListener() : clearKeyboardListener()
-  )
+    invalidateClosestRowCache()
+  })
 
   const destroy = () => {
     cancelFetch()
