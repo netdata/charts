@@ -10,6 +10,7 @@ import {
   useUnitSign,
   useAttributeValue,
   useListener,
+  useOnResize,
 } from "@/components/provider"
 
 const Label = styled(Text)`
@@ -105,8 +106,7 @@ const StatsContainer = styled(Flex).attrs({
 `
 
 const Stats = () => {
-  const chart = useChart()
-  const width = chart.getUI().getChartWidth()
+  const width = useOnResize()
 
   return (
     <StatsContainer fontSize={`${width / 20}px`}>

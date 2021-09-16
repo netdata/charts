@@ -110,6 +110,18 @@ export const usePayload = () => {
   return value
 }
 
+export const useOnResize = () => {
+  const chart = useChart()
+
+  const getValue = () => chart.getUI().getChartWidth()
+
+  const [value, setValue] = useState(getValue)
+
+  useListener(() => chart.getUI().on("resize", () => setValue(getValue())), [chart])
+
+  return value
+}
+
 export const useDimensionIds = () => {
   const chart = useChart()
 

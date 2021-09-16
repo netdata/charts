@@ -2,12 +2,12 @@ import Dygraph from "dygraphs"
 import { format } from "date-fns"
 import makeChartUI from "@/sdk/makeChartUI"
 import makeExecuteLatest from "@/helpers/makeExecuteLatest"
+import makeResizeObserver from "@/helpers/makeResizeObserver"
 import makeNavigation from "./navigation"
 import makeHover from "./hover"
 import makeHoverX from "./hoverX"
 import makeOverlays from "./overlays"
 import crosshair from "./crosshair"
-import makeResizeObserver from "./makeResizeObserver"
 
 const axisLabelFormatter = time => {
   const midnight = time.getHours() === 0 && time.getMinutes() === 0 && time.getSeconds() === 0
@@ -138,7 +138,10 @@ export default (sdk, chart) => {
     // }
     // dygraph.addAndTrackEvent(dygraph.mouseEventElement_, "mousemove", mousemove)
 
-    resizeObserver = makeResizeObserver(element, () => dygraph.resize())
+    resizeObserver = makeResizeObserver(element, () => {
+      dygraph.resize()
+      chartUI.trigger("resize")
+    })
 
     hoverX.toggle(attributes.enabledHover)
     navigation.set(attributes.navigation)
@@ -273,10 +276,10 @@ export default (sdk, chart) => {
     chartUI.unmount()
     hover()
     hoverX.destroy()
-    navigation.destroyAll()
-    overlays.destroy()
+    navigation.destroy()
     dygraph.destroy()
     dygraph = null
+    overlays.destroy()
   }
 
   const getDygraph = () => dygraph
