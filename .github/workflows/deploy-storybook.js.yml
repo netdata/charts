@@ -31,4 +31,5 @@ jobs:
 
       - name: Deploy
         run: |
+          yarn
           yarn deploy-storybook
