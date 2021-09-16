@@ -13,7 +13,7 @@ export default {
   loaded: false,
   loading: false,
   updatedAt: 0,
-  fetchStatedAt: 0,
+  fetchStartedAt: 0,
   focused: false,
   active: false,
   sparkline: false,

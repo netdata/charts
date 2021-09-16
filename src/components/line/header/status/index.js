@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useMemo } from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { useChart, useInitialLoading, useEmpty } from "@/components/provider"
 import Badge from "@/components/line/badge"
@@ -12,12 +12,43 @@ const ReloadContainer = () => {
   return <Flex ref={ref}>{hovered ? <Reload /> : <Logo />}</Flex>
 }
 
+const propsByStatus = {
+  delayed: {
+    type: "warning",
+    children: "Timeout",
+    status: "delayed",
+  },
+  error: {
+    type: "error",
+    children: "Error",
+    status: "error",
+  },
+  loading: {
+    type: "neutral",
+    children: "Loading",
+    status: "loading",
+  },
+}
+
+const useStatusProps = ({ initialLoading, error, delayed }) =>
+  useMemo(() => {
+    if (error) return propsByStatus.error
+    if (delayed) return propsByStatus.delayed
+    if (initialLoading) return propsByStatus.loading
+    return null
+  }, [initialLoading, error, delayed])
+
+const StatusBadge = ({ type, status, ...rest }) =>
+  type ? <Badge type={type} data-testid={`chartHeaderStatus-${status}`} {...rest} /> : null
+
 const Status = props => {
   const chart = useChart()
   const [delayed, setDelayed] = useState(false)
   const [error, setError] = useState(false)
   const initialLoading = useInitialLoading()
   const empty = useEmpty()
+
+  const statusProps = useStatusProps({ initialLoading, error, delayed })
 
   useEffect(() => chart.on("timeout", setDelayed), [chart])
 
@@ -29,25 +60,11 @@ const Status = props => {
   return (
     <Flex gap={2} data-testid="chartHeaderStatus" flex basis="0" {...props}>
       <ReloadContainer />
-      {delayed && (
-        <Badge type="warning" data-testid="chartHeaderStatus-timeout">
-          Timeout
-        </Badge>
-      )}
-      {error && (
-        <Badge type="error" data-testid="chartHeaderStatus-error">
-          Error
-        </Badge>
-      )}
-      {initialLoading && (
-        <Badge type="neutral" data-testid="chartHeaderStatus-loading">
-          Loading
-        </Badge>
-      )}
+      <StatusBadge {...statusProps} />
       {!initialLoading && empty && (
-        <Badge type="neutral" data-testid="chartHeaderStatus-empty">
+        <StatusBadge type="neutral" status="empty">
           No data
-        </Badge>
+        </StatusBadge>
       )}
     </Flex>
   )

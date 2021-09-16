@@ -11,6 +11,7 @@ import makeFilterControllers from "./filters/makeControllers"
 import camelizePayload from "./camelizePayload"
 
 const requestTimeoutMs = 5 * 1000
+const maxBackoffMs = 30 * 1000
 
 export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attributes } = {}) => {
   let node = makeNode({ sdk, parent, attributes })
@@ -20,6 +21,16 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
   let fetchDelayTimeoutId = null
   let fetchTimeoutId = null
   let prevMetadata = null
+
+  let backoffMs = null
+  const backoff = ms => {
+    if (ms) {
+      backoffMs = ms
+      return
+    }
+    const tmpBackoffMs = backoffMs ? backoffMs * 2 : getUpdateEvery()
+    backoffMs = tmpBackoffMs > maxBackoffMs ? maxBackoffMs : tmpBackoffMs
+  }
 
   const getMetadataDecorator = () => chartsMetadata || sdk.chartsMetadata
 
@@ -55,20 +66,21 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
   }
 
   const startAutofetch = () => {
-    const { fetchStatedAt, loading, autofetch, active } = node.getAttributes()
+    const { fetchStartedAt, loading, autofetch, active } = node.getAttributes()
 
     if (!autofetch || loading || !active) return
 
-    if (fetchStatedAt === 0) return fetch()
+    if (fetchStartedAt === 0) return fetch()
 
-    const fetchingPeriod = Date.now() - fetchStatedAt
+    const fetchingPeriod = Date.now() - fetchStartedAt
     const updateEveryMs = getUpdateEvery()
     const div = fetchingPeriod / updateEveryMs
     const updateEveryMultiples = Math.floor(div)
 
     if (updateEveryMultiples >= 1) return fetch()
 
-    const remaining = updateEveryMs - Math.round((div - Math.floor(div)) * updateEveryMs)
+    const remaining =
+      backoffMs || updateEveryMs - Math.round((div - Math.floor(div)) * updateEveryMs)
 
     fetchTimeoutId = setTimeout(() => {
       startAutofetch()
@@ -93,6 +105,7 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
   }
 
   const doneFetch = nextRawPayload => {
+    backoff(null)
     const nextPayload = camelizePayload(nextRawPayload)
 
     const result = transformResult(nextPayload)
@@ -125,7 +138,7 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
 
   const failFetch = error => {
     if (!node) return
-
+    backoff()
     node.updateAttribute("loading", false)
     if (!error || error.name !== "AbortError") node.trigger("failFetch", error)
     finishFetch()
@@ -142,7 +155,7 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     }
 
     node.trigger("startFetch")
-    node.updateAttributes({ loading: true, fetchStatedAt: Date.now() })
+    node.updateAttributes({ loading: true, fetchStartedAt: Date.now() })
 
     clearTimeout(fetchDelayTimeoutId)
     fetchDelayTimeoutId = setTimeout(() => {
@@ -170,8 +183,11 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
   const fetchAndRender = () => fetch().then(() => ui && ui.render())
 
   const getConvertedValue = value => {
-    const { unitsConversionMethod, unitsConversionDivider, unitsConversionFractionDigits } =
-      node.getAttributes()
+    const {
+      unitsConversionMethod,
+      unitsConversionDivider,
+      unitsConversionFractionDigits,
+    } = node.getAttributes()
     const converted = convert(instance, unitsConversionMethod, value, unitsConversionDivider)
 
     if (unitsConversionFractionDigits === -1) return converted
