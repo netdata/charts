@@ -21,7 +21,8 @@
     "lint": "eslint './src/**/*.js'",
     "clean": "rimraf lib dist es coverage",
     "prepublish": "yarn clean && yarn build",
-    "start": "start-storybook -p 6006"
+    "start": "start-storybook -p 6006",
+    "deploy-storybook": "storybook-to-ghpages"
   },
   "keywords": [
     "netdata",
@@ -45,6 +46,7 @@
     "@babel/preset-react": "^7.14.5",
     "@netdata/netdata-ui": "^1.6.33",
     "@storybook/react": "^6.3.7",
+    "@storybook/storybook-deployer": "^2.8.10",
     "babel-eslint": "^10.1.0",
     "babel-loader": "^8.2.2",
     "babel-plugin-module-resolver": "^4.1.0",
