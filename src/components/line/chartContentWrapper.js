@@ -10,7 +10,7 @@ import Toolbox from "./toolbox"
 import Skeleton from "./skeleton"
 import Overlays from "./overlays"
 import dygraphStyle from "@/chartLibraries/dygraph/style.css"
-import cursorStyle from "@components/helpers/cursorStyle.js"
+import cursorStyle from "@/components/helpers/cursorStyle.js"
 
 const chartLibraries = {
   dygraph: css`
