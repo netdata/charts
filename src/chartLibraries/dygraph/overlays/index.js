@@ -14,9 +14,14 @@ export default chartUI => {
     Object.keys(overlays).forEach(drawOverlay)
   }
 
+  const render = () => {
+    const dygraph = chartUI.getDygraph()
+    if (dygraph) dygraph.renderGraph_(false)
+  }
+
   const destroy = () => {
     if (!off) return
-    chartUI.getDygraph().renderGraph_(false)
+    render()
     off()
     off = null
   }
@@ -28,7 +33,7 @@ export default chartUI => {
     if (!off) {
       off = chartUI.on("drawCallback", drawOverlays)
     } else {
-      chartUI.getDygraph().renderGraph_(false)
+      render()
     }
   }
 

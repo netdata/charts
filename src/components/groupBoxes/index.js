@@ -2,7 +2,7 @@ import React from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import withChart from "@/components/hocs/withChart"
-import { useAttributeValue } from "@/components/provider"
+import { useAttributeValue, useEmpty } from "@/components/provider"
 import ChartContainer from "@/components/chartContainer"
 import Container from "./container"
 

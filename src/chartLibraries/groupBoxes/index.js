@@ -17,7 +17,8 @@ export default (sdk, chart) => {
 
     offs = unregister(
       chart.on("successFetch", updateGroupBox),
-      chart.onAttributeChange("hoverX", updateGroupBoxLayout)
+      chart.onAttributeChange("hoverX", updateGroupBoxLayout),
+      chart.onAttributeChange("filteredRows", updateGroupBox)
     )
   }
 
@@ -27,12 +28,17 @@ export default (sdk, chart) => {
   }
 
   const updateGroupBox = () => {
+    const { result } = chart.getPayload()
+    if (result.data.length === 0) return
+
     groupBoxData = transform(chart)
     updateGroupBoxLayout()
   }
 
   const updateGroupBoxLayout = () => {
     const { result } = chart.getPayload()
+    if (result.data.length === 0) return
+
     const hoverX = chart.getAttribute("hoverX")
     const row = hoverX ? chart.getClosestRow(hoverX[0]) : -1
 
@@ -46,7 +52,7 @@ export default (sdk, chart) => {
       }
     })
 
-    groupBoxLayout = { labels: groupBoxData.labels, data }
+    groupBoxLayout = { labels: groupBoxData.labels, data, raw: groupBoxData }
 
     chartUI.trigger("groupBoxLayoutChanged", groupBoxLayout)
   }

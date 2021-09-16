@@ -1,7 +1,7 @@
 import EasyPie from "easy-pie-chart"
 import makeChartUI from "@/sdk/makeChartUI"
 import { unregister } from "@/helpers/makeListeners"
-import makeResizeObserver from "../dygraph/makeResizeObserver"
+import makeResizeObserver from "@/helpers/makeResizeObserver"
 
 const getUrlOptions = () => ["absolute"]
 
@@ -42,6 +42,7 @@ export default (sdk, chart) => {
       const canvas = easyPie.renderer.getCanvas()
       element.removeChild(canvas)
       makeEasyPie()
+      chartUI.trigger("resize")
     })
 
     listeners = unregister(
@@ -106,9 +107,7 @@ export default (sdk, chart) => {
 
     const { result } = chart.getPayload()
     const row = hoverX ? chart.getClosestRow(hoverX[0]) : result.data.length - 1
-    if (!result.data[row]) {
-      debugger
-    }
+
     const [, ...rows] = result.data[row]
     const value = rows.reduce((acc, v) => acc + v, 0)
     let [min, max] = getMinMax(value)

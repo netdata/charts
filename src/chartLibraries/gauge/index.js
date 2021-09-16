@@ -1,6 +1,7 @@
 import { Gauge } from "gaugeJS"
 import makeChartUI from "@/sdk/makeChartUI"
 import { unregister } from "@/helpers/makeListeners"
+import makeResizeObserver from "@/helpers/makeResizeObserver"
 
 const getUrlOptions = () => ["absolute"]
 
@@ -11,6 +12,7 @@ export default (sdk, chart) => {
   let renderedValue = 0
   let prevMin
   let prevMax
+  let resizeObserver
 
   const mount = element => {
     if (gauge) return
@@ -38,6 +40,10 @@ export default (sdk, chart) => {
 
     gauge.maxValue = 100
     gauge.setMinValue(0)
+
+    resizeObserver = makeResizeObserver(element, () => {
+      chartUI.trigger("resize")
+    })
 
     const { loaded } = chart.getAttributes()
 
@@ -93,9 +99,6 @@ export default (sdk, chart) => {
     const { result } = chart.getPayload()
 
     const row = hoverX ? chart.getClosestRow(hoverX[0]) : result.data.length - 1
-    if (!result.data[row]) {
-      debugger
-    }
 
     const [, ...rows] = result.data[row]
     const value = rows.reduce((acc, v) => acc + v, 0)
@@ -124,6 +127,7 @@ export default (sdk, chart) => {
   const unmount = () => {
     if (listeners) listeners()
 
+    if (resizeObserver) resizeObserver()
     gauge = null
     prevMin = null
     prevMax = null

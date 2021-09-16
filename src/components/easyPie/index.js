@@ -7,6 +7,7 @@ import {
   useUnitSign,
   useAttributeValue,
   useListener,
+  useOnResize,
 } from "@/components/provider"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
@@ -73,8 +74,7 @@ const StatsContainer = styled(Flex).attrs({
 `
 
 const Stats = () => {
-  const chart = useChart()
-  const width = chart.getUI().getChartWidth()
+  const width = useOnResize()
 
   return (
     <StatsContainer inset={`${width * 0.3}px 0`} fontSize={`${width / 15}px`}>

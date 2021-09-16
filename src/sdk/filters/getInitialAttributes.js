@@ -10,7 +10,6 @@ export default chart => {
   const groupBy = chart.getAttribute("groupBy") || (clusterId ? "k8s_namespace" : "dimension")
 
   return {
-    id,
     aggregationMethod: aggregationMethod || getAggregateMethod(units),
     dimensions: dimensions.length ? dimensions : getDimensions(chart, groupBy),
     dimensionsAggregationMethod: dimensionsAggregationMethod || "sum",

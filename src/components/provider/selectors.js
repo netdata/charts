@@ -68,7 +68,14 @@ export const useAttribute = name => {
 
 export const useMetadata = () => {
   const chart = useChart()
-  return chart.getMetadata()
+
+  const getValue = () => chart.getMetadata()
+
+  const [value, setValue] = useState(getValue)
+
+  useListener(() => chart.on("metadataChanged", () => setValue(getValue())), [chart])
+
+  return value
 }
 
 export const useTitle = () => {
@@ -84,9 +91,10 @@ export const useVisibleDimensionId = id => {
   const getValue = () => chart.isDimensionVisible(id)
   const [visible, setVisible] = useState(getValue)
 
-  useListener(() => chart.onAttributeChange("selectedDimensions", () => setVisible(getValue())), [
-    chart,
-  ])
+  useListener(
+    () => chart.onAttributeChange("selectedDimensions", () => setVisible(getValue())),
+    [chart]
+  )
 
   return visible
 }
@@ -95,11 +103,23 @@ export const usePayload = () => {
   const chart = useChart()
 
   const getValue = () => chart.getPayload()
-  const [visible, setVisible] = useState(getValue)
+  const [value, setValue] = useState(getValue)
 
-  useListener(() => chart.on("successFetch", () => setVisible(getValue())), [chart])
+  useListener(() => chart.on("successFetch", () => setValue(getValue())), [chart])
 
-  return visible
+  return value
+}
+
+export const useOnResize = () => {
+  const chart = useChart()
+
+  const getValue = () => chart.getUI().getChartWidth()
+
+  const [value, setValue] = useState(getValue)
+
+  useListener(() => chart.getUI().on("resize", () => setValue(getValue())), [chart])
+
+  return value
 }
 
 export const useDimensionIds = () => {
