@@ -55,13 +55,13 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
   }
 
   const startAutofetch = () => {
-    const { fetchStatedAt, loading, autofetch, active } = node.getAttributes()
+    const { fetchStartedAt, loading, autofetch, active } = node.getAttributes()
 
     if (!autofetch || loading || !active) return
 
-    if (fetchStatedAt === 0) return fetch()
+    if (fetchStartedAt === 0) return fetch()
 
-    const fetchingPeriod = Date.now() - fetchStatedAt
+    const fetchingPeriod = Date.now() - fetchStartedAt
     const updateEveryMs = getUpdateEvery()
     const div = fetchingPeriod / updateEveryMs
     const updateEveryMultiples = Math.floor(div)
@@ -142,7 +142,7 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     }
 
     node.trigger("startFetch")
-    node.updateAttributes({ loading: true, fetchStatedAt: Date.now() })
+    node.updateAttributes({ loading: true, fetchStartedAt: Date.now() })
 
     clearTimeout(fetchDelayTimeoutId)
     fetchDelayTimeoutId = setTimeout(() => {
@@ -170,8 +170,11 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
   const fetchAndRender = () => fetch().then(() => ui && ui.render())
 
   const getConvertedValue = value => {
-    const { unitsConversionMethod, unitsConversionDivider, unitsConversionFractionDigits } =
-      node.getAttributes()
+    const {
+      unitsConversionMethod,
+      unitsConversionDivider,
+      unitsConversionFractionDigits,
+    } = node.getAttributes()
     const converted = convert(instance, unitsConversionMethod, value, unitsConversionDivider)
 
     if (unitsConversionFractionDigits === -1) return converted
