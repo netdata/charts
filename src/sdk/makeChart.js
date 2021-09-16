@@ -11,6 +11,7 @@ import makeFilterControllers from "./filters/makeControllers"
 import camelizePayload from "./camelizePayload"
 
 const requestTimeoutMs = 5 * 1000
+const maxBackoffMs = 30 * 1000
 
 export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attributes } = {}) => {
   let node = makeNode({ sdk, parent, attributes })
@@ -20,6 +21,16 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
   let fetchDelayTimeoutId = null
   let fetchTimeoutId = null
   let prevMetadata = null
+
+  let backoffMs = null
+  const backoff = ms => {
+    if (ms) {
+      backoffMs = ms
+      return
+    }
+    const tmpBackoffMs = backoffMs ? backoffMs * 2 : getUpdateEvery()
+    backoffMs = tmpBackoffMs > maxBackoffMs ? maxBackoffMs : tmpBackoffMs
+  }
 
   const getMetadataDecorator = () => chartsMetadata || sdk.chartsMetadata
 
@@ -68,7 +79,8 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
 
     if (updateEveryMultiples >= 1) return fetch()
 
-    const remaining = updateEveryMs - Math.round((div - Math.floor(div)) * updateEveryMs)
+    const remaining =
+      backoffMs || updateEveryMs - Math.round((div - Math.floor(div)) * updateEveryMs)
 
     fetchTimeoutId = setTimeout(() => {
       startAutofetch()
@@ -93,6 +105,7 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
   }
 
   const doneFetch = nextRawPayload => {
+    backoff(null)
     const nextPayload = camelizePayload(nextRawPayload)
 
     const result = transformResult(nextPayload)
@@ -125,7 +138,7 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
 
   const failFetch = error => {
     if (!node) return
-
+    backoff()
     node.updateAttribute("loading", false)
     if (!error || error.name !== "AbortError") node.trigger("failFetch", error)
     finishFetch()
