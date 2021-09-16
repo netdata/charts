@@ -4,7 +4,7 @@ import Status from "./status"
 import Title from "./title"
 import Toolbox from "./toolbox"
 
-export const Container = props => (
+const Container = props => (
   <Flex
     justifyContent="between"
     alignItems="center"
@@ -23,5 +23,7 @@ const Header = () => (
     <Toolbox />
   </Container>
 )
+
+export { Container, Status, Title, Toolbox }
 
 export default Header

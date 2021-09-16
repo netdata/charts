@@ -7,7 +7,7 @@ export const Value = props => (
   <TextMicro color="textDescription" data-testid="chartDimensions-value" {...props} />
 )
 
-const Container = ({ id, ...rest }) => {
+const Container = ({ id, visible, ...rest }) => {
   const chart = useChart()
 
   const getValue = () => {
@@ -37,6 +37,8 @@ const Container = ({ id, ...rest }) => {
       off()
     }
   }, [chart])
+
+  if (!visible) return null
 
   return <Value {...rest}>{value}</Value>
 }

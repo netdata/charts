@@ -10,10 +10,12 @@ import Toolbox from "./toolbox"
 import Skeleton from "./skeleton"
 import Overlays from "./overlays"
 import dygraphStyle from "@/chartLibraries/dygraph/style.css"
+import cursorStyle from "@/helpers/makeKeyboardListener/style.js"
 
 const chartLibraries = {
   dygraph: css`
     ${dygraphStyle}
+    ${cursorStyle}
   `,
 }
 
@@ -23,6 +25,7 @@ const StyledContainer = styled(Flex)`
 
 export const Container = forwardRef((props, ref) => {
   const chartLibrary = useAttributeValue("chartLibrary")
+  const navigation = useAttributeValue("navigation")
 
   return (
     <StyledContainer
@@ -33,6 +36,7 @@ export const Container = forwardRef((props, ref) => {
       flex
       data-testid="chartContentWrapper"
       height="100%"
+      navigation={navigation}
       {...props}
     />
   )

@@ -90,6 +90,7 @@ export default (sdk, chart) => {
         touchmove: executeLatest((...args) => chartUI.trigger("touchmove", ...args)),
         touchend: executeLatest((...args) => chartUI.trigger("touchend", ...args)),
         dblclick: executeLatest((...args) => chartUI.trigger("dblclick", ...args)),
+        wheel: executeLatest((...args) => chartUI.trigger("wheel", ...args)),
       },
 
       strokeBorderWidth: 0,
@@ -238,7 +239,7 @@ export default (sdk, chart) => {
     chartUI.unmount()
     hover()
     hoverX.destroy()
-    navigation.destroy()
+    navigation.destroyAll()
     overlays.destroy()
     dygraph.destroy()
     dygraph = null

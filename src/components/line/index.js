@@ -1,4 +1,5 @@
-import React, { forwardRef } from "react"
+import React from "react"
+import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import useHover from "@/components/useHover"
 import withChart from "@/components/hocs/withChart"
@@ -10,16 +11,23 @@ import DimensionFilter from "./dimensionFilter"
 import ChartContentWrapper from "./chartContentWrapper"
 import FilterToolbox from "./filterToolbox"
 
-export const Container = forwardRef((props, ref) => (
-  <Flex
-    ref={ref}
-    data-testid="chart"
-    border={{ color: "borderSecondary", side: "all" }}
-    column
-    round
-    {...props}
-  />
-))
+export const Container = styled(Flex).attrs(props => ({
+  "data-testid": "chart",
+  border: { color: "borderSecondary", side: "all" },
+  column: true,
+  round: true,
+  ...props,
+}))`
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  ::selection {
+    background: transparent;
+  }
+  ::-moz-selection {
+    background: transparent;
+  }
+`
 
 export const Footer = props => (
   <Flex border={{ side: "top", color: "borderSecondary" }} data-testid="chartLegend" {...props} />
