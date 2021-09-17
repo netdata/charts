@@ -30,6 +30,7 @@ import systemIpAreaChart from "@/fixtures/systemIpAreaChart"
 
 import appVmsStacked from "@/fixtures/appVmsStacked"
 import appVmsStackedChart from "@/fixtures/appVmsStackedChart"
+import { useAttribute, withChartProvider } from "./components/provider"
 
 const getChartMetadata = () => camelizeKeys(systemLoadLineChart, { omit: ["dimensions"] })
 const getChart = makeMockPayload(systemLoadLine[0], { delay: 600 })
@@ -105,6 +106,38 @@ export const NoData = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
+      <Line chart={chart} height="315px" />
+    </ThemeProvider>
+  )
+}
+
+const timezones = ["Pacific/Honolulu", "Europe/Athens", "Asia/Tokyo"]
+
+const TimezonePicker = withChartProvider(() => {
+  const [value, setValue] = useAttribute("timezone")
+  return (
+    <select value={value} onChange={event => setValue(event.target.value)}>
+      {timezones.map(timezone => (
+        <option value={timezone} key={timezone}>
+          {timezone}
+        </option>
+      ))}
+    </select>
+  )
+})
+
+export const Timezone = () => {
+  const chart = useMemo(() => {
+    const sdk = makeDefaultSDK({ getChartMetadata })
+    const chart = sdk.makeChart({ getChart, attributes: { timezone: "Pacific/Honolulu" } })
+    sdk.appendChild(chart)
+
+    return chart
+  }, [])
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <TimezonePicker chart={chart} />
       <Line chart={chart} height="315px" />
     </ThemeProvider>
   )

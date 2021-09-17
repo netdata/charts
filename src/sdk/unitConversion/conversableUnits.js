@@ -1,4 +1,3 @@
-import { format, differenceInDays } from "date-fns"
 import zeropad from "@/helpers/zeropad"
 
 export const makeConversableKey = (unit, scale) => `${unit}-${scale}`
@@ -18,10 +17,10 @@ export default {
   seconds: {
     time: {
       check: chart => chart.getAttribute("secondsAsTime"),
-      convert: value => {
-        const days = differenceInDays(value, 0)
-        const time = format(value * 1000, "HH:mm:ss")
-        return days ? `${days}d:${time}` : time
+      convert: (value, chart) => {
+        const days = Math.floor(value / 864000000)
+        const time = chart.formatTime(value * 1000)
+        return days > 0 ? `${days}d:${time}` : time
       },
     },
   },
