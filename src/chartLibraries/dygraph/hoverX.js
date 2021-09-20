@@ -1,6 +1,27 @@
 export default chartUI => {
-  const getClosestSeries = (event, points) => {
-    const distance = p => Math.pow(event.offsetY - p.canvasy, 2)
+  const getClosestArea = (event, points) => {
+    const { offsetY } = event
+
+    if (points.length === 2 && points[0].yval > 0 && points[1].yval < 0) {
+      const index = chartUI.getDygraph().toDomYCoord(0) < offsetY ? 1 : 0
+      return points[index].name
+    }
+
+    const validPoints = points.filter(p => !isNaN(p.canvasy))
+
+    const getY = index => {
+      if (index < validPoints.length) return validPoints[index].canvasy
+      return chartUI.getDygraph().getArea().h
+    }
+
+    const point = validPoints.find((p, index) => getY(index) < offsetY && getY(index + 1) > offsetY)
+
+    return (point || validPoints[validPoints.length - 1]).name
+  }
+
+  const getClosestPoint = (event, points) => {
+    const { offsetY } = event
+    const distance = p => Math.pow(offsetY - p.canvasy, 2)
 
     let last = distance(points[0])
     const closest = points.reduce((a, b) => {
@@ -12,6 +33,15 @@ export default chartUI => {
     })
 
     return closest.name
+  }
+
+  const getClosestSeries = (event, points) => {
+    const chartType =
+      chartUI.chart.getAttribute("chartType") || chartUI.chart.getMetadata().chartType
+
+    if (chartType === "stacked" || chartType === "area") return getClosestArea(event, points)
+
+    return getClosestPoint(event, points)
   }
 
   let lastX
