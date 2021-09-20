@@ -47,21 +47,19 @@ const Dimensions = () => {
   const chart = useChart()
   const [x, row] = useAttributeValue("hoverX") || emptyArray
 
-  const [from, to, total, getIds] = useMemo(() => {
-    const dimensionIds = chart.getDimensionIds()
+  const [from, to, total, ids] = useMemo(() => {
+    const index = chart.getClosestRow(x)
+    const dimensionIds = chart.onHoverSortDimensions(index, "valueDesc")
 
-    const rowIndex = chart.getDimensionIndex(row)
+    const rowIndex = dimensionIds.findIndex(id => id === row)
 
     const total = dimensionIds.length
     const from = getFrom(total, rowIndex)
     const to = getTo(total, rowIndex)
+    const ids = dimensionIds.slice(from, to)
 
-    const getIds = positionX => {
-      const index = chart.getClosestRow(positionX)
-      return chart.onHoverSortDimensions(index, "valueDesc").slice(from, to)
-    }
-    return [from, to, total, getIds]
-  }, [chart, row])
+    return [from, to, total, ids]
+  }, [chart, row, x])
 
   return (
     <Container data-testid="chartTooltip-dimensions">
@@ -71,7 +69,7 @@ const Dimensions = () => {
       </Flex>
       {from > 0 && <TextNano color="textLite">↑{from} more values</TextNano>}
       <Flex gap={1} column margin={[2, 0, 0]}>
-        {getIds(x).map(id => (
+        {ids.map(id => (
           <Dimension key={id} id={id} strong={row === id} />
         ))}
       </Flex>
