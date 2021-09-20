@@ -296,6 +296,30 @@ export const AlertInTimeWindow = () => {
   )
 }
 
+export const HighlightInTimeWindow = () => {
+  const sdk = makeDefaultSDK({ getChartMetadata })
+
+  const chart = sdk.makeChart({
+    getChart,
+    attributes: {
+      overlays: {
+        highlight: {
+          type: "highlight",
+          range: [Date.now() / 1000 - 5 * 60, Date.now() / 1000 - 4 * 60],
+        },
+        proceeded: { type: "proceeded" },
+      },
+    },
+  })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Line chart={chart} height="315px" />
+    </ThemeProvider>
+  )
+}
+
 export const AlertBeforeFirstEntry = () => {
   const fromTimestamp = Math.floor(Date.now() - 10 * 60 * 1000)
   const firstEntry = Math.floor(fromTimestamp / 1000)
