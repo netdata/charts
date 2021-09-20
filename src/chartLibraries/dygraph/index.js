@@ -286,8 +286,12 @@ export default (sdk, chart) => {
 
     chartUI.render()
 
-    dygraph.updateOptions(makeDataOptions())
     chart.updateDimensions()
+    dygraph.updateOptions({
+      ...makeDataOptions(),
+      ...makeVisibilityOptions(),
+      colors: chart.getColors(),
+    })
     chartUI.trigger("rendered")
   }
 
