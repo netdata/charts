@@ -20,6 +20,6 @@ const Highlight = ({ id, correlationProps }) => (
   </HighlightContainer>
 )
 
-export const CorrelationPeriod = memo(Period)
+export const HighlightPeriod = memo(Period)
 
 export default memo(Highlight)

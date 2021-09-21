@@ -3,6 +3,22 @@ import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { useChart } from "@/components/provider"
 
+export const alignment = {
+  chartMiddle: "chartMiddle",
+  elementMiddle: "elementMiddle",
+  elementRight: "elementRight",
+  elementLeft: "elementLeft",
+}
+
+const calcByAlignment = {
+  [alignment.chartMiddle]: ({ from, chartWidth, element }) =>
+    Math.min(from - 24, 60 + chartWidth / 2 + element.firstChild.offsetWidth / 2),
+  [alignment.elementMiddle]: ({ from, width, element }) =>
+    from + width / 2 + element.firstChild.offsetWidth / 2,
+  [alignment.elementRight]: ({ from, width }) => from + width,
+  [alignment.elementLeft]: ({ from }) => from,
+}
+
 const HorizontalContainer = styled(Flex)`
   position: absolute;
   overflow: hidden;
@@ -16,17 +32,16 @@ const HorizontalContainer = styled(Flex)`
   overflow: hidden;
 `
 
-const getRight = (alignMiddle, chart, area, element) => {
+const getRight = (align = alignment.elementMiddle, chart, area, element) => {
   const { from, width } = area
 
-  if (!alignMiddle) return from + width / 2 + element.firstChild.offsetWidth / 2
-
   const chartWidth = chart.getUI().getChartWidth()
+  const calcAlignment = calcByAlignment[align] || calcByAlignment.elementMiddle
 
-  return Math.min(from - 24, 60 + chartWidth / 2 + element.firstChild.offsetWidth / 2)
+  return calcAlignment({ from, width, chartWidth, element })
 }
 
-const Container = ({ id, alignMiddle, children, ...rest }) => {
+const Container = ({ id, align, right, children, ...rest }) => {
   const ref = useRef()
   const [area, setArea] = useState()
   const chart = useChart()
@@ -34,8 +49,8 @@ const Container = ({ id, alignMiddle, children, ...rest }) => {
   const updateRight = area => {
     if (!area || !ref.current) return
 
-    const right = getRight(alignMiddle, chart, area, ref.current)
-    ref.current.style.right = `calc(100% - ${right}px)`
+    const calculatedRight = getRight(align, chart, area, ref.current)
+    ref.current.style.right = `calc(100% - ${calculatedRight + right}px)`
   }
 
   useLayoutEffect(
