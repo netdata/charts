@@ -1,6 +1,6 @@
 {
   "name": "@netdata/charts",
-  "version": "0.0.29",
+  "version": "0.0.30",
   "description": "Netdata frontend SDK and chart utilities",
   "main": "index.js",
   "module": "es6/index.js",
@@ -71,7 +71,6 @@
   },
   "dependencies": {
     "d3-scale": "^4.0.0",
-    "date-fns": "^2.23.0",
     "dygraphs": "^2.1.0",
     "easy-pie-chart": "^2.1.7",
     "gaugeJS": "^1.3.7",

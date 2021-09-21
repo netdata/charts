@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from "uuid"
 import makeListeners from "@/helpers/makeListeners"
 import makeGetUnitSign from "./makeGetUnitSign"
 import pristineComposite, { pristineCompositeKey } from "./pristineComposite"
+import makeIntls from "./makeIntls"
 
 export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   const listeners = makeListeners()
@@ -107,17 +108,17 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     return parent
   }
 
-  const getApplicableNodes = (attributes, options) => {
-    if (!match(attributes)) return [instance]
-
-    const ancestor = getAncestor(attributes)
-    if (!ancestor) return [instance]
-
-    return ancestor.getNodes(attributes, options)
-  }
+  const {
+    update: updateIntls,
+    formatTime,
+    formatDate,
+    formatXAxis,
+    destroy: destroyIntls,
+  } = makeIntls()
 
   const inherit = () => {
     attributes = { ...parent.getAttributes(), ...attributes }
+    updateIntls(attributes.timezone)
   }
 
   const moveY = (min, max) => {
@@ -144,11 +145,15 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   const zoomIn = () => zoomX(1)
   const zoomOut = () => zoomX(-1)
 
+  updateIntls(getAttribute("timezone"))
+  onAttributeChange("timezone", updateIntls)
+
   const destroy = () => {
     listeners.offAll()
     attributeListeners.offAll()
     attributes = null
     parent = null
+    destroyIntls()
   }
 
   init()
@@ -171,13 +176,15 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     setParent,
     getParent,
     getAncestor,
-    getApplicableNodes,
     inherit,
     moveY,
     moveX,
     zoomIn,
     zoomOut,
     destroy,
+    formatTime,
+    formatDate,
+    formatXAxis,
   }
 
   instance.getUnitSign = makeGetUnitSign(instance)

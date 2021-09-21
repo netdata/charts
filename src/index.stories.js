@@ -30,6 +30,7 @@ import systemIpAreaChart from "@/fixtures/systemIpAreaChart"
 
 import appVmsStacked from "@/fixtures/appVmsStacked"
 import appVmsStackedChart from "@/fixtures/appVmsStackedChart"
+import { useAttribute, useChart, withChartProvider } from "./components/provider"
 
 const getChartMetadata = () => camelizeKeys(systemLoadLineChart, { omit: ["dimensions"] })
 const getChart = makeMockPayload(systemLoadLine[0], { delay: 600 })
@@ -105,6 +106,92 @@ export const NoData = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
+      <Line chart={chart} height="315px" />
+    </ThemeProvider>
+  )
+}
+
+const timezones = ["Pacific/Honolulu", "Europe/Athens", "Asia/Tokyo"]
+
+const TimezonePicker = withChartProvider(() => {
+  const [value, setValue] = useAttribute("timezone")
+  return (
+    <select value={value} onChange={event => setValue(event.target.value)}>
+      {timezones.map(timezone => (
+        <option value={timezone} key={timezone}>
+          {timezone}
+        </option>
+      ))}
+    </select>
+  )
+})
+
+export const Timezone = () => {
+  const chart = useMemo(() => {
+    const sdk = makeDefaultSDK({ getChartMetadata })
+    const chart = sdk.makeChart({ getChart, attributes: { timezone: "Pacific/Honolulu" } })
+    sdk.appendChild(chart)
+
+    return chart
+  }, [])
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <TimezonePicker chart={chart} />
+      <Line chart={chart} height="315px" />
+    </ThemeProvider>
+  )
+}
+
+const TimePicker = withChartProvider(() => {
+  const chart = useChart()
+  const [after, setAfter] = useAttribute("after")
+  const [before, setBefore] = useAttribute("before")
+  const run = after < 0
+
+  return (
+    <Flex>
+      <input
+        type="checkbox"
+        checked={run}
+        onChange={event => {
+          if (event.target.checked) return chart.moveX(-900)
+          const now = new Date().getTime() / 1000
+          chart.moveX(now - 900, now)
+        }}
+      />
+      <input
+        type="date"
+        value={run ? "-" : new Date(after * 1000).toISOString().split("T")[0]}
+        onChange={event =>
+          chart.moveX(event.target.valueAsDate.getTime() / 1000, chart.getAttribute("before"))
+        }
+        disabled={run}
+      />
+      <input
+        type="date"
+        value={run ? "-" : new Date(before * 1000).toISOString().split("T")[0]}
+        onChange={event =>
+          chart.moveX(chart.getAttribute("after"), event.target.valueAsDate.getTime() / 1000)
+        }
+        disabled={run}
+      />
+    </Flex>
+  )
+})
+
+export const Timepicker = () => {
+  const chart = useMemo(() => {
+    const sdk = makeDefaultSDK({ getChartMetadata })
+    const chart = sdk.makeChart({ getChart, attributes: {} })
+    sdk.appendChild(chart)
+
+    return chart
+  }, [])
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <TimePicker chart={chart} />
       <Line chart={chart} height="315px" />
     </ThemeProvider>
   )
@@ -195,6 +282,30 @@ export const AlertInTimeWindow = () => {
           status: "warning",
           value: 538,
           when: Math.floor(Date.now() / 1000 - 5 * 60),
+        },
+        proceeded: { type: "proceeded" },
+      },
+    },
+  })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Line chart={chart} height="315px" />
+    </ThemeProvider>
+  )
+}
+
+export const HighlightInTimeWindow = () => {
+  const sdk = makeDefaultSDK({ getChartMetadata })
+
+  const chart = sdk.makeChart({
+    getChart,
+    attributes: {
+      overlays: {
+        highlight: {
+          type: "highlight",
+          range: [Date.now() / 1000 - 5 * 60, Date.now() / 1000 - 4 * 60],
         },
         proceeded: { type: "proceeded" },
       },

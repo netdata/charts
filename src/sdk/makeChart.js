@@ -249,6 +249,15 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     invalidateClosestRowCache()
   })
 
+  const getApplicableNodes = (attributes, options) => {
+    if (!node.match(attributes)) return [instance]
+
+    const ancestor = node.getAncestor(attributes)
+    if (!ancestor) return [instance]
+
+    return ancestor.getNodes(attributes, options)
+  }
+
   const destroy = () => {
     cancelFetch()
     stopAutofetch()
@@ -270,6 +279,7 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
   }
 
   node.type = "chart"
+  node.getApplicableNodes = getApplicableNodes
 
   const instance = {
     ...node,
@@ -310,6 +320,6 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     destroy,
     onKeyChange,
     onKeyAndMouse,
-    onDimensionToggle,
+    onDimensionToggle,    
   }
 }

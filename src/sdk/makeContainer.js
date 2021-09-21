@@ -37,6 +37,15 @@ export default ({ sdk, parent, attributes } = {}) => {
     return nodes
   }
 
+  const getApplicableNodes = (attributes, options) => {
+    if (!node.match(attributes)) return [instance]
+
+    const ancestor = node.getAncestor(attributes)
+    if (!ancestor) return getNodes(attributes, options)
+
+    return ancestor.getNodes(attributes, options)
+  }
+
   const getChildren = () => children
 
   const destroy = () => {
@@ -50,7 +59,16 @@ export default ({ sdk, parent, attributes } = {}) => {
   }
 
   node.type = "container"
-  const instance = { ...node, destroy, appendChild, removeChild, getNodes, getChildren }
+  node.getApplicableNodes = getApplicableNodes
+
+  const instance = {
+    ...node,
+    destroy,
+    appendChild,
+    removeChild,
+    getNodes,
+    getChildren,
+  }
 
   return instance
 }

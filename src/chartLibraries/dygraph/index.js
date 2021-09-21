@@ -1,5 +1,4 @@
 import Dygraph from "dygraphs"
-import { format } from "date-fns"
 import makeChartUI from "@/sdk/makeChartUI"
 import makeExecuteLatest from "@/helpers/makeExecuteLatest"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
@@ -8,11 +7,6 @@ import makeHover from "./hover"
 import makeHoverX from "./hoverX"
 import makeOverlays from "./overlays"
 import crosshair from "./crosshair"
-
-const axisLabelFormatter = time => {
-  const midnight = time.getHours() === 0 && time.getMinutes() === 0 && time.getSeconds() === 0
-  return format(time, midnight ? "MM:dd" : "HH:mm:ss")
-}
 
 const getDateWindow = chart => {
   const { after, before } = chart.getAttributes()
@@ -57,7 +51,7 @@ export default (sdk, chart) => {
       axes: {
         x: {
           ticker: Dygraph.dateTicker,
-          axisLabelFormatter,
+          axisLabelFormatter: date => chart.formatXAxis(date),
           axisLabelWidth: 60,
         },
         y: {
@@ -178,6 +172,9 @@ export default (sdk, chart) => {
       chart.onAttributeChange("valueRange", valueRange => {
         dygraph.updateOptions({ valueRange })
       }),
+      chart.onAttributeChange("timezone", () => {
+        dygraph.updateOptions({})
+      }),
     ]
 
     hover = makeHover(instance)
@@ -289,8 +286,12 @@ export default (sdk, chart) => {
 
     chartUI.render()
 
-    dygraph.updateOptions(makeDataOptions())
     chart.updateDimensions()
+    dygraph.updateOptions({
+      ...makeDataOptions(),
+      ...makeVisibilityOptions(),
+      colors: chart.getColors(),
+    })
     chartUI.trigger("rendered")
   }
 
