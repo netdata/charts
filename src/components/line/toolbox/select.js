@@ -42,7 +42,7 @@ const Label = forwardRef(({ value: selectedValue, onChange, onClick, open, ...re
 
 const renderDropdown = ({ onItemClick, items }) => {
   const [{ icon, value, title }] = items
-  console.log("title", title)
+
   return (
     <Flex
       background="dropdown"
@@ -63,7 +63,7 @@ const Select = () => {
     const remaining = items.filter(item => item.value !== navigation)
     return remaining.length === 2 ? onlyLastItem : remaining
   }, [navigation])
-  console.log("remainingItems", remainingItems)
+
   return (
     <Menu
       value={navigation}
