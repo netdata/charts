@@ -1,4 +1,4 @@
-import React, { forwardRef, memo } from "react"
+import React, { forwardRef, memo, useMemo } from "react"
 import selectIcon from "@netdata/netdata-ui/lib/components/icon/assets/select.svg"
 import differenceIcon from "@netdata/netdata-ui/lib/components/icon/assets/difference.svg"
 import chevronUpIcon from "@netdata/netdata-ui/lib/components/icon/assets/chevron_up_thin.svg"
@@ -9,13 +9,15 @@ import Icon, { Button } from "@/components/icon"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 
 const items = [
-  { value: "select", title: "Select and Zoom", icon: <Icon svg={selectIcon} /> },
+  { value: "select", title: "Select and zoom", icon: <Icon svg={selectIcon} /> },
   {
     value: "selectVertical",
-    title: "Select Vertical and Zoom",
+    title: "Select vertical and zoom",
     icon: <Icon svg={differenceIcon} />,
   },
 ]
+
+const onlyLastItem = [items[1]]
 
 const Label = forwardRef(({ value: selectedValue, onChange, onClick, open, ...rest }, ref) => {
   const item = items.find(item => item.value === selectedValue)
@@ -30,7 +32,7 @@ const Label = forwardRef(({ value: selectedValue, onChange, onClick, open, ...re
         onClick={() => onChange(value)}
       />
       <Button
-        title={open ? "Close Menu" : "Open Menu"}
+        title={open ? "Close menu" : "Open menu"}
         icon={<Icon svg={open ? chevronUpIcon : chevronDownIcon} width="16px" />}
         onClick={onClick}
       />
@@ -40,7 +42,7 @@ const Label = forwardRef(({ value: selectedValue, onChange, onClick, open, ...re
 
 const renderDropdown = ({ onItemClick, items }) => {
   const [{ icon, value, title }] = items
-
+  console.log("title", title)
   return (
     <Flex
       background="dropdown"
@@ -57,13 +59,16 @@ const renderDropdown = ({ onItemClick, items }) => {
 const Select = () => {
   const [navigation, setNavigation] = useAttribute("navigation")
 
-  const remainingItems = items.filter(item => item.value !== navigation)
-
+  const remainingItems = useMemo(() => {
+    const remaining = items.filter(item => item.value !== navigation)
+    return remaining.length === 2 ? onlyLastItem : remaining
+  }, [navigation])
+  console.log("remainingItems", remainingItems)
   return (
     <Menu
       value={navigation}
       onChange={setNavigation}
-      items={remainingItems.length === 2 ? [remainingItems[1]] : remainingItems}
+      items={remainingItems}
       renderDropdown={renderDropdown}
     >
       <Label value={navigation} onChange={setNavigation} />

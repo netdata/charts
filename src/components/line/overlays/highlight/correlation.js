@@ -50,7 +50,7 @@ const Correlation = ({ id, setShowWarning }) => {
     <div ref={ref}>
       <Button
         icon={<Icon svg={correlationsIcon} />}
-        title="Metrics Correlations"
+        title="Run metrics correlations"
         onClick={() => chart.sdk.trigger("correlation", chart, range)}
         data-testid="highlight-correlations"
         disabled={!!errorMessage}

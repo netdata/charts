@@ -33,6 +33,7 @@ const Reload = props => {
       onClick={fetch}
       title="Refresh"
       data-testid="chartHeaderStatus-reload"
+      tooltipProps={{ open: true }}
       {...props}
     />
   )

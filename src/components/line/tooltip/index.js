@@ -84,6 +84,7 @@ const Container = () => {
       <Flex ref={r => setTarget(r)} position="absolute" />
       {ReactDOM.createPortal(
         <DropContainer
+          data-toolbox
           margin={[align.top ? 4 : -4, align.right ? -5 : 5]}
           ref={dropRef}
           width={{ max: "100%" }}

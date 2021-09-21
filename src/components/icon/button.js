@@ -1,5 +1,6 @@
 import styled from "styled-components"
 import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
+import { withTooltip } from "@/components/tooltip"
 
 const color = ({ active, disabled, defaultColor = "border" }) => {
   if (active) return "textDescription"
@@ -47,4 +48,4 @@ const Button = styled.button.attrs(({ icon, ...rest }) => ({
   }
 `
 
-export default Button
+export default withTooltip(Button)
