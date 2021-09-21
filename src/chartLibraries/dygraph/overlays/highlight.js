@@ -23,12 +23,17 @@ export default (chartUI, id) => {
   ctx.beginPath()
 
   ctx.rect(from, 0, width, h - 1)
-
   ctx.fillStyle = "rgba(207, 213, 218, 0.12)"
   ctx.fill()
-  ctx.setLineDash([2, 4])
+
+  ctx.beginPath()
+  ctx.rect(from, 0, 0, h - 1)
+  ctx.rect(from + width, 0, 0, h - 1)
+  ctx.fill()
+  ctx.setLineDash([2, 7])
   ctx.lineWidth = 1
   ctx.strokeStyle = "#CFD5DA"
+  ctx.stroke()
 
   ctx.stroke()
   ctx.closePath()
