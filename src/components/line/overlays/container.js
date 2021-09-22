@@ -8,23 +8,28 @@ export const alignment = {
   elementMiddle: "elementMiddle",
   elementRight: "elementRight",
   elementLeft: "elementLeft",
+  elementFull: "elementFull",
 }
 
 const calcByAlignment = {
-  [alignment.chartMiddle]: ({ from, chartWidth, element }) =>
-    Math.min(from - 24, 60 + chartWidth / 2 + element.firstChild.offsetWidth / 2),
-  [alignment.elementMiddle]: ({ from, width, element }) =>
+  [alignment.chartMiddle]: ({ from, chart, element }) => [
+    60,
+    Math.min(
+      from - 24,
+      60 + chart.getUI().getChartWidth() / 2 + element.firstChild.offsetWidth / 2
+    ),
+  ],
+  [alignment.elementMiddle]: ({ from, width, element }) => [
+    from,
     from + width / 2 + element.firstChild.offsetWidth / 2,
-  [alignment.elementRight]: ({ from, width }) => from + width,
-  [alignment.elementLeft]: ({ from }) => from,
+  ],
+  [alignment.elementRight]: ({ from, width }) => [from, from + width],
+  [alignment.elementLeft]: ({ from }) => [from, from],
 }
 
 const HorizontalContainer = styled(Flex)`
   position: absolute;
-  overflow: hidden;
-  transform: translateY(-50%);
-  right: calc(0);
-  left: 60px;
+  ${({ noTransform }) => (noTransform ? "" : "transform: translateY(-50%)")};
   ${({ top }) => (top === undefined ? "" : `top: ${top};`)};
   ${({ bottom }) => (bottom === undefined ? "" : `bottom: ${bottom};`)};
 
@@ -32,7 +37,7 @@ const HorizontalContainer = styled(Flex)`
   overflow: hidden;
 `
 
-const getRight = (align = alignment.elementMiddle, chart, area, element) => {
+const getHorizontalPosition = (align = alignment.elementMiddle, chart, area, element) => {
   const { from, width } = area
 
   const chartWidth = chart.getUI().getChartWidth()
@@ -41,7 +46,7 @@ const getRight = (align = alignment.elementMiddle, chart, area, element) => {
   return calcAlignment({ from, width, chartWidth, element })
 }
 
-const Container = ({ id, align, right, children, ...rest }) => {
+const Container = ({ id, align, right = 0, left = 0, children, ...rest }) => {
   const ref = useRef()
   const [area, setArea] = useState()
   const chart = useChart()
@@ -49,8 +54,10 @@ const Container = ({ id, align, right, children, ...rest }) => {
   const updateRight = area => {
     if (!area || !ref.current) return
 
-    const calculatedRight = getRight(align, chart, area, ref.current)
+    const [calculatedLeft, calculatedRight] = getHorizontalPosition(align, chart, area, ref.current)
+    console.log(align, calculatedLeft, calculatedRight)
     ref.current.style.right = `calc(100% - ${calculatedRight + right}px)`
+    ref.current.style.left = `${calculatedLeft + left}px`
   }
 
   useLayoutEffect(

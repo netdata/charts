@@ -15,7 +15,7 @@ const HighlightOverlay = ({ id }) => (
     <Container id={id} top="40%" align={alignment.elementRight} right={-8}>
       <HighlightPeriod id={id} />
     </Container>
-    <Container id={id} bottom="12px" align={alignment.elementRight} right={-8}>
+    <Container id={id} bottom="26px" align={alignment.elementRight} right={-8}>
       <Highlight id={id} />
     </Container>
   </Fragment>

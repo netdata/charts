@@ -1,7 +1,8 @@
 import React from "react"
+import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import correlationsIcon from "@netdata/netdata-ui/lib/components/icon/assets/correlations.svg"
 import Icon, { Button } from "@/components/icon"
 import Tooltip from "@/components/tooltip"
-import correlationsIcon from "@netdata/netdata-ui/lib/components/icon/assets/correlations.svg"
 import { useChart, useAttributeValue } from "@/components/provider"
 import Badge from "@/components/line/badge"
 
@@ -39,14 +40,14 @@ const Correlation = ({ id }) => {
     <Tooltip
       content={errorMessage ? `Metrics correlation: ${errorMessage}` : "Run metrics correlation"}
     >
-      <div>
+      <Flex>
         <Button
-          icon={<Icon svg={correlationsIcon} />}
+          icon={<Icon svg={correlationsIcon} size="14px" />}
           onClick={() => chart.sdk.trigger("correlation", chart, range)}
           data-testid="highlight-correlations"
           disabled={!!errorMessage}
         />
-      </div>
+      </Flex>
     </Tooltip>
   )
 }
