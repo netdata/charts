@@ -1,7 +1,7 @@
-import React, { Fragment, useState } from "react"
-import Container from "./container"
+import React, { Fragment } from "react"
+import Container, { alignment } from "./container"
 import Alarm from "./alarm"
-import Highlight, { CorrelationPeriod } from "./highlight"
+import Highlight, { HighlightPeriod } from "./highlight"
 import Proceeded from "./proceeded"
 
 const AlarmOverlay = ({ id }) => (
@@ -10,23 +10,19 @@ const AlarmOverlay = ({ id }) => (
   </Container>
 )
 
-const HighlightOverlay = ({ id }) => {
-  const [showWarning, setShowWarning] = useState(false)
-
-  return (
-    <Fragment>
-      <Container id={id} top="20px">
-        <CorrelationPeriod id={id} showWarning={showWarning} />
-      </Container>
-      <Container id={id} bottom="12px">
-        <Highlight id={id} correlationProps={{ setShowWarning }} />
-      </Container>
-    </Fragment>
-  )
-}
+const HighlightOverlay = ({ id }) => (
+  <Fragment>
+    <Container id={id} top="40%" align={alignment.elementRight} right={-8}>
+      <HighlightPeriod id={id} />
+    </Container>
+    <Container id={id} bottom="26px" align={alignment.elementRight} right={-8}>
+      <Highlight id={id} />
+    </Container>
+  </Fragment>
+)
 
 const ProceededOverlay = ({ id }) => (
-  <Container id={id} top="50%" alignMiddle>
+  <Container id={id} top="50%" align={alignment.chartMiddle}>
     <Proceeded id={id} />
   </Container>
 )

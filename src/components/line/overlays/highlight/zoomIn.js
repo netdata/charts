@@ -17,7 +17,7 @@ const ZoomIn = ({ id }) => {
 
     chart.getApplicableNodes({ syncHighlight: true }).forEach(node => {
       const overlays = { ...node.getAttribute("overlays") }
-      delete overlays.hightlight
+      delete overlays.highlight
       node.updateAttribute("overlays", overlays)
     })
 
@@ -26,8 +26,8 @@ const ZoomIn = ({ id }) => {
 
   return (
     <Button
-      icon={<Icon svg={zoomInIcon} />}
-      title="Zoom in"
+      icon={<Icon svg={zoomInIcon} size="14px" />}
+      title="Zoom to selection"
       onClick={onClick}
       data-testid="highlight-zoomIn"
     />
