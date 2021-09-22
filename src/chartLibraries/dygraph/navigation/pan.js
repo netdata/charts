@@ -5,6 +5,7 @@ export default chartUI => {
     chartUI.sdk.trigger("panStart", chartUI.chart)
     context.initializeMouseDown(event, g, context)
     Dygraph.startPan(event, g, context)
+    context.is2DPan = false
   }
 
   const mousemove = (event, g, context) => {
