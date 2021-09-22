@@ -1,38 +1,48 @@
-import React, { useRef, memo } from "react"
+import React, { memo, forwardRef } from "react"
 import Intersection from "@netdata/netdata-ui/lib/components/intersection"
+import useForwardRef from "@netdata/netdata-ui/lib/hooks/use-forward-ref"
 import { useAttributeValue, useChart } from "@/components/provider"
 
 export default Component => {
-  const IntersectionComponent = ({
-    height: defaultHeight = "100%",
-    width: defaultWidth = "100%",
-    readOnly,
-    flex = true,
-    ...rest
-  }) => {
-    const chart = useChart()
-    const ref = useRef()
-    const fullscreen = useAttributeValue("fullscreen")
+  const IntersectionComponent = forwardRef(
+    (
+      {
+        height: defaultHeight = "100%",
+        width: defaultWidth = "100%",
+        readOnly,
+        flex = true,
+        margin,
+        padding,
+        ...rest
+      },
+      parentRef
+    ) => {
+      const chart = useChart()
+      const [ref, setRef] = useForwardRef(parentRef)
+      const fullscreen = useAttributeValue("fullscreen")
 
-    const height = fullscreen ? "100%" : defaultHeight
+      const height = fullscreen ? "100%" : defaultHeight
 
-    const onVisibility = visible =>
-      visible && chart.getUI().setEstimatedWidth(ref.current.offsetWidth)
+      const onVisibility = visible =>
+        visible && chart.getUI().setEstimatedWidth(ref.current.offsetWidth)
 
-    return (
-      <Intersection
-        ref={ref}
-        height={height}
-        width={defaultWidth}
-        flex={flex}
-        fallback={chart.getAttribute("id")}
-        onVisibility={onVisibility}
-        data-testid="chartIntersector"
-      >
-        {() => <Component readOnly={readOnly} height={height} width="100%" flex {...rest} />}
-      </Intersection>
-    )
-  }
+      return (
+        <Intersection
+          ref={setRef}
+          height={height}
+          width={defaultWidth}
+          flex={flex}
+          margin={margin}
+          padding={padding}
+          fallback={chart.getAttribute("id")}
+          onVisibility={onVisibility}
+          data-testid="chartIntersector"
+        >
+          {() => <Component readOnly={readOnly} height="100%" width="100%" flex {...rest} />}
+        </Intersection>
+      )
+    }
+  )
 
   return memo(IntersectionComponent)
 }

@@ -54,6 +54,7 @@ export default {
   themeCrosshair: ["#536775", "#536775"],
   detailed: false,
   colors: [],
+  height: "",
 
   composite: false,
   aggregationMethod: "",

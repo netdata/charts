@@ -10,7 +10,7 @@ import { Fragment } from "react"
 const Container = styled(Flex).attrs({
   gap: 1,
   overflow: { horizontal: "overlay" },
-  padding: [2, 0],
+  padding: [3, 0, 3],
   alignItems: "start",
   flex: true,
   "data-testid": "chartLegend",

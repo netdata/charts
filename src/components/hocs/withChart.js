@@ -3,13 +3,16 @@ import { withChartProvider } from "@/components/provider"
 import withIntersection from "./withIntersection"
 import withFullscreen from "./withFullscreen"
 import withDifferedMount from "./withDifferedMount"
+import withHeight from "./withHeight"
 
 export default Component => {
-  const ChartWithIntersection = withIntersection(Component)
+  const ChartWithDifferedMount = withDifferedMount(Component)
 
-  const ChartWithDifferedMount = withDifferedMount(ChartWithIntersection)
+  const ChartWithIntersection = withIntersection(ChartWithDifferedMount)
 
-  const ChartWithFullscreen = withFullscreen(ChartWithDifferedMount)
+  const ChartWithHeight = withHeight(ChartWithIntersection)
+
+  const ChartWithFullscreen = withFullscreen(ChartWithHeight)
 
   const ChartWithProvider = withChartProvider(ChartWithFullscreen)
 
