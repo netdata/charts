@@ -1,18 +1,17 @@
 import React, { useEffect, useState } from "react"
-import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
 import RadioButton from "@netdata/netdata-ui/lib/components/radio-button"
 import dot from "@netdata/netdata-ui/lib/components/icon/assets/dot.svg"
 import { ItemContainer } from "@netdata/netdata-ui/lib/components/drops/menu/dropdownItem"
 import { Text } from "@netdata/netdata-ui/lib/components/typography"
+import sortAscending from "@netdata/netdata-ui/lib/components/icon/assets/sort_ascending.svg"
+import sortDescending from "@netdata/netdata-ui/lib/components/icon/assets/sort_descending.svg"
 import sortDesc from "@netdata/netdata-ui/lib/components/icon/assets/sort_desc.svg"
 import Icon, { Button } from "@/components/icon"
 import { useChart } from "@/components/provider"
 
-const RadioButtonIcon = props => {
-  return <Icon svg={dot} {...props} />
-}
+const RadioButtonIcon = props => <Icon svg={dot} {...props} />
 
 const iconProps = { as: RadioButtonIcon }
 
@@ -35,6 +34,14 @@ const renderItem = props => {
   return <Item key={key} {...props} />
 }
 
+const iconBySort = {
+  default: sortDescending,
+  nameAsc: sortAscending,
+  nameDesc: sortDescending,
+  valueAsc: sortAscending,
+  valueDesc: sortDescending,
+}
+
 const sortings = [
   { value: "default", label: "Default" },
   { value: "nameAsc", label: "Sort by name A→Z" },
@@ -52,7 +59,7 @@ const DimensionFilter = props => {
   useEffect(() => chart.onAttributeChange("dimensionsSort", setValue), [chart])
 
   return (
-    <Flex padding={[2, 4]} data-testid="chartDimensionFilter" {...props}>
+    <Flex padding={[3, 4]} data-testid="chartDimensionFilter" {...props}>
       <Menu
         value={value}
         items={sortings}
@@ -60,7 +67,7 @@ const DimensionFilter = props => {
         renderItem={renderItem}
         onChange={onChange}
       >
-        <Button icon={<Icon svg={sortDesc} />} data-testid="chartDimensionFilter-toggle" />
+        <Button icon={<Icon svg={iconBySort[value]} />} data-testid="chartDimensionFilter-toggle" />
       </Menu>
     </Flex>
   )
