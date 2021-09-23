@@ -7,7 +7,6 @@ import { ItemContainer } from "@netdata/netdata-ui/lib/components/drops/menu/dro
 import { Text } from "@netdata/netdata-ui/lib/components/typography"
 import sortAscending from "@netdata/netdata-ui/lib/components/icon/assets/sort_ascending.svg"
 import sortDescending from "@netdata/netdata-ui/lib/components/icon/assets/sort_descending.svg"
-import sortDesc from "@netdata/netdata-ui/lib/components/icon/assets/sort_desc.svg"
 import Icon, { Button } from "@/components/icon"
 import { useChart } from "@/components/provider"
 

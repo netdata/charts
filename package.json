@@ -31,7 +31,7 @@
     "charts"
   ],
   "peerDependencies": {
-    "@netdata/netdata-ui": "^1.7.0",
+    "@netdata/netdata-ui": "^1.7.2",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "styled-components": "^5.2.1"
@@ -44,7 +44,7 @@
     "@babel/plugin-transform-runtime": "^7.15.0",
     "@babel/preset-env": "^7.15.4",
     "@babel/preset-react": "^7.14.5",
-    "@netdata/netdata-ui": "^1.7.0",
+    "@netdata/netdata-ui": "^1.7.2",
     "@storybook/react": "^6.3.7",
     "@storybook/storybook-deployer": "^2.8.10",
     "babel-eslint": "^10.1.0",
