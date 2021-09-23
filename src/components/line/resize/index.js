@@ -21,28 +21,14 @@ const onDoubleClick = event => {
 const Resize = props => {
   const chart = useChart()
 
-  const onDragStart = () => {
+  const onDragStart = event => {
     event.preventDefault()
-    // const intialHeight = chartContainerElement.clientHeight
     chart.trigger("resizeYStart")
     const eventStartHeight = event.type === "touchstart" ? event.touches[0].clientY : event.clientY
 
     const setHeight = currentHeight => {
       const diff = currentHeight - eventStartHeight
       chart.trigger("resizeYMove", diff)
-      //   const nextHeight = intialHeight + currentHeight - eventStartHeight
-      //   // eslint-disable-next-line no-param-reassign
-      //   chartContainerElement.style.height = `${nextHeight.toString()}px`
-      //   setResizeHeight(nextHeight)
-      //   if (heightId) {
-      //     const heightForPersistance = isLegendOnBottom
-      //       ? nextHeight - LEGEND_BOTTOM_SINGLE_LINE_HEIGHT
-      //       : nextHeight
-      //     localStorage.setItem(
-      //       `${LOCALSTORAGE_HEIGHT_KEY_PREFIX}${heightId}`,
-      //       `${heightForPersistance}`
-      //     )
-      //   }
     }
 
     const onMouseMove = e => setHeight(e.clientY)
