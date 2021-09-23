@@ -133,7 +133,6 @@ export default (sdk, chart) => {
     // dygraph.addAndTrackEvent(dygraph.mouseEventElement_, "mousemove", mousemove)
 
     resizeObserver = makeResizeObserver(element, () => {
-      dygraph.resize()
       chartUI.trigger("resize")
     })
 
@@ -141,6 +140,10 @@ export default (sdk, chart) => {
     navigation.set(attributes.navigation)
 
     listeners = [
+      chartUI.on(
+        "resize",
+        executeLatest.add(() => dygraph.resize())
+      ),
       chart.onAttributeChange(
         "hoverX",
         executeLatest.add(dimensions => {

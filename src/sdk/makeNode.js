@@ -121,6 +121,11 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     updateIntls(attributes.timezone)
   }
 
+  const updateHeight = height => {
+    updateAttribute("height", height)
+    sdk.trigger("heightChanged", instance, height)
+  }
+
   const moveY = (min, max) => {
     sdk.trigger("moveY", instance, min, max)
   }
@@ -177,6 +182,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     getParent,
     getAncestor,
     inherit,
+    updateHeight,
     moveY,
     moveX,
     zoomIn,
