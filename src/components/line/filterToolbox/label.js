@@ -4,6 +4,7 @@ import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { TextSmall } from "@netdata/netdata-ui/lib/components/typography"
 import chevronDown from "@netdata/netdata-ui/lib/components/icon/assets/chevron_down.svg"
 import Icon from "@/components/icon"
+import { withTooltip, tooltipStyleProps } from "@/components/tooltip"
 import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
 
 export const Container = styled(Flex).attrs({
@@ -35,4 +36,13 @@ const Label = forwardRef(({ secondaryLabel, label, chevron = true, ...rest }, re
   </Container>
 ))
 
-export default Label
+const TooltipContent = ({ header, body }) => (
+  <Flex column gap={1} {...tooltipStyleProps}>
+    <TextSmall color="bright" strong>
+      {header}
+    </TextSmall>
+    {body && <TextSmall color="bright">{body}</TextSmall>}
+  </Flex>
+)
+
+export default withTooltip(Label, { Content: TooltipContent })

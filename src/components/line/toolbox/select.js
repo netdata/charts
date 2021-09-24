@@ -35,6 +35,7 @@ const Label = forwardRef(({ value: selectedValue, onChange, onClick, open, ...re
         title={open ? "Close menu" : "Open menu"}
         icon={<Icon svg={open ? chevronUpIcon : chevronDownIcon} width="16px" />}
         onClick={onClick}
+        hoverIndicator={false}
       />
     </Flex>
   )

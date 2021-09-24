@@ -10,15 +10,32 @@ const items = [
   { value: "max", label: "Max", short: "MAX()" },
 ]
 
+const tooltipProps = {
+  dimension: {
+    heading: "Aggregate function",
+    body: "It is applied for the selected dimensions across the nodes.",
+  },
+  node: {
+    heading: "Aggregate function",
+    body: "It is applied on all charts from each node for the aggregated dimensions.",
+  },
+}
+
 const Aggregate = () => {
   const chart = useChart()
   const value = useAttributeValue("aggregationMethod")
+  const groupBy = useAttributeValue("groupBy")
 
   const { short } = items.find(item => item.value === value)
 
   return (
     <Menu value={value} onChange={chart.updateAggregationMethodAttribute} items={items}>
-      <Label secondaryLabel="Select" label={short} />
+      <Label
+        secondaryLabel="Select"
+        label={short}
+        title={tooltipProps[groupBy].heading}
+        tooltipProps={tooltipProps[groupBy]}
+      />
     </Menu>
   )
 }

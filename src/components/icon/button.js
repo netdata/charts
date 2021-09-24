@@ -9,10 +9,11 @@ const color = ({ active, disabled, defaultColor = "border" }) => {
   return defaultColor
 }
 
-const Button = styled.button.attrs(({ icon, ...rest }) => ({
+const Button = styled.button.attrs(({ icon, hoverIndicator = true, ...rest }) => ({
   ...rest,
   children: icon,
   active: rest.active || rest["aria-expanded"],
+  hoverIndicator,
 }))`
   border: initial;
   padding: 0;
@@ -28,13 +29,16 @@ const Button = styled.button.attrs(({ icon, ...rest }) => ({
       stroked ? getColor(color({ active, disabled }))({ theme }) : "none"};
   }
 
-  ${({ active }) =>
-    active &&
+  ${({ active, hoverIndicator }) =>
+    (active || hoverIndicator) &&
     `
     border-radius: 4px;
   `}
 
   &:hover {
+    ${({ theme, hoverIndicator }) =>
+      hoverIndicator && `background: ${getColor("borderSecondary")({ theme })};`};
+
     svg {
       fill: ${({ theme, stroked, disabled }) =>
         stroked
