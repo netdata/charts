@@ -66,7 +66,11 @@ const DimensionFilter = props => {
         renderItem={renderItem}
         onChange={onChange}
       >
-        <Button icon={<Icon svg={iconBySort[value]} />} data-testid="chartDimensionFilter-toggle" />
+        <Button
+          icon={<Icon svg={iconBySort[value]} />}
+          data-testid="chartDimensionFilter-toggle"
+          title="Sort dimensions by name or value"
+        />
       </Menu>
     </Flex>
   )

@@ -42,7 +42,7 @@ const Correlation = ({ id }) => {
     >
       <Flex>
         <Button
-          icon={<Icon svg={correlationsIcon} size="14px" />}
+          icon={<Icon svg={correlationsIcon} size="20px" />}
           onClick={() => chart.sdk.trigger("correlation", chart, range)}
           data-testid="highlight-correlations"
           disabled={!!errorMessage}

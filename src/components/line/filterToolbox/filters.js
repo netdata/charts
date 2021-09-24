@@ -29,7 +29,7 @@ const FilterToolbox = props => {
   return (
     <Container {...props}>
       {aggregate && <Aggregate />}
-      {dimensionAggregation && <DimensionsAggregation />}
+      {dimensionAggregation && <DimensionsAggregation isAggregate={aggregate} />}
       <Dimensions />
       <GroupBy />
     </Container>

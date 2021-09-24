@@ -22,25 +22,26 @@ export default () => {
     [chart]
   )
 
-  const getTotalChartIds = () => {
+  const getTotals = () => {
     const { nodes } = chart.getPayload()
-    return nodes.reduce((acc, node) => acc + node.chartIDs.length, 0)
+    return {
+      totalChartIds: nodes.reduce((acc, node) => acc + node.chartIDs.length, 0),
+      totalNodes: nodes,
+    }
   }
 
-  const [totalChartIds, setTotalChartIds] = useState(getTotalChartIds)
+  const [{ totalChartIds, totalNodes }, setTotals] = useState(getTotals)
 
   useEffect(
     () =>
-      chart.on(
-        "successFetch",
-        (next, prev) => next.nodes !== prev.nodes && setTotalChartIds(getTotalChartIds())
-      ),
+      chart.on("successFetch", (next, prev) => next.nodes !== prev.nodes && setTotals(getTotals())),
     [chart]
   )
 
   return {
-    aggregate: totalChartIds > 0 && groupBy !== "chart",
-    dimensionAggregation: groupBy === "dimension" && hasDimensions,
+    aggregate:
+      groupBy === "dimension" || (totalChartIds > 0 && totalChartIds.length > totalNodes.length),
+    dimensionAggregation: groupBy !== "dimension" && !hasDimensions,
     totalChartIds,
   }
 }

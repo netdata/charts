@@ -26,7 +26,7 @@ const ZoomIn = ({ id }) => {
 
   return (
     <Button
-      icon={<Icon svg={zoomInIcon} size="14px" />}
+      icon={<Icon svg={zoomInIcon} size="20px" />}
       title="Zoom to selection"
       onClick={onClick}
       data-testid="highlight-zoomIn"
