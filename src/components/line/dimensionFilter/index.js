@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useMemo } from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
 import RadioButton from "@netdata/netdata-ui/lib/components/radio-button"
@@ -41,13 +41,21 @@ const iconBySort = {
   valueDesc: sortDescending,
 }
 
-const sortings = [
-  { value: "default", label: "Default", "data-track": "default" },
-  { value: "nameAsc", label: "Sort by name A→Z", "data-track": "nameAsc" },
-  { value: "nameDesc", label: "Sort by name Z→A", "data-track": "nameDesc" },
-  { value: "valueAsc", label: "Sort by value Min→Max", "data-track": "valueAsc" },
-  { value: "valueDesc", label: "Sort by value Max→Min", "data-track": "valueDesc" },
-]
+const useSortings = chart =>
+  useMemo(
+    () => [
+      { value: "default", label: "Default", "data-track": chart.track("default") },
+      { value: "nameAsc", label: "Sort by name A→Z", "data-track": chart.track("nameAsc") },
+      { value: "nameDesc", label: "Sort by name Z→A", "data-track": chart.track("nameDesc") },
+      { value: "valueAsc", label: "Sort by value Min→Max", "data-track": chart.track("valueAsc") },
+      {
+        value: "valueDesc",
+        label: "Sort by value Max→Min",
+        "data-track": chart.track("valueDesc"),
+      },
+    ],
+    [chart]
+  )
 
 const DimensionFilter = props => {
   const chart = useChart()
@@ -56,6 +64,8 @@ const DimensionFilter = props => {
   const onChange = value => chart.updateAttribute("dimensionsSort", value)
 
   useEffect(() => chart.onAttributeChange("dimensionsSort", setValue), [chart])
+
+  const sortings = useSortings(chart)
 
   return (
     <Flex padding={[3, 4]} data-testid="chartDimensionFilter" {...props}>

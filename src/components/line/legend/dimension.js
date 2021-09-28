@@ -61,7 +61,7 @@ const Dimension = ({ id }) => {
       opacity={visible ? null : "weak"}
       cursor="pointer"
       onClick={onClick}
-      data-track={`dimension-${name}`}
+      data-track={chart.track(`dimension-${name}`)}
     >
       <Color id={id} />
       <Flex flex column overflow="hidden" data-testid="chartLegendDimension-details">

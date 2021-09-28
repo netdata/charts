@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react"
+import React from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 // import { getSizeBy, getRgbColor } from "@netdata/netdata-ui/lib/theme/utils"
 // import { webkitVisibleScrollbar } from "@netdata/netdata-ui/lib/mixins/webkit-visible-scrollbar"
-import { useInitialLoading, useEmpty, useDimensionIds } from "@/components/provider"
+import { useInitialLoading, useEmpty, useDimensionIds, useChart } from "@/components/provider"
 import Dimension, { SkeletonDimension, EmptyDimension } from "./dimension"
 import { Fragment } from "react"
 
@@ -42,11 +42,12 @@ const Dimensions = () => {
   )
 }
 const Legend = props => {
+  const chart = useChart()
   const initialLoading = useInitialLoading()
   const empty = useEmpty()
 
   return (
-    <Container {...props}>
+    <Container {...props} data-track={chart.track("legend")}>
       {!initialLoading && !empty && <Dimensions />}
       {initialLoading && <SkeletonDimensions />}
       {!initialLoading && empty && <EmptyDimension />}
