@@ -52,7 +52,7 @@ const tooltipProps = {
     "Select one, multiple or all dimensions. A dimension is any value, either raw data or the result of a calculation that Netdata visualizes on a chart.",
 }
 
-const Dimensions = () => {
+const Dimensions = ({ labelProps, ...rest }) => {
   const chart = useChart()
   const value = useAttributeValue("dimensions")
 
@@ -67,12 +67,15 @@ const Dimensions = () => {
       items={options}
       renderItem={renderItem}
       closeOnClick={false}
+      data-track="dimensions"
+      {...rest}
     >
       <Label
         secondaryLabel="of"
         label={label}
         title={tooltipProps.heading}
         tooltipProps={tooltipProps}
+        {...labelProps}
       />
     </Menu>
   )

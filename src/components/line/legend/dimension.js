@@ -51,6 +51,8 @@ const Dimension = ({ id }) => {
   const visible = useVisibleDimensionId(id)
   const chart = useChart()
 
+  const name = chart.getDimensionName(id)
+
   const onClick = () => chart.onDimensionToggle(id)
 
   return (
@@ -59,6 +61,7 @@ const Dimension = ({ id }) => {
       opacity={visible ? null : "weak"}
       cursor="pointer"
       onClick={onClick}
+      data-track={`dimension-${name}`}
     >
       <Color id={id} />
       <Flex flex column overflow="hidden" data-testid="chartLegendDimension-details">

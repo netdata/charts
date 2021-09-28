@@ -14,18 +14,21 @@ const items = [
     label: "Line",
     icon: <Icon svg={lineChart} {...iconProps} />,
     svg: lineChart,
+    "data-track": "chartType-line",
   },
   {
     value: "stacked",
     label: "Stacked",
     icon: <Icon svg={stackedChart} {...iconProps} />,
     svg: stackedChart,
+    "data-track": "chartType-stacked",
   },
   {
     value: "area",
     label: "Area",
     icon: <Icon svg={areaChart} {...iconProps} />,
     svg: areaChart,
+    "data-track": "chartType-area",
   },
 ]
 
@@ -44,6 +47,7 @@ const ChartType = ({ disabled }) => {
       items={items}
       dropProps={{ align: { top: "bottom", right: "right" }, "data-toolbox": true }}
       onChange={onChange}
+      data-track="chartType"
     >
       <Button
         icon={<Icon svg={svg} />}

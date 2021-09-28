@@ -42,11 +42,11 @@ const iconBySort = {
 }
 
 const sortings = [
-  { value: "default", label: "Default" },
-  { value: "nameAsc", label: "Sort by name A→Z" },
-  { value: "nameDesc", label: "Sort by name Z→A" },
-  { value: "valueAsc", label: "Sort by value Min→Max " },
-  { value: "valueDesc", label: "Sort by value Max→Min " },
+  { value: "default", label: "Default", "data-track": "default" },
+  { value: "nameAsc", label: "Sort by name A→Z", "data-track": "nameAsc" },
+  { value: "nameDesc", label: "Sort by name Z→A", "data-track": "nameDesc" },
+  { value: "valueAsc", label: "Sort by value Min→Max", "data-track": "valueAsc" },
+  { value: "valueDesc", label: "Sort by value Max→Min", "data-track": "valueDesc" },
 ]
 
 const DimensionFilter = props => {

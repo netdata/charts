@@ -23,7 +23,9 @@ const Reset = () => {
 
   const disabled = Object.keys(pristine).length === 0
 
-  return <StyledButton disabled={disabled} onClick={chart.resetPristineComposite} />
+  return (
+    <StyledButton disabled={disabled} onClick={chart.resetPristineComposite} data-track="reset" />
+  )
 }
 
 export default Reset

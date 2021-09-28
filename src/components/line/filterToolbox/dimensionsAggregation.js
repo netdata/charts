@@ -17,7 +17,7 @@ const tooltipProps = {
   },
 }
 
-const DimensionsAggregation = ({ isAggregate }) => {
+const DimensionsAggregation = ({ isAggregate, labelProps }) => {
   const groupBy = useAttributeValue("groupBy")
 
   return (
@@ -27,6 +27,8 @@ const DimensionsAggregation = ({ isAggregate }) => {
       chevron={false}
       title={!!tooltipProps[groupBy]}
       tooltipProps={tooltipProps[groupBy]}
+      data-track="dimensionsAggregation"
+      {...labelProps}
     />
   )
 }

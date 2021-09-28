@@ -13,6 +13,7 @@ const Information = props => {
       data-testid="chartHeaderToolbox-information"
       active={value}
       onClick={() => setValue(v => !v)}
+      data-track="information"
       {...props}
     />
   )
