@@ -9,11 +9,17 @@ import Icon, { Button } from "@/components/icon"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 
 const items = [
-  { value: "select", title: "Select and zoom", icon: <Icon svg={selectIcon} /> },
+  {
+    value: "select",
+    title: "Select and zoom",
+    icon: <Icon svg={selectIcon} />,
+    "data-track": "selectHorizontal",
+  },
   {
     value: "selectVertical",
     title: "Select vertical and zoom",
     icon: <Icon svg={differenceIcon} />,
+    "data-track": "selectVertical",
   },
 ]
 
@@ -71,6 +77,7 @@ const Select = () => {
       onChange={setNavigation}
       items={remainingItems}
       renderDropdown={renderDropdown}
+      data-track="select"
     >
       <Label value={navigation} onChange={setNavigation} />
     </Menu>

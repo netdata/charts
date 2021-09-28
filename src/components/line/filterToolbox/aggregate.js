@@ -4,10 +4,10 @@ import { useAttributeValue, useChart } from "@/components/provider"
 import Label from "./label"
 
 const items = [
-  { value: "avg", label: "Average", short: "AVG()" },
-  { value: "sum", label: "Sum", short: "SUM()" },
-  { value: "min", label: "Min", short: "MIN()" },
-  { value: "max", label: "Max", short: "MAX()" },
+  { value: "avg", label: "Average", short: "AVG()", "data-track": "avg" },
+  { value: "sum", label: "Sum", short: "SUM()", "data-track": "sum" },
+  { value: "min", label: "Min", short: "MIN()", "data-track": "min" },
+  { value: "max", label: "Max", short: "MAX()", "data-track": "max" },
 ]
 
 const tooltipProps = {
@@ -21,7 +21,7 @@ const tooltipProps = {
   },
 }
 
-const Aggregate = () => {
+const Aggregate = ({ labelProps, ...rest }) => {
   const chart = useChart()
   const value = useAttributeValue("aggregationMethod")
   const groupBy = useAttributeValue("groupBy")
@@ -29,12 +29,19 @@ const Aggregate = () => {
   const { short } = items.find(item => item.value === value)
 
   return (
-    <Menu value={value} onChange={chart.updateAggregationMethodAttribute} items={items}>
+    <Menu
+      value={value}
+      onChange={chart.updateAggregationMethodAttribute}
+      items={items}
+      data-track="aggregate"
+      {...rest}
+    >
       <Label
         secondaryLabel="Select"
         label={short}
         title={tooltipProps[groupBy].heading}
         tooltipProps={tooltipProps[groupBy]}
+        {...labelProps}
       />
     </Menu>
   )

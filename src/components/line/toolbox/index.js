@@ -26,7 +26,7 @@ const Toolbox = forwardRef((props, ref) => {
   const [navigation, setNavigation] = useAttribute("navigation")
 
   return (
-    <Container data-testid="chartToolbox" {...props} ref={ref}>
+    <Container data-testid="chartToolbox" {...props} ref={ref} data-track="toolbox">
       <Button
         icon={<Icon svg={panTool} />}
         title="Pan"
@@ -34,6 +34,7 @@ const Toolbox = forwardRef((props, ref) => {
         active={navigation === "pan"}
         data-testid="chartToolbox-pan"
         stroked
+        data-track="pan"
       />
       <Button
         icon={<Icon svg={selectedArea} />}
@@ -41,6 +42,7 @@ const Toolbox = forwardRef((props, ref) => {
         onClick={() => setNavigation("highlight")}
         active={navigation === "highlight"}
         data-testid="chartToolbox-highlight"
+        data-track="highlight"
       />
       <Select />
       <Button
@@ -48,12 +50,14 @@ const Toolbox = forwardRef((props, ref) => {
         title="Zoom in"
         onClick={chart.zoomIn}
         data-testid="chartToolbox-zoomIn"
+        data-track="zoomIn"
       />
       <Button
         icon={<Icon svg={zoomOutIcon} />}
         title="Zoom out"
         onClick={chart.zoomOut}
         data-testid="chartToolbox-zoomOut"
+        data-track="zoomOut"
       />
     </Container>
   )

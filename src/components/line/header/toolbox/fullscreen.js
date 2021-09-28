@@ -13,6 +13,7 @@ const Fullscreen = props => {
       onClick={() => setFullscreen(v => !v)}
       title={fullscreen ? "Minimize" : "Full screen"}
       data-testid="chartHeaderToolbox-fullscreen"
+      data-track="fullscreen"
       {...props}
     />
   )

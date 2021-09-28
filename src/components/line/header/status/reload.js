@@ -34,6 +34,7 @@ const Reload = props => {
       title="Refresh"
       data-testid="chartHeaderStatus-reload"
       tooltipProps={{ open: true }}
+      data-track="refresh"
       {...props}
     />
   )

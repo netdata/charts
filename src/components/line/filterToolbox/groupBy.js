@@ -31,11 +31,12 @@ const GroupBy = () => {
     return [...defaultItems, ...Object.keys(chartLabels)].map(value => ({
       value,
       label: `By ${value}`,
+      "data-track": value,
     }))
   }, [chart])
 
   return (
-    <Menu value={value} onChange={chart.updateGroupByAttribute} items={items}>
+    <Menu value={value} onChange={chart.updateGroupByAttribute} items={items} data-track="groupBy">
       <Label
         secondaryLabel="Group by"
         label={value}
