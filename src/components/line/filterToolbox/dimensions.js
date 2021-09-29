@@ -67,7 +67,7 @@ const Dimensions = ({ labelProps, ...rest }) => {
       items={options}
       renderItem={renderItem}
       closeOnClick={false}
-      data-track="dimensions"
+      data-track={chart.track("dimensions")}
       {...rest}
     >
       <Label

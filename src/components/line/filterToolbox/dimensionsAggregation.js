@@ -1,5 +1,5 @@
 import React from "react"
-import { useAttributeValue } from "@/components/provider"
+import { useAttributeValue, useChart } from "@/components/provider"
 import Label from "./label"
 
 const tooltipProps = {
@@ -18,6 +18,7 @@ const tooltipProps = {
 }
 
 const DimensionsAggregation = ({ isAggregate, labelProps }) => {
+  const chart = useChart()
   const groupBy = useAttributeValue("groupBy")
 
   return (
@@ -27,7 +28,7 @@ const DimensionsAggregation = ({ isAggregate, labelProps }) => {
       chevron={false}
       title={!!tooltipProps[groupBy]}
       tooltipProps={tooltipProps[groupBy]}
-      data-track="dimensionsAggregation"
+      data-track={chart.track("dimensionsAggregation")}
       {...labelProps}
     />
   )

@@ -4,48 +4,51 @@ import differenceIcon from "@netdata/netdata-ui/lib/components/icon/assets/diffe
 import chevronUpIcon from "@netdata/netdata-ui/lib/components/icon/assets/chevron_up_thin.svg"
 import chevronDownIcon from "@netdata/netdata-ui/lib/components/icon/assets/chevron_down_thin.svg"
 import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
-import { useAttribute } from "@/components/provider"
+import { useChart, useAttribute } from "@/components/provider"
 import Icon, { Button } from "@/components/icon"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 
-const items = [
-  {
-    value: "select",
-    title: "Select and zoom",
-    icon: <Icon svg={selectIcon} />,
-    "data-track": "selectHorizontal",
-  },
-  {
-    value: "selectVertical",
-    title: "Select vertical and zoom",
-    icon: <Icon svg={differenceIcon} />,
-    "data-track": "selectVertical",
-  },
-]
-
-const onlyLastItem = [items[1]]
-
-const Label = forwardRef(({ value: selectedValue, onChange, onClick, open, ...rest }, ref) => {
-  const item = items.find(item => item.value === selectedValue)
-  const { icon, value, title } = item || items[0]
-
-  return (
-    <Flex ref={ref} {...rest}>
-      <Button
-        icon={icon}
-        title={title}
-        active={selectedValue === value}
-        onClick={() => onChange(value)}
-      />
-      <Button
-        title={open ? "Close menu" : "Open menu"}
-        icon={<Icon svg={open ? chevronUpIcon : chevronDownIcon} width="16px" />}
-        onClick={onClick}
-        hoverIndicator={false}
-      />
-    </Flex>
+const useItems = chart =>
+  useMemo(
+    () => [
+      {
+        value: "select",
+        title: "Select and zoom",
+        icon: <Icon svg={selectIcon} />,
+        "data-track": chart.track("selectHorizontal"),
+      },
+      {
+        value: "selectVertical",
+        title: "Select vertical and zoom",
+        icon: <Icon svg={differenceIcon} />,
+        "data-track": chart.track("selectVertical"),
+      },
+    ],
+    [chart]
   )
-})
+
+const Label = forwardRef(
+  ({ value: selectedValue, onChange, onClick, open, item, ...rest }, ref) => {
+    const { icon, value, title } = item
+
+    return (
+      <Flex ref={ref} {...rest}>
+        <Button
+          icon={icon}
+          title={title}
+          active={selectedValue === value}
+          onClick={() => onChange(value)}
+        />
+        <Button
+          title={open ? "Close menu" : "Open menu"}
+          icon={<Icon svg={open ? chevronUpIcon : chevronDownIcon} width="16px" />}
+          onClick={onClick}
+          hoverIndicator={false}
+        />
+      </Flex>
+    )
+  }
+)
 
 const renderDropdown = ({ onItemClick, items }) => {
   const [{ icon, value, title }] = items
@@ -64,12 +67,25 @@ const renderDropdown = ({ onItemClick, items }) => {
 }
 
 const Select = () => {
+  const chart = useChart()
   const [navigation, setNavigation] = useAttribute("navigation")
 
-  const remainingItems = useMemo(() => {
-    const remaining = items.filter(item => item.value !== navigation)
-    return remaining.length === 2 ? onlyLastItem : remaining
-  }, [navigation])
+  const items = useItems(chart)
+
+  const { selectedItem, remainingItems } = useMemo(
+    () =>
+      items.reduce(
+        (h, item) => {
+          if (item.value === navigation) return { ...h, selectedItem: item }
+          return { ...h, remainingItems: [item] }
+        },
+        {
+          selectedItem: items[0],
+          remainingItems: [],
+        }
+      ),
+    [navigation]
+  )
 
   return (
     <Menu
@@ -79,7 +95,7 @@ const Select = () => {
       renderDropdown={renderDropdown}
       data-track="select"
     >
-      <Label value={navigation} onChange={setNavigation} />
+      <Label value={navigation} onChange={setNavigation} item={selectedItem} />
     </Menu>
   )
 }

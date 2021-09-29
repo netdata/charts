@@ -1,9 +1,10 @@
 import React from "react"
 import information from "@netdata/netdata-ui/lib/components/icon/assets/information.svg"
 import Icon, { Button } from "@/components/icon"
-import { useAttribute } from "@/components/provider"
+import { useChart, useAttribute } from "@/components/provider"
 
 const Information = props => {
+  const chart = useChart()
   const [value, setValue] = useAttribute("detailed")
 
   return (
@@ -13,7 +14,7 @@ const Information = props => {
       data-testid="chartHeaderToolbox-information"
       active={value}
       onClick={() => setValue(v => !v)}
-      data-track="information"
+      data-track={chart.track("information")}
       {...props}
     />
   )

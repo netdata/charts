@@ -1,14 +1,18 @@
-import React, { memo } from "react"
+import React, { memo, useMemo } from "react"
 import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
 import { useAttributeValue, useChart } from "@/components/provider"
 import Label from "./label"
 
-const items = [
-  { value: "avg", label: "Average", short: "AVG()", "data-track": "avg" },
-  { value: "sum", label: "Sum", short: "SUM()", "data-track": "sum" },
-  { value: "min", label: "Min", short: "MIN()", "data-track": "min" },
-  { value: "max", label: "Max", short: "MAX()", "data-track": "max" },
-]
+const useItems = chart =>
+  useMemo(
+    () => [
+      { value: "avg", label: "Average", short: "AVG()", "data-track": chart.track("avg") },
+      { value: "sum", label: "Sum", short: "SUM()", "data-track": chart.track("sum") },
+      { value: "min", label: "Min", short: "MIN()", "data-track": chart.track("min") },
+      { value: "max", label: "Max", short: "MAX()", "data-track": chart.track("max") },
+    ],
+    [chart]
+  )
 
 const tooltipProps = {
   dimension: {
@@ -26,6 +30,7 @@ const Aggregate = ({ labelProps, ...rest }) => {
   const value = useAttributeValue("aggregationMethod")
   const groupBy = useAttributeValue("groupBy")
 
+  const items = useItems(chart)
   const { short } = items.find(item => item.value === value)
 
   return (
@@ -33,7 +38,7 @@ const Aggregate = ({ labelProps, ...rest }) => {
       value={value}
       onChange={chart.updateAggregationMethodAttribute}
       items={items}
-      data-track="aggregate"
+      data-track={chart.track("aggregate")}
       {...rest}
     >
       <Label

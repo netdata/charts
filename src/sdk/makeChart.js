@@ -13,7 +13,16 @@ import camelizePayload from "./camelizePayload"
 const requestTimeoutMs = 5 * 1000
 const maxBackoffMs = 30 * 1000
 
-export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attributes } = {}) => {
+const defaultMakeTrack = () => value => value
+
+export default ({
+  sdk,
+  parent,
+  getChart = fetchChartData,
+  chartsMetadata,
+  attributes,
+  makeTrack = defaultMakeTrack,
+} = {}) => {
   let node = makeNode({ sdk, parent, attributes })
   let ui = null
   let abortController = null
@@ -313,13 +322,16 @@ export default ({ sdk, parent, getChart = fetchChartData, chartsMetadata, attrib
     { allPressed: false }
   )
 
+  const track = makeTrack(instance)
+
   return {
     ...instance,
     ...dimensions,
     ...makeFilterControllers(instance),
+    track,
     destroy,
     onKeyChange,
     onKeyAndMouse,
-    onDimensionToggle,    
+    onDimensionToggle,
   }
 }
