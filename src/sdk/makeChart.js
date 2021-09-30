@@ -52,12 +52,6 @@ export default ({
   const getMetadata = () => getMetadataDecorator().get(instance)
   const fetchMetadata = () => getMetadataDecorator().fetch(instance)
 
-  const setMetadata = nextChartsMetadata => {
-    const prev = chartsMetadata
-    chartsMetadata = nextChartsMetadata
-    node.trigger("metadataChanged", nextChartsMetadata.get(), prev.get())
-  }
-
   const clearFetchDelayTimeout = () => {
     if (fetchDelayTimeoutId === null) node.trigger("timeout", false)
     clearTimeout(fetchDelayTimeoutId)
@@ -174,14 +168,23 @@ export default ({
 
     abortController = new AbortController()
     const options = { signal: abortController.signal }
-    return fetchMetadata().then(() => {
-      if (node.getAttribute("composite") && getMetadata() !== prevMetadata) {
-        prevMetadata = getMetadata()
-        const attributes = getInitialFilterAttributes(instance)
-        node.setAttributes(attributes)
-      }
-      return getChart(instance, options).then(doneFetch).catch(failFetch)
-    })
+    return fetchMetadata()
+      .then(() => {
+        updateMetadata()
+        return getChart(instance, options).then(doneFetch)
+      })
+      .catch(failFetch)
+  }
+
+  const updateMetadata = () => {
+    if (getMetadata() === prevMetadata) return
+    prevMetadata = getMetadata()
+    node.trigger("metadataChanged")
+
+    if (node.getAttribute("composite")) {
+      const attributes = getInitialFilterAttributes(instance)
+      node.setAttributes(attributes)
+    }
   }
 
   const getUI = () => ui
@@ -192,11 +195,8 @@ export default ({
   const fetchAndRender = () => fetch().then(() => ui && ui.render())
 
   const getConvertedValue = value => {
-    const {
-      unitsConversionMethod,
-      unitsConversionDivider,
-      unitsConversionFractionDigits,
-    } = node.getAttributes()
+    const { unitsConversionMethod, unitsConversionDivider, unitsConversionFractionDigits } =
+      node.getAttributes()
     const converted = convert(instance, unitsConversionMethod, value, unitsConversionDivider)
 
     if (unitsConversionFractionDigits === -1) return converted
@@ -246,12 +246,8 @@ export default ({
     if (node.getAttribute("autofetch")) return startAutofetch()
   })
 
-  const {
-    onKeyChange,
-    onKeyAndMouse,
-    initKeyboardListener,
-    clearKeyboardListener,
-  } = makeKeyboardListener()
+  const { onKeyChange, onKeyAndMouse, initKeyboardListener, clearKeyboardListener } =
+    makeKeyboardListener()
 
   node.onAttributeChange("focused", focused => {
     focused ? initKeyboardListener() : clearKeyboardListener()
@@ -295,7 +291,6 @@ export default ({
     getUI,
     setUI,
     getMetadata,
-    setMetadata,
     getPayload,
     fetch,
     doneFetch,
@@ -318,7 +313,9 @@ export default ({
 
   const onDimensionToggle = onKeyAndMouse(
     ["Shift"],
-    id => ({ allPressed: merge }) => dimensions.toggleDimensionId(id, { merge }),
+    id =>
+      ({ allPressed: merge }) =>
+        dimensions.toggleDimensionId(id, { merge }),
     { allPressed: false }
   )
 

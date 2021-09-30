@@ -41,6 +41,28 @@ export const SimpleDark = () => {
   )
 }
 
+export const DelayedMetadata = () => {
+  const sdk = makeDefaultSDK({ getChartMetadata })
+
+  const chartsMetadata = {
+    get: () => ({}),
+    fetch: () => new Promise(() => {}),
+  }
+
+  const chart = sdk.makeChart({
+    getChart,
+    chartsMetadata,
+    attributes: { composite: true, valueRange: [0, 100] },
+  })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Line chart={chart} height="315px" />
+    </ThemeProvider>
+  )
+}
+
 export default {
   title: "Composite",
   component: Simple,
