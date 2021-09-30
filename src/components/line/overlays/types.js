@@ -1,4 +1,5 @@
 import React, { Fragment } from "react"
+import { useAttributeValue } from "@/components/provider"
 import Container, { alignment } from "./container"
 import Alarm from "./alarm"
 import Highlight, { HighlightPeriod } from "./highlight"
@@ -10,16 +11,22 @@ const AlarmOverlay = ({ id }) => (
   </Container>
 )
 
-const HighlightOverlay = ({ id }) => (
-  <Fragment>
-    <Container id={id} top="40%" align={alignment.elementRight} right={-8}>
-      <HighlightPeriod id={id} />
-    </Container>
-    <Container id={id} bottom="26px" align={alignment.elementRight} right={-8}>
-      <Highlight id={id} />
-    </Container>
-  </Fragment>
-)
+const HighlightOverlay = ({ id }) => {
+  const focused = useAttributeValue("focused")
+
+  if (!focused) return null
+
+  return (
+    <Fragment>
+      <Container id={id} top="40%" align={alignment.elementRight} right={-8}>
+        <HighlightPeriod id={id} />
+      </Container>
+      <Container id={id} bottom="26px" align={alignment.elementRight} right={-8}>
+        <Highlight id={id} />
+      </Container>
+    </Fragment>
+  )
+}
 
 const ProceededOverlay = ({ id }) => (
   <Container id={id} top="50%" align={alignment.chartMiddle}>

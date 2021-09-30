@@ -13,8 +13,12 @@ export default id => {
   useEffect(() => {
     const { add, clear } = makeExecuteLatest()
     const off = unregister(
-      chart.onAttributeChange("hoverX", () =>
-        add(([x]) => {
+      chart.onAttributeChange(
+        "hoverX",
+        add((positionX, prevPositionX) => {
+          const [x] = positionX || prevPositionX || []
+          const overlays = chart.getAttribute("overlays")
+          const { range } = overlays[id]
           setVisible(range[0] < x / 1000 && range[1] > x / 1000)
         })
       )

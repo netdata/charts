@@ -36,8 +36,8 @@ const Button = styled.button.attrs(({ icon, hoverIndicator = true, ...rest }) =>
   `}
 
   &:hover {
-    ${({ theme, hoverIndicator }) =>
-      hoverIndicator && `background: ${getColor("borderSecondary")({ theme })};`};
+    ${({ theme, hoverIndicator, disabled }) =>
+      hoverIndicator && !disabled && `background: ${getColor("borderSecondary")({ theme })};`};
 
     svg {
       fill: ${({ theme, stroked, disabled }) =>
