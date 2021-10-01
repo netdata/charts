@@ -46,7 +46,7 @@ const getHorizontalPosition = (align = alignment.elementMiddle, chart, area, ele
   return calcAlignment({ from, width, chartWidth, element })
 }
 
-const Container = ({ id, align, right = 0, left = 0, children, ...rest }) => {
+const Container = ({ id, align, right = 0, children, ...rest }) => {
   const ref = useRef()
   const [area, setArea] = useState()
   const chart = useChart()
@@ -54,10 +54,9 @@ const Container = ({ id, align, right = 0, left = 0, children, ...rest }) => {
   const updateRight = area => {
     if (!chart || !area || !ref.current) return
 
-    const [calculatedLeft, calculatedRight] = getHorizontalPosition(align, chart, area, ref.current)
+    const [, calculatedRight] = getHorizontalPosition(align, chart, area, ref.current)
 
     ref.current.style.right = `calc(100% - ${calculatedRight + right}px)`
-    ref.current.style.left = `${calculatedLeft + left}px`
   }
 
   useLayoutEffect(
