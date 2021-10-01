@@ -35,6 +35,9 @@ const Correlation = ({ id }) => {
   const errorMessage = validatePeriodSelected(total)
 
   const chart = useChart()
+  const hasCorrelation = useAttributeValue("hasCorrelation")
+
+  if (!hasCorrelation) return null
 
   return (
     <Tooltip

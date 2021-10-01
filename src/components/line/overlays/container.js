@@ -55,7 +55,7 @@ const Container = ({ id, align, right = 0, left = 0, children, ...rest }) => {
     if (!chart || !area || !ref.current) return
 
     const [calculatedLeft, calculatedRight] = getHorizontalPosition(align, chart, area, ref.current)
-    console.log(align, calculatedLeft, calculatedRight)
+
     ref.current.style.right = `calc(100% - ${calculatedRight + right}px)`
     ref.current.style.left = `${calculatedLeft + left}px`
   }

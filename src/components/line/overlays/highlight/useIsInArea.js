@@ -17,9 +17,15 @@ export default id => {
         "hoverX",
         add((positionX, prevPositionX) => {
           const [x] = positionX || prevPositionX || []
-          const overlays = chart.getAttribute("overlays")
-          const { range } = overlays[id]
+          if (!chart.getAttribute("focused")) return
           setVisible(range[0] < x / 1000 && range[1] > x / 1000)
+        })
+      ),
+      chart.onAttributeChange(
+        "focused",
+        add(focused => {
+          if (focused) return
+          setVisible(false)
         })
       )
     )
