@@ -217,13 +217,9 @@ export default (sdk, chart) => {
 
   const makeVisibilityOptions = () => {
     const selectedDimensions = chart.getAttribute("selectedDimensions")
-
     const { dimensionIds } = chart.getPayload()
 
-    const selectedDimensionsSet = new Set(selectedDimensions)
-    const visibility = selectedDimensions
-      ? dimensionIds.map(id => selectedDimensionsSet.has(id))
-      : dimensionIds.map(() => true)
+    const visibility = dimensionIds.map(selectedDimensions ? chart.isDimensionVisible : () => true)
 
     return { visibility }
   }
