@@ -10,9 +10,9 @@ export default ({
   attributes: defaultAttributes,
   on = {},
   getChartMetadata,
+  chartsMetadata = makeChartsMetadata({ getChart: getChartMetadata }),
 }) => {
   const listeners = makeListeners()
-  const chartsMetadata = makeChartsMetadata({ getChart: getChartMetadata })
   const attributes = { ui }
   const plugins = {}
   let root

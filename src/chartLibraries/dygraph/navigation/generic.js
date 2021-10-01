@@ -13,16 +13,25 @@ export default chartUI => {
       prevNavigation,
     })
 
-  const onSelectVerticalAndZoom = onKeyAndMouse(["Shift", "Alt"], () => ({ allPressed }) =>
-    allPressed && updateNavigation("selectVertical")
+  const onSelectVerticalAndZoom = onKeyAndMouse(
+    ["Shift", "Alt"],
+    () =>
+      ({ allPressed }) =>
+        allPressed && updateNavigation("selectVertical")
   )
 
-  const onHighlight = onKeyAndMouse("Alt", () => ({ allPressed }) =>
-    allPressed && updateNavigation("highlight")
+  const onHighlight = onKeyAndMouse(
+    "Alt",
+    () =>
+      ({ allPressed }) =>
+        allPressed && updateNavigation("highlight")
   )
 
-  const onSelectAndZoom = onKeyAndMouse("Shift", () => ({ allPressed }) =>
-    allPressed && updateNavigation("select")
+  const onSelectAndZoom = onKeyAndMouse(
+    "Shift",
+    () =>
+      ({ allPressed }) =>
+        allPressed && updateNavigation("select")
   )
 
   const mousedown = () => {
@@ -54,7 +63,7 @@ export default chartUI => {
       const after = Math.round(afterAxis + afterIncrement) / 1000
       const before = Math.round(beforeAxis - beforeIncrement) / 1000
 
-      chartUI.sdk.trigger("moveX", chartUI.chart, after, before)
+      chartUI.chart.moveX(after, before)
     }
 
     const offsetToPercentage = (g, offsetX) => {
@@ -75,7 +84,13 @@ export default chartUI => {
     zoom(g, percentage, xPct)
   })
 
-  const unregister = chartUI.on("mousedown", mousedown).on("mouseup", mouseup).on("wheel", onZoom)
+  const reset = () => chartUI.chart.moveX(-900)
+
+  const unregister = chartUI
+    .on("mousedown", mousedown)
+    .on("mouseup", mouseup)
+    .on("wheel", onZoom)
+    .on("dblclick", reset)
 
   return () => {
     unregister()

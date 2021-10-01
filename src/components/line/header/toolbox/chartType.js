@@ -40,7 +40,7 @@ const ChartType = ({ disabled }) => {
   const chart = useChart()
   const { chartType: metaChartType } = useMetadata()
   const [chartTypeAttribute, setChartType] = useAttribute("chartType")
-  const chartType = chartTypeAttribute || metaChartType
+  const chartType = chartTypeAttribute || metaChartType || "line"
 
   const onChange = value => setChartType(metaChartType === value ? "" : value)
 
