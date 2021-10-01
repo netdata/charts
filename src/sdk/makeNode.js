@@ -151,6 +151,20 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   const zoomIn = () => zoomX(1)
   const zoomOut = () => zoomX(-1)
 
+  const updateValueRange = value => {
+    if (!getAttribute("pristineValueRange")) {
+      const pristine = getAttribute("valueRange")
+      updateAttribute("pristineValueRange", pristine)
+    }
+    updateAttribute("valueRange", value)
+  }
+
+  const resetValueRange = () => {
+    const pristine = getAttribute("pristineValueRange")
+    updateAttribute("pristineValueRange", null)
+    updateAttribute("valueRange", pristine)
+  }
+
   updateIntls(getAttribute("timezone"))
   onAttributeChange("timezone", updateIntls)
 
@@ -184,6 +198,8 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     getAncestor,
     inherit,
     updateHeight,
+    updateValueRange,
+    resetValueRange,
     moveY,
     moveX,
     zoomIn,

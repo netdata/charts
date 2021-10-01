@@ -35,12 +35,9 @@ import { useAttribute, useChart, withChartProvider } from "./components/provider
 const getChartMetadata = () => camelizeKeys(systemLoadLineChart, { omit: ["dimensions"] })
 const getChart = makeMockPayload(systemLoadLine[0], { delay: 600 })
 
-export const SimpleReal = () => {
-  const { id } = getChartMetadata()
+export const Simple = () => {
   const sdk = makeDefaultSDK({ getChartMetadata })
-  const chart = sdk.makeChart({
-    attributes: { host: "http://d1.firehol.org/api/v1/data", id },
-  })
+  const chart = sdk.makeChart({ getChart })
   sdk.appendChild(chart)
 
   return (
@@ -50,9 +47,12 @@ export const SimpleReal = () => {
   )
 }
 
-export const Simple = () => {
+export const SimpleReal = () => {
+  const { id } = getChartMetadata()
   const sdk = makeDefaultSDK({ getChartMetadata })
-  const chart = sdk.makeChart({ getChart, attributes: { navigation: "selectVertical" } })
+  const chart = sdk.makeChart({
+    attributes: { host: "http://d1.firehol.org/api/v1/data", id },
+  })
   sdk.appendChild(chart)
 
   return (

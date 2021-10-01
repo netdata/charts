@@ -9,6 +9,7 @@ export default {
   min: 0,
   max: 0,
   updateEvery: 0,
+  pristineValueRange: null,
   valueRange: null,
   loaded: false,
   loading: false,

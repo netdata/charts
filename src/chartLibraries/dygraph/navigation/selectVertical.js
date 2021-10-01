@@ -50,14 +50,6 @@ export default chartUI => {
     const range = [min, max].sort((a, b) => a - b)
 
     chartUI.sdk.trigger("highlightVerticalEnd", chartUI.chart, range)
-
-    // Dygraph.endZoom(event, g, context)
-    // context.isZooming = false
-    // context.dragStartY = null
-
-    // const range = getRange()
-
-    // chartUI.sdk.trigger("highlightVerticalEnd", chartUI.chart, range)
   }
 
   return chartUI.on("mousedown", mousedown).on("mousemove", mousemove).on("mouseup", mouseup)
