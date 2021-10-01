@@ -11,7 +11,7 @@ const Dimension = ({ id, strong }) => {
   return (
     <Flex
       gap={1}
-      data-testid="chartTooltip-dimension"
+      data-testid="chartPopover-dimension"
       alignItems="center"
       opacity={visible ? null : "weak"}
     >

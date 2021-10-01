@@ -8,7 +8,7 @@ const UpdateEvery = () => {
   const { updateEvery } = chart.getPayload()
 
   return (
-    <Flex gap={1} data-testid="chartTooltip-collection">
+    <Flex gap={1} data-testid="chartPopover-collection">
       <TextMicro color="textLite">Collection:</TextMicro>
       <TextMicro color="textDescription">every {updateEvery}s</TextMicro>
     </Flex>

@@ -7,7 +7,7 @@ const Timestamp = ({ value }) => {
   const text = useMemo(() => `${chart.formatDate(value)} • ${chart.formatTime(value)}`, [value])
 
   return (
-    <TextMicro color="textDescription" data-testid="chartTooltip-timestamp">
+    <TextMicro color="textDescription" data-testid="chartPopover-timestamp">
       {text}
     </TextMicro>
   )

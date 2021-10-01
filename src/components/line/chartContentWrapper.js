@@ -5,7 +5,7 @@ import { useInitialLoading, useEmpty, useAttributeValue } from "@/components/pro
 import { useHovered } from "@/components/useHover"
 import ChartContainer from "@/components/chartContainer"
 import { CenterNoData } from "./overlays/proceeded"
-import Tooltip from "./tooltip"
+import Tooltip from "./popover"
 import Toolbox from "./toolbox"
 import Skeleton from "./skeleton"
 import Overlays from "./overlays"

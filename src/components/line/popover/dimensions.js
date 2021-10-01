@@ -66,7 +66,7 @@ const Dimensions = () => {
   }, [chart, row, x])
 
   return (
-    <Container data-testid="chartTooltip-dimensions">
+    <Container data-testid="chartPopover-dimensions">
       <Flex column>
         {x && <Timestamp value={x} />}
         <UpdateEvery />
