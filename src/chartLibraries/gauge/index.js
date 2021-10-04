@@ -60,7 +60,7 @@ export default (sdk, chart) => {
         const { color, strokeColor } = makeThemingOptions()
         gauge.options.strokeColor = strokeColor
         gauge.options.pointer.color = color
-        render()
+        gauge.render()
       })
     )
 
