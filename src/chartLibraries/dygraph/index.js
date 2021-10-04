@@ -283,6 +283,9 @@ export default (sdk, chart) => {
   const render = () => {
     if (!dygraph) return
 
+    const { highlighting, panning } = chart.getAttributes()
+    if (highlighting || panning) return
+
     chartUI.render()
 
     chart.updateDimensions()

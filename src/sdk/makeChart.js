@@ -225,9 +225,9 @@ export default ({
     fetchTimeoutId = null
 
     if (
-      !node.getAttribute("active") ||
-      node.getAttribute("loaded") ||
-      !node.getAttribute("loading")
+      !node.getAttribute("active") &&
+      node.getAttribute("loaded") &&
+      node.getAttribute("loading")
     ) {
       cancelFetch()
     }
