@@ -45,8 +45,11 @@ export default chart => {
 
   const updateVisibleDimensions = () => {
     const selectedDimensions = chart.getAttribute("selectedDimensions")
+
     visibleDimensionIds = selectedDimensions
-      ? sortedDimensionIds.filter(id => selectedDimensions.includes(id))
+      ? sortedDimensionIds.filter(
+          id => selectedDimensions.includes(id) || selectedDimensions.includes(getDimensionName(id))
+        )
       : sortedDimensionIds
     visibleDimensionSet = new Set(visibleDimensionIds)
   }
