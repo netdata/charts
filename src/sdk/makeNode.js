@@ -117,7 +117,12 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   } = makeIntls()
 
   const inherit = () => {
-    attributes = { ...parent.getAttributes(), ...attributes }
+    const parentAttributes = parent.getAttributes()
+    attributes = {
+      ...parentAttributes,
+      ...attributes,
+      overlays: { ...parentAttributes.overlays, ...attributes.overlays },
+    }
     updateIntls(attributes.timezone)
   }
 
