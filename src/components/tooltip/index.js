@@ -35,10 +35,10 @@ Tooltip.defaultProps = {
 
 export const withTooltip = (Component, tooltipDefaultProps = {}) =>
   forwardRef(({ title, ...rest }, ref) => {
-    if (!title) return <Component {...rest} ref={ref} />
+    if (!title) return <Component ref={ref} {...rest} />
 
     return (
-      <Tooltip content={title} {...tooltipDefaultProps} {...rest.tooltipProps}>
+      <Tooltip content={title} disabled={rest.open} {...tooltipDefaultProps} {...rest.tooltipProps}>
         <Component ref={ref} {...rest} />
       </Tooltip>
     )
