@@ -14,9 +14,12 @@ export default chartUI => {
       return chartUI.getDygraph().getArea().h
     }
 
+    if (offsetY < getY(0)) return validPoints[0].name
+    if (offsetY > getY(validPoints.length - 1)) return validPoints[validPoints.length - 1].name
+
     const point = validPoints.find((p, index) => getY(index) < offsetY && getY(index + 1) > offsetY)
 
-    return (point || validPoints[validPoints.length - 1]).name
+    return point.name
   }
 
   const getClosestPoint = (event, points) => {
