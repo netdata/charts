@@ -49,7 +49,7 @@ const Container = ({ id, align, right = 0, children, ...rest }) => {
   const chart = useChart()
 
   const updateRight = area => {
-    if (!chart || !area || !ref.current) return
+    if (!chart || !chart.getUI() || !area || !ref.current) return
 
     const [, calculatedRight] = getHorizontalPosition(align, chart, area, ref.current)
 
