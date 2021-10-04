@@ -12,12 +12,9 @@ export const alignment = {
 }
 
 const calcByAlignment = {
-  [alignment.chartMiddle]: ({ from, chart, element }) => [
+  [alignment.chartMiddle]: ({ from, chartWidth, element }) => [
     60,
-    Math.min(
-      from - 24,
-      60 + chart.getUI().getChartWidth() / 2 + element.firstChild.offsetWidth / 2
-    ),
+    Math.min(from - 24, 60 + chartWidth / 2 + element.firstChild.offsetWidth / 2),
   ],
   [alignment.elementMiddle]: ({ from, width, element }) => [
     from,
