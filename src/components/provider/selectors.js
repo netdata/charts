@@ -4,8 +4,8 @@ import context from "./context"
 export const useChart = () => useContext(context)
 
 export const useListener = (func, deps) => {
-  const off = useMemo(func, deps)
-  useEffect(() => off, [off])
+  const on = useMemo(() => func, deps)
+  useEffect(() => on(), [on])
 }
 
 export const useAttributeValue = name => {
@@ -91,10 +91,9 @@ export const useVisibleDimensionId = id => {
   const getValue = () => chart.isDimensionVisible(id)
   const [visible, setVisible] = useState(getValue)
 
-  useListener(
-    () => chart.onAttributeChange("selectedDimensions", () => setVisible(getValue())),
-    [chart]
-  )
+  useListener(() => chart.onAttributeChange("selectedDimensions", () => setVisible(getValue())), [
+    chart,
+  ])
 
   return visible
 }
