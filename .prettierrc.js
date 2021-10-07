@@ -6,4 +6,5 @@ module.exports = {
   useTabs: false,
   singleQuote: false,
   arrowParens: "avoid",
+  proseWrap: "always",
 }
