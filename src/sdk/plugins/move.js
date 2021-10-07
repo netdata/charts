@@ -14,7 +14,7 @@ export default sdk => {
       chart.getApplicableNodes({ syncPanning: true }).forEach(node => {
         node.updateAttributes(move)
         if (node.type === "chart" && node.getAttribute("active"))
-          node.fetch().then(() => node.getUI().render())
+          node.fetchAndRender())
       })
     })
     .on("moveY", (chart, min, max) => {
