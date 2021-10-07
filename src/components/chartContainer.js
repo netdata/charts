@@ -3,7 +3,7 @@ import styled from "styled-components"
 import { useChart } from "@/components/provider"
 
 const Container = styled.div`
-  height: auto !important;
+  height: 100% !important;
   width: 100% !important;
 `
 

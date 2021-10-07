@@ -2,8 +2,24 @@ import React, { memo, forwardRef } from "react"
 import Intersection from "@netdata/netdata-ui/lib/components/intersection"
 import useForwardRef from "@netdata/netdata-ui/lib/hooks/use-forward-ref"
 import { useAttributeValue, useChart } from "@/components/provider"
+import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
+import styled from "styled-components"
 
-export default Component => {
+const FallbackContainer = styled(TextMicro).attrs({
+  textAlign: "center",
+  truncate: true,
+  color: "borderSecondary",
+})`
+  width: 100%;
+`
+
+export const Fallback = props => {
+  const chart = useChart()
+
+  return <FallbackContainer {...props}>{chart.getAttribute("id")}</FallbackContainer>
+}
+
+export default (Component, { Fallback: DefaultFallback = Fallback } = {}) => {
   const IntersectionComponent = forwardRef(
     (
       {
@@ -34,7 +50,7 @@ export default Component => {
           flex={flex}
           margin={margin}
           padding={padding}
-          fallback={chart.getAttribute("id")}
+          fallback={<DefaultFallback />}
           onVisibility={onVisibility}
           data-testid="chartIntersector"
         >

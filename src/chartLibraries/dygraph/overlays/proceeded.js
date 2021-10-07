@@ -6,10 +6,7 @@ export default (chartUI, id) => {
 
   const [, before] = dygraph.xAxisRange()
 
-  if (firstEntry > before / 1000) {
-    const { w } = chartUI.getDygraph().getArea()
-    return { from: w }
-  }
+  if (firstEntry > before / 1000) return
 
   const area = getArea(dygraph, [firstEntry, firstEntry])
 

@@ -3,7 +3,6 @@ import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { Text } from "@netdata/netdata-ui/lib/components/typography"
 import ChartContainer from "@/components/chartContainer"
-import withChart from "@/components/hocs/withChart"
 import {
   useChart,
   useTitle,
@@ -12,6 +11,11 @@ import {
   useListener,
   useOnResize,
 } from "@/components/provider"
+import { getSizeBy } from "@netdata/netdata-ui/lib/theme/utils"
+import { withChartProvider } from "@/components/provider"
+import withChartTrack from "@/components/hocs/withChartTrack"
+import withIntersection from "./withIntersection"
+import withDifferedMount from "@/components/hocs/withDifferedMount"
 
 const Label = styled(Text)`
   line-height: 1;
@@ -119,26 +123,37 @@ const Stats = () => {
 }
 
 const Skeleton = styled(Flex).attrs({
-  height: "0",
   background: "borderSecondary",
-  flex: true,
-  margin: [2, 2, 0],
+  position: "absolute",
 })`
-  padding-bottom: 50%;
+  inset: ${getSizeBy(1)} ${getSizeBy(3)} ${getSizeBy(3)};
   border-top-left-radius: 100%;
   border-top-right-radius: 100%;
+`
+
+const Container = styled(Flex).attrs({ position: "relative" })`
+  padding-bottom: 60%;
+`
+
+const ChartWrapper = styled.div`
+  position: absolute;
+  inset: 0;
 `
 
 export const Gauge = props => {
   const loaded = useAttributeValue("loaded")
 
   return (
-    <Flex position="relative" {...props}>
+    <Container {...props}>
       {!loaded && <Skeleton />}
-      {loaded && <ChartContainer as="canvas" />}
-      {loaded && <Stats />}
-    </Flex>
+      {loaded && (
+        <ChartWrapper>
+          <ChartContainer as="canvas" />
+          <Stats />
+        </ChartWrapper>
+      )}
+    </Container>
   )
 }
 
-export default withChart(Gauge)
+export default withChartProvider(withIntersection(withChartTrack(withDifferedMount(Gauge))))
