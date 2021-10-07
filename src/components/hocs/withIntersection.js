@@ -29,6 +29,8 @@ export default (Component, { Fallback: DefaultFallback = Fallback } = {}) => {
         flex = true,
         margin,
         padding,
+        "data-chartid": dataChartId,
+        "data-testid": dataTestId = "chartIntersector",
         ...rest
       },
       parentRef
@@ -52,7 +54,8 @@ export default (Component, { Fallback: DefaultFallback = Fallback } = {}) => {
           padding={padding}
           fallback={<DefaultFallback />}
           onVisibility={onVisibility}
-          data-testid="chartIntersector"
+          data-testid={dataTestId}
+          data-chartid={dataChartId}
         >
           {() => <Component readOnly={readOnly} height="100%" width="100%" flex {...rest} />}
         </Intersection>
