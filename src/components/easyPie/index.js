@@ -100,11 +100,11 @@ const Container = styled(Flex).attrs({ position: "relative" })`
   padding-bottom: 100%;
 `
 
-export const EasyPie = ({ ...rest }) => {
+export const EasyPie = props => {
   const loaded = useAttributeValue("loaded")
 
   return (
-    <Container {...rest}>
+    <Container {...props}>
       {!loaded && <Skeleton />}
       {loaded && (
         <ChartWrapper>
