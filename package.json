@@ -1,6 +1,6 @@
 {
   "name": "@netdata/charts",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Netdata frontend SDK and chart utilities",
   "main": "index.js",
   "module": "es6/index.js",
@@ -13,8 +13,8 @@
     "/dist"
   ],
   "scripts": {
-    "build:cjs": "babel src --out-dir dist --copy-files",
-    "build:es6": "BABEL_ENV=es6 babel src --out-dir dist/es6 --copy-files",
+    "build:cjs": "babel src --out-dir dist --copy-files --ignore **/*.stories.js --ignore ./src/fixtures",
+    "build:es6": "BABEL_ENV=es6 babel src --out-dir dist/es6 --copy-files --ignore **/*.stories.js --ignore ./src/fixtures",
     "build:umd": "NODE_ENV=production webpack",
     "build": "yarn build:umd && yarn build:cjs && yarn build:es6",
     "test": "jest --config ./jest/config.js",

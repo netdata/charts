@@ -1,6 +1,5 @@
 import React, { useState } from "react"
 import ChartContainer from "@/components/chartContainer"
-import withChart from "@/components/hocs/withChart"
 import {
   useChart,
   useTitle,
@@ -12,6 +11,10 @@ import {
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { Text } from "@netdata/netdata-ui/lib/components/typography"
+import { withChartProvider } from "@/components/provider"
+import withChartTrack from "@/components/hocs/withChartTrack"
+import withIntersection from "./withIntersection"
+import withDifferedMount from "@/components/hocs/withDifferedMount"
 
 const Label = styled(Text)`
   line-height: 1;
@@ -57,16 +60,16 @@ const Unit = () => {
   )
 }
 
-const Container = styled(ChartContainer)`
-  position: relative;
+const ChartWrapper = styled(ChartContainer)`
+  position: absolute;
+  inset: 0;
 `
 
 const StatsContainer = styled(Flex).attrs({
-  alignContent: "center",
   position: "absolute",
   column: true,
   justifyContent: "between",
-  width: "100%",
+  alignContent: "center",
 })`
   inset: ${({ inset }) => inset};
   text-align: center;
@@ -86,24 +89,30 @@ const Stats = () => {
 }
 
 const Skeleton = styled(Flex).attrs({
-  height: "0",
   background: "borderSecondary",
-  flex: true,
+  position: "absolute",
+  round: "100%",
 })`
-  border-radius: 100%;
+  inset: 0;
+`
+
+const Container = styled(Flex).attrs({ position: "relative" })`
   padding-bottom: 100%;
 `
 
-export const EasyPie = ({ width = "100%", rest }) => {
+export const EasyPie = props => {
   const loaded = useAttributeValue("loaded")
 
-  if (!loaded) return <Skeleton width={width} {...rest} />
-
   return (
-    <Container width={width} {...rest}>
-      {loaded && <Stats />}
+    <Container {...props}>
+      {!loaded && <Skeleton />}
+      {loaded && (
+        <ChartWrapper>
+          <Stats />
+        </ChartWrapper>
+      )}
     </Container>
   )
 }
 
-export default withChart(EasyPie)
+export default withChartProvider(withIntersection(withChartTrack(withDifferedMount(EasyPie))))

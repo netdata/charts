@@ -13,10 +13,14 @@ export default Component => {
 
       return chart
         .on("resizeYMove", delta => {
-          const nextHeight = `${initialHeight + delta}px`
-          ref.current.style.height = nextHeight
+          const nextHeight = initialHeight + delta
+
+          if (nextHeight < 185) return
+
+          const nextHeightAttribute = `${nextHeight}px`
+          ref.current.style.height = nextHeightAttribute
           chart.getUI().trigger("resize")
-          chart.updateHeight(nextHeight)
+          chart.updateHeight(nextHeightAttribute)
         })
         .on("resizeYStart", () => {
           initialHeight = ref.current.clientHeight

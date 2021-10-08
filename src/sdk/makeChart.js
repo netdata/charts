@@ -85,6 +85,7 @@ export default ({
     const remaining =
       backoffMs || updateEveryMs - Math.round((div - Math.floor(div)) * updateEveryMs)
 
+    clearTimeout(fetchTimeoutId)
     fetchTimeoutId = setTimeout(() => {
       startAutofetch()
     }, remaining)
@@ -222,7 +223,6 @@ export default ({
 
   const stopAutofetch = () => {
     clearTimeout(fetchTimeoutId)
-    fetchTimeoutId = null
 
     if (
       !node.getAttribute("active") &&
