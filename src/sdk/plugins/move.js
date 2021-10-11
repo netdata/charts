@@ -19,10 +19,11 @@ export default sdk => {
     .on("moveY", (chart, min, max) => {
       chart.updateValueRange([min, max])
       const after = chart.getAttribute("after")
-      if (after > 0) return
 
-      const now = Date.now() / 1000
-      chart.moveX(now + after, now)
+      if (after < 0) {
+        const now = Date.now() / 1000 - 1
+        chart.moveX(now + after, now)
+      }
 
       let offAfter = chart.onAttributeChange("after", after => {
         if (after > 0) return

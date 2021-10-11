@@ -109,7 +109,7 @@ export default ({
   }
 
   const doneFetch = nextRawPayload => {
-    backoff(null)
+    backoffMs = 0
     const nextPayload = camelizePayload(nextRawPayload)
 
     const result = transformResult(nextPayload)

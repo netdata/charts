@@ -40,7 +40,6 @@ const Label = forwardRef(
           onClick={() => onChange(value)}
         />
         <Button
-          title={open ? "Close menu" : "Open menu"}
           icon={<Icon svg={open ? chevronUpIcon : chevronDownIcon} width="16px" />}
           onClick={onClick}
           hoverIndicator={false}

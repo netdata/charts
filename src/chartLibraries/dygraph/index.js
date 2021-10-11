@@ -148,14 +148,13 @@ export default (sdk, chart) => {
         "hoverX",
         executeLatest.add(dimensions => {
           const nextSelection = dimensions ? chart.getClosestRow(dimensions[0]) : -1
-          // const { canvas_ctx_: ctx } = dygraph
-          // const { w, h } = dygraph.getArea()
-          // ctx.clearRect(0, 0, w, h)
-          // dygraph.previousVerticalX_ = null
+
+          if (nextSelection === -1) {
+            dygraph.setSelection()
+            return
+          }
+
           dygraph.setSelection(nextSelection)
-
-          if (nextSelection === -1) return
-
           crosshair(instance, nextSelection)
         })
       ),
