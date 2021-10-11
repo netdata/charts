@@ -19,7 +19,6 @@ export const Container = styled(Flex).attrs({
 `
 
 const StyledLabel = styled(TextSmall).attrs({
-  strong: true,
   margin: [0, 0, 0, 2],
   whiteSpace: "nowrap",
 })`
