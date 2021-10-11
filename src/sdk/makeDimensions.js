@@ -118,7 +118,7 @@ export default chart => {
   const isDimensionVisible = id => visibleDimensionSet.has(id)
 
   const getDimensionColor = id => {
-    const color = colorsById[id]
+    const color = colorsById[id] || dimensionColors[0]
     if (typeof color === "string") return color
 
     const index = chart.getUI().getThemeIndex()
