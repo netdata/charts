@@ -6,7 +6,8 @@ export default Component => {
     const chart = useChart()
     const ref = useRef()
 
-    const height = chart.getAttribute("height") || defaultHeight
+    const enabledHeightResize = chart.getAttribute("enabledHeightResize")
+    const height = (enabledHeightResize && chart.getAttribute("height")) || defaultHeight
 
     useListener(() => {
       let initialHeight = 0

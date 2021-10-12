@@ -56,6 +56,8 @@ export default {
   detailed: false,
   colors: [],
   height: "",
+  enabledHeightResize: true,
+  pristineEnabledHeightResize: {},
 
   composite: false,
   aggregationMethod: "",

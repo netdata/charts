@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid"
 import makeListeners from "@/helpers/makeListeners"
+import makePristine from "@/helpers/makePristine"
 import makeGetUnitSign from "./makeGetUnitSign"
 import pristineComposite, { pristineCompositeKey } from "./pristineComposite"
 import makeIntls from "./makeIntls"
@@ -170,6 +171,25 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     updateAttribute("valueRange", pristine)
   }
 
+  const pristine = makePristine(
+    "pristineEnabledHeightResize",
+    ["enabledHeightResize"],
+    updateAttributes
+  )
+
+  const toggleFullscreen = () => {
+    const fullscreen = getAttribute("fullscreen")
+    if (!fullscreen) {
+      pristine.updatePristine(attributes, "enabledHeightResize", false)
+      updateAttribute("enabledHeightResize", false)
+      updateAttribute("fullscreen", !fullscreen)
+      return
+    }
+
+    pristine.resetPristine(attributes)
+    updateAttribute("fullscreen", !fullscreen)
+  }
+
   updateIntls(getAttribute("timezone"))
   onAttributeChange("timezone", updateIntls)
 
@@ -205,6 +225,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     updateHeight,
     updateValueRange,
     resetValueRange,
+    toggleFullscreen,
     moveY,
     moveX,
     zoomIn,
