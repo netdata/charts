@@ -149,11 +149,12 @@ export default (sdk, chart) => {
         executeLatest.add(dimensions => {
           const nextSelection = dimensions ? chart.getClosestRow(dimensions[0]) : -1
 
-          if (nextSelection === -1) return dygraph.setSelection()
+          if (nextSelection === -1) {
+            dygraph.setSelection()
+            return
+          }
 
-          const selection = getDygraphSelection(nextSelection)
-          dygraph.setSelection(selection)
-
+          dygraph.setSelection(nextSelection)
           crosshair(instance, nextSelection)
         })
       ),
@@ -293,19 +294,6 @@ export default (sdk, chart) => {
       colors: chart.getColors(),
     })
     chartUI.trigger("rendered")
-  }
-
-  const getDygraphSelection = nextSelection => {
-    if (
-      dygraph.layout_.points[0][nextSelection]?.xval ===
-      chart.getPayload().result.data[nextSelection][0]
-    ) {
-      return nextSelection
-    }
-
-    const [timestamp] = chart.getPayload().result.data[nextSelection]
-    const canvasx = dygraph.toDomXCoord(timestamp)
-    return dygraph.findClosestRow(canvasx)
   }
 
   const getPreceded = () => {

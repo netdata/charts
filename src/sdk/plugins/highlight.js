@@ -3,7 +3,7 @@ const getMove = node => {
   const after = ancestor.getAttribute("after")
   if (after > 0) return null
 
-  const now = Math.floor(Date.now() / 1000)
+  const now = Date.now() / 1000
   return { after: now + after, before: now }
 }
 
