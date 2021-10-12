@@ -254,6 +254,19 @@ export default ({
     invalidateClosestRowCache()
   })
 
+  let prevCharType = ""
+  node.onAttributeChange("groupBy", groupBy => {
+    if (groupBy !== "dimension") {
+      prevCharType = node.getAttribute("chartType")
+      return node.updateAttribute("chartType", "line")
+    }
+
+    if (node.getAttribute("chartType") === "line") {
+      node.updateAttribute("chartType", prevCharType)
+    }
+    prevCharType = ""
+  })
+
   const getApplicableNodes = (attributes, options) => {
     if (!node.match(attributes)) return [instance]
 
