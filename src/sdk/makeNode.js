@@ -136,7 +136,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   }
 
   const moveX = (after, before) => {
-    if (before - after < 60) return
+    if (after > 0 && before - after < 60) return
     sdk.trigger("moveX", instance, Math.floor(after), Math.ceil(before))
   }
 

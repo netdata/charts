@@ -80,6 +80,7 @@ export default (sdk, chart) => {
         chartUI.trigger("underlayCallback", ...args)
       ),
       interactionModel: {
+        willDestroyContextMyself: true,
         mouseout: executeLatest.add((...args) => chartUI.trigger("mouseout", ...args)),
         mousedown: executeLatest.add((...args) => chartUI.trigger("mousedown", ...args)),
         mousemove: executeLatest.add((...args) => chartUI.trigger("mousemove", ...args)),

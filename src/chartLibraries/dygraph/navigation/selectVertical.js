@@ -11,6 +11,8 @@ export default chartUI => {
     Dygraph.startZoom(event, g, context)
     startY = context.dragStartY
     endY = -1
+
+    chartUI.on("mousemove", mousemove).on("mouseup", mouseup)
   }
 
   const mousemove = (event, g, context) => {
@@ -37,20 +39,22 @@ export default chartUI => {
   }
 
   const mouseup = (event, g, context) => {
-    g.clearZoomRect_()
+    if (context.isZooming) {
+      g.clearZoomRect_()
 
-    context.isZooming = false
-    context.dragStartY = null
+      context.destroy()
 
-    if (endY === -1 || Math.abs(startY - endY) < 5) return null
+      const range =
+        endY === -1 || Math.abs(startY - endY) < 5
+          ? null
+          : [g.toDataYCoord(startY), g.toDataYCoord(endY)].sort((a, b) => a - b)
 
-    var min = g.toDataYCoord(startY)
-    var max = g.toDataYCoord(endY)
+      chartUI.sdk.trigger("highlightVerticalEnd", chartUI.chart, range)
+    }
 
-    const range = [min, max].sort((a, b) => a - b)
-
-    chartUI.sdk.trigger("highlightVerticalEnd", chartUI.chart, range)
+    chartUI.off("mousemove", mousemove)
+    chartUI.off("mouseup", mouseup)
   }
 
-  return chartUI.on("mousedown", mousedown).on("mousemove", mousemove).on("mouseup", mouseup)
+  return chartUI.on("mousedown", mousedown)
 }

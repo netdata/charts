@@ -17,6 +17,8 @@ export default sdk => {
       })
     })
 
+    if (valueRange === null) return
+
     const [min, max] = valueRange
     chart.moveY(min, max)
   })

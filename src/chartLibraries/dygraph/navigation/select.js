@@ -11,6 +11,8 @@ export default chartUI => {
     Dygraph.startZoom(event, g, context)
     startX = context.dragStartX
     endX = -1
+
+    chartUI.on("mousemove", mousemove).on("mouseup", mouseup)
   }
 
   const mousemove = (event, g, context) => {
@@ -51,14 +53,18 @@ export default chartUI => {
   }
 
   const mouseup = (event, g, context) => {
-    g.clearZoomRect_()
-    context.isZooming = false
-    context.dragStartX = null
+    if (context.isZooming) {
+      g.clearZoomRect_()
 
-    const range = getRange(g)
+      context.destroy()
+      const range = getRange(g)
 
-    chartUI.sdk.trigger("highlightEnd", chartUI.chart, range)
+      chartUI.sdk.trigger("highlightEnd", chartUI.chart, range)
+    }
+
+    chartUI.off("mousemove", mousemove)
+    chartUI.off("mouseup", mouseup)
   }
 
-  return chartUI.on("mousedown", mousedown).on("mousemove", mousemove).on("mouseup", mouseup)
+  return chartUI.on("mousedown", mousedown)
 }
