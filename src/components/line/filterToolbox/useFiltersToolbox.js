@@ -38,10 +38,14 @@ export default () => {
     [chart]
   )
 
+  const aggregate =
+    groupBy === "dimension" || (totalChartIds > 0 && totalChartIds.length > totalNodes.length)
+  const dimensionAggregation = groupBy !== "dimension" && !hasDimensions
+
   return {
-    aggregate:
-      groupBy === "dimension" || (totalChartIds > 0 && totalChartIds.length > totalNodes.length),
-    dimensionAggregation: groupBy !== "dimension" && !hasDimensions,
+    aggregate,
+    dimensionAggregation,
+    prefixedDimensions: aggregate || dimensionAggregation,
     totalChartIds,
   }
 }

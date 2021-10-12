@@ -24,13 +24,13 @@ export const Container = ({ children, ...rest }) => {
 }
 
 const FilterToolbox = props => {
-  const { aggregate, dimensionAggregation } = useFiltersToolbox()
+  const { aggregate, dimensionAggregation, prefixedDimensions } = useFiltersToolbox()
 
   return (
     <Container {...props}>
       {aggregate && <Aggregate />}
       {dimensionAggregation && <DimensionsAggregation isAggregate={aggregate} />}
-      <Dimensions />
+      <Dimensions labelProps={!prefixedDimensions && { secondaryLabel: "" }} />
       <GroupBy />
     </Container>
   )
