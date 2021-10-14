@@ -16,7 +16,7 @@ const Dimension = ({ id, strong }) => {
       opacity={visible ? null : "weak"}
     >
       <Color id={id} height="12px" />
-      <Flex as={Name} flex id={id} margin={[0, "auto"]} strong={strong} />
+      <Flex as={Name} flex id={id} strong={strong} />
       <Value id={id} strong={strong} visible={visible} />
     </Flex>
   )

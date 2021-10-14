@@ -10,7 +10,7 @@ import Dimension from "./dimension"
 const Container = styled(Flex).attrs({
   round: true,
   border: { side: "all", color: "elementBackground" },
-  width: "196px",
+  width: { min: "196px", max: "296px" },
   background: "dropdown",
   column: true,
   padding: [4],

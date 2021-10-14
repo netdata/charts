@@ -12,9 +12,11 @@ export const tooltipStyleProps = {
   background: ["neutral", "black"],
 }
 
-const DefaultContent = ({ children }) => (
-  <Flex {...tooltipStyleProps}>
-    <TextSmall color="bright">{children}</TextSmall>
+const DefaultContent = ({ children, ...rest }) => (
+  <Flex {...tooltipStyleProps} {...rest}>
+    <TextSmall color="bright" wordBreak="break-word">
+      {children}
+    </TextSmall>
   </Flex>
 )
 

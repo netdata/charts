@@ -7,6 +7,7 @@ export const Color = styled(Flex).attrs({
   width: "4px",
   round: true,
   "data-testid": "chartDimensions-color",
+  flex: false,
 })`
   background-color: ${({ bg }) => bg};
 `

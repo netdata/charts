@@ -9,7 +9,15 @@ export default {
   before: 1626429850,
   min: 0,
   max: 19.693882539999997,
-  dimension_names: ["iowait", "irq", "nice", "softirq", "steal", "system", "user"],
+  dimension_names: [
+    "01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234",
+    "irq",
+    "nice",
+    "softirq",
+    "steal",
+    "system",
+    "user",
+  ],
   dimension_ids: ["iowait", "irq", "nice", "softirq", "steal", "system", "user"],
   view_latest_values: [
     0.17231818,
