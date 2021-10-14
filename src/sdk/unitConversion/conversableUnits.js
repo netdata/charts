@@ -18,7 +18,7 @@ export default {
     time: {
       check: chart => chart.getAttribute("secondsAsTime"),
       convert: (value, chart) => {
-        const days = Math.floor(value / 864000000)
+        const days = Math.floor(value / 86400)
         const time = chart.formatTime(value * 1000)
         return days > 0 ? `${days}d:${time}` : time
       },
