@@ -1,4 +1,5 @@
 import Dygraph from "dygraphs"
+import "dygraphs/src/extras/smooth-plotter"
 import makeChartUI from "@/sdk/makeChartUI"
 import makeExecuteLatest from "@/helpers/makeExecuteLatest"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
@@ -193,7 +194,6 @@ export default (sdk, chart) => {
     const area = chartType === "area"
     const line = chartType === "line"
     const sparkline = chart.getAttribute("sparkline")
-    const logScale = false
 
     const smooth = line && !sparkline
 
@@ -206,6 +206,7 @@ export default (sdk, chart) => {
       highlightCircleSize: sparkline ? 3 : 4,
       strokeWidth,
       includeZero: stacked,
+      plotter: (smooth && window.smoothPlotter) || null,
     }
   }
 
@@ -224,13 +225,15 @@ export default (sdk, chart) => {
   }
 
   const makeDataOptions = () => {
-    const { result } = chart.getPayload()
+    const { valueRange } = chart.getAttributes()
+    const { result, min, max } = chart.getPayload()
     const dateWindow = getDateWindow(chart)
 
     return {
       file: result.data,
       labels: result.labels,
       dateWindow,
+      valueRange: valueRange || (min === max ? [0, max * 2] : null),
     }
   }
 
