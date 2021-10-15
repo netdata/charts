@@ -6,6 +6,7 @@ import { Button } from "@netdata/netdata-ui/lib/components/button"
 import { camelizeKeys } from "@/helpers/objectTransform"
 import Line from "@/components/line"
 import makeMockPayload from "@/helpers/makeMockPayload"
+import { useAttribute, useAttributeValue, useChart, withChartProvider } from "@/components/provider"
 import makeDefaultSDK from "./makeDefaultSDK"
 
 import noData from "@/fixtures/noData"
@@ -30,7 +31,9 @@ import systemIpAreaChart from "@/fixtures/systemIpAreaChart"
 
 import appVmsStacked from "@/fixtures/appVmsStacked"
 import appVmsStackedChart from "@/fixtures/appVmsStackedChart"
-import { useAttribute, useChart, withChartProvider } from "./components/provider"
+
+import netOperstate from "@/fixtures/netOperstate"
+import netOperstateChart from "@/fixtures/netOperstateChart"
 
 const getChartMetadata = () => camelizeKeys(systemLoadLineChart, { omit: ["dimensions"] })
 const getChart = makeMockPayload(systemLoadLine[0], { delay: 600 })
@@ -145,8 +148,8 @@ export const Timezone = () => {
 
 const TimePicker = withChartProvider(() => {
   const chart = useChart()
-  const [after, setAfter] = useAttribute("after")
-  const [before, setBefore] = useAttribute("before")
+  const after = useAttributeValue("after")
+  const before = useAttributeValue("before")
   const run = after < 0
 
   return (
@@ -564,6 +567,21 @@ export const SystemIpArea = () => {
 export const AppVmsStacked = () => {
   const getChartMetadata = () => camelizeKeys(appVmsStackedChart, { omit: ["dimensions"] })
   const getChart = makeMockPayload(appVmsStacked, { delay: 1000 })
+
+  const sdk = makeDefaultSDK({ getChartMetadata })
+  const chart = sdk.makeChart({ getChart })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Line chart={chart} height="315px" />
+    </ThemeProvider>
+  )
+}
+
+export const ConstantLineChart = () => {
+  const getChartMetadata = () => camelizeKeys(netOperstateChart, { omit: ["dimensions"] })
+  const getChart = makeMockPayload(netOperstate, { delay: 1000 })
 
   const sdk = makeDefaultSDK({ getChartMetadata })
   const chart = sdk.makeChart({ getChart })
