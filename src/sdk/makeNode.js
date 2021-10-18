@@ -7,9 +7,9 @@ import makeIntls from "./makeIntls"
 
 export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   const listeners = makeListeners()
-  const uuid = uuidv4()
   const attributeListeners = makeListeners()
-  let attributes = { ...initialAttributes }
+  const id = initialAttributes?.id || uuidv4()
+  let attributes = { id, ...initialAttributes }
 
   const init = () => {
     setParent(parent)
@@ -89,8 +89,6 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
 
     return !attrs || !Object.keys(attrs).some(name => attrs[name] !== attributes[name])
   }
-
-  const getUuid = () => uuid
 
   const setParent = (node, { inherit: inheritAttrs = true } = {}) => {
     parent = node
@@ -217,7 +215,6 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     onAttributesChange,
     onceAttributeChange,
     match,
-    getUuid,
     setParent,
     getParent,
     getAncestor,

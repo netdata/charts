@@ -6,8 +6,7 @@ export default chart => {
   let sortedDimensionIds = []
   let visibleDimensionIds = []
   let visibleDimensionSet = new Set()
-  let colorsById = {}
-  let colorsLength = 0
+  let colorCursor = 0
   let colors = []
 
   const getSourceDimensionIds = () => {
@@ -60,6 +59,8 @@ export default chart => {
     sortedDimensionIds = sort()
     updateVisibleDimensions()
 
+    colors = sortedDimensionIds.map(id => getDimensionColor(id))
+
     chart.trigger("dimensionChanged")
   }
 
@@ -70,27 +71,19 @@ export default chart => {
 
   const getNextColor = () => {
     const colorsAttribute = chart.getAttribute("colors")
-    const index = colorsLength % (colorsAttribute.length + dimensionColors.length)
+    const index = colorCursor++ % (colorsAttribute.length + dimensionColors.length)
 
-    if (index < colorsAttribute.length) return colorsAttribute[index]
+    const nextColor =
+      index < colorsAttribute.length
+        ? colorsAttribute[index]
+        : dimensionColors[index - colorsAttribute.length]
 
-    return dimensionColors[index - colorsAttribute.length]
+    return nextColor
   }
 
-  const updateDimensionColor = id => {
-    if (id in colorsById) return
-
-    const color = getNextColor()
-    colorsById[id] = color
-    colorsLength = colorsLength + 1
-  }
-
-  const updateDimensionsColor = () => {
-    const { dimensionIds } = chart.getPayload()
-    colors = dimensionIds.map(id => {
-      updateDimensionColor(id)
-      return getDimensionColor(id)
-    })
+  const updateMetadataColors = () => {
+    const { dimensions } = chart.getMetadata()
+    Object.keys(dimensions).forEach(getDimensionColor)
   }
 
   const updateDimensions = () => {
@@ -104,8 +97,6 @@ export default chart => {
       return acc
     }, {})
 
-    updateDimensionsColor()
-
     sortDimensions()
   }
 
@@ -118,7 +109,11 @@ export default chart => {
   const isDimensionVisible = id => visibleDimensionSet.has(id)
 
   const getDimensionColor = id => {
-    const color = colorsById[id] || dimensionColors[0]
+    const colors = chart.getAttributes("colors")
+    const { context } = chart.getMetadata()
+    const key = colors.length ? chart.getAttribute("id") : context
+    const color = chart.getParent().getNextColor(getNextColor, key, id)
+
     if (typeof color === "string") return color
 
     const index = chart.getUI().getThemeIndex()
@@ -171,6 +166,7 @@ export default chart => {
     toggleDimensionId,
     getColors,
     getDimensionColor,
+    updateMetadataColors,
     getDimensionName,
     getDimensionValue,
     onHoverSortDimensions,
