@@ -440,7 +440,7 @@ export const MultipleReal = () => {
     <ThemeProvider theme={DefaultTheme}>
       <Flex column gap={20}>
         {charts.map(chart => (
-          <Line key={chart.getUuid()} chart={chart} height="315px" />
+          <Line key={chart.getAttribute("id")} chart={chart} height="315px" />
         ))}
       </Flex>
     </ThemeProvider>
@@ -461,7 +461,7 @@ export const Multiple = () => {
     <ThemeProvider theme={DefaultTheme}>
       <Flex column gap={2}>
         {charts.map(chart => (
-          <Line key={chart.getUuid()} chart={chart} height="315px" />
+          <Line key={chart.getAttribute("id")} chart={chart} height="315px" />
         ))}
       </Flex>
     </ThemeProvider>
@@ -481,7 +481,7 @@ export const Sync = () => {
     <ThemeProvider theme={DefaultTheme}>
       <Flex column gap={2}>
         {charts.map(chart => (
-          <Line key={chart.getUuid()} chart={chart} height="315px" />
+          <Line key={chart.getAttribute("id")} chart={chart} height="315px" />
         ))}
       </Flex>
     </ThemeProvider>

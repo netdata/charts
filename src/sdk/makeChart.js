@@ -186,6 +186,8 @@ export default ({
       const attributes = getInitialFilterAttributes(instance)
       node.setAttributes(attributes)
     }
+
+    dimensions.updateMetadataColors()
   }
 
   const getUI = () => ui

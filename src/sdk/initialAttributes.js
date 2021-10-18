@@ -1,4 +1,5 @@
 export default {
+  id: "",
   chartLibrary: "",
   theme: "default",
   host: "",

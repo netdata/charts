@@ -48,6 +48,24 @@ export default ({ sdk, parent, attributes } = {}) => {
 
   const getChildren = () => children
 
+  let colorsByGroupId = {}
+
+  const getNextColor = (getNext, groupId, id) => {
+    if (!(groupId in colorsByGroupId)) {
+      colorsByGroupId[groupId] = {}
+    }
+
+    const byId = colorsByGroupId[groupId]
+
+    if (id in byId) return byId[id]
+
+    const chartColor = getNext()
+
+    byId[id] = chartColor
+
+    return chartColor
+  }
+
   const destroy = () => {
     const parent = node.getParent()
     if (parent) parent.removeChild(instance)
@@ -55,6 +73,7 @@ export default ({ sdk, parent, attributes } = {}) => {
     node.destroy()
     children.forEach(node => node.destroy())
     children = []
+    colorsByGroupId = {}
     node = null
   }
 
@@ -68,6 +87,7 @@ export default ({ sdk, parent, attributes } = {}) => {
     removeChild,
     getNodes,
     getChildren,
+    getNextColor,
   }
 
   return instance
