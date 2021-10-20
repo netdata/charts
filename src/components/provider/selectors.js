@@ -3,9 +3,13 @@ import context from "./context"
 
 export const useChart = () => useContext(context)
 
-export const useListener = (func, deps) => {
+export const useImmediateListener = (func, deps) => {
   const off = useMemo(func, deps)
   useEffect(() => off, [off])
+}
+
+export const useListener = (func, deps) => {
+  useEffect(func, deps)
 }
 
 export const useAttributeValue = name => {
@@ -14,7 +18,7 @@ export const useAttributeValue = name => {
 
   const [value, setValue] = useState(getValue)
 
-  useListener(() => chart.onAttributeChange(name, () => setValue(getValue)), [chart])
+  useImmediateListener(() => chart.onAttributeChange(name, () => setValue(getValue)), [chart])
 
   return value
 }
@@ -25,7 +29,7 @@ export const useInitialLoading = () => {
   const getValue = () => !chart.getAttribute("loaded")
   const [value, setValue] = useState(getValue)
 
-  useListener(() => chart.onAttributeChange("loaded", () => setValue(getValue)), [chart])
+  useImmediateListener(() => chart.onAttributeChange("loaded", () => setValue(getValue)), [chart])
 
   return value
 }
@@ -40,7 +44,7 @@ export const useEmpty = () => {
 
   const [empty, setEmpty] = useState(getValue)
 
-  useListener(() => chart.on("finishFetch", () => setEmpty(getValue)), [chart])
+  useImmediateListener(() => chart.on("finishFetch", () => setEmpty(getValue)), [chart])
 
   return empty
 }
@@ -52,7 +56,7 @@ export const useAttribute = name => {
 
   const [value, setValue] = useState(getValue)
 
-  useListener(() => chart.onAttributeChange(name, () => setValue(getValue)), [chart])
+  useImmediateListener(() => chart.onAttributeChange(name, () => setValue(getValue)), [chart])
 
   const updateValue = useCallback(
     nextValue =>
@@ -73,7 +77,7 @@ export const useMetadata = () => {
 
   const [value, setValue] = useState(getValue)
 
-  useListener(() => chart.on("metadataChanged", () => setValue(getValue())), [chart])
+  useImmediateListener(() => chart.on("metadataChanged", () => setValue(getValue())), [chart])
 
   return value
 }
@@ -91,7 +95,7 @@ export const useVisibleDimensionId = id => {
   const getValue = () => chart.isDimensionVisible(id)
   const [visible, setVisible] = useState(getValue)
 
-  useListener(
+  useImmediateListener(
     () => chart.onAttributeChange("selectedDimensions", () => setVisible(getValue())),
     [chart]
   )
@@ -105,7 +109,7 @@ export const usePayload = () => {
   const getValue = () => chart.getPayload()
   const [value, setValue] = useState(getValue)
 
-  useListener(() => chart.on("successFetch", () => setValue(getValue())), [chart])
+  useImmediateListener(() => chart.on("successFetch", () => setValue(getValue())), [chart])
 
   return value
 }
@@ -117,7 +121,7 @@ export const useOnResize = () => {
 
   const [value, setValue] = useState(getValue)
 
-  useListener(() => chart.getUI().on("resize", () => setValue(getValue())), [chart])
+  useImmediateListener(() => chart.getUI().on("resize", () => setValue(getValue())), [chart])
 
   return value
 }
@@ -129,7 +133,7 @@ export const useDimensionIds = () => {
 
   const [dimensionIds, setDimensionIds] = useState(getList)
 
-  useListener(() => chart.on("dimensionChanged", () => setDimensionIds(getList)), [chart])
+  useImmediateListener(() => chart.on("dimensionChanged", () => setDimensionIds(getList)), [chart])
 
   return dimensionIds
 }
@@ -139,7 +143,10 @@ export const useUnitSign = () => {
 
   const [unit, setUnit] = useState(chart.getUnitSign)
 
-  useListener(() => chart.onAttributeChange("unit", () => setUnit(chart.getUnitSign())), [chart])
+  useImmediateListener(
+    () => chart.onAttributeChange("unit", () => setUnit(chart.getUnitSign())),
+    [chart]
+  )
 
   return unit
 }

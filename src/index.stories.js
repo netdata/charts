@@ -367,7 +367,7 @@ export const Timeout = () => {
   const chart = sdk.makeChart({
     getChart: params => {
       if (requests++ % 2 === 1)
-        return new Promise(r => setTimeout(() => getChart(params).then(r), 10000))
+        return new Promise(r => setTimeout(() => getChart(params).then(r), 15000))
       return getChart(params)
     },
   })
@@ -429,7 +429,7 @@ export const MultipleReal = () => {
 
   const charts = Array.from(Array(10)).map((v, index) => {
     const chart = sdk.makeChart({
-      attributes: { id, host: "http://d1.firehol.org/api/v1/data" },
+      attributes: { host: "http://d1.firehol.org/api/v1/data" },
     })
     sdk.appendChild(chart)
 

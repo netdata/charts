@@ -1,5 +1,5 @@
 import React, { useRef, memo } from "react"
-import { useChart, useListener } from "@/components/provider"
+import { useChart, useImmediateListener } from "@/components/provider"
 
 export default Component => {
   const HeightComponent = ({ height: defaultHeight = "100%", ...rest }) => {
@@ -9,7 +9,7 @@ export default Component => {
     const enabledHeightResize = chart.getAttribute("enabledHeightResize")
     const height = (enabledHeightResize && chart.getAttribute("height")) || defaultHeight
 
-    useListener(() => {
+    useImmediateListener(() => {
       let initialHeight = 0
 
       return chart

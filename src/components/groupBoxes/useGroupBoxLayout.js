@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useChart, useListener } from "@/components/provider"
+import { useChart, useImmediateListener } from "@/components/provider"
 
 export default () => {
   const chart = useChart()
@@ -7,7 +7,10 @@ export default () => {
   const getValue = () => chart.getUI().getGroupBoxLayout()
   const [value, setValue] = useState(getValue)
 
-  useListener(() => chart.getUI().on("groupBoxLayoutChanged", () => setValue(getValue)), [chart])
+  useImmediateListener(
+    () => chart.getUI().on("groupBoxLayoutChanged", () => setValue(getValue)),
+    [chart]
+  )
 
   return value
 }

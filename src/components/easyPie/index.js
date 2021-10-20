@@ -5,7 +5,7 @@ import {
   useTitle,
   useUnitSign,
   useAttributeValue,
-  useListener,
+  useImmediateListener,
   useOnResize,
 } from "@/components/provider"
 import styled from "styled-components"
@@ -33,7 +33,7 @@ const Value = () => {
   }
   const [value, setValue] = useState(getValue)
 
-  useListener(() => chart.getUI().on("rendered", () => setValue(getValue())), [])
+  useImmediateListener(() => chart.getUI().on("rendered", () => setValue(getValue())), [])
 
   return (
     <Label color="main" fontSize="2em">

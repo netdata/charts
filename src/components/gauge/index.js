@@ -8,7 +8,7 @@ import {
   useTitle,
   useUnitSign,
   useAttributeValue,
-  useListener,
+  useImmediateListener,
   useOnResize,
 } from "@/components/provider"
 import { getSizeBy } from "@netdata/netdata-ui/lib/theme/utils"
@@ -20,13 +20,14 @@ import withDifferedMount from "@/components/hocs/withDifferedMount"
 const Label = styled(Text)`
   line-height: 1;
   font-size: ${({ fontSize }) => fontSize};
+  flex: ${({ flex = 0 }) => flex};
 `
 
 const Title = () => {
   const title = useTitle()
 
   return (
-    <Label color="border" fontSize="1.2em" strong>
+    <Label flex="1" color="border" fontSize="1.2em" strong>
       {title}
     </Label>
   )
@@ -44,10 +45,10 @@ const Value = () => {
   }
   const [value, setValue] = useState(getValue)
 
-  useListener(() => chart.getUI().on("rendered", () => setValue(getValue())), [])
+  useImmediateListener(() => chart.getUI().on("rendered", () => setValue(getValue())), [])
 
   return (
-    <Label color="main" fontSize="2.2em" strong>
+    <Label flex="2" color="main" fontSize="2.2em" strong>
       {value}
     </Label>
   )
@@ -71,7 +72,7 @@ const useEmptyValue = () => {
   }
   const [value, setValue] = useState(getValue)
 
-  useListener(() => chart.getUI().on("rendered", () => setValue(getValue())), [])
+  useImmediateListener(() => chart.getUI().on("rendered", () => setValue(getValue())), [])
 
   return value
 }
@@ -87,14 +88,18 @@ const Bound = ({ bound, empty, ...rest }) => {
   )
 }
 
+const BoundsContainer = styled(Flex).attrs({ justifyContent: "between" })`
+  padding-left: 6%;
+`
+
 const Bounds = () => {
   const empty = useEmptyValue()
 
   return (
-    <Flex justifyContent="between">
+    <BoundsContainer>
       <Bound bound="min" empty={empty} />
       <Bound bound="max" empty={empty} />
-    </Flex>
+    </BoundsContainer>
   )
 }
 
@@ -104,7 +109,7 @@ const StatsContainer = styled(Flex).attrs({
   justifyContent: "between",
   alignContent: "center",
 })`
-  inset: 0 10%;
+  inset: 0 6%;
   text-align: center;
   font-size: ${({ fontSize }) => fontSize};
 `
