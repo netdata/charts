@@ -9,12 +9,14 @@ import { Fragment } from "react"
 
 const Container = styled(Flex).attrs({
   gap: 1,
-  overflow: { horizontal: "overlay" },
   padding: [3, 0, 3],
   alignItems: "start",
   flex: true,
   "data-testid": "chartLegend",
 })`
+  overflow-x: auto; // fallback
+  overflow-x: overlay;
+
   ::-webkit-scrollbar {
     height: 6px;
   }
