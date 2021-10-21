@@ -64,8 +64,8 @@ export default ({
     const { viewUpdateEvery } = getPayload()
     if (loaded && viewUpdateEvery) return viewUpdateEvery * 1000
 
-    const { updateEvery = 2 } = getMetadata()
-    return updateEvery * 1000
+    const { updateEvery } = getMetadata()
+    return updateEvery * 1000 || 2000
   }
 
   const startAutofetch = () => {

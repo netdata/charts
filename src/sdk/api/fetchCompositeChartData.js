@@ -73,5 +73,10 @@ export default (chart, options) => {
     method: "POST",
     body: JSON.stringify(payload),
     ...options,
-  }).then(response => response.json())
+  }).then(response => {
+    return response.json().then(data => {
+      if (response.ok) return data
+      throw data
+    })
+  })
 }
