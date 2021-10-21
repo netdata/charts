@@ -287,9 +287,6 @@ export default ({
     if (ui) ui.unmount()
     ui = null
 
-    const parent = node.getParent()
-    if (parent) parent.removeChild(instance)
-
     node.destroy()
     node = null
     payload = null

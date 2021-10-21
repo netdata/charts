@@ -13,8 +13,8 @@ export default ({ sdk, parent, attributes } = {}) => {
     sdk.trigger(`${node.type}Added`, instance, node)
   }
 
-  const removeChild = node => {
-    children = children.filter(n => n !== node)
+  const removeChild = id => {
+    children = children.filter(n => n.getId() !== id)
     instance.trigger("nodeRemoved", node)
     sdk.trigger("nodeRemoved", instance, node)
     instance.trigger(`${node.type}Removed`, node)
@@ -67,9 +67,6 @@ export default ({ sdk, parent, attributes } = {}) => {
   }
 
   const destroy = () => {
-    const parent = node.getParent()
-    if (parent) parent.removeChild(instance)
-
     node.destroy()
     children.forEach(node => node.destroy())
     children = []

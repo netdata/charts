@@ -21,6 +21,8 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
 
   const getAttribute = key => attributes[key]
 
+  const getId = () => attributes.id
+
   const trigger = (name, value, prevValue) => attributeListeners.trigger(name, value, prevValue)
 
   const updateAttribute = (name, value) => {
@@ -192,6 +194,8 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   onAttributeChange("timezone", updateIntls)
 
   const destroy = () => {
+    if (parent) parent.removeChild(getId())
+
     listeners.offAll()
     attributeListeners.offAll()
     attributes = null
@@ -217,6 +221,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     match,
     setParent,
     getParent,
+    getId,
     getAncestor,
     inherit,
     updateHeight,

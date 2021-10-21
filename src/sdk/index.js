@@ -69,7 +69,7 @@ export default ({
 
   const appendChild = (node, { inherit = true } = {}) => root.appendChild(node, { inherit })
 
-  const removeChild = node => root.removeChild(node)
+  const removeChild = id => root.removeChild(id)
 
   const instance = {
     ...listeners,
