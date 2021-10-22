@@ -108,7 +108,10 @@ export default (sdk, chart) => {
     const { result } = chart.getPayload()
     const row = hoverX ? chart.getClosestRow(hoverX[0]) : result.data.length - 1
 
-    const [, ...rows] = result.data[row]
+    const rowData = result.data[row]
+    if (!Array.isArray(rowData)) return
+
+    const [, ...rows] = rowData
     const value = rows.reduce((acc, v) => acc + v, 0)
     let [min, max] = getMinMax(value)
 
