@@ -3,6 +3,7 @@ import Container, { alignment } from "./container"
 import Alarm from "./alarm"
 import Highlight, { HighlightPeriod } from "./highlight"
 import Proceeded from "./proceeded"
+import ChartName from "./chartName"
 
 const AlarmOverlay = ({ id }) => (
   <Container id={id} top="20px" margin={[0, 8, 0, 0]}>
@@ -27,8 +28,15 @@ const ProceededOverlay = ({ id }) => (
   </Container>
 )
 
+const NameOverlay = ({ id }) => (
+  <Container id={id} top="10px" align={alignment.chartLeft}>
+    <ChartName id={id} />
+  </Container>
+)
+
 export default {
   alarm: AlarmOverlay,
   highlight: HighlightOverlay,
   proceeded: ProceededOverlay,
+  name: NameOverlay,
 }
