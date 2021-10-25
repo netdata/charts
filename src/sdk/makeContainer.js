@@ -67,6 +67,8 @@ export default ({ sdk, parent, attributes } = {}) => {
   }
 
   const destroy = () => {
+    if (!node) return
+
     node.destroy()
     children.forEach(node => node.destroy())
     children = []
