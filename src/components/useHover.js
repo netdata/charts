@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef, useState } from "react"
 
 const defaultIsOut = () => true
 
-const useHover = ({ onHover, onBlur, isOut = defaultIsOut }) => {
+const useHover = ({ onHover, onBlur, isOut = defaultIsOut }, deps) => {
   const ref = useRef()
 
   useLayoutEffect(() => {
@@ -21,14 +21,17 @@ const useHover = ({ onHover, onBlur, isOut = defaultIsOut }) => {
       ref.current.removeEventListener("mouseover", onHover)
       ref.current.removeEventListener("mouseout", mouseout)
     }
-  }, [])
+  }, deps)
 
   return ref
 }
 
 export const useHovered = ({ isOut } = {}) => {
   const [focused, setFocused] = useState(false)
-  const ref = useHover({ onHover: () => setFocused(true), onBlur: () => setFocused(false), isOut })
+  const ref = useHover(
+    { onHover: () => setFocused(true), onBlur: () => setFocused(false), isOut },
+    []
+  )
 
   return [ref, focused]
 }

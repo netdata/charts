@@ -1,4 +1,4 @@
-import React from "react"
+import React, { memo } from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 // import { getSizeBy, getRgbColor } from "@netdata/netdata-ui/lib/theme/utils"
@@ -32,7 +32,7 @@ const SkeletonDimensions = () => (
   </Fragment>
 )
 
-const Dimensions = () => {
+const Dimensions = memo(() => {
   const dimensionIds = useDimensionIds()
 
   return (
@@ -42,7 +42,8 @@ const Dimensions = () => {
       ))}
     </Fragment>
   )
-}
+})
+
 const Legend = props => {
   const chart = useChart()
   const initialLoading = useInitialLoading()

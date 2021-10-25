@@ -1,4 +1,4 @@
-import React, { memo, forwardRef } from "react"
+import React, { memo, forwardRef, useCallback } from "react"
 import Intersection from "@netdata/netdata-ui/lib/components/intersection"
 import useForwardRef from "@netdata/netdata-ui/lib/hooks/use-forward-ref"
 import { useAttributeValue, useChart } from "@/components/provider"
@@ -41,8 +41,10 @@ export default (Component, { Fallback: DefaultFallback = Fallback } = {}) => {
 
       const height = fullscreen ? "100%" : defaultHeight
 
-      const onVisibility = visible =>
-        visible && chart.getUI().setEstimatedWidth(ref.current.offsetWidth)
+      const onVisibility = useCallback(
+        visible => visible && chart.getUI().setEstimatedWidth(ref.current.offsetWidth),
+        [chart]
+      )
 
       return (
         <Intersection
