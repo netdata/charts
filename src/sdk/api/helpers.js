@@ -17,7 +17,7 @@ export const getChartPayload = chart => {
   const { format } = ui
   const width = ui.getChartWidth()
   const pixelsPerPoint = ui.getPixelsPerPoint()
-  const { after, before, groupingMethod, groupingTime } = chart.getAttributes()
+  const { after, before, groupingMethod, groupingTime, groupingDimensions } = chart.getAttributes()
 
   return {
     points: Math.round(width / pixelsPerPoint),
@@ -26,5 +26,6 @@ export const getChartPayload = chart => {
     gtime: groupingTime,
     after,
     ...(after > 0 && { before }),
+    dimensions: groupingDimensions,
   }
 }
