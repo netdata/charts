@@ -28,7 +28,7 @@ export default ({ sdk, parent, attributes } = {}) => {
     list.forEach(child => {
       const match = child.match(attributes)
 
-      if (!match && (!options || ("inherit" in options && options.inherit))) return
+      if (!match && options?.inherit) return
       if (match) nodes.push(child)
 
       if (child.type === "container") child.getNodes(attributes, options, nodes)

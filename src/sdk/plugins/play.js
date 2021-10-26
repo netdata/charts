@@ -4,17 +4,9 @@ export default sdk => {
 
   const getNext = () => {
     sdk
-      .getRoot()
-      .getNodes(
-        (node, { loaded, active, autofetchOnWindowBlur }) => {
-          return (
-            node.type === "chart" && loaded && active && (windowFocused || autofetchOnWindowBlur)
-          )
-        },
-        {
-          inherit: false,
-        }
-      )
+      .getNodes((node, { loaded, active, autofetchOnWindowBlur }) => {
+        return node.type === "chart" && loaded && active && (windowFocused || autofetchOnWindowBlur)
+      })
       .forEach(node => {
         node.getUI().render()
       })
@@ -44,14 +36,14 @@ export default sdk => {
 
   const blur = () => {
     windowFocused = false
-    sdk.getNodes({ autofetchOnWindowBlur: false }).forEach(node => {
+    sdk.getNodes({ autofetchOnWindowBlur: false }, { inherit: true }).forEach(node => {
       if (node.type === "chart") node.updateAttributes({ autofetch: false })
     })
   }
 
   const focus = () => {
     windowFocused = true
-    sdk.getNodes({ autofetchOnWindowBlur: false }).forEach(node => {
+    sdk.getNodes({ autofetchOnWindowBlur: false }, { inherit: true }).forEach(node => {
       if (node.type === "chart") autofetchIfActive(node)
     })
   }
