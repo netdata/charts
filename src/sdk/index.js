@@ -65,6 +65,8 @@ export default ({
 
   const makeSDKContainer = options => makeContainer({ sdk: instance, ...options })
 
+  const getNode = (attributes, options) => root.getNode(attributes, options)
+
   const getNodes = (attributes, options) => root.getNodes(attributes, options)
 
   const appendChild = (node, { inherit = true } = {}) => root.appendChild(node, { inherit })
@@ -82,6 +84,7 @@ export default ({
     makeChartUI,
     makeChart: makeSDKChart,
     makeContainer: makeSDKContainer,
+    getNode,
     getNodes,
     appendChild,
     removeChild,
