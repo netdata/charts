@@ -279,6 +279,8 @@ export default ({
   }
 
   const destroy = () => {
+    if (!node) return
+
     cancelFetch()
     stopAutofetch()
     clearFetchDelayTimeout()

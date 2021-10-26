@@ -8,11 +8,14 @@ import ChartContentWrapper from "./chartContentWrapper"
 export const Sparkline = props => {
   const chart = useChart()
 
-  const ref = useHover({
-    onHover: chart.focus,
-    onBlur: chart.blur,
-    isOut: node => !node || !node.closest("[data-toolbox]"),
-  })
+  const ref = useHover(
+    {
+      onHover: chart.focus,
+      onBlur: chart.blur,
+      isOut: node => !node || !node.closest("[data-toolbox]"),
+    },
+    [chart]
+  )
 
   return (
     <Container ref={ref} {...props}>
