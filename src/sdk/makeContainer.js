@@ -21,6 +21,26 @@ export default ({ sdk, parent, attributes } = {}) => {
     sdk.trigger(`${node.type}Removed`, instance, node)
   }
 
+  const getNode = (attributes, options, nodes = [instance]) => {
+    let target
+    nodes.some(child => {
+      const match = child.match(attributes)
+
+      if (!match && options?.inherit) return
+      if (match) {
+        target = child
+        return true
+      }
+
+      if (child.type === "container") {
+        target = child.getNode(attributes, options, children)
+        if (target) return true
+      }
+    })
+
+    return target
+  }
+
   const getNodes = (attributes, options, nodes = null) => {
     const list = nodes ? children : [instance]
     nodes = nodes || []
@@ -84,6 +104,7 @@ export default ({ sdk, parent, attributes } = {}) => {
     destroy,
     appendChild,
     removeChild,
+    getNode,
     getNodes,
     getChildren,
     getNextColor,
