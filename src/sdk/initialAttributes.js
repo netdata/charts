@@ -79,4 +79,5 @@ export default {
 
   themeGaugePointer: ["#8F9EAA", "#536775"],
   themeGaugeStroke: ["#ECEEEF", "#383B40"],
+  chartStyles: {},
 }

@@ -6,7 +6,9 @@ export default chartUI => {
   const drawOverlay = id => {
     const overlays = chartUI.chart.getAttribute("overlays")
     const { type } = overlays[id]
-    types[type](chartUI, id)
+    const makeOverlay = types[type]
+    if (!makeOverlay) return
+    makeOverlay(chartUI, id)
   }
 
   const drawOverlays = () => {
