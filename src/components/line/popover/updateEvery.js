@@ -5,7 +5,7 @@ import { useChart } from "@/components/provider"
 
 const UpdateEvery = () => {
   const chart = useChart()
-  const { updateEvery } = chart.getPayload()
+  const { updateEvery } = chart.getMetadata()
 
   return (
     <Flex gap={1} data-testid="chartPopover-collection">
