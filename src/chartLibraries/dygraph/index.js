@@ -105,6 +105,7 @@ export default (sdk, chart) => {
       yLabelWidth: 12,
       yRangePad: 1,
       labelsSeparateLines: true,
+      rightGap: -6,
       colors: chart.getColors(),
       valueRange: attributes.valueRange,
       ...makeChartTypeOptions(),
@@ -249,7 +250,6 @@ export default (sdk, chart) => {
       ylabel: undefined,
       yLabelWidth: 0,
       labelsSeparateLines: true,
-      rightGap: 0,
       yRangePad: 1,
       axis: {
         x: {
