@@ -149,13 +149,17 @@ export default ({
   }
 
   const fetch = () => {
-    const { firstEntry } = getMetadata()
-    const { after, before } = node.getAttributes()
-    const absoluteBefore = after >= 0 ? before : Date.now() / 1000
-    if (firstEntry > absoluteBefore) {
-      node.updateAttributes({ loaded: true })
-      clearFetchDelayTimeout()
-      return Promise.resolve()
+    const metadata = getMetadata()
+
+    if (metadata) {
+      const { firstEntry } = metadata
+      const { after, before } = node.getAttributes()
+      const absoluteBefore = after >= 0 ? before : Date.now() / 1000
+      if (firstEntry > absoluteBefore) {
+        node.updateAttributes({ loaded: true })
+        clearFetchDelayTimeout()
+        return Promise.resolve()
+      }
     }
 
     node.trigger("startFetch")
@@ -198,8 +202,11 @@ export default ({
   const fetchAndRender = () => fetch().then(() => ui && ui.render())
 
   const getConvertedValue = value => {
-    const { unitsConversionMethod, unitsConversionDivider, unitsConversionFractionDigits } =
-      node.getAttributes()
+    const {
+      unitsConversionMethod,
+      unitsConversionDivider,
+      unitsConversionFractionDigits,
+    } = node.getAttributes()
     const converted = convert(instance, unitsConversionMethod, value, unitsConversionDivider)
 
     if (unitsConversionFractionDigits === -1) return converted
@@ -248,8 +255,12 @@ export default ({
     if (node.getAttribute("autofetch")) return startAutofetch()
   })
 
-  const { onKeyChange, onKeyAndMouse, initKeyboardListener, clearKeyboardListener } =
-    makeKeyboardListener()
+  const {
+    onKeyChange,
+    onKeyAndMouse,
+    initKeyboardListener,
+    clearKeyboardListener,
+  } = makeKeyboardListener()
 
   node.onAttributeChange("focused", focused => {
     focused ? initKeyboardListener() : clearKeyboardListener()
@@ -327,9 +338,7 @@ export default ({
 
   const onDimensionToggle = onKeyAndMouse(
     ["Shift"],
-    id =>
-      ({ allPressed: merge }) =>
-        dimensions.toggleDimensionId(id, { merge }),
+    id => ({ allPressed: merge }) => dimensions.toggleDimensionId(id, { merge }),
     { allPressed: false }
   )
 

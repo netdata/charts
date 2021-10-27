@@ -47,7 +47,8 @@ export const useEmpty = () => {
   useImmediateListener(() => chart.on("finishFetch", forceUpdate), [chart])
 
   const { result } = chart.getPayload()
-  return result.data.length === 0
+
+  return Array.isArray(result) ? result.length === 0 : result.data.length === 0
 }
 
 export const useAttribute = name => {

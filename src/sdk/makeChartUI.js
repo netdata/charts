@@ -81,5 +81,6 @@ export default (sdk, chart) => {
     getThemeAttribute,
     getUrlOptions,
     format: "json",
+    ...chart.getAttribute("ui"),
   }
 }
