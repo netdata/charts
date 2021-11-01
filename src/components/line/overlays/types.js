@@ -4,6 +4,8 @@ import Alarm from "./alarm"
 import Highlight, { HighlightPeriod } from "./highlight"
 import Proceeded from "./proceeded"
 import ChartName from "./chartName"
+import LatestValue from "./latestValue"
+import LayerContainer from "@netdata/netdata-ui/lib/components/templates/layer/container"
 
 const AlarmOverlay = ({ id }) => (
   <Container id={id} top="20px" margin={[0, 8, 0, 0]}>
@@ -28,10 +30,16 @@ const ProceededOverlay = ({ id }) => (
   </Container>
 )
 
-const NameOverlay = ({ id }) => (
-  <Container id={id} top="10px" align={alignment.chartLeft}>
-    <ChartName id={id} />
-  </Container>
+const NameOverlay = props => (
+  <LayerContainer isAbsolute position="top-left" margin={[1, 0, 0, 2]}>
+    <ChartName {...props} />
+  </LayerContainer>
+)
+
+const LatestValueOverlay = props => (
+  <LayerContainer isAbsolute position="center">
+    <LatestValue {...props} />
+  </LayerContainer>
 )
 
 export default {
@@ -39,4 +47,5 @@ export default {
   highlight: HighlightOverlay,
   proceeded: ProceededOverlay,
   name: NameOverlay,
+  latestValue: LatestValueOverlay,
 }

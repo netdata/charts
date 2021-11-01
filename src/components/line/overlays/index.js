@@ -9,9 +9,9 @@ const Overlays = () => {
   return (
     <Fragment>
       {Object.keys(overlays).map(id => {
-        const { type } = overlays[id]
+        const { type, ...rest } = overlays[id]
         const Overlay = types[type]
-        return <Overlay key={id} id={id} />
+        return <Overlay key={id} id={id} {...rest} />
       })}
     </Fragment>
   )
