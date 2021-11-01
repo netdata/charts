@@ -1,15 +1,13 @@
 import React from "react"
-import { TextSmall } from "@netdata/netdata-ui/lib/components/typography"
+import { TextNano } from "@netdata/netdata-ui/lib/components/typography"
 import { useAttributeValue } from "@/components/provider"
 
-const ChartName = ({ id }) => {
-  const overlays = useAttributeValue("overlays")
-  const { key } = overlays[id]
-  const value = useAttributeValue(key)
+const ChartName = ({ field }) => {
+  const value = useAttributeValue(field)
 
   if (!value) return null
 
-  return <TextSmall>{value}</TextSmall>
+  return <TextNano>{value}</TextNano>
 }
 
 export default ChartName
