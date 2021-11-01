@@ -47,7 +47,6 @@ export default {
   legend: true,
   groupingMethod: "average",
   groupingTime: 0,
-  groupingDimensions: "",
   chartUrlOptions: null,
   urlOptions: [],
   eliminateZeroDimensions: true,
@@ -79,5 +78,4 @@ export default {
 
   themeGaugePointer: ["#8F9EAA", "#536775"],
   themeGaugeStroke: ["#ECEEEF", "#383B40"],
-  chartStyles: {},
 }

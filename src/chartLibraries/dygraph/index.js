@@ -46,8 +46,6 @@ export default (sdk, chart) => {
 
     executeLatest = makeExecuteLatest()
 
-    const chartStyles = chart.getAttribute("chartStyles")
-
     dygraph = new Dygraph(element, payload.result.data, {
       showLabelsOnHighlight: false,
       labels: payload.result.labels,
@@ -115,7 +113,6 @@ export default (sdk, chart) => {
       ...makeVisibilityOptions(),
       ...makeDataOptions(),
       ...makeSparklineOptions(),
-      ...chartStyles,
       // visibility return selected dimensions
       // logscale
     })
@@ -294,13 +291,11 @@ export default (sdk, chart) => {
     chartUI.render()
 
     chart.updateDimensions()
-    const chartStyles = chart.getAttribute("chartStyles")
 
     dygraph.updateOptions({
       ...makeDataOptions(),
       ...makeVisibilityOptions(),
       colors: chart.getColors(),
-      ...chartStyles,
     })
     chartUI.trigger("rendered")
   }

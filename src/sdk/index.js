@@ -55,10 +55,10 @@ export default ({
     return makeChartLibrary(instance, chart)
   }
 
-  const makeSDKChart = options => {
+  const makeSDKChart = ({ ui, ...options }) => {
     const chart = makeChartCore(options)
-    const ui = makeChartUI(chart)
-    chart.setUI(ui)
+    const chartUi = makeChartUI(chart)
+    chart.setUI({ ...chartUi, ...ui })
 
     return chart
   }

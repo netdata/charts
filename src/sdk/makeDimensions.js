@@ -9,13 +9,24 @@ export default chart => {
   let colorCursor = 0
   let colors = []
 
-  const getSourceDimensionIds = () => {
-    const { dimensionIds } = chart.getPayload()
-    return [...dimensionIds]
+  const sparklineDimensions = ["sum"]
+
+  const hasSparklineDimension = () => {
+    const { composite, sparkline } = chart.getAttributes()
+    return !composite && sparkline
   }
 
+  const getPayloadDimensionIds = () => {
+    if (hasSparklineDimension()) return sparklineDimensions
+
+    const { dimensionIds } = chart.getPayload()
+    return dimensionIds
+  }
+
+  const getSourceDimensionIds = () => [...getPayloadDimensionIds()]
+
   const bySortMethod = {
-    default: () => chart.getPayload().dimensionIds,
+    default: () => getPayloadDimensionIds(),
     nameAsc: () =>
       getSourceDimensionIds().sort((a, b) =>
         getDimensionName(a).localeCompare(getDimensionName(b))
@@ -82,12 +93,13 @@ export default chart => {
   }
 
   const updateMetadataColors = () => {
-    const { dimensions } = chart.getMetadata()
-    Object.keys(dimensions).forEach(getDimensionColor)
+    let { dimensions } = chart.getMetadata()
+    const keys = hasSparklineDimension() ? sparklineDimensions : Object.keys(dimensions)
+    keys.forEach(getDimensionColor)
   }
 
   const updateDimensions = () => {
-    const { dimensionIds } = chart.getPayload()
+    const dimensionIds = getPayloadDimensionIds()
 
     if (prevDimensionIds === dimensionIds) return
 
