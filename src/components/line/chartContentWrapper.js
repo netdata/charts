@@ -36,6 +36,7 @@ export const Container = forwardRef((props, ref) => {
       flex
       data-testid="chartContentWrapper"
       height="100%"
+      overflow="hidden"
       navigation={navigation}
       {...props}
     />

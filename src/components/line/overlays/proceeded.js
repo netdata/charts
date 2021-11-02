@@ -2,6 +2,7 @@ import React from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { TextMicro, TextSmall } from "@netdata/netdata-ui/lib/components/typography"
+import { useChart } from "@/components/provider"
 
 const LinkContainer = styled(Flex).attrs({
   as: "a",
@@ -33,20 +34,34 @@ const NoDataContainer = styled(Flex).attrs({
   direction: initial;
 `
 
-const NoData = props => (
-  <NoDataContainer {...props}>
-    <TextSmall textAlign="center">Missing key historical data for this period?</TextSmall>
-    <Flex alignItems="baseline" gap={1}>
-      <Link to="https://learn.netdata.cloud/docs/agent/streaming#database-replication">
-        Explore Netdata's replication capabilities
-      </Link>
-      <TextMicro>-</TextMicro>
-      <Link to="https://learn.netdata.cloud/guides/longer-metrics-storage/">
-        Review Netdata's history configurations
-      </Link>
-    </Flex>
-  </NoDataContainer>
-)
+const NoData = props => {
+  const chart = useChart()
+
+  const chartWidth = chart.getUI().getChartWidth()
+
+  if (chartWidth < 240) {
+    return (
+      <NoDataContainer {...props}>
+        <TextSmall textAlign="center">No data</TextSmall>
+      </NoDataContainer>
+    )
+  }
+
+  return (
+    <NoDataContainer {...props}>
+      <TextSmall textAlign="center">Missing key historical data for this period?</TextSmall>
+      <Flex alignItems="baseline" gap={1}>
+        <Link to="https://learn.netdata.cloud/docs/agent/streaming#database-replication">
+          Explore Netdata's replication capabilities
+        </Link>
+        <TextMicro>-</TextMicro>
+        <Link to="https://learn.netdata.cloud/guides/longer-metrics-storage/">
+          Review Netdata's history configurations
+        </Link>
+      </Flex>
+    </NoDataContainer>
+  )
+}
 
 const CenterContainer = styled(Flex)`
   position: absolute;

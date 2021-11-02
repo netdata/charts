@@ -1,10 +1,11 @@
 import { trigger, getArea } from "./helpers"
 
 export default (chartUI, id) => {
-  const { firstEntry } = chartUI.chart.getMetadata()
   const dygraph = chartUI.getDygraph()
 
   const [, before] = dygraph.xAxisRange()
+
+  const firstEntry = chartUI.chart.getFirstEntry()
 
   if (!firstEntry || firstEntry > before / 1000) return
 
