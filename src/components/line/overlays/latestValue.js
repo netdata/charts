@@ -1,16 +1,17 @@
 import React from "react"
-import { TextBig } from "@netdata/netdata-ui/lib/components/typography"
-import { useLatestValue } from "@/components/provider"
+import { Text } from "@netdata/netdata-ui/lib/components/typography"
+import { useLatestValue, useUnitSign } from "@/components/provider"
 
 const LatestValue = ({ dimensionId, ...rest }) => {
+  const unit = useUnitSign()
   const value = useLatestValue(dimensionId)
 
   if (isNaN(value)) return null
 
   return (
-    <TextBig strong {...rest}>
-      {value}
-    </TextBig>
+    <Text strong whiteSpace="nowrap" {...rest}>
+      {value} {unit}
+    </Text>
   )
 }
 
