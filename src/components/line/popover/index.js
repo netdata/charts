@@ -46,7 +46,9 @@ const Container = () => {
         chart.getUI().on("mousemove", event => {
           if (chart.getAttribute("panning") || chart.getAttribute("highlighting")) return
 
-          let { offsetX, offsetY } = event
+          const offsetX = event.offsetX || event.layerX
+          const offsetY = event.offsetY || event.layerY
+
           setOpen(true)
 
           if (!targetRef.current) return
