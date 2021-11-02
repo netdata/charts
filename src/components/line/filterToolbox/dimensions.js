@@ -48,8 +48,7 @@ const renderItem = props => {
 
 const tooltipProps = {
   heading: "Dimensions",
-  body:
-    "Select one, multiple or all dimensions. A dimension is any value, either raw data or the result of a calculation that Netdata visualizes on a chart.",
+  body: "Select one, multiple or all dimensions. A dimension is any value, either raw data or the result of a calculation that Netdata visualizes on a chart.",
 }
 
 const Dimensions = ({ labelProps, ...rest }) => {
@@ -68,6 +67,11 @@ const Dimensions = ({ labelProps, ...rest }) => {
       renderItem={renderItem}
       closeOnClick={false}
       data-track={chart.track("dimensions")}
+      dropProps={{
+        height: { max: "460px" },
+        width: { max: "360px" },
+        overflow: { vertical: "auto" },
+      }}
       {...rest}
     >
       <Label

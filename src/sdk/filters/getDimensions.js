@@ -29,9 +29,9 @@ const byNodeDefaultDimensions = {
 }
 
 export default (chart, groupBy) => {
-  const { chartType, dimensions, id } = chart.getMetadata()
+  const { dimensions, id } = chart.getMetadata()
 
-  if (groupBy === "dimension" || chartType === "stacked" || chartType === "area") {
+  if (groupBy === "dimension") {
     return []
   }
 
