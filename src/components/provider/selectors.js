@@ -147,6 +147,8 @@ export const useLatestValue = id => {
     const hover = chart.getAttribute("hoverX")
     const { result } = chart.getPayload()
 
+    if (result.data.length === 0) return null
+
     let index = hover ? chart.getClosestRow(hover[0]) : -1
     index = index === -1 ? result.data.length - 1 : index
 

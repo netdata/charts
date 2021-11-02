@@ -6,11 +6,9 @@ const LatestValue = ({ dimensionId, ...rest }) => {
   const unit = useUnitSign()
   const value = useLatestValue(dimensionId)
 
-  if (isNaN(value)) return null
-
   return (
     <Text strong whiteSpace="nowrap" {...rest}>
-      {value} {unit}
+      {!value || isNaN(value) ? "No data" : `${value} ${unit}`}
     </Text>
   )
 }
