@@ -74,7 +74,7 @@ export default (sdk, chart) => {
   const getMinMax = value => {
     let { min, max } = chart.getPayload()
 
-    const { units } = chart.getAttributes()
+    const units = chart.getUnits()
     if (units === "percentage") {
       min = 0
       max = 100

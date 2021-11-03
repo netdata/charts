@@ -38,8 +38,7 @@ const conversable = (chart, units, max, desiredUnits) => {
   return [makeConversableKey(units, key), undefined, key]
 }
 
-const getMethod = (chart, min, max) => {
-  const { units } = chart.getMetadata()
+const getMethod = (chart, units, min, max) => {
   const { desiredUnits } = chart.getAttributes()
 
   if (desiredUnits === "original") return ["original"]
@@ -59,8 +58,9 @@ const getFractionDigits = value => {
 }
 
 export default (chart, min, max) => {
-  const { units } = chart.getMetadata()
-  const [method, divider, unit = units] = getMethod(chart, min, max)
+  const units = chart.getUnits()
+
+  const [method, divider, unitsConversion = units] = getMethod(chart, units, min, max)
 
   const cMin = convert(chart, method, min, divider)
   const cMax = convert(chart, method, max, divider)
@@ -70,5 +70,5 @@ export default (chart, min, max) => {
   const fractionDigits =
     (method === "original" || method === "divide") && min !== max ? getFractionDigits(delta) : -1
 
-  return { method, divider, unit, fractionDigits }
+  return { method, divider, units: unitsConversion, fractionDigits }
 }

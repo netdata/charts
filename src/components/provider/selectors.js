@@ -135,9 +135,19 @@ export const useUnitSign = () => {
 
   const forceUpdate = useForceUpdate()
 
-  useImmediateListener(() => chart.onAttributeChange("unit", forceUpdate), [chart])
+  useImmediateListener(() => chart.onAttributeChange("unitsConversion", forceUpdate), [chart])
 
   return chart.getUnitSign()
+}
+
+export const useUnit = () => {
+  const chart = useChart()
+
+  const forceUpdate = useForceUpdate()
+
+  useImmediateListener(() => chart.onAttributeChange("unitsConversion", forceUpdate), [chart])
+
+  return chart.getUnits()
 }
 
 export const useLatestValue = id => {

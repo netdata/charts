@@ -1,7 +1,6 @@
 import { v4 as uuidv4 } from "uuid"
 import makeListeners from "@/helpers/makeListeners"
 import makePristine from "@/helpers/makePristine"
-import makeGetUnitSign from "./makeGetUnitSign"
 import pristineComposite, { pristineCompositeKey } from "./pristineComposite"
 import makeIntls from "./makeIntls"
 
@@ -237,8 +236,6 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     formatDate,
     formatXAxis,
   }
-
-  instance.getUnitSign = makeGetUnitSign(instance)
 
   return instance
 }

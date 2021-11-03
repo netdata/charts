@@ -1,10 +1,11 @@
 import React from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { Text } from "@netdata/netdata-ui/lib/components/typography"
-import { useTitle, useAttributeValue } from "@/components/provider"
+import { useTitle, useAttributeValue, useUnit } from "@/components/provider"
 
 const Title = props => {
-  const unit = useAttributeValue("unit")
+  const loaded = useAttributeValue("loaded")
+  const unitSign = useUnit()
   const title = useTitle()
 
   return (
@@ -19,9 +20,9 @@ const Title = props => {
       <Text strong color="textDescription" truncate>
         {title}
       </Text>
-      {unit && (
+      {loaded && unitSign && (
         <Text strong color="textLite" whiteSpace="nowrap">
-          • [{unit}]
+          • [{unitSign}]
         </Text>
       )}
     </Flex>
