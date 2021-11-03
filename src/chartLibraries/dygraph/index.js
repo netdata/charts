@@ -291,6 +291,7 @@ export default (sdk, chart) => {
     chartUI.render()
 
     chart.updateDimensions()
+
     dygraph.updateOptions({
       ...makeDataOptions(),
       ...makeVisibilityOptions(),
@@ -315,8 +316,7 @@ export default (sdk, chart) => {
   const getPreceded = () => {
     if (!dygraph) return -1
 
-    const { firstEntry } = chartUI.chart.getMetadata()
-    const firstEntryMs = firstEntry * 1000
+    const firstEntryMs = chartUI.chart.getFirstEntry() * 1000
     const [after] = dygraph.xAxisRange()
 
     if (firstEntryMs < after) return -1

@@ -7,12 +7,13 @@ import Icon from "@/components/icon"
 import { withTooltip, tooltipStyleProps } from "@/components/tooltip"
 import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
 
-export const Container = styled(Flex).attrs({
+export const Container = styled(Flex).attrs(({ width = { max: "200px" } }) => ({
   cursor: "pointer",
   role: "button",
   padding: [1, 2],
   round: true,
-})`
+  width,
+}))`
   &:hover {
     background: ${getColor("borderSecondary")};
   }
@@ -21,6 +22,7 @@ export const Container = styled(Flex).attrs({
 const StyledLabel = styled(TextSmall).attrs({
   margin: [0, 0, 0, 2],
   whiteSpace: "nowrap",
+  truncate: true,
 })`
   flex: 1;
 `

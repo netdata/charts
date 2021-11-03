@@ -16,6 +16,10 @@ const calcByAlignment = {
     60,
     Math.min(from - 24, 60 + chartWidth / 2 + element.firstChild.offsetWidth / 2),
   ],
+  [alignment.chartLeft]: ({ chartWidth, element }) => [
+    0,
+    element.firstChild.offsetWidth - chartWidth,
+  ],
   [alignment.elementMiddle]: ({ from, width, element }) => [
     from,
     from + width / 2 + element.firstChild.offsetWidth / 2,
@@ -27,8 +31,10 @@ const calcByAlignment = {
 const HorizontalContainer = styled(Flex)`
   position: absolute;
   ${({ noTransform }) => (noTransform ? "" : "transform: translateY(-50%)")};
-  ${({ top }) => (top === undefined ? "" : `top: ${top};`)};
-  ${({ bottom }) => (bottom === undefined ? "" : `bottom: ${bottom};`)};
+  ${({ top }) => top && `top: ${top};`};
+  ${({ bottom }) => bottom && `bottom: ${bottom};`};
+  ${({ left }) => left && `left: ${left};`};
+  ${({ right }) => right && `right: ${right};`};
 
   direction: rtl;
   overflow: hidden;
@@ -43,7 +49,7 @@ const getHorizontalPosition = (align = alignment.elementMiddle, chart, area, ele
   return calcAlignment({ from, width, chartWidth, element })
 }
 
-const Container = ({ id, align, right = 0, children, ...rest }) => {
+const Container = ({ id, align, right = 0, fixed, children, ...rest }) => {
   const ref = useRef()
   const [area, setArea] = useState()
   const chart = useChart()
@@ -58,6 +64,7 @@ const Container = ({ id, align, right = 0, children, ...rest }) => {
 
   useLayoutEffect(
     () =>
+      !fixed &&
       chart.getUI().on(`overlayedAreaChanged:${id}`, area => {
         updateRight(area)
         setArea(s => (!!s !== !!area ? area : s))
@@ -65,9 +72,9 @@ const Container = ({ id, align, right = 0, children, ...rest }) => {
     []
   )
 
-  useLayoutEffect(() => updateRight(area), [area])
+  useLayoutEffect(() => !fixed && updateRight(area), [area])
 
-  if (!area) return null
+  if (!area && !fixed) return null
 
   return (
     <HorizontalContainer ref={ref} {...rest}>

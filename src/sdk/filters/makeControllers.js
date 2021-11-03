@@ -2,8 +2,25 @@ import getInitialFilterAttributes from "./getInitialAttributes"
 import pristineComposite, { pristineCompositeKey } from "@/sdk/pristineComposite"
 
 export default chart => {
+  let prevCharType = ""
+  const onGroupChange = groupBy => {
+    if (groupBy !== "dimension") {
+      prevCharType = chart.getAttribute("chartType")
+      return chart.updateAttribute("chartType", "line")
+    }
+
+    if (chart.getAttribute("chartType") === "line") {
+      chart.updateAttribute("chartType", prevCharType)
+    }
+    prevCharType = ""
+  }
+
   const updateGroupByAttribute = value => {
     chart.updateAttribute("groupBy", value)
+    onGroupChange(value)
+    if (value === "dimension") {
+      chart.updateAttribute("dimensions", [])
+    }
     const attributes = getInitialFilterAttributes(chart)
     chart.updateAttributes(attributes)
     chart.fetchAndRender()
@@ -52,6 +69,7 @@ export default chart => {
     Object.keys(prev).forEach(key =>
       chart.attributeListeners.trigger(key, attributes[key], prev[key])
     )
+    chart.fetchAndRender()
   }
 
   const removePristineComposite = () => {

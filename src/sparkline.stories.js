@@ -1,16 +1,20 @@
 import React from "react"
 import { ThemeProvider } from "styled-components"
+import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui/lib/theme"
 import { camelizeKeys } from "@/helpers/objectTransform"
 import Sparkline from "@/components/line/sparkline"
 import makeMockPayload from "@/helpers/makeMockPayload"
 import makeDefaultSDK from "./makeDefaultSDK"
 
-import cgroupCpuSparklineChart from "@/fixtures/cgroupCpuSparklineChart"
-import cgroupCpuSparkline from "@/fixtures/cgroupCpuSparkline"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import cgroupCpuSparklineOverviewChart from "@/fixtures/cgroupCpuSparklineOverviewChart"
+import cgroupCpuSparkline from "@/fixtures/cgroupCpuSparklineOverview"
 
-const getChartMetadata = () => camelizeKeys(cgroupCpuSparklineChart, { omit: ["dimensions"] })
+import systemCpuSparklineChart from "@/fixtures/systemCpuSparklineChart"
+import systemCpuSparkline from "@/fixtures/systemCpuSparkline"
+
+const getChartMetadata = () =>
+  camelizeKeys(cgroupCpuSparklineOverviewChart, { omit: ["dimensions"] })
 const getChart = makeMockPayload(cgroupCpuSparkline, { delay: 600 })
 
 export const Simple = () => {
@@ -67,6 +71,34 @@ export const InitialLoading = () => {
         </Flex>
       </ThemeProvider>
     </div>
+  )
+}
+
+export const SimpleNodes = () => {
+  const sdk = makeDefaultSDK({
+    getChartMetadata: () => camelizeKeys(systemCpuSparklineChart, { omit: ["dimensions"] }),
+  })
+  const chart = sdk.makeChart({
+    getChart: makeMockPayload(systemCpuSparkline, { delay: 600 }),
+    attributes: {
+      id: systemCpuSparkline.id,
+      sparkline: true,
+      chartType: "area",
+      colors: ["#536775"],
+      overlays: {
+        name: { type: "name", field: "id" },
+        latestValue: { type: "latestValue", dimensionId: "sum" },
+      },
+    },
+  })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Flex width="200px">
+        <Sparkline chart={chart} height="100px" />
+      </Flex>
+    </ThemeProvider>
   )
 }
 

@@ -149,13 +149,17 @@ export default ({
   }
 
   const fetch = () => {
-    const { firstEntry } = getMetadata()
-    const { after, before } = node.getAttributes()
-    const absoluteBefore = after >= 0 ? before : Date.now() / 1000
-    if (firstEntry > absoluteBefore) {
-      node.updateAttributes({ loaded: true })
-      clearFetchDelayTimeout()
-      return Promise.resolve()
+    const metadata = getMetadata()
+
+    if (metadata) {
+      const { firstEntry } = metadata
+      const { after, before } = node.getAttributes()
+      const absoluteBefore = after >= 0 ? before : Date.now() / 1000
+      if (firstEntry > absoluteBefore) {
+        node.updateAttributes({ loaded: true })
+        clearFetchDelayTimeout()
+        return Promise.resolve()
+      }
     }
 
     node.trigger("startFetch")
@@ -235,6 +239,12 @@ export default ({
     }
   }
 
+  const getFirstEntry = () => {
+    const { firstEntry: firstEntryMetadata } = getMetadata()
+    const { firstEntry: firstEntryPayload } = getPayload()
+    return firstEntryMetadata || firstEntryPayload
+  }
+
   node.onAttributeChange("autofetch", autofetch => {
     if (autofetch) {
       startAutofetch()
@@ -254,19 +264,6 @@ export default ({
   node.onAttributeChange("focused", focused => {
     focused ? initKeyboardListener() : clearKeyboardListener()
     invalidateClosestRowCache()
-  })
-
-  let prevCharType = ""
-  node.onAttributeChange("groupBy", groupBy => {
-    if (groupBy !== "dimension") {
-      prevCharType = node.getAttribute("chartType")
-      return node.updateAttribute("chartType", "line")
-    }
-
-    if (node.getAttribute("chartType") === "line") {
-      node.updateAttribute("chartType", prevCharType)
-    }
-    prevCharType = ""
   })
 
   const getApplicableNodes = (attributes, options) => {
@@ -317,6 +314,7 @@ export default ({
     activate,
     deactivate,
     getClosestRow,
+    getFirstEntry,
   }
 
   onKeyChange(["Alt", "Shift", "KeyF"], () => {
