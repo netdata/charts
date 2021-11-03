@@ -8,6 +8,7 @@ import makeDimensions from "./makeDimensions"
 import makeGetClosestRow from "./makeGetClosestRow"
 import getInitialFilterAttributes from "./filters/getInitialAttributes"
 import makeFilterControllers from "./filters/makeControllers"
+import makeGetUnitSign from "./makeGetUnitSign"
 import camelizePayload from "./camelizePayload"
 
 const requestTimeoutMs = 5 * 1000
@@ -245,6 +246,12 @@ export default ({
     return firstEntryMetadata || firstEntryPayload
   }
 
+  const getUnits = () => {
+    const { units: metadataUnits } = getMetadata()
+    const { units: attributeUnits, unitsConversion } = node.getAttributes()
+    return unitsConversion || attributeUnits || metadataUnits
+  }
+
   node.onAttributeChange("autofetch", autofetch => {
     if (autofetch) {
       startAutofetch()
@@ -315,7 +322,10 @@ export default ({
     deactivate,
     getClosestRow,
     getFirstEntry,
+    getUnits,
   }
+
+  instance.getUnitSign = makeGetUnitSign(instance)
 
   onKeyChange(["Alt", "Shift", "KeyF"], () => {
     node.updateAttribute("fullscreen", !node.getAttribute("fullscreen"))
