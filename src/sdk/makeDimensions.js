@@ -86,7 +86,9 @@ export default chart => {
 
     const nextColor =
       index < colorsAttribute.length
-        ? colorsAttribute[index]
+        ? typeof colorsAttribute[index] === "number"
+          ? dimensionColors[colorsAttribute[index]]
+          : colorsAttribute[index]
         : dimensionColors[index - colorsAttribute.length]
 
     return nextColor
@@ -121,7 +123,7 @@ export default chart => {
   const isDimensionVisible = id => visibleDimensionSet.has(id)
 
   const getDimensionColor = id => {
-    const colors = chart.getAttributes("colors")
+    const colors = chart.getAttribute("colors")
     const { context } = chart.getMetadata()
     const key = colors.length ? chart.getAttribute("id") : context
     const color = chart.getParent().getNextColor(getNextColor, key, id)
