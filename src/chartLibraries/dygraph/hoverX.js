@@ -14,7 +14,17 @@ export default chartUI => {
       return chartUI.getDygraph().getArea().h
     }
 
-    if (offsetY < getY(0)) return validPoints[0].name
+    if (offsetY < getY(0)) {
+      let highest = validPoints[0]
+      validPoints.reduce((acc, point) => {
+        const { yval } = point
+        if (yval > acc) {
+          highest = point
+        }
+        return yval
+      }, 0)
+      return highest.name
+    }
     if (offsetY > getY(validPoints.length - 1)) return validPoints[validPoints.length - 1].name
 
     const point = validPoints.find((p, index) => getY(index) < offsetY && getY(index + 1) > offsetY)
