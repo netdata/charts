@@ -38,10 +38,14 @@ export default (sdk, chart) => {
 
     makeEasyPie()
 
-    resizeObserver = makeResizeObserver(element, () => {
+    const reMake = () => {
       const canvas = easyPie.renderer.getCanvas()
       element.removeChild(canvas)
       makeEasyPie()
+    }
+
+    resizeObserver = makeResizeObserver(element, () => {
+      reMake()
       chartUI.trigger("resize")
     })
 
@@ -55,11 +59,7 @@ export default (sdk, chart) => {
         render()
       }),
       !loaded && chart.onceAttributeChange("loaded", render),
-      chart.onAttributeChange("theme", () => {
-        Object.assign(easyPie.options, makeThemingOptions())
-        renderedValue = 0
-        render()
-      })
+      chart.onAttributeChange("theme", reMake)
     )
 
     render()
