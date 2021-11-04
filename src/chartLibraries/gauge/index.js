@@ -90,6 +90,8 @@ export default (sdk, chart) => {
 
     if (!gauge || !loaded) return
 
+    chart.consumePayload()
+
     if (!hoverX && after > 0) {
       renderedValue = null
       gauge.set(0)
