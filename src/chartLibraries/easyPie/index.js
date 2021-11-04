@@ -25,9 +25,10 @@ export default (sdk, chart) => {
 
     const { loaded } = chart.getAttributes()
 
-    chart.updateDimensions()
-
     const makeEasyPie = () => {
+      chart.consumePayload()
+      chart.updateDimensions()
+
       easyPie = new EasyPie(element, {
         barColor: chart.getColors()[0],
         animate: { duration: 500, enabled: true },
@@ -98,6 +99,8 @@ export default (sdk, chart) => {
     const { hoverX, loaded, after } = chart.getAttributes()
 
     if (!easyPie || !loaded) return
+
+    chart.consumePayload()
 
     if (!hoverX && after > 0) {
       renderedValue = 0

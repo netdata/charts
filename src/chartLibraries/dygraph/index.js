@@ -37,6 +37,7 @@ export default (sdk, chart) => {
     const theme = chart.getAttribute("theme")
     element.classList.add(theme)
 
+    chart.consumePayload()
     chart.updateDimensions()
     const attributes = chart.getAttributes()
     const payload = chart.getPayload()
@@ -152,10 +153,17 @@ export default (sdk, chart) => {
         executeLatest.add(dimensions => {
           const nextSelection = dimensions ? chart.getClosestRow(dimensions[0]) : -1
 
-          if (nextSelection === -1) return dygraph.setSelection()
+          if (nextSelection === -1) {
+            dygraph.setSelection()
+            return
+          }
 
-          const selection = getDygraphSelection(nextSelection)
-          dygraph.setSelection(selection)
+          dygraph.setSelection(nextSelection)
+
+          // if (nextSelection === -1) return dygraph.setSelection()
+
+          // const selection = getDygraphSelection(nextSelection)
+          // dygraph.setSelection(selection)
 
           crosshair(instance, nextSelection)
         })
@@ -289,6 +297,8 @@ export default (sdk, chart) => {
     if (highlighting || panning) return
 
     chartUI.render()
+
+    chart.consumePayload()
 
     chart.updateDimensions()
 

@@ -13,6 +13,8 @@ export default (sdk, chart) => {
   let offs
 
   const mount = () => {
+    chart.consumePayload()
+
     updateGroupBox()
 
     offs = unregister(
@@ -28,6 +30,8 @@ export default (sdk, chart) => {
   }
 
   const updateGroupBox = () => {
+    chart.consumePayload()
+
     const { result } = chart.getPayload()
     if (result.data.length === 0) return
 
