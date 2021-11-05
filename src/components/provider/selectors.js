@@ -6,7 +6,7 @@ export const useChart = () => useContext(context)
 
 const dispatch = s => s + 1
 
-const useForceUpdate = () => {
+export const useForceUpdate = () => {
   const [, forceUpdate] = useReducer(dispatch, 0)
   return forceUpdate
 }
@@ -135,9 +135,19 @@ export const useUnitSign = () => {
 
   const forceUpdate = useForceUpdate()
 
-  useImmediateListener(() => chart.onAttributeChange("unit", forceUpdate), [chart])
+  useImmediateListener(() => chart.onAttributeChange("unitsConversion", forceUpdate), [chart])
 
   return chart.getUnitSign()
+}
+
+export const useUnit = () => {
+  const chart = useChart()
+
+  const forceUpdate = useForceUpdate()
+
+  useImmediateListener(() => chart.onAttributeChange("unitsConversion", forceUpdate), [chart])
+
+  return chart.getUnits()
 }
 
 export const useLatestValue = id => {

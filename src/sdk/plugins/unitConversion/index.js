@@ -2,14 +2,14 @@ import getConversionUnits from "./getConversionUnits"
 
 export default sdk => {
   return sdk.on("yAxisChange", (chart, min, max) => {
-    const { method, divider, unit, fractionDigits } = getConversionUnits(chart, min, max)
+    const { method, divider, units, fractionDigits } = getConversionUnits(chart, min, max)
     const ancestor = chart.getAncestor({ syncUnits: true })
 
     if (!ancestor) {
       return chart.updateAttributes({
         unitsConversionMethod: method,
         unitsConversionDivider: divider,
-        unit: unit,
+        unitsConversion: units,
         unitsConversionFractionDigits: fractionDigits,
         min,
         max,
@@ -23,7 +23,7 @@ export default sdk => {
         unitsConversionMethod: method,
         unitsConversionDivider: divider,
         unitsConversionFractionDigits: fractionDigits,
-        unit,
+        unitsConversion: units,
         min,
         max,
       })
@@ -36,7 +36,7 @@ export default sdk => {
         node.updateAttributes({
           unitsConversionMethod: method,
           unitsConversionDivider: divider,
-          unit: unit,
+          unitsConversion: units,
           min,
           max,
         })

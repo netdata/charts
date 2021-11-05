@@ -8,6 +8,7 @@ import makeDimensions from "./makeDimensions"
 import makeGetClosestRow from "./makeGetClosestRow"
 import getInitialFilterAttributes from "./filters/getInitialAttributes"
 import makeFilterControllers from "./filters/makeControllers"
+import makeGetUnitSign from "./makeGetUnitSign"
 import camelizePayload from "./camelizePayload"
 
 const requestTimeoutMs = 5 * 1000
@@ -27,6 +28,7 @@ export default ({
   let ui = null
   let abortController = null
   let payload = initialPayload
+  let nextPayload = null
   let fetchDelayTimeoutId = null
   let fetchTimeoutId = null
   let prevMetadata = null
@@ -110,23 +112,25 @@ export default ({
 
   const doneFetch = nextRawPayload => {
     backoffMs = 0
-    const nextPayload = camelizePayload(nextRawPayload)
+    const nextPayloadTransformed = camelizePayload(nextRawPayload)
 
-    const result = transformResult(nextPayload)
+    const result = transformResult(nextPayloadTransformed)
 
-    const { dimensionIds, ...restPayload } = nextPayload
+    const { dimensionIds, ...restPayload } = nextPayloadTransformed
 
-    const prevPayload = payload
+    const prevPayload = nextPayload
     if (deepEqual(payload.dimensionIds, dimensionIds)) {
-      payload = {
+      nextPayload = {
         ...initialPayload,
-        ...payload,
+        ...nextPayload,
         ...restPayload,
         result,
       }
     } else {
-      payload = { ...initialPayload, ...nextPayload, result }
+      nextPayload = { ...initialPayload, ...nextPayloadTransformed, result }
     }
+
+    if (!node.getAttribute("loaded")) consumePayload()
 
     invalidateClosestRowCache()
 
@@ -136,7 +140,7 @@ export default ({
       updatedAt: Date.now(),
     })
 
-    node.trigger("successFetch", payload, prevPayload)
+    node.trigger("successFetch", nextPayload, prevPayload)
     finishFetch()
   }
 
@@ -245,6 +249,12 @@ export default ({
     return firstEntryMetadata || firstEntryPayload
   }
 
+  const getUnits = () => {
+    const { units: metadataUnits } = getMetadata()
+    const { units: attributeUnits, unitsConversion } = node.getAttributes()
+    return unitsConversion || attributeUnits || metadataUnits
+  }
+
   node.onAttributeChange("autofetch", autofetch => {
     if (autofetch) {
       startAutofetch()
@@ -289,6 +299,7 @@ export default ({
     node.destroy()
     node = null
     payload = null
+    nextPayload = null
     chartsMetadata = null
     attributes = null
     prevMetadata = null
@@ -296,6 +307,16 @@ export default ({
 
   node.type = "chart"
   node.getApplicableNodes = getApplicableNodes
+
+  const consumePayload = () => {
+    if (payload === nextPayload) return false
+
+    const prevPayload = payload
+    payload = nextPayload
+    node.trigger("payloadChanged", nextPayload, prevPayload)
+
+    return true
+  }
 
   const instance = {
     ...node,
@@ -315,7 +336,11 @@ export default ({
     deactivate,
     getClosestRow,
     getFirstEntry,
+    getUnits,
+    consumePayload,
   }
+
+  instance.getUnitSign = makeGetUnitSign(instance)
 
   onKeyChange(["Alt", "Shift", "KeyF"], () => {
     node.updateAttribute("fullscreen", !node.getAttribute("fullscreen"))

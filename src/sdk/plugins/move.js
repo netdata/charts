@@ -7,6 +7,8 @@ const getMoveX = (after, before) => {
 }
 
 export default sdk => {
+  let offAfter
+
   return sdk
     .on("moveX", (chart, after, before) => {
       const move = getMoveX(after, before)
@@ -25,7 +27,8 @@ export default sdk => {
         chart.moveX(now + after, now)
       }
 
-      let offAfter = chart.onAttributeChange("after", after => {
+      if (offAfter) offAfter()
+      offAfter = chart.onAttributeChange("after", after => {
         if (after > 0) return
 
         chart.resetValueRange()

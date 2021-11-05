@@ -85,6 +85,6 @@ const getUnit = unit => {
 }
 
 export default node => () => {
-  const unit = node.getAttribute("unit")
-  return unitMap[unit] || getUnit(unit)
+  const units = node.getUnits()
+  return unitMap[units] || getUnit(units)
 }

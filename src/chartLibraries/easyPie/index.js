@@ -25,9 +25,10 @@ export default (sdk, chart) => {
 
     const { loaded } = chart.getAttributes()
 
-    chart.updateDimensions()
-
     const makeEasyPie = () => {
+      chart.consumePayload()
+      chart.updateDimensions()
+
       easyPie = new EasyPie(element, {
         barColor: chart.getColors()[0],
         animate: { duration: 500, enabled: true },
@@ -38,10 +39,14 @@ export default (sdk, chart) => {
 
     makeEasyPie()
 
-    resizeObserver = makeResizeObserver(element, () => {
+    const reMake = () => {
       const canvas = easyPie.renderer.getCanvas()
       element.removeChild(canvas)
       makeEasyPie()
+    }
+
+    resizeObserver = makeResizeObserver(element, () => {
+      reMake()
       chartUI.trigger("resize")
     })
 
@@ -55,11 +60,7 @@ export default (sdk, chart) => {
         render()
       }),
       !loaded && chart.onceAttributeChange("loaded", render),
-      chart.onAttributeChange("theme", () => {
-        Object.assign(easyPie.options, makeThemingOptions())
-        renderedValue = 0
-        render()
-      })
+      chart.onAttributeChange("theme", reMake)
     )
 
     render()
@@ -83,7 +84,7 @@ export default (sdk, chart) => {
       min = 0
     }
 
-    const { units } = chart.getAttributes()
+    const units = chart.getUnits()
     if (units === "percentage") {
       min = 0
       max = 100
@@ -95,9 +96,13 @@ export default (sdk, chart) => {
   }
 
   const render = () => {
+    chartUI.render()
+
     const { hoverX, loaded, after } = chart.getAttributes()
 
     if (!easyPie || !loaded) return
+
+    chart.consumePayload()
 
     if (!hoverX && after > 0) {
       renderedValue = 0

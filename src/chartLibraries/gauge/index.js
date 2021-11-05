@@ -74,7 +74,7 @@ export default (sdk, chart) => {
   const getMinMax = value => {
     let { min, max } = chart.getPayload()
 
-    const { units } = chart.getAttributes()
+    const units = chart.getUnits()
     if (units === "percentage") {
       min = 0
       max = 100
@@ -86,9 +86,13 @@ export default (sdk, chart) => {
   }
 
   const render = () => {
+    chartUI.render()
+
     const { hoverX, loaded, after } = chart.getAttributes()
 
     if (!gauge || !loaded) return
+
+    chart.consumePayload()
 
     if (!hoverX && after > 0) {
       renderedValue = null

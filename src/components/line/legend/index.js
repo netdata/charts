@@ -12,6 +12,7 @@ const Container = styled(Flex).attrs({
   padding: [3, 0, 3],
   alignItems: "start",
   flex: true,
+  basis: 0,
   "data-testid": "chartLegend",
 })`
   overflow-x: auto; // fallback
