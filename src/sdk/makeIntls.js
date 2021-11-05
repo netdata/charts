@@ -34,11 +34,13 @@ export default () => {
   }
 
   const makeNativeFormatters = () => {
-    dateIntl = { format: date => date.toLocaleDateString() }
-    timeIntl = { format: date => date.toLocaleTimeString() }
+    dateIntl = { format: date => new Date(date).toLocaleDateString() }
+    timeIntl = { format: date => new Date(date).toLocaleTimeString() }
     dateIntlAxisX = {
-      format: date =>
-        [date.getHours(), date.getMinutes(), date.getSeconds()].map(zeropad).join(":"),
+      format: date => {
+        const dd = new Date(date)
+        return [dd.getHours(), dd.getMinutes(), dd.getSeconds()].map(zeropad).join(":")
+      },
     }
   }
 
