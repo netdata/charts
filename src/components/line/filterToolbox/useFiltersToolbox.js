@@ -34,7 +34,10 @@ export default () => {
 
   useEffect(
     () =>
-      chart.on("successFetch", (next, prev) => next.nodes !== prev.nodes && setTotals(getTotals())),
+      chart.on(
+        "payloadChanged",
+        (next, prev) => next.nodes !== prev.nodes && setTotals(getTotals())
+      ),
     [chart]
   )
 

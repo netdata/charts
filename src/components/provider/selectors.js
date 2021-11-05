@@ -6,7 +6,7 @@ export const useChart = () => useContext(context)
 
 const dispatch = s => s + 1
 
-const useForceUpdate = () => {
+export const useForceUpdate = () => {
   const [, forceUpdate] = useReducer(dispatch, 0)
   return forceUpdate
 }

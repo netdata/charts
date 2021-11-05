@@ -96,6 +96,8 @@ export default (sdk, chart) => {
   }
 
   const render = () => {
+    chartUI.render()
+
     const { hoverX, loaded, after } = chart.getAttributes()
 
     if (!easyPie || !loaded) return

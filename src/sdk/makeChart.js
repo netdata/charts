@@ -130,9 +130,7 @@ export default ({
       nextPayload = { ...initialPayload, ...nextPayloadTransformed, result }
     }
 
-    if (!node.getAttribute("loaded")) {
-      payload = nextPayload
-    }
+    if (!node.getAttribute("loaded")) consumePayload()
 
     invalidateClosestRowCache()
 
@@ -311,7 +309,13 @@ export default ({
   node.getApplicableNodes = getApplicableNodes
 
   const consumePayload = () => {
+    if (payload === nextPayload) return false
+
+    const prevPayload = payload
     payload = nextPayload
+    node.trigger("payloadChanged", nextPayload, prevPayload)
+
+    return true
   }
 
   const instance = {

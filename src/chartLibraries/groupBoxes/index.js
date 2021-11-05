@@ -13,12 +13,9 @@ export default (sdk, chart) => {
   let offs
 
   const mount = () => {
-    chart.consumePayload()
-
     updateGroupBox()
 
     offs = unregister(
-      chart.on("successFetch", updateGroupBox),
       chart.onAttributeChange("hoverX", updateGroupBoxLayout),
       chart.onAttributeChange("filteredRows", updateGroupBox)
     )
@@ -30,7 +27,7 @@ export default (sdk, chart) => {
   }
 
   const updateGroupBox = () => {
-    chart.consumePayload()
+    if (!chart.consumePayload()) return
 
     const { result } = chart.getPayload()
     if (result.data.length === 0) return
@@ -63,10 +60,19 @@ export default (sdk, chart) => {
 
   const getGroupBoxLayout = () => groupBoxLayout
 
+  const render = () => {
+    chartUI.render()
+
+    updateGroupBox()
+
+    chartUI.trigger("rendered")
+  }
+
   const instance = {
     ...chartUI,
     mount,
     unmount,
+    render,
     format: "json",
     getUrlOptions,
     getGroupBoxLayout,
