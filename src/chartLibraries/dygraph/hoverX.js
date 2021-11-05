@@ -1,3 +1,16 @@
+const getHighestPoint = points => {
+  let highest = points[0]
+  points.reduce((acc, point) => {
+    const { yval } = point
+    if (yval > acc) {
+      highest = point
+    }
+    return yval
+  }, 0)
+
+  return highest
+}
+
 export default chartUI => {
   const getClosestArea = (event, points) => {
     const { offsetY } = event
@@ -15,16 +28,10 @@ export default chartUI => {
     }
 
     if (offsetY < getY(0)) {
-      let highest = validPoints[0]
-      validPoints.reduce((acc, point) => {
-        const { yval } = point
-        if (yval > acc) {
-          highest = point
-        }
-        return yval
-      }, 0)
-      return highest.name
+      const { name } = getHighestPoint(validPoints)
+      return name
     }
+
     if (offsetY > getY(validPoints.length - 1)) return validPoints[validPoints.length - 1].name
 
     const point = validPoints.find((p, index) => getY(index) < offsetY && getY(index + 1) > offsetY)
@@ -49,6 +56,8 @@ export default chartUI => {
   }
 
   const getClosestSeries = (event, points) => {
+    if (!Array.isArray(points)) return
+
     const chartType =
       chartUI.chart.getAttribute("chartType") || chartUI.chart.getMetadata().chartType
 
