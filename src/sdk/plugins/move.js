@@ -1,9 +1,9 @@
-const getMoveX = (after, before) => {
-  if (after < 0) return { after }
+const getMoveX = (after, before = 0) => {
+  if (after < 0) return { after, before }
 
-  if (before > Date.now() / 1000) return { after: Math.round(after - before) }
+  if (before > Date.now() / 1000) return { after: Math.floor(after - before + 1), before: 0 }
 
-  return { after: Math.round(after), before: Math.round(before) }
+  return { after: Math.floor(after), before: Math.ceil(before) }
 }
 
 export default sdk => {
