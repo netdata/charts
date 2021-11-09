@@ -4,9 +4,15 @@ import Legend from "@/components/line/legend"
 import DimensionFilter from "@/components/line/dimensionFilter"
 import Resize from "@/components/line/resize"
 import { useAttributeValue } from "@/components/provider/selectors"
+import Indicators from "../indicators"
 
 export const Container = props => (
-  <Flex border={{ side: "top", color: "borderSecondary" }} data-testid="chartLegend" {...props} />
+  <Flex
+    border={{ side: "top", color: "borderSecondary" }}
+    data-testid="chartLegend"
+    column
+    {...props}
+  />
 )
 
 const Footer = () => {
@@ -14,9 +20,12 @@ const Footer = () => {
 
   return (
     <Container>
-      <DimensionFilter />
-      <Legend />
-      {enabledHeightResize && <Resize />}
+      <Indicators />
+      <Flex>
+        <DimensionFilter />
+        <Legend />
+        {enabledHeightResize && <Resize />}
+      </Flex>
     </Container>
   )
 }

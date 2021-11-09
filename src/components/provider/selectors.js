@@ -105,9 +105,29 @@ export const usePayload = () => {
 
   const forceUpdate = useForceUpdate()
 
-  useImmediateListener(() => chart.on("successFetch", forceUpdate), [chart])
+  useImmediateListener(() => chart.on("payloadChanged", forceUpdate), [chart])
 
   return chart.getPayload()
+}
+
+export const useFormatTime = value => {
+  const chart = useChart()
+
+  const forceUpdate = useForceUpdate()
+
+  useImmediateListener(() => chart.onAttributeChange("timezone", forceUpdate), [chart])
+
+  return useMemo(() => chart.formatTime(value), [value, chart.getAttribute("timezone")])
+}
+
+export const useFormatDate = value => {
+  const chart = useChart()
+
+  const forceUpdate = useForceUpdate()
+
+  useImmediateListener(() => chart.onAttributeChange("timezone", forceUpdate), [chart])
+
+  return useMemo(() => chart.formatDate(value), [value, chart.getAttribute("timezone")])
 }
 
 export const useOnResize = () => {

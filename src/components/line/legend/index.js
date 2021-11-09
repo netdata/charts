@@ -9,7 +9,7 @@ import { Fragment } from "react"
 
 const Container = styled(Flex).attrs({
   gap: 1,
-  padding: [3, 0, 3],
+  padding: [0, 0, 3],
   alignItems: "start",
   flex: true,
   basis: 0,
