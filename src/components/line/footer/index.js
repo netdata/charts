@@ -4,7 +4,7 @@ import Legend from "@/components/line/legend"
 import DimensionFilter from "@/components/line/dimensionFilter"
 import Resize from "@/components/line/resize"
 import { useAttributeValue } from "@/components/provider/selectors"
-import Indicators from "../indicators"
+import Indicators from "@/components/line/indicators"
 
 export const Container = props => (
   <Flex
