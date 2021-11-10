@@ -24,9 +24,11 @@ export default sdk => {
     }
   }
 
-  const autofetchIfActive = chart => {
+  const autofetchIfActive = (chart, force) => {
     const { after, hovering, active } = chart.getAttributes()
     const autofetch = active && after < 0 && !hovering
+
+    if (!autofetch && !force) return
 
     if (active && !autofetch) chart.fetchAndRender()
 
@@ -52,7 +54,7 @@ export default sdk => {
   window.addEventListener("focus", focus)
 
   const offs = sdk
-    .on("active", autofetchIfActive)
+    .on("active", chart => autofetchIfActive(chart, true))
     .on("hoverChart", chart => {
       const autofetch = false
       if (autofetch === chart.getAttribute("autofetch")) return
@@ -78,6 +80,7 @@ export default sdk => {
       if (autofetch === chart.getAttribute("autofetch")) return
 
       toggleRender(autofetch)
+
       chart.getApplicableNodes({ syncPanning: true }).forEach(node => {
         node.updateAttribute("autofetch", autofetch)
       })
