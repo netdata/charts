@@ -1,17 +1,24 @@
 import React from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { useAttributeValue, usePayload, useFormatTime, useFormatDate } from "@/components/provider"
+import {
+  useAttributeValue,
+  usePayload,
+  useFormatTime,
+  useFormatDate,
+  useChart,
+} from "@/components/provider"
 import { TextNano } from "@netdata/netdata-ui/lib/components/typography"
 import { Fragment } from "react"
 
 const Latest = () => {
-  const { result } = usePayload()
-  const { data } = result
+  const chart = useChart()
 
-  const [timestamp] = data[data.length - 1]
+  usePayload()
 
-  const time = useFormatTime(timestamp)
-  const date = useFormatDate(timestamp)
+  const [, before] = chart.getUI().getXAxisRange()
+
+  const time = useFormatTime(before)
+  const date = useFormatDate(before)
 
   return (
     <Flex gap={1}>
@@ -52,8 +59,7 @@ const getDateDiff = (after, before) => {
   ].filter(Boolean)
 }
 
-const DayRange = ({ after, before }) => {
-  const afterDate = useFormatDate(after * 1000)
+const DayRange = ({ date, after, before }) => {
   const afterTime = useFormatTime(after * 1000)
   const beforeTime = useFormatTime(before * 1000)
 
@@ -61,7 +67,7 @@ const DayRange = ({ after, before }) => {
 
   return (
     <Flex gap={1}>
-      <TextNano color="textDescription">{afterDate} •</TextNano>
+      <TextNano color="textDescription">{date} •</TextNano>
       <TextNano color="textLite">
         {afterTime} → {beforeTime}
       </TextNano>
@@ -70,10 +76,8 @@ const DayRange = ({ after, before }) => {
   )
 }
 
-const DaysRange = ({ after, before }) => {
-  const afterDate = useFormatDate(after * 1000)
+const DaysRange = ({ afterDate, beforeDate, after, before }) => {
   const afterTime = useFormatTime(after * 1000)
-  const beforeDate = useFormatDate(before * 1000)
   const beforeTime = useFormatTime(before * 1000)
 
   const dateDiff = getDateDiff(after, before)
@@ -89,12 +93,16 @@ const DaysRange = ({ after, before }) => {
   )
 }
 
-const Range = ({ after, before }) =>
-  before - after > day1 ? (
-    <DaysRange after={after} before={before} />
+const Range = ({ after, before }) => {
+  const beforeDate = useFormatDate(before * 1000)
+  const afterDate = useFormatDate(after * 1000)
+
+  return beforeDate === afterDate ? (
+    <DayRange date={afterDate} after={after} before={before} />
   ) : (
-    <DayRange after={after} before={before} />
+    <DaysRange afterDate={afterDate} beforeDate={beforeDate} after={after} before={before} />
   )
+}
 
 const DateTime = props => {
   const { highlight } = useAttributeValue("overlays")

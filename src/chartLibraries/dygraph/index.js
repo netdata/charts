@@ -324,6 +324,8 @@ export default (sdk, chart) => {
   const getChartWidth = () => (dygraph ? dygraph.getArea().w : chartUI.getEstimatedChartWidth())
   const getChartHeight = () => (dygraph ? dygraph.getArea().h : 100)
 
+  const getXAxisRange = () => dygraph?.xAxisRange()
+
   const instance = {
     ...chartUI,
     getEstimatedChartWidth,
@@ -333,6 +335,7 @@ export default (sdk, chart) => {
     mount,
     unmount,
     getDygraph,
+    getXAxisRange,
     render,
   }
 
