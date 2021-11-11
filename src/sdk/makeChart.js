@@ -346,6 +346,10 @@ export default ({
     node.updateAttribute("fullscreen", !node.getAttribute("fullscreen"))
   })
 
+  onKeyChange(["Alt", "Shift", "KeyR"], () => {
+    node.resetNavigation()
+  })
+
   const dimensions = makeDimensions(instance)
 
   const onDimensionToggle = onKeyAndMouse(

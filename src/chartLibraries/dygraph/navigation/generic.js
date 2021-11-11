@@ -84,13 +84,11 @@ export default chartUI => {
     zoom(g, percentage, xPct)
   })
 
-  const reset = () => chartUI.chart.moveX(-900)
-
   const unregister = chartUI
     .on("mousedown", mousedown)
     .on("mouseup", mouseup)
     .on("wheel", onZoom)
-    .on("dblclick", reset)
+    .on("dblclick", chartUI.chart.resetNavigation)
 
   return () => {
     unregister()
