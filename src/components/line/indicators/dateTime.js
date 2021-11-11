@@ -1,31 +1,42 @@
-import React from "react"
+import React, { useMemo } from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import {
   useAttributeValue,
   usePayload,
   useFormatTime,
   useFormatDate,
+  useForceUpdate,
+  useImmediateListener,
   useChart,
 } from "@/components/provider"
 import { TextNano } from "@netdata/netdata-ui/lib/components/typography"
 import { Fragment } from "react"
+
+const LatestValue = ({ timestamp }) => {
+  const time = useFormatTime(timestamp)
+  const date = useFormatDate(timestamp)
+
+  return (
+    <TextNano color="textDescription">
+      {date} • {time}
+    </TextNano>
+  )
+}
 
 const Latest = () => {
   const chart = useChart()
 
   usePayload()
 
-  const [, before] = chart.getUI().getXAxisRange()
+  const update = useForceUpdate()
+  useImmediateListener(() => chart.getUI().once("rendered", update), [])
 
-  const time = useFormatTime(before)
-  const date = useFormatDate(before)
+  const range = chart.getUI().getXAxisRange()
 
   return (
     <Flex gap={1}>
       <TextNano color="textLite">Latest:</TextNano>
-      <TextNano color="textDescription">
-        {date} • {time}
-      </TextNano>
+      {range && <LatestValue timestamp={range[1]} />}
     </Flex>
   )
 }
