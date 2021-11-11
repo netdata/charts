@@ -68,7 +68,7 @@ const DimensionFilter = props => {
   const sortings = useSortings(chart)
 
   return (
-    <Flex padding={[3, 4]} data-testid="chartDimensionFilter" {...props}>
+    <Flex padding={[0, 4, 3]} data-testid="chartDimensionFilter" {...props}>
       <Menu
         value={value}
         items={sortings}

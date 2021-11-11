@@ -157,7 +157,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   const zoomOut = () => zoomX(-1)
 
   const updateValueRange = value => {
-    if (!getAttribute("pristineValueRange")) {
+    if (getAttribute("pristineValueRange") === undefined) {
       const pristine = getAttribute("valueRange")
       updateAttribute("pristineValueRange", pristine)
     }
@@ -166,7 +166,9 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
 
   const resetValueRange = () => {
     const pristine = getAttribute("pristineValueRange")
-    updateAttribute("pristineValueRange", null)
+    if (pristine === undefined) return
+
+    updateAttribute("pristineValueRange", undefined)
     updateAttribute("valueRange", pristine)
   }
 
@@ -175,6 +177,13 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     ["enabledHeightResize"],
     updateAttributes
   )
+
+  const resetNavigation = () => {
+    const pristine = getAttribute("pristineValueRange")
+    if (pristine !== undefined) return resetValueRange()
+
+    moveX(-900)
+  }
 
   const toggleFullscreen = () => {
     const fullscreen = getAttribute("fullscreen")
@@ -231,6 +240,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     moveX,
     zoomIn,
     zoomOut,
+    resetNavigation,
     destroy,
     formatTime,
     formatDate,

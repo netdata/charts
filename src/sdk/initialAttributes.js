@@ -10,7 +10,7 @@ export default {
   min: 0,
   max: 0,
   updateEvery: 0,
-  pristineValueRange: null,
+  pristineValueRange: undefined,
   valueRange: null,
   loaded: false,
   loading: false,

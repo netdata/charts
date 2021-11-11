@@ -6,7 +6,7 @@ import selectedArea from "@netdata/netdata-ui/lib/components/icon/assets/selecte
 import zoomInIcon from "@netdata/netdata-ui/lib/components/icon/assets/zoom_in.svg"
 import zoomOutIcon from "@netdata/netdata-ui/lib/components/icon/assets/zoom_out.svg"
 import Icon, { Button } from "@/components/icon"
-import { useAttribute, useChart } from "@/components/provider"
+import { useAttribute, useAttributeValue, useChart } from "@/components/provider"
 import Select from "./select"
 
 const Container = styled(Flex).attrs({
@@ -20,6 +20,23 @@ const Container = styled(Flex).attrs({
   top: 8px;
   right: 8px;
 `
+
+const Reset = () => {
+  const chart = useChart()
+
+  const after = useAttributeValue("after")
+
+  return (
+    <Button
+      icon={<Icon svg={zoomOutIcon} />}
+      title="Reset"
+      onClick={chart.resetNavigation}
+      data-testid="chartToolbox-reset"
+      data-track={chart.track("reset")}
+      disabled={after === -900}
+    />
+  )
+}
 
 const Toolbox = forwardRef((props, ref) => {
   const chart = useChart()
@@ -59,6 +76,7 @@ const Toolbox = forwardRef((props, ref) => {
         data-testid="chartToolbox-zoomOut"
         data-track={chart.track("zoomOut")}
       />
+      {/* <Reset /> */}
     </Container>
   )
 })
