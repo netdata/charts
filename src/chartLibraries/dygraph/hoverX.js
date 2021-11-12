@@ -4,8 +4,10 @@ const getHighestPoint = points => {
     const { yval } = point
     if (yval > acc) {
       highest = point
+      return yval
     }
-    return yval
+
+    return acc
   }, 0)
 
   return highest

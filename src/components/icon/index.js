@@ -23,13 +23,17 @@ const injectContainer = () => {
 }
 
 const getElement = (svg, id) => {
+  svg = svg.trim()
   const container = document.createElement("div")
-  container.innerHTML = svg
 
-  if (container.firstChild.tagName === "SVG") {
+  if (/^\<svg /i.test(svg)) {
+    container.innerHTML = svg
     container.firstChild.id = id
     return container.firstChild
   }
+
+  svg = svg.replace(/^<symbol /i, "<svg ").replace(/<\/symbol>$/i, "</svg>")
+  container.innerHTML = svg
 
   const viewbox = container.firstChild.getAttribute("viewBox")
   const xmlns = container.firstChild.getAttribute("xmlns")
@@ -52,6 +56,7 @@ const Icon = ({ svg, size = "24px", width = size, height = size, ...rest }) => {
     const defs = document.querySelector(`#${iconsContainerId} defs`)
 
     const element = getElement(rowSvg, id)
+
     defs.appendChild(element)
   }, [rowSvg])
 
