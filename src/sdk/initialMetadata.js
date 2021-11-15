@@ -1,0 +1,17 @@
+export default {
+  loaded: false,
+  id: "",
+  context: "",
+  family: "",
+  title: "",
+  priority: 0,
+  plugin: "",
+  module: "",
+  units: "",
+  chartType: "",
+  updateEvery: 0,
+  firstEntry: 0,
+  lastEntry: 0,
+  dimensions: {},
+  chartLabels: {},
+}

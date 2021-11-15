@@ -10,6 +10,7 @@ import getInitialFilterAttributes from "./filters/getInitialAttributes"
 import makeFilterControllers from "./filters/makeControllers"
 import makeGetUnitSign from "./makeGetUnitSign"
 import camelizePayload from "./camelizePayload"
+import initialMetadata from "./initialMetadata"
 
 const requestTimeoutMs = 5 * 1000
 const maxBackoffMs = 30 * 1000
@@ -51,7 +52,7 @@ export default ({
 
   const cancelFetch = () => abortController && abortController.abort()
 
-  const getMetadata = () => getMetadataDecorator().get(instance)
+  const getMetadata = () => getMetadataDecorator().get(instance) || initialMetadata
   const fetchMetadata = () => getMetadataDecorator().fetch(instance)
 
   const clearFetchDelayTimeout = () => {
@@ -222,6 +223,7 @@ export default ({
   const focus = () => node.updateAttribute("focused", true)
   const blur = () => node.updateAttribute("focused", false)
   const activate = () => {
+    if (!node) return
     node.updateAttribute("active", true)
     sdk.trigger("active", instance, true)
   }
