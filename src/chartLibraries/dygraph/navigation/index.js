@@ -7,22 +7,33 @@ const navigations = { highlight: select, select, selectVertical, pan }
 
 export default chartUI => {
   let unregister
+  let unregisterGeneric
 
-  const destroy = () => {
-    unregister?.()
+  const toggle = (enable, mode) => {
+    if (!enable) return destroy()
+
+    unregisterGeneric = generic(chartUI)
+
+    if (mode) set(mode)
   }
 
-  const unregisterGeneric = generic(chartUI)
+  const destroyNavigation = () => {
+    unregister?.()
+    unregister = null
+  }
 
-  const destroyAll = () => {
-    destroy()
-    unregisterGeneric()
+  const destroy = () => {
+    destroyNavigation()
+    unregisterGeneric?.()
+    unregisterGeneric = null
   }
 
   const set = mode => {
-    destroy()
+    if (!unregisterGeneric) return
+
+    destroyNavigation()
     unregister = navigations[mode]?.(chartUI)
   }
 
-  return { set, destroy, destroyAll }
+  return { toggle, set, destroy }
 }
