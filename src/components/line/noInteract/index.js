@@ -2,17 +2,15 @@ import React from "react"
 import useHover from "@/components/useHover"
 import withChart from "@/components/hocs/withChart"
 import { useChart, useAttributeValue } from "@/components/provider"
-import Header from "./header"
-import Details from "./details"
-import ChartContentWrapper, { ContentWrapper } from "./chartContentWrapper"
-import FilterToolbox from "./filterToolbox"
-import Footer from "./footer"
-import Container from "./container"
+import FilterToolbox from "@/components/line/filterToolbox"
+import Footer from "@/components/line/footer"
+import Container from "@/components/line/container"
+import { ContentWrapper } from "@/components/line/chartContentWrapper"
+import ChartContentWrapper from "./chartContentWrapper"
 
-export const Line = props => {
+export const NoInteractLine = props => {
   const chart = useChart()
   const composite = useAttributeValue("composite")
-  const detailed = useAttributeValue("detailed")
 
   const ref = useHover(
     {
@@ -25,15 +23,13 @@ export const Line = props => {
 
   return (
     <Container ref={ref} {...props}>
-      <Header />
       {composite && <FilterToolbox />}
       <ContentWrapper>
         <ChartContentWrapper />
-        {detailed && <Details />}
       </ContentWrapper>
-      {!detailed && <Footer />}
+      <Footer />
     </Container>
   )
 }
 
-export default withChart(Line)
+export default withChart(NoInteractLine)

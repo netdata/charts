@@ -10,7 +10,7 @@ import Toolbox from "./toolbox"
 import Skeleton from "./skeleton"
 import Overlays from "./overlays"
 import dygraphStyle from "@/chartLibraries/dygraph/style.css"
-import cursorStyle from "@/components/helpers/cursorStyle.js"
+import cursorStyle from "@/components/helpers/cursorStyle"
 
 const chartLibraries = {
   dygraph: css`
@@ -22,6 +22,10 @@ const chartLibraries = {
 const StyledContainer = styled(Flex)`
   ${({ chartLibrary }) => chartLibraries[chartLibrary] || ""}
 `
+
+export const ContentWrapper = props => (
+  <Flex position="relative" column flex overflow="hidden" data-testid="contentWrapper" {...props} />
+)
 
 export const Container = forwardRef((props, ref) => {
   const chartLibrary = useAttributeValue("chartLibrary")
