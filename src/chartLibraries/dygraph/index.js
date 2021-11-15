@@ -141,7 +141,7 @@ export default (sdk, chart) => {
     })
 
     hoverX.toggle(attributes.enabledHover)
-    navigation.set(attributes.navigation)
+    navigation.toggle(attributes.enabledNavigation, attributes.navigation)
 
     listeners = [
       chartUI.on(
@@ -162,6 +162,7 @@ export default (sdk, chart) => {
       ),
       chart.onAttributeChange("after", render),
       chart.onAttributeChange("enabledHover", hoverX.toggle),
+      chart.onAttributeChange("enabledNavigation", navigation.toggle),
       chart.onAttributeChange("navigation", navigation.set),
       chart.onAttributeChange("overlays", overlays.toggle),
       chart.onAttributeChange("theme", (nextTheme, prevTheme) => {
@@ -179,7 +180,7 @@ export default (sdk, chart) => {
       chart.onAttributeChange("timezone", () => {
         dygraph.updateOptions({})
       }),
-    ]
+    ].filter(Boolean)
 
     hover = makeHover(instance)
     overlays.toggle()
