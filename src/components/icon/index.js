@@ -23,16 +23,12 @@ const injectContainer = () => {
 }
 
 const getElement = (svg, id) => {
-  svg = svg.trim()
   const container = document.createElement("div")
+  svg = svg
+    .trim()
+    .replace(/^<symbol /i, "<svg ")
+    .replace(/<\/symbol>$/i, "</svg>")
 
-  if (/^\<svg /i.test(svg)) {
-    container.innerHTML = svg
-    container.firstChild.id = id
-    return container.firstChild
-  }
-
-  svg = svg.replace(/^<symbol /i, "<svg ").replace(/<\/symbol>$/i, "</svg>")
   container.innerHTML = svg
 
   const viewbox = container.firstChild.getAttribute("viewBox")
