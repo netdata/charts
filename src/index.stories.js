@@ -5,7 +5,7 @@ import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { Button } from "@netdata/netdata-ui/lib/components/button"
 import { camelizeKeys } from "@/helpers/objectTransform"
 import Line from "@/components/line"
-import noInteractLine from "@/components/line/noInteract"
+import NoInteractLine from "@/components/line/noInteract"
 import makeMockPayload from "@/helpers/makeMockPayload"
 import { useAttribute, useAttributeValue, useChart, withChartProvider } from "@/components/provider"
 import makeDefaultSDK from "./makeDefaultSDK"
@@ -431,7 +431,7 @@ export const NoInteractions = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <noInteractLine chart={chart} height="315px" />
+      <NoInteractLine chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
