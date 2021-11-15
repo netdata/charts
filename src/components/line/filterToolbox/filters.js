@@ -6,6 +6,7 @@ import Dimensions from "./dimensions"
 import GroupBy from "./groupBy"
 import DimensionsAggregation from "./dimensionsAggregation"
 import useFiltersToolbox from "./useFiltersToolbox"
+import Reset from "./reset"
 
 export const Container = ({ children, ...rest }) => {
   const elements = children.reduce((acc, element, index) => {
@@ -32,6 +33,7 @@ const FilterToolbox = props => {
       {dimensionAggregation && <DimensionsAggregation isAggregate={aggregate} />}
       <Dimensions labelProps={!prefixedDimensions && { secondaryLabel: "" }} />
       <GroupBy />
+      <Reset />
     </Container>
   )
 }
