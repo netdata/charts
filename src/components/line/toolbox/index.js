@@ -13,13 +13,14 @@ import Select from "./select"
 const Container = styled(Flex).attrs({
   padding: [0.5],
   gap: 1,
-  background: "dropdown",
+  background: "elementBackground",
   round: true,
   border: { side: "all", color: "borderSecondary" },
 })`
   position: absolute;
   top: 8px;
   right: 8px;
+  opacity: 0.7;
 `
 
 const Reset = () => {
