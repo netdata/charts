@@ -13,26 +13,13 @@ export default chartUI => {
       prevNavigation,
     })
 
-  const onSelectVerticalAndZoom = onKeyAndMouse(
-    ["Shift", "Alt"],
-    () =>
-      ({ allPressed }) =>
-        allPressed && updateNavigation("selectVertical")
+  const onSelectVerticalAndZoom = onKeyAndMouse(["Shift", "Alt"], () => () =>
+    updateNavigation("selectVertical")
   )
 
-  const onHighlight = onKeyAndMouse(
-    "Alt",
-    () =>
-      ({ allPressed }) =>
-        allPressed && updateNavigation("highlight")
-  )
+  const onHighlight = onKeyAndMouse("Alt", () => () => updateNavigation("highlight"))
 
-  const onSelectAndZoom = onKeyAndMouse(
-    "Shift",
-    () =>
-      ({ allPressed }) =>
-        allPressed && updateNavigation("select")
-  )
+  const onSelectAndZoom = onKeyAndMouse("Shift", () => () => updateNavigation("select"))
 
   const mousedown = () => {
     if (onSelectVerticalAndZoom()) return
@@ -47,9 +34,7 @@ export default chartUI => {
     })
   }
 
-  const onZoom = onKeyAndMouse(["Shift", "Alt"], (event, g) => ({ allPressed }) => {
-    if (!allPressed) return
-
+  const onZoom = onKeyAndMouse(["Shift", "Alt"], (event, g) => () => {
     event.preventDefault()
     event.stopPropagation()
 

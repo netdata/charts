@@ -6,9 +6,14 @@ const types = {
 }
 
 const equalByPolicy = {
-  default: (a, b) => a.size === b.size && [...b].every(x => a.has(x) || a.has(aliasByCode[x])),
-  intersection: (a, b) =>
-    a.size <= b.size && [...b].filter(x => a.has(x) || a.has(aliasByCode[x])).length === a.size,
+  default: (a, b) =>
+    a.size === b.size && [...b].every(x => a.has(x) || a.has(aliasByCode[x])) ? "all" : "none",
+  intersection: (a, b) => {
+    if (b.size === 0) return "none"
+    const items = [...b].filter(x => a.has(x) || a.has(aliasByCode[x]))
+    if (a.size <= b.size && items.length === a.size) return "all"
+    return items
+  },
 }
 
 export default () => {
@@ -21,6 +26,7 @@ export default () => {
     {
       fireOn = types.keydown, //: keydown | keyup | sequential
       policy,
+      allPressed = true,
     } = {}
   ) => {
     const keysSet = new Set(Array.isArray(keys) ? keys : [keys])
@@ -28,7 +34,8 @@ export default () => {
     const check = equalByPolicy[policy] || equalByPolicy.intersection
     const handler = eventType => {
       if (eventType !== fireOn) return false
-      if (!check(keysSet, pressedSet)) return false
+      const checkPressed = check(keysSet, pressedSet)
+      if ((allPressed && checkPressed !== "all") || checkPressed === "none") return false
       action()
       return true
     }
@@ -45,8 +52,8 @@ export default () => {
     return (...args) => {
       const handle = action(...args)
       const checkPressed = check(keysSet, pressedSet)
-      if (allPressed && !checkPressed) return false
-      handle({ allPressed: checkPressed })
+      if (allPressed && checkPressed !== "all") return false
+      handle({ allPressed: checkPressed, keysSet })
       return true
     }
   }

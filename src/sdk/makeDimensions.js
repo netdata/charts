@@ -148,9 +148,11 @@ export default chart => {
 
   const toggleDimensionId = (id, { merge = false } = {}) => {
     const selectedDimensions = chart.getAttribute("selectedDimensions")
-
     if (!selectedDimensions) {
-      chart.updateAttribute("selectedDimensions", [id])
+      chart.updateAttribute(
+        "selectedDimensions",
+        merge ? getDimensionIds().filter(d => d !== id) : [id]
+      )
       return
     }
 
