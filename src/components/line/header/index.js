@@ -1,7 +1,7 @@
 import React from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import Status from "./status"
-import Title from "./title"
+import { Title } from "./title"
 import Toolbox from "./toolbox"
 
 const Container = props => (

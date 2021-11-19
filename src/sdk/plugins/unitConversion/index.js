@@ -5,7 +5,7 @@ export default sdk => {
     const { method, divider, units, fractionDigits } = getConversionUnits(chart, min, max)
     const ancestor = chart.getAncestor({ syncUnits: true })
 
-    if (!ancestor) {
+    if (!ancestor || method === "original") {
       return chart.updateAttributes({
         unitsConversionMethod: method,
         unitsConversionDivider: divider,

@@ -1,6 +1,6 @@
 {
   "name": "@netdata/charts",
-  "version": "0.1.28",
+  "version": "0.1.32",
   "description": "Netdata frontend SDK and chart utilities",
   "main": "index.js",
   "module": "es6/index.js",
@@ -31,7 +31,7 @@
     "charts"
   ],
   "peerDependencies": {
-    "@netdata/netdata-ui": "^1.7.11",
+    "@netdata/netdata-ui": "^1.7.14",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "styled-components": "^5.2.1"

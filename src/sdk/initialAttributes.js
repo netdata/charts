@@ -25,6 +25,7 @@ export default {
   syncHover: true,
   hoverX: null,
   navigation: "",
+  enabledNavigation: true,
   syncPanning: true,
   panning: false,
   hovering: false,

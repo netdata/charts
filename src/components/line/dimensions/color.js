@@ -3,14 +3,13 @@ import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { useChart } from "@/components/provider"
 
-export const Color = styled(Flex).attrs({
+export const Color = styled(Flex).attrs(({ bg }) => ({
   width: "4px",
   round: true,
   "data-testid": "chartDimensions-color",
   flex: false,
-})`
-  background-color: ${({ bg }) => bg};
-`
+  style: { backgroundColor: bg },
+}))``
 
 const Container = ({ id, ...rest }) => {
   const chart = useChart()

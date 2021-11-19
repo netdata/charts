@@ -9,14 +9,16 @@ const color = ({ active, disabled, defaultColor = "border" }) => {
   return defaultColor
 }
 
-const Button = styled.button.attrs(({ icon, hoverIndicator = true, ...rest }) => ({
+const Button = styled.button.attrs(({ icon, hoverIndicator = true, padding = 0, ...rest }) => ({
   ...rest,
   children: icon,
   active: rest.active || rest["aria-expanded"],
   hoverIndicator,
+  padding,
 }))`
   border: initial;
-  padding: 0;
+  padding: ${({ padding }) => padding};
+  height: fit-content;
   line-height: 0;
   background: ${({ theme, active }) =>
     active ? getColor("borderSecondary")({ theme }) : "initial"};

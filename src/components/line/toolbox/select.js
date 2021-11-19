@@ -1,6 +1,6 @@
 import React, { forwardRef, memo, useMemo } from "react"
-import selectIcon from "@netdata/netdata-ui/lib/components/icon/assets/select.svg"
-import differenceIcon from "@netdata/netdata-ui/lib/components/icon/assets/difference.svg"
+import dragHorizontalIcon from "@netdata/netdata-ui/lib/components/icon/assets/drag_horizontal.svg"
+import dragVerticalIcon from "@netdata/netdata-ui/lib/components/icon/assets/drag_vertical.svg"
 import chevronUpIcon from "@netdata/netdata-ui/lib/components/icon/assets/chevron_up_thin.svg"
 import chevronDownIcon from "@netdata/netdata-ui/lib/components/icon/assets/chevron_down_thin.svg"
 import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
@@ -14,13 +14,13 @@ const useItems = chart =>
       {
         value: "select",
         title: "Select and zoom",
-        icon: <Icon svg={selectIcon} />,
+        icon: <Icon svg={dragHorizontalIcon} size="16px" />,
         "data-track": chart.track("selectHorizontal"),
       },
       {
         value: "selectVertical",
         title: "Select vertical and zoom",
-        icon: <Icon svg={differenceIcon} />,
+        icon: <Icon svg={dragVerticalIcon} size="16px" />,
         "data-track": chart.track("selectVertical"),
       },
     ],
@@ -32,17 +32,19 @@ const Label = forwardRef(
     const { icon, value, title } = item
 
     return (
-      <Flex ref={ref} {...rest}>
+      <Flex ref={ref} alignItems="end" {...rest}>
         <Button
           icon={icon}
           title={title}
           active={selectedValue === value}
           onClick={() => onChange(value)}
+          padding="2px"
         />
         <Button
-          icon={<Icon svg={open ? chevronUpIcon : chevronDownIcon} width="16px" />}
+          icon={<Icon svg={open ? chevronUpIcon : chevronDownIcon} size="12px" />}
           onClick={onClick}
-          hoverIndicator={false}
+          padding="2px"
+          stroked
         />
       </Flex>
     )
@@ -60,7 +62,7 @@ const renderDropdown = ({ onItemClick, items }) => {
       padding={[1, 0]}
       data-toolbox
     >
-      <Button title={title} icon={icon} onClick={() => onItemClick(value)} />
+      <Button title={title} icon={icon} onClick={() => onItemClick(value)} padding="2px" />
     </Flex>
   )
 }

@@ -10,6 +10,7 @@ import getInitialFilterAttributes from "./filters/getInitialAttributes"
 import makeFilterControllers from "./filters/makeControllers"
 import makeGetUnitSign from "./makeGetUnitSign"
 import camelizePayload from "./camelizePayload"
+import initialMetadata from "./initialMetadata"
 
 const requestTimeoutMs = 5 * 1000
 const maxBackoffMs = 30 * 1000
@@ -51,7 +52,7 @@ export default ({
 
   const cancelFetch = () => abortController && abortController.abort()
 
-  const getMetadata = () => getMetadataDecorator().get(instance)
+  const getMetadata = () => getMetadataDecorator().get(instance) || initialMetadata
   const fetchMetadata = () => getMetadataDecorator().fetch(instance)
 
   const clearFetchDelayTimeout = () => {
@@ -110,6 +111,8 @@ export default ({
     return { labels: ["time", "sum"], data }
   }
 
+  const getDataLength = ({ result }) => (Array.isArray(result) ? result.length : result.data.length)
+
   const doneFetch = nextRawPayload => {
     backoffMs = 0
     const nextPayloadTransformed = camelizePayload(nextRawPayload)
@@ -130,7 +133,12 @@ export default ({
       nextPayload = { ...initialPayload, ...nextPayloadTransformed, result }
     }
 
-    if (!node.getAttribute("loaded")) consumePayload()
+    if (
+      !node.getAttribute("loaded") ||
+      (getDataLength(nextPayload) > 0 && getDataLength(payload) === 0) ||
+      (getDataLength(payload) > 0 && getDataLength(nextPayload) === 0)
+    )
+      consumePayload()
 
     invalidateClosestRowCache()
 
@@ -153,19 +161,6 @@ export default ({
   }
 
   const fetch = () => {
-    const metadata = getMetadata()
-
-    if (metadata) {
-      const { firstEntry } = metadata
-      const { after, before } = node.getAttributes()
-      const absoluteBefore = after >= 0 ? before : Date.now() / 1000
-      if (firstEntry > absoluteBefore) {
-        node.updateAttributes({ loaded: true })
-        clearFetchDelayTimeout()
-        return Promise.resolve()
-      }
-    }
-
     node.trigger("startFetch")
     node.updateAttributes({ loading: true, fetchStartedAt: Date.now() })
 
@@ -175,11 +170,25 @@ export default ({
       fetchDelayTimeoutId = null
     }, requestTimeoutMs)
 
-    abortController = new AbortController()
-    const options = { signal: abortController.signal }
     return fetchMetadata()
       .then(() => {
         updateMetadata()
+
+        const metadata = getMetadata()
+
+        if (metadata) {
+          const { firstEntry } = metadata
+          const { after, before } = node.getAttributes()
+          const absoluteBefore = after >= 0 ? before : Date.now() / 1000
+          if (firstEntry > absoluteBefore) {
+            node.updateAttributes({ loaded: true })
+            clearFetchDelayTimeout()
+            return Promise.resolve()
+          }
+        }
+
+        abortController = new AbortController()
+        const options = { signal: abortController.signal }
         return getChart(instance, options).then(doneFetch)
       })
       .catch(failFetch)
@@ -222,6 +231,7 @@ export default ({
   const focus = () => node.updateAttribute("focused", true)
   const blur = () => node.updateAttribute("focused", false)
   const activate = () => {
+    if (!node) return
     node.updateAttribute("active", true)
     sdk.trigger("active", instance, true)
   }
@@ -309,7 +319,7 @@ export default ({
   node.getApplicableNodes = getApplicableNodes
 
   const consumePayload = () => {
-    if (payload === nextPayload) return false
+    if (payload === nextPayload || nextPayload === null) return false
 
     const prevPayload = payload
     payload = nextPayload
