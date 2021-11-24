@@ -23,7 +23,7 @@ const Container = styled(Flex).attrs({
   opacity: 0.7;
 `
 
-const Reset = () => {
+const ZoomReset = () => {
   const chart = useChart()
 
   const after = useAttributeValue("after")
@@ -31,10 +31,10 @@ const Reset = () => {
   return (
     <Button
       icon={<Icon svg={zoomResetIcon} size="16px" />}
-      title="Reset"
+      title="Reset zoom"
       onClick={chart.resetNavigation}
-      data-testid="chartToolbox-reset"
-      data-track={chart.track("reset")}
+      data-testid="chartToolbox-zoomReset"
+      data-track={chart.track("zoomReset")}
       disabled={after === -900}
       padding="2px"
     />
@@ -83,7 +83,7 @@ const Toolbox = forwardRef((props, ref) => {
         data-track={chart.track("zoomOut")}
         padding="2px"
       />
-      <Reset />
+      <ZoomReset />
     </Container>
   )
 })
