@@ -5,20 +5,24 @@ import { useChart } from "@/components/provider"
 import EllipsisInTheMiddle from "@/components/helpers/ellipsisInTheMiddle"
 
 export const Name = memo(
-  forwardRef(({ children, ...rest }, ref) => (
+  forwardRef(({ children, maxLength = 15, ...rest }, ref) => (
     <Flex ref={ref} data-testid="chartDimensions-name" overflow="hidden" {...rest}>
-      <TextMicro color="textDescription" whiteSpace="nowrap">
-        {children}
-      </TextMicro>
+      <EllipsisInTheMiddle
+        text={children}
+        maxLength={maxLength}
+        Component={TextMicro}
+        color="textDescription"
+        whiteSpace="nowrap"
+      />
     </Flex>
   ))
 )
 
-const Container = ({ id, maxLength = 15, ...rest }) => {
+const Container = ({ id, ...rest }) => {
   const chart = useChart()
   const name = chart.getDimensionName(id)
 
-  return <EllipsisInTheMiddle text={name} maxLength={maxLength} Component={Name} {...rest} />
+  return <Name {...rest}>{name}</Name>
 }
 
 export default Container

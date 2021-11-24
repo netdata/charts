@@ -103,6 +103,7 @@ export default chart => {
   const updateDimensions = () => {
     const dimensionIds = getPayloadDimensionIds()
 
+    sortDimensions()
     if (prevDimensionIds === dimensionIds) return
 
     prevDimensionIds = dimensionIds

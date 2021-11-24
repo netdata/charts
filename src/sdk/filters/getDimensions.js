@@ -28,16 +28,18 @@ const byNodeDefaultDimensions = {
   "netfilter.conntrack_sockets": "connections",
 }
 
+const groupsWithCustomLogic = {
+  node: true,
+  chart: true,
+}
+
 export default (chart, groupBy) => {
   const { dimensions, id } = chart.getMetadata()
 
-  if (groupBy === "dimension") {
-    return []
-  }
+  if (groupBy === "dimension") return []
 
-  if (id in byNodeDefaultDimensions) {
-    return [byNodeDefaultDimensions[id]]
-  }
+  if (groupBy in groupsWithCustomLogic)
+    return [byNodeDefaultDimensions[id] || Object.keys(dimensions)[0]]
 
-  return [Object.keys(dimensions)[0]]
+  return Object.keys(dimensions)
 }

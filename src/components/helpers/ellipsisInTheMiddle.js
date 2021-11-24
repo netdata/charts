@@ -10,7 +10,10 @@ export const ellipsisInTheMiddle = (text, maxLength) => {
 
 const EllipsisInTheMiddle = forwardRef(
   ({ text, maxLength = 15, Component = "div", ...rest }, ref) => {
-    const truncated = useMemo(() => ellipsisInTheMiddle(text, maxLength), [text, maxLength])
+    const truncated = useMemo(() => (text ? ellipsisInTheMiddle(text, maxLength) : null), [
+      text,
+      maxLength,
+    ])
 
     return truncated !== text ? (
       <Tooltip content={text}>
