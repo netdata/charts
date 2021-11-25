@@ -6,6 +6,7 @@ import Proceeded from "./proceeded"
 import ChartName from "./chartName"
 import LatestValue from "./latestValue"
 import LayerContainer from "@netdata/netdata-ui/lib/components/templates/layer/container"
+import { useAttributeValue } from "@/components/provider"
 
 const AlarmOverlay = ({ id }) => (
   <Container id={id} top="20px" margin={[0, 8, 0, 0]}>
@@ -13,16 +14,21 @@ const AlarmOverlay = ({ id }) => (
   </Container>
 )
 
-const HighlightOverlay = ({ id }) => (
-  <Fragment>
-    <Container id={id} top="40%" align={alignment.elementRight} right={-8}>
-      <HighlightPeriod id={id} />
-    </Container>
-    <Container id={id} bottom="26px" align={alignment.elementRight} right={-8}>
-      <Highlight id={id} />
-    </Container>
-  </Fragment>
-)
+const HighlightOverlay = ({ id }) => {
+  const sparkline = useAttributeValue("sparkline")
+  if (sparkline) return null
+
+  return (
+    <Fragment>
+      <Container id={id} top="40%" align={alignment.elementRight} right={-8}>
+        <HighlightPeriod id={id} />
+      </Container>
+      <Container id={id} bottom="26px" align={alignment.elementRight} right={-8}>
+        <Highlight id={id} />
+      </Container>
+    </Fragment>
+  )
+}
 
 const ProceededOverlay = ({ id }) => (
   <Container id={id} top="50%" align={alignment.chartMiddle}>
