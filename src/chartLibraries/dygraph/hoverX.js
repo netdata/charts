@@ -1,5 +1,5 @@
 const getHighestPoint = points => {
-  let highest = points[0]
+  let highest = points[0] || {}
   points.reduce((acc, point) => {
     const { yval } = point
     if (yval > acc) {
@@ -24,6 +24,8 @@ export default chartUI => {
 
     const validPoints = points.filter(p => !isNaN(p.canvasy))
 
+    if (!Array.isArray(validPoints) || validPoints.length === 0) return
+
     const getY = index => {
       if (index < validPoints.length) return validPoints[index].canvasy
       return chartUI.getDygraph().getArea().h
@@ -34,11 +36,11 @@ export default chartUI => {
       return name
     }
 
-    if (offsetY > getY(validPoints.length - 1)) return validPoints[validPoints.length - 1].name
+    if (offsetY > getY(validPoints.length - 1)) return validPoints[validPoints.length - 1]?.name
 
     const point = validPoints.find((p, index) => getY(index) < offsetY && getY(index + 1) > offsetY)
 
-    return point.name
+    return point?.name
   }
 
   const getClosestPoint = (event, points) => {
