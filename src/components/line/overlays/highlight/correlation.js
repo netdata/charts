@@ -7,11 +7,9 @@ import { useChart, useAttributeValue } from "@/components/provider"
 import Badge from "@/components/line/badge"
 
 const minTimeframe = 15
-const maxTimeframe = 180
 
 const validatePeriodSelected = total => {
-  if (total < minTimeframe) return "requires 15sec minimum selection"
-  if (total > maxTimeframe) return "requires 180sec maximum selection"
+  if (total < minTimeframe) return "requires 15 secs minimum selection"
   return ""
 }
 

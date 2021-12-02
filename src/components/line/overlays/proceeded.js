@@ -39,13 +39,7 @@ const NoData = props => {
 
   const chartWidth = chart.getUI().getChartWidth()
 
-  if (chartWidth < 240) {
-    return (
-      <NoDataContainer {...props}>
-        <TextSmall textAlign="center">No data</TextSmall>
-      </NoDataContainer>
-    )
-  }
+  if (chartWidth < 240) return
 
   return (
     <NoDataContainer {...props}>
