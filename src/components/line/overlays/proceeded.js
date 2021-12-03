@@ -39,7 +39,7 @@ const NoData = props => {
 
   const chartWidth = chart.getUI().getChartWidth()
 
-  if (chartWidth < 240) return
+  if (chartWidth < 240) return null
 
   return (
     <NoDataContainer {...props}>
