@@ -33,13 +33,20 @@ const groupsWithCustomLogic = {
   chart: true,
 }
 
+const sumOfAbsForAll = {
+  stacked: true,
+  area: true,
+}
+
 export default (chart, groupBy) => {
-  const { dimensions, id } = chart.getMetadata()
+  const { dimensions, id, chartType } = chart.getMetadata()
 
   if (groupBy === "dimension") return []
 
-  if (groupBy in groupsWithCustomLogic)
-    return [byNodeDefaultDimensions[id] || Object.keys(dimensions)[0]]
+  if (groupBy in groupsWithCustomLogic) {
+    if (id in byNodeDefaultDimensions) return [byNodeDefaultDimensions[id]]
+    return chartType in sumOfAbsForAll ? [] : [Object.keys(dimensions)[0]]
+  }
 
   return Object.keys(dimensions)
 }
