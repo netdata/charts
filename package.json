@@ -22,7 +22,9 @@
     "clean": "rimraf lib dist es coverage",
     "prepublish": "yarn clean && yarn build",
     "start": "start-storybook -p 6006",
-    "deploy-storybook": "storybook-to-ghpages"
+    "deploy-storybook": "storybook-to-ghpages",
+    "cp-cloud": "cp -R ./dist ../cloud-frontend/node_modules/@netdata/charts/",
+    "to-cloud": "yarn build && yarn cp-cloud"
   },
   "keywords": [
     "netdata",
