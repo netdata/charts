@@ -36,7 +36,6 @@ const HorizontalContainer = styled(Flex)`
   ${({ left }) => left && `left: ${left};`};
   ${({ right }) => right && `right: ${right};`};
 
-  direction: rtl;
   overflow: hidden;
 `
 
