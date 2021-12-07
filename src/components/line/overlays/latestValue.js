@@ -8,7 +8,7 @@ const LatestValue = ({ dimensionId, ...rest }) => {
 
   return (
     <Text strong whiteSpace="nowrap" {...rest}>
-      {!value || isNaN(value) ? "No data" : `${value} ${unit}`}
+      {!value ? "No data" : `${value} ${unit}`}
     </Text>
   )
 }
