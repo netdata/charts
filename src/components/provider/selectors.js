@@ -183,6 +183,9 @@ export const useLatestValue = id => {
     index = index === -1 ? result.data.length - 1 : index
 
     const value = chart.getDimensionValue(id, index)
+
+    if (isNaN(value)) return null
+
     return chart.getConvertedValue(value)
   }
 
