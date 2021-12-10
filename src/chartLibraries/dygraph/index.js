@@ -208,6 +208,7 @@ export default (sdk, chart) => {
       highlightCircleSize: sparkline ? 3 : 4,
       strokeWidth,
       includeZero: stacked,
+      stackedGraphNaNFill: "none",
       plotter: (smooth && window.smoothPlotter) || null,
     }
   }
