@@ -9,7 +9,7 @@ const LatestValue = ({ timestamp }) => {
   const date = useFormatDate(timestamp)
 
   return (
-    <TextNano color="textDescription" data-testid="ChartIndicator-latest-value">
+    <TextNano color="textDescription" data-testid="chartIndicator-dateTime-latest-value">
       {date} • {time}
     </TextNano>
   )
