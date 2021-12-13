@@ -172,7 +172,7 @@ export default (sdk, chart) => {
       }),
       chart.onAttributeChange("chartType", () => dygraph.updateOptions(makeChartTypeOptions())),
       chart.onAttributeChange("selectedDimensions", () => {
-        dygraph.updateOptions(makeVisibilityOptions())
+        dygraph.updateOptions({ ...makeVisibilityOptions(), ...updateColorOptions() })
       }),
       chart.onAttributeChange("valueRange", valueRange => {
         dygraph.updateOptions({ valueRange })
@@ -223,9 +223,8 @@ export default (sdk, chart) => {
     const { dimensionIds } = chart.getPayload()
 
     const visibility = dimensionIds.map(selectedDimensions ? chart.isDimensionVisible : () => true)
-    const colors = dimensionIds.map(id => chart.getDimensionColor(id))
 
-    return { visibility, colors }
+    return { visibility }
   }
 
   const makeDataOptions = () => {
@@ -267,6 +266,12 @@ export default (sdk, chart) => {
     }
   }
 
+  const updateColorOptions = () => {
+    const { dimensionIds } = chart.getPayload()
+    const colors = dimensionIds.map(id => chart.getDimensionColor(id))
+
+    return { colors }
+  }
   const unmount = () => {
     if (!dygraph) return
 
@@ -300,6 +305,7 @@ export default (sdk, chart) => {
     dygraph.updateOptions({
       ...makeDataOptions(),
       ...makeVisibilityOptions(),
+      colors: chart.getColors(),
     })
     chartUI.trigger("rendered")
   }
