@@ -223,8 +223,9 @@ export default (sdk, chart) => {
     const { dimensionIds } = chart.getPayload()
 
     const visibility = dimensionIds.map(selectedDimensions ? chart.isDimensionVisible : () => true)
+    const colors = dimensionIds.map(id => chart.getDimensionColor(id))
 
-    return { visibility }
+    return { visibility, colors }
   }
 
   const makeDataOptions = () => {
@@ -299,7 +300,6 @@ export default (sdk, chart) => {
     dygraph.updateOptions({
       ...makeDataOptions(),
       ...makeVisibilityOptions(),
-      colors: chart.getColors(),
     })
     chartUI.trigger("rendered")
   }
