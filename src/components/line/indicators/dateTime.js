@@ -1,4 +1,4 @@
-import React, { useMemo } from "react"
+import React from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { useAttributeValue, usePayload, useFormatTime, useFormatDate } from "@/components/provider"
 import { TextNano } from "@netdata/netdata-ui/lib/components/typography"
@@ -9,7 +9,7 @@ const LatestValue = ({ timestamp }) => {
   const date = useFormatDate(timestamp)
 
   return (
-    <TextNano color="textDescription">
+    <TextNano color="textDescription" data-testid="chartIndicator-dateTime-latest-value">
       {date} • {time}
     </TextNano>
   )
