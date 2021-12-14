@@ -223,9 +223,8 @@ export default (sdk, chart) => {
     const { dimensionIds } = chart.getPayload()
 
     const visibility = dimensionIds.map(selectedDimensions ? chart.isDimensionVisible : () => true)
-    const colors = dimensionIds.map(id => chart.getDimensionColor(id))
 
-    return { visibility, colors }
+    return { visibility }
   }
 
   const makeDataOptions = () => {
