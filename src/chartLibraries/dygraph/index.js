@@ -107,13 +107,13 @@ export default (sdk, chart) => {
       yRangePad: 1,
       labelsSeparateLines: true,
       rightGap: -6,
-      colors: chart.getColors(),
       valueRange: attributes.valueRange,
       ...makeChartTypeOptions(),
       ...makeThemingOptions(),
       ...makeVisibilityOptions(),
       ...makeDataOptions(),
       ...makeSparklineOptions(),
+      ...makeColorOptions(),
       // visibility return selected dimensions
       // logscale
     })
@@ -172,7 +172,7 @@ export default (sdk, chart) => {
       }),
       chart.onAttributeChange("chartType", () => dygraph.updateOptions(makeChartTypeOptions())),
       chart.onAttributeChange("selectedDimensions", () => {
-        dygraph.updateOptions({ ...makeVisibilityOptions(), ...updateColorOptions() })
+        dygraph.updateOptions({ ...makeVisibilityOptions(), ...makeColorOptions() })
       }),
       chart.onAttributeChange("valueRange", valueRange => {
         dygraph.updateOptions({ valueRange })
@@ -266,12 +266,16 @@ export default (sdk, chart) => {
     }
   }
 
-  const updateColorOptions = () => {
+  const makeColorOptions = () => {
+    const sparkline = chart.getAttribute("sparkline")
+    if (sparkline) return { colors: chart.getColors() }
+
     const { dimensionIds } = chart.getPayload()
     const colors = dimensionIds.map(id => chart.getDimensionColor(id))
 
     return { colors }
   }
+
   const unmount = () => {
     if (!dygraph) return
 
@@ -305,7 +309,7 @@ export default (sdk, chart) => {
     dygraph.updateOptions({
       ...makeDataOptions(),
       ...makeVisibilityOptions(),
-      colors: chart.getColors(),
+      ...makeColorOptions(),
     })
     chartUI.trigger("rendered")
   }
