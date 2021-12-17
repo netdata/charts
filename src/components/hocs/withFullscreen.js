@@ -11,7 +11,7 @@ export default Component => {
 
     return (
       <Layer full>
-        <Flex background="mainBackground" flex padding={[4]}>
+        <Flex background="mainBackground" flex width={{ max: "inherit" }} padding={[4]}>
           <Component {...props} />
         </Flex>
       </Layer>
