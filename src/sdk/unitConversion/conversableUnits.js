@@ -17,9 +17,16 @@ export default {
   seconds: {
     time: {
       check: chart => chart.getAttribute("secondsAsTime"),
-      convert: (value, chart) => {
+      convert: value => {
         const days = Math.floor(value / 86400)
-        const time = chart.formatTime(value * 1000)
+        const timeIntlOptions = {
+          hourCycle: "h23",
+          timeStyle: "medium",
+          timeZone: "UTC",
+        }
+        const time = new Intl.DateTimeFormat(navigator.language, timeIntlOptions).format(
+          value * 1000
+        )
         return days > 0 ? `${days}d:${time}` : time
       },
     },
