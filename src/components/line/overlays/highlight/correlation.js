@@ -5,6 +5,7 @@ import Icon, { Button } from "@/components/icon"
 import Tooltip from "@/components/tooltip"
 import { useChart, useAttributeValue } from "@/components/provider"
 import Badge from "@/components/line/badge"
+import { getDateDiff } from "@/components/line/indicators/dateTime"
 
 const minTimeframe = 15
 
@@ -18,9 +19,9 @@ export const Period = ({ id }) => {
   const { range } = overlays[id]
 
   const [after, before] = range
-  const total = before - after
+  const dateDiff = getDateDiff(after, before)
 
-  return <Badge type="neutral">{total}sec</Badge>
+  return <Badge type="neutral">{dateDiff}</Badge>
 }
 
 const Correlation = ({ id }) => {

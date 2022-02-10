@@ -32,7 +32,7 @@ const minute1 = 60
 
 const padZero = v => (v > 9 ? v : `0${v}`)
 
-const getDateDiff = (after, before) => {
+export const getDateDiff = (after, before) => {
   const initialDiff = (diff = before - after)
 
   const days = Math.floor(initialDiff / day1)
