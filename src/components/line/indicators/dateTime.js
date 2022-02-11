@@ -32,6 +32,10 @@ const minute1 = 60
 
 const padZero = v => (v > 9 ? v : `0${v}`)
 
+const buildDatetimePart = ({ value, unit, check, hasPrev }) => {
+  if (check?.()) return `${hasPrev ? padZero(value) : value}${unit}`
+}
+
 export const getDateDiff = (after, before) => {
   const initialDiff = (diff = before - after)
 
@@ -48,11 +52,31 @@ export const getDateDiff = (after, before) => {
   diff = diff - minutes * minute1
 
   return [
-    initialDiff >= day1 && `${days}d`,
-    initialDiff >= hour1 && `${hours}h`,
-    `${padZero(minutes)}m`,
-    initialDiff < hour1 && `${padZero(diff)}s`,
-  ].filter(Boolean)
+    {
+      value: days,
+      unit: "d",
+      check: () => initialDiff >= day1 && !!days,
+    },
+    {
+      value: hours,
+      unit: "h",
+      check: () => initialDiff >= hour1 && !!hours,
+    },
+    {
+      value: minutes,
+      unit: "m",
+      check: () => !!minutes,
+    },
+    {
+      value: diff,
+      unit: "s",
+      check: () => initialDiff < hour1 && !!diff,
+    },
+  ].reduce((acc, part) => {
+    const datetimePart = buildDatetimePart({ ...part, hasPrev: !!acc[acc.length - 1] })
+    if (datetimePart) acc.push(datetimePart)
+    return acc
+  }, [])
 }
 
 const DayRange = ({ date, after, before }) => {
