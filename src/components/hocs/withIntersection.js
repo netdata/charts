@@ -42,7 +42,8 @@ export default (Component, { Fallback: DefaultFallback = Fallback } = {}) => {
       const height = fullscreen ? "100%" : defaultHeight
 
       const onVisibility = useCallback(
-        visible => visible && chart.getUI().setEstimatedWidth(ref.current.offsetWidth),
+        visible =>
+          ref.current && visible && chart.getUI().setEstimatedWidth(ref.current.offsetWidth),
         [chart]
       )
 
