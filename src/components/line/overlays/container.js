@@ -14,15 +14,15 @@ export const alignment = {
 const calcByAlignment = {
   [alignment.chartMiddle]: ({ from, chartWidth, element }) => [
     60,
-    Math.min(from - 24, 60 + chartWidth / 2 + element.firstChild.offsetWidth / 2),
+    Math.min(from - 24, 60 + chartWidth / 2 + element.firstChild?.offsetWidth / 2),
   ],
   [alignment.chartLeft]: ({ chartWidth, element }) => [
     0,
-    element.firstChild.offsetWidth - chartWidth,
+    element.firstChild?.offsetWidth - chartWidth,
   ],
   [alignment.elementMiddle]: ({ from, width, element }) => [
     from,
-    from + width / 2 + element.firstChild.offsetWidth / 2,
+    from + width / 2 + element.firstChild?.offsetWidth / 2,
   ],
   [alignment.elementRight]: ({ from, width }) => [from, from + width],
   [alignment.elementLeft]: ({ from }) => [from, from],
