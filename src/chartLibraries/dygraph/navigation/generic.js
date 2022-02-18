@@ -78,7 +78,5 @@ export default chartUI => {
   return () => {
     unregister()
     clearKeyboardListener()
-    const navigation = chartUI.chart.getAttribute("prevNavigation")
-    if (navigation) updateNavigation(navigation, null)
   }
 }

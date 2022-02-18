@@ -18,7 +18,7 @@ const equalByPolicy = {
 
 export default () => {
   const handlers = []
-  const pressedSet = new Set()
+  let pressedSet = new Set()
 
   const onKeyChange = (
     keys,
@@ -54,6 +54,7 @@ export default () => {
       const checkPressed = check(keysSet, pressedSet)
       if (allPressed && checkPressed !== "all") return false
       handle({ allPressed: checkPressed, keysSet })
+      pressedSet = new Set()
       return true
     }
   }
@@ -80,6 +81,7 @@ export default () => {
   const clearKeyboardListener = () => {
     window.removeEventListener("keydown", eventListener)
     window.removeEventListener("keyup", eventListener)
+    pressedSet = new Set()
   }
 
   return { onKeyChange, onKeyAndMouse, initKeyboardListener, clearKeyboardListener, eventListener }
