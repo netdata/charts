@@ -2812,10 +2812,10 @@
     call-me-maybe "^1.0.1"
     glob-to-regexp "^0.3.0"
 
-"@netdata/netdata-ui@^1.7.42":
-  version "1.7.42"
-  resolved "https://registry.yarnpkg.com/@netdata/netdata-ui/-/netdata-ui-1.7.42.tgz#8a4702bd7a88a73f6f675cbab1bc2ae6474702ec"
-  integrity sha512-Yo2H60LX+A2dJtX8f7GER2cOxWwbaWTbIdnopHzSST9WIOB7fQpg3Ojv+HMZW9aKu7qEcfabPj5AiGOA4YbSmg==
+"@netdata/netdata-ui@^1.7.49":
+  version "1.7.49"
+  resolved "https://registry.yarnpkg.com/@netdata/netdata-ui/-/netdata-ui-1.7.49.tgz#597baa5f59506a7ddeb7ff26119b4aab34202150"
+  integrity sha512-OSjyPEGhZlOZA6SxqWVXyh/o503yFts8PrekYE+Wkh4B0mPLacMLf3kWv8Ya1nxUyL4+y5GChakC+CmhFuYWqQ==
   dependencies:
     "@elastic/react-search-ui" "^1.5.1"
     "@elastic/search-ui-site-search-connector" "^1.5.1"
@@ -2832,6 +2832,7 @@
     react-use "^15.3.4"
     react-window "^1.8.5"
     styled-system "^5.1.5"
+    throttle-debounce "^3.0.1"
 
 "@netdata/react-filter-box@^1.0.0":
   version "1.0.0"

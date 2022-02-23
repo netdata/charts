@@ -40,6 +40,16 @@ export const useInitialLoading = () => {
   return !chart.getAttribute("loaded")
 }
 
+export const useIsFetching = () => {
+  const chart = useChart()
+
+  const forceUpdate = useForceUpdate()
+
+  useImmediateListener(() => chart.onAttributeChange("loading", forceUpdate), [chart])
+
+  return chart.getAttribute("loading")
+}
+
 export const useEmpty = () => {
   const chart = useChart()
 
