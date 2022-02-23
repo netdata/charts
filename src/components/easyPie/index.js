@@ -11,14 +11,16 @@ import {
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { Text } from "@netdata/netdata-ui/lib/components/typography"
-import { withChartProvider } from "@/components/provider"
+import { withChartProvider, useIsFetching } from "@/components/provider"
 import withChartTrack from "@/components/hocs/withChartTrack"
 import withIntersection from "./withIntersection"
 import withDifferedMount from "@/components/hocs/withDifferedMount"
+import textAnimation from "../helpers/textAnimation"
 
 const Label = styled(Text)`
   line-height: 1;
   font-size: ${({ fontSize }) => fontSize};
+  ${({ isFetching }) => isFetching && textAnimation};
 `
 
 const Value = () => {
@@ -44,8 +46,9 @@ const Value = () => {
 
 const Title = () => {
   const title = useTitle()
+  const isFetching = useIsFetching()
   return (
-    <Label color="border" fontSize="1.2em" strong>
+    <Label color="border" fontSize="1.2em" strong isFetching={isFetching}>
       {title}
     </Label>
   )
