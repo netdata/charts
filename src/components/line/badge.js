@@ -13,7 +13,7 @@ const types = {
 }
 
 const Badge = ({ type, children, ...rest }) => {
-  const { background, color } = types[type]
+  const { background, color } = types[type] ?? types.error
 
   return (
     <Flex

@@ -30,7 +30,6 @@ const StyledIcon = styled(Icon)`
 
 const Logo = props => {
   const isFetching = useIsFetching()
-  console.log("isFetching", isFetching)
 
   return (
     <StyledIcon
