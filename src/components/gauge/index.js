@@ -12,22 +12,24 @@ import {
   useOnResize,
 } from "@/components/provider"
 import { getSizeBy } from "@netdata/netdata-ui/lib/theme/utils"
-import { withChartProvider } from "@/components/provider"
+import { withChartProvider, useIsFetching } from "@/components/provider"
 import withChartTrack from "@/components/hocs/withChartTrack"
 import withIntersection from "./withIntersection"
 import withDifferedMount from "@/components/hocs/withDifferedMount"
+import textAnimation from "../helpers/textAnimation"
 
 const Label = styled(Text)`
   line-height: 1;
   font-size: ${({ fontSize }) => fontSize};
   flex: ${({ flex = 0 }) => flex};
+  ${({ isFetching }) => isFetching && textAnimation};
 `
 
 const Title = () => {
   const title = useTitle()
-
+  const isFetching = useIsFetching()
   return (
-    <Label flex="1" color="border" fontSize="1.2em" strong>
+    <Label flex="1" color="border" fontSize="1.2em" strong isFetching={isFetching}>
       {title}
     </Label>
   )
