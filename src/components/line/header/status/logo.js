@@ -1,5 +1,6 @@
 import React from "react"
 import styled, { keyframes, css } from "styled-components"
+import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
 import loading from "@netdata/netdata-ui/lib/components/icon/assets/loading.svg"
 import { useIsFetching } from "@/components/provider"
 import Icon from "@/components/icon"
@@ -25,6 +26,8 @@ const animation = css`
 `
 
 const StyledIcon = styled(Icon)`
+  stroke: ${({ theme }) => getColor("tabsBorder")({ theme })};
+  stroke-width: 2;
   ${({ isFetching }) => isFetching && animation}
 `
 
