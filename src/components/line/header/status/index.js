@@ -13,11 +13,6 @@ const ReloadContainer = () => {
 }
 
 const propsByStatus = {
-  delayed: {
-    type: "warning",
-    children: "Timeout",
-    status: "delayed",
-  },
   error: {
     type: "error",
     children: "Error",
@@ -30,27 +25,23 @@ const propsByStatus = {
   },
 }
 
-const useStatusProps = ({ initialLoading, error, delayed }) =>
+const useStatusProps = ({ initialLoading, error }) =>
   useMemo(() => {
     if (error) return propsByStatus.error
-    if (delayed) return propsByStatus.delayed
     if (initialLoading) return propsByStatus.loading
     return null
-  }, [initialLoading, error, delayed])
+  }, [initialLoading, error])
 
 const StatusBadge = ({ type, status, ...rest }) =>
   type ? <Badge type={type} data-testid={`chartHeaderStatus-${status}`} {...rest} /> : null
 
 const Status = props => {
   const chart = useChart()
-  const [delayed, setDelayed] = useState(false)
   const [error, setError] = useState(false)
   const initialLoading = useInitialLoading()
   const empty = useEmpty()
 
-  const statusProps = useStatusProps({ initialLoading, error, delayed })
-
-  useEffect(() => chart.on("timeout", setDelayed), [chart])
+  const statusProps = useStatusProps({ initialLoading, error })
 
   useEffect(
     () => chart.on("successFetch", () => setError(false)).on("failFetch", () => setError(true)),
