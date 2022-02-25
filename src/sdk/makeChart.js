@@ -12,7 +12,6 @@ import makeGetUnitSign from "./makeGetUnitSign"
 import camelizePayload from "./camelizePayload"
 import initialMetadata from "./initialMetadata"
 
-const requestTimeoutMs = 5 * 1000
 const maxBackoffMs = 30 * 1000
 
 const defaultMakeTrack = () => value => value
@@ -30,7 +29,6 @@ export default ({
   let abortController = null
   let payload = initialPayload
   let nextPayload = null
-  let fetchDelayTimeoutId = null
   let fetchTimeoutId = null
   let prevMetadata = null
 
@@ -54,11 +52,6 @@ export default ({
 
   const getMetadata = () => getMetadataDecorator().get(instance) || initialMetadata
   const fetchMetadata = () => getMetadataDecorator().fetch(instance)
-
-  const clearFetchDelayTimeout = () => {
-    if (fetchDelayTimeoutId === null) node.trigger("timeout", false)
-    clearTimeout(fetchDelayTimeoutId)
-  }
 
   const getUpdateEvery = () => {
     const { loaded, updateEvery: updateEveryAttribute } = node.getAttributes()
@@ -95,7 +88,6 @@ export default ({
   }
 
   const finishFetch = () => {
-    clearFetchDelayTimeout()
     startAutofetch()
     node.trigger("finishFetch")
   }
@@ -164,12 +156,6 @@ export default ({
     node.trigger("startFetch")
     node.updateAttributes({ loading: true, fetchStartedAt: Date.now() })
 
-    clearTimeout(fetchDelayTimeoutId)
-    fetchDelayTimeoutId = setTimeout(() => {
-      node.trigger("timeout", true)
-      fetchDelayTimeoutId = null
-    }, requestTimeoutMs)
-
     return fetchMetadata()
       .then(() => {
         updateMetadata()
@@ -182,7 +168,6 @@ export default ({
           const absoluteBefore = after >= 0 ? before : Date.now() / 1000
           if (firstEntry > absoluteBefore) {
             node.updateAttributes({ loaded: true })
-            clearFetchDelayTimeout()
             return Promise.resolve()
           }
         }
@@ -215,11 +200,8 @@ export default ({
   const fetchAndRender = () => fetch().then(() => ui && ui.render())
 
   const getConvertedValue = value => {
-    const {
-      unitsConversionMethod,
-      unitsConversionDivider,
-      unitsConversionFractionDigits,
-    } = node.getAttributes()
+    const { unitsConversionMethod, unitsConversionDivider, unitsConversionFractionDigits } =
+      node.getAttributes()
     const converted = convert(instance, unitsConversionMethod, value, unitsConversionDivider)
 
     if (unitsConversionFractionDigits === -1) return converted
@@ -281,12 +263,8 @@ export default ({
     if (node.getAttribute("autofetch")) return startAutofetch()
   })
 
-  const {
-    onKeyChange,
-    onKeyAndMouse,
-    initKeyboardListener,
-    clearKeyboardListener,
-  } = makeKeyboardListener()
+  const { onKeyChange, onKeyAndMouse, initKeyboardListener, clearKeyboardListener } =
+    makeKeyboardListener()
 
   node.onAttributeChange("focused", focused => {
     focused ? initKeyboardListener() : clearKeyboardListener()
@@ -307,7 +285,6 @@ export default ({
 
     cancelFetch()
     stopAutofetch()
-    clearFetchDelayTimeout()
     clearKeyboardListener()
 
     if (ui) ui.unmount()
@@ -371,7 +348,9 @@ export default ({
 
   const onDimensionToggle = onKeyAndMouse(
     ["Shift", "Control"],
-    id => ({ allPressed }) => dimensions.toggleDimensionId(id, { merge: allPressed !== "none" }),
+    id =>
+      ({ allPressed }) =>
+        dimensions.toggleDimensionId(id, { merge: allPressed !== "none" }),
     { allPressed: false }
   )
 
