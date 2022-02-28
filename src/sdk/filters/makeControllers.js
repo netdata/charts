@@ -23,6 +23,7 @@ export default chart => {
     }
     const attributes = getInitialFilterAttributes(chart)
     chart.updateAttributes(attributes)
+    chart.updateAttribute("selectedDimensions", null)
     chart.fetchAndRender()
   }
 
