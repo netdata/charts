@@ -100,6 +100,17 @@ export const useTitle = () => {
   return attributeTitle || title
 }
 
+export const useName = () => {
+  const { id, context } = useMetadata()
+  const attrId = useAttributeValue("id")
+  const attrContext = useAttributeValue("context")
+  const composite = useAttributeValue("composite")
+
+  if (composite) return attrContext || context
+
+  return attrId || id
+}
+
 export const useVisibleDimensionId = id => {
   const chart = useChart()
 

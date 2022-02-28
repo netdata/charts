@@ -1,23 +1,19 @@
 import React from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { Text } from "@netdata/netdata-ui/lib/components/typography"
-import { useTitle, useAttributeValue, useUnit, withChartProvider } from "@/components/provider"
-
-const Unit = () => {
-  const unitSign = useUnit()
-
-  if (!unitSign) return null
-
-  return (
-    <Text strong color="textLite" whiteSpace="nowrap">
-      • [{unitSign}]
-    </Text>
-  )
-}
+import {
+  useTitle,
+  useAttributeValue,
+  useUnit,
+  useName,
+  withChartProvider,
+} from "@/components/provider"
 
 export const Title = props => {
   const loaded = useAttributeValue("loaded")
   const title = useTitle()
+  const unitSign = useUnit()
+  const name = useName()
 
   return (
     <Flex
@@ -31,7 +27,16 @@ export const Title = props => {
       <Text strong color="textDescription" truncate>
         {title}
       </Text>
-      {loaded && <Unit />}
+      {loaded && name && (
+        <Text strong color="textLite" whiteSpace="nowrap">
+          • {name}
+        </Text>
+      )}
+      {loaded && unitSign && (
+        <Text strong color="textLite" whiteSpace="nowrap">
+          • [{unitSign}]
+        </Text>
+      )}
     </Flex>
   )
 }
