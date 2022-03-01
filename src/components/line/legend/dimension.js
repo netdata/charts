@@ -2,11 +2,11 @@ import React from "react"
 import { useTheme } from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
-import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
 import Color, { Color as ColorContainer } from "@/components/line/dimensions/color"
 import Name, { Name as NameContainer } from "@/components/line/dimensions/name"
 import Value, { Value as ValueContainer } from "@/components/line/dimensions/value"
-import { useUnitSign, useVisibleDimensionId, useChart } from "@/components/provider"
+import Units from "@/components/line/dimensions/units"
+import { useVisibleDimensionId, useChart } from "@/components/provider"
 
 const DimensionContainer = props => (
   <Flex width="88px" flex={false} gap={1} data-testid="chartLegendDimension" {...props} />
@@ -47,7 +47,6 @@ export const EmptyDimension = () => {
 }
 
 const Dimension = ({ id }) => {
-  const unit = useUnitSign()
   const visible = useVisibleDimensionId(id)
   const chart = useChart()
 
@@ -69,11 +68,7 @@ const Dimension = ({ id }) => {
 
         <Flex gap={1} data-testid="chartLegendDimension-valueContainer">
           <Value id={id} strong visible={visible} />
-          {visible && (
-            <TextMicro whiteSpace="nowrap" truncate color="textDescription">
-              {unit}
-            </TextMicro>
-          )}
+          <Units visible={visible} />
         </Flex>
       </Flex>
     </DimensionContainer>
