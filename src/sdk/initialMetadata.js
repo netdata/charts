@@ -1,6 +1,7 @@
 export default {
   loaded: false,
   id: "",
+  name: "",
   context: "",
   family: "",
   title: "",

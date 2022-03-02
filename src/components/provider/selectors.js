@@ -101,14 +101,14 @@ export const useTitle = () => {
 }
 
 export const useName = () => {
-  const { id, context } = useMetadata()
-  const attrId = useAttributeValue("id")
+  const { name, context } = useMetadata()
+  const attrName = useAttributeValue("name")
   const attrContext = useAttributeValue("context")
   const composite = useAttributeValue("composite")
 
   if (composite) return attrContext || context
 
-  return attrId || id
+  return attrName || name
 }
 
 export const useVisibleDimensionId = id => {
