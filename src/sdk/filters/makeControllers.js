@@ -15,15 +15,19 @@ export default chart => {
     prevCharType = ""
   }
 
+  const onGroupFetch = groupBy => {
+    onGroupChange(groupBy)
+    chart.updateAttribute("selectedDimensions", null)
+  }
+
   const updateGroupByAttribute = value => {
     chart.updateAttribute("groupBy", value)
-    onGroupChange(value)
     if (value === "dimension") {
       chart.updateAttribute("dimensions", [])
     }
     const attributes = getInitialFilterAttributes(chart)
     chart.updateAttributes(attributes)
-    chart.fetchAndRender().then(() => chart.updateAttribute("selectedDimensions", null))
+    chart.fetchAndRender().then(() => onGroupFetch(value))
   }
 
   const getNextDimensionsAttribute = nextValue => {
