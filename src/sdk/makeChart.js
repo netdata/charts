@@ -200,8 +200,11 @@ export default ({
   const fetchAndRender = () => fetch().then(() => ui && ui.render())
 
   const getConvertedValue = value => {
-    const { unitsConversionMethod, unitsConversionDivider, unitsConversionFractionDigits } =
-      node.getAttributes()
+    const {
+      unitsConversionMethod,
+      unitsConversionDivider,
+      unitsConversionFractionDigits,
+    } = node.getAttributes()
     const converted = convert(instance, unitsConversionMethod, value, unitsConversionDivider)
 
     if (unitsConversionFractionDigits === -1) return converted
@@ -263,8 +266,12 @@ export default ({
     if (node.getAttribute("autofetch")) return startAutofetch()
   })
 
-  const { onKeyChange, onKeyAndMouse, initKeyboardListener, clearKeyboardListener } =
-    makeKeyboardListener()
+  const {
+    onKeyChange,
+    onKeyAndMouse,
+    initKeyboardListener,
+    clearKeyboardListener,
+  } = makeKeyboardListener()
 
   node.onAttributeChange("focused", focused => {
     focused ? initKeyboardListener() : clearKeyboardListener()
@@ -348,9 +355,7 @@ export default ({
 
   const onDimensionToggle = onKeyAndMouse(
     ["Shift", "Control"],
-    id =>
-      ({ allPressed }) =>
-        dimensions.toggleDimensionId(id, { merge: allPressed !== "none" }),
+    id => ({ allPressed }) => dimensions.toggleDimensionId(id, { merge: allPressed !== "none" }),
     { allPressed: false }
   )
 
@@ -365,5 +370,6 @@ export default ({
     onKeyChange,
     onKeyAndMouse,
     onDimensionToggle,
+    fetchAndRender,
   }
 }
