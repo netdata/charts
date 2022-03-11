@@ -63,6 +63,7 @@ export default {
   enabledHeightResize: true,
   pristineEnabledHeightResize: {},
 
+  outOfLimits: false,
   composite: false,
   aggregationMethod: "",
   dimensions: [],

@@ -40,16 +40,17 @@ export default (sdk, chart) => {
     chart.consumePayload()
     chart.updateDimensions()
     const attributes = chart.getAttributes()
-    const payload = chart.getPayload()
+    const { result, min, max } = chart.getPayload()
 
     let prevMin
     let prevMax
 
     executeLatest = makeExecuteLatest()
+    const isEmpty = attributes.outOfLimits || result.data.length === 0
 
-    dygraph = new Dygraph(element, payload.result.data, {
+    dygraph = new Dygraph(element, isEmpty ? [[0]] : result.data, {
       showLabelsOnHighlight: false,
-      labels: payload.result.labels,
+      labels: isEmpty ? ["X"] : result.labels,
       axes: {
         x: {
           ticker: Dygraph.dateTicker,
@@ -107,7 +108,7 @@ export default (sdk, chart) => {
       yRangePad: 1,
       labelsSeparateLines: true,
       rightGap: -6,
-      valueRange: attributes.valueRange,
+      valueRange: attributes.valueRange || (min === max ? [0, max * 2] : null),
       ...makeChartTypeOptions(),
       ...makeThemingOptions(),
       ...makeVisibilityOptions(),
@@ -160,7 +161,7 @@ export default (sdk, chart) => {
           crosshair(instance, nextSelection)
         })
       ),
-      chart.onAttributeChange("after", render),
+      chart.onAttributeChange("after", executeLatest.add(render)),
       chart.onAttributeChange("enabledHover", hoverX.toggle),
       chart.onAttributeChange("enabledNavigation", navigation.toggle),
       chart.onAttributeChange("navigation", navigation.set),
@@ -228,13 +229,14 @@ export default (sdk, chart) => {
   }
 
   const makeDataOptions = () => {
-    const { valueRange } = chart.getAttributes()
+    const { valueRange, outOfLimits } = chart.getAttributes()
     const { result, min, max } = chart.getPayload()
     const dateWindow = getDateWindow(chart)
+    const isEmpty = outOfLimits || result.data.length === 0
 
     return {
-      file: result.data,
-      labels: result.labels,
+      file: isEmpty ? [[0]] : result.data,
+      labels: isEmpty ? ["X"] : result.labels,
       dateWindow,
       valueRange: valueRange || (min === max ? [0, max * 2] : null),
     }

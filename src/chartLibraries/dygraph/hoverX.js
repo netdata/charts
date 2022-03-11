@@ -81,9 +81,11 @@ export default chartUI => {
     if (!seriesName) return
 
     // const { offsetX, offsetY } = event
-    const { column } = chartUI.getDygraph().getPropertiesForSeries(seriesName)
+    const seriesProps = chartUI.getDygraph().getPropertiesForSeries(seriesName)
+    if (!seriesProps) return
+
     const { dimensionIds } = chartUI.chart.getPayload()
-    const dimensionId = dimensionIds[column - 1]
+    const dimensionId = dimensionIds[seriesProps.column - 1]
 
     chartUI.sdk.trigger("highlightHover", chartUI.chart, x, dimensionId)
     chartUI.chart.trigger("highlightHover", x, dimensionId)
