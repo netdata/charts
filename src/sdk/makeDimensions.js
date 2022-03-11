@@ -144,7 +144,10 @@ export default chart => {
 
   const getDimensionValue = (id, index) => {
     const { result } = chart.getPayload()
-    return result.data[index][dimensionsById[id] + 1]
+    const pointData = result.data[index]
+
+    if (!pointData) return null
+    return pointData[dimensionsById[id] + 1]
   }
 
   const toggleDimensionId = (id, { merge = false } = {}) => {

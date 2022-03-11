@@ -4,7 +4,6 @@ import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { useInitialLoading, useEmpty, useAttributeValue } from "@/components/provider"
 import { useHovered } from "@/components/useHover"
 import ChartContainer from "@/components/chartContainer"
-import { CenterNoData } from "./overlays/proceeded"
 import Tooltip from "./popover"
 import Toolbox from "./toolbox"
 import Skeleton from "./skeleton"
@@ -56,9 +55,8 @@ const ChartContentWrapper = () => {
 
   return (
     <Container ref={ref}>
-      {!initialLoading && !empty && <ChartContainer />}
-      {!initialLoading && !empty && <Overlays />}
-      {!initialLoading && empty && <CenterNoData />}
+      {!initialLoading && <ChartContainer />}
+      {!initialLoading && <Overlays />}
       {initialLoading && <Skeleton />}
       {hovered && !empty && <Toolbox />}
       <Tooltip />

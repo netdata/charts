@@ -125,10 +125,11 @@ export default ({
       nextPayload = { ...initialPayload, ...nextPayloadTransformed, result }
     }
 
+    const dataLength = getDataLength(nextPayload)
     if (
       !node.getAttribute("loaded") ||
-      (getDataLength(nextPayload) > 0 && getDataLength(payload) === 0) ||
-      (getDataLength(payload) > 0 && getDataLength(nextPayload) === 0)
+      (dataLength > 0 && getDataLength(payload) === 0) ||
+      (getDataLength(payload) > 0 && dataLength === 0)
     )
       consumePayload()
 
@@ -138,6 +139,7 @@ export default ({
       loaded: true,
       loading: false,
       updatedAt: Date.now(),
+      outOfLimits: !dataLength,
     })
 
     node.trigger("successFetch", nextPayload, prevPayload)
@@ -166,10 +168,7 @@ export default ({
           const { firstEntry } = metadata
           const { after, before } = node.getAttributes()
           const absoluteBefore = after >= 0 ? before : Date.now() / 1000
-          if (firstEntry > absoluteBefore) {
-            node.updateAttributes({ loaded: true })
-            return Promise.resolve()
-          }
+          if (firstEntry > absoluteBefore) return Promise.resolve(initialPayload).then(doneFetch)
         }
 
         abortController = new AbortController()
