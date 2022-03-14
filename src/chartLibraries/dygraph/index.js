@@ -66,8 +66,6 @@ export default (sdk, chart) => {
               prevMax = max
               chartUI.sdk.trigger("yAxisChange", chart, min, max)
             }
-            console.log(y, "value")
-            console.log(chart.getConvertedValue(y), "converted")
             return chart.getConvertedValue(y)
           },
           pixelsPerLabel: 15,

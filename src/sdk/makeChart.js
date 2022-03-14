@@ -201,13 +201,6 @@ export default ({
   const getConvertedValue = value => {
     const { unitsConversionMethod, unitsConversionDivider, unitsConversionFractionDigits } =
       node.getAttributes()
-    console.log(node.getAttributes())
-    console.log(
-      " unitsConversionMethod unitsConversionDivider,unitsConversionFractionDigits,",
-      unitsConversionMethod,
-      unitsConversionDivider,
-      unitsConversionFractionDigits
-    )
     const converted = convert(instance, unitsConversionMethod, value, unitsConversionDivider)
 
     if (unitsConversionFractionDigits === -1) return converted
