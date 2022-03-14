@@ -2812,6 +2812,11 @@
     call-me-maybe "^1.0.1"
     glob-to-regexp "^0.3.0"
 
+"@netdata/dygraphs@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@netdata/dygraphs/-/dygraphs-2.1.0.tgz#7042f980fe6447b1ef6a3a33dabee1f7f07892bc"
+  integrity sha512-puVAiiGmTye8YcS4ECqc9yfN/xyxffB0GHNsa3mK5PKGPB2sQ1kSmuHFOqMByiNSIi4uIBNZ5UjXYxyBWRTFug==
+
 "@netdata/netdata-ui@^1.7.49":
   version "1.7.49"
   resolved "https://registry.yarnpkg.com/@netdata/netdata-ui/-/netdata-ui-1.7.49.tgz#597baa5f59506a7ddeb7ff26119b4aab34202150"
@@ -4815,6 +4820,13 @@ babel-jest@^27.5.1:
     graceful-fs "^4.2.9"
     slash "^3.0.0"
 
+babel-loader-exclude-node-modules-except@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/babel-loader-exclude-node-modules-except/-/babel-loader-exclude-node-modules-except-1.2.1.tgz#ca9759a326106c04c1a9a86e38d384cc777af49e"
+  integrity sha512-kp/JcdRhhYKprE9fYRquyasqtrdRKXqBj0BVGB9OYxEzdBTpD/8e6w1K1gafyHgntj7f9JxLhi4phOrnCMKD6Q==
+  dependencies:
+    escape-string-regexp "2.0.0"
+
 babel-loader@^8.0.0, babel-loader@^8.2.3:
   version "8.2.3"
   resolved "https://registry.yarnpkg.com/babel-loader/-/babel-loader-8.2.3.tgz#8986b40f1a64cacfcb4b8429320085ef68b1342d"
@@ -6727,11 +6739,6 @@ duplexify@^3.4.2, duplexify@^3.6.0:
     readable-stream "^2.0.0"
     stream-shift "^1.0.0"
 
-dygraphs@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/dygraphs/-/dygraphs-2.1.0.tgz#2fbfd2c803ead02307df3faf8d4dd3ef55cb2075"
-  integrity sha1-L7/SyAPq0CMH3z+vjU3T71XLIHU=
-
 easy-pie-chart@^2.1.7:
   version "2.1.7"
   resolved "https://registry.yarnpkg.com/easy-pie-chart/-/easy-pie-chart-2.1.7.tgz#35e49fb7daf9a94e52b8294f51626919bcaee7cc"
@@ -6999,7 +7006,7 @@ escape-string-regexp@1.0.5, escape-string-regexp@^1.0.2, escape-string-regexp@^1
   resolved "https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-1.0.5.tgz#1b61c0562190a8dff6ae3bb2cf0200ca130b86d4"
   integrity sha1-G2HAViGQqN/2rjuyzwIAyhMLhtQ=
 
-escape-string-regexp@^2.0.0:
+escape-string-regexp@2.0.0, escape-string-regexp@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-2.0.0.tgz#a30304e99daa32e23b2fd20f51babd07cffca344"
   integrity sha512-UpzcLCXolUWcNu5HtVMHYdXJjArjsF9C0aNnquZYY4uW/Vu0miy5YoWvbV345HauVvcAUnpRuhMMcqTcGOY2+w==

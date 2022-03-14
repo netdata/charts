@@ -1,4 +1,4 @@
-import Dygraph from "dygraphs"
+import Dygraph from "@netdata/dygraphs"
 
 export default chartUI => {
   const mousedown = (event, g, context) => {

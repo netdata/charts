@@ -1,5 +1,5 @@
-import Dygraph from "dygraphs"
-import "dygraphs/src/extras/smooth-plotter"
+import Dygraph from "@netdata/dygraphs"
+import "@netdata/dygraphs/src/extras/smooth-plotter"
 import makeChartUI from "@/sdk/makeChartUI"
 import makeExecuteLatest from "@/helpers/makeExecuteLatest"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
@@ -66,7 +66,8 @@ export default (sdk, chart) => {
               prevMax = max
               chartUI.sdk.trigger("yAxisChange", chart, min, max)
             }
-
+            console.log(y, "value")
+            console.log(chart.getConvertedValue(y), "converted")
             return chart.getConvertedValue(y)
           },
           pixelsPerLabel: 15,
