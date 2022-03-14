@@ -1,4 +1,5 @@
 import { getChartURLOptions, getChartPayload } from "./helpers"
+import initialPayload from "../initialPayload"
 
 // const getCompositeChartURLOptions = chart => {
 //   const { dimensionsAggregationMethod, groupBy } = chart.getAttributes()
@@ -80,10 +81,21 @@ export default (chart, options) => {
     method: "POST",
     body: JSON.stringify(payload),
     ...options,
-  }).then(response => {
-    return response.json().then(data => {
-      if (response.ok) return data
-      throw data
-    })
   })
+    .then(response => {
+      return response.json().then(data => {
+        if (response.ok) return data
+        throw data
+      })
+    })
+    .catch(error => {
+      if (
+        error.errorMsgKey &&
+        error.errorMsgKey === "ErrAllNodesFailed" &&
+        !error.nodes.some(node => node.error.errorMsgKey === "ErrNoData")
+      )
+        return initialPayload
+
+      throw error
+    })
 }
