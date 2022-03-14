@@ -72,8 +72,8 @@
     "webpack-plugin": "^1.0.5"
   },
   "dependencies": {
+    "@netdata/dygraphs": "^2.1.0",
     "d3-scale": "^4.0.2",
-    "dygraphs": "^2.1.0",
     "easy-pie-chart": "^2.1.7",
     "gaugeJS": "^1.3.7",
     "md5": "^2.3.0",
