@@ -201,7 +201,7 @@ export default ({
   const getConvertedValue = value => {
     const { unitsConversionMethod, unitsConversionDivider, unitsConversionFractionDigits } =
       node.getAttributes()
-
+    console.log(node.getAttributes())
     console.log(
       " unitsConversionMethod unitsConversionDivider,unitsConversionFractionDigits,",
       unitsConversionMethod,
