@@ -54,8 +54,10 @@ const decimals = [1000, 10, 1, 0.1, 0.01, 0.001, 0.0001]
 
 const getFractionDigits = value => {
   const index = decimals.findIndex(d => value > d)
-  return index === -1 ? decimals.length : index
+  return index === -1 ? decimals.length : getFilteredIndex(index)
 }
+
+const getFilteredIndex = index => (index === 3 ? 2 : index)
 
 export default (chart, min, max) => {
   const { units: metadataUnits } = chart.getMetadata()
@@ -70,7 +72,7 @@ export default (chart, min, max) => {
   const delta = Math.abs(cMin === cMax ? cMin : cMax - cMin)
 
   const fractionDigits =
-    (method === "original" || method === "divide") && min !== max ? getFractionDigits(delta) : -1
+    method === "original" || method === "divide" ? getFractionDigits(delta) : -1
 
   return { method, divider, units: unitsConversion, fractionDigits }
 }
