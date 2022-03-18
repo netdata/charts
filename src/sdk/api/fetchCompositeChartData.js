@@ -92,7 +92,7 @@ export default (chart, options) => {
       if (
         error.errorMsgKey &&
         error.errorMsgKey === "ErrAllNodesFailed" &&
-        !error.nodes.some(node => node.error.errorMsgKey === "ErrNoData")
+        !error.nodes.some(node => node.error.errorMsgKey !== "ErrNoData")
       )
         return initialPayload
 
