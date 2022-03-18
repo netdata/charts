@@ -123,10 +123,20 @@ export default chart => {
 
   const isDimensionVisible = id => visibleDimensionSet.has(id)
 
-  const getDimensionColor = id => {
+  const getMemKey = () => {
     const colors = chart.getAttribute("colors")
     const { context } = chart.getMetadata()
-    const key = colors.length ? chart.getAttribute("id") : context
+    const groupBy = chart.getAttribute("groupBy")
+
+    if (groupBy !== "dimension") return groupBy
+
+    if (colors.length) return chart.getAttribute("id")
+
+    return context
+  }
+
+  const getDimensionColor = id => {
+    const key = getMemKey()
     const color = chart.getParent().getNextColor(getNextColor, key, id)
 
     if (typeof color === "string") return color
