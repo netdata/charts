@@ -94,12 +94,6 @@ export default chart => {
     return nextColor
   }
 
-  const updateMetadataColors = () => {
-    let { dimensions } = chart.getMetadata()
-    const keys = hasSparklineDimension() ? sparklineDimensions : Object.keys(dimensions)
-    colors = keys.map(getDimensionColor)
-  }
-
   const updateDimensions = () => {
     const dimensionIds = getPayloadDimensionIds()
 
@@ -196,7 +190,6 @@ export default chart => {
     toggleDimensionId,
     getColors,
     getDimensionColor,
-    updateMetadataColors,
     getDimensionName,
     getDimensionValue,
     onHoverSortDimensions,
