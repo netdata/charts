@@ -7,7 +7,7 @@ module.exports = {
   setupFiles: ["<rootDir>/jest/setup.js"],
   setupFilesAfterEnv: ["<rootDir>/jest/setupForEach.js"],
   verbose: true,
-  transformIgnorePatterns: ["node_modules/(?!(dygraphs)/*)"],
+  transformIgnorePatterns: ["node_modules/(?!(.?netdata|dygraphs)/*)"],
   moduleDirectories: ["node_modules", "src", "jest"],
   roots: ["src/"],
   collectCoverage: true,
