@@ -159,6 +159,13 @@ export default ({
     node.updateAttributes({ loading: true, fetchStartedAt: Date.now() })
 
     return fetchMetadata()
+      .catch(error => {
+        // Do not throw (but rather resolve the promise) if the error is due to filters changing.
+        // It is not a chart data error, but rather metadata issue.
+        if (error.message === "not_found" && error.cause === "filters") return
+
+        throw error
+      })
       .then(() => {
         updateMetadata()
 
@@ -168,7 +175,8 @@ export default ({
           const { firstEntry } = metadata
           const { after, before } = node.getAttributes()
           const absoluteBefore = after >= 0 ? before : Date.now() / 1000
-          if (firstEntry > absoluteBefore) return Promise.resolve(initialPayload).then(doneFetch)
+          if (!firstEntry || firstEntry > absoluteBefore)
+            return Promise.resolve(initialPayload).then(doneFetch)
         }
 
         abortController = new AbortController()
