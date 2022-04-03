@@ -12,6 +12,8 @@ export default (sdk, chart) => {
   let groupBoxLayout = initialValue
   let offs
 
+  let initialized = false
+
   const mount = () => {
     updateGroupBox()
 
@@ -27,13 +29,14 @@ export default (sdk, chart) => {
   }
 
   const updateGroupBox = () => {
-    if (!chart.consumePayload()) return
+    if (initialized && !chart.consumePayload()) return
 
     const { result } = chart.getPayload()
     if (result.data.length === 0) return
 
     groupBoxData = transform(chart)
     updateGroupBoxLayout()
+    initialized = true
   }
 
   const updateGroupBoxLayout = () => {
@@ -42,6 +45,8 @@ export default (sdk, chart) => {
 
     const hoverX = chart.getAttribute("hoverX")
     const row = hoverX ? chart.getClosestRow(hoverX[0]) : -1
+
+    if (!groupBoxData) return
 
     const data = groupBoxData.data.map(groupedBox => {
       return {
@@ -62,7 +67,6 @@ export default (sdk, chart) => {
 
   const render = () => {
     chartUI.render()
-
     updateGroupBox()
 
     chartUI.trigger("rendered")

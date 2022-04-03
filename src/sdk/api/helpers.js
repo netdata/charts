@@ -1,6 +1,11 @@
 export const getChartURLOptions = chart => {
-  const { chartUrlOptions, composite, eliminateZeroDimensions, groupBy, urlOptions } =
-    chart.getAttributes()
+  const {
+    chartUrlOptions,
+    composite,
+    eliminateZeroDimensions,
+    groupBy,
+    urlOptions,
+  } = chart.getAttributes()
   const isSumOfAbs = composite && groupBy !== "dimension"
 
   return [
@@ -18,7 +23,7 @@ export const getChartPayload = chart => {
   const ui = chart.getUI()
 
   const { format } = ui
-  const width = ui.getChartWidth()
+  const width = ui.getParentWidth() || ui.getChartWidth()
   const pixelsPerPoint = ui.getPixelsPerPoint()
   const { after, before, groupingMethod, groupingTime } = chart.getAttributes()
 

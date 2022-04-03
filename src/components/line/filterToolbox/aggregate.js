@@ -33,6 +33,8 @@ const Aggregate = ({ labelProps, ...rest }) => {
   const items = useItems(chart)
   const { short } = items.find(item => item.value === value)
 
+  const tooltipAttrs = tooltipProps[groupBy] || tooltipProps.node
+
   return (
     <Menu
       value={value}
@@ -44,8 +46,8 @@ const Aggregate = ({ labelProps, ...rest }) => {
       <Label
         secondaryLabel="Select"
         label={short}
-        title={tooltipProps[groupBy].heading}
-        tooltipProps={tooltipProps[groupBy]}
+        title={tooltipAttrs.heading}
+        tooltipProps={tooltipAttrs}
         {...labelProps}
       />
     </Menu>

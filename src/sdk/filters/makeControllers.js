@@ -2,17 +2,17 @@ import getInitialFilterAttributes from "./getInitialAttributes"
 import pristineComposite, { pristineCompositeKey } from "@/sdk/pristineComposite"
 
 export default chart => {
-  let prevCharType = ""
+  const metadata = chart.getMetadata()
+  let prevChartType = metadata.chartType
   const onGroupChange = groupBy => {
     if (groupBy !== "dimension") {
-      prevCharType = chart.getAttribute("chartType")
-      return chart.updateAttribute("chartType", "line")
+      prevChartType = prevChartType || chart.getAttribute("chartType")
+      const aggregationMethod = chart.getAttribute("aggregationMethod")
+      return chart.updateAttribute("chartType", aggregationMethod === "avg" ? "stacked" : "line")
+    } else {
+      chart.updateAttribute("chartType", prevChartType)
     }
-
-    if (chart.getAttribute("chartType") === "line") {
-      chart.updateAttribute("chartType", prevCharType)
-    }
-    prevCharType = ""
+    prevChartType = metadata.chartType
   }
 
   const onGroupFetch = groupBy => {
@@ -55,6 +55,18 @@ export default chart => {
 
   const updateAggregationMethodAttribute = value => {
     chart.updateAttribute("aggregationMethod", value)
+    const groupBy = chart.getAttribute("groupBy")
+
+    if (groupBy !== "dimension") {
+      prevChartType = prevChartType || chart.getAttribute("chartType")
+      chart.updateAttribute("chartType", value === "avg" ? "stacked" : "line")
+    } else {
+      if (chart.getAttribute("chartType") === "line") {
+        chart.updateAttribute("chartType", prevChartType)
+      }
+      prevChartType = metadata.chartType
+    }
+
     chart.fetchAndRender()
   }
 

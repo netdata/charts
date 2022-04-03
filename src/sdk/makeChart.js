@@ -154,9 +154,36 @@ export default ({
     finishFetch()
   }
 
+  const dataFetch = () => {
+    abortController = new AbortController()
+    const options = { signal: abortController.signal }
+    return getChart(instance, options).then(doneFetch).catch(failFetch)
+  }
+
+  const isNewerThanRetention = () => {
+    const metadata = getMetadata()
+
+    if (metadata) {
+      const { firstEntry } = metadata
+      const { after, before } = node.getAttributes()
+      const absoluteBefore = after >= 0 ? before : Date.now() / 1000
+      return !firstEntry || firstEntry > absoluteBefore
+    }
+
+    return false
+  }
+
   const fetch = () => {
     node.trigger("startFetch")
     node.updateAttributes({ loading: true, fetchStartedAt: Date.now() })
+
+    const { fullyLoaded } = getMetadata()
+
+    if (fullyLoaded) {
+      updateMetadata()
+      if (!isNewerThanRetention) return Promise.resolve(initialPayload).then(doneFetch)
+      return dataFetch()
+    }
 
     return fetchMetadata()
       .catch(error => {
@@ -168,20 +195,8 @@ export default ({
       })
       .then(() => {
         updateMetadata()
-
-        const metadata = getMetadata()
-
-        if (metadata) {
-          const { firstEntry } = metadata
-          const { after, before } = node.getAttributes()
-          const absoluteBefore = after >= 0 ? before : Date.now() / 1000
-          if (!firstEntry || firstEntry > absoluteBefore)
-            return Promise.resolve(initialPayload).then(doneFetch)
-        }
-
-        abortController = new AbortController()
-        const options = { signal: abortController.signal }
-        return getChart(instance, options).then(doneFetch)
+        if (!isNewerThanRetention) return Promise.resolve(initialPayload).then(doneFetch)
+        return dataFetch()
       })
       .catch(failFetch)
   }

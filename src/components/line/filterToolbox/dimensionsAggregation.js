@@ -21,13 +21,15 @@ const DimensionsAggregation = ({ isAggregate, labelProps }) => {
   const chart = useChart()
   const groupBy = useAttributeValue("groupBy")
 
+  const tooltipAttrs = tooltipProps[groupBy] || tooltipProps.node
+
   return (
     <Label
       secondaryLabel={isAggregate ? "of the" : ""}
       label="Sum of ABS"
       chevron={false}
-      title={!!tooltipProps[groupBy]}
-      tooltipProps={tooltipProps[groupBy]}
+      title={!!tooltipAttrs}
+      tooltipProps={tooltipAttrs}
       data-track={chart.track("dimensionsAggregation")}
       {...labelProps}
     />
