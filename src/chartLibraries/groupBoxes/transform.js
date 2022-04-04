@@ -9,6 +9,8 @@ export default chart => {
   const groupValues = keys[groupBy]
   const postGroupValues = keys[postGroupBy]
 
+  if (!groupValues || !postGroupValues) return { labels: [], data: [], chartLabels: {} }
+
   const postAggregatedValues = postAggregatedData[Object.keys(postAggregatedData)[0]]
   const indexes = filteredRows || [...Array(groupValues.length)].map((v, index) => index)
 

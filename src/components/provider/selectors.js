@@ -196,13 +196,14 @@ export const useLatestValue = id => {
 
   const getValue = () => {
     const hover = chart.getAttribute("hoverX")
-    const { result } = chart.getPayload()
+    const { result, dimensionIds } = chart.getPayload()
 
     if (result.data.length === 0) return null
 
     let index = hover ? chart.getClosestRow(hover[0]) : -1
     index = index === -1 ? result.data.length - 1 : index
 
+    id = id || dimensionIds?.[0]
     const value = chart.getDimensionValue(id, index)
 
     if (isNaN(value)) return null

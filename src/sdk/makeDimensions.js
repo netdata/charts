@@ -131,6 +131,9 @@ export default chart => {
 
   const getDimensionColor = id => {
     const key = getMemKey()
+    const colors = chart.getAttribute("colors")
+    if (colors && colors.length === 1) return colors[0]
+
     const color = chart.getParent().getNextColor(getNextColor, key, id)
 
     if (typeof color === "string") return color

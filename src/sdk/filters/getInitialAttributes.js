@@ -7,15 +7,22 @@ export default chart => {
 
   const clusterId = chartLabels.k8s_cluster_id?.[0]
 
-  const { aggregationMethod, dimensions, dimensionsAggregationMethod } = chart.getAttributes()
+  const {
+    aggregationMethod: aggregationMethodAttr,
+    dimensions,
+    dimensionsAggregationMethod,
+  } = chart.getAttributes()
   const groupBy = chart.getAttribute("groupBy") || (clusterId ? "k8s_namespace" : "dimension")
+  const chartType = chart.getAttribute("chartType")
+  const aggregationMethod = aggregationMethodAttr || getAggregateMethod(units)
 
   return {
-    aggregationMethod: aggregationMethod || getAggregateMethod(units),
+    aggregationMethod,
     dimensions: dimensions.length ? dimensions : getDimensions(chart, groupBy),
     dimensionsAggregationMethod: dimensionsAggregationMethod || "sum",
     groupBy,
     selectedChart: id,
     ...(clusterId && { labels: { k8s_cluster_id: [clusterId] } }),
+    chartType: groupBy !== "dimension" && aggregationMethod === "avg" ? "stacked" : chartType,
   }
 }

@@ -31,25 +31,31 @@ export default (Component, { Fallback: DefaultFallback = Fallback } = {}) => {
         padding,
         "data-chartid": dataChartId,
         "data-testid": dataTestId = "chartIntersector",
+        parentRef,
         ...rest
       },
-      parentRef
+      ref
     ) => {
       const chart = useChart()
-      const [ref, setRef] = useForwardRef(parentRef)
+      const [myRef, setMyRef] = useForwardRef(ref)
       const fullscreen = useAttributeValue("fullscreen")
 
       const height = fullscreen ? "100%" : defaultHeight
 
       const onVisibility = useCallback(
-        visible =>
-          ref.current && visible && chart.getUI().setEstimatedWidth(ref.current.offsetWidth),
+        visible => {
+          if (!parentRef?.current && !myRef.current) return
+          if (!visible) return
+
+          chart.getUI().setEstimatedWidth(myRef.current.offsetWidth)
+          if (parentRef?.current) chart.getUI().setParentWidth(parentRef.current.offsetWidth)
+        },
         [chart]
       )
 
       return (
         <Intersection
-          ref={setRef}
+          ref={setMyRef}
           height={height}
           width={defaultWidth}
           flex={flex}

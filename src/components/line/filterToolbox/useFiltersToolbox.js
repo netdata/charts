@@ -9,7 +9,15 @@ export default () => {
 
   const getDimensionAggregation = () => {
     const dimensions = chart.getAttribute("dimensions")
-    return dimensions.length > 0
+    const metadata = chart.getMetadata()
+    const hasDimensions =
+      (metadata?.dimensions ? Object.keys(metadata.dimensions).length : dimensions.length) > 0
+
+    const selectedDimensions = chart.getAttribute("selectedDimensions")
+
+    return !selectedDimensions
+      ? hasDimensions
+      : selectedDimensions.length === 0 || selectedDimensions.length > 1
   }
 
   const [hasDimensions, setHasDimensions] = useState(getDimensionAggregation)
@@ -25,12 +33,12 @@ export default () => {
   const getTotals = () => {
     const { nodes } = chart.getPayload()
     return {
-      totalChartIds: nodes.reduce((acc, node) => acc + node.chartIDs.length, 0),
-      totalNodes: nodes,
+      totalInstances: nodes.reduce((acc, node) => acc + node.chartIDs.length, 0),
+      totalNodes: nodes.length,
     }
   }
 
-  const [{ totalChartIds, totalNodes }, setTotals] = useState(getTotals)
+  const [{ totalInstances, totalNodes }, setTotals] = useState(getTotals)
 
   useEffect(
     () =>
@@ -41,14 +49,13 @@ export default () => {
     [chart]
   )
 
-  const aggregate =
-    groupBy === "dimension" || (totalChartIds > 0 && totalChartIds.length > totalNodes.length)
-  const dimensionAggregation = groupBy !== "dimension" && !hasDimensions
+  const aggregate = groupBy === "dimension" || (totalInstances > 0 && totalInstances > totalNodes)
+  const dimensionAggregation = groupBy !== "dimension" && hasDimensions
 
   return {
     aggregate,
     dimensionAggregation,
     prefixedDimensions: aggregate || dimensionAggregation,
-    totalChartIds,
+    totalInstances,
   }
 }
