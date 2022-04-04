@@ -328,8 +328,7 @@ export default (sdk, chart) => {
   }
 
   const getEstimatedChartWidth = () => {
-    const element = dygraph.getElement()
-    const width = element ? element.offsetWidth : chartUI.getEstimatedWidth() || 300
+    const width = chartUI.getEstimatedWidth()
     const legendWidth = chart.getAttribute("legend") ? 140 : 0
     return width - legendWidth
   }

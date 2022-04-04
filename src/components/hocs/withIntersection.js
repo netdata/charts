@@ -44,7 +44,7 @@ export default (Component, { Fallback: DefaultFallback = Fallback } = {}) => {
 
       const onVisibility = useCallback(
         visible => {
-          if (!parentRef?.current || !myRef.current) return
+          if (!parentRef?.current && !myRef.current) return
           if (!visible) return
 
           chart.getUI().setEstimatedWidth(myRef.current.offsetWidth)
