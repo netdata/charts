@@ -8,7 +8,10 @@ export default chart => {
     if (groupBy !== "dimension") {
       prevChartType = prevChartType || chart.getAttribute("chartType")
       const aggregationMethod = chart.getAttribute("aggregationMethod")
-      return chart.updateAttribute("chartType", aggregationMethod === "avg" ? "stacked" : "line")
+      return chart.updateAttribute(
+        "chartType",
+        aggregationMethod === "avg" ? "stacked" : metadata.chartType
+      )
     } else {
       chart.updateAttribute("chartType", prevChartType)
     }
@@ -59,7 +62,7 @@ export default chart => {
 
     if (groupBy !== "dimension") {
       prevChartType = prevChartType || chart.getAttribute("chartType")
-      chart.updateAttribute("chartType", value === "avg" ? "stacked" : "line")
+      chart.updateAttribute("chartType", value === "avg" ? "stacked" : metadata.chartType)
     } else {
       if (chart.getAttribute("chartType") === "line") {
         chart.updateAttribute("chartType", prevChartType)

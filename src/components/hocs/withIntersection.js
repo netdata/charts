@@ -37,7 +37,7 @@ export default (Component, { Fallback: DefaultFallback = Fallback } = {}) => {
       ref
     ) => {
       const chart = useChart()
-      const [myRef, setRef] = useForwardRef(ref)
+      const [myRef, setMyRef] = useForwardRef(ref)
       const fullscreen = useAttributeValue("fullscreen")
 
       const height = fullscreen ? "100%" : defaultHeight
@@ -55,7 +55,7 @@ export default (Component, { Fallback: DefaultFallback = Fallback } = {}) => {
 
       return (
         <Intersection
-          ref={setRef}
+          ref={setMyRef}
           height={height}
           width={defaultWidth}
           flex={flex}

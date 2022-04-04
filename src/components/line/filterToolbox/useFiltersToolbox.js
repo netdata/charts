@@ -9,9 +9,15 @@ export default () => {
 
   const getDimensionAggregation = () => {
     const dimensions = chart.getAttribute("dimensions")
+    const metadata = chart.getMetadata()
+    const hasDimensions =
+      (metadata?.dimensions ? Object.keys(metadata.dimensions).length : dimensions.length) > 0
+
     const selectedDimensions = chart.getAttribute("selectedDimensions")
 
-    return !selectedDimensions ? dimensions.length > 0 : selectedDimensions.length > 1
+    return !selectedDimensions
+      ? hasDimensions
+      : selectedDimensions.length === 0 || selectedDimensions.length > 1
   }
 
   const [hasDimensions, setHasDimensions] = useState(getDimensionAggregation)
