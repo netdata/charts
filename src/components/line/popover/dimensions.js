@@ -7,14 +7,14 @@ import UpdateEvery from "./updateEvery"
 import Timestamp from "./timestamp"
 import Dimension from "./dimension"
 
-const Container = styled(Flex).attrs({
+const Container = styled(Flex).attrs(props => ({
   round: true,
   border: { side: "all", color: "elementBackground" },
-  width: { min: "196px", max: "596px" },
+  width: { min: "196px", max: props.maxWidth ? `${props.maxWidth}px` : "596px" },
   background: "dropdown",
   column: true,
   padding: [4],
-})`
+}))`
   box-shadow: 0px 8px 12px rgba(9, 30, 66, 0.15), 0px 0px 1px rgba(9, 30, 66, 0.31);
 `
 
@@ -65,8 +65,10 @@ const Dimensions = () => {
     return [from, to, total, ids]
   }, [chart, row, x])
 
+  const chartWidth = chart.getUI().getEstimatedChartWidth() * 0.7
+
   return (
-    <Container data-testid="chartPopover-dimensions">
+    <Container data-testid="chartPopover-dimensions" maxWidth={chartWidth}>
       <Flex column>
         {x && <Timestamp value={x} />}
         <UpdateEvery />
@@ -74,7 +76,12 @@ const Dimensions = () => {
       {from > 0 && <TextNano color="textLite">↑{from} more values</TextNano>}
       <Flex gap={1} column margin={[2, 0, 0]}>
         {ids.map(id => (
-          <Dimension key={id} id={id} strong={row === id} />
+          <Dimension
+            key={id}
+            id={id}
+            strong={row === id}
+            chars={chartWidth ? chartWidth / 8 : 200}
+          />
         ))}
       </Flex>
       {to < total && (

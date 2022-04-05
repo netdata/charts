@@ -6,7 +6,7 @@ import Value from "@/components/line/dimensions/value"
 import Units from "@/components/line/dimensions/units"
 import { useVisibleDimensionId } from "@/components/provider"
 
-const Dimension = ({ id, strong }) => {
+const Dimension = ({ id, strong, chars }) => {
   const visible = useVisibleDimensionId(id)
 
   return (
@@ -17,7 +17,7 @@ const Dimension = ({ id, strong }) => {
       opacity={visible ? null : "weak"}
     >
       <Color id={id} height="12px" />
-      <Flex as={Name} flex id={id} strong={strong} maxLength={80} />
+      <Flex as={Name} flex id={id} strong={strong} maxLength={chars} />
       <Value id={id} strong={strong} visible={visible} />
       <Units visible={visible} />
     </Flex>

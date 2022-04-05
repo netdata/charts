@@ -11,7 +11,7 @@ export default {
   firstEntry: 1625969470,
   lastEntry: 1626424323,
   dimensions: {
-    guest: { name: "guest" },
+    guest: { name: "guest123456789101112131415161718192021222324252627282930" },
     guest_nice: { name: "guest_nice" },
     iowait: { name: "iowait" },
     irq: { name: "irq" },
