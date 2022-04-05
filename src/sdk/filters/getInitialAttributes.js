@@ -1,6 +1,11 @@
 import getAggregateMethod from "./getAggregateMethod"
 import getDimensions from "./getDimensions"
 
+export const stackedAggregations = {
+  avg: true,
+  sum: true,
+}
+
 export default chart => {
   const { id, chartLabels } = chart.getMetadata()
   const units = chart.getUnits()
@@ -23,6 +28,7 @@ export default chart => {
     groupBy,
     selectedChart: id,
     ...(clusterId && { labels: { k8s_cluster_id: [clusterId] } }),
-    chartType: groupBy !== "dimension" && aggregationMethod === "avg" ? "stacked" : chartType,
+    chartType:
+      groupBy !== "dimension" && stackedAggregations[aggregationMethod] ? "stacked" : chartType,
   }
 }

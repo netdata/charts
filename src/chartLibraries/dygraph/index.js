@@ -107,7 +107,10 @@ export default (sdk, chart) => {
       yRangePad: 1,
       labelsSeparateLines: true,
       rightGap: -6,
-      valueRange: attributes.valueRange || (min === max ? [0, max * 2] : null),
+      valueRange:
+        attributes.groupBy !== "dimension"
+          ? null
+          : attributes.valueRange || (min === max ? [0, max * 2] : null),
       ...makeChartTypeOptions(),
       ...makeThemingOptions(),
       ...makeVisibilityOptions(),
@@ -172,7 +175,11 @@ export default (sdk, chart) => {
       }),
       chart.onAttributeChange("chartType", () => dygraph.updateOptions(makeChartTypeOptions())),
       chart.onAttributeChange("selectedDimensions", () => {
-        dygraph.updateOptions({ ...makeVisibilityOptions(), ...makeColorOptions() })
+        dygraph.updateOptions({
+          ...makeVisibilityOptions(),
+          ...makeColorOptions(),
+          ...makeChartTypeOptions(),
+        })
       }),
       chart.onAttributeChange("valueRange", valueRange => {
         dygraph.updateOptions({ valueRange })
@@ -200,6 +207,7 @@ export default (sdk, chart) => {
     const smooth = line && !sparkline
 
     const strokeWidth = stacked ? 0.1 : smooth ? 1.5 : 0.7
+    const selectedDimensions = chart.getAttribute("selectedDimensions")
 
     return {
       stackedGraph: stacked,
@@ -207,7 +215,7 @@ export default (sdk, chart) => {
       fillAlpha: stacked ? 0.8 : 0.2,
       highlightCircleSize: sparkline ? 3 : 4,
       strokeWidth,
-      includeZero: stacked,
+      includeZero: stacked && (!selectedDimensions || selectedDimensions.length !== 1),
       stackedGraphNaNFill: "none",
       plotter: (smooth && window.smoothPlotter) || null,
     }
@@ -233,11 +241,14 @@ export default (sdk, chart) => {
     const dateWindow = getDateWindow(chart)
     const isEmpty = outOfLimits || result.data.length === 0
 
+    const groupBy = chart.getAttribute("groupBy")
+
     return {
       file: isEmpty ? [[0]] : result.data,
       labels: isEmpty ? ["X"] : result.labels,
       dateWindow,
-      valueRange: valueRange || (min === max ? [0, max * 2] : null),
+      valueRange:
+        groupBy !== "dimension" ? null : valueRange || (min === max ? [0, max * 2] : null),
     }
   }
 

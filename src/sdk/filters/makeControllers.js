@@ -1,4 +1,4 @@
-import getInitialFilterAttributes from "./getInitialAttributes"
+import getInitialFilterAttributes, { stackedAggregations } from "./getInitialAttributes"
 import pristineComposite, { pristineCompositeKey } from "@/sdk/pristineComposite"
 
 export default chart => {
@@ -10,7 +10,7 @@ export default chart => {
       const aggregationMethod = chart.getAttribute("aggregationMethod")
       return chart.updateAttribute(
         "chartType",
-        aggregationMethod === "avg" ? "stacked" : metadata.chartType
+        stackedAggregations[aggregationMethod] ? "stacked" : metadata.chartType
       )
     } else {
       chart.updateAttribute("chartType", prevChartType)
@@ -62,7 +62,10 @@ export default chart => {
 
     if (groupBy !== "dimension") {
       prevChartType = prevChartType || chart.getAttribute("chartType")
-      chart.updateAttribute("chartType", value === "avg" ? "stacked" : metadata.chartType)
+      chart.updateAttribute(
+        "chartType",
+        stackedAggregations[value] ? "stacked" : metadata.chartType
+      )
     } else {
       if (chart.getAttribute("chartType") === "line") {
         chart.updateAttribute("chartType", prevChartType)
