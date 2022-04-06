@@ -105,7 +105,7 @@ export default ({
 
   const getDataLength = ({ result }) => (Array.isArray(result) ? result.length : result.data.length)
 
-  const doneFetch = nextRawPayload => {
+  const doneFetch = (nextRawPayload, { errored = false } = {}) => {
     backoffMs = 0
     const nextPayloadTransformed = camelizePayload(nextRawPayload)
 
@@ -142,16 +142,15 @@ export default ({
       outOfLimits: !dataLength,
     })
 
-    node.trigger("successFetch", nextPayload, prevPayload)
+    if (!errored) node.trigger("successFetch", nextPayload, prevPayload)
     finishFetch()
   }
 
   const failFetch = error => {
     if (!node) return
     backoff()
-    node.updateAttribute("loading", false)
     if (!error || error.name !== "AbortError") node.trigger("failFetch", error)
-    finishFetch()
+    doneFetch(initialPayload, { errored: true })
   }
 
   const dataFetch = () => {
@@ -181,7 +180,8 @@ export default ({
 
     if (fullyLoaded) {
       updateMetadata()
-      if (!isNewerThanRetention) return Promise.resolve(initialPayload).then(doneFetch)
+      if (!isNewerThanRetention)
+        return Promise.resolve().then(() => doneFetch(initialPayload, { errored: true }))
       return dataFetch()
     }
 
@@ -195,7 +195,8 @@ export default ({
       })
       .then(() => {
         updateMetadata()
-        if (!isNewerThanRetention) return Promise.resolve(initialPayload).then(doneFetch)
+        if (!isNewerThanRetention)
+          return Promise.resolve().then(() => doneFetch(initialPayload, { errored: true }))
         return dataFetch()
       })
       .catch(failFetch)
