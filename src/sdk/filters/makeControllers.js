@@ -3,34 +3,34 @@ import pristineComposite, { pristineCompositeKey } from "@/sdk/pristineComposite
 
 export default chart => {
   const metadata = chart.getMetadata()
-  let prevChartType = metadata.chartType
-  const onGroupChange = groupBy => {
-    if (groupBy !== "dimension") {
-      prevChartType = prevChartType || chart.getAttribute("chartType")
-      const aggregationMethod = chart.getAttribute("aggregationMethod")
-      return chart.updateAttribute(
-        "chartType",
-        stackedAggregations[aggregationMethod] ? "stacked" : metadata.chartType
-      )
-    } else {
-      chart.updateAttribute("chartType", prevChartType)
-    }
-    prevChartType = metadata.chartType
-  }
+  // let prevChartType = metadata.chartType
+  // const onGroupChange = groupBy => {
+  //   if (groupBy !== "dimension") {
+  //     prevChartType = prevChartType || chart.getAttribute("chartType")
+  //     const aggregationMethod = chart.getAttribute("aggregationMethod")
+  //     return chart.updateAttribute(
+  //       "chartType",
+  //       stackedAggregations[aggregationMethod] ? "stacked" : metadata.chartType
+  //     )
+  //   } else {
+  //     chart.updateAttribute("chartType", prevChartType)
+  //   }
+  //   prevChartType = metadata.chartType
+  // }
 
-  const onGroupFetch = groupBy => {
-    onGroupChange(groupBy)
-    chart.updateAttribute("selectedDimensions", null)
-  }
+  // const onGroupFetch = groupBy => {
+  //   onGroupChange(groupBy)
+  //   chart.updateAttribute("selectedDimensions", null)
+  // }
 
   const updateGroupByAttribute = value => {
     chart.updateAttribute("groupBy", value)
-    if (value === "dimension") {
-      chart.updateAttribute("dimensions", [])
-    }
-    const attributes = getInitialFilterAttributes(chart)
-    chart.updateAttributes(attributes)
-    chart.fetchAndRender().then(() => onGroupFetch(value))
+    // if (value === "dimension") {
+    //   chart.updateAttribute("dimensions", [])
+    // }
+    // const attributes = getInitialFilterAttributes(chart)
+    // chart.updateAttributes(attributes)
+    // chart.fetchAndRender().then(() => onGroupFetch(value))
   }
 
   const getNextDimensionsAttribute = nextValue => {

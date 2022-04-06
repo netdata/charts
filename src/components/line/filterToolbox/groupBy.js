@@ -30,7 +30,7 @@ const GroupBy = () => {
     const { chartLabels } = chart.getMetadata()
     return [...defaultItems, ...Object.keys(chartLabels)].map(value => ({
       value,
-      label: `By ${value}`,
+      label: value,
       "data-track": chart.track(`group-by-${value}`),
     }))
   }, [chart])

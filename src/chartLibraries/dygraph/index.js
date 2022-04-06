@@ -8,6 +8,7 @@ import makeHover from "./hover"
 import makeHoverX from "./hoverX"
 import makeOverlays from "./overlays"
 import crosshair from "./crosshair"
+import getInitialAttributes from "@/sdk/filters/getInitialAttributes"
 
 const getDateWindow = chart => {
   const { after, before } = chart.getAttributes()
@@ -28,6 +29,9 @@ export default (sdk, chart) => {
   let overlays = null
   let resizeObserver = null
   let executeLatest
+
+  const metadata = chart.getMetadata()
+  let prevChartType = metadata?.chartType || ""
 
   const mount = element => {
     if (dygraph) return
@@ -187,6 +191,7 @@ export default (sdk, chart) => {
       chart.onAttributeChange("timezone", () => {
         dygraph.updateOptions({})
       }),
+      chart.onAttributeChange("groupBy", updateGroupByAttribute),
     ].filter(Boolean)
 
     hover = makeHover(instance)
@@ -276,6 +281,35 @@ export default (sdk, chart) => {
         },
       },
     }
+  }
+
+  const onGroupChange = groupBy => {
+    if (groupBy !== "dimension") {
+      prevChartType = prevChartType || chart.getAttribute("chartType")
+      const aggregationMethod = chart.getAttribute("aggregationMethod")
+      return chart.updateAttribute(
+        "chartType",
+        stackedAggregations[aggregationMethod] ? "stacked" : metadata.chartType
+      )
+    } else {
+      chart.updateAttribute("chartType", prevChartType)
+    }
+    prevChartType = metadata.chartType
+  }
+
+  const onGroupFetch = groupBy => {
+    onGroupChange(groupBy)
+    chart.updateAttribute("selectedDimensions", null)
+  }
+
+  const updateGroupByAttribute = () => {
+    const value = chart.getAttribute("groupBy")
+    if (value === "dimension") {
+      chart.updateAttribute("dimensions", [])
+    }
+    const attributes = getInitialAttributes(chart)
+    chart.updateAttributes(attributes)
+    chart.fetchAndRender().then(() => onGroupFetch(value))
   }
 
   const makeColorOptions = () => {
