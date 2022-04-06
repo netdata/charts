@@ -206,13 +206,13 @@ export default (sdk, chart) => {
 
     const smooth = line && !sparkline
 
-    const strokeWidth = stacked ? 0.1 : smooth ? 1.5 : 0.7
+    const strokeWidth = sparkline ? 0 : stacked ? 0.1 : smooth ? 1.5 : 0.7
     const selectedDimensions = chart.getAttribute("selectedDimensions")
 
     return {
       stackedGraph: stacked,
       fillGraph: stacked || area,
-      fillAlpha: stacked ? 0.8 : 0.2,
+      fillAlpha: sparkline ? 1 : stacked ? 0.8 : 0.2,
       highlightCircleSize: sparkline ? 3 : 4,
       strokeWidth,
       includeZero: stacked && (!selectedDimensions || selectedDimensions.length !== 1),

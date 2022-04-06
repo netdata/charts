@@ -18,7 +18,7 @@ export const Sparkline = props => {
   )
 
   return (
-    <Container ref={ref} {...props}>
+    <Container ref={ref} border={false} overflow="hidden" round={1} {...props}>
       <ChartContentWrapper />
     </Container>
   )
