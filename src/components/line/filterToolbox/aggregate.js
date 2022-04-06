@@ -31,7 +31,8 @@ const Aggregate = ({ labelProps, ...rest }) => {
   const groupBy = useAttributeValue("groupBy")
 
   const items = useItems(chart)
-  const { short } = items.find(item => item.value === value)
+
+  const { short } = items.find(item => item.value === value) || items[0]
 
   const tooltipAttrs = tooltipProps[groupBy] || tooltipProps.node
 

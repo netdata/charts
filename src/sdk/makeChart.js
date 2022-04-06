@@ -106,7 +106,7 @@ export default ({
   const getDataLength = ({ result }) => (Array.isArray(result) ? result.length : result.data.length)
 
   const doneFetch = (nextRawPayload, { errored = false } = {}) => {
-    backoffMs = 0
+    if (!errored) backoffMs = 0
     const nextPayloadTransformed = camelizePayload(nextRawPayload)
 
     const result = transformResult(nextPayloadTransformed)
