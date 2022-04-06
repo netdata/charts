@@ -148,6 +148,7 @@ export default ({
 
   const failFetch = error => {
     if (!node) return
+
     backoff()
     if (!error || error.name !== "AbortError") node.trigger("failFetch", error)
     doneFetch(initialPayload, { errored: true })

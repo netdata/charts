@@ -1,4 +1,4 @@
-import React, { useMemo, memo } from "react"
+import React, { useMemo } from "react"
 import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
 import { ItemContainer } from "@netdata/netdata-ui/lib/components/drops/menu/dropdownItem"
 import { Text } from "@netdata/netdata-ui/lib/components/typography"
@@ -48,14 +48,15 @@ const renderItem = props => {
 
 const tooltipProps = {
   heading: "Dimensions",
-  body: "Select one, multiple or all dimensions. A dimension is any value, either raw data or the result of a calculation that Netdata visualizes on a chart.",
+  body:
+    "Select one, multiple or all dimensions. A dimension is any value, either raw data or the result of a calculation that Netdata visualizes on a chart.",
 }
 
 const Dimensions = ({ labelProps, ...rest }) => {
   const chart = useChart()
   const value = useAttributeValue("dimensions")
 
-  const options = useMemo(() => getItems(chart), [chart])
+  const options = useMemo(() => getItems(chart), [value])
 
   const label = getLabel(value)
 
@@ -85,4 +86,4 @@ const Dimensions = ({ labelProps, ...rest }) => {
   )
 }
 
-export default memo(Dimensions)
+export default Dimensions
