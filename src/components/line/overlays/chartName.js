@@ -22,7 +22,7 @@ const ChartName = ({ field, normalize, ...rest }) => {
     value = normalize(value)
   }
 
-  return <StyledEllipsisInTheMiddle color="border" text={value} Component={TextSmall} {...rest} />
+  return <StyledEllipsisInTheMiddle color="key" text={value} Component={TextSmall} {...rest} />
 }
 
 export default ChartName
