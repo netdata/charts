@@ -37,13 +37,13 @@ const ProceededOverlay = ({ id }) => (
 )
 
 const NameOverlay = props => (
-  <LayerContainer isAbsolute position="top-left" margin={[1, 0, 0, 2]}>
+  <LayerContainer isAbsolute position="top">
     <ChartName {...props} />
   </LayerContainer>
 )
 
 const LatestValueOverlay = props => (
-  <LayerContainer isAbsolute position="center">
+  <LayerContainer isAbsolute position="bottom">
     <LatestValue {...props} />
   </LayerContainer>
 )

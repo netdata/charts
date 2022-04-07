@@ -1,7 +1,12 @@
 import React from "react"
-import { TextNano } from "@netdata/netdata-ui/lib/components/typography"
+import styled from "styled-components"
+import { TextSmall } from "@netdata/netdata-ui/lib/components/typography"
 import { useAttributeValue, useMetadata } from "@/components/provider"
 import EllipsisInTheMiddle from "@/components/helpers/ellipsisInTheMiddle"
+
+const StyledEllipsisInTheMiddle = styled(EllipsisInTheMiddle)`
+  text-shadow: 0 18px 28px rgba(9, 30, 66, 0.15), 0 0 1px rgba(9, 30, 66, 0.31);
+`
 
 const ChartName = ({ field, normalize, ...rest }) => {
   let value = useAttributeValue(field)
@@ -17,7 +22,7 @@ const ChartName = ({ field, normalize, ...rest }) => {
     value = normalize(value)
   }
 
-  return <EllipsisInTheMiddle text={value} Component={TextNano} {...rest} />
+  return <StyledEllipsisInTheMiddle color="key" text={value} Component={TextSmall} {...rest} />
 }
 
 export default ChartName
