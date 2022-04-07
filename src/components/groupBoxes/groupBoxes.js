@@ -91,9 +91,13 @@ const GroupBoxWrapper = ({
 
 const GroupBoxes = ({ data, labels, renderBoxPopover, renderGroupPopover, context }) => {
   const units = useUnitSign()
+  const chart = useChart()
 
   const allValues = useMemo(
-    () => data.reduce((h, d) => [...h, ...d.data], []).sort((a, b) => a - b),
+    () =>
+      data
+        .reduce((h, d) => [...h, ...d.data.map(chart.getConvertedValue)], [])
+        .sort((a, b) => a - b),
     [data]
   )
   const getColor = makeGetColor(allValues)
