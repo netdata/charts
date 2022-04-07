@@ -167,7 +167,7 @@ export default ({
       const { firstEntry } = metadata
       const { after, before } = node.getAttributes()
       const absoluteBefore = after >= 0 ? before : Date.now() / 1000
-      return firstEntry && firstEntry <= absoluteBefore
+      return !firstEntry || firstEntry <= absoluteBefore
     }
 
     return false

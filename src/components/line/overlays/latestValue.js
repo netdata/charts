@@ -12,25 +12,30 @@ const StyledTextMicro = styled(TextMicro)`
   text-shadow: 0 18px 28px rgba(9, 30, 66, 0.15), 0 0 1px rgba(9, 30, 66, 0.31);
 `
 
-const LatestValue = ({ dimensionId, ...rest }) => {
+const defaultTextProps = {
+  color: "textDescription",
+  whiteSpace: "nowrap",
+}
+
+const LatestValue = ({ dimensionId, textProps, ...rest }) => {
   const unit = useUnitSign()
   const value = useLatestValue(dimensionId)
 
-  const textProps = {
-    color: "textDescription",
-    whiteSpace: "nowrap"
-  }
-
-  if (!value) return (
-    <StyledText strong {...textProps} {...rest}>
-      No data
-    </StyledText>
-  )
+  if (!value)
+    return (
+      <StyledText strong {...defaultTextProps} {...textProps} {...rest}>
+        No data
+      </StyledText>
+    )
 
   return (
     <Flex alignItems="baseline" gap={1} {...rest}>
-      <StyledText strong {...textProps}>{value}</StyledText>
-      <StyledTextMicro {...textProps}>{unit}</StyledTextMicro>
+      <StyledText strong {...defaultTextProps} {...textProps}>
+        {value}
+      </StyledText>
+      <StyledTextMicro {...defaultTextProps} {...textProps}>
+        {unit}
+      </StyledTextMicro>
     </Flex>
   )
 }
