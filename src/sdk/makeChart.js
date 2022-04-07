@@ -179,7 +179,7 @@ export default ({
 
     const { fullyLoaded } = getMetadata()
 
-    if (!fullyLoaded) {
+    if (fullyLoaded) {
       updateMetadata()
       if (!isNewerThanRetention()) {
         return Promise.resolve().then(() => doneFetch(initialPayload, { errored: true }))
@@ -206,18 +206,14 @@ export default ({
   }
 
   const updateMetadata = () => {
-    const metadata = getMetadata()
-
-    if (metadata === prevMetadata) return
-    node.setAttribute("dimensions", Object.keys(metadata.dimensions))
+    if (getMetadata() === prevMetadata) return
+    prevMetadata = getMetadata()
     node.trigger("metadataChanged")
 
     if (node.getAttribute("composite")) {
       const attributes = getInitialFilterAttributes(instance)
       node.setAttributes(attributes)
     }
-
-    prevMetadata = metadata
   }
 
   const getUI = () => ui
