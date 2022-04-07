@@ -105,8 +105,8 @@ export default ({
 
   const getDataLength = ({ result }) => (Array.isArray(result) ? result.length : result.data.length)
 
-  const doneFetch = (nextRawPayload, { errored = false } = {}) => {
-    if (!errored) backoffMs = 0
+  const doneFetch = nextRawPayload => {
+    backoffMs = 0
     const nextPayloadTransformed = camelizePayload(nextRawPayload)
 
     const result = transformResult(nextPayloadTransformed)
@@ -142,7 +142,7 @@ export default ({
       outOfLimits: !dataLength,
     })
 
-    if (!errored) node.trigger("successFetch", nextPayload, prevPayload)
+    node.trigger("successFetch", nextPayload, prevPayload)
     finishFetch()
   }
 
@@ -150,8 +150,9 @@ export default ({
     if (!node) return
 
     backoff()
+    node.updateAttribute("loading", false)
     if (!error || error.name !== "AbortError") node.trigger("failFetch", error)
-    doneFetch(initialPayload, { errored: true })
+    finishFetch()
   }
 
   const dataFetch = () => {
@@ -181,8 +182,7 @@ export default ({
 
     if (fullyLoaded) {
       updateMetadata()
-      if (!isNewerThanRetention)
-        return Promise.resolve().then(() => doneFetch(initialPayload, { errored: true }))
+      if (!isNewerThanRetention) return Promise.resolve(initialPayload).then(doneFetch)
       return dataFetch()
     }
 
@@ -196,8 +196,7 @@ export default ({
       })
       .then(() => {
         updateMetadata()
-        if (!isNewerThanRetention)
-          return Promise.resolve().then(() => doneFetch(initialPayload, { errored: true }))
+        if (!isNewerThanRetention) return Promise.resolve(initialPayload).then(doneFetch)
         return dataFetch()
       })
       .catch(failFetch)
@@ -222,11 +221,8 @@ export default ({
   const fetchAndRender = () => fetch().then(() => ui && ui.render())
 
   const getConvertedValue = value => {
-    const {
-      unitsConversionMethod,
-      unitsConversionDivider,
-      unitsConversionFractionDigits,
-    } = node.getAttributes()
+    const { unitsConversionMethod, unitsConversionDivider, unitsConversionFractionDigits } =
+      node.getAttributes()
     const converted = convert(instance, unitsConversionMethod, value, unitsConversionDivider)
 
     if (unitsConversionFractionDigits === -1) return converted
@@ -288,12 +284,8 @@ export default ({
     if (node.getAttribute("autofetch")) return startAutofetch()
   })
 
-  const {
-    onKeyChange,
-    onKeyAndMouse,
-    initKeyboardListener,
-    clearKeyboardListener,
-  } = makeKeyboardListener()
+  const { onKeyChange, onKeyAndMouse, initKeyboardListener, clearKeyboardListener } =
+    makeKeyboardListener()
 
   node.onAttributeChange("focused", focused => {
     focused ? initKeyboardListener() : clearKeyboardListener()
@@ -377,7 +369,9 @@ export default ({
 
   const onDimensionToggle = onKeyAndMouse(
     ["Shift", "Control"],
-    id => ({ allPressed }) => dimensions.toggleDimensionId(id, { merge: allPressed !== "none" }),
+    id =>
+      ({ allPressed }) =>
+        dimensions.toggleDimensionId(id, { merge: allPressed !== "none" }),
     { allPressed: false }
   )
 
