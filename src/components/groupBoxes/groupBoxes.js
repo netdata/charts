@@ -94,12 +94,10 @@ const GroupBoxes = ({ data, labels, renderBoxPopover, renderGroupPopover, contex
   const chart = useChart()
 
   const allValues = useMemo(
-    () =>
-      data
-        .reduce((h, d) => [...h, ...d.data.map(chart.getConvertedValue)], [])
-        .sort((a, b) => a - b),
+    () => data.reduce((h, d) => [...h, ...d.data], []).sort((a, b) => a - b),
     [data]
   )
+
   const getColor = makeGetColor(allValues)
   return (
     <>
@@ -119,7 +117,11 @@ const GroupBoxes = ({ data, labels, renderBoxPopover, renderGroupPopover, contex
         })}
       </Flex>
       <Flex data-testid="legend-container" justifyContent="between">
-        <Legend min={allValues[0]} max={allValues[allValues.length - 1]} units={units}>
+        <Legend
+          min={chart.getConvertedValue(allValues[0])}
+          max={chart.getConvertedValue(allValues[allValues.length - 1])}
+          units={units}
+        >
           {context}
         </Legend>
       </Flex>
