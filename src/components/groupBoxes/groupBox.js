@@ -8,7 +8,7 @@ const aligns = {
   bottom: { top: "bottom" },
 }
 
-const GroupBox = ({ data, renderTooltip, ...options }) => {
+const GroupBox = ({ data, renderTooltip, getColor, ...options }) => {
   const dataRef = useRef()
   const canvasRef = useRef()
   const boxesRef = useRef()
@@ -51,12 +51,23 @@ const GroupBox = ({ data, renderTooltip, ...options }) => {
               index,
               rect,
             })
-          }, 600)
+          }, 100)
         },
         onMouseout: () => {
           boxHoverRef.current = -1
           clearTimeout(timeoutId.current)
           closeDrop()
+        },
+        onClick: () => {
+          boxHoverRef.current = index
+          boxesRef.current.activateBox(index)
+          timeoutId.current = setTimeout(() => {
+            setHover({
+              target: { getBoundingClientRect: () => rect },
+              index,
+              rect,
+            })
+          }, 100)
         },
       },
       options
@@ -73,8 +84,8 @@ const GroupBox = ({ data, renderTooltip, ...options }) => {
       close()
     }
     dataRef.current = data
-    boxesRef.current.update(data)
-  }, [data])
+    boxesRef.current.update(data, getColor)
+  }, [data, getColor])
 
   const onMouseEnter = useCallback(() => {
     dropHoverRef.current = true

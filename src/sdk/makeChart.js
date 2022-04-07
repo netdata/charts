@@ -167,7 +167,7 @@ export default ({
       const { firstEntry } = metadata
       const { after, before } = node.getAttributes()
       const absoluteBefore = after >= 0 ? before : Date.now() / 1000
-      return !firstEntry || firstEntry > absoluteBefore
+      return firstEntry && firstEntry <= absoluteBefore
     }
 
     return false
@@ -181,8 +181,9 @@ export default ({
 
     if (fullyLoaded) {
       updateMetadata()
-      if (!isNewerThanRetention)
+      if (!isNewerThanRetention()) {
         return Promise.resolve().then(() => doneFetch(initialPayload, { errored: true }))
+      }
       return dataFetch()
     }
 
@@ -196,8 +197,9 @@ export default ({
       })
       .then(() => {
         updateMetadata()
-        if (!isNewerThanRetention)
+        if (!isNewerThanRetention()) {
           return Promise.resolve().then(() => doneFetch(initialPayload, { errored: true }))
+        }
         return dataFetch()
       })
       .catch(failFetch)

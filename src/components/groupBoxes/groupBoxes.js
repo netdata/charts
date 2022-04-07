@@ -3,9 +3,11 @@ import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
 import Popover from "@netdata/netdata-ui/lib/components/drops/popover"
+import { useChart, useUnitSign } from "@/components/provider"
 import GroupBox from "./groupBox"
-import { getWidth } from "./drawBoxes"
+import { getWidth, makeGetColor } from "./drawBoxes"
 import getAlign from "./getAlign"
+import Legend from "./legend"
 
 const Title = styled.span`
   white-space: nowrap;
@@ -23,7 +25,14 @@ const Label = styled(Flex).attrs({
   }
 `
 
-const GroupBoxWrapper = ({ data, label, groupIndex, renderGroupPopover, renderBoxPopover }) => {
+const GroupBoxWrapper = ({
+  data,
+  label,
+  groupIndex,
+  renderGroupPopover,
+  renderBoxPopover,
+  getColor,
+}) => {
   const ref = useRef()
   const align = ref.current && getAlign(ref.current)
 
@@ -36,8 +45,28 @@ const GroupBoxWrapper = ({ data, label, groupIndex, renderGroupPopover, renderBo
   const groupPopover =
     renderGroupPopover && (() => renderGroupPopover({ group: label, groupIndex, align }))
 
+  const chart = useChart()
+
+  const mouseout = event => {
+    chart.getUI().sdk.trigger("blurChart", chart, event)
+    chart.getUI().chart.trigger("blurChart", event)
+  }
+
+  const mouseover = event => {
+    chart.getUI().sdk.trigger("hoverChart", chart, event)
+    chart.getUI().chart.trigger("hoverChart", event)
+  }
+
   return (
-    <Flex data-testid="groupBoxWrapper" column alignItems="start" gap={1} margin={[0, 4, 0, 0]}>
+    <Flex
+      data-testid="groupBoxWrapper"
+      column
+      alignItems="start"
+      gap={1}
+      margin={[0, 4, 0, 0]}
+      onMouseOut={mouseout}
+      onMouseOver={mouseover}
+    >
       <Popover content={groupPopover} align={align} plain>
         {({ isOpen, ref: popoverRef, ...rest }) => (
           <Label
@@ -55,26 +84,43 @@ const GroupBoxWrapper = ({ data, label, groupIndex, renderGroupPopover, renderBo
           </Label>
         )}
       </Popover>
-      <GroupBox data={data} renderTooltip={boxPopover} />
+      <GroupBox data={data} renderTooltip={boxPopover} getColor={getColor} />
     </Flex>
   )
 }
 
-const GroupBoxes = ({ data, labels, renderBoxPopover, renderGroupPopover }) => (
-  <Flex data-testid="groupBoxes" flexWrap overflow={{ vertical: "auto" }} flex>
-    {labels.map((label, index) => {
-      return data[index].data.length ? (
-        <GroupBoxWrapper
-          key={label}
-          label={label}
-          groupIndex={index}
-          data={data[index]}
-          renderGroupPopover={renderGroupPopover}
-          renderBoxPopover={renderBoxPopover}
-        />
-      ) : null
-    })}
-  </Flex>
-)
+const GroupBoxes = ({ data, labels, renderBoxPopover, renderGroupPopover, context }) => {
+  const units = useUnitSign()
+
+  const allValues = useMemo(
+    () => data.reduce((h, d) => [...h, ...d.data], []).sort((a, b) => a - b),
+    [data]
+  )
+  const getColor = makeGetColor(allValues)
+  return (
+    <>
+      <Flex data-testid="groupBoxes" flexWrap overflow={{ vertical: "auto" }} flex>
+        {labels.map((label, index) => {
+          return data[index].data.length ? (
+            <GroupBoxWrapper
+              key={label}
+              label={label}
+              groupIndex={index}
+              data={data[index]}
+              renderGroupPopover={renderGroupPopover}
+              renderBoxPopover={renderBoxPopover}
+              getColor={allValues.length ? getColor : undefined}
+            />
+          ) : null
+        })}
+      </Flex>
+      <Flex data-testid="legend-container" justifyContent="between">
+        <Legend min={allValues[0]} max={allValues[allValues.length - 1]} units={units}>
+          {context}
+        </Legend>
+      </Flex>
+    </>
+  )
+}
 
 export default GroupBoxes

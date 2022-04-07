@@ -2,7 +2,6 @@ import React, { forwardRef } from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { useMetadata } from "@/components/provider"
 import GroupBoxes from "./groupBoxes"
-import Legend from "./legend"
 import useGroupBoxLayout from "./useGroupBoxLayout"
 
 const Container = forwardRef(({ renderBoxPopover, renderGroupPopover, ...rest }, ref) => {
@@ -16,10 +15,8 @@ const Container = forwardRef(({ renderBoxPopover, renderGroupPopover, ...rest },
         labels={labels}
         renderBoxPopover={renderBoxPopover}
         renderGroupPopover={renderGroupPopover}
+        context={context}
       />
-      <Flex data-testid="legend-container" justifyContent="between">
-        <Legend>{context}</Legend>
-      </Flex>
     </Flex>
   )
 })

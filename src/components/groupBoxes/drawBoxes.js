@@ -25,9 +25,9 @@ const getCanvasAttributes = (data, { aspectRatio, cellSize, padding } = {}) => {
   return { width, height, columns: Math.ceil(columns) }
 }
 
-const defaultColorRange = ["rgba(198, 227, 246, 0.9)", "rgba(14, 154, 255, 0.9)"]
+const defaultColorRange = ["rgba(198, 227, 246, 0.9)", "rgba(43, 44, 170, 1)"]
 
-const makeGetColor = (values, colorRange = defaultColorRange) => {
+export const makeGetColor = (values, colorRange = defaultColorRange) => {
   const minMax = values.reduce(
     (acc, value) => {
       if (value < acc[0]) acc[0] = value
@@ -56,13 +56,13 @@ export default (el, { onMouseenter, onMouseout }, options = {}) => {
     canvas.beginPath()
   }
 
-  const update = ({ data }) => {
+  const update = ({ data }, getColor) => {
     const { width, height, columns } = getCanvasAttributes(data, options)
     el.width = parseInt(width)
     el.height = parseInt(height)
     clear()
     clearEvents()
-    const getColor = makeGetColor(data, colorRange)
+    getColor = getColor || makeGetColor(data, colorRange)
 
     const drawBox = (value, index) => {
       canvas.fillStyle = getColor(value)

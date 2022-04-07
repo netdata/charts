@@ -20,7 +20,7 @@ const Container = styled(Flex).attrs(props => ({
 
 const emptyArray = [null, null]
 
-const maxDimensions = 10
+const maxDimensions = 20
 const half = maxDimensions / 2
 
 const getFrom = (total, index) => {

@@ -1,4 +1,4 @@
-export const defaultCellSize = 11
+export const defaultCellSize = 17
 export const defaultPadding = 1
 export const defaultAspectRatio = Math.round(16 / 9)
 
