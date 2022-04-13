@@ -197,6 +197,7 @@ export default ({
       })
       .then(() => {
         updateMetadata()
+        dimensions.updateMetadataColors()
         if (!isNewerThanRetention()) {
           return Promise.resolve().then(() => doneFetch(initialPayload, { errored: true }))
         }

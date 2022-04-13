@@ -184,9 +184,16 @@ export default chart => {
   chart.onAttributeChange("dimensionsSort", sortDimensions)
   chart.onAttributeChange("selectedDimensions", updateVisibleDimensions)
 
+  const updateMetadataColors = () => {
+    let { dimensions } = chart.getMetadata()
+    const keys = hasSparklineDimension() ? sparklineDimensions : Object.keys(dimensions)
+    keys.forEach(getDimensionColor)
+  }
+
   return {
     sortDimensions,
     updateDimensions,
+    updateMetadataColors,
     getDimensionIndex,
     getDimensionIds,
     getVisibleDimensionIds,
