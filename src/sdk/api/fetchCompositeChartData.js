@@ -45,19 +45,21 @@ const getAggregations = chart => {
 }
 
 const getCompositeChartPayload = chart => {
-  const { context, nodeIDs: nodeIdsThatContainChart } = chart.getMetadata()
+  const metadata = chart.getMetadata()
   const {
     nodeIds: reachableNodeIds,
     dimensions,
     postAggregationMethod,
     filteredLabels,
+    context,
+    chartId,
   } = chart.getAttributes()
 
   const filter = {
-    nodeIDs: nodeIdsThatContainChart
-      ? nodeIdsThatContainChart.filter(nodeId => reachableNodeIds.includes(nodeId))
+    nodeIDs: metadata.nodeIDs
+      ? metadata.nodeIDs.filter(nodeId => reachableNodeIds.includes(nodeId))
       : reachableNodeIds,
-    context,
+    context: metadata.context || context || chartId,
     ...(dimensions.length && { dimensions }),
     labels: filteredLabels,
   }

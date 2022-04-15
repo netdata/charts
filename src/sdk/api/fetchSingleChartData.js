@@ -1,12 +1,12 @@
 import { getChartURLOptions, getChartPayload } from "./helpers"
 
 const getSingleChartPayload = chart => {
-  const { id, context } = chart.getMetadata()
-  const { dimensions } = chart.getAttributes()
+  const metadata = chart.getMetadata()
+  const { chartId, context, dimensions } = chart.getAttributes()
 
   return {
     v2: "",
-    chart: id || context,
+    chart: metadata.id || chartId || metadata.context || context,
     format: "json",
     options: getChartURLOptions(chart).join("|"),
     _: Date.now(),
