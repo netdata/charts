@@ -44,21 +44,6 @@ export default () => {
     return () => handlers.splice(i, 1)
   }
 
-  const onKeyAndMouse = (keys, action, { policy, allPressed = true } = {}) => {
-    const keysSet = new Set(Array.isArray(keys) ? keys : [keys])
-
-    const check = equalByPolicy[policy] || equalByPolicy.intersection
-
-    return (...args) => {
-      const handle = action(...args)
-      const checkPressed = check(keysSet, pressedSet)
-      if (allPressed && checkPressed !== "all") return false
-      handle({ allPressed: checkPressed, keysSet })
-      pressedSet = new Set()
-      return true
-    }
-  }
-
   const eventListener = event => {
     const code = event.code || keyCodes[event.keyCode || event.which]
     const eventType = event.type
@@ -84,5 +69,5 @@ export default () => {
     pressedSet = new Set()
   }
 
-  return { onKeyChange, onKeyAndMouse, initKeyboardListener, clearKeyboardListener, eventListener }
+  return { onKeyChange, initKeyboardListener, clearKeyboardListener, eventListener }
 }

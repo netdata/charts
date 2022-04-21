@@ -291,12 +291,7 @@ export default ({
     if (node.getAttribute("autofetch")) return startAutofetch()
   })
 
-  const {
-    onKeyChange,
-    onKeyAndMouse,
-    initKeyboardListener,
-    clearKeyboardListener,
-  } = makeKeyboardListener()
+  const { onKeyChange, initKeyboardListener, clearKeyboardListener } = makeKeyboardListener()
 
   node.onAttributeChange("focused", focused => {
     focused ? initKeyboardListener() : clearKeyboardListener()
@@ -378,12 +373,6 @@ export default ({
 
   const dimensions = makeDimensions(instance)
 
-  const onDimensionToggle = onKeyAndMouse(
-    ["Shift", "Control"],
-    id => ({ allPressed }) => dimensions.toggleDimensionId(id, { merge: allPressed !== "none" }),
-    { allPressed: false }
-  )
-
   const track = makeTrack(instance)
 
   return {
@@ -393,8 +382,6 @@ export default ({
     track,
     destroy,
     onKeyChange,
-    onKeyAndMouse,
-    onDimensionToggle,
     fetchAndRender,
   }
 }
