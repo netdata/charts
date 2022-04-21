@@ -168,7 +168,7 @@ export default chart => {
       return
     }
 
-    if (isDimensionVisible(id)) {
+    if (merge && isDimensionVisible(id)) {
       const newSelectedDimensions = selectedDimensions.filter(d => d !== id)
       chart.updateAttribute(
         "selectedDimensions",

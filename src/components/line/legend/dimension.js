@@ -52,7 +52,10 @@ const Dimension = ({ id }) => {
 
   const name = chart.getDimensionName(id)
 
-  const onClick = () => chart.onDimensionToggle(id)
+  const onClick = e => {
+    const merge = e.shiftKey || e.ctrlKey || e.metaKey
+    chart.toggleDimensionId(id, { merge })
+  }
 
   return (
     <DimensionContainer

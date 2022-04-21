@@ -12,7 +12,7 @@ export const getChartURLOptions = chart => {
     ...(chartUrlOptions || chart.getUI().getUrlOptions()),
     ...urlOptions,
     "jsonwrap",
-    eliminateZeroDimensions && "nonzero",
+    !composite && eliminateZeroDimensions && "nonzero",
     "flip",
     "ms",
     isSumOfAbs && "abs",

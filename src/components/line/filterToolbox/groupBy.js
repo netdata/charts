@@ -3,7 +3,11 @@ import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
 import { useChart, useAttributeValue } from "@/components/provider"
 import Label from "./label"
 
-const defaultItems = ["dimension", "node", "chart"]
+const defaultItems = [
+  { label: "dimension", value: "dimension" },
+  { label: "node", value: "node" },
+  { label: "instance", value: "chart" },
+]
 
 const tooltipProps = {
   heading: "Grouping by",
@@ -28,11 +32,17 @@ const GroupBy = () => {
 
   const items = useMemo(() => {
     const { chartLabels } = chart.getMetadata()
-    return [...defaultItems, ...Object.keys(chartLabels)].map(value => ({
-      value,
-      label: `By ${value}`,
-      "data-track": chart.track(`group-by-${value}`),
-    }))
+    return [
+      ...defaultItems.map(value => ({
+        ...value,
+        "data-track": chart.track(`group-by-${value.value}`),
+      })),
+      ...Object.keys(chartLabels).map(value => ({
+        value,
+        label: value,
+        "data-track": chart.track(`group-by-${value}`),
+      })),
+    ]
   }, [chart])
 
   return (

@@ -1,9 +1,4 @@
-import makeKeyboardListener from "@/helpers/makeKeyboardListener"
-
 export default chartUI => {
-  const { onKeyAndMouse, initKeyboardListener, clearKeyboardListener } = makeKeyboardListener()
-
-  initKeyboardListener()
   const updateNavigation = (
     navigation,
     prevNavigation = chartUI.chart.getAttribute("navigation")
@@ -13,18 +8,19 @@ export default chartUI => {
       prevNavigation,
     })
 
-  const onSelectVerticalAndZoom = onKeyAndMouse(["Shift", "Alt"], () => () =>
-    updateNavigation("selectVertical")
-  )
-
-  const onHighlight = onKeyAndMouse("Alt", () => () => updateNavigation("highlight"))
-
-  const onSelectAndZoom = onKeyAndMouse("Shift", () => () => updateNavigation("select"))
-
-  const mousedown = () => {
-    if (onSelectVerticalAndZoom()) return
-    if (onHighlight()) return
-    if (onSelectAndZoom()) return
+  const mousedown = event => {
+    if (event.shiftKey && event.altKey) {
+      updateNavigation("selectVertical")
+      return
+    }
+    if (event.altKey) {
+      updateNavigation("highlight")
+      return
+    }
+    if (event.shiftKey) {
+      updateNavigation("select")
+      return
+    }
   }
 
   const mouseup = () => {
@@ -34,7 +30,9 @@ export default chartUI => {
     })
   }
 
-  const onZoom = onKeyAndMouse(["Shift", "Alt"], (event, g) => () => {
+  const onZoom = (event, g) => {
+    if (!event.shiftKey || !event.altKey) return
+
     event.preventDefault()
     event.stopPropagation()
 
@@ -67,7 +65,7 @@ export default chartUI => {
     const xPct = offsetToPercentage(g, event.offsetX)
 
     zoom(g, percentage, xPct)
-  })
+  }
 
   const unregister = chartUI
     .on("mousedown", mousedown)
@@ -75,8 +73,5 @@ export default chartUI => {
     .on("wheel", onZoom)
     .on("dblclick", chartUI.chart.resetNavigation)
 
-  return () => {
-    unregister()
-    clearKeyboardListener()
-  }
+  return () => unregister()
 }
