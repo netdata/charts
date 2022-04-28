@@ -45,7 +45,7 @@ const GroupBy = () => {
     ],
     [chartLabels]
   )
-  const selected = useMemo(() => items.find(item => item.value === value), [value])
+  const selected = useMemo(() => items.find(item => item.value === value) || item[0], [value])
 
   return (
     <Menu
@@ -56,7 +56,7 @@ const GroupBy = () => {
     >
       <Label
         secondaryLabel="Group by"
-        label={selected.label}
+        label={selected?.label || "Loading"}
         title={tooltipProps.heading}
         tooltipProps={tooltipProps}
       />
