@@ -2817,10 +2817,10 @@
   resolved "https://registry.yarnpkg.com/@netdata/dygraphs/-/dygraphs-2.1.1.tgz#47c36a1580999752523dfe647a268c3a0334d66c"
   integrity sha512-iZOmwvoNfjNvLcnbvnzCuIWjSsHrNR4+915T2WbXTHw7QgB7dk5+dPU/X4ufaIfSSx/ycqnJXj5lJIaBjT5zxg==
 
-"@netdata/netdata-ui@^1.7.49":
-  version "1.7.49"
-  resolved "https://registry.yarnpkg.com/@netdata/netdata-ui/-/netdata-ui-1.7.49.tgz#597baa5f59506a7ddeb7ff26119b4aab34202150"
-  integrity sha512-OSjyPEGhZlOZA6SxqWVXyh/o503yFts8PrekYE+Wkh4B0mPLacMLf3kWv8Ya1nxUyL4+y5GChakC+CmhFuYWqQ==
+"@netdata/netdata-ui@^1.9.6":
+  version "1.10.1"
+  resolved "https://registry.yarnpkg.com/@netdata/netdata-ui/-/netdata-ui-1.10.1.tgz#08ac6ac8fefb10074067140d85c9532c28300d15"
+  integrity sha512-rO26czeQvqH9yYhbCWUoaPpfRcL8aXHTr8Pww1Vsuv/pz0Jx77tNxJW1W/KuP0DANqOII5lKf1H7No+dKA1HTw==
   dependencies:
     "@elastic/react-search-ui" "^1.5.1"
     "@elastic/search-ui-site-search-connector" "^1.5.1"

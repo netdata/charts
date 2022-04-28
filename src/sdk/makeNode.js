@@ -136,7 +136,11 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   }
 
   const moveX = (after, before) => {
-    if (after > 0 && before - after < 60) return
+    if (after > 0 && before - after < 60) {
+      // Fallback to 1 minute
+      after = before - 60
+    }
+
     sdk.trigger("moveX", instance, Math.floor(after), Math.ceil(before))
   }
 

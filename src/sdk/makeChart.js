@@ -222,7 +222,10 @@ export default ({
     ui = newUi
   }
 
-  const fetchAndRender = () => fetch().then(() => ui && ui.render())
+  const fetchAndRender = ({ initialize = false } = {}) => {
+    if (initialize) node.updateAttribute("loaded", false)
+    return fetch().then(() => ui && ui.render())
+  }
 
   const getConvertedValue = value => {
     const {

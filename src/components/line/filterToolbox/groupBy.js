@@ -29,10 +29,10 @@ const tooltipProps = {
 const GroupBy = () => {
   const chart = useChart()
   const value = useAttributeValue("groupBy")
+  const { chartLabels } = chart.getMetadata()
 
-  const items = useMemo(() => {
-    const { chartLabels } = chart.getMetadata()
-    return [
+  const items = useMemo(
+    () => [
       ...defaultItems.map(value => ({
         ...value,
         "data-track": chart.track(`group-by-${value.value}`),
@@ -42,8 +42,10 @@ const GroupBy = () => {
         label: value,
         "data-track": chart.track(`group-by-${value}`),
       })),
-    ]
-  }, [chart])
+    ],
+    [chartLabels]
+  )
+  const selected = useMemo(() => items.find(item => item.value === value), [value])
 
   return (
     <Menu
@@ -54,7 +56,7 @@ const GroupBy = () => {
     >
       <Label
         secondaryLabel="Group by"
-        label={value}
+        label={selected.label}
         title={tooltipProps.heading}
         tooltipProps={tooltipProps}
       />

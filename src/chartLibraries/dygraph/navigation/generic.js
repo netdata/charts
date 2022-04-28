@@ -31,7 +31,7 @@ export default chartUI => {
   }
 
   const onZoom = (event, g) => {
-    if (!event.shiftKey || !event.altKey) return
+    if (!event.shiftKey && !event.altKey) return
 
     event.preventDefault()
     event.stopPropagation()

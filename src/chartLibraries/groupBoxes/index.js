@@ -19,7 +19,7 @@ export default (sdk, chart) => {
 
     offs = unregister(
       chart.onAttributeChange("hoverX", updateGroupBoxLayout),
-      chart.onAttributeChange("filteredRows", updateGroupBox)
+      chart.onAttributeChange("filteredRows", () => updateGroupBox({ force: true }))
     )
   }
 
@@ -28,8 +28,8 @@ export default (sdk, chart) => {
     offs = null
   }
 
-  const updateGroupBox = () => {
-    if (initialized && !chart.consumePayload()) return
+  const updateGroupBox = ({ force = false } = {}) => {
+    if (initialized && !force && !chart.consumePayload()) return
 
     const { result } = chart.getPayload()
     if (result.data.length === 0) return
