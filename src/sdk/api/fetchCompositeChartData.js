@@ -44,6 +44,11 @@ const getAggregations = chart => {
   ].filter(Boolean)
 }
 
+const valuesByMethod = {
+  "sum-of-abs": "sum",
+}
+const normalizeAggregationMethod = method => valuesByMethod[method] || method
+
 const getCompositeChartPayload = chart => {
   const metadata = chart.getMetadata()
   const {
@@ -69,7 +74,9 @@ const getCompositeChartPayload = chart => {
     filter,
     aggregations,
     agent_options: getChartURLOptions(chart),
-    ...(postAggregationMethod && { post_aggregation_methods: [postAggregationMethod] }),
+    ...(postAggregationMethod && {
+      post_aggregation_methods: [normalizeAggregationMethod(postAggregationMethod)],
+    }),
     ...getChartPayload(chart),
   }
 }

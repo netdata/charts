@@ -6,6 +6,7 @@ import EllipsisInTheMiddle from "@/components/helpers/ellipsisInTheMiddle"
 
 const StyledEllipsisInTheMiddle = styled(EllipsisInTheMiddle)`
   text-shadow: 0 18px 28px rgba(9, 30, 66, 0.15), 0 0 1px rgba(9, 30, 66, 0.31);
+  pointer-events: none;
 `
 
 const ChartName = ({ field, normalize, ...rest }) => {

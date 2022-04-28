@@ -9,6 +9,7 @@ import Container from "./container"
 const Skeleton = styled(Flex).attrs({
   background: "borderSecondary",
   flex: true,
+  height: 50,
 })``
 
 export const GroupBoxesContainer = props => {

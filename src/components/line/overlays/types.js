@@ -1,4 +1,5 @@
 import React, { Fragment } from "react"
+import styled from "styled-components"
 import Container, { alignment } from "./container"
 import Alarm from "./alarm"
 import Highlight, { HighlightPeriod } from "./highlight"
@@ -7,6 +8,10 @@ import ChartName from "./chartName"
 import LatestValue from "./latestValue"
 import LayerContainer from "@netdata/netdata-ui/lib/components/templates/layer/container"
 import { useAttributeValue } from "@/components/provider"
+
+const NoEventsContainer = styled(LayerContainer)`
+  pointer-events: none;
+`
 
 const AlarmOverlay = ({ id }) => (
   <Container id={id} top="20px" margin={[0, 8, 0, 0]}>
@@ -37,15 +42,15 @@ const ProceededOverlay = ({ id }) => (
 )
 
 const NameOverlay = props => (
-  <LayerContainer isAbsolute position="top">
+  <NoEventsContainer isAbsolute position="top" noEvents>
     <ChartName {...props} />
-  </LayerContainer>
+  </NoEventsContainer>
 )
 
 const LatestValueOverlay = props => (
-  <LayerContainer isAbsolute position="bottom">
+  <NoEventsContainer isAbsolute position="bottom" noEvents>
     <LatestValue {...props} />
-  </LayerContainer>
+  </NoEventsContainer>
 )
 
 export default {

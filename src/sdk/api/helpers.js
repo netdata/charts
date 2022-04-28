@@ -5,8 +5,10 @@ export const getChartURLOptions = chart => {
     eliminateZeroDimensions,
     groupBy,
     urlOptions,
+    postAggregationMethod,
   } = chart.getAttributes()
-  const isSumOfAbs = composite && groupBy !== "dimension"
+  const isSumOfAbs =
+    composite && (groupBy !== "dimension" || postAggregationMethod === "sum-of-abs")
 
   return [
     ...(chartUrlOptions || chart.getUI().getUrlOptions()),
