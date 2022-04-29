@@ -45,7 +45,7 @@ const GroupBy = () => {
     ],
     [chartLabels]
   )
-  const selected = useMemo(() => items.find(item => item.value === value) || item[0], [value])
+  const selected = useMemo(() => items.find(item => item.value === value) || items[0], [value])
 
   return (
     <Menu
