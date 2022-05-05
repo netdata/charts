@@ -135,6 +135,8 @@ export default ({
 
     invalidateClosestRowCache()
 
+    if (!node.getAttribute("loaded") && !errored) node.getParent().trigger("chartLoaded", node)
+
     node.updateAttributes({
       loaded: true,
       loading: false,
