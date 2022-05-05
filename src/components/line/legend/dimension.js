@@ -9,7 +9,7 @@ import Units from "@/components/line/dimensions/units"
 import { useVisibleDimensionId, useChart } from "@/components/provider"
 
 const DimensionContainer = props => (
-  <Flex width="88px" flex={false} gap={1} data-testid="chartLegendDimension" {...props} />
+  <Flex width={{min: 22, max: 40}} flex={false} gap={1} data-testid="chartLegendDimension" {...props} />
 )
 
 export const SkeletonDimension = () => {
@@ -67,7 +67,7 @@ const Dimension = ({ id }) => {
     >
       <Color id={id} />
       <Flex flex column overflow="hidden" data-testid="chartLegendDimension-details">
-        <Name id={id} maxLength={15} />
+        <Name id={id} maxLength={25} />
 
         <Flex gap={1} data-testid="chartLegendDimension-valueContainer">
           <Value id={id} strong visible={visible} />
