@@ -20,7 +20,7 @@ export default chart => {
     if (hasSparklineDimension()) return sparklineDimensions
 
     const { dimensionIds } = chart.getPayload()
-    return dimensionIds
+    return dimensionIds || []
   }
 
   const getSourceDimensionIds = () => [...getPayloadDimensionIds()]
@@ -69,6 +69,8 @@ export default chart => {
     const sort = bySortMethod[dimensionsSort] || bySortMethod.default
     sortedDimensionIds = sort()
     updateVisibleDimensions()
+
+    if (!sortedDimensionIds) return
 
     colors = sortedDimensionIds.map(id => getDimensionColor(id))
 
