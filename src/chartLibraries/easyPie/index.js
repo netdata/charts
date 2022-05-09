@@ -74,9 +74,10 @@ export default (sdk, chart) => {
   const makeDimensionOptions = () => {
     const { clientWidth } = chartUI.getElement()
     const multiplier = clientWidth / 22
+
     return {
       lineWidth: multiplier < 4 ? 2 : Math.floor(multiplier),
-      size: clientWidth < 600 ? 600 : clientWidth,
+      size: clientWidth < 20 ? 20 : clientWidth,
     }
   }
 
