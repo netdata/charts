@@ -230,6 +230,8 @@ export default (sdk, chart) => {
     const selectedDimensions = chart.getAttribute("selectedDimensions")
     const { dimensionIds } = chart.getPayload()
 
+    if (!dimensionIds) return { visibility: [] }
+
     const visibility = dimensionIds.map(selectedDimensions ? chart.isDimensionVisible : () => true)
 
     return { visibility }
