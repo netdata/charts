@@ -58,6 +58,7 @@ const getCompositeChartPayload = chart => {
     filteredLabels,
     context,
     chartId,
+    filters,
   } = chart.getAttributes()
 
   const filter = {
@@ -67,6 +68,7 @@ const getCompositeChartPayload = chart => {
     context: metadata.context || context || chartId,
     ...(dimensions.length && { dimensions }),
     labels: filteredLabels,
+    ...filters,
   }
   const aggregations = getAggregations(chart)
 
