@@ -54,6 +54,8 @@ export default ({
   const fetchMetadata = () => getMetadataDecorator().fetch(instance)
 
   const getUpdateEvery = () => {
+    if (!node) return
+
     const { loaded, updateEvery: updateEveryAttribute } = node.getAttributes()
     if (updateEveryAttribute) return updateEveryAttribute * 1000
 
@@ -65,6 +67,8 @@ export default ({
   }
 
   const startAutofetch = () => {
+    if (!node) return
+
     const { fetchStartedAt, loading, autofetch, active } = node.getAttributes()
 
     if (!autofetch || loading || !active) return
@@ -88,6 +92,8 @@ export default ({
   }
 
   const finishFetch = () => {
+    if (!node) return
+
     startAutofetch()
     node.trigger("finishFetch")
   }
@@ -166,6 +172,8 @@ export default ({
     const metadata = getMetadata()
 
     if (metadata) {
+      if (!node) return
+
       const { firstEntry } = metadata
       const { after, before } = node.getAttributes()
       const absoluteBefore = after >= 0 ? before : Date.now() / 1000
@@ -176,6 +184,8 @@ export default ({
   }
 
   const fetch = () => {
+    if (!node) return
+
     node.trigger("startFetch")
     node.updateAttributes({ loading: true, fetchStartedAt: Date.now() })
 
@@ -209,7 +219,9 @@ export default ({
   }
 
   const updateMetadata = () => {
+    if (!node) return
     if (getMetadata() === prevMetadata) return
+
     prevMetadata = getMetadata()
     node.trigger("metadataChanged")
 
@@ -225,11 +237,13 @@ export default ({
   }
 
   const fetchAndRender = ({ initialize = false } = {}) => {
-    if (initialize) node.updateAttribute("loaded", false)
+    if (!!node && initialize) node.updateAttribute("loaded", false)
     return fetch().then(() => ui && ui.render())
   }
 
   const getConvertedValue = value => {
+    if (!node) return
+
     const {
       unitsConversionMethod,
       unitsConversionDivider,
@@ -246,13 +260,22 @@ export default ({
     }).format(converted)
   }
 
-  const focus = () => node.updateAttribute("focused", true)
-  const blur = () => node.updateAttribute("focused", false)
+  const focus = () => {
+    if (!node) return
+    node.updateAttribute("focused", true)
+  }
+
+  const blur = () => {
+    if (!node) return
+    node.updateAttribute("focused", false)
+  }
+
   const activate = () => {
     if (!node) return
     node.updateAttribute("active", true)
     sdk.trigger("active", instance, true)
   }
+
   const deactivate = () => {
     if (!node) return
     node.updateAttribute("active", false)
@@ -261,6 +284,8 @@ export default ({
 
   const stopAutofetch = () => {
     clearTimeout(fetchTimeoutId)
+
+    if (!node) return
 
     if (
       !node.getAttribute("active") &&
@@ -278,6 +303,8 @@ export default ({
   }
 
   const getUnits = () => {
+    if (!node) return
+
     const { units: metadataUnits } = getMetadata()
     const { units: attributeUnits, unitsConversion } = node.getAttributes()
     return unitsConversion || attributeUnits || metadataUnits
@@ -292,6 +319,8 @@ export default ({
   })
 
   node.onAttributeChange("active", active => {
+    if (!node) return
+
     if (!active) return stopAutofetch()
     if (node.getAttribute("autofetch")) return startAutofetch()
   })
@@ -299,11 +328,15 @@ export default ({
   const { onKeyChange, initKeyboardListener, clearKeyboardListener } = makeKeyboardListener()
 
   node.onAttributeChange("focused", focused => {
+    if (!node) return
+
     focused ? initKeyboardListener() : clearKeyboardListener()
     invalidateClosestRowCache()
   })
 
   const getApplicableNodes = (attributes, options) => {
+    if (!node) return []
+
     if (!node.match(attributes)) return [instance]
 
     const ancestor = node.getAncestor(attributes)
@@ -339,7 +372,7 @@ export default ({
 
     const prevPayload = payload
     payload = nextPayload
-    node.trigger("payloadChanged", nextPayload, prevPayload)
+    if (!!node) node.trigger("payloadChanged", nextPayload, prevPayload)
 
     return true
   }
@@ -369,10 +402,12 @@ export default ({
   instance.getUnitSign = makeGetUnitSign(instance)
 
   onKeyChange(["Alt", "Shift", "KeyF"], () => {
+    if (!node) return
     node.updateAttribute("fullscreen", !node.getAttribute("fullscreen"))
   })
 
   onKeyChange(["Alt", "Shift", "KeyR"], () => {
+    if (!node) return
     node.resetNavigation()
   })
 
