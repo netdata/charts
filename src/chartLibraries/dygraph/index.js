@@ -285,6 +285,8 @@ export default (sdk, chart) => {
     if (sparkline) return { colors: chart.getColors() }
 
     const { dimensionIds } = chart.getPayload()
+
+    if (!dimensionIds) return { colors: [] }
     const colors = dimensionIds.map(id => chart.getDimensionColor(id))
 
     return { colors }

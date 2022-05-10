@@ -85,6 +85,8 @@ export default chartUI => {
     if (!seriesProps) return
 
     const { dimensionIds } = chartUI.chart.getPayload()
+
+    if (!dimensionIds) return
     const dimensionId = dimensionIds[seriesProps.column - 1]
 
     chartUI.sdk.trigger("highlightHover", chartUI.chart, x, dimensionId)

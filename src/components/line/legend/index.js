@@ -36,6 +36,8 @@ const SkeletonDimensions = () => (
 const Dimensions = memo(() => {
   const dimensionIds = useDimensionIds()
 
+  if (!dimensionIds) return null
+
   return (
     <Fragment>
       {dimensionIds.map(id => (
