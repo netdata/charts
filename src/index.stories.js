@@ -300,6 +300,37 @@ export const AlertInTimeWindow = () => {
   )
 }
 
+export const AlertRangeInTimeWindow = () => {
+  const getChartMetadata = () => camelizeKeys(systemCpuStackedChart, { omit: ["dimensions"] })
+  const getChart = makeMockPayload(systemCpuStacked, { delay: 1000 })
+
+  const sdk = makeDefaultSDK({ getChartMetadata })
+
+  const chart = sdk.makeChart({
+    getChart,
+    attributes: {
+      overlays: {
+        alarmRange: {
+          type: "alarmRange",
+          status: "critical",
+          value: "123 %",
+          whenTriggered: Math.floor(Date.now() / 1000 - 6 * 60),
+          whenLast: Math.floor(Date.now() / 1000 - 5 * 60),
+
+        },
+        proceeded: { type: "proceeded" },
+      },
+    },
+  })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Line chart={chart} height="315px" />
+    </ThemeProvider>
+  )
+}
+
 export const HighlightInTimeWindow = () => {
   const sdk = makeDefaultSDK({ getChartMetadata })
 
