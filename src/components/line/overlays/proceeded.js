@@ -24,7 +24,7 @@ const NoData = props => {
 
   return (
     <NoDataContainer {...props}>
-      <Text textAlign="center">No data for this period</Text>
+      <Text textAlign="center">No data</Text>
     </NoDataContainer>
   )
 }
