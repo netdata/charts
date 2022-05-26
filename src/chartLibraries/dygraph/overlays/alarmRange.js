@@ -49,8 +49,8 @@ export default (chartUI, id) => {
   ctx.moveTo(from, 0)
   ctx.lineTo(from, h)
   ctx.globalAlpha = 1
+  ctx.lineWidth = 2
   ctx.setLineDash([4, 4])
-  ctx.lineWidth = 1
   ctx.strokeStyle = borderColorMap[status]
   ctx.stroke()
 
