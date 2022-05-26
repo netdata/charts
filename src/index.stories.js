@@ -313,10 +313,10 @@ export const AlertRangeInTimeWindow = () => {
         alarmRange: {
           type: "alarmRange",
           status: "critical",
-          value: "123 %",
+          valueTriggered: "123 %",
+          valueLast: "456 %",
           whenTriggered: Math.floor(Date.now() / 1000 - 6 * 60),
-          whenLast: Math.floor(Date.now() / 1000 - 5 * 60),
-
+          whenLast: Math.floor(Date.now() / 1000 - 1 * 60),
         },
         proceeded: { type: "proceeded" },
       },

@@ -8,9 +8,9 @@ const badgeByStatus = {
   clear: "success",
 }
 
-const Alarm = ({ id }) => {
+const AlarmRange = ({ id }) => {
   const overlays = useAttributeValue("overlays")
-  const { status, value } = overlays[id]
+  const { status, valueTriggered } = overlays[id]
   const badgeType = badgeByStatus[status] || status
   const { color } = getColors(badgeType)
 
@@ -19,11 +19,11 @@ const Alarm = ({ id }) => {
       <TextSmall color={color}>
         First time value:{" "}
         <TextSmall strong color={color}>
-          {value}
+          {valueTriggered}
         </TextSmall>
       </TextSmall>
     </Badge>
   )
 }
 
-export default memo(Alarm)
+export default memo(AlarmRange)
