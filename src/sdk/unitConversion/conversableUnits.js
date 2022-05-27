@@ -7,6 +7,45 @@ const fahrenheit = {
   convert: value => (value * 9) / 5 + 32,
 }
 
+export const leaveAtLeast1Decimal = number => {
+  const decimalPortion = `${number}`.split(".")[1]
+  if (decimalPortion && decimalPortion.length > 1) {
+    return `${number}`
+  }
+
+  let tms = number * 10
+  const integer = Math.floor(tms / 10)
+
+  tms -= integer * 10
+  return `${integer}.${tms}`
+}
+
+const seconds2time = seconds => {
+  let secondsReturn = Math.abs(seconds)
+
+  const days = Math.floor(secondsReturn / 86400)
+  secondsReturn -= days * 86400
+
+  const hours = Math.floor(secondsReturn / 3600)
+  secondsReturn -= hours * 3600
+
+  const minutes = Math.floor(secondsReturn / 60)
+  secondsReturn -= minutes * 60
+
+  const daysString = days ? `${days}d:` : ""
+  const hoursString = hours || days ? `${zeropad(hours)}:` : ""
+  const minutesString = `${zeropad(minutes)}:`
+  const fixedNr = days ? 0 : 3
+  let secondsString = days
+    ? Math.round(secondsReturn)
+    : leaveAtLeast1Decimal(Number(secondsReturn.toFixed(fixedNr)))
+  if (minutesString) {
+    secondsString = zeropad(secondsString)
+  }
+
+  return `${daysString}${hoursString}${minutesString}${secondsString}`
+}
+
 export default {
   Celsius: {
     Fahrenheit: fahrenheit,
@@ -21,20 +60,13 @@ export default {
         return `${Math.round(seconds * 1000)}`
       },
     },
+    seconds: {
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 1 && max < 60,
+      convert: value => leaveAtLeast1Decimal(Number(value.toFixed(3))),
+    },
     time: {
       check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 1,
-      convert: value => {
-        const days = Math.floor(value / 86400)
-        const timeIntlOptions = {
-          hourCycle: "h23",
-          timeStyle: "medium",
-          timeZone: "UTC",
-        }
-        const time = new Intl.DateTimeFormat(navigator.language, timeIntlOptions).format(
-          value * 1000
-        )
-        return days > 0 ? `${days}d:${time}` : time
-      },
+      convert: seconds2time,
     },
   },
   milliseconds: {
