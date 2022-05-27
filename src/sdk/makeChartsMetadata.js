@@ -9,21 +9,38 @@ export default ({ getChart }) => {
   }
 
   const get = node => {
-    if (getChart) return getChart(node)
-
     const id = makeKey(node)
+    if (byId[id]) return byId[id]
+
+    if (getChart) {
+      byId[id] = getChart(node)
+      return byId[id]
+    }
+
     return byId[id]
+  }
+
+  const set = (node, values = {}) => {
+    const id = makeKey(node)
+    byId[id] = {
+      ...byId[id],
+      ...values,
+    }
   }
 
   const fetch = async node => {
     if (getChart) return
 
     const response = await fetchChartMetadata(node)
+
     const id = makeKey(node)
-    byId[id] = response
+    byId[id] = {
+      ...byId[id],
+      ...response,
+    }
 
     return response
   }
 
-  return { get, fetch }
+  return { get, set, fetch }
 }

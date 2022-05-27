@@ -37,5 +37,6 @@ export const getChartPayload = chart => {
     gtime: groupingTime,
     after,
     ...(after > 0 && { before }),
+    with_metadata: true,
   }
 }

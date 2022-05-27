@@ -185,6 +185,10 @@ export default chart => {
 
   chart.onAttributeChange("dimensionsSort", sortDimensions)
   chart.onAttributeChange("selectedDimensions", updateVisibleDimensions)
+  chart.on("metadataChanged", () => {
+    sortDimensions()
+    updateVisibleDimensions()
+  })
 
   const updateMetadataColors = () => {
     let { dimensions } = chart.getMetadata()

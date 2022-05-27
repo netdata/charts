@@ -17,6 +17,8 @@ export default payload => {
     latest_values,
     view_latest_values,
     result,
+    all_dimensions,
+    all_chart_labels,
     ...rest
   } = payload
 
@@ -30,6 +32,11 @@ export default payload => {
     latestValues: latest_values,
     viewLatestValues: view_latest_values,
     result: camelizeResult(result),
+    metadata: {
+      fullyLoaded: !!all_dimensions,
+      ...(all_dimensions && { dimensions: all_dimensions }),
+      ...(all_chart_labels && { chartLabels: all_chart_labels }),
+    },
     ...rest,
   }
 }

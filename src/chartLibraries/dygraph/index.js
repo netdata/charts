@@ -230,7 +230,7 @@ export default (sdk, chart) => {
     const selectedDimensions = chart.getAttribute("selectedDimensions")
     const { dimensionIds } = chart.getPayload()
 
-    if (!dimensionIds) return { visibility: [] }
+    if (!dimensionIds?.length) return { visibility: false }
 
     const visibility = dimensionIds.map(selectedDimensions ? chart.isDimensionVisible : () => true)
 
@@ -286,7 +286,7 @@ export default (sdk, chart) => {
 
     const { dimensionIds } = chart.getPayload()
 
-    if (!dimensionIds) return { colors: [] }
+    if (!dimensionIds?.length) return {}
     const colors = dimensionIds.map(id => chart.getDimensionColor(id))
 
     return { colors }

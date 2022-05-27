@@ -51,6 +51,13 @@ export default ({
   const cancelFetch = () => abortController && abortController.abort()
 
   const getMetadata = () => getMetadataDecorator().get(instance) || initialMetadata
+  const setMetadataAttributes = (values = {}) => {
+    if (!getMetadataDecorator().set) return getMetadata()
+    getMetadataDecorator().set(instance, values)
+    updateMetadata()
+    return getMetadata()
+  }
+  const setMetadataAttribute = (attribute, value) => setMetadataAttributes({ [attribute]: value })
   const fetchMetadata = () => getMetadataDecorator().fetch(instance)
 
   const getUpdateEvery = () => {
@@ -117,7 +124,7 @@ export default ({
 
     const result = transformResult(nextPayloadTransformed)
 
-    const { dimensionIds, ...restPayload } = nextPayloadTransformed
+    const { dimensionIds, metadata, ...restPayload } = nextPayloadTransformed
 
     const prevPayload = nextPayload
     if (deepEqual(payload.dimensionIds, dimensionIds)) {
@@ -125,11 +132,14 @@ export default ({
         ...initialPayload,
         ...nextPayload,
         ...restPayload,
+        dimensionIds,
         result,
       }
     } else {
-      nextPayload = { ...initialPayload, ...nextPayloadTransformed, result }
+      nextPayload = { ...initialPayload, ...restPayload, dimensionIds, result }
     }
+
+    setMetadataAttributes(metadata)
 
     const dataLength = getDataLength(nextPayload)
     if (
@@ -189,33 +199,31 @@ export default ({
     node.trigger("startFetch")
     node.updateAttributes({ loading: true, fetchStartedAt: Date.now() })
 
-    const { fullyLoaded } = getMetadata()
-
-    if (fullyLoaded) {
-      updateMetadata()
-      if (!isNewerThanRetention()) {
-        return Promise.resolve().then(() => doneFetch(initialPayload, { errored: true }))
-      }
-      return dataFetch()
+    updateMetadata()
+    if (!isNewerThanRetention()) {
+      return Promise.resolve().then(() => doneFetch(initialPayload, { errored: true }))
     }
+    return dataFetch().then(() => {
+      const { fullyLoaded } = getMetadata()
+      if (fullyLoaded) return
 
-    return fetchMetadata()
-      .catch(error => {
-        // Do not throw (but rather resolve the promise) if the error is due to filters changing.
-        // It is not a chart data error, but rather metadata issue.
-        if (error.message === "not_found" && error.cause === "filters") return
+      return fetchMetadata()
+        .catch(error => {
+          // Do not throw (but rather resolve the promise) if the error is due to filters changing.
+          // It is not a chart data error, but rather metadata issue.
+          if (error.message === "not_found" && error.cause === "filters") return
 
-        throw error
-      })
-      .then(() => {
-        updateMetadata()
-        dimensions.updateMetadataColors()
-        if (!isNewerThanRetention()) {
-          return Promise.resolve().then(() => doneFetch(initialPayload, { errored: true }))
-        }
-        return dataFetch()
-      })
-      .catch(failFetch)
+          throw error
+        })
+        .then(() => {
+          updateMetadata()
+          dimensions.updateMetadataColors()
+          if (!isNewerThanRetention()) {
+            return Promise.resolve().then(() => doneFetch(initialPayload, { errored: true }))
+          }
+        })
+        .catch(failFetch)
+    })
   }
 
   const updateMetadata = () => {
@@ -382,6 +390,8 @@ export default ({
     getUI,
     setUI,
     getMetadata,
+    setMetadataAttribute,
+    setMetadataAttributes,
     getPayload,
     fetch,
     doneFetch,
