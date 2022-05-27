@@ -15,8 +15,14 @@ export default {
     fahrenheit: fahrenheit,
   },
   seconds: {
+    milliseconds: {
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max < 1,
+      convert(seconds) {
+        return `${Math.round(seconds * 1000)}`
+      },
+    },
     time: {
-      check: chart => chart.getAttribute("secondsAsTime"),
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 1,
       convert: value => {
         const days = Math.floor(value / 86400)
         const timeIntlOptions = {
