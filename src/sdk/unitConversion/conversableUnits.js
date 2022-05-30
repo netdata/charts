@@ -7,6 +7,32 @@ const fahrenheit = {
   convert: value => (value * 9) / 5 + 32,
 }
 
+const seconds2time = (seconds, maxTimeUnit) => {
+  let secondsReturn = Math.abs(seconds)
+
+  const days = maxTimeUnit === "DAYS" ? Math.floor(secondsReturn / 86400) : 0
+  secondsReturn -= days * 86400
+
+  const hours =
+    maxTimeUnit === "DAYS" || maxTimeUnit === "HOURS" ? Math.floor(secondsReturn / 3600) : 0
+  secondsReturn -= hours * 3600
+
+  const minutes = Math.floor(secondsReturn / 60)
+  secondsReturn -= minutes * 60
+
+  const daysString = maxTimeUnit === "DAYS" ? `${days}d:` : ""
+  const hoursString = maxTimeUnit === "DAYS" || maxTimeUnit === "HOURS" ? `${zeropad(hours)}:` : ""
+  const minutesString = `${zeropad(minutes)}:`
+  let secondsString = zeropad(secondsReturn.toFixed(2))
+
+  return `${daysString}${hoursString}${minutesString}${secondsString}`
+}
+
+const twoFixed =
+  (multiplier = 1) =>
+  value =>
+    (value * multiplier).toFixed(2)
+
 export default {
   Celsius: {
     Fahrenheit: fahrenheit,
@@ -14,66 +40,61 @@ export default {
   celsius: {
     fahrenheit: fahrenheit,
   },
-  seconds: {
-    time: {
-      check: chart => chart.getAttribute("secondsAsTime"),
-      convert: value => {
-        const days = Math.floor(value / 86400)
-        const timeIntlOptions = {
-          hourCycle: "h23",
-          timeStyle: "medium",
-          timeZone: "UTC",
-        }
-        const time = new Intl.DateTimeFormat(navigator.language, timeIntlOptions).format(
-          value * 1000
-        )
-        return days > 0 ? `${days}d:${time}` : time
-      },
-    },
-  },
   milliseconds: {
+    microseconds: {
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max < 1,
+      convert: twoFixed(1000),
+    },
     milliseconds: {
-      check: (chart, value) => chart.getAttribute("secondsAsTime") && value < 1000,
-      convert: milliseconds => {
-        let tms = Math.round(milliseconds * 10)
-        milliseconds = Math.floor(tms / 10)
-
-        tms -= milliseconds * 10
-
-        return `${milliseconds}.${tms}`
-      },
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 1 && max < 1000,
+      convert: twoFixed(),
     },
     seconds: {
-      check: (chart, value) =>
-        chart.getAttribute("secondsAsTime") && value >= 1000 && value < 60000,
-      convert: milliseconds => {
-        milliseconds = Math.round(milliseconds)
-
-        let seconds = Math.floor(milliseconds / 1000)
-        milliseconds -= seconds * 1000
-
-        milliseconds = Math.round(milliseconds / 10)
-
-        return `${seconds}.${zeropad(milliseconds)}`
-      },
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 1000 && max < 60000,
+      convert: twoFixed(0.001),
     },
-    "M:SS.ms": {
-      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 60000,
-      convert: milliseconds => {
-        milliseconds = Math.round(milliseconds)
-
-        let minutes = Math.floor(milliseconds / 60000)
-        milliseconds -= minutes * 60000
-
-        let seconds = Math.floor(milliseconds / 1000)
-        milliseconds -= seconds * 1000
-
-        milliseconds = Math.round(milliseconds / 10)
-
-        return `${minutes}:${zeropad(seconds)}.${zeropad(milliseconds)}`
-      },
+    "MM:SS.ms": {
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 60000 && max < 3600_000,
+      convert: value => seconds2time(value / 1000, "MINUTES"),
+    },
+    "HH:MM:SS.ms": {
+      check: (chart, max) =>
+        chart.getAttribute("secondsAsTime") && max >= 3600_000 && max < 86_400_000,
+      convert: value => seconds2time(value / 1000, "HOURS"),
+    },
+    "dHH:MM:SS.ms": {
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400_000,
+      convert: value => seconds2time(value / 1000, "DAYS"),
     },
   },
+
+  seconds: {
+    microseconds: {
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max < 0.001,
+      convert: twoFixed(1000_000),
+    },
+    milliseconds: {
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 0.001 && max < 1,
+      convert: twoFixed(1000),
+    },
+    seconds: {
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 1 && max < 60,
+      convert: twoFixed(1),
+    },
+    "MM:SS.ms": {
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 60 && max < 3600,
+      convert: value => seconds2time(value, "MINUTES"),
+    },
+    "HH:MM:SS.ms": {
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 3600 && max < 86_400,
+      convert: value => seconds2time(value, "HOURS"),
+    },
+    "dHH:MM:SS.ms": {
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400,
+      convert: value => seconds2time(value, "DAYS"),
+    },
+  },
+  // todo as seconds and milliseconds
   nanoseconds: {
     nanoseconds: {
       check: (chart, max) => chart.getAttribute("secondsAsTime") && max < 1000,
