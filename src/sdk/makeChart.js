@@ -215,7 +215,6 @@ export default ({
         })
         .then(() => {
           updateMetadata()
-          dimensions.updateMetadataColors()
           if (!isNewerThanRetention()) {
             return Promise.resolve().then(() => doneFetch(initialPayload, { errored: true }))
           }
@@ -240,6 +239,7 @@ export default ({
     if (getMetadata() === prevMetadata) return
 
     prevMetadata = getMetadata()
+    dimensions.updateMetadataColors()
     node.trigger("metadataChanged")
 
     if (node.getAttribute("composite")) {
