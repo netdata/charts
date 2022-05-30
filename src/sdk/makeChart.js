@@ -203,11 +203,9 @@ export default ({
     if (!isNewerThanRetention()) {
       return Promise.resolve().then(() => doneFetch(initialPayload, { errored: true }))
     }
-    return dataFetch().then(() => {
-      const { fullyLoaded } = getMetadata()
-      if (fullyLoaded) return
 
-      return fetchMetadata()
+    const doFetchMetadata = () =>
+      fetchMetadata()
         .catch(error => {
           // Do not throw (but rather resolve the promise) if the error is due to filters changing.
           // It is not a chart data error, but rather metadata issue.
@@ -223,7 +221,18 @@ export default ({
           }
         })
         .catch(failFetch)
-    })
+
+    const fetchData = () =>
+      dataFetch().then(() => {
+        const { fullyLoaded } = getMetadata()
+        if (fullyLoaded) return
+
+        return doFetchMetadata()
+      })
+
+    if (node.getAttribute("shouldFetchMetadata")) return doFetchMetadata().then(fetchData)
+
+    return fetchData()
   }
 
   const updateMetadata = () => {
