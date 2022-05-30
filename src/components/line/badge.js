@@ -12,22 +12,28 @@ const types = {
   neutral: { background: "elementBackground", color: "textLite" },
 }
 
-const Badge = ({ type, children, ...rest }) => {
-  const { background, color } = types[type] ?? types.error
+export const getColors = type => types[type] ?? types.error
+
+const Badge = ({ type, children, noBorder, ...rest }) => {
+  const { background, color } = getColors(type)
 
   return (
     <Flex
       padding={[0.5, 2]}
       background={background}
       round={3}
-      border={{ color, size: "1px", side: "all" }}
+      border={noBorder ? undefined : { color, size: "1px", side: "all" }}
       alignItems="center"
       data-testid="badge"
       {...rest}
     >
-      <TextMicro color={color} whiteSpace="nowrap">
-        {children}
-      </TextMicro>
+      {typeof children === "object" ? (
+        children
+      ) : (
+        <TextMicro color={color} whiteSpace="nowrap">
+          {children}
+        </TextMicro>
+      )}
     </Flex>
   )
 }

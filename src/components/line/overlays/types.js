@@ -2,6 +2,7 @@ import React, { Fragment } from "react"
 import styled from "styled-components"
 import Container, { alignment } from "./container"
 import Alarm from "./alarm"
+import AlarmRange from "./alarmRange"
 import Highlight, { HighlightPeriod } from "./highlight"
 import Proceeded from "./proceeded"
 import ChartName from "./chartName"
@@ -16,6 +17,12 @@ const NoEventsContainer = styled(LayerContainer)`
 const AlarmOverlay = ({ id }) => (
   <Container id={id} top="20px" margin={[0, 8, 0, 0]}>
     <Alarm id={id} />
+  </Container>
+)
+
+const AlarmRangeOverlay = ({ id }) => (
+  <Container id={id} top="20px" margin={[0, 2, 0, 0]} align={alignment.elementLeft}>
+    <AlarmRange id={id} />
   </Container>
 )
 
@@ -55,6 +62,7 @@ const LatestValueOverlay = props => (
 
 export default {
   alarm: AlarmOverlay,
+  alarmRange: AlarmRangeOverlay,
   highlight: HighlightOverlay,
   proceeded: ProceededOverlay,
   name: NameOverlay,
