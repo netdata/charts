@@ -1,4 +1,5 @@
 export default {
+  fullyLoaded: false,
   loaded: false,
   id: "",
   name: "",

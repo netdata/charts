@@ -4,14 +4,11 @@ import { ItemContainer } from "@netdata/netdata-ui/lib/components/drops/menu/dro
 import { Text } from "@netdata/netdata-ui/lib/components/typography"
 import checkmark from "@netdata/netdata-ui/lib/components/icon/assets/checkmark_s.svg"
 import { Checkbox } from "@netdata/netdata-ui/lib/components/checkbox"
-import { useChart, useAttributeValue } from "@/components/provider"
+import { useChart, useAttributeValue, useMetadata } from "@/components/provider"
 import Icon from "@/components/icon"
 import Label from "./label"
 
-const getItems = chart => {
-  const { dimensions } = chart.getMetadata()
-  return ["all", ...Object.keys(dimensions)].map(value => ({ value }))
-}
+const getItems = dimensions => ["all", ...Object.keys(dimensions)].map(value => ({ value }))
 
 const getLabel = value => {
   if (value.length === 0) return `All dimensions`
@@ -54,9 +51,11 @@ const tooltipProps = {
 
 const Dimensions = ({ labelProps, ...rest }) => {
   const chart = useChart()
-  const value = useAttributeValue("dimensions")
 
-  const options = useMemo(() => getItems(chart), [value])
+  const value = useAttributeValue("dimensions")
+  const { dimensions } = useMetadata()
+
+  const options = useMemo(() => getItems(dimensions), [value, dimensions])
 
   const label = getLabel(value)
 
