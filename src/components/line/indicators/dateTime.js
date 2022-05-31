@@ -17,11 +17,16 @@ const LatestValue = ({ timestamp }) => {
 
 const Latest = () => {
   const { lastEntry } = usePayload()
+  const [x] = useAttributeValue("hoverX") || []
+
+  const label = x ? "Selected:" : "Latest:"
+
+  const timePeriod = x ? x : lastEntry * 1000
 
   return (
     <Flex gap={1}>
-      <TextNano color="textLite">Latest:</TextNano>
-      {lastEntry > 0 && <LatestValue timestamp={lastEntry * 1000} />}
+      <TextNano color="textLite">{label}</TextNano>
+      {lastEntry > 0 && <LatestValue timestamp={timePeriod} />}
     </Flex>
   )
 }
@@ -132,7 +137,7 @@ const DateTime = props => {
     <Flex gap={1} {...props}>
       {range && (
         <Fragment>
-          <TextNano color="textLite">Selection:</TextNano>
+          <TextNano color="textLite">Highlight:</TextNano>
           <Range after={range[0]} before={range[1]} />
           <TextNano color="textDescription">•</TextNano>
         </Fragment>
