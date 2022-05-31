@@ -5,12 +5,12 @@ import { useChart } from "@/components/provider"
 
 const UpdateEvery = () => {
   const chart = useChart()
-  const { updateEvery } = chart.getMetadata()
+  const { viewUpdateEvery = 0 } = chart.getPayload()
 
   return (
     <Flex gap={1} data-testid="chartPopover-collection">
       <TextMicro color="textLite">Collection:</TextMicro>
-      <TextMicro color="textDescription">every {updateEvery}s</TextMicro>
+      <TextMicro color="textDescription">every {viewUpdateEvery}s</TextMicro>
     </Flex>
   )
 }

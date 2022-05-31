@@ -7,9 +7,16 @@ import Name, { Name as NameContainer } from "@/components/line/dimensions/name"
 import Value, { Value as ValueContainer } from "@/components/line/dimensions/value"
 import Units from "@/components/line/dimensions/units"
 import { useVisibleDimensionId, useChart } from "@/components/provider"
+import Tooltip from "@/components/tooltip"
 
 const DimensionContainer = props => (
-  <Flex width={{min: 22, max: 40}} flex={false} gap={1} data-testid="chartLegendDimension" {...props} />
+  <Flex
+    width={{ min: 22, max: 40 }}
+    flex={false}
+    gap={1}
+    data-testid="chartLegendDimension"
+    {...props}
+  />
 )
 
 export const SkeletonDimension = () => {
@@ -66,14 +73,16 @@ const Dimension = ({ id }) => {
       data-track={chart.track(`dimension-${name}`)}
     >
       <Color id={id} />
-      <Flex flex column overflow="hidden" data-testid="chartLegendDimension-details">
-        <Name id={id} maxLength={25} />
+      <Tooltip content={name}>
+        <Flex flex column overflow="hidden" data-testid="chartLegendDimension-details">
+          <Name id={id} maxLength={25} />
 
-        <Flex gap={1} data-testid="chartLegendDimension-valueContainer">
-          <Value id={id} strong visible={visible} />
-          <Units visible={visible} />
+          <Flex gap={1} data-testid="chartLegendDimension-valueContainer" flex>
+            <Value id={id} strong visible={visible} />
+            <Units visible={visible} />
+          </Flex>
         </Flex>
-      </Flex>
+      </Tooltip>
     </DimensionContainer>
   )
 }

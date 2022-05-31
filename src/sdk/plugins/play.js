@@ -40,16 +40,16 @@ export default sdk => {
 
   const blur = () => {
     windowFocused = false
-    sdk.getNodes({ autofetchOnWindowBlur: false }, { inherit: true }).forEach(node => {
-      if (node.type === "chart") node.updateAttributes({ autofetch: false })
-    })
+    sdk
+      .getNodes({ autofetchOnWindowBlur: false }, { inherit: true })
+      .forEach(node => node.updateAttributes({ autofetch: false }))
   }
 
   const focus = () => {
     windowFocused = true
-    sdk.getNodes({ autofetchOnWindowBlur: false }, { inherit: true }).forEach(node => {
-      if (node.type === "chart") autofetchIfActive(node)
-    })
+    sdk
+      .getNodes({ autofetchOnWindowBlur: false }, { inherit: true })
+      .forEach(node => autofetchIfActive(node))
   }
 
   window.addEventListener("blur", blur)
