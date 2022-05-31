@@ -6,8 +6,10 @@ export default sdk => {
       })
     })
     .on("hoverChart", chart => {
+      syncChartsOnHover(chart)
       chart.getApplicableNodes({ syncHover: true }).forEach(node => {
         node.updateAttribute("hovering", true)
+        syncChartsOnHover(node)
       })
     })
     .on("blurChart", chart => {
@@ -15,4 +17,10 @@ export default sdk => {
         node.updateAttributes({ hoverX: null, hovering: false })
       })
     })
+}
+
+const syncChartsOnHover = (node = {}) => {
+  if (node.type === "chart" && node.getAttribute("active")) {
+    node.fetchAndRender()
+  }
 }
