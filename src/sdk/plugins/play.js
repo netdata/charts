@@ -30,7 +30,10 @@ export default sdk => {
 
     if (!autofetch && !force) return
 
-    if (chart.getAttribute("loaded")) return chart.getUI().render()
+    if (chart.getAttribute("loaded")) {
+      chart.updateAttribute("autofetch", autofetch)
+      return chart.getUI().render()
+    }
 
     if (active && !autofetch) chart.fetchAndRender()
 
@@ -49,7 +52,9 @@ export default sdk => {
     windowFocused = true
     sdk
       .getNodes({ autofetchOnWindowBlur: false }, { inherit: true })
-      .forEach(node => autofetchIfActive(node))
+      .forEach(node =>
+        node.type === "chart" ? autofetchIfActive(node) : node.updateAttribute("autofetch", true)
+      )
   }
 
   window.addEventListener("blur", blur)
