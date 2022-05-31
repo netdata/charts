@@ -30,6 +30,8 @@ export default sdk => {
 
     if (!autofetch && !force) return
 
+    if (chart.getAttribute("loaded")) return chart.getUI().render()
+
     if (active && !autofetch) chart.fetchAndRender()
 
     if (autofetch) toggleRender(autofetch)
