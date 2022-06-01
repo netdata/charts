@@ -61,9 +61,8 @@ export default sdk => {
   const offs = sdk
     .on("active", chart => autofetchIfActive(chart, true))
     .on("hoverChart", chart => {
+      if (chart.getAttribute("paused") || !chart.getAttribute("autofetch")) return
       const autofetch = false
-
-      if (autofetch === chart.getAttribute("autofetch")) return
 
       toggleRender(autofetch)
       chart.getApplicableNodes({ syncHover: true }).forEach(node => {
@@ -73,7 +72,7 @@ export default sdk => {
     .on("blurChart", chart => {
       const autofetch = chart.getAttribute("after") < 0 && chart.getAttribute("active")
 
-      if (autofetch === chart.getAttribute("autofetch")) return
+      if (chart.getAttribute("paused") || autofetch === chart.getAttribute("autofetch")) return
 
       toggleRender(autofetch)
       chart.getApplicableNodes({ syncHover: true }).forEach(node => {
