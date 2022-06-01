@@ -92,13 +92,19 @@ const GroupBoxWrapper = ({
 const GroupBoxes = ({ data, labels, renderBoxPopover, renderGroupPopover, context }) => {
   const units = useUnitSign()
   const chart = useChart()
+  const index = chart.getUI().getThemeIndex()
 
   const allValues = useMemo(
     () => data.reduce((h, d) => [...h, ...d.data], []).sort((a, b) => a - b),
     [data]
   )
 
-  const getColor = makeGetColor(allValues)
+  const defaultColorRange = [
+    ["rgba(198, 227, 246, 0.9)", "rgba(43, 44, 170, 1)"],
+    ["rgba(43, 44, 170, 1)", "rgba(198, 227, 246, 0.9)"],
+  ]
+
+  const getColor = makeGetColor(allValues, defaultColorRange[index])
   return (
     <>
       <Flex data-testid="groupBoxes" flexWrap overflow={{ vertical: "auto" }} flex>
