@@ -69,7 +69,9 @@ const Dimensions = ({ labelProps, ...rest }) => {
       data-track={chart.track("dimensions")}
       dropProps={{
         height: { max: "460px" },
-        overflow: { vertical: "auto" },
+        overflow: "auto",
+        align: { top: "bottom", right: "right" },
+        "data-toolbox": true,
       }}
       {...rest}
     >

@@ -53,6 +53,7 @@ const GroupBy = () => {
       onChange={chart.updateGroupByAttribute}
       items={items}
       data-track={chart.track("groupBy")}
+      dropProps={{ align: { top: "bottom", right: "right" }, "data-toolbox": true }}
     >
       <Label
         secondaryLabel="Group by"

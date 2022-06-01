@@ -8,6 +8,7 @@ const useHover = ({ onHover, onBlur, isOut = defaultIsOut }, deps) => {
   useLayoutEffect(() => {
     const mouseout = e => {
       let node = e.relatedTarget
+
       while (node && node !== ref.current && isOut(node)) {
         node = node.parentElement
       }

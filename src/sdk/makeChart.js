@@ -277,14 +277,18 @@ export default ({
     }).format(converted)
   }
 
-  const focus = () => {
+  const focus = event => {
     if (!node) return
-    node.updateAttribute("focused", true)
+    node.updateAttributes({ focused: true, hovering: true })
+    sdk.trigger("hoverChart", node, event)
+    node.trigger("hoverChart", event)
   }
 
-  const blur = () => {
+  const blur = event => {
     if (!node) return
-    node.updateAttribute("focused", false)
+    node.updateAttributes({ focused: false, hovering: false })
+    sdk.trigger("blurChart", node, event)
+    node.trigger("blurChart", event)
   }
 
   const activate = () => {

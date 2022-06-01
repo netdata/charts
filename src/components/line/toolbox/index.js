@@ -26,13 +26,6 @@ const Container = styled(Flex).attrs({
 
   &:hover {
     background: ${getColor("elementBackground")};
-  }
-
-  & > * {
-    opacity: 0.3;
-  }
-
-  &:hover > * {
     opacity: 1;
   }
 `
@@ -65,7 +58,13 @@ const Toolbox = forwardRef((props, ref) => {
   if (highlighting || panning) return null
 
   return (
-    <Container data-testid="chartToolbox" {...props} ref={ref} data-track={chart.track("toolbox")}>
+    <Container
+      data-testid="chartToolbox"
+      data-toolbox="true"
+      {...props}
+      ref={ref}
+      data-track={chart.track("toolbox")}
+    >
       <Button
         icon={<Icon svg={panTool} size="16px" />}
         title="Pan"
