@@ -49,7 +49,7 @@ const Status = props => {
   )
 
   return (
-    <Flex gap={2} data-testid="chartHeaderStatus" flex basis="0" {...props}>
+    <Flex gap={2} data-testid="chartHeaderStatus" basis="0" {...props}>
       <ReloadContainer />
       <StatusBadge {...statusProps} />
       {!initialLoading && empty && (

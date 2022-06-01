@@ -10,7 +10,7 @@ const Fullscreen = props => {
 
   return (
     <Button
-      icon={<Icon svg={fullscreen ? collapse : expand} size={fullscreen ? "16px" : "24px"} />}
+      icon={<Icon svg={fullscreen ? collapse : expand} size="16px" />}
       onClick={chart.toggleFullscreen}
       title={fullscreen ? "Minimize" : "Full screen"}
       data-testid="chartHeaderToolbox-fullscreen"

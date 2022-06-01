@@ -1,7 +1,7 @@
 import React, { useMemo } from "react"
 import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
 import { ItemContainer } from "@netdata/netdata-ui/lib/components/drops/menu/dropdownItem"
-import { Text } from "@netdata/netdata-ui/lib/components/typography"
+import { TextSmall } from "@netdata/netdata-ui/lib/components/typography"
 import checkmark from "@netdata/netdata-ui/lib/components/icon/assets/checkmark_s.svg"
 import { Checkbox } from "@netdata/netdata-ui/lib/components/checkbox"
 import { useChart, useAttributeValue, useMetadata } from "@/components/provider"
@@ -17,7 +17,7 @@ const getLabel = value => {
 }
 
 const CheckboxIcon = props => {
-  return <Icon svg={checkmark} {...props} />
+  return <Icon svg={checkmark} {...props} size="16px" />
 }
 
 const iconProps = { as: CheckboxIcon }
@@ -32,7 +32,7 @@ const Item = ({ item: { value }, value: selectedValues, onItemClick }) => {
         iconProps={iconProps}
         checked={checked}
         onChange={() => onItemClick(value)}
-        label={<Text>{isAll ? "All dimensions" : value}</Text>}
+        label={<TextSmall>{isAll ? "All dimensions" : value}</TextSmall>}
       />
     </ItemContainer>
   )
@@ -69,7 +69,6 @@ const Dimensions = ({ labelProps, ...rest }) => {
       data-track={chart.track("dimensions")}
       dropProps={{
         height: { max: "460px" },
-        width: { max: "360px" },
         overflow: { vertical: "auto" },
       }}
       {...rest}

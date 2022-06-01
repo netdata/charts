@@ -21,7 +21,7 @@ const Footer = () => {
   return (
     <Container>
       <Indicators />
-      <Flex>
+      <Flex alignItems="center">
         <DimensionFilter />
         <Legend />
         {enabledHeightResize && <Resize />}

@@ -9,8 +9,8 @@ import { Fragment } from "react"
 
 const Container = styled(Flex).attrs({
   gap: 1,
-  padding: [0, 0, 3],
-  alignItems: "start",
+  padding: [0, 0, 1],
+  alignItems: "center",
   flex: true,
   basis: 0,
   "data-testid": "chartLegend",

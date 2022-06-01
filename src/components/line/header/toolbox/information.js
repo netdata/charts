@@ -9,7 +9,7 @@ const Information = props => {
 
   return (
     <Button
-      icon={<Icon svg={information} />}
+      icon={<Icon svg={information} size="16px" />}
       title="Information"
       data-testid="chartHeaderToolbox-information"
       active={value}

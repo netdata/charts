@@ -41,6 +41,7 @@ const Logo = props => {
       isFetching={isFetching}
       title={isFetching ? "Playing" : "Paused"}
       data-testid="chartHeaderStatus-logo"
+      size="16px"
       {...props}
     />
   )

@@ -39,12 +39,14 @@ const Label = forwardRef(
           active={selectedValue === value}
           onClick={() => onChange(value)}
           padding="2px"
+          small
         />
         <Button
           icon={<Icon svg={open ? chevronUpIcon : chevronDownIcon} size="12px" />}
           onClick={onClick}
           padding="2px"
           stroked
+          small
         />
       </Flex>
     )
@@ -62,7 +64,7 @@ const renderDropdown = ({ onItemClick, items }) => {
       padding={[1, 0]}
       data-toolbox
     >
-      <Button title={title} icon={icon} onClick={() => onItemClick(value)} padding="2px" />
+      <Button title={title} icon={icon} onClick={() => onItemClick(value)} padding="2px" small />
     </Flex>
   )
 }

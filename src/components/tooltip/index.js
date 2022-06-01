@@ -4,7 +4,7 @@ import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { TextSmall } from "@netdata/netdata-ui/lib/components/typography"
 
 export const tooltipStyleProps = {
-  padding: [1.5, 2],
+  padding: [1, 2, 2],
   margin: [2],
   round: 1,
   width: { max: "300px" },
@@ -24,7 +24,6 @@ const Tooltip = forwardRef(({ content, Content = DefaultContent, ...rest }, ref)
   <BaseTooltip
     ref={ref}
     plain
-    animation
     content={<Content {...rest}>{content}</Content>}
     {...rest}
     dropProps={{ "data-toolbox": true }}

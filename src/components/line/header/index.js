@@ -6,8 +6,8 @@ import Toolbox from "./toolbox"
 
 const Container = props => (
   <Flex
-    justifyContent="between"
     alignItems="center"
+    justifyContent="start"
     padding={[1, 2]}
     gap={1}
     border={{ side: "bottom", color: "borderSecondary" }}

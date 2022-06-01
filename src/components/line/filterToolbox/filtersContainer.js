@@ -3,10 +3,9 @@ import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 
 const FiltersContainer = styled(Flex).attrs({
   justifyContent: "between",
-  alignItems: "end",
+  alignItems: "center",
   border: { side: "bottom", color: "borderSecondary" },
   padding: [0.5],
-  margin: [0, 0, 0, 1],
   overflow: { horizontal: "auto" },
 })`
   &::-webkit-scrollbar {

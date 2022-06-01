@@ -8,7 +8,7 @@ const Indicators = () => {
   const loaded = useAttributeValue("loaded")
 
   return (
-    <Flex justifyContent="end" padding={[1, 2, 1]}>
+    <Flex justifyContent="end" padding={[0, 2]}>
       {loaded && <DateTime />}
       {!loaded && <TextNano color="textLite">-</TextNano>}
     </Flex>

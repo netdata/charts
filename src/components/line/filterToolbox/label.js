@@ -10,8 +10,9 @@ import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
 export const Container = styled(Flex).attrs(({ width = { max: "200px" } }) => ({
   cursor: "pointer",
   role: "button",
-  padding: [1, 2],
+  padding: [1],
   round: true,
+  gap: 1,
   width,
 }))`
   &:hover {
@@ -20,7 +21,6 @@ export const Container = styled(Flex).attrs(({ width = { max: "200px" } }) => ({
 `
 
 const StyledLabel = styled(TextSmall).attrs({
-  margin: [0, 0, 0, 2],
   whiteSpace: "nowrap",
   truncate: true,
 })`
@@ -46,4 +46,4 @@ const TooltipContent = ({ header, body }) => (
   </Flex>
 )
 
-export default withTooltip(Label, { Content: TooltipContent })
+export default withTooltip(Label, { Content: TooltipContent, align: "top" })

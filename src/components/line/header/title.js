@@ -1,6 +1,6 @@
 import React from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { Text } from "@netdata/netdata-ui/lib/components/typography"
+import { TextSmall } from "@netdata/netdata-ui/lib/components/typography"
 import {
   useTitle,
   useAttributeValue,
@@ -21,21 +21,21 @@ export const Title = props => {
       data-testid="chartHeaderStatus-title"
       gap={1}
       flex="shrink"
-      justifyContent="center"
+      justifyContent="start"
       {...props}
     >
-      <Text strong color="textDescription" truncate>
+      <TextSmall color="textDescription" truncate>
         {title}
-      </Text>
+      </TextSmall>
       {loaded && name && (
-        <Text strong color="textLite" whiteSpace="nowrap">
+        <TextSmall color="textLite" whiteSpace="nowrap">
           • {name}
-        </Text>
+        </TextSmall>
       )}
       {loaded && unitSign && (
-        <Text strong color="textLite" whiteSpace="nowrap">
+        <TextSmall color="textLite" whiteSpace="nowrap">
           • [{unitSign}]
-        </Text>
+        </TextSmall>
       )}
     </Flex>
   )

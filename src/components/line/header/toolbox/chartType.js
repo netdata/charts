@@ -6,7 +6,7 @@ import areaChart from "@netdata/netdata-ui/lib/components/icon/assets/area_chart
 import Icon, { Button } from "@/components/icon"
 import { useChart, useMetadata, useAttribute } from "@/components/provider"
 
-const iconProps = { color: "border", margin: [0, 2, 0, 0] }
+const iconProps = { color: "border", margin: [0, 2, 0, 0], size: "16px" }
 
 const useItems = chart =>
   useMemo(
@@ -56,7 +56,7 @@ const ChartType = ({ disabled }) => {
       data-track={chart.track("chartType")}
     >
       <Button
-        icon={<Icon svg={svg} />}
+        icon={<Icon svg={svg} size="16px" />}
         title={label}
         disabled={disabled}
         data-testid="chartHeaderToolbox-chartType"

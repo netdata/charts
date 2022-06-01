@@ -28,13 +28,14 @@ const Reload = props => {
 
   return (
     <Button
-      icon={<StyledIcon svg={reload2} isLoading={loading} />}
+      icon={<StyledIcon svg={reload2} isLoading={loading} size="16px" />}
       disabled={loading}
       onClick={fetch}
       title="Refresh"
       data-testid="chartHeaderStatus-reload"
       tooltipProps={{ open: true }}
       data-track={chart.track("refresh")}
+      small
       {...props}
     />
   )

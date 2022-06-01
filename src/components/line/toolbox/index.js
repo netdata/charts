@@ -1,5 +1,6 @@
 import React, { forwardRef } from "react"
 import styled from "styled-components"
+import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import panTool from "@netdata/netdata-ui/lib/components/icon/assets/pan_tool.svg"
 import selectedArea from "@netdata/netdata-ui/lib/components/icon/assets/selected_area.svg"
@@ -13,14 +14,27 @@ import Select from "./select"
 const Container = styled(Flex).attrs({
   padding: [0.5],
   gap: 1,
-  background: "elementBackground",
+  background: "transparent",
   round: true,
   border: { side: "all", color: "borderSecondary" },
+  opacity: "weak",
 })`
   position: absolute;
   top: 8px;
   right: 8px;
   opacity: 0.7;
+
+  &:hover {
+    background: ${getColor("elementBackground")};
+  }
+
+  & > * {
+    opacity: 0.3;
+  }
+
+  &:hover > * {
+    opacity: 1;
+  }
 `
 
 const ZoomReset = () => {
@@ -37,6 +51,7 @@ const ZoomReset = () => {
       data-track={chart.track("zoomReset")}
       disabled={after === -900}
       padding="2px"
+      small
     />
   )
 }
@@ -44,6 +59,10 @@ const ZoomReset = () => {
 const Toolbox = forwardRef((props, ref) => {
   const chart = useChart()
   const [navigation, setNavigation] = useAttribute("navigation")
+
+  const highlighting = useAttributeValue("highlighting")
+  const panning = useAttributeValue("panning")
+  if (highlighting || panning) return null
 
   return (
     <Container data-testid="chartToolbox" {...props} ref={ref} data-track={chart.track("toolbox")}>
@@ -56,6 +75,7 @@ const Toolbox = forwardRef((props, ref) => {
         stroked
         data-track={chart.track("pan")}
         padding="2px"
+        small
       />
       <Button
         icon={<Icon svg={selectedArea} size="16px" />}
@@ -65,6 +85,7 @@ const Toolbox = forwardRef((props, ref) => {
         data-testid="chartToolbox-highlight"
         data-track={chart.track("highlight")}
         padding="2px"
+        small
       />
       <Select />
       <Button
@@ -74,6 +95,7 @@ const Toolbox = forwardRef((props, ref) => {
         data-testid="chartToolbox-zoomIn"
         data-track={chart.track("zoomIn")}
         padding="2px"
+        small
       />
       <Button
         icon={<Icon svg={zoomOutIcon} size="16px" />}
@@ -82,6 +104,7 @@ const Toolbox = forwardRef((props, ref) => {
         data-testid="chartToolbox-zoomOut"
         data-track={chart.track("zoomOut")}
         padding="2px"
+        small
       />
       <ZoomReset />
     </Container>
