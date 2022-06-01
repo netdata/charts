@@ -46,6 +46,7 @@ export default {
   dimensionsSort: "default",
   autofetch: false,
   autofetchOnWindowBlur: false,
+  paused: false,
   pixelsPerPoint: 1,
   legend: true,
   groupingMethod: "average",
