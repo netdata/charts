@@ -21,6 +21,12 @@ export default (sdk, chart) => {
     sdk.trigger("mountChartUI", chart)
   }
 
+  chart.on("finishFetch", () => {
+    const { active, autofetch } = chart.getAttributes()
+    const consumeLatestRequestWhilePaused = active && !autofetch
+    if (consumeLatestRequestWhilePaused) chart.getUI().render()
+  })
+
   const unmount = () => {
     sdk.trigger("unmountChartUI", chart)
     listeners.offAll()
