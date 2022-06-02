@@ -12,6 +12,7 @@ import {
   useOnResize,
 } from "@/components/provider"
 import { getSizeBy } from "@netdata/netdata-ui/lib/theme/utils"
+import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
 import { withChartProvider, useIsFetching } from "@/components/provider"
 import withChartTrack from "@/components/hocs/withChartTrack"
 import withIntersection from "./withIntersection"
@@ -34,7 +35,10 @@ const Title = () => {
     </Label>
   )
 }
-
+const StrokeLabel = styled(Label)`
+  -webkit-text-stroke-width: 0.7px;
+  -webkit-text-stroke-color: ${getColor("borderSecondary")};
+`
 const Value = () => {
   const chart = useChart()
 
@@ -50,9 +54,9 @@ const Value = () => {
   useImmediateListener(() => chart.getUI().on("rendered", () => setValue(getValue())), [])
 
   return (
-    <Label flex="2" color="main" fontSize="2.2em" strong>
+    <StrokeLabel flex="2" color="main" fontSize="2.2em" strong>
       {value}
-    </Label>
+    </StrokeLabel>
   )
 }
 
