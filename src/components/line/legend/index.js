@@ -1,6 +1,9 @@
 import React, { memo, useRef, useEffect } from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import navLeft from "@netdata/netdata-ui/lib/components/icon/assets/nav_left.svg"
+import navRight from "@netdata/netdata-ui/lib/components/icon/assets/nav_right.svg"
+import useNavigationArrow from "@netdata/netdata-ui/lib/organisms/navigation/hooks/useNavigationArrows"
 // import { getSizeBy, getRgbColor } from "@netdata/netdata-ui/lib/theme/utils"
 // import { webkitVisibleScrollbar } from "@netdata/netdata-ui/lib/mixins/webkit-visible-scrollbar"
 import {
@@ -12,7 +15,7 @@ import {
 } from "@/components/provider"
 import Dimension, { SkeletonDimension, EmptyDimension } from "./dimension"
 import { Fragment } from "react"
-import { Icon, useNavigationArrow } from "@netdata/netdata-ui"
+import Icon from "@/components/icon"
 
 const Container = styled(Flex).attrs({
   gap: 1,
@@ -147,7 +150,7 @@ const Legend = props => {
           onClick={scrollLeft}
           padding={[2]}
         >
-          <Icon name={"navLeft"} color="text" width={8} height={8} />
+          <Icon svg={navLeft} color="key" size="8px" />
         </Flex>
       )}
       {!initialLoading && !empty && <Dimensions setRef={setDimensionRef} />}
@@ -161,7 +164,7 @@ const Legend = props => {
           onClick={scrollRight}
           padding={[2]}
         >
-          <Icon name="navRight" color="text" width={8} height={8} />
+          <Icon svg={navRight} color="key" size="8px" />
         </Flex>
       )}
     </Container>
