@@ -33,7 +33,7 @@ export default (chartUI, id) => {
 
   if (!area) return trigger(chartUI, id)
 
-  const { from, width } = area
+  const { from, width, to } = area
   trigger(chartUI, id, area)
 
   ctx.save()
@@ -44,20 +44,21 @@ export default (chartUI, id) => {
   ctx.globalAlpha = 0.1
   ctx.fill()
 
+  const borderWidth = 2
   // left border
   ctx.beginPath()
   ctx.moveTo(from, 0)
   ctx.lineTo(from, h)
   ctx.globalAlpha = 1
-  ctx.lineWidth = 2
+  ctx.lineWidth = borderWidth
   ctx.setLineDash([4, 4])
   ctx.strokeStyle = borderColorMap[status]
   ctx.stroke()
 
   // right border
   ctx.beginPath()
-  ctx.moveTo(from + width, 0)
-  ctx.lineTo(from + width, h)
+  ctx.moveTo(to - borderWidth, 0)
+  ctx.lineTo(to - borderWidth, h)
   ctx.strokeStyle = textColorMap[status]
   ctx.stroke()
 

@@ -10,7 +10,8 @@ import makeOverlays from "./overlays"
 import crosshair from "./crosshair"
 
 const getDateWindow = chart => {
-  const { after, before } = chart.getAttributes()
+  const { after, before, forceDateWindow } = chart.getAttributes()
+  if (forceDateWindow) return forceDateWindow
 
   if (after > 0) return [after * 1000, before * 1000]
 
