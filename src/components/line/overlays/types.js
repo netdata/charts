@@ -31,7 +31,16 @@ const HighlightOverlay = ({ id }) => {
 
   if (sparkline) return null
   return (
-    <Container id={id} bottom="0px" top="0px" noTransform align={alignment.elementRight} right={90}>
+    <Container
+      id={id}
+      justifyContent="center"
+      bottom="0px"
+      top="0px"
+      noTransform
+      align={alignment.elementRight}
+      right={90}
+      width="90px"
+    >
       <Highlight id={id} />
     </Container>
   )
@@ -44,13 +53,13 @@ const ProceededOverlay = ({ id }) => (
 )
 
 const NameOverlay = props => (
-  <NoEventsContainer isAbsolute position="top" noEvents margin={[2,0,0,0]}>
+  <NoEventsContainer isAbsolute position="top" noEvents margin={[2, 0, 0, 0]}>
     <ChartName {...props} />
   </NoEventsContainer>
 )
 
 const LatestValueOverlay = props => (
-  <NoEventsContainer isAbsolute position="bottom" noEvents margin={[0,0,2,0]}>
+  <NoEventsContainer isAbsolute position="bottom" noEvents margin={[0, 0, 2, 0]}>
     <LatestValue {...props} />
   </NoEventsContainer>
 )
