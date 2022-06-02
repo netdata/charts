@@ -1,17 +1,27 @@
-import React from "react"
+import React, { Fragment } from "react"
 import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { useChart } from "@/components/provider"
 
 const UpdateEvery = () => {
   const chart = useChart()
+
+  const { updateEvery = 0 } = chart.getMetadata()
   const { viewUpdateEvery = 0 } = chart.getPayload()
 
   return (
-    <Flex gap={1} data-testid="chartPopover-collection">
-      <TextMicro color="textLite">Collection:</TextMicro>
-      <TextMicro color="textDescription">every {viewUpdateEvery}s</TextMicro>
-    </Flex>
+    <Fragment>
+      <Flex gap={1} data-testid="chartPopover-collection">
+        <TextMicro color="textLite">Granularity:</TextMicro>
+        <TextMicro color="textDescription">{updateEvery}s</TextMicro>
+      </Flex>
+      {viewUpdateEvery !== updateEvery && (
+        <Flex gap={1} data-testid="chartPopover-collection">
+          <TextMicro color="textLite">View point:</TextMicro>
+          <TextMicro color="textDescription">average {viewUpdateEvery}s</TextMicro>
+        </Flex>
+      )}
+    </Fragment>
   )
 }
 
