@@ -12,6 +12,7 @@ import {
 } from "@/components/provider"
 import Dimension, { SkeletonDimension, EmptyDimension } from "./dimension"
 import { Fragment } from "react"
+import { Icon, useNavigationArrow } from "@netdata/netdata-ui"
 
 const Container = styled(Flex).attrs({
   gap: 1,
@@ -46,7 +47,7 @@ const SkeletonDimensions = () => (
   </Fragment>
 )
 
-const Dimensions = memo(() => {
+const Dimensions = memo(({ setRef }) => {
   const dimensionIds = useDimensionIds()
 
   if (!dimensionIds) return null
@@ -54,13 +55,14 @@ const Dimensions = memo(() => {
   return (
     <Fragment>
       {dimensionIds.map(id => (
-        <Dimension key={id} id={id} />
+        <Dimension ref={setRef} key={id} id={id} />
       ))}
     </Fragment>
   )
 })
 
 const Legend = props => {
+  const dimensionIds = useDimensionIds()
   const chart = useChart()
   const initialLoading = useInitialLoading()
   const empty = useEmpty()
@@ -68,6 +70,14 @@ const Legend = props => {
   const isActive = useAttributeValue("active")
 
   const legendRef = useRef(null)
+  const dimensionItemsRef = useRef([])
+
+  const [arrowLeft, arrowRight, onScroll] = useNavigationArrow(
+    legendRef,
+    filterTrayItemsRef,
+    [],
+    true
+  )
 
   useEffect(() => {
     if (legendRef.current && isActive) {
@@ -79,6 +89,7 @@ const Legend = props => {
     const listener = () => {
       const { x } = getPositions(legendRef.current)
       updateLegendScroll(x)
+      onScroll()
     }
     const options = {
       capture: false,
@@ -93,11 +104,66 @@ const Legend = props => {
     }
   }, [legendRef.current])
 
+  const setDimensionRef = useCallback(
+    dimentionItem => {
+      if (!dimentionItem) return
+
+      if (!dimensionItemsRef.current.includes(dimentionItem))
+        dimensionItemsRef.current = [...dimensionItemsRef.current, dimentionItem]
+
+      if (dimensionIds.length < dimensionItemsRef.current.length) {
+        dimensionItemsRef.current = dimensionItemsRef.current.filter(
+          node => node.getAttribute("id") === dimentionItem.getAttribute("id")
+        )
+      }
+    },
+    [dimensionIds.length]
+  )
+
+  const scrollLeft = e => {
+    e.preventDefault()
+    const container = legendRef.current
+    container.scrollTo({
+      left: container.scrollLeft - 100,
+      behavior: "smooth",
+    })
+  }
+
+  const scrollRight = e => {
+    e.preventDefault()
+    const container = legendRef.current
+    container.scrollTo({
+      left: container.scrollLeft + 100,
+      behavior: "smooth",
+    })
+  }
+
   return (
     <Container ref={legendRef} {...props} data-track={chart.track("legend")}>
-      {!initialLoading && !empty && <Dimensions />}
+      {arrowLeft && (
+        <Flex
+          data-testid="filterTray-arrowLeft"
+          cursor="pointer"
+          onClick={scrollLeft}
+          padding={[2]}
+        >
+          <Icon name={"navLeft"} color="text" width={8} height={8} />
+        </Flex>
+      )}
+      {!initialLoading && !empty && <Dimensions setRef={setDimensionRef} />}
       {initialLoading && <SkeletonDimensions />}
       {!initialLoading && empty && <EmptyDimension />}
+
+      {arrowRight && (
+        <Flex
+          data-testid="filterTray-arrowRight"
+          cursor="pointer"
+          onClick={scrollRight}
+          padding={[2]}
+        >
+          <Icon name="navRight" color="text" width={8} height={8} />
+        </Flex>
+      )}
     </Container>
   )
 }
