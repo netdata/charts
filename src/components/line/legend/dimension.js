@@ -1,4 +1,4 @@
-import React from "react"
+import React, { forwardRef } from "react"
 import { useTheme } from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { getColor } from "@netdata/netdata-ui/lib/theme/utils"

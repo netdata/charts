@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useRef, useEffect } from "react"
+import React, { memo, useRef, useEffect, useCallback } from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import navLeft from "@netdata/netdata-ui/lib/components/icon/assets/nav_left.svg"
@@ -77,7 +77,7 @@ const Legend = props => {
 
   const [arrowLeft, arrowRight, onScroll] = useNavigationArrow(
     legendRef,
-    filterTrayItemsRef,
+    dimensionItemsRef,
     [],
     true
   )
