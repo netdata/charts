@@ -4,8 +4,8 @@ import correlationsIcon from "@netdata/netdata-ui/lib/components/icon/assets/cor
 import Icon, { Button } from "@/components/icon"
 import Tooltip from "@/components/tooltip"
 import { useChart, useAttributeValue } from "@/components/provider"
-import Badge from "@/components/line/badge"
 import { getDateDiff } from "@/components/line/indicators/dateTime"
+import { TextNano } from "@netdata/netdata-ui/lib/components/typography"
 
 const minTimeframe = 15
 
@@ -21,7 +21,7 @@ export const Period = ({ id }) => {
   const [after, before] = range
   const dateDiff = getDateDiff(after, before)
 
-  return <Badge type="neutral">{dateDiff}</Badge>
+  return <TextNano strong>{dateDiff}</TextNano>
 }
 
 const Correlation = ({ id }) => {
@@ -34,10 +34,6 @@ const Correlation = ({ id }) => {
   const errorMessage = validatePeriodSelected(total)
 
   const chart = useChart()
-  const hasCorrelation = useAttributeValue("hasCorrelation")
-
-  if (!hasCorrelation) return null
-
   return (
     <Tooltip
       content={errorMessage ? `Metrics correlation: ${errorMessage}` : "Run metrics correlation"}

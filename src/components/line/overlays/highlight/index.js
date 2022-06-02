@@ -1,39 +1,59 @@
 import React, { memo } from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import useIsInArea from "./useIsInArea"
+import { TextNano } from "@netdata/netdata-ui/lib/components/typography"
+import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
 import Correlation, { Period } from "./correlation"
-import ZoomIn from "./zoomIn"
+import useIsInArea from "./useIsInArea"
+import { useAttributeValue } from "@/components/provider"
 
-const HighlightContainer = styled(Flex).attrs({
-  gap: 2,
-  padding: [1, 2],
-  round: true,
-  background: "dropdown",
+const StyledHighlight = styled(Flex).attrs({
+  justifyContent: "center",
   alignItems: "center",
+  gap: 2,
+  height: "40px",
+  alignSelf: "center",
+  round: true,
+  width: { min: "70px" },
+  padding: [1, 2],
+  border: { side: "all", color: "borderSecondary" },
 })`
-  direction: initial;
+  background-color: ${getColor("mainBackground")}80;
 `
+
+export const Divider = styled(Flex)`
+  background: ${getColor("borderSecondary")};
+  height: 16px;
+  width: 1px;
+`
+
+const HighlightPeriod = memo(props => {
+  return (
+    <Flex column gap={[0.5]}>
+      <TextNano strong textTransform="uppercase" color="textLite">
+        Range
+      </TextNano>
+      <Period {...props} />
+    </Flex>
+  )
+})
 
 const Highlight = ({ id, correlationProps }) => {
   const isInArea = useIsInArea(id)
+  const hasCorrelation = useAttributeValue("hasCorrelation")
 
   if (!isInArea) return null
-
   return (
-    <HighlightContainer>
-      <Correlation id={id} {...correlationProps} />
-      <ZoomIn id={id} />
-    </HighlightContainer>
+    <StyledHighlight>
+      <HighlightPeriod id={id} />
+      {hasCorrelation ? (
+        <>
+          <Divider />
+          <Correlation id={id} {...correlationProps} />
+        </>
+      ) : null}
+    </StyledHighlight>
   )
 }
-
-export const HighlightPeriod = memo(props => {
-  const isInArea = useIsInArea(props.id)
-
-  if (!isInArea) return null
-
-  return <Period {...props} />
-})
 
 export default memo(Highlight)
