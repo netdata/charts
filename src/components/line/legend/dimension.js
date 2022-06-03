@@ -9,15 +9,16 @@ import Units from "@/components/line/dimensions/units"
 import { useVisibleDimensionId, useChart } from "@/components/provider"
 import Tooltip from "@/components/tooltip"
 
-const DimensionContainer = props => (
+const DimensionContainer = forwardRef((props, ref) => (
   <Flex
+    ref={ref}
     width={{ min: 22, max: 40 }}
     flex={false}
     gap={1}
     data-testid="chartLegendDimension"
     {...props}
   />
-)
+))
 
 export const SkeletonDimension = () => {
   const theme = useTheme()
@@ -53,7 +54,7 @@ export const EmptyDimension = () => {
   )
 }
 
-const Dimension = ({ id }) => {
+const Dimension = forwardRef(({ id }, ref) => {
   const visible = useVisibleDimensionId(id)
   const chart = useChart()
 
@@ -66,6 +67,7 @@ const Dimension = ({ id }) => {
 
   return (
     <DimensionContainer
+      ref={ref}
       id={id}
       opacity={visible ? null : "weak"}
       cursor="pointer"
@@ -85,6 +87,6 @@ const Dimension = ({ id }) => {
       </Tooltip>
     </DimensionContainer>
   )
-}
+})
 
 export default Dimension

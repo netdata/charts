@@ -156,7 +156,6 @@ const Legend = props => {
       {!initialLoading && !empty && <Dimensions setRef={setDimensionRef} />}
       {initialLoading && <SkeletonDimensions />}
       {!initialLoading && empty && <EmptyDimension />}
-
       {arrowRight && (
         <Flex
           data-testid="filterTray-arrowRight"
