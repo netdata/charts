@@ -17,7 +17,7 @@ const AlarmRange = ({ id }) => {
   return (
     <Badge type={badgeType} noBorder>
       <TextSmall color={color}>
-        First time value:{" "}
+        Triggered value:{" "}
         <TextSmall strong color={color}>
           {valueTriggered}
         </TextSmall>
