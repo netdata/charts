@@ -76,6 +76,11 @@ export default chart => {
     chart.fetchAndRender()
   }
 
+  const updateTimeAggregationMethodAttribute = value => {
+    chart.updateAttribute("groupingMethod", value)
+    chart.fetchAndRender()
+  }
+
   const resetPristineComposite = () => {
     const attributes = chart.getAttributes()
     const prev = { ...attributes[pristineCompositeKey] }
@@ -105,6 +110,7 @@ export default chart => {
     updateGroupByAttribute,
     updateDimensionsAttribute,
     updateAggregationMethodAttribute,
+    updateTimeAggregationMethodAttribute,
     resetPristineComposite,
     removePristineComposite,
   }

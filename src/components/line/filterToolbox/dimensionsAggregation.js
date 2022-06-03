@@ -25,8 +25,8 @@ const DimensionsAggregation = ({ isAggregate, labelProps }) => {
 
   return (
     <Label
-      secondaryLabel={isAggregate ? "of the" : ""}
-      label="Sum of ABS"
+      secondaryLabel={""}
+      label="sum of ABS"
       chevron={false}
       title={!!tooltipAttrs}
       tooltipProps={tooltipAttrs}
