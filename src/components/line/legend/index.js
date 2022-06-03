@@ -1,6 +1,9 @@
-import React, { memo, useRef, useEffect } from "react"
+import React, { memo, useRef, useEffect, useCallback } from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import navLeft from "@netdata/netdata-ui/lib/components/icon/assets/nav_left.svg"
+import navRight from "@netdata/netdata-ui/lib/components/icon/assets/nav_right.svg"
+import useNavigationArrow from "@netdata/netdata-ui/lib/organisms/navigation/hooks/useNavigationArrows"
 // import { getSizeBy, getRgbColor } from "@netdata/netdata-ui/lib/theme/utils"
 // import { webkitVisibleScrollbar } from "@netdata/netdata-ui/lib/mixins/webkit-visible-scrollbar"
 import {
@@ -12,6 +15,7 @@ import {
 } from "@/components/provider"
 import Dimension, { SkeletonDimension, EmptyDimension } from "./dimension"
 import { Fragment } from "react"
+import Icon from "@/components/icon"
 
 const Container = styled(Flex).attrs({
   gap: 1,
@@ -46,7 +50,7 @@ const SkeletonDimensions = () => (
   </Fragment>
 )
 
-const Dimensions = memo(() => {
+const Dimensions = memo(({ setRef }) => {
   const dimensionIds = useDimensionIds()
 
   if (!dimensionIds) return null
@@ -54,13 +58,14 @@ const Dimensions = memo(() => {
   return (
     <Fragment>
       {dimensionIds.map(id => (
-        <Dimension key={id} id={id} />
+        <Dimension ref={setRef} key={id} id={id} />
       ))}
     </Fragment>
   )
 })
 
 const Legend = props => {
+  const dimensionIds = useDimensionIds()
   const chart = useChart()
   const initialLoading = useInitialLoading()
   const empty = useEmpty()
@@ -68,6 +73,14 @@ const Legend = props => {
   const isActive = useAttributeValue("active")
 
   const legendRef = useRef(null)
+  const dimensionItemsRef = useRef([])
+
+  const [arrowLeft, arrowRight, onScroll] = useNavigationArrow(
+    legendRef,
+    dimensionItemsRef,
+    [],
+    true
+  )
 
   useEffect(() => {
     if (legendRef.current && isActive) {
@@ -79,6 +92,7 @@ const Legend = props => {
     const listener = () => {
       const { x } = getPositions(legendRef.current)
       updateLegendScroll(x)
+      onScroll()
     }
     const options = {
       capture: false,
@@ -86,19 +100,83 @@ const Legend = props => {
     }
 
     if (legendRef.current) {
+      setTimeout(() => {
+        onScroll()
+      }, 2000)
+      onScroll()
+      window.addEventListener("resize", onScroll)
       legendRef.current.addEventListener("scroll", listener, options)
     }
     return () => {
-      if (legendRef.current) legendRef.current.removeEventListener("scroll", listener, options)
+      if (legendRef.current) {
+        window.removeEventListener("resize", onScroll)
+        legendRef.current.removeEventListener("scroll", listener, options)
+      }
     }
   }, [legendRef.current])
 
+  const setDimensionRef = useCallback(
+    dimentionItem => {
+      if (!dimentionItem) return
+
+      if (!dimensionItemsRef.current.includes(dimentionItem))
+        dimensionItemsRef.current = [...dimensionItemsRef.current, dimentionItem]
+
+      if (dimensionIds.length < dimensionItemsRef.current.length) {
+        dimensionItemsRef.current = dimensionItemsRef.current.filter(
+          node => node.getAttribute("id") === dimentionItem.getAttribute("id")
+        )
+      }
+    },
+    [dimensionIds.length]
+  )
+
+  const scrollLeft = e => {
+    e.preventDefault()
+    const container = legendRef.current
+    container.scrollTo({
+      left: container.scrollLeft - 100,
+      behavior: "smooth",
+    })
+  }
+
+  const scrollRight = e => {
+    e.preventDefault()
+    const container = legendRef.current
+    container.scrollTo({
+      left: container.scrollLeft + 100,
+      behavior: "smooth",
+    })
+  }
+
   return (
-    <Container ref={legendRef} {...props} data-track={chart.track("legend")}>
-      {!initialLoading && !empty && <Dimensions />}
-      {initialLoading && <SkeletonDimensions />}
-      {!initialLoading && empty && <EmptyDimension />}
-    </Container>
+    <>
+      {arrowLeft && (
+        <Flex
+          data-testid="filterTray-arrowLeft"
+          cursor="pointer"
+          onClick={scrollLeft}
+          padding={[2]}
+        >
+          <Icon svg={navLeft} color="key" size="8px" />
+        </Flex>
+      )}
+      <Container ref={legendRef} {...props} data-track={chart.track("legend")}>
+        {!initialLoading && !empty && <Dimensions setRef={setDimensionRef} />}
+        {initialLoading && <SkeletonDimensions />}
+        {!initialLoading && empty && <EmptyDimension />}
+      </Container>
+      {arrowRight && (
+        <Flex
+          data-testid="filterTray-arrowRight"
+          cursor="pointer"
+          onClick={scrollRight}
+          padding={[2]}
+        >
+          <Icon svg={navRight} color="key" size="8px" />
+        </Flex>
+      )}
+    </>
   )
 }
 
