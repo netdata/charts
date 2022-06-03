@@ -42,7 +42,8 @@ export default ({
     backoffMs = tmpBackoffMs > maxBackoffMs ? maxBackoffMs : tmpBackoffMs
   }
 
-  const getMetadataDecorator = () => chartsMetadata || sdk.chartsMetadata
+  const getMetadataDecorator = () =>
+    node ? chartsMetadata || sdk.chartsMetadata : sdk.chartsMetadata
 
   const getPayload = () => payload
 
@@ -50,15 +51,17 @@ export default ({
 
   const cancelFetch = () => abortController && abortController.abort()
 
-  const getMetadata = () => getMetadataDecorator().get(instance) || initialMetadata
+  const getMetadata = () =>
+    node ? getMetadataDecorator().get(instance) || initialMetadata : initialMetadata
   const setMetadataAttributes = (values = {}) => {
-    if (!getMetadataDecorator().set) return getMetadata()
+    if (!node || !getMetadataDecorator().set) return getMetadata()
     getMetadataDecorator().set(instance, values)
     updateMetadata()
     return getMetadata()
   }
   const setMetadataAttribute = (attribute, value) => setMetadataAttributes({ [attribute]: value })
-  const fetchMetadata = () => getMetadataDecorator().fetch(instance)
+  const fetchMetadata = () =>
+    node ? getMetadataDecorator().fetch(instance) : Promise.resolve(initialMetadata)
 
   const getUpdateEvery = () => {
     if (!node) return
@@ -204,8 +207,10 @@ export default ({
       return Promise.resolve().then(() => doneFetch(initialPayload, { errored: true }))
     }
 
-    const doFetchMetadata = () =>
-      fetchMetadata()
+    const doFetchMetadata = () => {
+      if (!node) return
+
+      return fetchMetadata()
         .catch(error => {
           // Do not throw (but rather resolve the promise) if the error is due to filters changing.
           // It is not a chart data error, but rather metadata issue.
@@ -220,14 +225,18 @@ export default ({
           }
         })
         .catch(failFetch)
+    }
 
-    const fetchData = () =>
-      dataFetch().then(() => {
+    const fetchData = () => {
+      if (!node) return
+
+      return dataFetch().then(() => {
         const { fullyLoaded } = getMetadata()
         if (fullyLoaded) return
 
         return doFetchMetadata()
       })
+    }
 
     if (node.getAttribute("shouldFetchMetadata")) return doFetchMetadata().then(fetchData)
 

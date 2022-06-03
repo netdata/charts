@@ -33,9 +33,9 @@ export default payload => {
     viewLatestValues: view_latest_values,
     result: camelizeResult(result),
     metadata: {
-      fullyLoaded: !!all_dimensions,
-      ...(all_dimensions && { dimensions: all_dimensions }),
-      ...(all_chart_labels && { chartLabels: all_chart_labels }),
+      ...(!!all_dimensions && { fullyLoaded: true }),
+      ...(!!all_dimensions && { dimensions: all_dimensions }),
+      ...(!!all_chart_labels && { chartLabels: all_chart_labels }),
     },
     ...rest,
   }
