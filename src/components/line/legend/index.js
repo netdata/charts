@@ -100,10 +100,18 @@ const Legend = props => {
     }
 
     if (legendRef.current) {
+      setTimeout(() => {
+        onScroll()
+      }, 2000)
+      onScroll()
+      window.addEventListener("resize", onScroll)
       legendRef.current.addEventListener("scroll", listener, options)
     }
     return () => {
-      if (legendRef.current) legendRef.current.removeEventListener("scroll", listener, options)
+      if (legendRef.current) {
+        window.removeEventListener("resize", onScroll)
+        legendRef.current.removeEventListener("scroll", listener, options)
+      }
     }
   }, [legendRef.current])
 
