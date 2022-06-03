@@ -142,7 +142,7 @@ const Legend = props => {
   }
 
   return (
-    <Container ref={legendRef} {...props} data-track={chart.track("legend")}>
+    <>
       {arrowLeft && (
         <Flex
           data-testid="filterTray-arrowLeft"
@@ -153,9 +153,11 @@ const Legend = props => {
           <Icon svg={navLeft} color="key" size="8px" />
         </Flex>
       )}
-      {!initialLoading && !empty && <Dimensions setRef={setDimensionRef} />}
-      {initialLoading && <SkeletonDimensions />}
-      {!initialLoading && empty && <EmptyDimension />}
+      <Container ref={legendRef} {...props} data-track={chart.track("legend")}>
+        {!initialLoading && !empty && <Dimensions setRef={setDimensionRef} />}
+        {initialLoading && <SkeletonDimensions />}
+        {!initialLoading && empty && <EmptyDimension />}
+      </Container>
       {arrowRight && (
         <Flex
           data-testid="filterTray-arrowRight"
@@ -166,7 +168,7 @@ const Legend = props => {
           <Icon svg={navRight} color="key" size="8px" />
         </Flex>
       )}
-    </Container>
+    </>
   )
 }
 
