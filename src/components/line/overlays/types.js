@@ -31,16 +31,7 @@ const HighlightOverlay = ({ id }) => {
 
   if (sparkline) return null
   return (
-    <Container
-      id={id}
-      justifyContent="center"
-      bottom="0px"
-      top="0px"
-      noTransform
-      align={alignment.elementRight}
-      right={90}
-      width="90px"
-    >
+    <Container id={id} align={alignment.elementRight} bottom="25px" right={100}>
       <Highlight id={id} />
     </Container>
   )

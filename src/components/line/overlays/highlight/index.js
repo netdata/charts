@@ -4,7 +4,6 @@ import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { TextNano } from "@netdata/netdata-ui/lib/components/typography"
 import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
 import Correlation, { Period } from "./correlation"
-import useIsInArea from "./useIsInArea"
 import { useAttributeValue } from "@/components/provider"
 
 const StyledHighlight = styled(Flex).attrs({
@@ -39,10 +38,10 @@ const HighlightPeriod = memo(props => {
 })
 
 const Highlight = ({ id, correlationProps }) => {
-  const isInArea = useIsInArea(id)
   const hasCorrelation = useAttributeValue("hasCorrelation")
+  const focused = useAttributeValue("focused")
 
-  if (!isInArea) return null
+  if (!focused) return null
   return (
     <StyledHighlight>
       <HighlightPeriod id={id} />
