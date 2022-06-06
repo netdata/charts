@@ -171,8 +171,11 @@ export default ({
   const failFetch = error => {
     if (!node) return
 
+    if (error?.name === "AbortError") return
+
     backoff()
     if (!error || error.name !== "AbortError") node.trigger("failFetch", error)
+
     doneFetch(initialPayload, { errored: true })
   }
 
@@ -204,9 +207,8 @@ export default ({
     node.updateAttributes({ loading: true, fetchStartedAt: Date.now() })
 
     updateMetadata()
-    if (!isNewerThanRetention()) {
+    if (!isNewerThanRetention())
       return Promise.resolve().then(() => doneFetch(initialPayload, { errored: true }))
-    }
 
     const doFetchMetadata = () => {
       if (!node) return
@@ -221,9 +223,8 @@ export default ({
         })
         .then(() => {
           updateMetadata()
-          if (!isNewerThanRetention()) {
+          if (!isNewerThanRetention())
             return Promise.resolve().then(() => doneFetch(initialPayload, { errored: true }))
-          }
         })
         .catch(failFetch)
     }
@@ -384,8 +385,8 @@ export default ({
     clearKeyboardListener()
 
     if (ui) ui.unmount()
-    ui = null
 
+    ui = null
     node.destroy()
     node = null
     payload = null
@@ -403,7 +404,7 @@ export default ({
 
     const prevPayload = payload
     payload = nextPayload
-    if (!!node) node.trigger("payloadChanged", nextPayload, prevPayload)
+    if (node) node.trigger("payloadChanged", nextPayload, prevPayload)
 
     return true
   }
