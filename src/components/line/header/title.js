@@ -1,16 +1,9 @@
 import React from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { TextSmall } from "@netdata/netdata-ui/lib/components/typography"
-import {
-  useTitle,
-  useAttributeValue,
-  useUnit,
-  useName,
-  withChartProvider,
-} from "@/components/provider"
+import { useTitle, useUnit, useName, withChartProvider } from "@/components/provider"
 
 export const Title = props => {
-  const loaded = useAttributeValue("loaded")
   const title = useTitle()
   const unitSign = useUnit()
   const name = useName()
@@ -27,12 +20,13 @@ export const Title = props => {
       <TextSmall color="textDescription" truncate>
         {title}
       </TextSmall>
-      {loaded && name && (
+      {!!name && (
         <TextSmall color="textLite" whiteSpace="nowrap">
-          • {name}
+          {title ? "• " : ""}
+          {name}
         </TextSmall>
       )}
-      {loaded && unitSign && (
+      {!!unitSign && (
         <TextSmall color="textLite" whiteSpace="nowrap">
           • [{unitSign}]
         </TextSmall>

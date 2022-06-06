@@ -192,6 +192,8 @@ export default chart => {
 
   const updateMetadataColors = () => {
     let { dimensions } = chart.getMetadata()
+    if (!dimensions) return
+
     const keys = hasSparklineDimension() ? sparklineDimensions : Object.keys(dimensions)
     keys.forEach(getDimensionColor)
   }

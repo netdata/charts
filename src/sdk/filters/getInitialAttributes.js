@@ -10,7 +10,7 @@ export default chart => {
   const { id, chartLabels } = chart.getMetadata()
   const units = chart.getUnits()
 
-  const clusterId = chartLabels.k8s_cluster_id?.[0]
+  const clusterId = chartLabels?.k8s_cluster_id?.[0]
 
   const {
     aggregationMethod: aggregationMethodAttr,
