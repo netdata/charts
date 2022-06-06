@@ -30,7 +30,7 @@ const LatestValue = ({ dimensionId, textProps, ...rest }) => {
   if (!value)
     return (
       <StyledText strong {...defaultTextProps} {...textProps} {...rest}>
-        No data
+        {typeof value !== "string" ? "Loading..." : "No data"}
       </StyledText>
     )
 
