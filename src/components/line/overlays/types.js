@@ -1,9 +1,9 @@
-import React, { Fragment } from "react"
+import React from "react"
 import styled from "styled-components"
 import Container, { alignment } from "./container"
 import Alarm from "./alarm"
 import AlarmRange from "./alarmRange"
-import Highlight, { HighlightPeriod } from "./highlight"
+import Highlight from "./highlight"
 import Proceeded from "./proceeded"
 import ChartName from "./chartName"
 import LatestValue from "./latestValue"
@@ -28,17 +28,12 @@ const AlarmRangeOverlay = ({ id }) => (
 
 const HighlightOverlay = ({ id }) => {
   const sparkline = useAttributeValue("sparkline")
-  if (sparkline) return null
 
+  if (sparkline) return null
   return (
-    <Fragment>
-      <Container id={id} top="40%" align={alignment.elementRight} right={-8}>
-        <HighlightPeriod id={id} />
-      </Container>
-      <Container id={id} bottom="26px" align={alignment.elementRight} right={-8}>
-        <Highlight id={id} />
-      </Container>
-    </Fragment>
+    <Container id={id} align={alignment.elementRight} bottom="25px" right={100}>
+      <Highlight id={id} />
+    </Container>
   )
 }
 
@@ -49,13 +44,13 @@ const ProceededOverlay = ({ id }) => (
 )
 
 const NameOverlay = props => (
-  <NoEventsContainer isAbsolute position="top" noEvents margin={[2,0,0,0]}>
+  <NoEventsContainer isAbsolute position="top" noEvents margin={[2, 0, 0, 0]}>
     <ChartName {...props} />
   </NoEventsContainer>
 )
 
 const LatestValueOverlay = props => (
-  <NoEventsContainer isAbsolute position="bottom" noEvents margin={[0,0,2,0]}>
+  <NoEventsContainer isAbsolute position="bottom" noEvents margin={[0, 0, 2, 0]}>
     <LatestValue {...props} />
   </NoEventsContainer>
 )
