@@ -12,7 +12,7 @@ import Tooltip from "@/components/tooltip"
 const DimensionContainer = forwardRef((props, ref) => (
   <Flex
     ref={ref}
-    width={{ min: 22, max: 40 }}
+    width={{ min: 22, max: 50 }}
     flex={false}
     gap={1}
     data-testid="chartLegendDimension"
@@ -77,7 +77,7 @@ const Dimension = forwardRef(({ id }, ref) => {
       <Color id={id} />
       <Tooltip content={name}>
         <Flex flex column overflow="hidden" data-testid="chartLegendDimension-details">
-          <Name id={id} maxLength={25} />
+          <Name id={id} maxLength={32} />
 
           <Flex gap={1} data-testid="chartLegendDimension-valueContainer" flex>
             <Value id={id} strong visible={visible} />

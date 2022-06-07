@@ -5,7 +5,7 @@ import { useChart } from "@/components/provider"
 import Shortener from "@/components/helpers/shortener"
 
 export const Name = memo(
-  forwardRef(({ children, maxLength = 15, ...rest }, ref) => (
+  forwardRef(({ children, maxLength = 32, ...rest }, ref) => (
     <Flex ref={ref} data-testid="chartDimensions-name" overflow="hidden" {...rest}>
       <Shortener
         text={children}

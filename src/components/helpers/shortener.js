@@ -5,15 +5,15 @@ export const short = (text, maxLength) => {
 
   text = text.trim()
 
-  const last3 = text.substring(text.length - 4)
+  const last3 = text.substring(text.length - 3)
   maxLength = maxLength - 1
 
-  text = text.substring(text.length - 4, text.length - 1)
+  text = text.substring(0, text.length - 3)
 
   text = text
     .split(/[\s-]/)
     .map(word => {
-      const middle = word.substring(1, word.length - 2)
+      const middle = word.substring(1, word.length - 1)
       return [word.charAt(0), middle.replace(/([aeiou])/gi, ""), word.charAt(word.length - 1)].join(
         ""
       )
@@ -26,9 +26,9 @@ export const short = (text, maxLength) => {
 
   if (text.length <= maxLength) return text + last3
 
-  maxLength = maxLength - 3
+  maxLength = maxLength - 6
 
-  return `${text.substring(0, maxLength - 1)}...${last3}`
+  return `${text.substring(0, maxLength)}...${last3}`
 }
 
 const Shortener = forwardRef(({ text, maxLength = 15, Component = "div", ...rest }, ref) => {
