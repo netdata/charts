@@ -146,6 +146,7 @@ export default (sdk, chart) => {
 
     hoverX.toggle(attributes.enabledHover)
     navigation.toggle(attributes.enabledNavigation, attributes.navigation)
+    const latestRender = executeLatest.add(render)
 
     listeners = [
       chartUI.on(
@@ -164,7 +165,8 @@ export default (sdk, chart) => {
           crosshair(instance, nextSelection)
         })
       ),
-      chart.onAttributeChange("after", executeLatest.add(render)),
+      chart.onAttributeChange("after", latestRender),
+      chart.onAttributeChange("updatedAt", latestRender),
       chart.onAttributeChange("enabledHover", hoverX.toggle),
       chart.onAttributeChange("enabledNavigation", navigation.toggle),
       chart.onAttributeChange("navigation", navigation.set),

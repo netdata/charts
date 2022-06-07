@@ -43,16 +43,18 @@ export default sdk => {
 
   const blur = () => {
     windowFocused = false
-    sdk
-      .getNodes({ autofetchOnWindowBlur: false }, { inherit: true })
-      .forEach(node => node.updateAttribute("paused", true))
+    sdk.getNodes({ autofetchOnWindowBlur: false }, { inherit: true }).forEach(node => {
+      node.updateAttribute("paused", true)
+      autofetchIfActive(node, true)
+    })
   }
 
   const focus = () => {
     windowFocused = true
-    sdk
-      .getNodes({ autofetchOnWindowBlur: false }, { inherit: true })
-      .forEach(node => node.updateAttribute("paused", false))
+    sdk.getNodes({ autofetchOnWindowBlur: false }, { inherit: true }).forEach(node => {
+      node.updateAttribute("paused", false)
+      autofetchIfActive(node, true)
+    })
   }
 
   window.addEventListener("blur", blur)

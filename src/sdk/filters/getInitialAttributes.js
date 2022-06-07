@@ -23,7 +23,7 @@ export default chart => {
 
   return {
     aggregationMethod,
-    dimensions: dimensions.length ? dimensions : getDimensions(chart, groupBy),
+    dimensions: dimensions?.length ? dimensions : getDimensions(chart, groupBy),
     dimensionsAggregationMethod: dimensionsAggregationMethod || "sum",
     groupBy,
     selectedChart: id,

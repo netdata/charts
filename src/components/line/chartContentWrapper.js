@@ -4,7 +4,7 @@ import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { useInitialLoading, useEmpty, useAttributeValue } from "@/components/provider"
 import { useHovered } from "@/components/useHover"
 import ChartContainer from "@/components/chartContainer"
-import Tooltip from "./popover"
+import Popover from "./popover"
 import Toolbox from "./toolbox"
 import Skeleton from "./skeleton"
 import Overlays from "./overlays"
@@ -59,7 +59,7 @@ const ChartContentWrapper = () => {
       {!initialLoading && <Overlays />}
       {initialLoading && <Skeleton />}
       {hovered && !empty && <Toolbox />}
-      <Tooltip />
+      <Popover />
     </Container>
   )
 }

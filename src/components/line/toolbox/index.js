@@ -1,6 +1,6 @@
 import React, { forwardRef } from "react"
 import styled from "styled-components"
-import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
+import { getColor, getRgbColor } from "@netdata/netdata-ui/lib/theme/utils"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import panTool from "@netdata/netdata-ui/lib/components/icon/assets/pan_tool.svg"
 import selectedArea from "@netdata/netdata-ui/lib/components/icon/assets/selected_area.svg"
@@ -14,7 +14,6 @@ import Select from "./select"
 const Container = styled(Flex).attrs({
   padding: [0.5],
   gap: 1,
-  background: "transparent",
   round: true,
   border: { side: "all", color: "borderSecondary" },
   opacity: "weak",
@@ -23,6 +22,7 @@ const Container = styled(Flex).attrs({
   top: 8px;
   right: 8px;
   opacity: 0.7;
+  background: ${getRgbColor("elementBackground", 0.5)};
 
   &:hover {
     background: ${getColor("elementBackground")};

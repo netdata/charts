@@ -19,7 +19,7 @@ const Badge = ({ type, children, noBorder, ...rest }) => {
 
   return (
     <Flex
-      padding={[0.5, 2]}
+      padding={[0.2, 1]}
       background={background}
       round={3}
       border={noBorder ? undefined : { color, size: "1px", side: "all" }}

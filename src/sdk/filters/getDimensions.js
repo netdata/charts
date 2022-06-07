@@ -41,6 +41,8 @@ const sumOfAbsForAll = {
 export default (chart, groupBy) => {
   const { dimensions, id, chartType } = chart.getMetadata()
 
+  if (!dimensions) return []
+
   if (groupBy === "dimension") return []
 
   if (groupBy in groupsWithCustomLogic) {

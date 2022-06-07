@@ -22,12 +22,12 @@ const Container = styled(Flex).attrs({
   padding: [0, 0, 1],
   alignItems: "center",
   flex: true,
-  basis: 0,
+  basis: "36px",
   "data-testid": "chartLegend",
 })`
   overflow-x: auto; // fallback
   overflow-x: overlay;
-
+  height: 36px;
   ::-webkit-scrollbar {
     height: 6px;
   }

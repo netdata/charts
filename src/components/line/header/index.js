@@ -12,6 +12,7 @@ const Container = props => (
     gap={1}
     border={{ side: "bottom", color: "borderSecondary" }}
     data-testid="chartHeader"
+    height="25px"
     {...props}
   />
 )

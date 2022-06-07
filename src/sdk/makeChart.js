@@ -79,9 +79,9 @@ export default ({
   const startAutofetch = () => {
     if (!node) return
 
-    const { fetchStartedAt, loading, autofetch, active } = node.getAttributes()
+    const { fetchStartedAt, loading, autofetch, active, paused } = node.getAttributes()
 
-    if (!autofetch || loading || !active) return
+    if (!autofetch || loading || !active || paused) return
 
     if (fetchStartedAt === 0) return fetch()
 
@@ -171,6 +171,9 @@ export default ({
   const failFetch = error => {
     if (!node) return
 
+    node.updateAttributes({
+      loading: false,
+    })
     if (error?.name === "AbortError") return
 
     backoff()
