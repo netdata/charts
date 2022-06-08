@@ -110,7 +110,7 @@ export default (sdk, chart) => {
       rightGap: -6,
       valueRange:
         attributes.groupBy !== "dimension"
-          ? null
+          ? attributes.valueRange || null
           : attributes.valueRange || (min === max ? [0, max * 2] : null),
       ...makeChartTypeOptions(),
       ...makeThemingOptions(),
@@ -205,7 +205,7 @@ export default (sdk, chart) => {
     const stacked = chartType === "stacked"
     const area = chartType === "area"
     const line = chartType === "line"
-    const sparkline = chart.getAttribute("sparkline")
+    const { sparkline, includeZero } = chart.getAttributes()
 
     const smooth = line && !sparkline
 
@@ -218,7 +218,8 @@ export default (sdk, chart) => {
       fillAlpha: sparkline ? 1 : stacked ? 0.8 : 0.2,
       highlightCircleSize: sparkline ? 3 : 4,
       strokeWidth,
-      includeZero: stacked && (!selectedDimensions || selectedDimensions.length !== 1),
+      includeZero:
+        includeZero || (stacked && (!selectedDimensions || selectedDimensions.length !== 1)),
       stackedGraphNaNFill: "none",
       plotter: (smooth && window.smoothPlotter) || null,
     }
@@ -253,7 +254,9 @@ export default (sdk, chart) => {
       labels: isEmpty ? ["X"] : result.labels,
       dateWindow,
       valueRange:
-        groupBy !== "dimension" ? null : valueRange || (min === max ? [0, max * 2] : null),
+        groupBy !== "dimension"
+          ? valueRange || null
+          : valueRange || (min === max ? [0, max * 2] : null),
     }
   }
 

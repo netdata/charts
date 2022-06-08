@@ -250,13 +250,15 @@ export default ({
 
   const updateMetadata = () => {
     if (!node) return
-    if (getMetadata() === prevMetadata) return
+
+    const metadata = getMetadata()
+    if (metadata === prevMetadata) return
 
     prevMetadata = getMetadata()
     dimensions.updateMetadataColors()
     node.trigger("metadataChanged")
 
-    if (node.getAttribute("composite")) {
+    if (node.getAttribute("composite") && !node.getAttribute("initializedFilters")) {
       const attributes = getInitialFilterAttributes(instance)
       node.setAttributes(attributes)
     }

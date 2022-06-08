@@ -84,4 +84,6 @@ export default {
   themeGaugePointer: ["#8F9EAA", "#536775"],
   themeGaugeStroke: ["#ECEEEF", "#383B40"],
   legendScroll: 0,
+
+  initializedFilters: false,
 }

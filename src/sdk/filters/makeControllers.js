@@ -5,6 +5,8 @@ export default chart => {
   const metadata = chart.getMetadata()
   let prevChartType = metadata.chartType
   const onGroupChange = groupBy => {
+    chart.setMetadataAttribute("initializedFilters", false)
+
     if (groupBy !== "dimension") {
       prevChartType = prevChartType || chart.getAttribute("chartType")
       const aggregationMethod = chart.getAttribute("aggregationMethod")

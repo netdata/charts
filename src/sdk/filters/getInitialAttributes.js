@@ -30,5 +30,6 @@ export default chart => {
     ...(clusterId && { labels: { k8s_cluster_id: [clusterId] } }),
     chartType:
       groupBy !== "dimension" && stackedAggregations[aggregationMethod] ? "stacked" : chartType,
+    initializedFilters: true,
   }
 }

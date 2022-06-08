@@ -29,7 +29,7 @@ const tooltipProps = {
 const GroupBy = () => {
   const chart = useChart()
   const value = useAttributeValue("groupBy")
-  const { chartLabels } = chart.getMetadata()
+  const { chartLabels = {} } = chart.getMetadata()
 
   const items = useMemo(
     () => [

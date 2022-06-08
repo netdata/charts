@@ -72,21 +72,7 @@ const unitMap = {
   Watt: "W",
 }
 
-// first second -> f-s
-// first -> first
-// firstly -> firstl
-
-const getUnit = unit => {
-  if (unit.length < 6) return unit.toLowerCase()
-
-  const words = unit.match(/ ./gi)
-
-  const value = words ? [unit[0], ...words.map(w => w[1])].join("-") : unit
-
-  return value.toLowerCase().substring(0, 6)
-}
-
 export default node => () => {
   const units = node.getUnits()
-  return unitMap[units] || getUnit(units)
+  return unitMap[units] || units
 }
