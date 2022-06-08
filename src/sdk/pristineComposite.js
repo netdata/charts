@@ -7,6 +7,7 @@ const { updatePristine, resetPristine } = makePristine(pristineCompositeKey, [
   "dimensions",
   "dimensionsAggregationMethod",
   "groupBy",
+  "groupingMethod",
   "chartType",
 ])
 
