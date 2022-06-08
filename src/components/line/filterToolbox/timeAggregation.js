@@ -21,10 +21,8 @@ const useItems = chart =>
   )
 
 const tooltipProps = {
-  dimension: {
-    heading: "Aggregation function over time",
-    body: "The aggregation function over time, for each of the metrics contributing to this query",
-  },
+  heading: "Aggregation function over time",
+  body: "The aggregation function over time, for each of the metrics contributing to this query",
 }
 
 const TimeAggregation = ({ labelProps, ...rest }) => {
