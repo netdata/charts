@@ -15,7 +15,7 @@ const getOverlays = (node, range) => {
       highlight: {
         range,
         type: "highlight",
-        moveX: { after: after, before: before },
+        moveX: { after, before },
       },
     }
   }
