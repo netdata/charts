@@ -29,9 +29,11 @@ const StyledLabel = styled(TextSmall).attrs({
 
 const Label = forwardRef(({ secondaryLabel, tertiaryLabel, label, chevron = true, ...rest }, ref) => (
   <Container ref={ref} {...rest}>
-    <TextSmall color="textLite" whiteSpace="nowrap" truncate>
-      {secondaryLabel}
-    </TextSmall>
+    {secondaryLabel && (
+      <TextSmall color="textLite" whiteSpace="nowrap" truncate>
+        {secondaryLabel}
+      </TextSmall>
+    )}
     <StyledLabel>{label}</StyledLabel>
     {tertiaryLabel && (
       <TextSmall color="textLite" whiteSpace="nowrap" truncate>
