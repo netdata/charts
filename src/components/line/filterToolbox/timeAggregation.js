@@ -3,7 +3,7 @@ import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
 import { useAttributeValue, useChart } from "@/components/provider"
 import Label from "./label"
 
-const useItems = chart =>
+const useMenuItems = chart =>
   useMemo(
     () => [
       { value: "min", label: "Min", short: "MIN()", "data-track": chart.track("time-aggregation-min") },
@@ -30,7 +30,7 @@ const TimeAggregation = ({ labelProps, ...rest }) => {
   const value = useAttributeValue("groupingMethod")
   const { updateEvery = 0 } = chart.getMetadata()
 
-  const items = useItems(chart)
+  const items = useMenuItems(chart)
 
   const { short } = items.find(item => item.value === value) || items[0]
 
