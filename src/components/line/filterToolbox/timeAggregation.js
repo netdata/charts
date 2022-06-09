@@ -10,7 +10,7 @@ const useItems = chart =>
       { value: "max", label: "Max", short: "MAX()", "data-track": chart.track("time-aggregation-max") },
       { value: "average", label: "Average", short: "AVG()", "data-track": chart.track("time-aggregation-average") },
       { value: "sum", label: "Sum", short: "SUM()", "data-track": chart.track("time-aggregation-sum") },
-      { value: "incremental_sum", label: "Incremental sum (Delta)", short: "DELTA()", "data-track": chart.track("time-aggregation-incremental-sum") },
+      { value: "incremental-sum", label: "Incremental sum (Delta)", short: "DELTA()", "data-track": chart.track("time-aggregation-incremental-sum") },
       { value: "stddev", label: "Standard deviation", short: "STDDEV()", "data-track": chart.track("time-aggregation-stddev") },
       { value: "median", label: "Median", short: "MEDIAN()", "data-track": chart.track("time-aggregation-median") },
       { value: "ses", label: "Single exponential smoothing", short: "SES()", "data-track": chart.track("time-aggregation-ses") },

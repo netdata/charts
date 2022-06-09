@@ -21,6 +21,8 @@ export default chart => {
   const chartType = chart.getAttribute("chartType")
   const aggregationMethod = aggregationMethodAttr || getAggregateMethod(units)
 
+  // @todo re-visit the logic of the initial attributes
+  // It should keep pristine
   return {
     aggregationMethod,
     dimensions: dimensions?.length ? dimensions : getDimensions(chart, groupBy),
