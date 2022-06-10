@@ -143,18 +143,16 @@ export const useChartError = () => {
   const [error, setError] = useState(false)
   const chart = useChart()
   const forceUpdate = useForceUpdate()
+  const handleFetch = ({ hasError }) => {
+    setError(hasError)
+    forceUpdate()
+  }
 
   useImmediateListener(
     () =>
       chart
-        .on("successFetch", () => {
-          setError(false)
-          forceUpdate()
-        })
-        .on("failFetch", () => {
-          setError(true)
-          forceUpdate()
-        }),
+        .on("successFetch", () => handleFetch({ hasError: false }))
+        .on("failFetch", () => handleFetch({ hasError: true })),
     [chart]
   )
 
