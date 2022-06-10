@@ -46,7 +46,7 @@ const Aggregate = ({ labelProps, ...rest }) => {
       {...rest}
     >
       <Label
-        secondaryLabel="Select"
+        secondaryLabel="the"
         label={short}
         title={tooltipAttrs.heading}
         tooltipProps={tooltipAttrs}

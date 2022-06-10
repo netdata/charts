@@ -49,7 +49,14 @@ export default () => {
     [chart]
   )
 
-  const aggregate = groupBy === "dimension" || (totalInstances > 0 && totalInstances > totalNodes)
+  const getAggregate = () => {
+    if (groupBy === "chart") return false
+    if (totalInstances === 1) return false
+    if (groupBy === "dimension") return true
+    return totalInstances > 0 && totalInstances > totalNodes;
+  }
+
+  const aggregate = getAggregate()
   const dimensionAggregation = groupBy !== "dimension" && hasDimensions
 
   return {

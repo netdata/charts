@@ -76,7 +76,7 @@ const Dimensions = ({ labelProps, ...rest }) => {
       {...rest}
     >
       <Label
-        secondaryLabel="of"
+        secondaryLabel="select"
         label={label}
         title={tooltipProps.heading}
         tooltipProps={tooltipProps}
