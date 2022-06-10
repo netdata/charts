@@ -1,6 +1,7 @@
 import React, { memo } from "react"
 import { useAttributeValue } from "@/components/provider"
-import Badge from "@/components/line/badge"
+import Badge, { getColors } from "@/components/line/badge"
+import { TextSmall } from "@netdata/netdata-ui/lib/components/typography"
 
 const badgeByStatus = {
   critical: "error",
@@ -11,8 +12,18 @@ const Alarm = ({ id }) => {
   const overlays = useAttributeValue("overlays")
   const { status, value } = overlays[id]
   const badgeType = badgeByStatus[status] || status
+  const { color } = getColors(badgeType)
 
-  return <Badge type={badgeType}>{value}</Badge>
+  return (
+    <Badge type={badgeType} noBorder>
+      <TextSmall color={color}>
+        Triggered value:{" "}
+        <TextSmall strong color={color}>
+          {value}
+        </TextSmall>
+      </TextSmall>
+    </Badge>
+  )
 }
 
 export default memo(Alarm)

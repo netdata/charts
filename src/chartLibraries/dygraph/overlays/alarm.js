@@ -1,9 +1,9 @@
 import { trigger, getArea } from "./helpers"
 
-const borderColorMap = {
-  warning: "#FFC300",
-  critical: "#F59B9B",
-  clear: "#68C47D",
+const textColorMap = {
+  warning: "#F9A825",
+  critical: "#FF4136",
+  clear: "#00AB44",
 }
 
 export default (chartUI, id) => {
@@ -19,24 +19,23 @@ export default (chartUI, id) => {
 
   if (!area) return trigger(chartUI, id)
 
-  const horizontalPadding = 3
-  const from = area.from - horizontalPadding
-  const width = 2 * horizontalPadding
+  const lineWidth = 2
+  const { from } = area
 
   trigger(chartUI, id, area)
 
   ctx.save()
   ctx.beginPath()
 
-  ctx.rect(from, 0, width, h - 1)
-  ctx.fillStyle = borderColorMap[status]
-  ctx.globalAlpha = 0.4
-  ctx.fill()
-  ctx.setLineDash([2, 4])
-  ctx.lineWidth = 1
-  ctx.strokeStyle = "#CFD5DA"
-
+  ctx.beginPath()
+  ctx.moveTo(from - lineWidth / 2, 0)
+  ctx.lineTo(from - lineWidth / 2, h)
+  ctx.globalAlpha = 1
+  ctx.lineWidth = lineWidth
+  ctx.setLineDash([4, 4])
+  ctx.strokeStyle = textColorMap[status]
   ctx.stroke()
+
   ctx.closePath()
   ctx.restore()
 }
