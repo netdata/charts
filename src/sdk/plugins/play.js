@@ -26,7 +26,7 @@ export default sdk => {
 
   const autofetchIfActive = (chart, force) => {
     const { after, hovering, active, paused } = chart.getAttributes()
-    const autofetch = active && after < 0 && !hovering && !paused
+    const autofetch = (chart.type === "container" || active) && after < 0 && !hovering && !paused
 
     if (!autofetch && !force) return
 

@@ -10,6 +10,7 @@ const StyledButton = styled(Button).attrs({
   height: "initial",
   padding: [0, 1],
   title: "Reset Filters",
+  size: "small",
 })`
   && {
     height: initial;
