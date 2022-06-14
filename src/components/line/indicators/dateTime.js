@@ -1,8 +1,15 @@
 import React from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { useAttributeValue, usePayload, useFormatTime, useFormatDate } from "@/components/provider"
+import {
+  useAttributeValue,
+  usePayload,
+  useFormatTime,
+  useFormatDate,
+  useChart,
+} from "@/components/provider"
 import { TextNano } from "@netdata/netdata-ui/lib/components/typography"
-import { Fragment } from "react"
+import arrowLeft from "@netdata/netdata-ui/lib/components/icon/assets/arrow_left.svg"
+import Icon from "@/components/icon"
 
 const LatestValue = ({ timestamp }) => {
   const time = useFormatTime(timestamp)
@@ -130,17 +137,26 @@ const Range = ({ after, before }) => {
 }
 
 const DateTime = props => {
+  const chart = useChart()
   const { highlight } = useAttributeValue("overlays")
   const range = highlight?.range
+  const { after, before } = highlight?.moveX ?? {}
+  const onClick = () => {
+    if (before && after) chart.moveX(after, before)
+  }
 
   return (
     <Flex gap={1} {...props}>
       {range && (
-        <Fragment>
+        <>
+          <Flex onClick={onClick} margin={[0, 1, 0, 0]} cursor="pointer" gap={1}>
+            <TextNano color="primary">Jump to selected range</TextNano>
+            <Icon svg={arrowLeft} color="primary" size="14px" rotate={2} />
+          </Flex>
           <TextNano color="textLite">Highlight:</TextNano>
           <Range after={range[0]} before={range[1]} />
           <TextNano color="textDescription">•</TextNano>
-        </Fragment>
+        </>
       )}
       <Latest />
     </Flex>

@@ -8,9 +8,17 @@ const getMove = node => {
 }
 
 const getOverlays = (node, range) => {
-  const overlays = node.getAttribute("overlays")
-
-  if (range) return { ...overlays, highlight: { range, type: "highlight" } }
+  const { overlays, after, before } = node.getAttributes()
+  if (range) {
+    return {
+      ...overlays,
+      highlight: {
+        range,
+        type: "highlight",
+        moveX: { after, before },
+      },
+    }
+  }
 
   const nextOverlays = { ...overlays }
   delete nextOverlays.highlight
