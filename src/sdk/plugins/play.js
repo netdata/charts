@@ -24,9 +24,9 @@ export default sdk => {
     }
   }
 
-  const autofetchIfActive = (chart, force) => {
+  const autofetchIfActive = ({ chart, force, forceAutoFetch }) => {
     const { after, hovering, active, paused } = chart.getAttributes()
-    const autofetch = active && after < 0 && !hovering && !paused
+    const autofetch = forceAutoFetch || (active && after < 0 && !hovering && !paused)
 
     if (!autofetch && !force) return
 
@@ -45,7 +45,7 @@ export default sdk => {
     windowFocused = false
     sdk.getNodes({ autofetchOnWindowBlur: false }, { inherit: true }).forEach(node => {
       node.updateAttribute("paused", true)
-      autofetchIfActive(node, true)
+      autofetchIfActive({ chart: node, force: true })
     })
   }
 
@@ -53,7 +53,7 @@ export default sdk => {
     windowFocused = true
     sdk.getNodes({ autofetchOnWindowBlur: false }, { inherit: true }).forEach(node => {
       node.updateAttribute("paused", false)
-      autofetchIfActive(node, true)
+      autofetchIfActive({ chart: node, force: true, forceAutoFetch: true })
     })
   }
 
@@ -61,7 +61,7 @@ export default sdk => {
   window.addEventListener("focus", focus)
 
   const offs = sdk
-    .on("active", chart => autofetchIfActive(chart, true))
+    .on("active", chart => autofetchIfActive({ chart, force: true }))
     .on("hoverChart", chart => {
       if (chart.getAttribute("paused") || !chart.getAttribute("autofetch")) return
       const autofetch = false
