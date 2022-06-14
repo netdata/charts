@@ -15,7 +15,7 @@ const NoEventsContainer = styled(LayerContainer)`
 `
 
 const AlarmOverlay = ({ id }) => (
-  <Container id={id} top="20px" margin={[0, 8, 0, 0]}>
+  <Container id={id} top="20px" margin={[0, 2, 0, 0]} align={alignment.elementLeft}>
     <Alarm id={id} />
   </Container>
 )
