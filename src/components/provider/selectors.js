@@ -1,5 +1,6 @@
 import { unregister } from "@/helpers/makeListeners"
 import { useCallback, useEffect, useContext, useMemo, useReducer, useState } from "react"
+import chartTitleByContextMap from "../helpers/chartTitleByContextMap"
 import context from "./context"
 
 export const useChart = () => useContext(context)
@@ -94,9 +95,16 @@ export const useMetadata = () => {
 }
 
 export const useTitle = () => {
-  const { title } = useMetadata()
+  const { title, context } = useMetadata()
   const attributeTitle = useAttributeValue("title")
+  const attrContext = useAttributeValue("context")
 
+  const composite = useAttributeValue("composite")
+
+  const chartContext = attrContext || context
+  const titleByContext = chartTitleByContextMap[chartContext]
+
+  if (composite && titleByContext) return titleByContext
   return attributeTitle || title
 }
 
@@ -129,6 +137,26 @@ export const usePayload = () => {
   useImmediateListener(() => chart.on("payloadChanged", forceUpdate), [chart])
 
   return chart.getPayload()
+}
+
+export const useChartError = () => {
+  const [error, setError] = useState(false)
+  const chart = useChart()
+  const forceUpdate = useForceUpdate()
+  const handleFetch = ({ hasError }) => {
+    setError(hasError)
+    forceUpdate()
+  }
+
+  useImmediateListener(
+    () =>
+      chart
+        .on("successFetch", () => handleFetch({ hasError: false }))
+        .on("failFetch", () => handleFetch({ hasError: true })),
+    [chart]
+  )
+
+  return error
 }
 
 export const useFormatTime = value => {

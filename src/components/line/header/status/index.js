@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useMemo } from "react"
+import React, { useMemo } from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { useChart, useInitialLoading, useEmpty } from "@/components/provider"
+import { useInitialLoading, useEmpty, useChartError } from "@/components/provider"
 import Badge from "@/components/line/badge"
 import { useHovered } from "@/components/useHover"
 import Logo from "./logo"
@@ -36,17 +36,10 @@ const StatusBadge = ({ type, status, ...rest }) =>
   type ? <Badge type={type} data-testid={`chartHeaderStatus-${status}`} {...rest} /> : null
 
 const Status = props => {
-  const chart = useChart()
-  const [error, setError] = useState(false)
   const initialLoading = useInitialLoading()
   const empty = useEmpty()
-
+  const error = useChartError()
   const statusProps = useStatusProps({ initialLoading, error })
-
-  useEffect(
-    () => chart.on("successFetch", () => setError(false)).on("failFetch", () => setError(true)),
-    [chart]
-  )
 
   return (
     <Flex gap={2} data-testid="chartHeaderStatus" basis="0" {...props}>
