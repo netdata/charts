@@ -8,8 +8,6 @@ import {
   useChart,
 } from "@/components/provider"
 import { TextNano } from "@netdata/netdata-ui/lib/components/typography"
-import arrowLeft from "@netdata/netdata-ui/lib/components/icon/assets/arrow_left.svg"
-import Icon from "@/components/icon"
 
 const LatestValue = ({ timestamp }) => {
   const time = useFormatTime(timestamp)
@@ -148,15 +146,11 @@ const DateTime = props => {
   return (
     <Flex gap={1} {...props}>
       {range && (
-        <>
-          <Flex onClick={onClick} margin={[0, 1, 0, 0]} cursor="pointer" gap={1}>
-            <TextNano color="primary">Jump to selected range</TextNano>
-            <Icon svg={arrowLeft} color="primary" size="14px" rotate={2} />
-          </Flex>
+        <Flex onClick={onClick} cursor="pointer" gap={1}>
           <TextNano color="textLite">Highlight:</TextNano>
           <Range after={range[0]} before={range[1]} />
           <TextNano color="textDescription">•</TextNano>
-        </>
+        </Flex>
       )}
       <Latest />
     </Flex>
