@@ -16,7 +16,8 @@ export const NoInteractLine = props => {
     {
       onHover: chart.focus,
       onBlur: chart.blur,
-      isOut: node => !node || !node.closest("[data-toolbox]"),
+      isOut: node =>
+        !node || (!node.closest("[data-toolbox]") && !node.closest("[data-testid=chart]")),
     },
     [chart]
   )

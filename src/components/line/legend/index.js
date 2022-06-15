@@ -1,11 +1,10 @@
 import React, { memo, useRef, useEffect, useCallback } from "react"
 import styled from "styled-components"
+import { debounce } from "throttle-debounce"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import navLeft from "@netdata/netdata-ui/lib/components/icon/assets/nav_left.svg"
 import navRight from "@netdata/netdata-ui/lib/components/icon/assets/nav_right.svg"
-import useNavigationArrow from "@netdata/netdata-ui/lib/organisms/navigation/hooks/useNavigationArrows"
-// import { getSizeBy, getRgbColor } from "@netdata/netdata-ui/lib/theme/utils"
-// import { webkitVisibleScrollbar } from "@netdata/netdata-ui/lib/mixins/webkit-visible-scrollbar"
+import useNavigationArrows from "@netdata/netdata-ui/lib/organisms/navigation/hooks/useNavigationArrows"
 import {
   useInitialLoading,
   useEmpty,
@@ -69,13 +68,12 @@ const Legend = props => {
   const chart = useChart()
   const initialLoading = useInitialLoading()
   const empty = useEmpty()
-  const updateLegendScroll = value => chart.updateAttribute("legendScroll", value)
-  const isActive = useAttributeValue("active")
+  const active = useAttributeValue("active")
 
   const legendRef = useRef(null)
   const dimensionItemsRef = useRef([])
 
-  const [arrowLeft, arrowRight, onScroll] = useNavigationArrow(
+  const [arrowLeft, arrowRight, onScroll] = useNavigationArrows(
     legendRef,
     dimensionItemsRef,
     [],
@@ -83,35 +81,31 @@ const Legend = props => {
   )
 
   useEffect(() => {
-    if (legendRef.current && isActive) {
+    if (legendRef.current && active) {
       legendRef.current.scrollTo({ left: chart.getAttribute("legendScroll") })
     }
-  }, [legendRef.current, isActive])
+  }, [legendRef.current, active])
 
   useEffect(() => {
-    const listener = () => {
+    if (!legendRef.current) return
+
+    const scroll = () => {
       const { x } = getPositions(legendRef.current)
-      updateLegendScroll(x)
+      chart.updateAttribute("legendScroll", x)
       onScroll()
-    }
-    const options = {
-      capture: false,
-      passive: true,
     }
 
-    if (legendRef.current) {
-      setTimeout(() => {
-        onScroll()
-      }, 2000)
-      onScroll()
-      window.addEventListener("resize", onScroll)
-      legendRef.current.addEventListener("scroll", listener, options)
-    }
+    scroll()
+
+    const handlers = debounce(300, scroll)
+
+    handlers()
+
+    window.addEventListener("resize", handlers)
+    legendRef.current.addEventListener("scroll", scroll)
     return () => {
-      if (legendRef.current) {
-        window.removeEventListener("resize", onScroll)
-        legendRef.current.removeEventListener("scroll", listener, options)
-      }
+      window.removeEventListener("resize", handlers)
+      legendRef.current.removeEventListener("scroll", scroll)
     }
   }, [legendRef.current])
 
