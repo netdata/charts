@@ -33,7 +33,7 @@ const Container = styled(Flex).attrs({
 `
 
 const getPositions = el => {
-  if (!el) return
+  if (!el) return { x: 0 }
   return {
     x: el.scrollLeft,
   }

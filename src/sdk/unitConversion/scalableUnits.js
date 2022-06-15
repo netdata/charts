@@ -51,6 +51,13 @@ export default {
     "GiB/s": 1024 * 1024,
     "TiB/s": 1024 * 1024 * 1024,
   },
+  bytes: {
+    bytes: 1,
+    kilobytes: 1024,
+    megabytes: 1024 * 1024,
+    gigabytes: 1024 * 1024 * 1024,
+    terabytes: 1024 * 1024 * 1024 * 1024,
+  },
   B: {
     B: 1,
     KiB: 1024,
