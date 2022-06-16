@@ -87,8 +87,6 @@ const Legend = props => {
   }, [legendRef.current, active])
 
   useEffect(() => {
-    if (!legendRef.current) return
-
     const scroll = () => {
       const { x } = getPositions(legendRef.current)
       chart.updateAttribute("legendScroll", x)
@@ -102,9 +100,13 @@ const Legend = props => {
     handlers()
 
     window.addEventListener("resize", handlers)
+
+    if (!legendRef.current) return
     legendRef.current.addEventListener("scroll", scroll)
     return () => {
       window.removeEventListener("resize", handlers)
+
+      if (!legendRef.current) return
       legendRef.current.removeEventListener("scroll", scroll)
     }
   }, [legendRef.current])

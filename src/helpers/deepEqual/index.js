@@ -1,3 +1,9 @@
+export const setsAreEqual = (a, b) => {
+  if (a.size !== b.size) return false
+
+  return Array.from(a).every(element => b.has(element))
+}
+
 const deepEqual = (objA, objB) => {
   if (objA === objB) return true
 

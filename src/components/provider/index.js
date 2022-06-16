@@ -1,10 +1,10 @@
 import React from "react"
-import context from "./context"
+import Context from "./context"
 
 export * from "./selectors"
 
 const ChartProvider = ({ chart, children }) => (
-  <context.Provider value={chart}>{children}</context.Provider>
+  <Context.Provider value={chart}>{children}</Context.Provider>
 )
 
 export const withChartProvider = Component => {

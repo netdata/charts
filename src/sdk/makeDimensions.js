@@ -1,6 +1,7 @@
 import dimensionColors from "./theme/dimensionColors"
+import { setsAreEqual } from "../helpers/deepEqual"
 
-export default chart => {
+export default (chart, sdk) => {
   let prevDimensionIds = []
   let dimensionsById = {}
   let sortedDimensionIds = []
@@ -61,7 +62,12 @@ export default chart => {
           id => selectedDimensions.includes(id) || selectedDimensions.includes(getDimensionName(id))
         )
       : sortedDimensionIds
+
+    const prevDimensionSet = visibleDimensionSet
     visibleDimensionSet = new Set(visibleDimensionIds)
+
+    if (!setsAreEqual(visibleDimensionSet, prevDimensionSet))
+      chart.trigger("visibleDimensionsChanged")
   }
 
   const sortDimensions = () => {
@@ -120,15 +126,14 @@ export default chart => {
   const isDimensionVisible = id => visibleDimensionSet.has(id)
 
   const getMemKey = () => {
-    const colors = chart.getAttribute("colors")
+    const { colors, groupBy, context: attrContext, id } = chart.getAttributes()
     const { context } = chart.getMetadata()
-    const groupBy = chart.getAttribute("groupBy")
 
-    if (groupBy !== "dimension") return groupBy
+    if (!!groupBy && groupBy !== "dimension") return groupBy
 
     if (colors.length) return chart.getAttribute("id")
 
-    return context
+    return context || attrContext || id
   }
 
   const getDimensionColor = id => {
@@ -137,7 +142,7 @@ export default chart => {
     const sparkline = chart.getAttribute("sparkline")
     if (sparkline && colors && colors.length === 1) return colors[0]
 
-    const color = chart.getParent().getNextColor(getNextColor, key, id)
+    const color = sdk.getRoot().getNextColor(getNextColor, key, id)
 
     if (typeof color === "string") return color
 
@@ -162,6 +167,7 @@ export default chart => {
 
   const toggleDimensionId = (id, { merge = false } = {}) => {
     const selectedDimensions = chart.getAttribute("selectedDimensions")
+
     if (!selectedDimensions) {
       chart.updateAttribute(
         "selectedDimensions",

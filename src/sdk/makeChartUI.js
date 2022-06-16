@@ -1,4 +1,5 @@
 import makeListeners from "@/helpers/makeListeners"
+import makeExecuteLatest from "@/helpers/makeExecuteLatest"
 
 const themeIndex = {
   default: 0,
@@ -21,11 +22,11 @@ export default (sdk, chart) => {
     sdk.trigger("mountChartUI", chart)
   }
 
-  chart.on("finishFetch", () => {
-    const { active, autofetch } = chart.getAttributes()
-    const consumeLatestRequestWhilePaused = active && !autofetch
-    if (consumeLatestRequestWhilePaused) chart.getUI().render()
-  })
+  const executeLatest = makeExecuteLatest()
+  const latestRender = executeLatest.add(() => chart.getUI().render())
+
+  chart.on("finishFetch", latestRender)
+  chart.on("visibleDimensionsChanged", latestRender)
 
   const unmount = () => {
     sdk.trigger("unmountChartUI", chart)

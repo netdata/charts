@@ -450,7 +450,7 @@ export default ({
     node.resetNavigation()
   })
 
-  const dimensions = makeDimensions(instance)
+  const dimensions = makeDimensions(instance, sdk)
 
   const track = makeTrack(instance)
 

@@ -59,6 +59,7 @@ const Dimension = forwardRef(({ id }, ref) => {
   const chart = useChart()
 
   const name = chart.getDimensionName(id)
+  const renderDimensionChildren = chart.getAttribute("renderDimensionChildren")
 
   const onClick = e => {
     const merge = e.shiftKey || e.ctrlKey || e.metaKey
@@ -83,6 +84,7 @@ const Dimension = forwardRef(({ id }, ref) => {
             <Value id={id} strong visible={visible} />
             <Units visible={visible} />
           </Flex>
+          {renderDimensionChildren?.(id, chart)}
         </Flex>
       </Tooltip>
     </DimensionContainer>
