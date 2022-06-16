@@ -1,11 +1,12 @@
 import React, { Fragment } from "react"
 import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { useChart } from "@/components/provider"
+import { useAttribute, useChart } from "@/components/provider"
 
 const UpdateEvery = () => {
   const chart = useChart()
 
+  const value = useAttribute("groupingMethod")
   const { updateEvery = 0 } = chart.getMetadata()
   const { viewUpdateEvery = 0 } = chart.getPayload()
 
@@ -18,7 +19,9 @@ const UpdateEvery = () => {
       {viewUpdateEvery !== updateEvery && (
         <Flex gap={1} data-testid="chartPopover-collection">
           <TextMicro color="textLite">View point:</TextMicro>
-          <TextMicro color="textDescription">average {viewUpdateEvery}s</TextMicro>
+          <TextMicro color="textDescription">
+            {value} {viewUpdateEvery}s
+          </TextMicro>
         </Flex>
       )}
     </Fragment>
