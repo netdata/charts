@@ -87,4 +87,5 @@ export default {
 
   initializedFilters: false,
   renderDimensionChildren: null,
+  error: null,
 }

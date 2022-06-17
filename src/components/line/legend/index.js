@@ -18,15 +18,15 @@ import Icon from "@/components/icon"
 
 const Container = styled(Flex).attrs({
   gap: 1,
-  padding: [0, 0, 1],
+  padding: [0, 0, 2],
   alignItems: "center",
   flex: true,
-  basis: "36px",
+  basis: "40px",
   "data-testid": "chartLegend",
 })`
   overflow-x: auto; // fallback
   overflow-x: overlay;
-  height: 36px;
+  height: 40px;
   ::-webkit-scrollbar {
     height: 6px;
   }

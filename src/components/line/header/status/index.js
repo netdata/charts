@@ -45,7 +45,7 @@ const Status = props => {
     <Flex gap={2} data-testid="chartHeaderStatus" basis="0" {...props}>
       <ReloadContainer />
       <StatusBadge {...statusProps} />
-      {!initialLoading && empty && (
+      {!initialLoading && empty && !statusProps && (
         <StatusBadge type="neutral" status="empty">
           No data
         </StatusBadge>

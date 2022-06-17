@@ -1,8 +1,8 @@
 import React from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { TextMicro, Text } from "@netdata/netdata-ui/lib/components/typography"
-import { useChart } from "@/components/provider"
+import { Text } from "@netdata/netdata-ui/lib/components/typography"
+import { useChart, useAttributeValue } from "@/components/provider"
 
 const NoDataContainer = styled(Flex).attrs({
   column: true,
@@ -19,12 +19,15 @@ const NoData = props => {
   const chart = useChart()
 
   const chartWidth = chart.getUI().getChartWidth()
+  const error = useAttributeValue("error")
 
   if (chartWidth < 240) return null
 
   return (
     <NoDataContainer {...props}>
-      <Text textAlign="center">No data</Text>
+      <Text textAlign="center" textTransform="firstLetter">
+        {error || "No data"}
+      </Text>
     </NoDataContainer>
   )
 }

@@ -40,3 +40,7 @@ export const getChartPayload = chart => {
     with_metadata: true,
   }
 }
+
+export const errorCodesToMessage = {
+  ErrAllNodesFailed: "All agents failed to return data",
+}

@@ -3,7 +3,7 @@ import makeKeyboardListener from "@/helpers/makeKeyboardListener"
 import makeNode from "./makeNode"
 import initialPayload from "./initialPayload"
 import convert from "./unitConversion"
-import { fetchChartData } from "./api"
+import { fetchChartData, errorCodesToMessage } from "./api"
 import makeDimensions from "./makeDimensions"
 import makeGetClosestRow from "./makeGetClosestRow"
 import getInitialFilterAttributes from "./filters/getInitialAttributes"
@@ -122,8 +122,9 @@ export default ({
   const getDataLength = ({ result } = {}) =>
     Array.isArray(result) ? result.length : result.data?.length || 0
 
-  const doneFetch = (nextRawPayload, { errored = false } = {}) => {
+  const doneFetch = (nextRawPayload, { errored = false, error = null } = {}) => {
     if (!errored) backoffMs = 0
+
     const nextPayloadTransformed = camelizePayload(nextRawPayload)
 
     const result = transformResult(nextPayloadTransformed)
@@ -162,6 +163,7 @@ export default ({
       loading: false,
       updatedAt: Date.now(),
       outOfLimits: !dataLength,
+      error,
     })
 
     if (!errored) node.trigger("successFetch", nextPayload, prevPayload)
@@ -179,13 +181,25 @@ export default ({
     backoff()
     if (!error || error.name !== "AbortError") node.trigger("failFetch", error)
 
-    doneFetch(initialPayload, { errored: true })
+    doneFetch(
+      { ...initialPayload, ...error },
+      {
+        errored: true,
+        error:
+          errorCodesToMessage[error?.errorMessage] || error?.errorMessage || "Something went wrong",
+      }
+    )
   }
 
   const dataFetch = () => {
     abortController = new AbortController()
     const options = { signal: abortController.signal }
-    return getChart(instance, options).then(doneFetch).catch(failFetch)
+    return getChart(instance, options)
+      .then(data => {
+        if (data?.errorMsgKey) return failFetch(data)
+        return doneFetch(data)
+      })
+      .catch(failFetch)
   }
 
   const isNewerThanRetention = () => {
@@ -211,7 +225,9 @@ export default ({
 
     updateMetadata()
     if (!isNewerThanRetention())
-      return Promise.resolve().then(() => doneFetch(initialPayload, { errored: true }))
+      return Promise.resolve().then(() =>
+        doneFetch(initialPayload, { errored: true, error: "Exceeds agent data retention settings" })
+      )
 
     const doFetchMetadata = () => {
       if (!node) return
@@ -227,7 +243,12 @@ export default ({
         .then(() => {
           updateMetadata()
           if (!isNewerThanRetention())
-            return Promise.resolve().then(() => doneFetch(initialPayload, { errored: true }))
+            return Promise.resolve().then(() =>
+              doneFetch(initialPayload, {
+                errored: true,
+                error: "Exceeds agent data retention settings",
+              })
+            )
         })
         .catch(failFetch)
     }
