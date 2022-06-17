@@ -70,7 +70,7 @@ const Dimensions = ({ labelProps, ...rest }) => {
       dropProps={{
         height: { max: "460px" },
         overflow: "auto",
-        align: { top: "bottom", right: "right" },
+        align: { top: "bottom", right: "left" },
         "data-toolbox": true,
       }}
       {...rest}
