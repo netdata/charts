@@ -1,7 +1,7 @@
 import React from "react"
 import styled from "styled-components"
 import { TextSmall } from "@netdata/netdata-ui/lib/components/typography"
-import { useAttributeValue, useMetadata } from "@/components/provider"
+import { useChart, useAttributeValue, useMetadata } from "@/components/provider"
 import Shortener from "@/components/helpers/shortener"
 import Tooltip from "@/components/tooltip"
 
@@ -13,6 +13,7 @@ const StyledShortener = styled(Shortener)`
 const ChartName = ({ field, normalize, ...rest }) => {
   let value = useAttributeValue(field)
   const metadata = useMetadata()
+  const chart = useChart()
 
   if (!value) {
     value = metadata[field]
@@ -21,7 +22,7 @@ const ChartName = ({ field, normalize, ...rest }) => {
   if (!value) return null
 
   if (normalize) {
-    value = normalize(value)
+    value = normalize(value, chart.getAttributes())
   }
 
   return (
