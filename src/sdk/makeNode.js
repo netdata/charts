@@ -88,7 +88,9 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   const match = attrs => {
     if (typeof attrs === "function") return attrs(instance, attributes)
 
-    return !attrs || !Object.keys(attrs).some(name => attrs[name] !== attributes[name])
+    return (
+      !attrs || !attributes || !Object.keys(attrs).some(name => attrs[name] !== attributes[name])
+    )
   }
 
   const setParent = (node, { inherit: inheritAttrs = true } = {}) => {
