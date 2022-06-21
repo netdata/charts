@@ -42,7 +42,7 @@ const Aggregate = ({ labelProps, ...rest }) => {
       onChange={chart.updateAggregationMethodAttribute}
       items={items}
       data-track={chart.track("aggregate")}
-      dropProps={{ align: { top: "bottom", right: "left" }, "data-toolbox": true }}
+      dropProps={{ align: { top: "bottom", left: "left" }, "data-toolbox": true }}
       {...rest}
     >
       <Label

@@ -90,7 +90,7 @@ const TimeAggregation = ({ labelProps, ...rest }) => {
       onChange={chart.updateTimeAggregationMethodAttribute}
       items={items}
       data-track={chart.track("groupingMethod")}
-      dropProps={{ align: { top: "bottom", right: "left" }, "data-toolbox": true }}
+      dropProps={{ align: { top: "bottom", left: "left" }, "data-toolbox": true }}
       {...rest}
     >
       <Label

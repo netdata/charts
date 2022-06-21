@@ -31,7 +31,7 @@ const DimensionsAggregation = ({ isAggregate, labelProps }) => {
       title={!!tooltipAttrs}
       tooltipProps={tooltipAttrs}
       data-track={chart.track("dimensionsAggregation")}
-      dropProps={{ align: { top: "bottom", right: "left" }, "data-toolbox": true }}
+      dropProps={{ align: { top: "bottom", left: "left" }, "data-toolbox": true }}
       {...labelProps}
     />
   )
