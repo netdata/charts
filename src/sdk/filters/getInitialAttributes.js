@@ -17,7 +17,7 @@ export default chart => {
     dimensions,
     dimensionsAggregationMethod,
   } = chart.getAttributes()
-  const groupBy = chart.getAttribute("groupBy") || (clusterId ? "k8s_namespace" : "dimension")
+  const groupBy = chart.getAttribute("groupBy") || "dimension"
   const chartType = chart.getAttribute("chartType")
   const aggregationMethod = aggregationMethodAttr || getAggregateMethod(units)
 
