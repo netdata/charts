@@ -8,7 +8,8 @@ import { useChart, useAttributeValue, useMetadata } from "@/components/provider"
 import Icon from "@/components/icon"
 import Label from "./label"
 
-const getItems = dimensions => ["all", ...Object.keys(dimensions)].map(value => ({ value }))
+const getItems = dimensions =>
+  dimensions ? ["all", ...Object.keys(dimensions)].map(value => ({ value })) : [{ value: "all" }]
 
 const getLabel = value => {
   if (value.length === 0) return `All dimensions`

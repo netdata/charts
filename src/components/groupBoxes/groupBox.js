@@ -58,7 +58,7 @@ const GroupBox = ({ data, renderTooltip, getColor, ...options }) => {
           clearTimeout(timeoutId.current)
           closeDrop()
         },
-        onClick: () => {
+        onClick: ({ index, ...rect } = {}) => {
           boxHoverRef.current = index
           boxesRef.current.activateBox(index)
           timeoutId.current = setTimeout(() => {
