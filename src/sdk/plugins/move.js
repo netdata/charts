@@ -1,8 +1,9 @@
-const getMoveX = (after, before = 0) => {
+const getMoveX = (after, before = 0, autoPlay = true) => {
   if (after < 0) return { after, before }
 
-  if (before > Math.ceil(Date.now() / 1000))
+  if (autoPlay && before > Math.ceil(Date.now() / 1000)) {
     return { after: Math.floor(after - before + 1), before: 0 }
+  }
 
   return { after: Math.floor(after), before: Math.ceil(before) }
 }
@@ -12,7 +13,8 @@ export default sdk => {
 
   return sdk
     .on("moveX", (chart, after, before) => {
-      const move = getMoveX(after, before)
+      const autoPlay = chart.getAttribute("autoPlay")
+      const move = getMoveX(after, before, autoPlay)
 
       chart.getApplicableNodes({ syncPanning: true }).forEach(node => {
         node.updateAttributes(move)
