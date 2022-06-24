@@ -59,6 +59,7 @@ export default (sdk, chart) => {
           axisLabelWidth: 60,
         },
         y: {
+          ...(attributes.ticker && { ticker: attributes.ticker }),
           axisLabelFormatter: (y, granularity, opts, d) => {
             const [min, max] = d.axes_[0].extremeRange
 
@@ -108,10 +109,12 @@ export default (sdk, chart) => {
       yRangePad: 1,
       labelsSeparateLines: true,
       rightGap: -6,
-      valueRange:
-        attributes.groupBy !== "dimension"
-          ? attributes.valueRange || null
-          : attributes.valueRange || (min === max ? [0, max * 2] : null),
+      valueRange: attributes.getValueRange({
+        min,
+        max,
+        groupBy: attributes.groupBy,
+        valueRange: attributes.valueRange,
+      }),
       ...makeChartTypeOptions(),
       ...makeThemingOptions(),
       ...makeVisibilityOptions(),
@@ -185,7 +188,14 @@ export default (sdk, chart) => {
         })
       }),
       chart.onAttributeChange("valueRange", valueRange => {
-        dygraph.updateOptions({ valueRange })
+        dygraph.updateOptions({
+          valueRange: attributes.getValueRange({
+            min,
+            max,
+            groupBy: attributes.groupBy,
+            valueRange: valueRange,
+          }),
+        })
       }),
       chart.onAttributeChange("timezone", () => {
         dygraph.updateOptions({})
@@ -210,7 +220,7 @@ export default (sdk, chart) => {
     const smooth = line && !sparkline
 
     const strokeWidth = sparkline ? 0 : stacked ? 0.1 : smooth ? 1.5 : 0.7
-    const selectedDimensions = chart.getAttribute("selectedDimensions")
+    const { dimensions, selectedDimensions } = chart.getAttributes()
 
     return {
       stackedGraph: stacked,
@@ -219,7 +229,10 @@ export default (sdk, chart) => {
       highlightCircleSize: sparkline ? 3 : 4,
       strokeWidth,
       includeZero:
-        includeZero || (stacked && (!selectedDimensions || selectedDimensions.length !== 1)),
+        includeZero ||
+        (stacked &&
+          dimensions?.length > 1 &&
+          (!selectedDimensions || selectedDimensions.length > 1)),
       stackedGraphNaNFill: "none",
       plotter: (smooth && window.smoothPlotter) || null,
     }
@@ -242,7 +255,7 @@ export default (sdk, chart) => {
   }
 
   const makeDataOptions = () => {
-    const { valueRange, outOfLimits } = chart.getAttributes()
+    const { valueRange, outOfLimits, getValueRange } = chart.getAttributes()
     const { result, min, max } = chart.getPayload()
     const dateWindow = getDateWindow(chart)
     const isEmpty = outOfLimits || result.data.length === 0
@@ -253,10 +266,7 @@ export default (sdk, chart) => {
       file: isEmpty ? [[0]] : result.data,
       labels: isEmpty ? ["X"] : result.labels,
       dateWindow,
-      valueRange:
-        groupBy !== "dimension"
-          ? valueRange || null
-          : valueRange || (min === max ? [0, max * 2] : null),
+      valueRange: getValueRange({ min, max, groupBy, valueRange }),
     }
   }
 

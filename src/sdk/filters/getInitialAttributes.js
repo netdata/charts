@@ -7,7 +7,7 @@ export const stackedAggregations = {
 }
 
 export default chart => {
-  const { id, chartLabels } = chart.getMetadata()
+  const { id, chartLabels, dimensions: allDimensions } = chart.getMetadata()
   const units = chart.getUnits()
 
   const clusterId = chartLabels?.k8s_cluster_id?.[0]
@@ -32,6 +32,6 @@ export default chart => {
     ...(clusterId && { labels: { k8s_cluster_id: [clusterId] } }),
     chartType:
       groupBy !== "dimension" && stackedAggregations[aggregationMethod] ? "stacked" : chartType,
-    initializedFilters: true,
+    initializedFilters: !!allDimensions && Object.keys(allDimensions).length > 0,
   }
 }

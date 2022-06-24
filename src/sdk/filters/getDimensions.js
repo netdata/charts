@@ -26,6 +26,9 @@ const byNodeDefaultDimensions = {
   "ipv6.sockstat6_tcp_sockets": "inuse",
   "ipv6.sockstat6_raw_sockets": "inuse",
   "netfilter.conntrack_sockets": "connections",
+  "anomaly_detection.anomaly_rate": "anomaly_rate",
+  "anomaly_detection.dimensions": "anomalous",
+  "anomaly_detection.detector_events": "above_threshold",
 }
 
 const groupsWithCustomLogic = {
@@ -41,14 +44,15 @@ const sumOfAbsForAll = {
 export default (chart, groupBy) => {
   const { dimensions, id, chartType } = chart.getMetadata()
 
-  if (!dimensions) return []
+  const dimensionsArray =
+    !dimensions || !Object.keys(dimensions).length ? [] : Object.keys(dimensions)
 
   if (groupBy === "dimension") return []
 
   if (groupBy in groupsWithCustomLogic) {
     if (id in byNodeDefaultDimensions) return [byNodeDefaultDimensions[id]]
-    return chartType in sumOfAbsForAll ? [] : [Object.keys(dimensions)[0]]
+    return chartType in sumOfAbsForAll && dimensionsArray.length < 1 ? [] : [dimensionsArray[0]]
   }
 
-  return Object.keys(dimensions)
+  return dimensionsArray
 }

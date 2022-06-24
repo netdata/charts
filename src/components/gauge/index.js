@@ -36,8 +36,8 @@ const Title = () => {
   )
 }
 const StrokeLabel = styled(Label)`
-  -webkit-text-stroke-width: 0.7px;
-  -webkit-text-stroke-color: ${getColor("borderSecondary")};
+  text-shadow: 0.02em 0 ${getColor("borderSecondary")}, 0 0.02em ${getColor("borderSecondary")},
+    -0.02em 0 ${getColor("borderSecondary")}, 0 -0.02em ${getColor("borderSecondary")};
 `
 const Value = () => {
   const chart = useChart()

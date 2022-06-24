@@ -17,7 +17,7 @@ const tooltipProps = {
   },
 }
 
-const DimensionsAggregation = ({ isAggregate, labelProps }) => {
+const DimensionsAggregation = ({ labelProps }) => {
   const chart = useChart()
   const groupBy = useAttributeValue("groupBy")
 

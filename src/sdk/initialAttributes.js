@@ -13,6 +13,10 @@ export default {
   updateEvery: 0,
   pristineValueRange: undefined,
   valueRange: null,
+  getValueRange: ({ min, max, groupBy, valueRange }) =>
+    groupBy !== "dimension"
+      ? valueRange || null
+      : valueRange || (min === max ? [0, max * 2] : null),
   loaded: false,
   loading: false,
   updatedAt: 0,

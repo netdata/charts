@@ -23,7 +23,7 @@ export default (sdk, chart) => {
   }
 
   const executeLatest = makeExecuteLatest()
-  const latestRender = executeLatest.add(() => chart && chart.getUI().render())
+  const latestRender = executeLatest.add(() => chart && chart.getUI() && chart.getUI().render())
 
   chart.on("finishFetch", latestRender)
   chart.on("visibleDimensionsChanged", latestRender)
