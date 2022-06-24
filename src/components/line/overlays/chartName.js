@@ -19,11 +19,11 @@ const ChartName = ({ field, normalize, ...rest }) => {
     value = metadata[field]
   }
 
-  if (!value) return null
-
   if (normalize) {
     value = normalize(value, chart.getAttributes())
   }
+
+  if (!value) return null
 
   return (
     <Tooltip content={value}>

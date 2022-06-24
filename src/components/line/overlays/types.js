@@ -43,14 +43,14 @@ const ProceededOverlay = ({ id }) => (
   </Container>
 )
 
-const NameOverlay = props => (
-  <NoEventsContainer isAbsolute position="top" noEvents margin={[2, 0, 0, 0]}>
-    <ChartName {...props} />
+const NameOverlay = ({ containerProps, ...rest }) => (
+  <NoEventsContainer isAbsolute position="top" margin={[2, 0, 0, 0]} {...containerProps}>
+    <ChartName {...rest} />
   </NoEventsContainer>
 )
 
 const LatestValueOverlay = props => (
-  <NoEventsContainer isAbsolute position="bottom" noEvents margin={[0, 0, 2, 0]}>
+  <NoEventsContainer isAbsolute position="bottom" margin={[0, 0, 2, 0]}>
     <LatestValue {...props} />
   </NoEventsContainer>
 )
