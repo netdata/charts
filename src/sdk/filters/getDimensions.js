@@ -9,7 +9,7 @@ const byNodeDefaultDimensions = {
   "system.ipc_semaphores": "semaphores",
   "cpu.softnet_stat": "processed",
   "mem.pgfaults": "major",
-  "mem.writeback": "dirty",
+  "mem.writeback": "Dirty",
   "disks.ops": "reads",
   "disk.svctm": "svctm",
   "disk.mops": "reads",
