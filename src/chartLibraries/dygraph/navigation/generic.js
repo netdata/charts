@@ -30,7 +30,7 @@ export default chartUI => {
     })
   }
 
-  const onZoom = (event, g) => {
+  const onZoom = (event, dygraph) => {
     if (!event.shiftKey && !event.altKey) return
 
     event.preventDefault()
@@ -67,9 +67,9 @@ export default chartUI => {
     const percentage = normal / 50
 
     if (!event.offsetX) event.offsetX = event.layerX - event.target.offsetLeft
-    const xPct = offsetToPercentage(g, event.offsetX)
+    const xPct = offsetToPercentage(dygraph, event.offsetX)
 
-    zoom(g, percentage, xPct)
+    zoom(dygraph, percentage, xPct)
   }
 
   const unregister = chartUI
