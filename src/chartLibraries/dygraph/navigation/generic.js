@@ -43,8 +43,8 @@ export default chartUI => {
       const increment = delta * zoomInPercentage
       const [afterIncrement, beforeIncrement] = [increment * bias, increment * (1 - bias)]
 
-      const after = Math.round(afterAxis + afterIncrement) / 1000
-      const before = Math.round(beforeAxis - beforeIncrement) / 1000
+      const after = Math.round((afterAxis + afterIncrement) / 1000)
+      const before = Math.round((beforeAxis - beforeIncrement) / 1000)
 
       chartUI.chart.moveX(after, before)
     }
