@@ -58,7 +58,12 @@ export default chartUI => {
       return w == 0 ? 0 : x / w
     }
 
-    const normal = event.detail ? event.detail * -1 : event.deltaY * 2
+    const normalDef =
+      typeof event.wheelDelta === "number" && !Number.isNaN(event.wheelDelta)
+        ? event.wheelDelta / 40
+        : event.deltaY * -1.2
+
+    const normal = event.detail ? event.detail * -1 : normalDef
     const percentage = normal / 50
 
     if (!event.offsetX) event.offsetX = event.layerX - event.target.offsetLeft
