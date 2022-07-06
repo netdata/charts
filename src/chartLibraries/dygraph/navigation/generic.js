@@ -30,6 +30,11 @@ export default chartUI => {
     })
   }
 
+  const getTime = seconds => {
+    if (seconds > 0) return seconds * 1000
+    return Date.now() + seconds * 1000
+  }
+
   const onZoom = (event, dygraph) => {
     if (!event.shiftKey && !event.altKey) return
 
@@ -38,7 +43,9 @@ export default chartUI => {
 
     const zoom = (g, zoomInPercentage, bias) => {
       bias = bias || 0.5
-      const [afterAxis, beforeAxis] = g.xAxisRange()
+      const attributes = chartUI.chart.getAttributes()
+      const afterAxis = getTime(attributes.after)
+      const beforeAxis = getTime(attributes.before)
       const delta = afterAxis - beforeAxis
       const increment = delta * zoomInPercentage
       const [afterIncrement, beforeIncrement] = [increment * bias, increment * (1 - bias)]
