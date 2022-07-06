@@ -53,6 +53,7 @@ export default chartUI => {
       const after = Math.round((afterAxis + afterIncrement) / 1000)
       const before = Math.round((beforeAxis - beforeIncrement) / 1000)
 
+      chartUI.chart.getUI().render()
       chartUI.chart.moveX(after, before)
     }
 
