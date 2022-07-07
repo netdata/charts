@@ -36,6 +36,8 @@ export default chartUI => {
   }
 
   const onZoom = (event, dygraph) => {
+    // rollback temporarily until we'll debounce events
+    return
     if (!event.shiftKey && !event.altKey) return
 
     event.preventDefault()
