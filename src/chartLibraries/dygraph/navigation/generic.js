@@ -30,9 +30,7 @@ export default chartUI => {
     })
   }
 
-  const onZoom = (event, dygraph) => {
-    // rollback temporarily until we'll debounce events
-    return
+  const onZoom = (event, g) => {
     if (!event.shiftKey && !event.altKey) return
 
     event.preventDefault()
@@ -45,8 +43,8 @@ export default chartUI => {
       const increment = delta * zoomInPercentage
       const [afterIncrement, beforeIncrement] = [increment * bias, increment * (1 - bias)]
 
-      const after = Math.round((afterAxis + afterIncrement) / 1000)
-      const before = Math.round((beforeAxis - beforeIncrement) / 1000)
+      const after = Math.round(afterAxis + afterIncrement) / 1000
+      const before = Math.round(beforeAxis - beforeIncrement) / 1000
 
       chartUI.chart.moveX(after, before)
     }
@@ -60,18 +58,13 @@ export default chartUI => {
       return w == 0 ? 0 : x / w
     }
 
-    const normalDef =
-      typeof event.wheelDelta === "number" && !Number.isNaN(event.wheelDelta)
-        ? event.wheelDelta / 40
-        : event.deltaY * -1.2
-
-    const normal = event.detail ? event.detail * -1 : normalDef
+    const normal = event.detail ? event.detail * -1 : event.deltaY * 2
     const percentage = normal / 50
 
     if (!event.offsetX) event.offsetX = event.layerX - event.target.offsetLeft
-    const xPct = offsetToPercentage(dygraph, event.offsetX)
+    const xPct = offsetToPercentage(g, event.offsetX)
 
-    zoom(dygraph, percentage, xPct)
+    zoom(g, percentage, xPct)
   }
 
   const unregister = chartUI
