@@ -23,6 +23,7 @@ export default chart => {
 
   // @todo re-visit the logic of the initial attributes
   // It should keep pristine
+
   return {
     aggregationMethod,
     dimensions: dimensions?.length ? dimensions : getDimensions(chart, groupBy),
@@ -31,7 +32,9 @@ export default chart => {
     selectedChart: id,
     ...(clusterId && { labels: { k8s_cluster_id: [clusterId] } }),
     chartType:
-      groupBy !== "dimension" && stackedAggregations[aggregationMethod] ? "stacked" : chartType,
+      groupBy !== "dimension" && stackedAggregations[aggregationMethod] && !chartType
+        ? "stacked"
+        : chartType,
     initializedFilters: !!allDimensions && Object.keys(allDimensions).length > 0,
   }
 }
