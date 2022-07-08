@@ -94,7 +94,7 @@ export default (sdk, chart) => {
         touchmove: executeLatest.add((...args) => chartUI.trigger("touchmove", ...args)),
         touchend: executeLatest.add((...args) => chartUI.trigger("touchend", ...args)),
         dblclick: executeLatest.add((...args) => chartUI.trigger("dblclick", ...args)),
-        wheel: (...args) => chartUI.trigger("wheel", ...args),
+        wheel: executeLatest.add((...args) => chartUI.trigger("wheel", ...args)),
       },
 
       strokeBorderWidth: 0,
