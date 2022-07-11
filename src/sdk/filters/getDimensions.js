@@ -42,16 +42,17 @@ const sumOfAbsForAll = {
 }
 
 export default (chart, groupBy) => {
-  const { dimensions, id, chartType } = chart.getMetadata()
+  const { dimensions: allDimensions, id, chartType } = chart.getMetadata()
+  const { dimensions } = chart.getAttributes()
 
   const dimensionsArray =
-    !dimensions || !Object.keys(dimensions).length ? [] : Object.keys(dimensions)
+    !allDimensions || !Object.keys(allDimensions).length ? [] : Object.keys(allDimensions)
 
   if (groupBy === "dimension") return []
 
   if (groupBy in groupsWithCustomLogic) {
     if (id in byNodeDefaultDimensions) return [byNodeDefaultDimensions[id]]
-    return chartType in sumOfAbsForAll && dimensionsArray.length < 1 ? [] : [dimensionsArray[0]]
+    return chartType in sumOfAbsForAll && dimensions?.length < 1 ? [] : [dimensionsArray[0]]
   }
 
   return dimensionsArray
