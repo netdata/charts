@@ -1,6 +1,5 @@
 import limitRange from "./limitRange"
 
-// const now = Math.floor(Date.now() / 1000)
 const date = 1657640000
 
 describe("limitRange", () => {
