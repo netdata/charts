@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid"
 import makeListeners from "@/helpers/makeListeners"
 import makePristine from "@/helpers/makePristine"
+import limitRange from "@/helpers/limitRange"
 import pristineComposite, { pristineCompositeKey } from "./pristineComposite"
 import makeIntls from "./makeIntls"
 
@@ -138,12 +139,9 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   }
 
   const moveX = (after, before) => {
-    if (after > 0 && before - after < 60) {
-      // Fallback to 1 minute
-      after = before - 60
-    }
+    const { fixedAfter, fixedBefore } = limitRange({ after, before })
 
-    sdk.trigger("moveX", instance, Math.floor(after), Math.ceil(before))
+    sdk.trigger("moveX", instance, Math.floor(fixedAfter), Math.ceil(fixedBefore))
   }
 
   const zoomX = multiplier => {
