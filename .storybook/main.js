@@ -1,7 +1,7 @@
 const webpackConfig = require("../webpack.config.js")
 
 module.exports = {
-  stories: ["../src/**/*.stories.@(ts|tsx|js|jsx)"],
+  stories: ["../src/**/*.stories.js"],
   webpackFinal: async config => {
     const [, ...rest] = webpackConfig.module.rules
 
