@@ -1,3 +1,6 @@
+import { debounce } from "throttle-debounce"
+import limitRange from "@/helpers/limitRange"
+
 export default chartUI => {
   const updateNavigation = (
     navigation,
@@ -30,7 +33,11 @@ export default chartUI => {
     })
   }
 
-  const onZoom = (event, g) => {
+  const moveXDebounced = debounce(500, (chart, fixedAfter, fixedBefore) => {
+    chart.moveX(fixedAfter, fixedBefore)
+  })
+
+  const onZoom = (event, dygraph) => {
     if (!event.shiftKey && !event.altKey) return
 
     event.preventDefault()
@@ -39,14 +46,26 @@ export default chartUI => {
     const zoom = (g, zoomInPercentage, bias) => {
       bias = bias || 0.5
       const [afterAxis, beforeAxis] = g.xAxisRange()
-      const delta = afterAxis - beforeAxis
+
+      const delta = beforeAxis - afterAxis
       const increment = delta * zoomInPercentage
       const [afterIncrement, beforeIncrement] = [increment * bias, increment * (1 - bias)]
 
-      const after = Math.round(afterAxis + afterIncrement) / 1000
-      const before = Math.round(beforeAxis - beforeIncrement) / 1000
+      const afterSeconds = Math.round((afterAxis + afterIncrement) / 1000)
+      const beforeSeconds = Math.round((beforeAxis - beforeIncrement) / 1000)
 
-      chartUI.chart.moveX(after, before)
+      const { fixedAfter, fixedBefore } = limitRange({
+        after: afterSeconds,
+        before: beforeSeconds,
+      })
+      if (fixedAfter === afterAxis && fixedBefore === beforeAxis) {
+        return
+      }
+
+      moveXDebounced(chartUI.chart, fixedAfter, fixedBefore)
+      dygraph.updateOptions({
+        dateWindow: [fixedAfter * 1000, fixedBefore * 1000],
+      })
     }
 
     const offsetToPercentage = (g, offsetX) => {
@@ -58,13 +77,18 @@ export default chartUI => {
       return w == 0 ? 0 : x / w
     }
 
-    const normal = event.detail ? event.detail * -1 : event.deltaY * 2
+    const normalDef =
+      typeof event.wheelDelta === "number" && !Number.isNaN(event.wheelDelta)
+        ? event.wheelDelta / 40
+        : event.deltaY * -1.2
+
+    const normal = event.detail ? event.detail * -1 : normalDef
     const percentage = normal / 50
 
     if (!event.offsetX) event.offsetX = event.layerX - event.target.offsetLeft
-    const xPct = offsetToPercentage(g, event.offsetX)
+    const xPct = offsetToPercentage(dygraph, event.offsetX)
 
-    zoom(g, percentage, xPct)
+    zoom(dygraph, percentage, xPct)
   }
 
   const unregister = chartUI
