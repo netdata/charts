@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useMemo, useState } from "react"
 import { ThemeProvider } from "styled-components"
 import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui/lib/theme"
