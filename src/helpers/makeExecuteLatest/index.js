@@ -2,7 +2,6 @@ export default () => {
   const ids = new Set()
 
   return {
-    addSync: callback => (...args) => callback(...args),
     add: callback => {
       let id
       return (...args) => {
