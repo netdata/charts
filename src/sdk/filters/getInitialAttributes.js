@@ -1,7 +1,7 @@
 import getAggregateMethod from "./getAggregateMethod"
 import getDimensions from "./getDimensions"
 
-const getFilteredDimensions = (chart, dimensions) => {
+const getFilteredDimensions = dimensions => {
   if (dimensions?.includes("all_dimensions")) return []
   return dimensions
 }
@@ -32,7 +32,7 @@ export default chart => {
   return {
     aggregationMethod,
     dimensions: dimensions?.length
-      ? getFilteredDimensions(chart, dimensions)
+      ? getFilteredDimensions(dimensions)
       : getDimensions(chart, groupBy),
     dimensionsAggregationMethod: dimensionsAggregationMethod || "sum",
     groupBy,
