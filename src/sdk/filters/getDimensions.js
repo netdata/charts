@@ -42,7 +42,7 @@ const sumOfAbsForAll = {
 }
 
 export default (chart, groupBy) => {
-  const { dimensions: allDimensions, id, chartType } = chart.getMetadata() // []
+  const { dimensions: allDimensions, id, chartType } = chart.getMetadata()
   const dimensionsArray =
     !allDimensions || !Object.keys(allDimensions).length ? [] : Object.keys(allDimensions)
 
