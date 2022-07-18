@@ -1,6 +1,14 @@
 import getAggregateMethod from "./getAggregateMethod"
 import getDimensions from "./getDimensions"
 
+const getFilteredDimensions = (chart, dimensions) => {
+  if (dimensions?.includes("all_dimensions")) {
+    chart.updateAttribute("dimensions", [])
+    return []
+  }
+  return dimensions
+}
+
 export const stackedAggregations = {
   avg: true,
   sum: true,
@@ -26,7 +34,9 @@ export default chart => {
 
   return {
     aggregationMethod,
-    dimensions: dimensions?.length ? dimensions : getDimensions(chart, groupBy),
+    dimensions: dimensions?.length
+      ? getFilteredDimensions(chart, dimensions)
+      : getDimensions(chart, groupBy),
     dimensionsAggregationMethod: dimensionsAggregationMethod || "sum",
     groupBy,
     selectedChart: id,
