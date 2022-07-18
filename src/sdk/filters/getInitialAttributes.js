@@ -2,10 +2,7 @@ import getAggregateMethod from "./getAggregateMethod"
 import getDimensions from "./getDimensions"
 
 const getFilteredDimensions = (chart, dimensions) => {
-  if (dimensions?.includes("all_dimensions")) {
-    chart.updateAttribute("dimensions", [])
-    return []
-  }
+  if (dimensions?.includes("all_dimensions")) return []
   return dimensions
 }
 
