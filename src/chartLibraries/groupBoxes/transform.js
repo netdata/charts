@@ -30,7 +30,7 @@ export default chart => {
     boxes.postAggregations.push(postAggregatedValues[index])
 
     const chartLabels = aggregationGroups.reduce((labelsAcc, label) => {
-      if (labelValues[label][index]) {
+      if (labelValues[label]?.[index]) {
         labelsAcc[label] = labelValues[label][index]
       }
       return labelsAcc
