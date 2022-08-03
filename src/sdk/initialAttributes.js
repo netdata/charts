@@ -79,6 +79,7 @@ export default {
   postAggregationMethod: "",
   postGroupBy: "",
   selectedChart: "",
+  filteredLabels: {},
 
   pristineComposite: {},
 

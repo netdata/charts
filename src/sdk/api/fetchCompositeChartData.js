@@ -67,7 +67,7 @@ const getCompositeChartPayload = chart => {
       : reachableNodeIds,
     context: metadata.context || context || chartId,
     ...(dimensions.length && { dimensions }),
-    labels: filteredLabels,
+    ...(Object.keys(filteredLabels).length && { labels: filteredLabels }),
     ...filters,
   }
   const aggregations = getAggregations(chart)

@@ -59,6 +59,11 @@ export default chart => {
     chart.fetchAndRender()
   }
 
+  const updateFilteredLabelsAttribute = value => {
+    chart.updateAttribute("filteredLabels", value)
+    chart.fetchAndRender()
+  }
+
   const updateAggregationMethodAttribute = value => {
     chart.updateAttribute("aggregationMethod", value)
     const groupBy = chart.getAttribute("groupBy")
@@ -112,6 +117,7 @@ export default chart => {
   return {
     updateGroupByAttribute,
     updateDimensionsAttribute,
+    updateFilteredLabelsAttribute,
     updateAggregationMethodAttribute,
     updateTimeAggregationMethodAttribute,
     resetPristineComposite,
