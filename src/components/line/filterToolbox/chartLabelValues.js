@@ -1,24 +1,13 @@
 import { Checkbox, TextSmall } from "@netdata/netdata-ui"
 import { ItemContainer } from "@netdata/netdata-ui/lib/components/drops/menu/dropdownItem"
 import React, { memo } from "react"
-import styled from "styled-components"
-
-const StyledCheckbox = styled(Checkbox)`
-  margin-bottom: 6px;
-`
 
 const ChartLabelValues = ({ labelValues = [], selectedLabels, label, iconProps, onChange }) => {
   return labelValues.map((value, i) => {
     const isValueChecked = selectedLabels[label]?.includes?.(value)
     return (
-      <ItemContainer
-        gap={2}
-        column
-        alignItems="start"
-        width="250px"
-        key={`${value}_${i}_chartLabelValue`}
-      >
-        <StyledCheckbox
+      <ItemContainer gap={1} column alignItems="start" key={`${value}_${i}_chartLabelValue`}>
+        <Checkbox
           iconProps={iconProps}
           checked={!!isValueChecked}
           onChange={() => onChange({ label, value })}

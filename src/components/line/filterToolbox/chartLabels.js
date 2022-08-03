@@ -26,8 +26,8 @@ const Item = ({ item, value: selectedLabels, onItemClick, defaultChartLabelValue
   )
 
   return (
-    <Flex gap={2} column>
-      <ItemContainer alignItems="start" width="250px" gap={2}>
+    <Flex column width="230px">
+      <ItemContainer alignItems="start" gap={2}>
         <Checkbox
           checked={isChecked}
           indeterminate={!!isIndeterminate}
