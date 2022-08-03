@@ -9,6 +9,7 @@ const { updatePristine, resetPristine } = makePristine(pristineCompositeKey, [
   "groupBy",
   "groupingMethod",
   "chartType",
+  "filteredLabels",
 ])
 
 export default { update: updatePristine, reset: resetPristine }

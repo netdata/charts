@@ -24,6 +24,7 @@ export default chart => {
   } = chart.getAttributes()
   const groupBy = chart.getAttribute("groupBy") || "dimension"
   const chartType = chart.getAttribute("chartType")
+  const filteredLabels = chart.getAttribute("filteredLabels") || {}
   const aggregationMethod = aggregationMethodAttr || getAggregateMethod(units)
 
   // @todo re-visit the logic of the initial attributes
@@ -43,5 +44,6 @@ export default chart => {
         ? "stacked"
         : chartType,
     initializedFilters: !!allDimensions && Object.keys(allDimensions).length > 0,
+    filteredLabels,
   }
 }
