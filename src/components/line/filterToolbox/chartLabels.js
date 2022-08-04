@@ -76,7 +76,7 @@ const getLabel = values => {
     return acc
   }, 0)
 
-  return `${length || ""} label${length === 1 ? "" : "s"}`
+  return `${length || ""} condition${length === 1 ? "" : "s"}`
 }
 
 const tooltipProps = {
@@ -183,7 +183,7 @@ const ChartLabels = ({ labelProps, ...rest }) => {
       {...rest}
     >
       <Label
-        secondaryLabel="select"
+        secondaryLabel="filtered by"
         label={getLabel(selectedLabels)}
         title={tooltipProps.heading}
         tooltipProps={tooltipProps}
