@@ -67,6 +67,7 @@ export default {
   height: "",
   enabledHeightResize: true,
   pristineEnabledHeightResize: {},
+  enabledYAxis: true,
 
   outOfLimits: false,
   composite: false,
