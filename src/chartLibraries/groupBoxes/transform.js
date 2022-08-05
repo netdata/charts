@@ -5,7 +5,6 @@ export default chart => {
     result: { postAggregatedData = {} },
   } = chart.getPayload()
   const { groupBy, postGroupBy, aggregationGroups, filteredRows } = chart.getAttributes()
-
   const groupValues = keys[groupBy]
   const postGroupValues = keys[postGroupBy]
 
