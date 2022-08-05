@@ -48,6 +48,7 @@ export default (sdk, chart) => {
 
     executeLatest = makeExecuteLatest()
     const isEmpty = attributes.outOfLimits || result.data.length === 0
+    const { enabledYAxis } = chart.getAttributes()
 
     dygraph = new Dygraph(element, isEmpty ? [[0]] : result.data, {
       showLabelsOnHighlight: false,
@@ -58,20 +59,22 @@ export default (sdk, chart) => {
           axisLabelFormatter: date => chart.formatXAxis(date),
           axisLabelWidth: 60,
         },
-        y: {
-          ...(attributes.ticker && { ticker: attributes.ticker }),
-          axisLabelFormatter: (y, granularity, opts, d) => {
-            const [min, max] = d.axes_[0].extremeRange
+        y: enabledYAxis
+          ? {
+              ...(attributes.ticker && { ticker: attributes.ticker }),
+              axisLabelFormatter: (y, granularity, opts, d) => {
+                const [min, max] = d.axes_[0].extremeRange
 
-            if (min !== prevMin || max !== prevMax) {
-              prevMin = min
-              prevMax = max
-              chartUI.sdk.trigger("yAxisChange", chart, min, max)
+                if (min !== prevMin || max !== prevMax) {
+                  prevMin = min
+                  prevMax = max
+                  chartUI.sdk.trigger("yAxisChange", chart, min, max)
+                }
+                return chart.getConvertedValue(y)
+              },
+              pixelsPerLabel: 15,
             }
-            return chart.getConvertedValue(y)
-          },
-          pixelsPerLabel: 15,
-        },
+          : { drawAxis: false },
       },
 
       dateWindow: getDateWindow(chart),
