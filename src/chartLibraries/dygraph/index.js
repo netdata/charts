@@ -48,17 +48,19 @@ export default (sdk, chart) => {
 
     executeLatest = makeExecuteLatest()
     const isEmpty = attributes.outOfLimits || result.data.length === 0
-    const { enabledYAxis } = chart.getAttributes()
+    const { enabledXAxis, enabledYAxis } = chart.getAttributes()
 
     dygraph = new Dygraph(element, isEmpty ? [[0]] : result.data, {
       showLabelsOnHighlight: false,
       labels: isEmpty ? ["X"] : result.labels,
       axes: {
-        x: {
-          ticker: Dygraph.dateTicker,
-          axisLabelFormatter: date => chart.formatXAxis(date),
-          axisLabelWidth: 60,
-        },
+        x: enabledXAxis
+          ? {
+              ticker: Dygraph.dateTicker,
+              axisLabelFormatter: date => chart.formatXAxis(date),
+              axisLabelWidth: 60,
+            }
+          : { drawAxis: false },
         y: enabledYAxis
           ? {
               ...(attributes.ticker && { ticker: attributes.ticker }),
