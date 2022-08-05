@@ -29,9 +29,4 @@ const ChartLabelValues = ({ labelValues = [], selectedLabels, label, iconProps, 
   })
 }
 
-export default memo(
-  ChartLabelValues,
-  (prev, next) =>
-    prev.labelValues === next.labelValues &&
-    prev.selectedLabels[prev.label]?.length === next.selectedLabels[next.label]?.length
-)
+export default memo(ChartLabelValues)

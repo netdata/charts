@@ -5,7 +5,6 @@ import chevronDownIcon from "@netdata/netdata-ui/lib/components/icon/assets/chev
 import Dropdown from "@netdata/netdata-ui/lib/components/drops/menu/dropdown"
 import { TextSmall } from "@netdata/netdata-ui/lib/components/typography"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { Checkbox } from "@netdata/netdata-ui/lib/components/checkbox"
 import { useChart, useAttributeValue, useMetadata } from "@/components/provider"
 import Label from "./label"
 import ChartLabelValues from "./chartLabelValues"
@@ -13,37 +12,30 @@ import Reset from "./reset"
 import { Collapsible } from "@netdata/netdata-ui"
 import Icon from "@/components/icon"
 
-const Item = ({ item, value: selectedLabels, onItemClick, defaultChartLabelValues }) => {
-  const [isOpen, setIsOpen] = useState(false)
+const Item = ({ item, value: selectedLabels, onItemClick }) => {
   const { label, values } = item
-
-  const isChecked = defaultChartLabelValues[label] === selectedLabels[label]
-  const isIndeterminate = !isChecked && selectedLabels[label]?.length
-
   const sortedValues = useMemo(
     () => (Array.isArray(values) ? [...values].sort((a, b) => a.localeCompare(b)) : values),
     [values]
   )
+  const isOpenedByDefault = !!selectedLabels[label]
+  const [isOpen, setIsOpen] = useState(isOpenedByDefault)
 
   return (
     <Flex column width="230px">
-      <ItemContainer alignItems="start" gap={2}>
-        <Checkbox
-          checked={isChecked}
-          indeterminate={!!isIndeterminate}
-          onChange={() => onItemClick({ label })}
-          label={<TextSmall>{label}</TextSmall>}
-        />
+      <ItemContainer alignItems="start" gap={2} cursor="initial">
+        <TextSmall>{label}</TextSmall>
         <Icon
           svg={chevronDownIcon}
           onClick={() => setIsOpen(!isOpen)}
           rotate={isOpen ? 2 : 0}
           size="20px"
           color="border"
+          cursor="pointer"
         />
       </ItemContainer>
       <Collapsible open={isOpen}>
-        <Flex margin={[0, 0, 0, 6]} column>
+        <Flex margin={[0, 0, 0, 6]} column overflow="auto" height={{ max: "150px" }}>
           <ChartLabelValues
             labelValues={sortedValues}
             selectedLabels={selectedLabels}
@@ -102,7 +94,7 @@ const ChartLabels = ({ labelProps, ...rest }) => {
 
   const chartLabelsOptions = useMemo(
     () => Object.keys(chartLabels).map(key => ({ label: key, values: chartLabels[key] })),
-    [chartLabels]
+    []
   )
   const defaultChartLabelValues = useMemo(
     () =>
@@ -110,11 +102,11 @@ const ChartLabels = ({ labelProps, ...rest }) => {
         acc[label] = values.join("|")
         return acc
       }, {}),
-    [chartLabels]
+    []
   )
 
   const onChange = ({ label, value }) => {
-    const selectedLabels = value ? onLabelValueClick({ label, value }) : onLabelClick(label)
+    const selectedLabels = onLabelValueClick({ label, value })
 
     const labelsToSet = Object.keys(selectedLabels).reduce((acc, key) => {
       acc[key] = selectedLabels[key].includes("|")
@@ -124,17 +116,6 @@ const ChartLabels = ({ labelProps, ...rest }) => {
     }, {})
 
     chart.updateFilteredLabelsAttribute(labelsToSet)
-  }
-
-  const onLabelClick = label => {
-    const labelsToSet = { ...selectedLabels }
-    const isChecked = defaultChartLabelValues[label] === selectedLabels[label]
-
-    if (isChecked) {
-      delete labelsToSet[label]
-    } else labelsToSet[label] = defaultChartLabelValues[label]
-
-    return labelsToSet
   }
 
   const onLabelValueClick = ({ label, value }) => {
