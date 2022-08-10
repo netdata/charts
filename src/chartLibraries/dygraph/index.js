@@ -1,6 +1,7 @@
 import Dygraph from "@netdata/dygraphs"
 import "@netdata/dygraphs/src/extras/smooth-plotter"
 import makeChartUI from "@/sdk/makeChartUI"
+import getDefaultChartType from "@/sdk/getDefaultChartType"
 import makeExecuteLatest from "@/helpers/makeExecuteLatest"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
 import makeNavigation from "./navigation"
@@ -215,7 +216,7 @@ export default (sdk, chart) => {
   }
 
   const makeChartTypeOptions = () => {
-    const chartType = chart.getAttribute("chartType") || chart.getMetadata().chartType
+    const chartType = chart.getAttribute("chartType") || getDefaultChartType(chart)
 
     const stacked = chartType === "stacked"
     const area = chartType === "area"

@@ -4,7 +4,8 @@ import lineChart from "@netdata/netdata-ui/lib/components/icon/assets/line_chart
 import stackedChart from "@netdata/netdata-ui/lib/components/icon/assets/stacked_chart.svg"
 import areaChart from "@netdata/netdata-ui/lib/components/icon/assets/area_chart.svg"
 import Icon, { Button } from "@/components/icon"
-import { useChart, useMetadata, useAttribute } from "@/components/provider"
+import { useChart, useAttribute } from "@/components/provider"
+import getDefaultChartType from "@/sdk/getDefaultChartType"
 
 const iconProps = { color: "border", margin: [0, 2, 0, 0], size: "16px" }
 
@@ -38,11 +39,13 @@ const useItems = chart =>
 
 const ChartType = ({ disabled }) => {
   const chart = useChart()
-  const { chartType: metaChartType } = useMetadata()
   const [chartTypeAttribute, setChartType] = useAttribute("chartType")
-  const chartType = chartTypeAttribute || metaChartType || "line"
+  const defaultChartType = getDefaultChartType(chart)
+  const chartType = chartTypeAttribute || defaultChartType || "line"
 
-  const onChange = value => setChartType(metaChartType === value ? "" : value)
+  const onChange = value => {
+    setChartType(defaultChartType === value ? "" : value)
+  }
 
   const items = useItems(chart)
   const { label, svg } = items.find(({ value }) => value === chartType)
