@@ -1,7 +1,7 @@
 import Dygraph from "@netdata/dygraphs"
 import "@netdata/dygraphs/src/extras/smooth-plotter"
 import makeChartUI from "@/sdk/makeChartUI"
-import getDefaultChartType from "@/sdk/getDefaultChartType"
+import getDefaultChartType from "@/helpers/getDefaultChartType"
 import makeExecuteLatest from "@/helpers/makeExecuteLatest"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
 import makeNavigation from "./navigation"

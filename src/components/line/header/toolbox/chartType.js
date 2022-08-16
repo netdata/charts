@@ -5,7 +5,7 @@ import stackedChart from "@netdata/netdata-ui/lib/components/icon/assets/stacked
 import areaChart from "@netdata/netdata-ui/lib/components/icon/assets/area_chart.svg"
 import Icon, { Button } from "@/components/icon"
 import { useChart, useAttribute } from "@/components/provider"
-import getDefaultChartType from "@/sdk/getDefaultChartType"
+import getDefaultChartType from "@/helpers/getDefaultChartType"
 
 const iconProps = { color: "border", margin: [0, 2, 0, 0], size: "16px" }
 

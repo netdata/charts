@@ -1,4 +1,4 @@
-import getDefaultChartType from "../getDefaultChartType"
+import getDefaultChartType from "@/helpers/getDefaultChartType"
 import getAggregateMethod from "./getAggregateMethod"
 import getDimensions from "./getDimensions"
 
