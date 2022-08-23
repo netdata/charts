@@ -115,7 +115,7 @@ export default (sdk, chart) => {
     }
 
     const { result } = chart.getPayload()
-    const row = hoverX ? chart.getClosestRow(hoverX[0]) : result.data.length - 1
+    const row = hoverX ? chart.getClosestRow(hoverX[0]) : (result.data?.length || 0) - 1
 
     const rowData = result.data[row]
     if (!Array.isArray(rowData)) return
