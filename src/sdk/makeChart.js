@@ -197,6 +197,8 @@ export default ({
     return getChart(instance, options)
       .then(data => {
         if (data?.errorMsgKey) return failFetch(data)
+        if (!(Array.isArray(data?.result) || Array.isArray(data?.result?.data))) return failFetch()
+
         return doneFetch(data)
       })
       .catch(failFetch)
