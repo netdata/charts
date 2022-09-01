@@ -5,7 +5,7 @@ const getMoveX = (after, before = 0, autoPlay = true) => {
     return { after: Math.floor(after - before + 1), before: 0 }
   }
 
-  return { after: Math.floor(after), before: Math.ceil(before) }
+  return { after: Math.floor(after), before: Math.floor(before) }
 }
 
 export default sdk => {

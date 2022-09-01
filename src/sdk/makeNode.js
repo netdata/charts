@@ -141,7 +141,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   const moveX = (after, before) => {
     const { fixedAfter, fixedBefore } = limitRange({ after, before })
 
-    sdk.trigger("moveX", instance, Math.floor(fixedAfter), Math.ceil(fixedBefore))
+    sdk.trigger("moveX", instance, Math.floor(fixedAfter), Math.floor(fixedBefore))
   }
 
   const zoomX = multiplier => {
