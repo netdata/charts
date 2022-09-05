@@ -119,8 +119,10 @@ export default ({
     return { labels: ["time", "sum"], data }
   }
 
-  const getDataLength = ({ result } = {}) =>
-    Array.isArray(result) ? result.length : result.data?.length || 0
+  const getDataLength = payload => {
+    const { result } = payload || {}
+    return Array.isArray(result) ? result.length : result.data?.length || 0
+  }
 
   const doneFetch = (nextRawPayload, { errored = false, error = null } = {}) => {
     if (!errored) backoffMs = 0
