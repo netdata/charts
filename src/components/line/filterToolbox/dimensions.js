@@ -16,9 +16,12 @@ const getItems = dimensions =>
       }))
     : [{ value: "all" }]
 
-const getLabel = value => {
+const getLabel = (value, items) => {
   if (value.length === 0) return `All dimensions`
-  if (value.length === 1) return value[0]
+  if (value.length === 1) {
+    const item = items.find(({ value: itemValue }) => value[0] === itemValue)
+    return item?.label || value[0]
+  }
   return `${value.length} dimensions`
 }
 
@@ -63,7 +66,7 @@ const Dimensions = ({ labelProps, ...rest }) => {
 
   const options = useMemo(() => getItems(dimensions), [value, dimensions])
 
-  const label = getLabel(value)
+  const label = getLabel(value, options)
 
   return (
     <Menu
