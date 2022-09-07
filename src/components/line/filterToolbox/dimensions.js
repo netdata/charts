@@ -9,7 +9,12 @@ import Icon from "@/components/icon"
 import Label from "./label"
 
 const getItems = dimensions =>
-  dimensions ? ["all", ...Object.keys(dimensions)].map(value => ({ value })) : [{ value: "all" }]
+  dimensions
+    ? ["all", ...Object.keys(dimensions)].map(value => ({
+        label: dimensions[value]?.name || value,
+        value,
+      }))
+    : [{ value: "all" }]
 
 const getLabel = value => {
   if (value.length === 0) return `All dimensions`
@@ -23,7 +28,7 @@ const CheckboxIcon = props => {
 
 const iconProps = { as: CheckboxIcon }
 
-const Item = ({ item: { value }, value: selectedValues, onItemClick }) => {
+const Item = ({ item: { label, value }, value: selectedValues, onItemClick }) => {
   const isAll = value === "all"
   const checked = selectedValues.includes(value) || (isAll && selectedValues.length === 0)
 
@@ -33,7 +38,7 @@ const Item = ({ item: { value }, value: selectedValues, onItemClick }) => {
         iconProps={iconProps}
         checked={checked}
         onChange={() => onItemClick(value)}
-        label={<TextSmall>{isAll ? "All dimensions" : value}</TextSmall>}
+        label={<TextSmall>{isAll ? "All dimensions" : label || value}</TextSmall>}
       />
     </ItemContainer>
   )
