@@ -69,11 +69,11 @@ export default ({
     const { loaded, updateEvery: updateEveryAttribute } = node.getAttributes()
     if (updateEveryAttribute) return updateEveryAttribute * 1000
 
-    const { viewUpdateEvery } = getPayload()
+    const { viewUpdateEvery, updateEvery: granularity } = getPayload()
     if (loaded && viewUpdateEvery) return viewUpdateEvery * 1000
 
     const { updateEvery } = getMetadata()
-    return updateEvery * 1000 || 2000
+    return (granularity || updateEvery) * 1000 || 2000
   }
 
   const startAutofetch = () => {
