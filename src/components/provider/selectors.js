@@ -108,6 +108,11 @@ export const useTitle = () => {
   return attributeTitle || title
 }
 
+export const useInfo = () => {
+  const info = useAttributeValue("info")
+  return info
+}
+
 export const useName = () => {
   const { name, context } = useMetadata()
   const attrName = useAttributeValue("name")

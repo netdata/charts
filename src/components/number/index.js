@@ -6,6 +6,7 @@ import ChartContainer from "@/components/chartContainer"
 import {
   useChart,
   useTitle,
+  useInfo,
   useUnitSign,
   useAttributeValue,
   useImmediateListener,
@@ -28,13 +29,23 @@ const Label = styled(Text)`
 
 const Title = () => {
   const title = useTitle()
-  const isFetching = useIsFetching()
+  // const isFetching = useIsFetching()
   return (
-    <Label flex="1" color="border" fontSize="1.2em" strong isFetching={isFetching}>
+    <Label flex="1" color="text">
       {title}
     </Label>
   )
 }
+
+const Info = () => {
+  const info = useInfo()
+  return (
+    <Label color="textDescription" fontSize="11px" textAlign="left">
+      {info}
+    </Label>
+  )
+}
+
 const StrokeLabel = styled(Label)`
   text-shadow: 0.02em 0 ${getColor("borderSecondary")}, 0 0.02em ${getColor("borderSecondary")},
     -0.02em 0 ${getColor("borderSecondary")}, 0 -0.02em ${getColor("borderSecondary")};
@@ -63,7 +74,7 @@ const Value = () => {
 const Unit = () => {
   const unit = useUnitSign()
   return (
-    <Label color="border" fontSize="1em" alignSelf="start">
+    <Label color="text" fontSize="1em" alignSelf="end" margin={[0.5]}>
       {unit}
     </Label>
   )
@@ -72,8 +83,14 @@ const Unit = () => {
 const StatsContainer = styled(Flex).attrs({
   position: "absolute",
   column: true,
-  justifyContent: "between",
+  justifyContent: "start",
   alignContent: "center",
+  height: "auto",
+  width: "auto",
+  margin: [4, 4, 0, 0],
+  padding: [4],
+  background: "panelBg",
+  round: true,
 })`
   inset: 0 6%;
   text-align: center;
@@ -82,11 +99,13 @@ const StatsContainer = styled(Flex).attrs({
 
 const Stats = () => {
   const width = useOnResize()
-
   return (
     <StatsContainer fontSize={`${width / 20}px`}>
-      <Title />
-      <Flex>
+      <Flex column alignItems="start" gap={2}>
+        <Title />
+        <Info />
+      </Flex>
+      <Flex alignSelf="center" justifyContent="center" margin={["auto"]}>
         <Value size="large" />
         <Unit size="small" />
       </Flex>
