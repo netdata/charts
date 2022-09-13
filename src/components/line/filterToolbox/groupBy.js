@@ -26,9 +26,17 @@ const tooltipProps = {
   ),
 }
 
+const getDefaultItem = (items, updateGroupBy) => {
+  const itemToReturn = items.find(item => item.value === "database") || items[0]
+  updateGroupBy(itemToReturn.value)
+
+  return itemToReturn
+}
+
 const GroupBy = () => {
   const chart = useChart()
   const value = useAttributeValue("groupBy")
+  console.log({ value })
   const { chartLabels = {} } = chart.getMetadata()
 
   const items = useMemo(
@@ -45,7 +53,12 @@ const GroupBy = () => {
     ],
     [chartLabels]
   )
-  const selected = useMemo(() => items.find(item => item.value === value) || items[0], [value])
+  const selected = useMemo(
+    () =>
+      items.find(item => item.value === value) ||
+      getDefaultItem(items, chart.updateGroupByAttribute),
+    [value]
+  )
 
   return (
     <Menu

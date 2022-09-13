@@ -7,6 +7,16 @@ const getFilteredDimensions = dimensions => {
   return dimensions
 }
 
+const getDefaultGroupBy = chart => {
+  const { chartLabels, fullyLoaded } = chart.getMetadata()
+  if (!fullyLoaded) return
+
+  console.log({ groupBy: chart.getAttribute("groupBy") })
+  if (chart.getAttribute("groupBy")) return chart.getAttribute("groupBy")
+  if (Object.prototype.hasOwnProperty.call(chartLabels, "database")) return "database"
+  return "dimension"
+}
+
 export const stackedAggregations = {
   avg: true,
   sum: true,
@@ -23,7 +33,7 @@ export default chart => {
     dimensions,
     dimensionsAggregationMethod,
   } = chart.getAttributes()
-  const groupBy = chart.getAttribute("groupBy") || "dimension"
+  const groupBy = getDefaultGroupBy(chart)
   const chartType = chart.getAttribute("chartType")
   const filteredLabels = chart.getAttribute("filteredLabels") || {}
   const aggregationMethod = aggregationMethodAttr || getAggregateMethod(units)
