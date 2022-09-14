@@ -1,20 +1,11 @@
 import getDefaultChartType from "@/helpers/getDefaultChartType"
 import getAggregateMethod from "./getAggregateMethod"
 import getDimensions from "./getDimensions"
+import getDefaultGroupBy from "./getGroupBy"
 
 const getFilteredDimensions = dimensions => {
   if (dimensions?.includes("all_dimensions")) return []
   return dimensions
-}
-
-const getDefaultGroupBy = chart => {
-  const { chartLabels, fullyLoaded } = chart.getMetadata()
-  if (!fullyLoaded) return
-
-  console.log({ groupBy: chart.getAttribute("groupBy") })
-  if (chart.getAttribute("groupBy")) return chart.getAttribute("groupBy")
-  if (Object.prototype.hasOwnProperty.call(chartLabels, "database")) return "database"
-  return "dimension"
 }
 
 export const stackedAggregations = {

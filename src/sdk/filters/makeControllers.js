@@ -27,9 +27,6 @@ export default chart => {
   }
 
   const updateGroupByAttribute = value => {
-    console.log({ value }, "updateGroupByAttribute")
-    if (!value) return
-
     chart.updateAttribute("groupBy", value)
     if (value === "dimension") {
       chart.updateAttribute("dimensions", [])
