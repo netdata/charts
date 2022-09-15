@@ -1,6 +1,6 @@
 import React, { useMemo, memo } from "react"
 import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
-import { useChart, useAttributeValue } from "@/components/provider"
+import { useChart, useAttributeValue, useMetadata } from "@/components/provider"
 import Label from "./label"
 
 const defaultItems = [
@@ -29,7 +29,7 @@ const tooltipProps = {
 const GroupBy = () => {
   const chart = useChart()
   const value = useAttributeValue("groupBy")
-  const { chartLabels = {} } = chart.getMetadata()
+  const { chartLabels = {} } = useMetadata()
 
   const items = useMemo(
     () => [

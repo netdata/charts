@@ -1,6 +1,7 @@
 import getDefaultChartType from "@/helpers/getDefaultChartType"
 import getAggregateMethod from "./getAggregateMethod"
 import getDimensions from "./getDimensions"
+import getDefaultGroupBy from "./getGroupBy"
 
 const getFilteredDimensions = dimensions => {
   if (dimensions?.includes("all_dimensions")) return []
@@ -23,7 +24,7 @@ export default chart => {
     dimensions,
     dimensionsAggregationMethod,
   } = chart.getAttributes()
-  const groupBy = chart.getAttribute("groupBy") || "dimension"
+  const groupBy = getDefaultGroupBy(chart)
   const chartType = chart.getAttribute("chartType")
   const filteredLabels = chart.getAttribute("filteredLabels") || {}
   const aggregationMethod = aggregationMethodAttr || getAggregateMethod(units)
