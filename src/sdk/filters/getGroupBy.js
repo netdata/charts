@@ -1,5 +1,4 @@
 const byChartDefaultGroupBy = {
-  "postgres.db_transactions_ratio": "database",
   "postgres.db_transactions_rate": "database",
   "postgres.db_connections_utilization": "database",
   "postgres.db_connections_count": "database",
