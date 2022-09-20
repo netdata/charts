@@ -5,7 +5,6 @@ import stackedChart from "@netdata/netdata-ui/lib/components/icon/assets/stacked
 import areaChart from "@netdata/netdata-ui/lib/components/icon/assets/area_chart.svg"
 import Icon, { Button } from "@/components/icon"
 import { useChart, useAttribute } from "@/components/provider"
-import getDefaultChartType from "@/helpers/getDefaultChartType"
 
 const iconProps = { color: "border", margin: [0, 2, 0, 0], size: "16px" }
 
@@ -40,12 +39,7 @@ const useItems = chart =>
 const ChartType = ({ disabled }) => {
   const chart = useChart()
   const [chartTypeAttribute, setChartType] = useAttribute("chartType")
-  const defaultChartType = getDefaultChartType(chart)
-  const chartType = chartTypeAttribute || defaultChartType || "line"
-
-  const onChange = value => {
-    setChartType(defaultChartType === value ? "" : value)
-  }
+  const chartType = chartTypeAttribute || "line"
 
   const items = useItems(chart)
   const { label, svg } = items.find(({ value }) => value === chartType)
@@ -55,7 +49,7 @@ const ChartType = ({ disabled }) => {
       value={chartType}
       items={items}
       dropProps={{ align: { top: "bottom", right: "right" }, "data-toolbox": true }}
-      onChange={onChange}
+      onChange={setChartType}
       data-track={chart.track("chartType")}
     >
       <Button

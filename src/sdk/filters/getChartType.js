@@ -2,19 +2,20 @@ import initialAttributes from "@/sdk/initialAttributes"
 import { stackedAggregations } from "@/sdk/filters/getInitialAttributes"
 import getAggregateMethod from "@/sdk/filters/getAggregateMethod"
 
-const getDefaultChartType = chart => {
+const getChartType = (chart, initialGroupBy) => {
   const {
     aggregationMethod: aggregationMethodAttr,
     composite,
-    groupBy,
+    groupBy: groupByAttr,
     units,
   } = chart.getAttributes()
   const aggregationMethod = aggregationMethodAttr || getAggregateMethod(units)
+  const groupBy = groupByAttr || initialGroupBy
 
-  if (composite && groupBy !== "dimension" && stackedAggregations[aggregationMethod]) {
+  if (composite && groupBy !== "dimension" && stackedAggregations[aggregationMethod])
     return "stacked"
-  }
+
   return chart.getMetadata().chartType || initialAttributes.chartType
 }
 
-export default getDefaultChartType
+export default getChartType
