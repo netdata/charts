@@ -1,4 +1,4 @@
-import getDefaultChartType from "@/helpers/getDefaultChartType"
+import getChartType from "./getChartType"
 import getAggregateMethod from "./getAggregateMethod"
 import getDimensions from "./getDimensions"
 import getDefaultGroupBy from "./getGroupBy"
@@ -41,7 +41,7 @@ export default chart => {
     groupBy,
     selectedChart: id,
     ...(clusterId && { labels: { k8s_cluster_id: [clusterId] } }),
-    chartType: chartType || getDefaultChartType(chart),
+    chartType: chartType || getChartType(chart, groupBy),
     initializedFilters: !!allDimensions && Object.keys(allDimensions).length > 0,
     filteredLabels,
   }
