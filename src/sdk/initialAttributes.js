@@ -70,6 +70,8 @@ export default {
   enabledXAxis: true,
   enabledYAxis: true,
   hasToolbox: true,
+  yAxisLabelWidth: null, // default is most probably 50
+  axisLabelFontSize: 10,
 
   outOfLimits: false,
   composite: false,
