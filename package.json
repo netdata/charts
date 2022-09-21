@@ -33,9 +33,9 @@
     "charts"
   ],
   "peerDependencies": {
-    "@netdata/netdata-ui": "^1.10.18",
-    "react": "^16.14.0",
-    "react-dom": "^16.14.0",
+    "@netdata/netdata-ui": "^2.3.9",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "styled-components": "^5.2.1"
   },
   "devDependencies": {
