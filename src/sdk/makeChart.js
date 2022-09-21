@@ -283,7 +283,7 @@ export default ({
     dimensions.updateMetadataColors()
     node.trigger("metadataChanged")
 
-    if (node.getAttribute("composite") && !node.getAttribute("initializedFilters")) {
+    if (!node.getAttribute("initializedFilters")) {
       const attributes = getInitialFilterAttributes(instance)
       node.setAttributes(attributes)
     }
