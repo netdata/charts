@@ -69,7 +69,6 @@ const Dimension = forwardRef(({ id }, ref) => {
   return (
     <DimensionContainer
       ref={ref}
-      id={id}
       opacity={visible ? null : "weak"}
       cursor="pointer"
       onClick={onClick}
