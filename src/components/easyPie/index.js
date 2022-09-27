@@ -84,7 +84,6 @@ const Stats = () => {
 
   return (
     <StatsContainer inset={`${width * 0.3}px 0`} fontSize={`${width / 15}px`}>
-      <Title />
       <Value />
       <Unit />
     </StatsContainer>
@@ -99,9 +98,7 @@ const Skeleton = styled(Flex).attrs({
   inset: 0;
 `
 
-const Container = styled(Flex).attrs({ position: "relative" })`
-  padding-bottom: 100%;
-`
+const Container = styled(Flex).attrs({ position: "relative" })``
 
 export const EasyPie = props => {
   const loaded = useAttributeValue("loaded")
@@ -110,9 +107,9 @@ export const EasyPie = props => {
     <Container {...props}>
       {!loaded && <Skeleton />}
       {loaded && (
-        <ChartWrapper>
+        <ChartContainer>
           <Stats />
-        </ChartWrapper>
+        </ChartContainer>
       )}
     </Container>
   )

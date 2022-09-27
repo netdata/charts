@@ -125,7 +125,6 @@ const Stats = () => {
 
   return (
     <StatsContainer fontSize={`${width / 20}px`}>
-      <Title />
       <Value />
       <Bounds />
       <Unit />

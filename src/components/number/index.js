@@ -74,7 +74,7 @@ const Value = () => {
 const Unit = () => {
   const unit = useUnitSign()
   return (
-    <Label color="text" fontSize="1em" alignSelf="end" margin={[0.5]}>
+    <Label color="text" fontSize="1em" margin={[0.5]}>
       {unit}
     </Label>
   )
@@ -82,15 +82,12 @@ const Unit = () => {
 
 const StatsContainer = styled(Flex).attrs({
   position: "absolute",
-  column: true,
-  justifyContent: "start",
+  justifyContent: "center",
   alignContent: "center",
   height: "auto",
   width: "auto",
   margin: [4, 4, 0, 0],
   padding: [4],
-  background: "panelBg",
-  round: true,
 })`
   inset: 0 6%;
   text-align: center;
@@ -101,14 +98,8 @@ const Stats = () => {
   const width = useOnResize()
   return (
     <StatsContainer fontSize={`${width / 20}px`}>
-      <Flex column alignItems="start" gap={2}>
-        <Title />
-        <Info />
-      </Flex>
-      <Flex alignSelf="center" justifyContent="center" margin={["auto"]}>
-        <Value size="large" />
-        <Unit size="small" />
-      </Flex>
+      <Value size="large" />
+      <Unit size="small" />
     </StatsContainer>
   )
 }
