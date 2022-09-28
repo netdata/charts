@@ -122,7 +122,7 @@ export default (sdk, chart) => {
 
     const opts = {
       width: 1800,
-      height: 600,
+      height: 500,
       title: "Latency Heatmap (~35k)",
       plugins: [heatmapPlugin()],
       cursor: {

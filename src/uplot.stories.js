@@ -2,12 +2,12 @@ import React from "react"
 import { ThemeProvider } from "styled-components"
 import { DefaultTheme } from "@netdata/netdata-ui/lib/theme"
 import { camelizeKeys } from "@/helpers/objectTransform"
-import UPlot from "@/components/uPlot"
 import makeMockPayload from "@/helpers/makeMockPayload"
 import makeDefaultSDK from "./makeDefaultSDK"
 
 import systemCpuChart from "@/fixtures/compositeSystemCpuChart"
 import systemCpu from "@/fixtures/compositeSystemCpu"
+import Line from "@/components/line"
 
 const metadata = camelizeKeys(systemCpuChart, { omit: ["dimensions"] })
 
@@ -24,7 +24,7 @@ export const Heatmap = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <UPlot chart={chart} height="315px" />
+      <Line chart={chart} height="700px" />
     </ThemeProvider>
   )
 }
