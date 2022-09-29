@@ -25,6 +25,24 @@ export default (sdk, chart) => {
     render()
   }
 
+  const getMinMax = value => {
+    let { min, max } = chart.getPayload()
+    if (min < 0 && max === 0) {
+      max = -min
+      min = 0
+    }
+
+    const units = chart.getUnits()
+    if (units === "percentage") {
+      min = 0
+      max = 100
+    }
+
+    const minMax = [Math.min(min, value), Math.max(max, value)].sort((a, b) => a - b)
+
+    return minMax[0] === minMax[1] ? [minMax[0], minMax[1] + 1] : minMax
+  }
+
   const render = () => {
     chartUI.render()
 
@@ -48,9 +66,11 @@ export default (sdk, chart) => {
     const value = rows.reduce((acc, v) => acc + v, 0)
 
     chartUI.render()
+    const [min, max] = getMinMax(value)
 
     renderedValue = value
 
+    chartUI.sdk.trigger("yAxisChange", chart, min, max)
     chartUI.trigger("rendered")
   }
 

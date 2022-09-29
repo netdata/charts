@@ -26,7 +26,7 @@ const Label = styled(Text)`
   ${({ isFetching }) => isFetching && textAnimation};
 `
 
-const Title = () => {
+export const Title = () => {
   const title = useTitle()
   const isFetching = useIsFetching()
   return (
@@ -39,7 +39,7 @@ const StrokeLabel = styled(Label)`
   text-shadow: 0.02em 0 ${getColor("borderSecondary")}, 0 0.02em ${getColor("borderSecondary")},
     -0.02em 0 ${getColor("borderSecondary")}, 0 -0.02em ${getColor("borderSecondary")};
 `
-const Value = () => {
+export const Value = () => {
   const chart = useChart()
 
   const getValue = () => {
@@ -60,7 +60,7 @@ const Value = () => {
   )
 }
 
-const Unit = () => {
+export const Unit = () => {
   const unit = useUnitSign()
   return (
     <Label color="border" fontSize="1em" alignSelf="start">
@@ -83,7 +83,7 @@ const useEmptyValue = () => {
   return value
 }
 
-const Bound = ({ bound, empty, ...rest }) => {
+export const Bound = ({ bound, empty, ...rest }) => {
   const chart = useChart()
   const value = useAttributeValue(bound)
 
@@ -94,11 +94,11 @@ const Bound = ({ bound, empty, ...rest }) => {
   )
 }
 
-const BoundsContainer = styled(Flex).attrs({ justifyContent: "between" })`
+export const BoundsContainer = styled(Flex).attrs({ justifyContent: "between" })`
   padding-left: 6%;
 `
 
-const Bounds = () => {
+export const Bounds = () => {
   const empty = useEmptyValue()
 
   return (
@@ -109,22 +109,23 @@ const Bounds = () => {
   )
 }
 
-const StatsContainer = styled(Flex).attrs({
+export const StatsContainer = styled(Flex).attrs({
   position: "absolute",
   column: true,
   justifyContent: "between",
   alignContent: "center",
 })`
-  inset: 0 6%;
+  inset: ${({ inset }) => inset};
   text-align: center;
   font-size: ${({ fontSize }) => fontSize};
 `
 
-const Stats = () => {
-  const width = useOnResize()
+export const Stats = () => {
+  const { width } = useOnResize()
 
   return (
-    <StatsContainer fontSize={`${width / 20}px`}>
+    <StatsContainer inset="0 6%" fontSize={`${width / 20}px`}>
+      <Title />
       <Value />
       <Bounds />
       <Unit />
@@ -132,7 +133,7 @@ const Stats = () => {
   )
 }
 
-const Skeleton = styled(Flex).attrs({
+export const Skeleton = styled(Flex).attrs({
   background: "borderSecondary",
   position: "absolute",
 })`
@@ -141,11 +142,11 @@ const Skeleton = styled(Flex).attrs({
   border-top-right-radius: 100%;
 `
 
-const Container = styled(Flex).attrs({ position: "relative" })`
+export const Container = styled(Flex).attrs({ position: "relative" })`
   padding-bottom: 60%;
 `
 
-const ChartWrapper = styled.div`
+export const ChartWrapper = styled.div`
   position: absolute;
   inset: 0;
 `

@@ -108,11 +108,6 @@ export const useTitle = () => {
   return attributeTitle || title
 }
 
-export const useInfo = () => {
-  const info = useAttributeValue("info")
-  return info
-}
-
 export const useName = () => {
   const { name, context } = useMetadata()
   const attrName = useAttributeValue("name")
@@ -191,7 +186,7 @@ export const useOnResize = () => {
 
   useImmediateListener(() => chart.getUI().on("resize", forceUpdate), [chart])
 
-  return chart.getUI().getChartWidth()
+  return { width: chart.getUI().getChartWidth(), height: chart.getUI().getChartHeight() }
 }
 
 export const useDimensionIds = () => {

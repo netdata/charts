@@ -48,6 +48,7 @@ export default (Component, { Fallback: DefaultFallback = Fallback } = {}) => {
           if (!visible) return
 
           chart.getUI().setEstimatedWidth(myRef.current.offsetWidth)
+          chart.getUI().setEstimatedHeight(myRef.current.offsetHeight)
           if (parentRef?.current) chart.getUI().setParentWidth(parentRef.current.offsetWidth)
         },
         [chart]

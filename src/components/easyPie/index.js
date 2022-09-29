@@ -17,13 +17,13 @@ import withIntersection from "./withIntersection"
 import withDifferedMount from "@/components/hocs/withDifferedMount"
 import textAnimation from "../helpers/textAnimation"
 
-const Label = styled(Text)`
+export const Label = styled(Text)`
   line-height: 1;
   font-size: ${({ fontSize }) => fontSize};
   ${({ isFetching }) => isFetching && textAnimation};
 `
 
-const Value = () => {
+export const Value = () => {
   const chart = useChart()
 
   const getValue = () => {
@@ -44,7 +44,7 @@ const Value = () => {
   )
 }
 
-const Title = () => {
+export const Title = () => {
   const title = useTitle()
   const isFetching = useIsFetching()
   return (
@@ -54,7 +54,7 @@ const Title = () => {
   )
 }
 
-const Unit = () => {
+export const Unit = () => {
   const unit = useUnitSign()
   return (
     <Label color="border" fontSize="1em">
@@ -63,12 +63,12 @@ const Unit = () => {
   )
 }
 
-const ChartWrapper = styled(ChartContainer)`
+export const ChartWrapper = styled(ChartContainer)`
   position: absolute;
   inset: 0;
 `
 
-const StatsContainer = styled(Flex).attrs({
+export const StatsContainer = styled(Flex).attrs({
   position: "absolute",
   column: true,
   justifyContent: "between",
@@ -79,18 +79,19 @@ const StatsContainer = styled(Flex).attrs({
   font-size: ${({ fontSize }) => fontSize};
 `
 
-const Stats = () => {
-  const width = useOnResize()
+export const Stats = () => {
+  const { width } = useOnResize()
 
   return (
     <StatsContainer inset={`${width * 0.3}px 0`} fontSize={`${width / 15}px`}>
+      <Title />
       <Value />
       <Unit />
     </StatsContainer>
   )
 }
 
-const Skeleton = styled(Flex).attrs({
+export const Skeleton = styled(Flex).attrs({
   background: "borderSecondary",
   position: "absolute",
   round: "100%",
@@ -98,7 +99,9 @@ const Skeleton = styled(Flex).attrs({
   inset: 0;
 `
 
-const Container = styled(Flex).attrs({ position: "relative" })``
+export const Container = styled(Flex).attrs({ position: "relative" })`
+  padding-bottom: 100%;
+`
 
 export const EasyPie = props => {
   const loaded = useAttributeValue("loaded")
@@ -107,9 +110,9 @@ export const EasyPie = props => {
     <Container {...props}>
       {!loaded && <Skeleton />}
       {loaded && (
-        <ChartContainer>
+        <ChartWrapper>
           <Stats />
-        </ChartContainer>
+        </ChartWrapper>
       )}
     </Container>
   )

@@ -6,13 +6,10 @@ import ChartContainer from "@/components/chartContainer"
 import {
   useChart,
   useTitle,
-  useInfo,
   useUnitSign,
-  useAttributeValue,
   useImmediateListener,
   useOnResize,
 } from "@/components/provider"
-import { getSizeBy } from "@netdata/netdata-ui/lib/theme/utils"
 import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
 import { withChartProvider, useIsFetching } from "@/components/provider"
 import withChartTrack from "@/components/hocs/withChartTrack"
@@ -27,21 +24,13 @@ const Label = styled(Text)`
   ${({ isFetching }) => isFetching && textAnimation};
 `
 
-const Title = () => {
+export const Title = props => {
   const title = useTitle()
-  // const isFetching = useIsFetching()
-  return (
-    <Label flex="1" color="text">
-      {title}
-    </Label>
-  )
-}
+  const isFetching = useIsFetching()
 
-const Info = () => {
-  const info = useInfo()
   return (
-    <Label color="textDescription" fontSize="11px" textAlign="left">
-      {info}
+    <Label flex="1" color="border" fontSize="1.2em" strong isFetching={isFetching} {...props}>
+      {title}
     </Label>
   )
 }
@@ -50,7 +39,7 @@ const StrokeLabel = styled(Label)`
   text-shadow: 0.02em 0 ${getColor("borderSecondary")}, 0 0.02em ${getColor("borderSecondary")},
     -0.02em 0 ${getColor("borderSecondary")}, 0 -0.02em ${getColor("borderSecondary")};
 `
-const Value = () => {
+export const Value = props => {
   const chart = useChart()
 
   const getValue = () => {
@@ -65,53 +54,43 @@ const Value = () => {
   useImmediateListener(() => chart.getUI().on("rendered", () => setValue(getValue())), [])
 
   return (
-    <StrokeLabel flex="2" color="main" fontSize="2.2em" strong>
+    <StrokeLabel flex="2" color="main" fontSize="2.2em" strong {...props}>
       {value}
     </StrokeLabel>
   )
 }
 
-const Unit = () => {
+export const Unit = props => {
   const unit = useUnitSign()
   return (
-    <Label color="text" fontSize="1em" margin={[0.5]}>
+    <Label color="border" fontSize="1em" alignSelf="start" {...props}>
       {unit}
     </Label>
   )
 }
 
-const StatsContainer = styled(Flex).attrs({
+export const StatsContainer = styled(Flex).attrs({
   position: "absolute",
-  justifyContent: "center",
+  justifyContent: "between",
   alignContent: "center",
-  height: "auto",
-  width: "auto",
-  margin: [4, 4, 0, 0],
-  padding: [4],
 })`
   inset: 0 6%;
   text-align: center;
   font-size: ${({ fontSize }) => fontSize};
 `
 
-const Stats = () => {
-  const width = useOnResize()
+export const Stats = props => {
+  const { width } = useOnResize()
   return (
-    <StatsContainer fontSize={`${width / 20}px`}>
-      <Value size="large" />
-      <Unit size="small" />
+    <StatsContainer fontSize={`${width / 20}px`} {...props}>
+      <Title />
+      <Flex>
+        <Value size="large" />
+        <Unit size="small" />
+      </Flex>
     </StatsContainer>
   )
 }
-
-const Skeleton = styled(Flex).attrs({
-  background: "borderSecondary",
-  position: "absolute",
-})`
-  inset: ${getSizeBy(1)} ${getSizeBy(3)} ${getSizeBy(3)};
-  border-top-left-radius: 100%;
-  border-top-right-radius: 100%;
-`
 
 const Container = styled(Flex).attrs({ position: "relative" })`
   padding-bottom: 60%;
@@ -122,21 +101,14 @@ const ChartWrapper = styled.div`
   inset: 0;
 `
 
-export const NumberChart = props => {
-  const loaded = useAttributeValue("loaded")
-
-  return (
-    <Container {...props}>
-      {!loaded && <Skeleton />}
-      {loaded && (
-        <ChartWrapper>
-          <ChartContainer>
-            <Stats />
-          </ChartContainer>
-        </ChartWrapper>
-      )}
-    </Container>
-  )
-}
+export const NumberChart = props => (
+  <Container {...props}>
+    <ChartWrapper>
+      <ChartContainer>
+        <Stats />
+      </ChartContainer>
+    </ChartWrapper>
+  </Container>
+)
 
 export default withChartProvider(withIntersection(withChartTrack(withDifferedMount(NumberChart))))
