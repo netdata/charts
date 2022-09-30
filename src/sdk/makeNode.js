@@ -184,6 +184,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
 
   const resetNavigation = () => {
     const pristine = getAttribute("pristineValueRange")
+    if (!getAttribute("enabledResetRange")) return
     if (pristine !== undefined) return resetValueRange()
 
     moveX(-900)
