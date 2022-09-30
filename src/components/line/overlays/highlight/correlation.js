@@ -40,6 +40,7 @@ const Correlation = ({ id }) => {
     >
       <Flex>
         <Button
+          data-track="metrics-correlation::click-metric-correlations-chart"
           icon={<Icon svg={correlationsIcon} size="20px" />}
           onClick={() => chart.sdk.trigger("correlation", chart, range)}
           data-testid="highlight-correlations"
