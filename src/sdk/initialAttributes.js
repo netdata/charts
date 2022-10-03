@@ -31,6 +31,7 @@ export default {
   hoverX: null,
   navigation: "",
   enabledNavigation: true,
+  enabledResetRange: true,
   syncPanning: true,
   panning: false,
   hovering: false,
