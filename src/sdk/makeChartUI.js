@@ -15,6 +15,7 @@ export default (sdk, chart) => {
   let element = null
   let renderedAt = 0
   let estimatedWidth = 0
+  let estimatedHeight = 0
   let parentWidth = null
 
   const mount = el => {
@@ -42,21 +43,21 @@ export default (sdk, chart) => {
 
   const getElement = () => element
 
-  const setEstimatedWidth = width => {
-    estimatedWidth = width
-  }
+  const setEstimatedWidth = width => (estimatedWidth = width)
 
   const getEstimatedWidth = () => estimatedWidth
 
-  const setParentWidth = width => {
-    parentWidth = width
-  }
+  const setEstimatedHeight = height => (estimatedHeight = height)
+
+  const getEstimatedHeight = () => estimatedWidth
+
+  const setParentWidth = width => (parentWidth = width)
 
   const getParentWidth = () => parentWidth
 
-  const getEstimatedChartWidth = () => {
-    return element ? element.offsetWidth : estimatedWidth || 300
-  }
+  const getEstimatedChartWidth = () => (element ? element.offsetWidth : estimatedWidth || 300)
+
+  const getEstimatedChartHeight = () => (element ? element.offsetHeight : estimatedHeight || 300)
 
   const getThemeIndex = () => themeIndex[chart.getAttribute("theme")] || themeIndex.default
 
@@ -71,7 +72,7 @@ export default (sdk, chart) => {
   }
 
   const getChartHeight = () => {
-    return element ? element.offsetHeight : getEstimatedChartWidth()
+    return element ? element.offsetHeight : getEstimatedChartHeight()
   }
 
   return {
@@ -90,6 +91,9 @@ export default (sdk, chart) => {
     getEstimatedChartWidth,
     getChartWidth,
     getChartHeight,
+    setEstimatedHeight,
+    getEstimatedHeight,
+    getEstimatedChartHeight,
     getPixelsPerPoint,
     getThemeIndex,
     getThemeAttribute,
