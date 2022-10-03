@@ -186,7 +186,11 @@ export const useOnResize = () => {
 
   useImmediateListener(() => chart.getUI().on("resize", forceUpdate), [chart])
 
-  return { width: chart.getUI().getChartWidth(), height: chart.getUI().getChartHeight() }
+  return {
+    width: chart.getUI().getChartWidth(),
+    height: chart.getUI().getChartHeight(),
+    parentWidth: chart.getUI().getParentWidth(),
+  }
 }
 
 export const useDimensionIds = () => {
