@@ -3082,10 +3082,10 @@
   resolved "https://registry.yarnpkg.com/@netdata/dygraphs/-/dygraphs-2.1.1.tgz#47c36a1580999752523dfe647a268c3a0334d66c"
   integrity sha512-iZOmwvoNfjNvLcnbvnzCuIWjSsHrNR4+915T2WbXTHw7QgB7dk5+dPU/X4ufaIfSSx/ycqnJXj5lJIaBjT5zxg==
 
-"@netdata/netdata-ui@^2.3.9":
-  version "2.3.9"
-  resolved "https://registry.yarnpkg.com/@netdata/netdata-ui/-/netdata-ui-2.3.9.tgz#c67901103d56fbadcffe5af72e7bba56a1501648"
-  integrity sha512-+/Jr9mC/EFzkBHYFDvUyMERbZFgmpA1CZMSzwlBnkWjUOC2LGrLECPHDJPrfQQDDky7zxyOrJpwrej3RV4Qgug==
+"@netdata/netdata-ui@^2.3.12":
+  version "2.3.12"
+  resolved "https://registry.yarnpkg.com/@netdata/netdata-ui/-/netdata-ui-2.3.12.tgz#bec75e1490ba5e58f5184792a6f57eb67e9a0f72"
+  integrity sha512-pvB8Gl0QmqWDOqCP0J1ziNcYx1pYrpFGBMPp8wR/RmpeWGE6HwYMsdIcP2Uk/ws+A3q7Uu2WqPnSHbOfE3OgiQ==
   dependencies:
     "@elastic/react-search-ui" "^1.15.0"
     "@elastic/search-ui-site-search-connector" "^1.15.0"
