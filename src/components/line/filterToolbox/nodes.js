@@ -4,14 +4,16 @@ import { useChart, useAttributeValue, useMetadata } from "@/components/provider"
 import Multiselect from "./multiselect"
 
 const tooltipProps = {
-  heading: "Dimensions",
-  body: "Select one, multiple or all dimensions. A dimension is any value, either raw data or the result of a calculation that Netdata visualizes on a chart.",
+  heading: "Nodes",
+  body: "Select one, multiple or all nodes.",
 }
 
-const Dimensions = ({ labelProps, ...rest }) => {
+const Nodes = ({ labelProps, ...rest }) => {
   const chart = useChart()
   const value = useAttributeValue("dimensions")
+  const nodeIds = useAttributeValue("nodeIds")
   const { dimensions } = useMetadata()
+  // console.log("nodeIds", nodeIds) // eslint-disable-line no-console
 
   return (
     <Multiselect
@@ -28,4 +30,4 @@ const Dimensions = ({ labelProps, ...rest }) => {
   )
 }
 
-export default Dimensions
+export default Nodes

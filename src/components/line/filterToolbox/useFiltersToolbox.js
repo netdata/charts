@@ -53,7 +53,7 @@ export default () => {
     if (groupBy === "chart") return false
     if (totalInstances === 1) return false
     if (groupBy === "dimension") return true
-    return totalInstances > 0 && totalInstances > totalNodes;
+    return totalInstances > 0 && totalInstances > totalNodes
   }
 
   const aggregate = getAggregate()
