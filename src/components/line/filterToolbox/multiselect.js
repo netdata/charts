@@ -64,6 +64,7 @@ const Multiselect = ({
   labelProps,
   onChange,
   options,
+  secondaryLabel,
   tooltipProps,
   value,
   ...rest
@@ -89,7 +90,7 @@ const Multiselect = ({
       {...rest}
     >
       <Label
-        secondaryLabel="select"
+        secondaryLabel={secondaryLabel}
         label={label}
         title={tooltipProps.heading}
         tooltipProps={tooltipProps}

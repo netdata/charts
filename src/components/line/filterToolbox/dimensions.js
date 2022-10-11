@@ -20,6 +20,7 @@ const Dimensions = ({ labelProps, ...rest }) => {
       data-track={chart.track("dimensions")}
       onChange={chart.updateDimensionsAttribute}
       options={dimensions}
+      secondaryLabel="select"
       tooltipProps={tooltipProps}
       value={value}
       {...rest}

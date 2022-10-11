@@ -27,22 +27,24 @@ const StyledLabel = styled(TextSmall).attrs({
   flex: 1;
 `
 
-const Label = forwardRef(({ secondaryLabel, tertiaryLabel, label, chevron = true, ...rest }, ref) => (
-  <Container ref={ref} {...rest}>
-    {secondaryLabel && (
-      <TextSmall color="textLite" whiteSpace="nowrap" truncate>
-        {secondaryLabel}
-      </TextSmall>
-    )}
-    <StyledLabel>{label}</StyledLabel>
-    {tertiaryLabel && (
-      <TextSmall color="textLite" whiteSpace="nowrap" truncate>
-        {tertiaryLabel}
-      </TextSmall>
-    )}
-    {chevron && <Icon svg={chevronDown} size="16px" color="selected" />}
-  </Container>
-))
+const Label = forwardRef(
+  ({ secondaryLabel, tertiaryLabel, label, chevron = true, ...rest }, ref) => (
+    <Container ref={ref} {...rest}>
+      {secondaryLabel && (
+        <TextSmall color="textLite" whiteSpace="nowrap" truncate>
+          {secondaryLabel}
+        </TextSmall>
+      )}
+      <StyledLabel>{label}</StyledLabel>
+      {tertiaryLabel && (
+        <TextSmall color="textLite" whiteSpace="nowrap" truncate>
+          {tertiaryLabel}
+        </TextSmall>
+      )}
+      {chevron && <Icon svg={chevronDown} size="16px" color="selected" />}
+    </Container>
+  )
+)
 
 const TooltipContent = ({ header, body }) => (
   <Flex column gap={1} {...tooltipStyleProps}>
