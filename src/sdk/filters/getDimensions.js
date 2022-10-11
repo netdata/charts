@@ -29,6 +29,7 @@ const byNodeDefaultDimensions = {
   "anomaly_detection.anomaly_rate": "anomaly_rate",
   "anomaly_detection.dimensions": "anomalous",
   "anomaly_detection.detector_events": "above_threshold",
+  "httpcheck.status": "success",
 }
 
 const groupsWithCustomLogic = {
