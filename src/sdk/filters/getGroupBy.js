@@ -15,6 +15,10 @@ const byChartDefaultGroupBy = {
   "postgres.db_temp_files_created_rate": "database",
   "postgres.db_temp_files_io_rate": "database",
   "postgres.db_size": "database",
+  "httpcheck.in_state": "_collect_job",
+  "httpcheck.status": "_collect_job",
+  "httpcheck.response_length": "_collect_job",
+  "httpcheck.response_time": "_collect_job",
 }
 
 const getDefaultGroupBy = chart => {

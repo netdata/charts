@@ -34,6 +34,7 @@ const byNodeDefaultDimensions = {
 const groupsWithCustomLogic = {
   node: true,
   chart: true,
+  _collect_job: true,
 }
 
 const sumOfAbsForAll = {

@@ -2,6 +2,8 @@ import initialAttributes from "@/sdk/initialAttributes"
 import { stackedAggregations } from "@/sdk/filters/getInitialAttributes"
 import getAggregateMethod from "@/sdk/filters/getAggregateMethod"
 
+const notStackedGroupBy = ["dimension", "_collect_job"]
+
 const getChartType = (chart, initialGroupBy) => {
   const {
     aggregationMethod: aggregationMethodAttr,
@@ -12,7 +14,7 @@ const getChartType = (chart, initialGroupBy) => {
   const aggregationMethod = aggregationMethodAttr || getAggregateMethod(units)
   const groupBy = groupByAttr || initialGroupBy
 
-  if (composite && groupBy !== "dimension" && stackedAggregations[aggregationMethod])
+  if (composite && !notStackedGroupBy.includes(groupBy) && stackedAggregations[aggregationMethod])
     return "stacked"
 
   return chart.getMetadata().chartType || initialAttributes.chartType
