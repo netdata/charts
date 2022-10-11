@@ -59,12 +59,17 @@ const getCompositeChartPayload = chart => {
     context,
     chartId,
     filters,
+    selectedNodeIds,
   } = chart.getAttributes()
+
+  const mergedNodeIds = selectedNodeIds
+    ? reachableNodeIds.filter(id => selectedNodeIds.includes(id))
+    : reachableNodeIds
 
   const filter = {
     nodeIDs: metadata.nodeIDs
-      ? metadata.nodeIDs.filter(nodeId => reachableNodeIds.includes(nodeId))
-      : reachableNodeIds,
+      ? metadata.nodeIDs.filter(nodeId => mergedNodeIds.includes(nodeId))
+      : mergedNodeIds,
     context: metadata.context || context || chartId,
     ...(dimensions.length && { dimensions }),
     ...(Object.keys(filteredLabels).length && { labels: filteredLabels }),
