@@ -52,7 +52,7 @@ const normalizeAggregationMethod = method => valuesByMethod[method] || method
 const getCompositeChartPayload = chart => {
   const metadata = chart.getMetadata()
   const {
-    nodeIds: reachableNodeIds,
+    nodeIds: globalFilterNodeIds,
     dimensions,
     postAggregationMethod,
     filteredLabels,
@@ -63,8 +63,8 @@ const getCompositeChartPayload = chart => {
   } = chart.getAttributes()
 
   const mergedNodeIds = selectedNodeIds
-    ? reachableNodeIds.filter(id => selectedNodeIds.includes(id))
-    : reachableNodeIds
+    ? globalFilterNodeIds.filter(id => selectedNodeIds.includes(id))
+    : globalFilterNodeIds
 
   const filter = {
     nodeIDs: metadata.nodeIDs
