@@ -11,7 +11,7 @@ import makeFilterControllers from "./filters/makeControllers"
 import makeGetUnitSign from "./makeGetUnitSign"
 import camelizePayload from "./camelizePayload"
 import initialMetadata from "./initialMetadata"
-import mergeMemoizedNodes from "@/helpers/mergeMemoizedNodes"
+import mergeArrays from "@/helpers/mergeArrays"
 
 const maxBackoffMs = 30 * 1000
 
@@ -135,7 +135,7 @@ export default ({
     const { dimensionIds, metadata, ...restPayload } = nextPayloadTransformed
 
     const prevPayload = nextPayload
-    const allNodes = mergeMemoizedNodes(prevPayload?.allNodes, nextPayloadTransformed.nodes)
+    const allNodes = mergeArrays(prevPayload?.allNodes, nextPayloadTransformed.nodes)
     if (deepEqual(payload.dimensionIds, dimensionIds)) {
       nextPayload = {
         ...initialPayload,

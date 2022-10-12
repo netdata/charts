@@ -1,6 +1,6 @@
 import deepEqual from "./deepEqual"
 
-const mergeMemoizedNodes = (prev, next) => {
+const mergeArrays = (prev, next) => {
   if (!prev) return next
   if (deepEqual(prev, next)) return prev
 
@@ -17,4 +17,4 @@ const mergeMemoizedNodes = (prev, next) => {
   return results
 }
 
-export default mergeMemoizedNodes
+export default mergeArrays
