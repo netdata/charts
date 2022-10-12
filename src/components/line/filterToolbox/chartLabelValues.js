@@ -9,7 +9,9 @@ const StyledItemContainer = styled(ItemContainer).attrs({
 
 const ChartLabelValues = ({ labelValues = [], selectedLabels, label, iconProps, onChange }) => {
   return labelValues.map((value, i) => {
-    const isValueChecked = selectedLabels[label]?.includes?.(value)
+    const labelValues = selectedLabels[label]?.split?.("|") ?? []
+    const isValueChecked = labelValues.includes?.(value)
+
     return (
       <StyledItemContainer
         gap={1}

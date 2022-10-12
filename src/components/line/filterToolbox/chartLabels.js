@@ -120,7 +120,9 @@ const ChartLabels = ({ labelProps, ...rest }) => {
 
   const onLabelValueClick = ({ label, value }) => {
     const labelsToSet = { ...selectedLabels }
-    const shouldAddLabelValue = !labelsToSet[label]?.includes?.(value)
+
+    const labelValues = labelsToSet[label]?.split?.("|") ?? []
+    const shouldAddLabelValue = !labelValues.includes?.(value)
 
     if (shouldAddLabelValue) {
       labelsToSet[label] = labelsToSet[label] ? `${labelsToSet[label]}|${value}` : value
