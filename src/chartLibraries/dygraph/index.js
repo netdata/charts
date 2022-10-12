@@ -238,7 +238,7 @@ export default (sdk, chart) => {
       includeZero:
         includeZero ||
         (stacked &&
-          dimensions?.length > 1 &&
+          dimensions?.length !== 1 &&
           (!selectedDimensions || selectedDimensions.length > 1)),
       stackedGraphNaNFill: "none",
       plotter: (smooth && window.smoothPlotter) || null,
