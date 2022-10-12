@@ -12,6 +12,11 @@ import Reset from "./reset"
 import { Collapsible } from "@netdata/netdata-ui"
 import Icon from "@/components/icon"
 
+export const checkIfValueIsSelected = ({ label, value, selectedLabels }) => {
+  const labelValues = selectedLabels[label]?.split?.("|") ?? []
+  return !!labelValues.includes?.(value)
+}
+
 const Item = ({ item, value: selectedLabels, onItemClick }) => {
   const { label, values } = item
   const sortedValues = useMemo(
@@ -121,10 +126,9 @@ const ChartLabels = ({ labelProps, ...rest }) => {
   const onLabelValueClick = ({ label, value }) => {
     const labelsToSet = { ...selectedLabels }
 
-    const labelValues = labelsToSet[label]?.split?.("|") ?? []
-    const shouldAddLabelValue = !labelValues.includes?.(value)
+    const isValueSelected = checkIfValueIsSelected({ label, value, selectedLabels: labelsToSet })
 
-    if (shouldAddLabelValue) {
+    if (!isValueSelected) {
       labelsToSet[label] = labelsToSet[label] ? `${labelsToSet[label]}|${value}` : value
     } else {
       if (labelsToSet[label] === value) delete labelsToSet[label]

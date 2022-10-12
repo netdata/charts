@@ -2,6 +2,7 @@ import { Checkbox, TextSmall } from "@netdata/netdata-ui"
 import { ItemContainer } from "@netdata/netdata-ui/lib/components/drops/menu/dropdownItem"
 import React, { memo } from "react"
 import styled from "styled-components"
+import { checkIfValueIsSelected } from "./chartLabels"
 
 const StyledItemContainer = styled(ItemContainer).attrs({
   padding: [1, 2],
@@ -9,8 +10,7 @@ const StyledItemContainer = styled(ItemContainer).attrs({
 
 const ChartLabelValues = ({ labelValues = [], selectedLabels, label, iconProps, onChange }) => {
   return labelValues.map((value, i) => {
-    const labelValues = selectedLabels[label]?.split?.("|") ?? []
-    const isValueChecked = labelValues.includes?.(value)
+    const isValueSelected = checkIfValueIsSelected({ label, value, selectedLabels })
 
     return (
       <StyledItemContainer
@@ -22,7 +22,7 @@ const ChartLabelValues = ({ labelValues = [], selectedLabels, label, iconProps, 
       >
         <Checkbox
           iconProps={iconProps}
-          checked={!!isValueChecked}
+          checked={isValueSelected}
           onChange={() => onChange({ label, value })}
           label={<TextSmall wordBreak="break-word">{value}</TextSmall>}
         />
