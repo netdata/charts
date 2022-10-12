@@ -6,7 +6,6 @@ const FiltersContainer = styled(Flex).attrs({
   alignItems: "center",
   border: { side: "bottom", color: "borderSecondary" },
   overflow: "auto",
-  flex: "1 0 28px",
 })`
   &::-webkit-scrollbar {
     height: 0;
