@@ -1,16 +1,16 @@
 import React, { useEffect, useMemo, useState } from "react"
 import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
+import Dropdown from "@netdata/netdata-ui/lib/components/drops/menu/dropdown"
 import { ItemContainer } from "@netdata/netdata-ui/lib/components/drops/menu/dropdownItem"
 import chevronDownIcon from "@netdata/netdata-ui/lib/components/icon/assets/chevron_down.svg"
-import Dropdown from "@netdata/netdata-ui/lib/components/drops/menu/dropdown"
 import { TextSmall } from "@netdata/netdata-ui/lib/components/typography"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { useChart, useAttributeValue, useMetadata } from "@/components/provider"
-import Label from "./label"
-import ChartLabelValues from "./chartLabelValues"
-import Reset from "./reset"
 import { Collapsible } from "@netdata/netdata-ui"
 import Icon from "@/components/icon"
+import ChartLabelValues from "./chartLabelValues"
+import Label from "./label"
+import Reset from "./reset"
 
 export const checkIfValueIsSelected = ({ label, value, selectedLabels }) => {
   const labelValues = selectedLabels[label]?.split?.("|") ?? []
@@ -58,13 +58,12 @@ const renderItem = defaultChartLabelValues => props => {
   return <Item key={key} defaultChartLabelValues={defaultChartLabelValues} {...props} />
 }
 
-const renderDropdown = resetSelections => props =>
-  (
-    <Flex background="dropdown" column justifyContent="center" alignItems="center">
-      <Reset attribute="filteredLabels" resetFunction={resetSelections} />
-      <Dropdown {...props} />
-    </Flex>
-  )
+const renderDropdown = resetSelections => props => (
+  <Flex alignItems="center" background="dropdown" column justifyContent="center" margin={[1, 0, 0]}>
+    <Reset attribute="filteredLabels" resetFunction={resetSelections} />
+    <Dropdown hideShadow {...props} />
+  </Flex>
+)
 
 const getLabel = values => {
   const length = Object.keys(values).reduce((acc, key) => {
