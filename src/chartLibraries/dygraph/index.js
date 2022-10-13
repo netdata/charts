@@ -227,7 +227,8 @@ export default (sdk, chart) => {
     const smooth = line && !sparkline
 
     const strokeWidth = sparkline ? 0 : stacked ? 0.1 : smooth ? 1.5 : 0.7
-    const { dimensions, selectedDimensions } = chart.getAttributes()
+    const { selectedDimensions } = chart.getAttributes()
+    const { dimensionIds } = chart.getPayload()
 
     return {
       stackedGraph: stacked,
@@ -238,7 +239,7 @@ export default (sdk, chart) => {
       includeZero:
         includeZero ||
         (stacked &&
-          dimensions?.length > 1 &&
+          dimensionIds?.length > 1 &&
           (!selectedDimensions || selectedDimensions.length > 1)),
       stackedGraphNaNFill: "none",
       plotter: (smooth && window.smoothPlotter) || null,
