@@ -112,15 +112,15 @@ const Legend = props => {
   }, [legendRef.current])
 
   const setDimensionRef = useCallback(
-    dimentionItem => {
-      if (!dimentionItem) return
+    dimensionItem => {
+      if (!dimensionItem) return
 
-      if (!dimensionItemsRef.current.includes(dimentionItem))
-        dimensionItemsRef.current = [...dimensionItemsRef.current, dimentionItem]
+      if (!dimensionItemsRef.current.includes(dimensionItem))
+        dimensionItemsRef.current = [...dimensionItemsRef.current, dimensionItem]
 
       if (dimensionIds.length < dimensionItemsRef.current.length) {
         dimensionItemsRef.current = dimensionItemsRef.current.filter(
-          node => node.getAttribute("id") === dimentionItem.getAttribute("id")
+          node => node.getAttribute("id") === dimensionItem.getAttribute("id")
         )
       }
     },
