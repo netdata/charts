@@ -3,6 +3,12 @@ import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
 import { useAttributeValue, useChart, usePayload } from "@/components/provider"
 import Label from "./label"
 
+const defaultAliases = {
+  percentile: "95",
+  "trimmed-mean": "5",
+  "trimmed-median": "5",
+}
+
 const useMenuItems = chart =>
   useMemo(
     () => [
@@ -66,8 +72,146 @@ const useMenuItems = chart =>
         short: "CV()",
         "data-track": chart.track("time-aggregation-cv"),
       },
+      {
+        value: "trimmed-median",
+        label: "Trimmed Median",
+        short: "TRIMMEDIAN()",
+        "data-track": chart.track("time-aggregation-trimmed-median5"),
+      },
+      {
+        value: "trimmed-mean",
+        label: "Trimmed Mean",
+        short: "TRIMMEAN()",
+        "data-track": chart.track("time-aggregation-trimmed-mean5"),
+      },
+      {
+        value: "percentile",
+        label: "Percentile",
+        short: "PERCENTILE()",
+        "data-track": chart.track("time-aggregation-percentile95"),
+      },
     ],
     [chart]
+  )
+
+const useMenuAliasItems = ({ chart, method }) =>
+  useMemo(
+    () => {
+      if (method === "percentile") {
+        return [
+          {
+            value: "25",
+            label: "25",
+            short: "25",
+            "data-track": chart.track("time-aggregation-percentile25"),
+          },
+          {
+            value: "50",
+            label: "50",
+            short: "50",
+            "data-track": chart.track("time-aggregation-percentile50"),
+          },
+          {
+            value: "75",
+            label: "75",
+            short: "75",
+            "data-track": chart.track("time-aggregation-percentile75"),
+          },
+          {
+            value: "80",
+            label: "80",
+            short: "80",
+            "data-track": chart.track("time-aggregation-percentile80"),
+          },
+          {
+            value: "90",
+            label: "90",
+            short: "90",
+            "data-track": chart.track("time-aggregation-percentile90"),
+          },
+          {
+            value: "95",
+            label: "95",
+            short: "95",
+            "data-track": chart.track("time-aggregation-percentile95"),
+          },
+          {
+            value: "97",
+            label: "97",
+            short: "97",
+            "data-track": chart.track("time-aggregation-percentile97"),
+          },
+          {
+            value: "98",
+            label: "98",
+            short: "98",
+            "data-track": chart.track("time-aggregation-percentile98"),
+          },
+          {
+            value: "99",
+            label: "99",
+            short: "99",
+            "data-track": chart.track("time-aggregation-percentile99"),
+          },
+        ]
+      }
+
+      if (method.includes("trimmed")) {
+        return [
+          {
+            value: "1",
+            label: "1",
+            short: "1",
+            "data-track": chart.track(`time-aggregation-${method}1`),
+          },
+          {
+            value: "2",
+            label: "2",
+            short: "2",
+            "data-track": chart.track(`time-aggregation-${method}2`),
+          },
+          {
+            value: "3",
+            label: "3",
+            short: "3",
+            "data-track": chart.track(`time-aggregation-${method}3`),
+          },
+          {
+            value: "5",
+            label: "5",
+            short: "5",
+            "data-track": chart.track(`time-aggregation-${method}5`),
+          },
+          {
+            value: "10",
+            label: "10",
+            short: "10",
+            "data-track": chart.track(`time-aggregation-${method}10`),
+          },
+          {
+            value: "15",
+            label: "15",
+            short: "15",
+            "data-track": chart.track(`time-aggregation-${method}15`),
+          },
+          {
+            value: "20",
+            label: "20",
+            short: "20",
+            "data-track": chart.track(`time-aggregation-${method}20`),
+          },
+          {
+            value: "25",
+            label: "25",
+            short: "25",
+            "data-track": chart.track(`time-aggregation-${method}25`),
+          },
+        ]
+      }
+
+      return []
+    },
+    [chart, method]
   )
 
 const tooltipProps = {
@@ -77,31 +221,57 @@ const tooltipProps = {
 
 const TimeAggregation = ({ labelProps, ...rest }) => {
   const chart = useChart()
-  const value = useAttributeValue("groupingMethod")
+  const groupingMethod = useAttributeValue("groupingMethod")
+  const [method, alias] = groupingMethod.match(/[\d.]+|\D+/g)
   const { viewUpdateEvery = 0 } = usePayload()
 
   const items = useMenuItems(chart)
+  const aliasItems = useMenuAliasItems({ chart, method})
 
-  const { short } = items.find(item => item.value === value) || items[0]
+  const { short } = items.find(item => item.value === method) || items[0]
+  const aliasItem = aliasItems.find(item => item.value === alias) || aliasItems[0]
+
+  const handleAliasChange = value => chart.updateTimeAggregationMethodAttribute({ alias: value, method })
+  const handleMethodChange = value => chart.updateTimeAggregationMethodAttribute({ alias: defaultAliases[value], method: value, })
 
   return (
-    <Menu
-      value={value}
-      onChange={chart.updateTimeAggregationMethodAttribute}
-      items={items}
-      data-track={chart.track("groupingMethod")}
-      dropProps={{ align: { top: "bottom", left: "left" }, "data-toolbox": true }}
-      {...rest}
-    >
-      <Label
-        secondaryLabel="each as"
-        tertiaryLabel={`every ${viewUpdateEvery}s`}
-        label={short}
-        title={tooltipProps.heading}
-        tooltipProps={tooltipProps}
-        {...labelProps}
-      />
-    </Menu>
+    <>
+      {alias && (
+        <Menu
+          value={alias}
+          onChange={handleAliasChange}
+          items={aliasItems}
+          data-track={chart.track("groupingMethod")}
+          dropProps={{ align: { top: "bottom", left: "left" }, "data-toolbox": true }}
+          {...rest}
+        >
+          <Label
+            label={aliasItem.short}
+            secondaryLabel="each as"
+            title={tooltipProps.heading}
+            tooltipProps={tooltipProps}
+            {...labelProps}
+          />
+        </Menu>
+      )}
+      <Menu
+        value={method}
+        onChange={handleMethodChange}
+        items={items}
+        data-track={chart.track("groupingMethod")}
+        dropProps={{ align: { top: "bottom", left: "left" }, "data-toolbox": true }}
+        {...rest}
+      >
+        <Label
+          label={short}
+          secondaryLabel={!alias && "each as"}
+          tertiaryLabel={`every ${viewUpdateEvery}s`}
+          title={tooltipProps.heading}
+          tooltipProps={tooltipProps}
+          {...labelProps}
+        />
+      </Menu>
+    </>
   )
 }
 
