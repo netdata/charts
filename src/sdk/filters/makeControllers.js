@@ -84,7 +84,8 @@ export default chart => {
     chart.fetchAndRender()
   }
 
-  const updateTimeAggregationMethodAttribute = value => {
+  const updateTimeAggregationMethodAttribute = ({ alias, method }) => {
+    const value = alias ? `${method}${alias}` : method
     chart.updateAttribute("groupingMethod", value)
     chart.fetchAndRender()
   }
