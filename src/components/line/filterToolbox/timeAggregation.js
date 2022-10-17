@@ -3,12 +3,6 @@ import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
 import { useAttributeValue, useChart, usePayload } from "@/components/provider"
 import Label from "./label"
 
-const defaultAliases = {
-  percentile: "95",
-  "trimmed-mean": "5",
-  "trimmed-median": "5",
-}
-
 const useMenuItems = chart =>
   useMemo(
     () => [
@@ -101,56 +95,56 @@ const useMenuAliasItems = ({ chart, method }) =>
         return [
           {
             value: "25",
-            label: "25",
-            short: "25",
+            label: "25th",
+            short: "25th",
             "data-track": chart.track("time-aggregation-percentile25"),
           },
           {
             value: "50",
-            label: "50",
-            short: "50",
+            label: "50th",
+            short: "50th",
             "data-track": chart.track("time-aggregation-percentile50"),
           },
           {
             value: "75",
-            label: "75",
-            short: "75",
+            label: "75th",
+            short: "75th",
             "data-track": chart.track("time-aggregation-percentile75"),
           },
           {
             value: "80",
-            label: "80",
-            short: "80",
+            label: "80th",
+            short: "80th",
             "data-track": chart.track("time-aggregation-percentile80"),
           },
           {
             value: "90",
-            label: "90",
-            short: "90",
+            label: "90th",
+            short: "90th",
             "data-track": chart.track("time-aggregation-percentile90"),
           },
           {
             value: "95",
-            label: "95",
-            short: "95",
+            label: "95th",
+            short: "95th",
             "data-track": chart.track("time-aggregation-percentile95"),
           },
           {
             value: "97",
-            label: "97",
-            short: "97",
+            label: "97th",
+            short: "97th",
             "data-track": chart.track("time-aggregation-percentile97"),
           },
           {
             value: "98",
-            label: "98",
-            short: "98",
+            label: "98th",
+            short: "98th",
             "data-track": chart.track("time-aggregation-percentile98"),
           },
           {
             value: "99",
-            label: "99",
-            short: "99",
+            label: "99th",
+            short: "99th",
             "data-track": chart.track("time-aggregation-percentile99"),
           },
         ]
@@ -160,50 +154,50 @@ const useMenuAliasItems = ({ chart, method }) =>
         return [
           {
             value: "1",
-            label: "1",
-            short: "1",
+            label: "1%",
+            short: "1%",
             "data-track": chart.track(`time-aggregation-${method}1`),
           },
           {
             value: "2",
-            label: "2",
-            short: "2",
+            label: "2%",
+            short: "2%",
             "data-track": chart.track(`time-aggregation-${method}2`),
           },
           {
             value: "3",
-            label: "3",
-            short: "3",
+            label: "3%",
+            short: "3%",
             "data-track": chart.track(`time-aggregation-${method}3`),
           },
           {
             value: "5",
-            label: "5",
-            short: "5",
+            label: "5%",
+            short: "5%",
             "data-track": chart.track(`time-aggregation-${method}5`),
           },
           {
             value: "10",
-            label: "10",
-            short: "10",
+            label: "10%",
+            short: "10%",
             "data-track": chart.track(`time-aggregation-${method}10`),
           },
           {
             value: "15",
-            label: "15",
-            short: "15",
+            label: "15%",
+            short: "15%",
             "data-track": chart.track(`time-aggregation-${method}15`),
           },
           {
             value: "20",
-            label: "20",
-            short: "20",
+            label: "20%",
+            short: "20%",
             "data-track": chart.track(`time-aggregation-${method}20`),
           },
           {
             value: "25",
-            label: "25",
-            short: "25",
+            label: "25%",
+            short: "25%",
             "data-track": chart.track(`time-aggregation-${method}25`),
           },
         ]
@@ -214,7 +208,16 @@ const useMenuAliasItems = ({ chart, method }) =>
     [chart, method]
   )
 
-const tooltipProps = {
+const defaultAliases = {
+  percentile: "95",
+  "trimmed-mean": "5",
+  "trimmed-median": "5",
+}
+const aliasTooltipProps = {
+  heading: "Aggregation function aliases over time",
+  body: "The percentile or percentage of the data you want to focus for the percentile or trimmed functions selected."
+}
+const methodTooltipProps = {
   heading: "Aggregation function over time",
   body: "The aggregation function over time, for each of the metrics contributing to this query",
 }
@@ -248,8 +251,8 @@ const TimeAggregation = ({ labelProps, ...rest }) => {
           <Label
             label={aliasItem.short}
             secondaryLabel="each as"
-            title={tooltipProps.heading}
-            tooltipProps={tooltipProps}
+            title={aliasTooltipProps.heading}
+            tooltipProps={aliasTooltipProps}
             {...labelProps}
           />
         </Menu>
@@ -266,8 +269,8 @@ const TimeAggregation = ({ labelProps, ...rest }) => {
           label={short}
           secondaryLabel={!alias && "each as"}
           tertiaryLabel={`every ${viewUpdateEvery}s`}
-          title={tooltipProps.heading}
-          tooltipProps={tooltipProps}
+          title={methodTooltipProps.heading}
+          tooltipProps={methodTooltipProps}
           {...labelProps}
         />
       </Menu>
