@@ -306,8 +306,11 @@ export default ({
   const getConvertedValue = value => {
     if (!node) return
 
-    const { unitsConversionMethod, unitsConversionDivider, unitsConversionFractionDigits } =
-      node.getAttributes()
+    const {
+      unitsConversionMethod,
+      unitsConversionDivider,
+      unitsConversionFractionDigits,
+    } = node.getAttributes()
     const converted = convert(instance, unitsConversionMethod, value, unitsConversionDivider)
 
     if (unitsConversionFractionDigits === -1) return converted
@@ -420,11 +423,6 @@ export default ({
     ui = null
     node.destroy()
     node = null
-    payload = null
-    nextPayload = null
-    chartsMetadata = null
-    attributes = null
-    prevMetadata = null
   }
 
   node.type = "chart"

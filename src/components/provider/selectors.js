@@ -1,5 +1,5 @@
 import { unregister } from "@/helpers/makeListeners"
-import { useCallback, useEffect, useContext, useMemo, useReducer, useState } from "react"
+import { useCallback, useLayoutEffect, useContext, useMemo, useReducer, useState } from "react"
 import chartTitleByContextMap from "../helpers/chartTitleByContextMap"
 import context from "./context"
 
@@ -14,11 +14,7 @@ export const useForceUpdate = () => {
 
 export const useImmediateListener = (func, deps) => {
   const off = useMemo(func, deps)
-  useEffect(() => off, [off])
-}
-
-export const useListener = (func, deps) => {
-  useEffect(func, deps)
+  useLayoutEffect(() => off, [off])
 }
 
 export const useAttributeValue = name => {
@@ -245,7 +241,7 @@ export const useLatestValue = id => {
 
   const [value, setState] = useState(null)
 
-  useEffect(
+  useLayoutEffect(
     () =>
       unregister(
         chart.onAttributeChange("hoverX", () => setState(getValue())),

@@ -211,7 +211,6 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
 
     listeners.offAll()
     attributeListeners.offAll()
-    attributes = null
     parent = null
     destroyIntls()
   }
