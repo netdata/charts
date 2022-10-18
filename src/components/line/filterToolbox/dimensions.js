@@ -18,6 +18,7 @@ const Dimensions = ({ labelProps, ...rest }) => {
       attrName="dimensions"
       allName="All dimensions"
       data-track={chart.track("dimensions")}
+      labelProps={labelProps}
       onChange={chart.updateDimensionsAttribute}
       options={dimensions}
       secondaryLabel="select"

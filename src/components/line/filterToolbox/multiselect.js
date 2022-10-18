@@ -60,7 +60,6 @@ const renderItem = props => {
 const Multiselect = ({
   allName,
   attrName,
-  dataTrack,
   labelProps,
   onChange,
   options,
