@@ -244,7 +244,7 @@ const TimeAggregation = ({ labelProps, ...rest }) => {
           value={alias}
           onChange={handleAliasChange}
           items={aliasItems}
-          data-track={chart.track("groupingMethod")}
+          data-track={chart.track("groupingMethodAlias")}
           dropProps={{ align: { top: "bottom", left: "left" }, "data-toolbox": true }}
           {...rest}
         >
