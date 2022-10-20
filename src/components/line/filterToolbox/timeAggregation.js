@@ -225,7 +225,7 @@ const methodTooltipProps = {
 const TimeAggregation = ({ labelProps, ...rest }) => {
   const chart = useChart()
   const groupingMethod = useAttributeValue("groupingMethod")
-  const [method, alias] = groupingMethod.match(/[\d.]+|\D+/g)
+  const [method = "", alias = ""] = groupingMethod.match(/[\d.]+|\D+/g) || []
   const { viewUpdateEvery = 0 } = usePayload()
 
   const items = useMenuItems(chart)
