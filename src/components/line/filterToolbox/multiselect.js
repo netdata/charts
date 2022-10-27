@@ -79,10 +79,12 @@ const Multiselect = ({
       renderItem={renderItem}
       closeOnClick={false}
       dropProps={{
-        height: { max: "460px" },
-        overflow: "auto",
         align: { top: "bottom", left: "left" },
         "data-toolbox": true,
+      }}
+      dropdownProps={{
+        height: { max: "60vh" },
+        overflow: "auto",
       }}
       itemProps={{ allName }}
       value={value}

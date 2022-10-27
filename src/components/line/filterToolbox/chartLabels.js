@@ -160,10 +160,12 @@ const ChartLabels = ({ labelProps, ...rest }) => {
       closeOnClick={false}
       data-track={chart.track("chartLabels")}
       dropProps={{
-        height: { max: "460px" },
-        overflow: "auto",
         align: { top: "bottom", left: "left" },
         "data-toolbox": true,
+      }}
+      dropdownProps={{
+        height: { max: "60vh" },
+        overflow: "auto",
       }}
       resetSelections={resetSelections}
       {...rest}
