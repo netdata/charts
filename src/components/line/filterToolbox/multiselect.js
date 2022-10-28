@@ -1,4 +1,4 @@
-import React, { useMemo } from "react"
+import React, { useCallback, useMemo } from "react"
 import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
 import { ItemContainer } from "@netdata/netdata-ui/lib/components/drops/menu/dropdownItem"
 import { TextSmall } from "@netdata/netdata-ui/lib/components/typography"
@@ -67,11 +67,28 @@ const Multiselect = ({
 }) => {
   const items = useMemo(() => getItems(options), [value, options])
   const label = getLabel({ allName, attrName, items, value })
+  const handleChange = useCallback(
+    item => {
+      if (item === "all") {
+        onChange([])
+        return
+      }
+      const nextValue = value.includes(item) ? value.filter(v => v !== item) : [...value, item]
+
+      if (!nextValue.length || nextValue.length === options.length) {
+        onChange([])
+        return
+      }
+
+      onChange(nextValue)
+    },
+    [options, value]
+  )
 
   return (
     <Menu
       allName={allName}
-      onChange={onChange}
+      onChange={handleChange}
       items={items}
       renderItem={renderItem}
       closeOnClick={false}
