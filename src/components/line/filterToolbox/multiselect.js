@@ -65,7 +65,7 @@ const Multiselect = ({
   value,
   ...rest
 }) => {
-  const items = useMemo(() => getItems(options), [value, options])
+  const items = useMemo(() => getItems(options), [options])
   const label = getLabel({ allName, attrName, items, value })
   const handleChange = useCallback(
     item => {
