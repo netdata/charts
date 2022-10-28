@@ -53,7 +53,9 @@ const Item = ({
 }
 
 const renderItem = props => {
-  const key = props.item.value || props.item.label
+  const { label, value } = props.item
+  // value can be object
+  const key = ["number", "string"].includes(typeof value) ? value : label
   return <Item key={key} {...props} />
 }
 
