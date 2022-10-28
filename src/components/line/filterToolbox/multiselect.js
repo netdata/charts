@@ -8,13 +8,8 @@ import { Checkbox } from "@netdata/netdata-ui/lib/components/checkbox"
 import Icon from "@/components/icon"
 import Label from "./label"
 
-const getItems = options =>
-  options
-    ? ["all", ...Object.keys(options)].map(value => ({
-        label: options[value]?.name || value,
-        value,
-      }))
-    : [{ value: "all" }]
+const allItem = { value: "all" }
+const getItems = options => [allItem, ...options]
 
 const getLabel = ({ allName, attrName, items, value }) => {
   if (value.length === 0) return allName

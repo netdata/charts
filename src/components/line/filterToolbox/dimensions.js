@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useMemo } from "react"
 
 import { useChart, useAttributeValue, useMetadata } from "@/components/provider"
 import Multiselect from "./multiselect"
@@ -12,6 +12,14 @@ const Dimensions = ({ labelProps, ...rest }) => {
   const chart = useChart()
   const value = useAttributeValue("dimensions")
   const { dimensions } = useMetadata()
+  const options = useMemo(
+    () =>
+      Object.entries(dimensions).map(([key, value]) => ({
+        label: value?.name || key,
+        value: key,
+      })),
+    [dimensions]
+  )
 
   return (
     <Multiselect
@@ -20,7 +28,7 @@ const Dimensions = ({ labelProps, ...rest }) => {
       data-track={chart.track("dimensions")}
       labelProps={labelProps}
       onChange={chart.updateDimensionsAttribute}
-      options={dimensions}
+      options={options}
       secondaryLabel="select"
       tooltipProps={tooltipProps}
       value={value}
