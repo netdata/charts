@@ -63,6 +63,5 @@ export default () => {
     aggregate,
     dimensionAggregation,
     prefixedDimensions: aggregate || dimensionAggregation,
-    totalInstances,
   }
 }
