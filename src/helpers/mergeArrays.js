@@ -1,3 +1,5 @@
+import deepEqual from "@/helpers/deepEqual"
+
 const createMergeArrays = mergeItemFn => (prev, next) => {
   if (!prev) return next
   if (deepEqual(prev, next)) return prev
