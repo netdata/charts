@@ -36,7 +36,7 @@ const Item = ({
   const checked = selectedValues.includes(value) || (isAll && selectedValues.length === 0)
 
   return (
-    <ItemContainer gap={2}>
+    <ItemContainer gap={2} justifyContent="between">
       <Checkbox
         iconProps={iconProps}
         checked={checked}
