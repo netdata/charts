@@ -28,7 +28,7 @@ const iconProps = { as: CheckboxIcon }
 
 const Item = ({
   item: { label, value },
-  itemProps: { allName },
+  itemProps: { allName, renderLink },
   value: selectedValues,
   onItemClick,
 }) => {
@@ -43,6 +43,7 @@ const Item = ({
         onChange={() => onItemClick(value)}
         label={<TextSmall>{isAll ? allName : label || value}</TextSmall>}
       />
+      {!isAll && renderLink && renderLink({ value })}
     </ItemContainer>
   )
 }
@@ -60,6 +61,7 @@ const Multiselect = ({
   labelProps,
   onChange,
   options,
+  renderLink,
   secondaryLabel,
   tooltipProps,
   value,
@@ -100,7 +102,7 @@ const Multiselect = ({
         height: { max: "60vh" },
         overflow: "auto",
       }}
-      itemProps={{ allName }}
+      itemProps={{ allName, renderLink }}
       value={value}
       {...rest}
     >
