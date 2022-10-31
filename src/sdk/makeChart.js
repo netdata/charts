@@ -11,7 +11,7 @@ import makeFilterControllers from "./filters/makeControllers"
 import makeGetUnitSign from "./makeGetUnitSign"
 import camelizePayload from "./camelizePayload"
 import initialMetadata from "./initialMetadata"
-import mergeArrays from "@/helpers/mergeArrays"
+import { mergeNodeArrays } from "@/helpers/mergeArrays"
 
 const maxBackoffMs = 30 * 1000
 
@@ -135,7 +135,7 @@ export default ({
     const { dimensionIds, metadata, ...restPayload } = nextPayloadTransformed
 
     const prevPayload = nextPayload
-    const allNodes = mergeArrays(prevPayload?.allNodes, nextPayloadTransformed.nodes)
+    const allNodes = mergeNodeArrays(prevPayload?.allNodes, nextPayloadTransformed.nodes)
     if (deepEqual(payload.dimensionIds, dimensionIds)) {
       nextPayload = {
         ...initialPayload,
@@ -306,11 +306,8 @@ export default ({
   const getConvertedValue = value => {
     if (!node) return
 
-    const {
-      unitsConversionMethod,
-      unitsConversionDivider,
-      unitsConversionFractionDigits,
-    } = node.getAttributes()
+    const { unitsConversionMethod, unitsConversionDivider, unitsConversionFractionDigits } =
+      node.getAttributes()
     const converted = convert(instance, unitsConversionMethod, value, unitsConversionDivider)
 
     if (unitsConversionFractionDigits === -1) return converted
