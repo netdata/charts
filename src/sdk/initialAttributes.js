@@ -84,6 +84,7 @@ export default {
   dimensions: [],
   dimensionsAggregationMethod: "",
   groupBy: "",
+  nodeChartInstances: [],
 
   aggregationGroups: [],
   postAggregationMethod: "",

@@ -49,10 +49,19 @@ const valuesByMethod = {
 }
 const normalizeAggregationMethod = method => valuesByMethod[method] || method
 
+const mapChartInstances = instances =>
+  instances.reduce(
+    (acc, { chartId, nodeId }) => ({
+      ...acc,
+      [nodeId]: [...(acc[nodeId] || []), chartId],
+    }),
+    {}
+  )
+
 const getCompositeChartPayload = chart => {
   const metadata = chart.getMetadata()
   const {
-    nodeIds,
+    nodeIds, // populated from global filter
     dimensions,
     postAggregationMethod,
     filteredLabels,
@@ -61,6 +70,7 @@ const getCompositeChartPayload = chart => {
     filters,
     selectedNodeIds,
     selectedChartId,
+    nodeChartInstances,
   } = chart.getAttributes()
 
   const mergedNodeIds = selectedNodeIds
@@ -75,6 +85,7 @@ const getCompositeChartPayload = chart => {
     ...(dimensions.length && { dimensions }),
     ...(Object.keys(filteredLabels).length && { labels: filteredLabels }),
     ...(selectedChartId && { chartID: selectedChartId }),
+    ...(nodeChartInstances.length && { nodeChartInstances: mapChartInstances(nodeChartInstances) }),
     ...filters,
   }
   const aggregations = getAggregations(chart)

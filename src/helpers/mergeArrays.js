@@ -1,6 +1,6 @@
-import deepEqual from "./deepEqual"
+import deepEqual from "@/helpers/deepEqual"
 
-const mergeArrays = (prev, next) => {
+const createMergeArrays = mergeItemFn => (prev, next) => {
   if (!prev) return next
   if (deepEqual(prev, next)) return prev
 
@@ -8,7 +8,7 @@ const mergeArrays = (prev, next) => {
   next.forEach(nextNode => {
     const index = results.findIndex(({ id }) => id === nextNode.id)
     if (index !== -1) {
-      results[index] = nextNode
+      results[index] = mergeItemFn(results[index], nextNode)
       return
     }
     results.push(nextNode)
@@ -16,5 +16,16 @@ const mergeArrays = (prev, next) => {
 
   return results
 }
+
+const mergeArrays = createMergeArrays((prev, next) => next)
+export const mergeNodeArrays = createMergeArrays((prev, next) => {
+  if (next.chartIDs.every(id => prev.chartIDs.includes(id))) {
+    return next
+  }
+  return {
+    ...next,
+    chartIDs: [...new Set([...prev.chartIDs, ...next.chartIDs])],
+  }
+})
 
 export default mergeArrays

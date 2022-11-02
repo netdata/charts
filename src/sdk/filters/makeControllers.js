@@ -36,25 +36,7 @@ export default chart => {
     chart.fetchAndRender().then(() => onGroupFetch(value))
   }
 
-  const getNextDimensionsAttribute = nextValue => {
-    const value = chart.getAttribute("dimensions")
-
-    if (nextValue === "all") return []
-
-    const nextAttribute = value.includes(nextValue)
-      ? value.filter(v => v !== nextValue)
-      : [...value, nextValue]
-
-    const { dimensions } = chart.getMetadata()
-
-    if (nextAttribute.length === 0 || nextAttribute.length === Object.keys(dimensions).length)
-      return []
-
-    return nextAttribute
-  }
-
-  const updateDimensionsAttribute = nextValue => {
-    const value = getNextDimensionsAttribute(nextValue)
+  const updateDimensionsAttribute = value => {
     chart.updateAttribute("dimensions", value)
     chart.fetchAndRender()
   }
