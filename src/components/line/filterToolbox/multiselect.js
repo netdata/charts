@@ -8,7 +8,8 @@ import { Checkbox } from "@netdata/netdata-ui/lib/components/checkbox"
 import Icon from "@/components/icon"
 import Label from "./label"
 
-const allItem = { value: "all" }
+const ALL = "all"
+const allItem = { value: ALL }
 const getItems = options => [allItem, ...options]
 
 const getLabel = ({ allName, attrName, items, value }) => {
@@ -32,7 +33,7 @@ const Item = ({
   value: selectedValues,
   onItemClick,
 }) => {
-  const isAll = value === "all"
+  const isAll = value === ALL
   const checked = selectedValues.includes(value) || (isAll && selectedValues.length === 0)
 
   return (
@@ -71,7 +72,7 @@ const Multiselect = ({
   const label = getLabel({ allName, attrName, items, value })
   const handleChange = useCallback(
     item => {
-      if (item === "all") {
+      if (item === ALL) {
         onChange([])
         return
       }
