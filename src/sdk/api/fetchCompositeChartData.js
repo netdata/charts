@@ -61,7 +61,7 @@ const mapChartInstances = instances =>
 const getCompositeChartPayload = chart => {
   const metadata = chart.getMetadata()
   const {
-    nodeIds, // populated from global filter
+    nodeIds = [],
     dimensions,
     postAggregationMethod,
     filteredLabels,
