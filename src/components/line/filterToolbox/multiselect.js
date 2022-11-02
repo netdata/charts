@@ -97,6 +97,7 @@ const Multiselect = ({
       dropProps={{
         align: { top: "bottom", left: "left" },
         "data-toolbox": true,
+        keepHorizontal: true,
       }}
       dropdownProps={{
         height: { max: "60vh" },
