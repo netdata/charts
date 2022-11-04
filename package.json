@@ -1,6 +1,6 @@
 {
   "name": "@netdata/charts",
-  "version": "1.1.23",
+  "version": "1.1.24",
   "description": "Netdata frontend SDK and chart utilities",
   "main": "index.js",
   "module": "es6/index.js",
@@ -23,7 +23,7 @@
     "prepublish": "yarn clean && yarn build",
     "start": "start-storybook -p 6006",
     "deploy-storybook": "storybook-to-ghpages",
-    "cp-cloud": "cp -R ./dist ../publishe/cloud-frontend/node_modules/@netdata/charts/",
+    "cp-cloud": "cp -R ./dist ../cloud-frontend/node_modules/@netdata/charts/",
     "to-cloud": "yarn build && yarn cp-cloud"
   },
   "keywords": [
