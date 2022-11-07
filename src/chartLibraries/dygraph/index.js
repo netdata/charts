@@ -119,7 +119,7 @@ export default (sdk, chart) => {
         max,
         groupBy: attributes.groupBy,
         valueRange: attributes.valueRange,
-        aggrMethod: attributes.dimensionsAggregationMethod,
+        aggrMethod: attributes.aggregationMethod,
       }),
       ...makeChartTypeOptions(),
       ...makeThemingOptions(),
@@ -200,7 +200,7 @@ export default (sdk, chart) => {
             max,
             groupBy: attributes.groupBy,
             valueRange: valueRange,
-            aggrMethod: attributes.dimensionsAggregationMethod,
+            aggrMethod: attributes.aggregationMethod,
           }),
         })
       }),
@@ -263,12 +263,7 @@ export default (sdk, chart) => {
   }
 
   const makeDataOptions = () => {
-    const {
-      valueRange,
-      outOfLimits,
-      getValueRange,
-      dimensionsAggregationMethod,
-    } = chart.getAttributes()
+    const { valueRange, outOfLimits, getValueRange, aggregationMethod } = chart.getAttributes()
     const { result, min, max } = chart.getPayload()
     const dateWindow = getDateWindow(chart)
     const isEmpty = outOfLimits || result.data.length === 0
@@ -284,7 +279,7 @@ export default (sdk, chart) => {
         max,
         groupBy,
         valueRange,
-        aggrMethod: dimensionsAggregationMethod,
+        aggrMethod: aggregationMethod,
       }),
     }
   }
