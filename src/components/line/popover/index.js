@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef, forwardRef, Fragment } from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import makeExecuteLatest from "@/helpers/makeExecuteLatest"
 import { unregister } from "@/helpers/makeListeners"
 import { useChart } from "@/components/provider"
 import ReactDOM from "react-dom"
@@ -40,10 +41,12 @@ const Container = () => {
   targetRef.current = target
   updatePositionRef.current = useMakeUpdatePosition(target, dropRef, align, stretch)
 
-  useEffect(
-    () =>
-      unregister(
-        chart.getUI().on("mousemove", event => {
+  useEffect(() => {
+    const executeLatest = makeExecuteLatest()
+    return unregister(
+      chart.getUI().on(
+        "mousemove",
+        executeLatest.add(event => {
           if (chart.getAttribute("panning") || chart.getAttribute("highlighting")) return
 
           const offsetX = event.offsetX || event.layerX
@@ -65,17 +68,18 @@ const Container = () => {
           const top = offsetY > chartHeight / 2
 
           setAlign(getAlign(left, top))
-        }),
-        chart.on("blurChart", () => setOpen(false)),
-        chart.onAttributeChange("panning", panning => {
-          if (panning) setOpen(false)
-        }),
-        chart.onAttributeChange("highlighting", panning => {
-          if (panning) setOpen(false)
         })
       ),
-    [chart]
-  )
+      chart.on("blurChart", () => setOpen(false)),
+      chart.onAttributeChange("panning", panning => {
+        if (panning) setOpen(false)
+      }),
+      chart.onAttributeChange("highlighting", panning => {
+        if (panning) setOpen(false)
+      }),
+      () => executeLatest && executeLatest.clear()
+    )
+  }, [chart])
 
   const el = useDropElement()
 
