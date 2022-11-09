@@ -298,16 +298,21 @@ export default ({
     ui = newUi
   }
 
+  const render = () => ui && ui.render()
+
   const fetchAndRender = ({ initialize = false } = {}) => {
     if (!!node && initialize) node.updateAttribute("loaded", false)
-    return fetch().then(() => ui && ui.render())
+    return fetch().then(() => render)
   }
 
   const getConvertedValue = value => {
     if (!node) return
 
-    const { unitsConversionMethod, unitsConversionDivider, unitsConversionFractionDigits } =
-      node.getAttributes()
+    const {
+      unitsConversionMethod,
+      unitsConversionDivider,
+      unitsConversionFractionDigits,
+    } = node.getAttributes()
     const converted = convert(instance, unitsConversionMethod, value, unitsConversionDivider)
 
     if (unitsConversionFractionDigits === -1) return converted
@@ -409,7 +414,7 @@ export default ({
   }
 
   const destroy = () => {
-    if (!node) return
+    if (node) return
 
     cancelFetch()
     stopAutofetch()
@@ -482,6 +487,5 @@ export default ({
     track,
     destroy,
     onKeyChange,
-    fetchAndRender,
   }
 }
