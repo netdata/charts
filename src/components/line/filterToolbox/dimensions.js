@@ -17,6 +17,7 @@ const Dimensions = ({ labelProps, ...rest }) => {
       Object.entries(dimensions).map(([key, value]) => ({
         label: value?.name || key,
         value: key,
+        "data-track": chart.track(`dimensions-${key}`),
       })),
     [dimensions]
   )

@@ -31,12 +31,13 @@ const Item = ({
   itemProps: { allName, renderLink },
   value: selectedValues,
   onItemClick,
+  ...rest
 }) => {
   const isAll = value === "all"
   const checked = selectedValues.includes(value) || (isAll && selectedValues.length === 0)
 
   return (
-    <ItemContainer gap={2} justifyContent="between">
+    <ItemContainer gap={2} justifyContent="between" {...rest}>
       <Checkbox
         iconProps={iconProps}
         checked={checked}
@@ -49,10 +50,10 @@ const Item = ({
 }
 
 const renderItem = props => {
-  const { label, value } = props.item
+  const { label, value, ...rest } = props.item
   // value can be object
   const key = ["number", "string"].includes(typeof value) ? value : label
-  return <Item key={key} {...props} />
+  return <Item key={key} {...props} {...rest} />
 }
 
 const Multiselect = ({
