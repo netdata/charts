@@ -17,7 +17,6 @@ const createMergeArrays = mergeItemFn => (prev, next) => {
   return results
 }
 
-const mergeArrays = createMergeArrays((prev, next) => next)
 export const mergeNodeArrays = createMergeArrays((prev, next) => {
   if (
     next.chartIDs.length === prev.chartIDs.length &&
@@ -31,4 +30,5 @@ export const mergeNodeArrays = createMergeArrays((prev, next) => {
   }
 })
 
+const mergeArrays = createMergeArrays((prev, next) => next)
 export default mergeArrays
