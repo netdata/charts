@@ -19,7 +19,10 @@ const createMergeArrays = mergeItemFn => (prev, next) => {
 
 const mergeArrays = createMergeArrays((prev, next) => next)
 export const mergeNodeArrays = createMergeArrays((prev, next) => {
-  if (next.chartIDs.every(id => prev.chartIDs.includes(id))) {
+  if (
+    next.chartIDs.length === prev.chartIDs.length &&
+    next.chartIDs.every(id => prev.chartIDs.includes(id))
+  ) {
     return next
   }
   return {
