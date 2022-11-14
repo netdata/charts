@@ -17,10 +17,10 @@ export default sdk => {
       const move = getMoveX(after, before, autoPlay)
 
       chart.getApplicableNodes({ syncPanning: true }).forEach(node => {
-        const prevAttributes = node.getAttributes()
+        const { after: prevAfter, before: prevBefore } = node.getAttributes()
         node.updateAttributes(move)
 
-        if (prevAttributes === node.getAttributes()) return
+        if (prevAfter !== move.after || prevBefore !== move.before) return
 
         if (node.type === "chart" && node.getAttribute("active")) {
           node.fetchAndRender()

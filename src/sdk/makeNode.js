@@ -53,9 +53,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
       if (prevValue === value) return acc
 
       const prev = pristineComposite.update(attributes, name, value)
-      if (prev && !prevPristine) {
-        prevPristine = prev
-      }
+      if (prev && !prevPristine) prevPristine = prev
 
       setAttribute(name, value)
       acc[name] = prevValue
