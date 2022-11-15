@@ -4,15 +4,21 @@ export const setsAreEqual = (a, b) => {
   return Array.from(a).every(element => b.has(element))
 }
 
-const deepEqual = (objA, objB) => {
+const filter = (arr, { omit = [], keep = [] }) =>
+  arr.filter(element => {
+    if (keep.length) return keep.includes(element)
+    return !omit.includes(element)
+  })
+
+const deepEqual = (objA, objB, options = {}) => {
   if (objA === objB) return true
 
   if (typeof objA !== "object" || objA === null || typeof objB !== "object" || objB === null) {
     return false
   }
 
-  const keysA = Object.keys(objA)
-  const keysB = Object.keys(objB)
+  const keysA = filter(Object.keys(objA), options)
+  const keysB = filter(Object.keys(objB), options)
 
   if (keysA.length !== keysB.length) return false
 

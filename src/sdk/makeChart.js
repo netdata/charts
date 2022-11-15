@@ -56,6 +56,7 @@ export default ({
     node ? getMetadataDecorator().get(instance) || initialMetadata : initialMetadata
   const setMetadataAttributes = (values = {}) => {
     if (!node || !getMetadataDecorator().set) return getMetadata()
+
     getMetadataDecorator().set(instance, values)
     updateMetadata()
     return getMetadata()
@@ -136,7 +137,7 @@ export default ({
 
     const prevPayload = nextPayload
     const allNodes = mergeNodeArrays(prevPayload?.allNodes, nextPayloadTransformed.nodes)
-    if (deepEqual(payload.dimensionIds, dimensionIds)) {
+    if (deepEqual(payload.dimensionIds, dimensionIds))
       nextPayload = {
         ...initialPayload,
         ...nextPayload,
@@ -145,20 +146,18 @@ export default ({
         dimensionIds,
         result,
       }
-    } else {
-      nextPayload = { ...initialPayload, ...restPayload, allNodes, dimensionIds, result }
-    }
+    else nextPayload = { ...initialPayload, ...restPayload, allNodes, dimensionIds, result }
 
-    setMetadataAttributes(metadata)
+    if (!deepEqual(getMetadata(), metadata, { keep: ["fullyLoaded", "dimensions", "chartLabels"] }))
+      setMetadataAttributes(metadata)
 
     const dataLength = getDataLength(nextPayload)
     if (
       !node.getAttribute("loaded") ||
       (dataLength > 0 && getDataLength(payload) === 0) ||
       (getDataLength(payload) > 0 && dataLength === 0)
-    ) {
+    )
       consumePayload()
-    }
 
     invalidateClosestRowCache()
 
@@ -281,7 +280,7 @@ export default ({
     if (!node) return
 
     const metadata = getMetadata()
-    if (metadata === prevMetadata) return
+    if (deepEqual(metadata, prevMetadata, { omit: ["lastEntry"] })) return
 
     prevMetadata = getMetadata()
     dimensions.updateMetadataColors()
