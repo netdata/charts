@@ -94,6 +94,7 @@ const Multiselect = ({
       allName={allName}
       onChange={handleChange}
       items={items}
+      hasSearch={items.length > 4}
       renderItem={renderItem}
       closeOnClick={false}
       dropProps={{
