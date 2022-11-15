@@ -17,10 +17,9 @@ const createMergeArrays = mergeItemFn => (prev, next) => {
   return results
 }
 
-const mergeArrays = createMergeArrays((prev, next) => next)
 export const mergeNodeArrays = createMergeArrays((prev, next) => {
-  if (next.chartIDs.every(id => prev.chartIDs.includes(id))) {
-    return next
+  if (deepEqual(next.chartIDs, prev.chartIDs)) {
+    return prev
   }
   return {
     ...next,
@@ -28,4 +27,5 @@ export const mergeNodeArrays = createMergeArrays((prev, next) => {
   }
 })
 
+const mergeArrays = createMergeArrays((prev, next) => next)
 export default mergeArrays

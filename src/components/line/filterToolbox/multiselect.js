@@ -8,7 +8,8 @@ import { Checkbox } from "@netdata/netdata-ui/lib/components/checkbox"
 import Icon from "@/components/icon"
 import Label from "./label"
 
-const allItem = { value: "all" }
+const ALL = "all"
+const allItem = { value: ALL }
 const getItems = options => [allItem, ...options]
 
 const getLabel = ({ allName, attrName, items, value }) => {
@@ -31,12 +32,13 @@ const Item = ({
   itemProps: { allName, renderLink },
   value: selectedValues,
   onItemClick,
+  ...rest
 }) => {
-  const isAll = value === "all"
+  const isAll = value === ALL
   const checked = selectedValues.includes(value) || (isAll && selectedValues.length === 0)
 
   return (
-    <ItemContainer gap={2} justifyContent="between">
+    <ItemContainer gap={2} justifyContent="between" {...rest}>
       <Checkbox
         iconProps={iconProps}
         checked={checked}
@@ -49,10 +51,10 @@ const Item = ({
 }
 
 const renderItem = props => {
-  const { label, value } = props.item
+  const { label, value, ...rest } = props.item
   // value can be object
   const key = ["number", "string"].includes(typeof value) ? value : label
-  return <Item key={key} {...props} />
+  return <Item key={key} {...props} {...rest} />
 }
 
 const Multiselect = ({
@@ -71,7 +73,7 @@ const Multiselect = ({
   const label = getLabel({ allName, attrName, items, value })
   const handleChange = useCallback(
     item => {
-      if (item === "all") {
+      if (item === ALL) {
         onChange([])
         return
       }
@@ -92,6 +94,7 @@ const Multiselect = ({
       allName={allName}
       onChange={handleChange}
       items={items}
+      hasSearch={items.length > 4}
       renderItem={renderItem}
       closeOnClick={false}
       dropProps={{
