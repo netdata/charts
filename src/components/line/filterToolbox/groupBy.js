@@ -26,7 +26,7 @@ const tooltipProps = {
   ),
 }
 
-const GroupBy = () => {
+const GroupBy = ({ labelProps }) => {
   const chart = useChart()
   const value = useAttributeValue("groupBy")
   const { chartLabels = {} } = useMetadata()
@@ -60,6 +60,7 @@ const GroupBy = () => {
         label={selected?.label || "Loading"}
         title={tooltipProps.heading}
         tooltipProps={tooltipProps}
+        {...labelProps}
       />
     </Menu>
   )

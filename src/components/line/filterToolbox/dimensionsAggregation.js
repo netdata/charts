@@ -25,7 +25,7 @@ const DimensionsAggregation = ({ labelProps }) => {
 
   return (
     <Label
-      secondaryLabel={""}
+      secondaryLabel=""
       label="sum of ABS"
       chevron={false}
       title={!!tooltipAttrs}

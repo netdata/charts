@@ -85,6 +85,8 @@ export default {
   dimensionsAggregationMethod: "",
   groupBy: "",
   nodeChartInstances: [],
+  selectedNodeIds: [],
+  selectedChartId: "",
 
   aggregationGroups: [],
   postAggregationMethod: "",

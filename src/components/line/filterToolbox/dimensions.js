@@ -5,7 +5,8 @@ import Multiselect from "./multiselect"
 
 const tooltipProps = {
   heading: "Dimensions",
-  body: "Select one, multiple or all dimensions. A dimension is any value, either raw data or the result of a calculation that Netdata visualizes on a chart.",
+  body:
+    "Select one, multiple or all dimensions. A dimension is any value, either raw data or the result of a calculation that Netdata visualizes on a chart.",
 }
 
 const Dimensions = ({ labelProps, ...rest }) => {
@@ -30,7 +31,7 @@ const Dimensions = ({ labelProps, ...rest }) => {
       labelProps={labelProps}
       onChange={chart.updateDimensionsAttribute}
       options={options}
-      secondaryLabel="select"
+      secondaryLabel="using"
       tooltipProps={tooltipProps}
       value={value}
       {...rest}
