@@ -11,7 +11,7 @@ const { updatePristine, resetPristine } = makePristine(pristineCompositeKey, [
   "chartType",
   "filteredLabels",
   "selectedNodeIds",
-  "nodeChartInstances",
+  "selectedInstances",
 ])
 
 export default { update: updatePristine, reset: resetPristine }

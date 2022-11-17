@@ -84,7 +84,7 @@ export default {
   dimensions: [],
   dimensionsAggregationMethod: "",
   groupBy: "",
-  nodeChartInstances: [],
+  selectedInstances: [],
   selectedNodeIds: [],
   selectedChartId: "",
 

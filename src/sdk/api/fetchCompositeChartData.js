@@ -49,14 +49,21 @@ const valuesByMethod = {
 }
 const normalizeAggregationMethod = method => valuesByMethod[method] || method
 
-const mapChartInstances = instances =>
-  instances.reduce(
-    (acc, { chartId, nodeId }) => ({
-      ...acc,
-      [nodeId]: [...(acc[nodeId] || []), chartId],
-    }),
+const getChartIdsByNodeId = (instances, nodeIdSet) => {
+  return instances.reduce(
+    (acc, { chartId, nodeId }) =>
+      nodeIdSet.size
+        ? {
+            ...acc,
+            ...(nodeIdSet.has(nodeId) && { [nodeId]: [...(acc[nodeId] || []), chartId] }),
+          }
+        : {
+            ...acc,
+            [nodeId]: [...(acc[nodeId] || []), chartId],
+          },
     {}
   )
+}
 
 const getCompositeChartPayload = chart => {
   const metadata = chart.getMetadata()
@@ -70,7 +77,7 @@ const getCompositeChartPayload = chart => {
     filters,
     selectedNodeIds,
     selectedChartId,
-    nodeChartInstances,
+    selectedInstances,
   } = chart.getAttributes()
 
   const filter = {
@@ -79,7 +86,9 @@ const getCompositeChartPayload = chart => {
     ...(dimensions.length && { dimensions }),
     ...(Object.keys(filteredLabels).length && { labels: filteredLabels }),
     ...(selectedChartId && { chartID: selectedChartId }),
-    ...(nodeChartInstances.length && { nodeChartInstances: mapChartInstances(nodeChartInstances) }),
+    ...(selectedInstances.length && {
+      nodeChartInstances: getChartIdsByNodeId(selectedInstances, new Set(selectedNodeIds)),
+    }),
     ...filters,
   }
   const aggregations = getAggregations(chart)
