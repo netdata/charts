@@ -18,9 +18,10 @@ export default sdk => {
 
       chart.getApplicableNodes({ syncPanning: true }).forEach(node => {
         const { after: prevAfter, before: prevBefore } = node.getAttributes()
+
         node.updateAttributes(move)
 
-        if (prevAfter !== move.after || prevBefore !== move.before) return
+        if (prevAfter === move.after && prevBefore === move.before) return
 
         if (node.type === "chart" && node.getAttribute("active")) {
           node.fetchAndRender()

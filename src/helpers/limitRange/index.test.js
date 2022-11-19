@@ -1,4 +1,4 @@
-import limitRange from "./limitRange"
+import limitRange from "."
 
 const date = 1657640000
 

@@ -23,7 +23,7 @@ export default chart => {
   const onGroupFetch = groupBy => {
     onGroupChange(groupBy)
 
-    chart.updateAttribute("selectedDimensions", null)
+    chart.updateAttribute("selectedDimensions", [])
   }
 
   const updateGroupByAttribute = value => {

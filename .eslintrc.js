@@ -4,21 +4,21 @@ module.exports = {
     commonjs: true,
     es6: true,
     jest: true,
-    node: true,
+    node: true
   },
-  extends: ["eslint:recommended", "plugin:react/recommended"],
+  extends: ["eslint:recommended", "plugin:react/recommended", "plugin:storybook/recommended"],
   parser: "@babel/eslint-parser",
   parserOptions: {
     ecmaFeatures: {
-      jsx: true,
+      jsx: true
     },
     ecmaVersion: 2018,
-    sourceType: "module",
+    sourceType: "module"
   },
   plugins: ["react", "react-hooks"],
   rules: {
     "react/prop-types": [0],
     "react-hooks/rules-of-hooks": "error",
-    "react/display-name": 0,
-  },
-}
+    "react/display-name": 0
+  }
+};

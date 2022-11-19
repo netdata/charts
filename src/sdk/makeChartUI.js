@@ -49,7 +49,7 @@ export default (sdk, chart) => {
 
   const setEstimatedHeight = height => (estimatedHeight = height)
 
-  const getEstimatedHeight = () => estimatedWidth
+  const getEstimatedHeight = () => estimatedHeight
 
   const setParentWidth = width => (parentWidth = width)
 

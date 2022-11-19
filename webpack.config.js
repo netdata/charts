@@ -37,9 +37,13 @@ module.exports = {
         loader: "raw-loader",
       },
       {
-        test: /\.css$/,
-        exclude: /node_modules/,
-        loader: "raw-loader",
+        test: /\.s?[ac]ss$/,
+        oneOf: [
+          { exclude: /node_modules/, use: ["raw-loader"] },
+          {
+            use: ["css-loader", "sass-loader"],
+          },
+        ],
       },
     ],
   },

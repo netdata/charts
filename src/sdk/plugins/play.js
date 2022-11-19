@@ -4,10 +4,13 @@ export default sdk => {
 
   const getNext = () => {
     sdk
-      .getNodes((node, { loaded, active, autofetchOnWindowBlur }) => {
-        return node.type === "chart" && loaded && active && (windowFocused || autofetchOnWindowBlur)
-      })
+      .getNodes(
+        (node, { loaded, active, autofetchOnWindowBlur }) =>
+          node.type === "chart" && loaded && active && (windowFocused || autofetchOnWindowBlur)
+      )
       .forEach(node => {
+        if (node.getAttribute("loading") || Date.now() - node.getUI().getRenderedAt() < 1000) return
+
         node.getUI().render()
       })
 

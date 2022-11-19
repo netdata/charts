@@ -29,7 +29,7 @@ export default {
   active: false,
   sparkline: false,
   chartType: "",
-  selectedDimensions: null,
+  selectedDimensions: [],
   enabledHover: true,
   syncHover: true,
   hoverX: null,
@@ -101,6 +101,8 @@ export default {
 
   themeGaugePointer: ["#8F9EAA", "#536775"],
   themeGaugeStroke: ["#ECEEEF", "#383B40"],
+
+  themeLabelColor: ["#35414a", "#ffffff"],
   legendScroll: 0,
 
   initializedFilters: false,

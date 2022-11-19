@@ -139,18 +139,17 @@ export const useChartError = () => {
   const [error, setError] = useState(false)
   const chart = useChart()
   const forceUpdate = useForceUpdate()
-  const handleFetch = ({ hasError }) => {
-    setError(hasError)
-    forceUpdate()
-  }
 
-  useImmediateListener(
-    () =>
-      chart
-        .on("successFetch", () => handleFetch({ hasError: false }))
-        .on("failFetch", () => handleFetch({ hasError: true })),
-    [chart]
-  )
+  useImmediateListener(() => {
+    const handleFetch = ({ hasError }) => {
+      setError(hasError)
+      forceUpdate()
+    }
+
+    return chart
+      .on("successFetch", () => handleFetch({ hasError: false }))
+      .on("failFetch", () => handleFetch({ hasError: true }))
+  }, [chart])
 
   return error
 }
@@ -222,34 +221,32 @@ export const useUnit = () => {
 export const useLatestValue = id => {
   const chart = useChart()
 
-  const getValue = () => {
-    const hover = chart.getAttribute("hoverX")
-    const { result, dimensionIds } = chart.getPayload()
-
-    if (result.data.length === 0) return ""
-
-    let index = hover ? chart.getClosestRow(hover[0]) : -1
-    index = index === -1 ? result.data.length - 1 : index
-
-    id = id || dimensionIds?.[0]
-    const value = chart.getDimensionValue(id, index)
-
-    if (isNaN(value)) return ""
-
-    return chart.getConvertedValue(value)
-  }
-
   const [value, setState] = useState(null)
 
-  useLayoutEffect(
-    () =>
-      unregister(
-        chart.onAttributeChange("hoverX", () => setState(getValue())),
-        chart.on("dimensionChanged", () => setState(getValue())),
-        chart.getUI().on("rendered", () => setState(getValue()))
-      ),
-    [chart]
-  )
+  useLayoutEffect(() => {
+    const getValue = () => {
+      const hover = chart.getAttribute("hoverX")
+      const { result, dimensionIds } = chart.getPayload()
+
+      if (result.data.length === 0) return ""
+
+      let index = hover ? chart.getClosestRow(hover[0]) : -1
+      index = index === -1 ? result.data.length - 1 : index
+
+      id = id || dimensionIds?.[0]
+      const value = chart.getDimensionValue(id, index)
+
+      if (isNaN(value)) return ""
+
+      return chart.getConvertedValue(value)
+    }
+
+    return unregister(
+      chart.onAttributeChange("hoverX", () => setState(getValue())),
+      chart.on("dimensionChanged", () => setState(getValue())),
+      chart.getUI().on("rendered", () => setState(getValue()))
+    )
+  }, [chart, id])
 
   return value
 }

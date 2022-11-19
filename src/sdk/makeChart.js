@@ -1,4 +1,5 @@
 import deepEqual from "@/helpers/deepEqual"
+import deepMerge from "@/helpers/deepMerge"
 import makeKeyboardListener from "@/helpers/makeKeyboardListener"
 import makeNode from "./makeNode"
 import initialPayload from "./initialPayload"
@@ -11,7 +12,6 @@ import makeFilterControllers from "./filters/makeControllers"
 import makeGetUnitSign from "./makeGetUnitSign"
 import camelizePayload from "./camelizePayload"
 import initialMetadata from "./initialMetadata"
-import { mergeNodeArrays } from "@/helpers/mergeArrays"
 
 const maxBackoffMs = 30 * 1000
 
@@ -136,17 +136,15 @@ export default ({
     const { dimensionIds, metadata, ...restPayload } = nextPayloadTransformed
 
     const prevPayload = nextPayload
-    const allNodes = mergeNodeArrays(prevPayload?.allNodes, nextPayloadTransformed.nodes)
     if (deepEqual(payload.dimensionIds, dimensionIds))
       nextPayload = {
         ...initialPayload,
         ...nextPayload,
         ...restPayload,
-        allNodes,
         dimensionIds,
         result,
       }
-    else nextPayload = { ...initialPayload, ...restPayload, allNodes, dimensionIds, result }
+    else nextPayload = { ...initialPayload, ...restPayload, dimensionIds, result }
 
     if (!deepEqual(getMetadata(), metadata, { keep: ["fullyLoaded", "dimensions", "chartLabels"] }))
       setMetadataAttributes(metadata)
@@ -301,7 +299,10 @@ export default ({
 
   const fetchAndRender = ({ initialize = false } = {}) => {
     if (!!node && initialize) node.updateAttribute("loaded", false)
-    return fetch().then(() => render)
+    return fetch().then(() => {
+      if (Date.now() - getUI().getRenderedAt() < 1000) return
+      render()
+    })
   }
 
   const getConvertedValue = value => {

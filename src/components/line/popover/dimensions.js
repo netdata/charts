@@ -51,7 +51,7 @@ const Dimensions = () => {
     const index = chart.getClosestRow(x)
     let dimensionIds = chart.onHoverSortDimensions(index, "valueDesc") || []
 
-    if (chart.getAttribute("selectedDimensions")) {
+    if (chart.getAttribute("selectedDimensions").length > 0) {
       dimensionIds = dimensionIds.filter(id => chart.isDimensionVisible(id))
     }
 

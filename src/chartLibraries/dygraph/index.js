@@ -3,6 +3,7 @@ import "@netdata/dygraphs/src/extras/smooth-plotter"
 import makeChartUI from "@/sdk/makeChartUI"
 import makeExecuteLatest from "@/helpers/makeExecuteLatest"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
+import { stackedBarPlotter, multiColumnBarPlotter, makeHeatmapPlotter } from "./plotters"
 import makeNavigation from "./navigation"
 import makeHover from "./hover"
 import makeHoverX from "./hoverX"
@@ -30,6 +31,18 @@ export default (sdk, chart) => {
   let resizeObserver = null
   let executeLatest
 
+  const makeNormalizeByChartType = {
+    default: d => d,
+    heatmap: matrix => matrix.map(r => r.map((c, i) => (i === 0 ? c : [c, i, c]))),
+  }
+
+  const normalizeData = data => {
+    const chartType = chart.getAttribute("chartType")
+    const normalize = makeNormalizeByChartType[chartType] || makeNormalizeByChartType.default
+
+    return normalize(data)
+  }
+
   const mount = element => {
     if (dygraph) return
 
@@ -43,41 +56,13 @@ export default (sdk, chart) => {
     const attributes = chart.getAttributes()
     const { result, min, max } = chart.getPayload()
 
-    let prevMin
-    let prevMax
-
     executeLatest = makeExecuteLatest()
     const isEmpty = attributes.outOfLimits || result.data.length === 0
 
-    dygraph = new Dygraph(element, isEmpty ? [[0]] : result.data, {
+    dygraph = new Dygraph(element, isEmpty ? [[0]] : normalizeData(result.data), {
+      // timingName: "TEST",
       showLabelsOnHighlight: false,
       labels: isEmpty ? ["X"] : result.labels,
-      axes: {
-        x: attributes.enabledXAxis
-          ? {
-              ticker: Dygraph.dateTicker,
-              axisLabelFormatter: date => chart.formatXAxis(date),
-              axisLabelWidth: 60,
-            }
-          : { drawAxis: false },
-        y: attributes.enabledYAxis
-          ? {
-              ...(attributes.ticker && { ticker: attributes.ticker }),
-              axisLabelFormatter: (y, granularity, opts, d) => {
-                const [min, max] = d.axes_[0].extremeRange
-
-                if (min !== prevMin || max !== prevMax) {
-                  prevMin = min
-                  prevMax = max
-                  chartUI.sdk.trigger("yAxisChange", chart, min, max)
-                }
-                return chart.getConvertedValue(y)
-              },
-              ...(attributes.yAxisLabelWidth && { axisLabelWidth: attributes.yAxisLabelWidth }),
-              pixelsPerLabel: 15,
-            }
-          : { drawAxis: false },
-      },
 
       dateWindow: getDateWindow(chart),
       highlightCallback: executeLatest.add((event, x, points, row, seriesName) =>
@@ -114,13 +99,7 @@ export default (sdk, chart) => {
       yRangePad: 1,
       labelsSeparateLines: true,
       rightGap: -6,
-      valueRange: attributes.getValueRange({
-        min,
-        max,
-        groupBy: attributes.groupBy,
-        valueRange: attributes.valueRange,
-        aggrMethod: attributes.aggregationMethod,
-      }),
+
       ...makeChartTypeOptions(),
       ...makeThemingOptions(),
       ...makeVisibilityOptions(),
@@ -175,7 +154,7 @@ export default (sdk, chart) => {
         })
       ),
       chart.onAttributeChange("after", latestRender),
-      chart.onAttributeChange("updatedAt", latestRender),
+      chart.onAttributeChange("chartType", latestRender),
       chart.onAttributeChange("enabledHover", hoverX.toggle),
       chart.onAttributeChange("enabledNavigation", navigation.toggle),
       chart.onAttributeChange("navigation", navigation.set),
@@ -195,13 +174,21 @@ export default (sdk, chart) => {
       }),
       chart.onAttributeChange("valueRange", valueRange => {
         dygraph.updateOptions({
-          valueRange: attributes.getValueRange({
-            min,
-            max,
-            groupBy: attributes.groupBy,
-            valueRange: valueRange,
-            aggrMethod: attributes.aggregationMethod,
-          }),
+          valueRange:
+            attributes.chartType === "heatmap"
+              ? [
+                  0,
+                  attributes.selectedDimensions.length
+                    ? attributes.selectedDimensions.length
+                    : result.labels.length,
+                ]
+              : attributes.getValueRange({
+                  min,
+                  max,
+                  groupBy: attributes.groupBy,
+                  valueRange: [0, 4] || valueRange,
+                  aggrMethod: attributes.aggregationMethod,
+                }),
         })
       }),
       chart.onAttributeChange("timezone", () => {
@@ -216,33 +203,136 @@ export default (sdk, chart) => {
     chartUI.trigger("rendered")
   }
 
+  const makePlotterByChartType = ({ sparkline }) => ({
+    line: sparkline ? null : window.smoothPlotter,
+    stackedBar: stackedBarPlotter,
+    multibar: multiColumnBarPlotter,
+    heatmap: makeHeatmapPlotter(chartUI),
+    default: null,
+  })
+
+  let prevMin
+  let prevMax
+
+  const defaultOptions = {
+    strokeWidth: 0.7,
+    fillAlpha: 0.2,
+    fillGraph: false,
+    stackedGraph: false,
+    forceIncludeZero: false,
+    errorBars: false,
+    makeYAxisLabelFormatter: () => (y, granularity, opts, d) => {
+      const [min, max] = d.axes_[0].extremeRange
+
+      if (min !== prevMin || max !== prevMax) {
+        prevMin = min
+        prevMax = max
+        chartUI.sdk.trigger("yAxisChange", chart, min, max)
+      }
+      return chart.getConvertedValue(y)
+    },
+    yTicker: null,
+  }
+
+  const optionsByChartType = {
+    line: {
+      ...defaultOptions,
+      strokeWidth: 1.5,
+      fillAlpha: 0.2,
+    },
+    stacked: {
+      ...defaultOptions,
+      strokeWidth: 0.1,
+      fillAlpha: 0.8,
+      fillGraph: true,
+      stackedGraph: true,
+      forceIncludeZero: true,
+    },
+    area: {
+      ...defaultOptions,
+      fillGraph: true,
+    },
+    stackedBar: {
+      ...defaultOptions,
+      stackedGraph: true,
+    },
+    heatmap: {
+      makeYAxisLabelFormatter: labels => y => (y === 0 ? null : chart.getDimensionName(labels[y])),
+      yTicker: (a, b, pixels, opts, dygraph) => {
+        return dygraph.attributes_.user_.labels.reduce((h, label, i) => {
+          if (i === 0) return h
+          if (!dygraph.attributes_.user_.visibility[i]) return h
+          const l = opts("axisLabelFormatter")(i, 0, opts, dygraph)
+          h.push({ label_v: i, label: l })
+          return h
+        }, [])
+      },
+      errorBars: true,
+    },
+    default: {
+      ...defaultOptions,
+    },
+  }
+
   const makeChartTypeOptions = () => {
-    const chartType = chart.getAttribute("chartType")
+    const { result } = chart.getPayload()
+    const {
+      chartType,
+      sparkline,
+      includeZero,
+      enabledXAxis,
+      enabledYAxis,
+      yAxisLabelWidth,
+    } = chart.getAttributes()
 
-    const stacked = chartType === "stacked"
-    const area = chartType === "area"
-    const line = chartType === "line"
-    const { sparkline, includeZero } = chart.getAttributes()
+    const plotterByChartType = makePlotterByChartType({ sparkline })
+    const plotter = plotterByChartType[chartType] || plotterByChartType.default
 
-    const smooth = line && !sparkline
+    const {
+      strokeWidth,
+      fillAlpha,
+      fillGraph,
+      stackedGraph,
+      forceIncludeZero,
+      makeYAxisLabelFormatter,
+      errorBars,
+      yTicker,
+    } = optionsByChartType[chartType] || optionsByChartType.default
 
-    const strokeWidth = sparkline ? 0 : stacked ? 0.1 : smooth ? 1.5 : 0.7
     const { selectedDimensions } = chart.getAttributes()
     const { dimensionIds } = chart.getPayload()
 
+    const yAxisLabelFormatter = makeYAxisLabelFormatter(result.labels)
+
     return {
-      stackedGraph: stacked,
-      fillGraph: stacked || area,
-      fillAlpha: sparkline ? 1 : stacked ? 0.8 : 0.2,
+      stackedGraph,
+      fillGraph,
+      fillAlpha: sparkline ? 1 : fillAlpha,
       highlightCircleSize: sparkline ? 3 : 4,
-      strokeWidth,
+      strokeWidth: sparkline ? 0 : strokeWidth,
       includeZero:
         includeZero ||
-        (stacked &&
-          dimensionIds?.length > 1 &&
-          (!selectedDimensions || selectedDimensions.length > 1)),
+        (forceIncludeZero && dimensionIds?.length > 1 && selectedDimensions.length > 1),
       stackedGraphNaNFill: "none",
-      plotter: (smooth && window.smoothPlotter) || null,
+      plotter,
+      errorBars,
+      axes: {
+        x: enabledXAxis
+          ? {
+              ticker: Dygraph.dateTicker,
+              axisLabelFormatter: chart.formatXAxis,
+              axisLabelWidth: 60,
+            }
+          : { drawAxis: false },
+        y: enabledYAxis
+          ? {
+              ...(yTicker && { ticker: yTicker }),
+              axisLabelFormatter: yAxisLabelFormatter,
+              ...(yAxisLabelWidth && { axisLabelWidth: yAxisLabelWidth }),
+              pixelsPerLabel: 15,
+            }
+          : { drawAxis: false },
+      },
     }
   }
 
@@ -252,18 +342,27 @@ export default (sdk, chart) => {
   }
 
   const makeVisibilityOptions = () => {
-    const selectedDimensions = chart.getAttribute("selectedDimensions")
     const { dimensionIds } = chart.getPayload()
-
     if (!dimensionIds?.length) return { visibility: false }
 
-    const visibility = dimensionIds.map(selectedDimensions ? chart.isDimensionVisible : () => true)
+    const selectedDimensions = chart.getAttribute("selectedDimensions")
+
+    const visibility = dimensionIds.map(
+      selectedDimensions.length ? chart.isDimensionVisible : () => true
+    )
 
     return { visibility }
   }
 
   const makeDataOptions = () => {
-    const { valueRange, outOfLimits, getValueRange, aggregationMethod } = chart.getAttributes()
+    const {
+      valueRange,
+      outOfLimits,
+      getValueRange,
+      aggregationMethod,
+      chartType,
+      selectedDimensions,
+    } = chart.getAttributes()
     const { result, min, max } = chart.getPayload()
     const dateWindow = getDateWindow(chart)
     const isEmpty = outOfLimits || result.data.length === 0
@@ -271,16 +370,19 @@ export default (sdk, chart) => {
     const groupBy = chart.getAttribute("groupBy")
 
     return {
-      file: isEmpty ? [[0]] : result.data,
+      file: isEmpty ? [[0]] : normalizeData(result.data),
       labels: isEmpty ? ["X"] : result.labels,
       dateWindow,
-      valueRange: getValueRange({
-        min,
-        max,
-        groupBy,
-        valueRange,
-        aggrMethod: aggregationMethod,
-      }),
+      valueRange:
+        chartType === "heatmap"
+          ? [0, selectedDimensions.length ? selectedDimensions.length : result.labels.length]
+          : getValueRange({
+              min,
+              max,
+              groupBy,
+              valueRange,
+              aggrMethod: aggregationMethod,
+            }),
     }
   }
 

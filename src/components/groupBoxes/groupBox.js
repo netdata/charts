@@ -18,13 +18,6 @@ const GroupBox = ({ data, renderTooltip, getColor, ...options }) => {
   const boxHoverRef = useRef(-1)
   const timeoutId = useRef()
 
-  const close = () => {
-    boxesRef.current.deactivateBox()
-    setHover(null)
-    dropHoverRef.current = false
-    boxHoverRef.current = -1
-  }
-
   const closeDrop = () =>
     requestAnimationFrame(() => {
       setHover(currentHover => {
@@ -32,7 +25,9 @@ const GroupBox = ({ data, renderTooltip, getColor, ...options }) => {
           !dropHoverRef.current &&
           (boxHoverRef.current === -1 || boxHoverRef.current !== currentHover?.index)
         ) {
-          close()
+          boxesRef.current.deactivateBox()
+          boxHoverRef.current = -1
+          return null
         }
         return currentHover
       })
@@ -56,6 +51,7 @@ const GroupBox = ({ data, renderTooltip, getColor, ...options }) => {
         onMouseout: () => {
           boxHoverRef.current = -1
           clearTimeout(timeoutId.current)
+          dropHoverRef.current = false
           closeDrop()
         },
         onClick: ({ index, ...rect } = {}) => {
@@ -81,7 +77,9 @@ const GroupBox = ({ data, renderTooltip, getColor, ...options }) => {
       dataRef.current &&
       dataRef.current.labels[hover.index] !== data.labels[hover.index]
     ) {
-      close()
+      boxesRef.current.deactivateBox()
+      setHover(null)
+      boxHoverRef.current = -1
     }
     dataRef.current = data
     boxesRef.current.update(data, getColor)

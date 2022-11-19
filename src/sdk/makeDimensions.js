@@ -57,7 +57,7 @@ export default (chart, sdk) => {
   const updateVisibleDimensions = () => {
     const selectedDimensions = chart.getAttribute("selectedDimensions")
 
-    visibleDimensionIds = selectedDimensions
+    visibleDimensionIds = selectedDimensions.length
       ? sortedDimensionIds.filter(
           id => selectedDimensions.includes(id) || selectedDimensions.includes(getDimensionName(id))
         )
@@ -168,7 +168,7 @@ export default (chart, sdk) => {
   const toggleDimensionId = (id, { merge = false } = {}) => {
     const selectedDimensions = chart.getAttribute("selectedDimensions")
 
-    if (!selectedDimensions) {
+    if (!selectedDimensions.length) {
       chart.updateAttribute(
         "selectedDimensions",
         merge ? getDimensionIds().filter(d => d !== id) : [id]
@@ -180,7 +180,7 @@ export default (chart, sdk) => {
       const newSelectedDimensions = selectedDimensions.filter(d => d !== id)
       chart.updateAttribute(
         "selectedDimensions",
-        newSelectedDimensions.length ? (merge ? newSelectedDimensions : [id]) : null
+        newSelectedDimensions.length ? (merge ? newSelectedDimensions : [id]) : []
       )
       return
     }

@@ -15,9 +15,7 @@ export default () => {
 
     const selectedDimensions = chart.getAttribute("selectedDimensions")
 
-    return !selectedDimensions
-      ? hasDimensions
-      : selectedDimensions.length === 0 || selectedDimensions.length > 1
+    return !!selectedDimensions.length || hasDimensions
   }
 
   const [hasDimensions, setHasDimensions] = useState(getDimensionAggregation)

@@ -6,7 +6,7 @@ export default {
   plugin: "proc.plugin",
   module: "/proc/stat",
   units: "percentage",
-  chartType: "stacked",
+  chartType: "heatmap",
   updateEvery: 1,
   firstEntry: 1625969470,
   lastEntry: 1626424323,
