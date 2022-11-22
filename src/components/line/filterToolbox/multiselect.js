@@ -7,6 +7,7 @@ import { Checkbox } from "@netdata/netdata-ui/lib/components/checkbox"
 
 import Icon from "@/components/icon"
 import Label from "./label"
+import Tooltip from "@/components/tooltip"
 
 const ALL = "all"
 const allItem = { value: ALL }
@@ -28,7 +29,7 @@ const CheckboxIcon = props => {
 const iconProps = { as: CheckboxIcon }
 
 const Item = ({
-  item: { label, value },
+  item: { label, value, labelWithEllipsis },
   itemProps: { allName, renderLink },
   value: selectedValues,
   onItemClick,
@@ -36,6 +37,7 @@ const Item = ({
 }) => {
   const isAll = value === ALL
   const checked = selectedValues.includes(value) || (isAll && selectedValues.length === 0)
+  const textContent = isAll ? allName : labelWithEllipsis || label || value
 
   return (
     <ItemContainer gap={2} justifyContent="between" {...rest}>
@@ -43,7 +45,15 @@ const Item = ({
         iconProps={iconProps}
         checked={checked}
         onChange={() => onItemClick(value)}
-        label={<TextSmall>{isAll ? allName : label || value}</TextSmall>}
+        label={
+          labelWithEllipsis ? (
+            <TextSmall>
+              <Tooltip content={label}>{textContent}</Tooltip>
+            </TextSmall>
+          ) : (
+            <TextSmall>{textContent}</TextSmall>
+          )
+        }
       />
       {!isAll && renderLink && renderLink({ value })}
     </ItemContainer>
