@@ -6,10 +6,18 @@ const removeMiddleVowels = word => {
 
 const removeDuplicateLetters = word => word.replace(/(\w)\1+/g, "$1")
 
+const ellipsisInMiddle = (text, maxLength) => {
+  const partLength = Math.floor((maxLength - 3) / 2)
+  const prefix = text.substring(0, partLength)
+  const suffix = text.substring(text.length - partLength)
+
+  return `${prefix}...${suffix}`
+}
+
 const replaceIfNeeded = (text, func, maxLength) => {
   if (text.length <= maxLength) return text
   return text.replace(/(\w.+?|\d.+)([\s-_.@]+?)/g, (_, word, sep) => {
-    word = func(word)
+    word = func(word, maxLength)
 
     return `${word}${sep}`
   })
@@ -18,21 +26,27 @@ const replaceIfNeeded = (text, func, maxLength) => {
 export default (string, maxLength = 60) => {
   if (string.length <= maxLength) return string
 
-  let [, text, lastText] = string.trim().match(/(.+[\s-_.@])(.+)$/)
+  const match = string.trim().match(/(.+[\s-_.@])(.+)$/)
 
-  text = replaceIfNeeded(text, removeMiddleVowels, maxLength - lastText.length)
-  text = replaceIfNeeded(text, removeDuplicateLetters, maxLength - lastText.length)
+  if (!match) return ellipsisInMiddle(string, maxLength)
+
+  let [, text, lastText] = match
+
+  const hasSeparators = text.match(/[\s-_.@]/)
+
+  if (hasSeparators) {
+    text = replaceIfNeeded(text, removeMiddleVowels, maxLength - lastText.length)
+    text = replaceIfNeeded(text, removeDuplicateLetters, maxLength - lastText.length)
+  } else {
+    text = removeDuplicateLetters(removeMiddleVowels(lastText))
+  }
 
   if ((text + lastText).length <= maxLength) return text + lastText
 
-  lastText = removeMiddleVowels(removeDuplicateLetters(lastText))
+  lastText = removeDuplicateLetters(removeMiddleVowels(lastText))
 
   if ((text + lastText).length <= maxLength) return text + lastText
 
   text = text + lastText
-  const partLength = Math.floor((maxLength - 3) / 2)
-  const prefix = text.substring(0, partLength)
-  const suffix = text.substring(text.length - partLength)
-
-  return `${prefix}...${suffix}`
+  return ellipsisInMiddle(text, maxLength)
 }
