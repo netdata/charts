@@ -300,7 +300,7 @@ export default ({
   const fetchAndRender = ({ initialize = false } = {}) => {
     if (!!node && initialize) node.updateAttribute("loaded", false)
     return fetch().then(() => {
-      if (Date.now() - getUI().getRenderedAt() < 1000) return
+      if (getUI() && Date.now() - getUI().getRenderedAt() < 1000) return
       render()
     })
   }
