@@ -23,12 +23,21 @@ const replaceIfNeeded = (text, func, maxLength) => {
   })
 }
 
+const shortenSingleString = (string, maxLength) => {
+  string = removeDuplicateLetters(removeMiddleVowels(string))
+
+  if (string.length <= maxLength) return string
+
+  return ellipsisInMiddle(string, maxLength)
+}
+
 export default (string, maxLength = 60) => {
+  if (!string) return string
   if (string.length <= maxLength) return string
 
   const match = string.trim().match(/(.+[\s-_.@])(.+)$/)
 
-  if (!match) return ellipsisInMiddle(string, maxLength)
+  if (!match) return shortenSingleString(string, maxLength)
 
   let [, text, lastText] = match
 
