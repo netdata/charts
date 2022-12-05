@@ -16,17 +16,14 @@ const Container = styled(Flex).attrs({
   gap: 1,
   round: true,
   border: { side: "all", color: "borderSecondary" },
-  opacity: "weak",
 })`
   position: absolute;
   top: 8px;
   right: 8px;
-  opacity: 0.7;
   background: ${getRgbColor("elementBackground", 0.5)};
 
   &:hover {
     background: ${getColor("elementBackground")};
-    opacity: 1;
   }
 `
 
