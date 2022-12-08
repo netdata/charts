@@ -60,13 +60,6 @@ const Item = ({
   )
 }
 
-const renderItem = props => {
-  const { label, value, ...rest } = props.item
-  // value can be object
-  const key = ["number", "string"].includes(typeof value) ? value : label
-  return <Item key={key} {...props} {...rest} />
-}
-
 const Multiselect = ({
   allName,
   attrName,
@@ -105,7 +98,7 @@ const Multiselect = ({
       onChange={handleChange}
       items={items}
       hasSearch={items.length > 4}
-      renderItem={renderItem}
+      Item={Item}
       closeOnClick={false}
       dropProps={{
         align: { top: "bottom", left: "left" },

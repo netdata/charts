@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
 import Dropdown from "@netdata/netdata-ui/lib/components/drops/menu/dropdown"
 import { ItemContainer } from "@netdata/netdata-ui/lib/components/drops/menu/dropdownItem"
@@ -27,8 +27,8 @@ const Item = ({ item, value: selectedLabels, onItemClick }) => {
   const [isOpen, setIsOpen] = useState(isOpenedByDefault)
 
   return (
-    <Flex column width="230px">
-      <ItemContainer alignItems="start" gap={2} cursor="initial">
+    <Flex column>
+      <ItemContainer alignItems="start" justifyContent="between" gap={2} cursor="initial">
         <TextSmall>{label}</TextSmall>
         <Icon
           svg={chevronDownIcon}
@@ -53,17 +53,22 @@ const Item = ({ item, value: selectedLabels, onItemClick }) => {
   )
 }
 
-const renderItem = defaultChartLabelValues => props => {
-  const key = props.item.value || props.item.label
-  return <Item key={key} defaultChartLabelValues={defaultChartLabelValues} {...props} />
-}
+const renderItem = defaultChartLabelValues => props =>
+  <Item defaultChartLabelValues={defaultChartLabelValues} {...props} />
 
-const renderDropdown = resetSelections => props => (
-  <Flex alignItems="center" background="dropdown" column justifyContent="center" margin={[1, 0, 0]}>
-    <Reset attribute="filteredLabels" resetFunction={resetSelections} />
-    <Dropdown hideShadow {...props} />
-  </Flex>
-)
+const renderDropdown = resetSelections => props =>
+  (
+    <Flex
+      alignItems="center"
+      background="dropdown"
+      column
+      justifyContent="center"
+      margin={[1, 0, 0]}
+    >
+      <Reset attribute="filteredLabels" resetFunction={resetSelections} />
+      <Dropdown hideShadow {...props} />
+    </Flex>
+  )
 
 const getLabel = values => {
   const length = Object.keys(values).reduce((acc, key) => {
@@ -100,14 +105,13 @@ const ChartLabels = ({ labelProps, ...rest }) => {
     () => Object.keys(chartLabels).map(key => ({ label: key, values: chartLabels[key] })),
     []
   )
-  const defaultChartLabelValues = useMemo(
-    () =>
-      chartLabelsOptions.reduce((acc, { label, values }) => {
-        acc[label] = values.join("|")
-        return acc
-      }, {}),
-    []
-  )
+  const Item = useMemo(() => {
+    const labelOptions = chartLabelsOptions.reduce((acc, { label, values }) => {
+      acc[label] = values.join("|")
+      return acc
+    }, {})
+    return renderItem(labelOptions)
+  }, [])
 
   const onChange = ({ label, value }) => {
     const selectedLabels = onLabelValueClick({ label, value })
@@ -144,10 +148,12 @@ const ChartLabels = ({ labelProps, ...rest }) => {
     return labelsToSet
   }
 
-  const resetSelections = () => {
+  const resetSelections = useCallback(() => {
     setSelectedLabels({})
     chart.updateFilteredLabelsAttribute({})
-  }
+  }, [])
+
+  const Dropdown = useMemo(() => renderDropdown(resetSelections))
 
   if (!chartLabelsOptions.length) return null
   return (
@@ -155,8 +161,8 @@ const ChartLabels = ({ labelProps, ...rest }) => {
       value={selectedLabels}
       onChange={onChange}
       items={chartLabelsOptions}
-      renderItem={renderItem(defaultChartLabelValues)}
-      renderDropdown={renderDropdown(resetSelections)}
+      Item={Item}
+      Dropdown={Dropdown}
       closeOnClick={false}
       data-track={chart.track("chartLabels")}
       dropProps={{
@@ -165,6 +171,7 @@ const ChartLabels = ({ labelProps, ...rest }) => {
       }}
       dropdownProps={{
         height: { max: "60vh" },
+        width: "230px",
         overflow: "auto",
       }}
       resetSelections={resetSelections}

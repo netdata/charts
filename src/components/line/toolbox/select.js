@@ -53,7 +53,7 @@ const Label = forwardRef(
   }
 )
 
-const renderDropdown = ({ onItemClick, items }) => {
+const Dropdown = ({ onItemClick, items }) => {
   const [{ icon, value, title }] = items
 
   return (
@@ -95,7 +95,7 @@ const Select = () => {
       value={navigation}
       onChange={setNavigation}
       items={remainingItems}
-      renderDropdown={renderDropdown}
+      Dropdown={Dropdown}
       data-track="select"
     >
       <Label value={navigation} onChange={setNavigation} item={selectedItem} />

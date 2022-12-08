@@ -3145,10 +3145,10 @@
   resolved "https://registry.yarnpkg.com/@netdata/dygraphs/-/dygraphs-2.1.1.tgz#47c36a1580999752523dfe647a268c3a0334d66c"
   integrity sha512-iZOmwvoNfjNvLcnbvnzCuIWjSsHrNR4+915T2WbXTHw7QgB7dk5+dPU/X4ufaIfSSx/ycqnJXj5lJIaBjT5zxg==
 
-"@netdata/netdata-ui@^2.3.12":
-  version "2.5.6"
-  resolved "https://registry.yarnpkg.com/@netdata/netdata-ui/-/netdata-ui-2.5.6.tgz#814857974711e272432571f22e365d7e7fb8141c"
-  integrity sha512-8fvhFSszYak3ONfacAkiDQVMDcupDzEYx8DcMZ6Rct9UlfvNFwIKV4BnDRaIbPPqFfGzJVy+1Obve0t7/JLXAQ==
+"@netdata/netdata-ui@^2.7.0":
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/@netdata/netdata-ui/-/netdata-ui-2.7.0.tgz#113a00a6855eb88a69d7f8846956cdcff789c71b"
+  integrity sha512-FF/4PBY0nxnwDa3TmBxwsdUb2/+H/69Ws/lGbYQpFwyLns7PPfsObSvtOfOZpRg2WLJY/rX3VUMWYeoAlhotqw==
   dependencies:
     "@elastic/react-search-ui" "^1.15.0"
     "@elastic/search-ui-site-search-connector" "^1.15.0"
@@ -3156,6 +3156,7 @@
     "@prismicio/client" "5.1.1"
     "@styled-system/css" "^5.1.5"
     "@tanstack/react-table" "^8.5.11"
+    "@tanstack/react-virtual" "3.0.0-beta.29"
     axios "^0.27.2"
     polished "^4.2.2"
     ramda "^0.28.0"
@@ -4170,10 +4171,22 @@
   dependencies:
     "@tanstack/table-core" "8.5.30"
 
+"@tanstack/react-virtual@3.0.0-beta.29":
+  version "3.0.0-beta.29"
+  resolved "https://registry.yarnpkg.com/@tanstack/react-virtual/-/react-virtual-3.0.0-beta.29.tgz#fce26a2f9d081dada2e33d6e4b23509feb1ba679"
+  integrity sha512-Vwjh/h9J4W6qtlQ7nPmhT6bXueS4mDMXJxJM2lRU6KPGwlWezKp/3NI4ZLAgDqZIxDOkeXq9iERsNxyB7MKHNg==
+  dependencies:
+    "@tanstack/virtual-core" "3.0.0-beta.29"
+
 "@tanstack/table-core@8.5.30":
   version "8.5.30"
   resolved "https://registry.yarnpkg.com/@tanstack/table-core/-/table-core-8.5.30.tgz#188d3974c282ae2dce90942eac251301d227f957"
   integrity sha512-3IhJVOpX7EDiAa2BcXowEJHOflmGI/hHhVY8UpEmtNxvDWo2QK7ohSXPndz35GK36mNoMXX4a5UA9BbVU1A0aw==
+
+"@tanstack/virtual-core@3.0.0-beta.29":
+  version "3.0.0-beta.29"
+  resolved "https://registry.yarnpkg.com/@tanstack/virtual-core/-/virtual-core-3.0.0-beta.29.tgz#bfb9399d6570f720a5e4967c7e57f295183a8981"
+  integrity sha512-fMAX6g2apCdNIWCB5lHo9qxFCn5Qig9rSrplofWfONfuIrnzLGH7H0Y7gUg37KC55BfPhwprjuZXg4B5bMI2fg==
 
 "@tootallnate/once@1":
   version "1.1.2"

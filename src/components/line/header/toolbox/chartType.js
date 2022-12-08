@@ -69,7 +69,7 @@ const ChartType = ({ disabled }) => {
     <Menu
       value={chartType}
       items={items}
-      dropProps={{ align: { top: "bottom", right: "right" }, "data-toolbox": true }}
+      dropProps={{ align: { top: "bottom", right: "right" }, width: "100px", "data-toolbox": true }}
       onChange={setChartType}
       data-track={chart.track("chartType")}
     >

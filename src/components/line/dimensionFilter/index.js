@@ -28,11 +28,6 @@ const Item = ({ item: { value, label }, value: selectedValue, onItemClick }) => 
   </ItemContainer>
 )
 
-const renderItem = props => {
-  const key = props.item.value || props.item.label
-  return <Item key={key} {...props} />
-}
-
 const iconBySort = {
   default: sortDescending,
   nameAsc: sortAscending,
@@ -72,8 +67,8 @@ const DimensionFilter = props => {
       <Menu
         value={value}
         items={sortings}
-        dropProps={{ align: { bottom: "top", left: "left" } }}
-        renderItem={renderItem}
+        dropProps={{ align: { bottom: "top", left: "left" }, "data-toolbox": true }}
+        Item={Item}
         onChange={onChange}
       >
         <Button
