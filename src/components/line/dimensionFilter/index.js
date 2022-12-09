@@ -68,6 +68,7 @@ const DimensionFilter = props => {
         value={value}
         items={sortings}
         dropProps={{ align: { bottom: "top", left: "left" }, "data-toolbox": true }}
+        dropdownProps={{ width: "200px", padding: [2, 0] }}
         Item={Item}
         onChange={onChange}
       >
