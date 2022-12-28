@@ -1,4 +1,7 @@
-export const unregister = (...funcs) => () => funcs.forEach(func => func && func())
+export const unregister =
+  (...funcs) =>
+  () =>
+    funcs.forEach(func => func && func())
 
 export default () => {
   let onceListenersByEvent = {}
@@ -38,11 +41,9 @@ export default () => {
     const onceListeners = onceListenersByEvent[eventName]
     if (!onceListeners?.size) return
 
-    listenersByEvent[eventName] = listeners.forEach(c => {
-      if (!onceListeners.has(c)) return
-
-      onceListeners.delete(c)
-      listeners.delete(c)
+    listenersByEvent[eventName] = onceListeners.forEach(handler => {
+      onceListeners.delete(handler)
+      listeners.delete(handler)
     })
   }
 

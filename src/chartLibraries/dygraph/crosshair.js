@@ -4,7 +4,11 @@ export default (chartUI, row) => {
   const { h } = dygraph.getArea()
   const { canvas_ctx_: ctx } = dygraph
 
-  const x = dygraph.toDomXCoord(chartUI.chart.getPayload().result.data[row][0])
+  const rowData = chartUI.chart.getPayload().result.data[row]
+
+  if (!Array.isArray(rowData)) return
+
+  const x = dygraph.toDomXCoord(rowData[0])
 
   const themeCrosshair = chartUI.getThemeAttribute("themeCrosshair")
 

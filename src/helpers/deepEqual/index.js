@@ -31,7 +31,7 @@ const deepEqual = (objA, objB, options = {}) => {
     if (!bHasOwnProperty(key)) return true
     if (objA[key] === objB[key]) return false
 
-    return !deepEqual(objA[key], objB[key])
+    return !deepEqual(objA[key], objB[key], options)
   })
 }
 

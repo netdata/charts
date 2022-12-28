@@ -1,5 +1,4 @@
 import deepEqual from "@/helpers/deepEqual"
-import deepMerge from "@/helpers/deepMerge"
 import makeKeyboardListener from "@/helpers/makeKeyboardListener"
 import makeNode from "./makeNode"
 import initialPayload from "./initialPayload"
@@ -308,11 +307,8 @@ export default ({
   const getConvertedValue = value => {
     if (!node) return
 
-    const {
-      unitsConversionMethod,
-      unitsConversionDivider,
-      unitsConversionFractionDigits,
-    } = node.getAttributes()
+    const { unitsConversionMethod, unitsConversionDivider, unitsConversionFractionDigits } =
+      node.getAttributes()
     const converted = convert(instance, unitsConversionMethod, value, unitsConversionDivider)
 
     if (unitsConversionFractionDigits === -1) return converted

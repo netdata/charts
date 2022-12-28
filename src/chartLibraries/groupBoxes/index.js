@@ -48,13 +48,16 @@ export default (sdk, chart) => {
 
     if (!groupBoxData) return
 
+    const rowData = result.data[row]
+    if (row !== -1 && !Array.isArray(rowData)) return
+
     const data = groupBoxData.data.map(groupedBox => {
       return {
         labels: groupedBox.labels,
         data:
           row === -1
             ? groupedBox.postAggregations
-            : groupedBox.indexes.map(index => result.data[row][index + 1]),
+            : groupedBox.indexes.map(index => rowData[index + 1]),
       }
     })
 
