@@ -16,7 +16,8 @@ const Info = ({ title, children }) => (
 )
 
 const Context = () => {
-  const { plugin, context } = useMetadata()
+  const { chartLabels, context } = useMetadata()
+  const plugin = chartLabels?._collect_plugin?.[0]
 
   return (
     <Row
