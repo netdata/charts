@@ -16,8 +16,8 @@ const Info = ({ title, children }) => (
 )
 
 const Context = () => {
-  const { chartLabels, context } = useMetadata()
-  const plugin = chartLabels?._collect_plugin?.[0]
+  const { chartLabels, context, plugin } = useMetadata()
+  const pluginText = plugin || chartLabels?._collect_plugin?.[0]
 
   return (
     <Row
@@ -26,7 +26,7 @@ const Context = () => {
       color="key"
       data-testid="cartDetails-context"
     >
-      <Info title="Plugin">{plugin}</Info>
+      <Info title="Plugin">{pluginText}</Info>
       <Info title="Context">{context}</Info>
     </Row>
   )
