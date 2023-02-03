@@ -37,7 +37,7 @@ const GroupBy = ({ labelProps }) => {
         ...value,
         "data-track": chart.track(`group-by-${value.value}`),
       })),
-      ...Object.keys(chartLabels).map(value => ({
+      ...Object.keys(chartLabels || {}).map(value => ({
         value,
         label: value,
         "data-track": chart.track(`group-by-${value}`),

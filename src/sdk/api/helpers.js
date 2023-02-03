@@ -14,7 +14,7 @@ export const getChartURLOptions = chart => {
     ...(chartUrlOptions || chart.getUI().getUrlOptions()),
     ...urlOptions,
     "jsonwrap",
-    !composite && eliminateZeroDimensions && "nonzero",
+    eliminateZeroDimensions && "nonzero",
     "flip",
     "ms",
     isSumOfAbs && "abs",
@@ -30,13 +30,18 @@ export const getChartPayload = chart => {
   const pixelsPerPoint = ui.getPixelsPerPoint()
   const { after, before, groupingMethod, groupingTime } = chart.getAttributes()
 
+  const dataPadding = Math.round((before - after) / 2)
+  const afterWithPadding = after - dataPadding
+  const beforeWithPadding = before + dataPadding
+  const pointsMultiplier = after < 0 ? 1.5 : 2
+
   return {
-    points: Math.round(width / pixelsPerPoint),
+    points: Math.round((width / pixelsPerPoint) * pointsMultiplier),
     format,
     group: groupingMethod,
     gtime: groupingTime,
-    after,
-    ...(after > 0 && { before }),
+    after: afterWithPadding,
+    ...(after > 0 && { before: beforeWithPadding }),
     with_metadata: true,
   }
 }

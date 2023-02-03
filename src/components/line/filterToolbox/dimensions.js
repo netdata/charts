@@ -5,8 +5,7 @@ import Multiselect from "./multiselect"
 
 const tooltipProps = {
   heading: "Dimensions",
-  body:
-    "Select one, multiple or all dimensions. A dimension is any value, either raw data or the result of a calculation that Netdata visualizes on a chart.",
+  body: "Select one, multiple or all dimensions. A dimension is any value, either raw data or the result of a calculation that Netdata visualizes on a chart.",
 }
 
 const Dimensions = ({ labelProps, ...rest }) => {
@@ -15,7 +14,7 @@ const Dimensions = ({ labelProps, ...rest }) => {
   const { dimensions } = useMetadata()
   const options = useMemo(
     () =>
-      Object.entries(dimensions).map(([key, value]) => ({
+      Object.entries(dimensions || {}).map(([key, value]) => ({
         label: value?.name || key,
         value: key,
         "data-track": chart.track(`dimensions-${key}`),

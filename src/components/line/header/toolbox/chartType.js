@@ -3,6 +3,9 @@ import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
 import lineChart from "@netdata/netdata-ui/lib/components/icon/assets/line_chart2.svg"
 import stackedChart from "@netdata/netdata-ui/lib/components/icon/assets/stacked_chart.svg"
 import areaChart from "@netdata/netdata-ui/lib/components/icon/assets/area_chart.svg"
+import barChart from "@netdata/netdata-ui/lib/components/icon/assets/bar_chart.svg"
+import stackedBarChart from "@netdata/netdata-ui/lib/components/icon/assets/stacked_bar_chart.svg"
+import heatmapChart from "@netdata/netdata-ui/lib/components/icon/assets/heatmap_chart.svg"
 import Icon, { Button } from "@/components/icon"
 import { useChart, useAttribute } from "@/components/provider"
 
@@ -35,22 +38,22 @@ const useItems = chart =>
       // {
       //   value: "stackedBar",
       //   label: "Stacked Bar",
-      //   icon: <Icon svg={areaChart} {...iconProps} />,
-      //   svg: areaChart,
+      //   icon: <Icon svg={stackedBarChart} {...iconProps} />,
+      //   svg: stackedBarChart,
       //   "data-track": chart.track("chartType-stackedBar"),
       // },
       // {
       //   value: "multibar",
       //   label: "Multi Bar",
-      //   icon: <Icon svg={areaChart} {...iconProps} />,
-      //   svg: areaChart,
+      //   icon: <Icon svg={barChart} {...iconProps} />,
+      //   svg: barChart,
       //   "data-track": chart.track("chartType-multibar"),
       // },
       // {
       //   value: "heatmap",
       //   label: "Heatmap",
-      //   icon: <Icon svg={areaChart} {...iconProps} />,
-      //   svg: areaChart,
+      //   icon: <Icon svg={heatmapChart} {...iconProps} />,
+      //   svg: heatmapChart,
       //   "data-track": chart.track("chartType-heatmap"),
       // },
     ],
