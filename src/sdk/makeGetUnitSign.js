@@ -1,4 +1,4 @@
-const unitMap = {
+export const unitMap = {
   "active connections": "a-con",
   arrays: "arrays",
   bytes: "bytes",

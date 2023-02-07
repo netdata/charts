@@ -6,6 +6,8 @@ const useHover = ({ onHover, onBlur, isOut = defaultIsOut }, deps) => {
   const ref = useRef()
 
   useLayoutEffect(() => {
+    if (!ref.current) return
+
     const mouseout = e => {
       let node = e.relatedTarget
 
@@ -15,10 +17,13 @@ const useHover = ({ onHover, onBlur, isOut = defaultIsOut }, deps) => {
 
       if (node !== ref.current && isOut(node)) onBlur()
     }
+
     ref.current.addEventListener("mouseover", onHover)
     ref.current.addEventListener("mouseout", mouseout)
 
     return () => {
+      if (!ref.current) return
+
       ref.current.removeEventListener("mouseover", onHover)
       ref.current.removeEventListener("mouseout", mouseout)
     }
@@ -27,11 +32,12 @@ const useHover = ({ onHover, onBlur, isOut = defaultIsOut }, deps) => {
   return ref
 }
 
-export const useHovered = ({ isOut } = {}) => {
+export const useHovered = ({ isOut } = {}, deps = []) => {
   const [focused, setFocused] = useState(false)
+
   const ref = useHover(
     { onHover: () => setFocused(true), onBlur: () => setFocused(false), isOut },
-    []
+    deps
   )
 
   return [ref, focused]
