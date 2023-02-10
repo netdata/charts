@@ -135,7 +135,13 @@ export default ({
     const { dimensionIds, metadata, ...restPayload } = nextPayloadTransformed
 
     const prevPayload = nextPayload
-    if (deepEqual(payload.dimensionIds, dimensionIds))
+
+    if (errored && nextPayload?.result?.data?.length) {
+      nextPayload = {
+        ...initialPayload,
+        ...nextPayload,
+      }
+    } else if (deepEqual(payload.dimensionIds, dimensionIds)) {
       nextPayload = {
         ...initialPayload,
         ...nextPayload,
@@ -143,7 +149,9 @@ export default ({
         dimensionIds,
         result,
       }
-    else nextPayload = { ...initialPayload, ...restPayload, dimensionIds, result }
+    } else {
+      nextPayload = { ...initialPayload, ...restPayload, dimensionIds, result }
+    }
 
     if (!deepEqual(getMetadata(), metadata, { keep: ["fullyLoaded", "dimensions", "chartLabels"] }))
       setMetadataAttributes(metadata)
@@ -160,6 +168,8 @@ export default ({
 
     if (!node.getAttribute("loaded") && !errored) node.getParent().trigger("chartLoaded", node)
 
+    const wasLoaded = node.getAttribute("loaded")
+
     node.updateAttributes({
       loaded: true,
       loading: false,
@@ -168,7 +178,7 @@ export default ({
       error,
     })
 
-    if (!errored) node.trigger("successFetch", nextPayload, prevPayload)
+    if (wasLoaded && !errored) node.trigger("successFetch", nextPayload, prevPayload)
     finishFetch()
   }
 

@@ -14,7 +14,6 @@ export default {
     labels: [],
     data: [],
   },
-
   nodes: [],
   keys: {},
   labels: {},
