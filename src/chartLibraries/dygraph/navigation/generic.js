@@ -74,7 +74,7 @@ export default chartUI => {
       const w = g.toDomCoords(g.xAxisRange()[1], null)[0] - axisAfterOffset
 
       // Percentage from the left.
-      return w == 0 ? 0 : x / w
+      return w === 0 ? 0 : x / w
     }
 
     const normalDef =

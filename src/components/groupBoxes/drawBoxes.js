@@ -46,7 +46,7 @@ export default (el, { onMouseenter, onMouseout }, options = {}) => {
 
   let activeBox = -1
   let deactivateBox = () => {}
-  let activateBox = {}
+  let activateBox = () => {}
   let clearEvents = () => {}
 
   const clear = () => {
