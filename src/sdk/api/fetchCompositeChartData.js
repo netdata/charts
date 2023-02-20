@@ -65,7 +65,7 @@ const getChartIdsByNodeId = (instances, nodeIdSet) => {
   )
 }
 
-const getCompositeChartPayload = chart => {
+const getPayload = chart => {
   const metadata = chart.getMetadata()
   const {
     nodeIds = [],
@@ -107,7 +107,7 @@ const getCompositeChartPayload = chart => {
 export default (chart, options) => {
   const { host } = chart.getAttributes()
 
-  const payload = getCompositeChartPayload(chart)
+  const payload = getPayload(chart)
 
   return fetch(host, {
     method: "POST",

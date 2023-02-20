@@ -7,6 +7,7 @@ export const getChartURLOptions = chart => {
     urlOptions,
     postAggregationMethod,
   } = chart.getAttributes()
+
   const isSumOfAbs =
     composite && (groupBy !== "dimension" || postAggregationMethod === "sum-of-abs")
 
@@ -38,8 +39,8 @@ export const getChartPayload = chart => {
   return {
     points: Math.round((width / pixelsPerPoint) * pointsMultiplier),
     format,
-    group: groupingMethod,
-    gtime: groupingTime,
+    time_group: groupingMethod,
+    time_resampling: groupingTime,
     after: afterWithPadding,
     ...(after > 0 && { before: beforeWithPadding }),
     with_metadata: true,

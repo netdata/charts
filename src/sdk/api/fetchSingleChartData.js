@@ -1,6 +1,6 @@
 import { getChartURLOptions, getChartPayload } from "./helpers"
 
-const getSingleChartPayload = chart => {
+const getPayload = chart => {
   const metadata = chart.getMetadata()
   const { chartId, context, dimensions } = chart.getAttributes()
 
@@ -18,7 +18,7 @@ const getSingleChartPayload = chart => {
 export default (chart, options) => {
   const { host } = chart.getAttributes()
 
-  const payload = getSingleChartPayload(chart)
+  const payload = getPayload(chart)
 
   const query = new URLSearchParams(payload).toString()
   const url = `${host}?${query}`
