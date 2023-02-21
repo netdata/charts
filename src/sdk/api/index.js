@@ -1,17 +1,13 @@
-import fetchCompositeChartData from "./fetchCompositeChartData"
-import fetchSingleChartData from "./fetchSingleChartData"
 import fetchAgentData from "./fetchAgentData"
 
 export * from "./helpers"
 
 export const fetchChartData = (chart, options) => {
-  const { composite, agent } = chart.getAttributes()
+  const { agent } = chart.getAttributes()
 
   if (agent) return fetchAgentData(chart, options)
 
-  if (composite) return fetchCompositeChartData(chart, options)
-
-  return fetchSingleChartData(chart, options)
+  return fetchAgentData(chart, options) // CHANGE WHEN READY ON CLOUD
 }
 
 export const fetchChartMetadata = () => {

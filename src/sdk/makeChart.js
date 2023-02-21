@@ -109,17 +109,6 @@ export default ({
     node.trigger("finishFetch")
   }
 
-  const transformResult = ({ viewUpdateEvery, after, result }) => {
-    if (!Array.isArray(result)) return result
-
-    const data = result.map((point, index) => [
-      (after + viewUpdateEvery * (index + 1)) * 1000,
-      point,
-    ])
-
-    return { labels: ["time", "sum"], data }
-  }
-
   const getDataLength = payload => {
     const { result } = payload || {}
     return Array.isArray(result) ? result.length : result.data?.length || 0
@@ -128,11 +117,7 @@ export default ({
   const doneFetch = (nextRawPayload, { errored = false, error = null } = {}) => {
     if (!errored) backoffMs = 0
 
-    const nextPayloadTransformed = camelizePayload(nextRawPayload)
-
-    const result = transformResult(nextPayloadTransformed)
-
-    const { dimensionIds, metadata, ...restPayload } = nextPayloadTransformed
+    const { result, metadata } = camelizePayload(nextRawPayload)
 
     const prevPayload = nextPayload
 
@@ -141,19 +126,15 @@ export default ({
         ...initialPayload,
         ...nextPayload,
       }
-    } else if (deepEqual(payload.dimensionIds, dimensionIds)) {
-      nextPayload = {
-        ...initialPayload,
-        ...nextPayload,
-        ...restPayload,
-        dimensionIds,
-        result,
-      }
     } else {
-      nextPayload = { ...initialPayload, ...restPayload, dimensionIds, result }
+      nextPayload = { ...initialPayload, ...nextPayload, result }
     }
 
-    if (!deepEqual(getMetadata(), metadata, { keep: ["fullyLoaded", "dimensions", "chartLabels"] }))
+    if (
+      !deepEqual(getMetadata(), metadata, {
+        keep: ["fullyLoaded", "dimensions", "labels", "hosts", "instances", "functions"],
+      })
+    )
       setMetadataAttributes(metadata)
 
     const dataLength = getDataLength(nextPayload)

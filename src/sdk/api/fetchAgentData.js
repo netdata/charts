@@ -10,7 +10,6 @@ const getPayload = chart => {
   const {
     hosts = "*",
     contexts,
-    chartId,
     context,
     id,
     instances,
@@ -28,7 +27,7 @@ const getPayload = chart => {
     hosts,
     format: "json",
     options: options.join("|"),
-    contexts: contexts?.join?.("|") || context || id,
+    contexts: contexts.join("|") || context || id,
     ...(instances?.length && { instances: instances.join("|") }),
     ...(dimensions?.length && { dimensions: dimensions.join("|") }),
     ...(labels && {

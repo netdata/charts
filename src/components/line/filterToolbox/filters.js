@@ -2,8 +2,12 @@ import React from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import Aggregate from "./aggregate"
 import Dimensions from "./dimensions"
+import Instances from "./instances"
+import Nodes from "./nodes"
 import GroupBy from "./groupBy"
 import DimensionsAggregation from "./dimensionsAggregation"
+import TimeAggregation from "./timeAggregation"
+import ChartLabels from "./chartLabels"
 import useFiltersToolbox from "./useFiltersToolbox"
 import Reset from "./reset"
 
@@ -14,10 +18,14 @@ const FilterToolbox = props => {
 
   return (
     <Container {...props}>
+      <Nodes />
+      <GroupBy labelProps={{ secondaryLabel: "group by" }} />
       {aggregate && <Aggregate />}
+      <Instances />
       {dimensionAggregation && <DimensionsAggregation isAggregate={aggregate} />}
       <Dimensions labelProps={!prefixedDimensions && { secondaryLabel: "" }} />
-      <GroupBy />
+      <TimeAggregation />
+      <ChartLabels />
       <Reset />
     </Container>
   )

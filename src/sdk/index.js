@@ -36,6 +36,8 @@ export default ({
     delete plugins[name]
   }
 
+  const version = () => attributes._v
+
   const addUI = (type, chartLibrary) => {
     attributes.ui[type] = chartLibrary
   }
@@ -88,6 +90,7 @@ export default ({
     getNodes,
     appendChild,
     removeChild,
+    version,
   }
 
   init()

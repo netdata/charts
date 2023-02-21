@@ -35,27 +35,27 @@ const useItems = chart =>
         svg: areaChart,
         "data-track": chart.track("chartType-area"),
       },
-      // {
-      //   value: "stackedBar",
-      //   label: "Stacked Bar",
-      //   icon: <Icon svg={stackedBarChart} {...iconProps} />,
-      //   svg: stackedBarChart,
-      //   "data-track": chart.track("chartType-stackedBar"),
-      // },
-      // {
-      //   value: "multibar",
-      //   label: "Multi Bar",
-      //   icon: <Icon svg={barChart} {...iconProps} />,
-      //   svg: barChart,
-      //   "data-track": chart.track("chartType-multibar"),
-      // },
-      // {
-      //   value: "heatmap",
-      //   label: "Heatmap",
-      //   icon: <Icon svg={heatmapChart} {...iconProps} />,
-      //   svg: heatmapChart,
-      //   "data-track": chart.track("chartType-heatmap"),
-      // },
+      {
+        value: "stackedBar",
+        label: "Stacked Bar",
+        icon: <Icon svg={stackedBarChart} {...iconProps} />,
+        svg: stackedBarChart,
+        "data-track": chart.track("chartType-stackedBar"),
+      },
+      {
+        value: "multibar",
+        label: "Multi Bar",
+        icon: <Icon svg={barChart} {...iconProps} />,
+        svg: barChart,
+        "data-track": chart.track("chartType-multibar"),
+      },
+      {
+        value: "heatmap",
+        label: "Heatmap",
+        icon: <Icon svg={heatmapChart} {...iconProps} />,
+        svg: heatmapChart,
+        "data-track": chart.track("chartType-heatmap"),
+      },
     ],
     [chart]
   )

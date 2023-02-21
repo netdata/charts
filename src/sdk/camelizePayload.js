@@ -8,34 +8,37 @@ const camelizeResult = result => {
 
 export default payload => {
   const {
-    update_every,
-    view_update_every,
-    first_entry,
-    last_entry,
-    dimension_names,
-    dimension_ids,
-    latest_values,
-    view_latest_values,
+    id,
+    title,
+    summary = {}, // set default value
+    summary: { hosts = [], instances = [], dimensions = [], labels = [], alerts = [] },
+    functions = [],
+    detailed = {},
+    db: { update_every: updateEvery, first_entry: firstEntry, last_entry: lastEntry },
+    view: { update_every: viewUpdateEvery, units, dimensions: viewDimensions },
     result,
-    all_dimensions,
-    all_chart_labels,
     ...rest
   } = payload
 
   return {
-    updateEvery: update_every,
-    viewUpdateEvery: view_update_every,
-    firstEntry: first_entry,
-    lastEntry: last_entry,
-    dimensionNames: dimension_names,
-    dimensionIds: dimension_ids,
-    latestValues: latest_values,
-    viewLatestValues: view_latest_values,
     result: camelizeResult(result),
     metadata: {
-      ...(!!all_dimensions && { fullyLoaded: true }),
-      ...(!!all_dimensions && { dimensions: all_dimensions }),
-      ...(!!all_chart_labels && { chartLabels: all_chart_labels }),
+      id,
+      title,
+      fullyLoaded: !!id,
+      hosts,
+      instances,
+      dimensions,
+      labels,
+      alerts,
+      updateEvery,
+      viewUpdateEvery,
+      firstEntry,
+      lastEntry,
+      viewDimensions,
+      units,
+      detailed,
+      functions,
     },
     ...rest,
   }

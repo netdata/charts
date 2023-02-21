@@ -2,18 +2,34 @@ export default {
   fullyLoaded: false,
   loaded: false,
   id: "",
-  name: "",
-  context: "",
-  family: "",
   title: "",
-  priority: 0,
-  plugin: "",
-  module: "",
-  units: "",
+
   chartType: "",
+  context: "",
+  contexts: [],
+
+  viewDimensions: {
+    ids: [],
+    names: [],
+    latestValues: [],
+    count: 0,
+    priorities: [],
+    algorithm: "absolute", // absolute|incremental
+  },
+
+  // view
+  units: "",
+  viewUpdateEvery: 0, // view.update_every
+
+  // db
   updateEvery: 0,
   firstEntry: 0,
   lastEntry: 0,
-  dimensions: {},
-  chartLabels: {},
+
+  // summary
+  dimensions: [],
+  labels: [],
+  hosts: [],
+  instances: [],
+  alerts: [],
 }
