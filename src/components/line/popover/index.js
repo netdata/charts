@@ -61,11 +61,12 @@ const Container = () => {
 
           updatePositionRef.current()
 
-          const chartWidth = chart.getUI().getChartWidth()
-          const chartHeight = chart.getUI().getChartHeight()
+          const winHeight = window.innerHeight
+          const winWidth = window.innerWidth
 
-          const left = offsetX > chartWidth / 2
-          const top = offsetY > chartHeight / 2
+          const { width, height } = dropRef.current.getBoundingClientRect()
+          const left = offsetX + width > winWidth
+          const top = offsetY + height > winHeight
 
           setAlign(getAlign(left, top))
         })
