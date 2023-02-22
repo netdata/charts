@@ -5,15 +5,13 @@ export default {
   title: "",
 
   chartType: "",
-  context: "",
-  contexts: [],
 
   viewDimensions: {
     ids: [],
     names: [],
-    latestValues: [],
     count: 0,
     priorities: [],
+    grouped: [],
     algorithm: "absolute", // absolute|incremental
   },
 

@@ -20,14 +20,16 @@ export default (chart, sdk) => {
   const getPayloadDimensionIds = () => {
     if (hasSparklineDimension()) return sparklineDimensions
 
-    const { dimensionIds } = chart.getPayload()
-    return dimensionIds || []
+    const { viewDimensions } = chart.getMetadata()
+
+    return viewDimensions.ids || []
   }
 
   const getSourceDimensionIds = () => [...getPayloadDimensionIds()]
 
   const bySortMethod = {
-    default: () => getPayloadDimensionIds(),
+    default: () =>
+      getPayloadDimensionIds().sort((a, b) => getDimensionPriority(a) - getDimensionPriority(b)),
     nameAsc: () =>
       getSourceDimensionIds().sort((a, b) =>
         getDimensionName(a).localeCompare(getDimensionName(b))
@@ -55,11 +57,13 @@ export default (chart, sdk) => {
   }
 
   const updateVisibleDimensions = () => {
-    const selectedDimensions = chart.getAttribute("selectedDimensions")
+    const selectedLegendDimensions = chart.getAttribute("selectedLegendDimensions")
 
-    visibleDimensionIds = selectedDimensions.length
+    visibleDimensionIds = selectedLegendDimensions.length
       ? sortedDimensionIds.filter(
-          id => selectedDimensions.includes(id) || selectedDimensions.includes(getDimensionName(id))
+          id =>
+            selectedLegendDimensions.includes(id) ||
+            selectedLegendDimensions.includes(getDimensionName(id))
         )
       : sortedDimensionIds
 
@@ -153,8 +157,15 @@ export default (chart, sdk) => {
   const getColors = () => colors
 
   const getDimensionName = id => {
-    const { dimensionNames } = chart.getPayload()
-    return dimensionNames[dimensionsById[id]]
+    const { viewDimensions } = chart.getMetadata()
+
+    return viewDimensions.names[dimensionsById[id]]
+  }
+
+  const getDimensionPriority = id => {
+    const { viewDimensions } = chart.getMetadata()
+
+    return viewDimensions.priorities[dimensionsById[id]]
   }
 
   const getDimensionValue = (id, index) => {
@@ -166,31 +177,31 @@ export default (chart, sdk) => {
   }
 
   const toggleDimensionId = (id, { merge = false } = {}) => {
-    const selectedDimensions = chart.getAttribute("selectedDimensions")
+    const selectedLegendDimensions = chart.getAttribute("selectedLegendDimensions")
 
-    if (!selectedDimensions.length) {
+    if (!selectedLegendDimensions.length) {
       chart.updateAttribute(
-        "selectedDimensions",
+        "selectedLegendDimensions",
         merge ? getDimensionIds().filter(d => d !== id) : [id]
       )
       return
     }
 
     if (isDimensionVisible(id)) {
-      const newSelectedDimensions = selectedDimensions.filter(d => d !== id)
+      const newSelectedLegendDimensions = selectedLegendDimensions.filter(d => d !== id)
       chart.updateAttribute(
-        "selectedDimensions",
-        newSelectedDimensions.length ? (merge ? newSelectedDimensions : [id]) : []
+        "selectedLegendDimensions",
+        newSelectedLegendDimensions.length ? (merge ? newSelectedLegendDimensions : [id]) : []
       )
       return
     }
 
-    const newSelectedDimensions = merge ? [...selectedDimensions, id] : [id]
-    chart.updateAttribute("selectedDimensions", newSelectedDimensions)
+    const newSelectedLegendDimensions = merge ? [...selectedLegendDimensions, id] : [id]
+    chart.updateAttribute("selectedLegendDimensions", newSelectedLegendDimensions)
   }
 
   chart.onAttributeChange("dimensionsSort", sortDimensions)
-  chart.onAttributeChange("selectedDimensions", updateVisibleDimensions)
+  chart.onAttributeChange("selectedLegendDimensions", updateVisibleDimensions)
   chart.on("metadataChanged", () => {
     sortDimensions()
     updateVisibleDimensions()
@@ -218,5 +229,6 @@ export default (chart, sdk) => {
     getDimensionName,
     getDimensionValue,
     onHoverSortDimensions,
+    getPayloadDimensionIds,
   }
 }

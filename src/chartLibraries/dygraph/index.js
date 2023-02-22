@@ -11,8 +11,7 @@ import makeOverlays from "./overlays"
 import crosshair from "./crosshair"
 
 const getDateWindow = chart => {
-  const { after, before, forceDateWindow } = chart.getAttributes()
-  if (forceDateWindow) return forceDateWindow
+  const { after, before } = chart.getAttributes()
 
   if (after > 0) return [after * 1000, before * 1000]
 
@@ -165,7 +164,7 @@ export default (sdk, chart) => {
         dygraph.updateOptions(makeThemingOptions())
       }),
       chart.onAttributeChange("chartType", () => dygraph.updateOptions(makeChartTypeOptions())),
-      chart.onAttributeChange("selectedDimensions", () => {
+      chart.onAttributeChange("selectedLegendDimensions", () => {
         dygraph.updateOptions({
           ...makeVisibilityOptions(),
           ...makeColorOptions(),
@@ -178,8 +177,8 @@ export default (sdk, chart) => {
             attributes.chartType === "heatmap"
               ? [
                   0,
-                  attributes.selectedDimensions.length
-                    ? attributes.selectedDimensions.length
+                  attributes.selectedLegendDimensions.length
+                    ? attributes.selectedLegendDimensions.length
                     : result.labels.length,
                 ]
               : attributes.getValueRange({
@@ -257,7 +256,7 @@ export default (sdk, chart) => {
       stackedGraph: true,
     },
     heatmap: {
-      makeYAxisLabelFormatter: labels => y => (y === 0 ? null : chart.getDimensionName(labels[y])),
+      makeYAxisLabelFormatter: labels => y => y === 0 ? null : chart.getDimensionName(labels[y]),
       yTicker: (a, b, pixels, opts, dygraph) => {
         return dygraph.attributes_.user_.labels.reduce((h, label, i) => {
           if (i === 0) return h
@@ -276,14 +275,8 @@ export default (sdk, chart) => {
 
   const makeChartTypeOptions = () => {
     const { result } = chart.getPayload()
-    const {
-      chartType,
-      sparkline,
-      includeZero,
-      enabledXAxis,
-      enabledYAxis,
-      yAxisLabelWidth,
-    } = chart.getAttributes()
+    const { chartType, sparkline, includeZero, enabledXAxis, enabledYAxis, yAxisLabelWidth } =
+      chart.getAttributes()
 
     const plotterByChartType = makePlotterByChartType({ sparkline })
     const plotter = plotterByChartType[chartType] || plotterByChartType.default
@@ -299,8 +292,8 @@ export default (sdk, chart) => {
       yTicker,
     } = optionsByChartType[chartType] || optionsByChartType.default
 
-    const { selectedDimensions } = chart.getAttributes()
-    const { dimensionIds } = chart.getPayload()
+    const { selectedLegendDimensions } = chart.getAttributes()
+    const dimensionIds = chart.getPayloadDimensionIds()
 
     const yAxisLabelFormatter = makeYAxisLabelFormatter(result.labels)
 
@@ -312,7 +305,7 @@ export default (sdk, chart) => {
       strokeWidth: sparkline ? 0 : strokeWidth,
       includeZero:
         includeZero ||
-        (forceIncludeZero && dimensionIds?.length > 1 && selectedDimensions.length > 1),
+        (forceIncludeZero && dimensionIds.length > 1 && selectedLegendDimensions.length > 1),
       stackedGraphNaNFill: "none",
       plotter,
       errorBars,
@@ -342,13 +335,13 @@ export default (sdk, chart) => {
   }
 
   const makeVisibilityOptions = () => {
-    const { dimensionIds } = chart.getPayload()
-    if (!dimensionIds?.length) return { visibility: false }
+    const dimensionIds = chart.getPayloadDimensionIds()
+    if (!dimensionIds.length) return { visibility: false }
 
-    const selectedDimensions = chart.getAttribute("selectedDimensions")
+    const selectedLegendDimensions = chart.getAttribute("selectedLegendDimensions")
 
     const visibility = dimensionIds.map(
-      selectedDimensions.length ? chart.isDimensionVisible : () => true
+      selectedLegendDimensions.length ? chart.isDimensionVisible : () => true
     )
 
     return { visibility }
@@ -361,7 +354,7 @@ export default (sdk, chart) => {
       getValueRange,
       aggregationMethod,
       chartType,
-      selectedDimensions,
+      selectedLegendDimensions,
     } = chart.getAttributes()
     const { result, min, max } = chart.getPayload()
     const dateWindow = getDateWindow(chart)
@@ -375,7 +368,12 @@ export default (sdk, chart) => {
       dateWindow,
       valueRange:
         chartType === "heatmap"
-          ? [0, selectedDimensions.length ? selectedDimensions.length : result.labels.length]
+          ? [
+              0,
+              selectedLegendDimensions.length
+                ? selectedLegendDimensions.length
+                : result.labels.length,
+            ]
           : getValueRange({
               min,
               max,
@@ -416,9 +414,9 @@ export default (sdk, chart) => {
     const sparkline = chart.getAttribute("sparkline")
     if (sparkline) return { colors: chart.getColors() }
 
-    const { dimensionIds } = chart.getPayload()
+    const dimensionIds = chart.getPayloadDimensionIds()
 
-    if (!dimensionIds?.length) return {}
+    if (!dimensionIds.length) return {}
     const colors = dimensionIds.map(id => chart.getDimensionColor(id))
 
     return { colors }

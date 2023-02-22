@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from "react"
+import React, { memo, useMemo, useCallback } from "react"
 import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
 import lineChart from "@netdata/netdata-ui/lib/components/icon/assets/line_chart2.svg"
 import stackedChart from "@netdata/netdata-ui/lib/components/icon/assets/stacked_chart.svg"
@@ -62,8 +62,14 @@ const useItems = chart =>
 
 const ChartType = ({ disabled }) => {
   const chart = useChart()
+  const [, setSelectedChartType] = useAttribute("selectedChartType")
   const [chartTypeAttribute, setChartType] = useAttribute("chartType")
   const chartType = chartTypeAttribute || "line"
+
+  const onChange = useCallback(value => {
+    setSelectedChartType(value)
+    setChartType(value)
+  }, [])
 
   const items = useItems(chart)
   const { label, svg } = items.find(({ value }) => value === chartType)
@@ -74,7 +80,7 @@ const ChartType = ({ disabled }) => {
       items={items}
       dropProps={{ align: { top: "bottom", right: "right" }, "data-toolbox": true }}
       dropdownProps={{ width: "100px" }}
-      onChange={setChartType}
+      onChange={onChange}
       data-track={chart.track("chartType")}
     >
       <Button

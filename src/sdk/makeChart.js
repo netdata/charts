@@ -117,7 +117,7 @@ export default ({
   const doneFetch = (nextRawPayload, { errored = false, error = null } = {}) => {
     if (!errored) backoffMs = 0
 
-    const { result, metadata } = camelizePayload(nextRawPayload)
+    const { metadata, result, chartType, ...restPayload } = camelizePayload(nextRawPayload)
 
     const prevPayload = nextPayload
 
@@ -125,9 +125,12 @@ export default ({
       nextPayload = {
         ...initialPayload,
         ...nextPayload,
+        ...restPayload,
+        result,
+        chartType,
       }
     } else {
-      nextPayload = { ...initialPayload, ...nextPayload, result }
+      nextPayload = { ...initialPayload, ...nextPayload, ...restPayload, result, chartType }
     }
 
     if (
@@ -151,11 +154,15 @@ export default ({
 
     const wasLoaded = node.getAttribute("loaded")
 
+    const attributes = node.getAttributes()
+
     node.updateAttributes({
       loaded: true,
       loading: false,
       updatedAt: Date.now(),
       outOfLimits: !dataLength,
+      chartType: attributes.selectedChartType || attributes.chartType || chartType,
+      ...restPayload,
       error,
     })
 
@@ -265,6 +272,7 @@ export default ({
 
       return dataFetch().then(() => {
         const { fullyLoaded } = getMetadata()
+
         if (fullyLoaded) return
 
         return doFetchMetadata()

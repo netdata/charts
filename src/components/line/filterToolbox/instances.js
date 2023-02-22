@@ -10,14 +10,14 @@ const tooltipProps = {
 
 const Instances = ({ labelProps, ...rest }) => {
   const chart = useChart()
-  const value = useAttributeValue("instances")
+  const value = useAttributeValue("selectedInstances")
   const { instances } = useMetadata()
   const options = useMemo(
     () =>
-      Object.entries(instances || {}).map(([key, value]) => ({
-        label: value?.name || key,
-        value: key,
-        "data-track": chart.track(`instances-${key}`),
+      instances.map(({ nm, id }) => ({
+        label: nm || id,
+        value: id,
+        "data-track": chart.track(`instances-${id}`),
       })),
     [instances]
   )
@@ -25,7 +25,7 @@ const Instances = ({ labelProps, ...rest }) => {
   return (
     <Multiselect
       attrName="instances"
-      allName="All instances"
+      allName="all instances"
       data-track={chart.track("instances")}
       labelProps={labelProps}
       onChange={chart.updateInstancesAttribute}

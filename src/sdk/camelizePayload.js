@@ -8,35 +8,39 @@ const camelizeResult = result => {
 
 export default payload => {
   const {
-    id,
-    title,
     summary = {}, // set default value
     summary: { hosts = [], instances = [], dimensions = [], labels = [], alerts = [] },
     functions = [],
     detailed = {},
     db: { update_every: updateEvery, first_entry: firstEntry, last_entry: lastEntry },
-    view: { update_every: viewUpdateEvery, units, dimensions: viewDimensions },
+    view: {
+      title,
+      update_every: viewUpdateEvery,
+      units,
+      dimensions: viewDimensions,
+      chart_type: chartType,
+    },
     result,
     ...rest
   } = payload
 
   return {
     result: camelizeResult(result),
+    updateEvery,
+    viewUpdateEvery,
+    firstEntry,
+    lastEntry,
+    units,
+    chartType,
     metadata: {
-      id,
       title,
-      fullyLoaded: !!id,
+      fullyLoaded: hosts.length > 0,
       hosts,
       instances,
       dimensions,
       labels,
       alerts,
-      updateEvery,
-      viewUpdateEvery,
-      firstEntry,
-      lastEntry,
       viewDimensions,
-      units,
       detailed,
       functions,
     },

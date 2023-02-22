@@ -10,27 +10,32 @@ const tooltipProps = {
 
 const Nodes = ({ labelProps, ...rest }) => {
   const chart = useChart()
-  const value = useAttributeValue("instances")
-  const { instances } = useMetadata()
+  const value = useAttributeValue("selectedHosts")
+  const isAgent = chart.getAttributes("agent")
+  const { hosts } = useMetadata()
   const options = useMemo(
     () =>
-      Object.entries(instances || {}).map(([key, value]) => ({
-        label: value?.name || key,
-        value: key,
-        "data-track": chart.track(`instances-${key}`),
-      })),
-    [instances]
+      hosts.map(host => {
+        const id = isAgent ? host.mg : host.nd
+
+        return {
+          label: host.nm || id,
+          value: id,
+          "data-track": chart.track(`hosts-${id}`),
+        }
+      }),
+    [hosts]
   )
 
   return (
     <Multiselect
-      attrName="instances"
-      allName="All instances"
-      data-track={chart.track("instances")}
+      attrName="hosts"
+      allName="all nodes"
+      data-track={chart.track("hosts")}
       labelProps={labelProps}
       onChange={chart.updateNodesAttribute}
       options={options}
-      secondaryLabel="using"
+      secondaryLabel="On"
       tooltipProps={tooltipProps}
       value={value}
       {...rest}

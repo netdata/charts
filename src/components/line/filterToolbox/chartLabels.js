@@ -94,7 +94,7 @@ const normalizeData = (data = {}) =>
 const ChartLabels = ({ labelProps, ...rest }) => {
   const chart = useChart()
 
-  const selectedChartLabels = useAttributeValue("filteredLabels")
+  const selectedChartLabels = useAttributeValue("selectedLabels")
   const { chartLabels } = useMetadata()
 
   const [selectedLabels, setSelectedLabels] = useState(normalizeData(selectedChartLabels))

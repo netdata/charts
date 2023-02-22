@@ -29,8 +29,18 @@ export default {
   active: false,
   sparkline: false,
   chartType: "",
+  selectedLegendDimensions: [],
+
+  contextScope: [],
+  hostScope: [],
+  selectedContexts: [],
   selectedDimensions: [],
+  selectedLabels: [],
+  selectedHosts: [],
+  selectedInstances: [],
+
   contextsHardHash: null,
+
   enabledHover: true,
   syncHover: true,
   hoverX: null,
@@ -85,15 +95,15 @@ export default {
   dimensions: [],
   dimensionsAggregationMethod: "",
   groupBy: "",
-  selectedInstances: [],
-  selectedNodeIds: [],
-  selectedChartId: "",
+  // selectedInstances: [], deprecate
+  // selectedNodeIds: [], deprecate
+  // selectedChartId: "", deprecate
 
   aggregationGroups: [],
   postAggregationMethod: "",
   postGroupBy: "",
   selectedChart: "",
-  filteredLabels: {},
+  // filteredLabels: {}, depreactae
 
   pristineComposite: {},
 

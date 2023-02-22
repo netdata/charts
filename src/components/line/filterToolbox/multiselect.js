@@ -94,7 +94,7 @@ const Multiselect = ({
 
   return (
     <Menu
-      allName={allName}
+      allName={items.length === 1 ? items[0].label : allName}
       onChange={handleChange}
       items={items}
       hasSearch={items.length > 4}

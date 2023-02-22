@@ -105,14 +105,10 @@ export const useTitle = () => {
 }
 
 export const useName = () => {
-  const { name, context } = useMetadata()
-  const attrName = useAttributeValue("name")
-  const attrContext = useAttributeValue("context")
-  const composite = useAttributeValue("composite")
+  const name = useAttributeValue("name")
+  const selectedContexts = useAttributeValue("selectedContexts")
 
-  if (composite) return attrContext || context
-
-  return attrName || name
+  return name || selectedContexts.join(", ")
 }
 
 export const useVisibleDimensionId = id => {
@@ -226,14 +222,15 @@ export const useLatestValue = id => {
   useLayoutEffect(() => {
     const getValue = () => {
       const hover = chart.getAttribute("hoverX")
-      const { result, dimensionIds } = chart.getPayload()
+      const { result } = chart.getPayload()
+      const dimensionIds = chart.getPayloadDimensionIds()
 
       if (result.data.length === 0) return ""
 
       let index = hover ? chart.getClosestRow(hover[0]) : -1
       index = index === -1 ? result.data.length - 1 : index
 
-      id = id || dimensionIds?.[0]
+      id = id || dimensionIds[0]
       const value = chart.getDimensionValue(id, index)
 
       if (isNaN(value)) return ""

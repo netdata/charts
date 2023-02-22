@@ -25,7 +25,7 @@ const FilterToolbox = props => {
       {dimensionAggregation && <DimensionsAggregation isAggregate={aggregate} />}
       <Dimensions labelProps={!prefixedDimensions && { secondaryLabel: "" }} />
       <TimeAggregation />
-      <ChartLabels />
+      {/*<ChartLabels />*/}
       <Reset />
     </Container>
   )

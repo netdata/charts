@@ -10,14 +10,14 @@ const tooltipProps = {
 
 const Dimensions = ({ labelProps, ...rest }) => {
   const chart = useChart()
-  const value = useAttributeValue("dimensions")
+  const value = useAttributeValue("selectedDimensions")
   const { dimensions } = useMetadata()
   const options = useMemo(
     () =>
-      Object.entries(dimensions || {}).map(([key, value]) => ({
-        label: value?.name || key,
-        value: key,
-        "data-track": chart.track(`dimensions-${key}`),
+      dimensions.map(({ nm, id }) => ({
+        label: nm || id,
+        value: id,
+        "data-track": chart.track(`dimensions-${id}`),
       })),
     [dimensions]
   )
@@ -25,7 +25,7 @@ const Dimensions = ({ labelProps, ...rest }) => {
   return (
     <Multiselect
       attrName="dimensions"
-      allName="All dimensions"
+      allName="all dimensions"
       data-track={chart.track("dimensions")}
       labelProps={labelProps}
       onChange={chart.updateDimensionsAttribute}

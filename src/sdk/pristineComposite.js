@@ -4,13 +4,13 @@ export const pristineCompositeKey = "pristineComposite"
 
 const { updatePristine, resetPristine } = makePristine(pristineCompositeKey, [
   "aggregationMethod",
-  "dimensions",
+  "selectedDimensions",
   "dimensionsAggregationMethod",
   "groupBy",
   "groupingMethod",
   "chartType",
-  "filteredLabels",
-  "selectedNodeIds",
+  "selectedLabels",
+  "selectedHosts",
   "selectedInstances",
 ])
 

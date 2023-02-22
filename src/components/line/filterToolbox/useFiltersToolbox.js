@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { unregister } from "@/helpers/makeListeners"
+import { useMetadata } from "@/components/provider"
 import { useChart, useAttributeValue } from "@/components/provider/selectors"
 
 export default () => {
@@ -8,14 +9,12 @@ export default () => {
   const groupBy = useAttributeValue("groupBy")
 
   const getDimensionAggregation = () => {
-    const dimensions = chart.getAttribute("dimensions")
-    const metadata = chart.getMetadata()
-    const hasDimensions =
-      (metadata?.dimensions ? Object.keys(metadata.dimensions).length : dimensions.length) > 0
-
     const selectedDimensions = chart.getAttribute("selectedDimensions")
 
-    return !!selectedDimensions.length || hasDimensions
+    if (selectedDimensions.length) return true
+
+    const { dimensions } = chart.getMetadata()
+    return Object.keys(dimensions).length > 0
   }
 
   const [hasDimensions, setHasDimensions] = useState(getDimensionAggregation)
@@ -29,10 +28,11 @@ export default () => {
   )
 
   const getTotals = () => {
-    const { nodes } = chart.getPayload()
+    const { hosts, instances } = chart.getMetadata()
+
     return {
-      totalInstances: nodes.reduce((acc, node) => acc + node.chartIDs.length, 0),
-      totalNodes: nodes.length,
+      totalInstances: instances.length,
+      totalNodes: hosts.length,
     }
   }
 

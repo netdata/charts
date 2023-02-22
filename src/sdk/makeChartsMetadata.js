@@ -1,4 +1,5 @@
 import { fetchChartMetadata } from "./api"
+import initialMetadata from "./initialMetadata"
 
 export default ({ getChart }) => {
   const byId = {}
@@ -13,11 +14,11 @@ export default ({ getChart }) => {
     if (byId[id]) return byId[id]
 
     if (getChart) {
-      byId[id] = getChart(node)
+      byId[id] = { ...initialMetadata, ...getChart(node) }
       return byId[id]
     }
 
-    return byId[id]
+    return byId[id] || initialMetadata
   }
 
   const set = (node, values = {}) => {
@@ -35,6 +36,7 @@ export default ({ getChart }) => {
 
     const id = makeKey(node)
     byId[id] = {
+      ...initialMetadata,
       ...byId[id],
       ...response,
     }

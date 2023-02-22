@@ -7,6 +7,9 @@ export default chart => {
   const onGroupChange = groupBy => {
     chart.setMetadataAttribute("initializedFilters", false)
 
+    chart.updateAttribute("selectedLegendDimensions", [])
+    if (chart.getAttribute("selectedChartType")) return
+
     if (groupBy !== "dimension") {
       prevChartType = prevChartType || chart.getAttribute("chartType")
       const aggregationMethod = chart.getAttribute("aggregationMethod")
@@ -20,24 +23,26 @@ export default chart => {
     prevChartType = metadata.chartType
   }
 
-  const onGroupFetch = groupBy => {
-    onGroupChange(groupBy)
-
-    chart.updateAttribute("selectedDimensions", [])
-  }
-
   const updateGroupByAttribute = value => {
     chart.updateAttribute("groupBy", value)
-    if (value === "dimension") {
-      chart.updateAttribute("dimensions", [])
-    }
+
     const attributes = getInitialFilterAttributes(chart)
     chart.updateAttributes(attributes)
-    chart.fetchAndRender().then(() => onGroupFetch(value))
+    chart.fetchAndRender().then(() => onGroupChange(value))
+  }
+
+  const updateNodesAttribute = value => {
+    chart.updateAttribute("selectedHosts", value)
+    chart.fetchAndRender()
+  }
+
+  const updateInstancesAttribute = value => {
+    chart.updateAttribute("selectedInstances", value)
+    chart.fetchAndRender()
   }
 
   const updateDimensionsAttribute = value => {
-    chart.updateAttribute("dimensions", value)
+    chart.updateAttribute("selectedDimensions", value)
     chart.fetchAndRender()
   }
 
@@ -99,6 +104,8 @@ export default chart => {
 
   return {
     updateGroupByAttribute,
+    updateNodesAttribute,
+    updateInstancesAttribute,
     updateDimensionsAttribute,
     updateFilteredLabelsAttribute,
     updateAggregationMethodAttribute,

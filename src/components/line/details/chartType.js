@@ -2,11 +2,11 @@ import React from "react"
 import metrics from "@netdata/netdata-ui/lib/components/icon/assets/metrics.svg"
 import { TextSmall } from "@netdata/netdata-ui/lib/components/typography"
 import Icon from "@/components/icon"
-import { useMetadata } from "@/components/provider"
+import { useAttributeValue } from "@/components/provider"
 import Row from "./row"
 
 const ChartType = () => {
-  const { chartType } = useMetadata()
+  const chartType = useAttributeValue("chartType")
 
   return (
     <Row

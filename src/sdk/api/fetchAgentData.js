@@ -6,15 +6,18 @@ const getGroupBy = groupBy => {
   return "label"
 }
 
+const wildcard = "*"
+
 const getPayload = chart => {
   const {
-    hosts = "*",
-    contexts,
+    selectedContexts,
     context,
-    id,
-    instances,
-    dimensions,
-    labels,
+    hostScope,
+    contextScope,
+    selectedHosts,
+    selectedInstances,
+    selectedDimensions,
+    selectedLabels,
     dimensionsAggregationMethod,
   } = chart.getAttributes()
 
@@ -24,14 +27,16 @@ const getPayload = chart => {
   const options = getChartURLOptions(chart)
 
   return {
-    hosts,
     format: "json",
     options: options.join("|"),
-    contexts: contexts.join("|") || context || id,
-    ...(instances?.length && { instances: instances.join("|") }),
-    ...(dimensions?.length && { dimensions: dimensions.join("|") }),
-    ...(labels && {
-      labels: Object.entries(labels)
+    contexts: selectedContexts.join("|") || context || wildcard,
+    scope_contexts: contextScope.join("|") || wildcard,
+    scope_hosts: hostScope.join("|") || wildcard,
+    hosts: selectedHosts.join("|") || wildcard,
+    instances: selectedInstances.join("|") || wildcard,
+    dimensions: selectedDimensions.join("|") || wildcard,
+    ...(selectedLabels && {
+      labels: Object.entries(selectedLabels)
         .map(([key, value]) => `${key}:${value}*`)
         .join("|"),
     }),
@@ -50,6 +55,5 @@ export default (chart, options) => {
   const query = new URLSearchParams(payload).toString()
   const url = `${host}?${query}`
 
-  debugger
   return fetch(url, options).then(response => response.json())
 }

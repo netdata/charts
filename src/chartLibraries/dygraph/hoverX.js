@@ -59,15 +59,19 @@ export default chartUI => {
     return closest.name
   }
 
+  const getClosestByChartType = {
+    stacked: getClosestArea,
+    area: getClosestArea,
+    default: getClosestPoint,
+  }
+
   const getClosestSeries = (event, points) => {
     if (!Array.isArray(points)) return
 
-    const chartType =
-      chartUI.chart.getAttribute("chartType") || chartUI.chart.getMetadata().chartType
+    const chartType = chartUI.chart.getAttribute("chartType")
+    const getClosest = getClosestByChartType[chartType] || getClosestByChartType.default
 
-    if (chartType === "stacked" || chartType === "area") return getClosestArea(event, points)
-
-    return getClosestPoint(event, points)
+    return getClosest(event, points)
   }
 
   let lastX
@@ -84,7 +88,7 @@ export default chartUI => {
     const seriesProps = chartUI.getDygraph().getPropertiesForSeries(seriesName)
     if (!seriesProps) return
 
-    const { dimensionIds } = chartUI.chart.getPayload()
+    const dimensionIds = chartUI.chart.getPayloadDimensionIds()
 
     if (!dimensionIds) return
     const dimensionId = dimensionIds[seriesProps.column - 1]
