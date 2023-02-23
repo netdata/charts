@@ -35,6 +35,8 @@ export default sdk => {
 
     if (chart.getAttribute("loaded")) {
       chart.updateAttribute("autofetch", autofetch)
+
+      if (chart.type !== "chart") return
       return chart.getUI().render()
     }
 

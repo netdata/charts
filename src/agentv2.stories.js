@@ -23,9 +23,7 @@ const Template = ({ hostScope, contextScope, contexts, host }) => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Flex padding={[50, 0]}>
-        <Line chart={chart} height="315px" />
-      </Flex>
+      <Line chart={chart} height="315px" />
     </ThemeProvider>
   )
 }

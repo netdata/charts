@@ -19,6 +19,7 @@ export const getChartURLOptions = chart => {
     "flip",
     "ms",
     isSumOfAbs && "abs",
+    "jw-anomaly-rates",
   ].filter(Boolean)
 }
 

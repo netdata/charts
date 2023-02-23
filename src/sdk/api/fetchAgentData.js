@@ -42,8 +42,8 @@ const getPayload = chart => {
     }),
     ...getChartPayload(chart),
     group_by: groupBy,
-    group_by_key: groupByKey,
-    group_by_aggregate: dimensionsAggregationMethod,
+    ...(groupBy === "label" && { group_by_label: groupByKey }),
+    aggregation: dimensionsAggregationMethod,
   }
 }
 
