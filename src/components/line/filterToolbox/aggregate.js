@@ -34,7 +34,8 @@ const Aggregate = ({ labelProps, ...rest }) => {
 
   const { short } = items.find(item => item.value === value) || items[0]
 
-  const tooltipAttrs = tooltipProps[groupBy] || tooltipProps.node
+  const tooltipAttrs =
+    groupBy.length === 1 && groupBy[0] === "dimension" ? tooltipProps.dimension : tooltipProps.node
 
   return (
     <Menu

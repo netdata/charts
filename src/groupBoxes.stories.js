@@ -32,8 +32,9 @@ const makeChart = props => {
     attributes: {
       composite: true,
       chartLibrary: "groupBoxes",
-      groupBy: "k8s_namespace",
-      postGroupBy: "k8s_container_id",
+      groupBy: ["label"],
+      groupByLabel: ["k8s_namespace", "k8s_container_id"],
+      postGroupBy: "k8s_container_id", // DEPRECATE
       aggregationGroups: [
         "k8s_cluster_id",
         "k8s_container_name",
@@ -44,7 +45,6 @@ const makeChart = props => {
         "k8s_pod_name",
         "k8s_pod_uid",
       ],
-      postAggregationMethod: "avg",
       ...props,
     },
   })

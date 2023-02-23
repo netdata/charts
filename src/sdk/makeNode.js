@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid"
 import makeListeners from "@/helpers/makeListeners"
 import makePristine from "@/helpers/makePristine"
 import limitRange from "@/helpers/limitRange"
-import pristineComposite, { pristineCompositeKey } from "./pristineComposite"
+import pristineComposite, { pristineCompositeKey } from "./pristine"
 import makeIntls from "./makeIntls"
 
 export default ({ sdk, parent = null, attributes: initialAttributes }) => {

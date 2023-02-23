@@ -1,7 +1,6 @@
 import React from "react"
 import { ThemeProvider } from "styled-components"
 import { DefaultTheme } from "@netdata/netdata-ui/lib/theme"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import Line from "@/components/line"
 import makeDefaultSDK from "./makeDefaultSDK"
 
@@ -13,7 +12,7 @@ const Template = ({ hostScope, contextScope, contexts, host }) => {
       hostScope: [hostScope],
       contextScope: [contextScope],
       host: host,
-      dimensionsAggregationMethod: "avg",
+      aggregationMethod: "avg",
       agent: true,
       composite: true,
     },

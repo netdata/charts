@@ -19,29 +19,22 @@ export default chart => {
 
   const clusterId = chartLabels?.k8s_cluster_id?.[0]
 
-  const {
-    aggregationMethod: aggregationMethodAttr,
-    dimensions,
-    dimensionsAggregationMethod,
-  } = chart.getAttributes()
-  const groupBy = getDefaultGroupBy(chart)
+  const { aggregationMethod: aggregationMethodAttr, dimensions } = chart.getAttributes()
+  const [groupBy, groupByLabel] = getDefaultGroupBy(chart)
   const chartType = chart.getAttribute("chartType")
   const filteredLabels = chart.getAttribute("filteredLabels") || {}
   const aggregationMethod = aggregationMethodAttr || getAggregateMethod(units)
-
-  // @todo re-visit the logic of the initial attributes
-  // It should keep pristine
 
   return {
     aggregationMethod,
     dimensions: dimensions?.length
       ? getFilteredDimensions(dimensions)
-      : getDimensions(chart, groupBy),
-    dimensionsAggregationMethod: dimensionsAggregationMethod || "sum",
+      : getDimensions(chart, { groupBy, groupByLabel }),
     groupBy,
+    groupByLabel,
     selectedChart: id,
-    ...(clusterId && { labels: { k8s_cluster_id: [clusterId] } }),
-    chartType: chartType || getChartType(chart, groupBy),
+    ...(clusterId && { labels: { k8s_cluster_id: [clusterId] } }), // TODO fix for K8s
+    chartType: chartType || getChartType(chart, { groupBy, groupByLabel }),
     initializedFilters: !!allDimensions && Object.keys(allDimensions).length > 0,
     filteredLabels,
   }

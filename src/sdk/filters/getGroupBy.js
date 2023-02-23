@@ -1,4 +1,4 @@
-const byChartDefaultGroupBy = {
+const groupByLabelByContext = {
   "postgres.db_transactions_rate": "database",
   "postgres.db_connections_utilization": "database",
   "postgres.db_connections_count": "database",
@@ -35,12 +35,19 @@ const byChartDefaultGroupBy = {
   "nvme.device_thermal_mgmt_temp2_time": "device",
 }
 
-const getDefaultGroupBy = chart => {
-  const chartId = chart.getAttribute("id")
+const getGroupBy = chart => {
+  const contexts = chart.getAttribute("contextScope")
+  const groupByLabel = chart.getAttribute("groupByLabel")
+  const groupBy = chart.getAttribute("groupBy")
 
-  if (chart.getAttribute("groupBy")) return chart.getAttribute("groupBy")
-  if (chartId in byChartDefaultGroupBy) return byChartDefaultGroupBy[chartId]
-  return "dimension"
+  return [
+    groupBy.length ? groupBy : ["dimension"],
+    groupByLabel.length
+      ? groupByLabel
+      : groupByLabelByContext[contexts[0]]
+      ? [groupByLabelByContext[contexts[0]]]
+      : [],
+  ]
 }
 
-export default getDefaultGroupBy
+export default getGroupBy

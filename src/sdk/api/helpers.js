@@ -1,15 +1,5 @@
 export const getChartURLOptions = chart => {
-  const {
-    chartUrlOptions,
-    composite,
-    eliminateZeroDimensions,
-    groupBy,
-    urlOptions,
-    postAggregationMethod,
-  } = chart.getAttributes()
-
-  const isSumOfAbs =
-    composite && (groupBy !== "dimension" || postAggregationMethod === "sum-of-abs")
+  const { chartUrlOptions, eliminateZeroDimensions, urlOptions } = chart.getAttributes()
 
   return [
     ...(chartUrlOptions || chart.getUI().getUrlOptions()),
@@ -18,7 +8,6 @@ export const getChartURLOptions = chart => {
     eliminateZeroDimensions && "nonzero",
     "flip",
     "ms",
-    isSumOfAbs && "abs",
     "jw-anomaly-rates",
   ].filter(Boolean)
 }

@@ -5,7 +5,7 @@ export default chart => {
     result: { postAggregatedData = {} },
   } = chart.getPayload()
   const { groupBy, postGroupBy, aggregationGroups, filteredRows } = chart.getAttributes()
-  const groupValues = keys[groupBy]
+  const groupValues = keys[groupBy.filter(group => /k8s_/.test(group))[0]]
   const postGroupValues = keys[postGroupBy]
 
   if (!groupValues || !postGroupValues) return { labels: [], data: [], chartLabels: {} }

@@ -15,7 +15,7 @@ export default {
   valueRange: null,
   getValueRange: ({ min, max, groupBy, valueRange, aggrMethod }) => {
     const minMax = min === max ? [0, max * 2] : [min || null, null]
-    return groupBy !== "dimension"
+    return groupBy.length === 1 && groupBy[0] === "dimension"
       ? valueRange || null
       : aggrMethod === "sum"
       ? minMax
@@ -93,19 +93,18 @@ export default {
   composite: false,
   aggregationMethod: "",
   dimensions: [],
-  dimensionsAggregationMethod: "",
-  groupBy: "",
+  groupBy: [],
+  groupByLabel: [],
   // selectedInstances: [], deprecate
   // selectedNodeIds: [], deprecate
   // selectedChartId: "", deprecate
 
   aggregationGroups: [],
-  postAggregationMethod: "",
   postGroupBy: "",
   selectedChart: "",
   // filteredLabels: {}, depreactae
 
-  pristineComposite: {},
+  pristine: {},
 
   themeTrackColor: ["#ECEEEF", "#383B40"],
   themeScaleColor: ["#F7F8F8", "#2B3136"],

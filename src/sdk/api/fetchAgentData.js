@@ -1,11 +1,5 @@
 import { getChartURLOptions, getChartPayload } from "./helpers"
 
-const getGroupBy = groupBy => {
-  if (groupBy === "chart") return "instance"
-  if (groupBy === "node" || groupBy === "dimension") return groupBy
-  return "label"
-}
-
 const wildcard = "*"
 
 const getPayload = chart => {
@@ -18,13 +12,11 @@ const getPayload = chart => {
     selectedInstances,
     selectedDimensions,
     selectedLabels,
-    dimensionsAggregationMethod,
+    aggregationMethod,
   } = chart.getAttributes()
 
-  const groupByKey = chart.getAttribute("groupBy")
-  const groupBy = getGroupBy(groupByKey)
-
   const options = getChartURLOptions(chart)
+  const groupByLabel = chart.getAttribute("groupByLabel").join("|")
 
   return {
     format: "json",
@@ -41,9 +33,9 @@ const getPayload = chart => {
         .join("|"),
     }),
     ...getChartPayload(chart),
-    group_by: groupBy,
-    ...(groupBy === "label" && { group_by_label: groupByKey }),
-    aggregation: dimensionsAggregationMethod,
+    group_by: chart.getAttribute("groupBy").join("|"),
+    ...(!!groupByLabel && { group_by_label: groupByLabel }),
+    aggregation: aggregationMethod,
   }
 }
 

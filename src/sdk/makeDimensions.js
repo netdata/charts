@@ -133,7 +133,8 @@ export default (chart, sdk) => {
     const { colors, groupBy, context: attrContext, id } = chart.getAttributes()
     const { context } = chart.getMetadata()
 
-    if (!!groupBy && groupBy !== "dimension") return groupBy
+    if (groupBy.length > 1 || (groupBy.length === 1 && groupBy[0] !== "dimension"))
+      return groupBy.join("|")
 
     if (colors.length) return chart.getAttribute("id")
 

@@ -7,26 +7,21 @@ import Nodes from "./nodes"
 import GroupBy from "./groupBy"
 import TimeAggregation from "./timeAggregation"
 import ChartLabels from "./chartLabels"
-import useFiltersToolbox from "./useFiltersToolbox"
 import Reset from "./reset"
 
 export const Container = ({ children, ...rest }) => <Flex {...rest}>{children}</Flex>
 
-const FilterToolbox = props => {
-  const { aggregate, prefixedDimensions } = useFiltersToolbox()
-
-  return (
-    <Container {...props}>
-      <GroupBy labelProps={{ secondaryLabel: "Group by" }} />
-      {aggregate && <Aggregate />}
-      <Nodes />
-      <Instances />
-      <Dimensions labelProps={!prefixedDimensions && { secondaryLabel: "" }} />
-      <TimeAggregation />
-      {/*<ChartLabels />*/}
-      <Reset />
-    </Container>
-  )
-}
+const FilterToolbox = props => (
+  <Container {...props}>
+    <GroupBy labelProps={{ secondaryLabel: "Group by" }} />
+    <Aggregate />
+    <Nodes />
+    <Instances />
+    <Dimensions />
+    <TimeAggregation />
+    {/*<ChartLabels />*/}
+    <Reset />
+  </Container>
+)
 
 export default FilterToolbox

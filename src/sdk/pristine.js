@@ -1,12 +1,12 @@
 import makePristine from "@/helpers/makePristine"
 
-export const pristineCompositeKey = "pristineComposite"
+export const pristineKey = "pristine"
 
-const { updatePristine, resetPristine } = makePristine(pristineCompositeKey, [
+const { updatePristine, resetPristine } = makePristine(pristineKey, [
   "aggregationMethod",
   "selectedDimensions",
-  "dimensionsAggregationMethod",
   "groupBy",
+  "groupByLabel",
   "groupingMethod",
   "chartType",
   "selectedLabels",

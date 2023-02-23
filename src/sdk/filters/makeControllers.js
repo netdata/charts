@@ -1,5 +1,5 @@
 import getInitialFilterAttributes, { stackedAggregations } from "./getInitialAttributes"
-import pristineComposite, { pristineCompositeKey } from "@/sdk/pristineComposite"
+import pristine, { pristineKey } from "@/sdk/pristine"
 
 export default chart => {
   const metadata = chart.getMetadata()
@@ -10,7 +10,7 @@ export default chart => {
     chart.updateAttribute("selectedLegendDimensions", [])
     if (chart.getAttribute("selectedChartType")) return
 
-    if (groupBy !== "dimension") {
+    if (groupBy.length > 1 || groupBy[0] !== "dimension") {
       prevChartType = prevChartType || chart.getAttribute("chartType")
       const aggregationMethod = chart.getAttribute("aggregationMethod")
       return chart.updateAttribute(
@@ -55,16 +55,16 @@ export default chart => {
     chart.updateAttribute("aggregationMethod", value)
     const groupBy = chart.getAttribute("groupBy")
 
-    if (groupBy !== "dimension") {
+    if (groupBy.length > 1 || groupBy[0] !== "dimension") {
       prevChartType = prevChartType || chart.getAttribute("chartType")
       chart.updateAttribute(
         "chartType",
         stackedAggregations[value] ? "stacked" : metadata.chartType
       )
     } else {
-      if (chart.getAttribute("chartType") === "line") {
+      if (chart.getAttribute("chartType") === "line")
         chart.updateAttribute("chartType", prevChartType)
-      }
+
       prevChartType = metadata.chartType
     }
 
@@ -77,29 +77,23 @@ export default chart => {
     chart.fetchAndRender()
   }
 
-  const resetPristineComposite = () => {
+  const resetPristine = () => {
     const attributes = chart.getAttributes()
-    const prev = { ...attributes[pristineCompositeKey] }
-    pristineComposite.reset(attributes)
-    chart.attributeListeners.trigger(pristineCompositeKey, attributes[pristineCompositeKey], prev)
-    chart.sdk.trigger(
-      "pristineChanged",
-      chart,
-      pristineCompositeKey,
-      attributes[pristineCompositeKey],
-      prev
-    )
+    const prev = { ...attributes[pristineKey] }
+    pristine.reset(attributes)
+    chart.attributeListeners.trigger(pristineKey, attributes[pristineKey], prev)
+    chart.sdk.trigger("pristineChanged", chart, pristineKey, attributes[pristineKey], prev)
     Object.keys(prev).forEach(key =>
       chart.attributeListeners.trigger(key, attributes[key], prev[key])
     )
     chart.fetchAndRender()
   }
 
-  const removePristineComposite = () => {
-    const prev = chart.getAttribute(pristineCompositeKey)
+  const removePristine = () => {
+    const prev = chart.getAttribute(pristineKey)
     const next = {}
-    chart.updateAttribute(pristineCompositeKey, next)
-    chart.sdk.trigger("pristineChanged", chart, pristineCompositeKey, next, prev)
+    chart.updateAttribute(pristineKey, next)
+    chart.sdk.trigger("pristineChanged", chart, pristineKey, next, prev)
   }
 
   return {
@@ -110,7 +104,7 @@ export default chart => {
     updateFilteredLabelsAttribute,
     updateAggregationMethodAttribute,
     updateTimeAggregationMethodAttribute,
-    resetPristineComposite,
-    removePristineComposite,
+    resetPristine,
+    removePristine,
   }
 }

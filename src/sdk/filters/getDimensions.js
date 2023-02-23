@@ -1,4 +1,4 @@
-const byNodeDefaultDimensions = {
+const dimensionsByContext = {
   "system.load": "load1",
   "system.processes": "blocked",
   "system.active_processes": "active",
@@ -32,29 +32,33 @@ const byNodeDefaultDimensions = {
   "httpcheck.status": "success",
 }
 
-const groupsWithCustomLogic = {
+const selectDimensionByGroup = {
   node: true,
   chart: true,
   _collect_job: true,
 }
 
-const sumOfAbsForAll = {
+const selectDimensionByChartType = {
   stacked: true,
   area: true,
 }
 
-export default (chart, groupBy) => {
-  const { dimensions: allDimensions, id, chartType } = chart.getMetadata()
-  const dimensionsArray =
-    !allDimensions || !Object.keys(allDimensions).length ? [] : Object.keys(allDimensions)
-  const prevDimensions = chart.getAttribute("dimensions")
+export default (chart, { groupBy, groupByLabel }) => {
+  if (groupBy.length > 1) return []
+  if (groupBy[0] === "dimension") return []
 
-  if (groupBy === "dimension" || !prevDimensions?.length) return []
+  const { dimensions } = chart.getMetadata()
+  const { contextScope, chartType } = chart.getAttributes()
 
-  if (groupBy in groupsWithCustomLogic) {
-    if (id in byNodeDefaultDimensions) return [byNodeDefaultDimensions[id]]
-    return chartType in sumOfAbsForAll ? [] : [dimensionsArray[0]]
+  const [firstContext] = contextScope
+
+  if (
+    groupBy[0] in selectDimensionByGroup ||
+    groupByLabel.some(group => !!selectDimensionByGroup[group])
+  ) {
+    if (dimensionsByContext[firstContext]) return [dimensionsByContext[firstContext]]
+    return selectDimensionByChartType[chartType] ? [] : [dimensions[0]]
   }
 
-  return dimensionsArray
+  return dimensions
 }

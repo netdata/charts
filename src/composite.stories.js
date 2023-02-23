@@ -19,7 +19,7 @@ export const Simple = () => {
   const sdk = makeDefaultSDK({ getChartMetadata })
   const chart = sdk.makeChart({
     getChart,
-    attributes: { dimensionsAggregationMethod: "avg", composite: true, valueRange: [0, 100] },
+    attributes: { aggregationMethod: "avg", composite: true, valueRange: [0, 100] },
   })
   sdk.appendChild(chart)
 
@@ -34,7 +34,7 @@ export const SimpleDark = () => {
   const sdk = makeDefaultSDK({ getChartMetadata, attributes: { theme: "dark" } })
   const chart = sdk.makeChart({
     getChart,
-    attributes: { dimensionsAggregationMethod: "avg", composite: true, valueRange: [0, 100] },
+    attributes: { aggregationMethod: "avg", composite: true, valueRange: [0, 100] },
   })
   sdk.appendChild(chart)
 
