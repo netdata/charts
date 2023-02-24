@@ -22,7 +22,7 @@ export default (chart, sdk) => {
 
     const { viewDimensions } = chart.getMetadata()
 
-    return viewDimensions.ids || []
+    return viewDimensions?.ids || []
   }
 
   const getSourceDimensionIds = () => [...getPayloadDimensionIds()]
