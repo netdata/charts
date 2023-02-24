@@ -17,6 +17,13 @@ const meta = {
   },
   headStyles: { height: "32px" },
   styles: { verticalAlign: "middle" },
+  searchContainerStyles: {
+    width: "100%",
+    padding: [4],
+  },
+  searchStyles: {
+    height: "24px",
+  },
 }
 const noop = () => {}
 
