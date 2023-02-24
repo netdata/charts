@@ -1,6 +1,6 @@
 const minDuration = 60
 
-const limitRange = ({ after, before }) => {
+const limitRange = ({ after, before = 0 }) => {
   const wantedDuration = Math.round(before - after)
   if (wantedDuration <= minDuration) {
     const diff = minDuration - wantedDuration

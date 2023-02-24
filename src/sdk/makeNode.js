@@ -138,7 +138,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     sdk.trigger("moveY", instance, min, max)
   }
 
-  const moveX = (after, before) => {
+  const moveX = (after, before = 0) => {
     const { fixedAfter, fixedBefore } = limitRange({ after, before })
 
     sdk.trigger("moveX", instance, Math.floor(fixedAfter), Math.floor(fixedBefore))
