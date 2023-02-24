@@ -18,7 +18,7 @@ const columns = [
   },
   {
     id: "metrics",
-    header: "Metrics",
+    header: <TextSmall strong>Metrics</TextSmall>,
     size: 100,
     minSize: 30,
     cell: ({ row }) => {
@@ -42,7 +42,7 @@ const columns = [
   },
   {
     id: "contribution",
-    header: "Contribution",
+    header: <TextSmall strong>Contribution %</TextSmall>,
     size: 100,
     minSize: 30,
     cell: ({ row }) => {
@@ -63,11 +63,11 @@ const columns = [
   },
   {
     id: "anomalyRate",
-    header: "Anomaly %",
+    header: <TextSmall strong>Anomaly %</TextSmall>,
     size: 100,
     minSize: 30,
     cell: ({ row }) => {
-      return `${row.original.dimension.sts.arp}%`
+      return <Text>{row.original.dimension.sts.arp}%</Text>
     },
   },
 ]

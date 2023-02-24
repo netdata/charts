@@ -1,7 +1,7 @@
 import React, { useMemo } from "react"
 import { useChart, useAttributeValue, useMetadata } from "@/components/provider"
 import DropdownTable from "./dropdownTable"
-import { ProgressBar, Text, TextSmall } from "@netdata/netdata-ui"
+import { ProgressBar, Text, TextSmall, AlertMasterCard } from "@netdata/netdata-ui"
 
 const tooltipProps = {
   heading: "Nodes",
@@ -11,21 +11,21 @@ const tooltipProps = {
 const columns = [
   {
     id: "label",
-    header: "Name",
+    header: <TextSmall strong>Name</TextSmall>,
     size: 180,
     minSize: 60,
     cell: ({ getValue }) => getValue(),
   },
   {
     id: "instances",
-    header: "Instances",
+    header: <TextSmall strong>Instances</TextSmall>,
     size: 100,
     minSize: 30,
     cell: ({ row }) => {
       const { sl, ex } = row.original.host.is
       return (
         <>
-          <TextSmall>
+          <TextSmall color="textLite">
             <TextSmall color={["green", "deyork"]}>{sl}</TextSmall> out of {sl + ex}
           </TextSmall>
           <ProgressBar
@@ -42,14 +42,14 @@ const columns = [
   },
   {
     id: "metrics",
-    header: "Metrics",
+    header: <TextSmall strong>Metrics</TextSmall>,
     size: 100,
     minSize: 30,
     cell: ({ row }) => {
       const { sl, ex } = row.original.host.ds
       return (
         <>
-          <TextSmall>
+          <TextSmall color="textLite">
             <TextSmall color={["green", "deyork"]}>{sl}</TextSmall> out of {sl + ex}
           </TextSmall>
           <ProgressBar
@@ -66,7 +66,7 @@ const columns = [
   },
   {
     id: "contribution",
-    header: "Contribution %",
+    header: <TextSmall strong>Contribution %</TextSmall>,
     size: 100,
     minSize: 30,
     cell: ({ row }) => {
@@ -87,7 +87,7 @@ const columns = [
   },
   {
     id: "anomalyRate",
-    header: "Anomaly %",
+    header: <TextSmall strong>Anomaly %</TextSmall>,
     size: 100,
     minSize: 30,
     cell: ({ row }) => {
@@ -101,12 +101,24 @@ const columns = [
   },
   {
     id: "alerts",
-    header: "Chart alerts",
+    header: <TextSmall strong>Chart alerts</TextSmall>,
     size: 100,
     minSize: 30,
     cell: ({ row }) => {
       const { cl, cr, wr } = row.original.host.al
-      return `cr: ${cr}, wr: ${wr}, cl: ${cl}`
+      const pillLeft = {
+        type: "critical",
+      }
+      const pillRight = {
+        type: "critical",
+      }
+      return (
+        <>
+          <Text>
+            cr: {cr}, wr: {wr}, cl: {cl}
+          </Text>
+        </>
+      )
     },
   },
 ]

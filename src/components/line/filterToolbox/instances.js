@@ -18,14 +18,14 @@ const columns = [
   },
   {
     id: "metrics",
-    header: "Metrics",
+    header: <TextSmall strong>Metrics</TextSmall>,
     size: 100,
     minSize: 30,
     cell: ({ row }) => {
       const { sl, ex } = row.original.instance.ds
       return (
         <>
-          <TextSmall>
+          <TextSmall color="textLite">
             <TextSmall color={["green", "deyork"]}>{sl}</TextSmall> out of {sl + ex}
           </TextSmall>
           <ProgressBar
@@ -42,7 +42,7 @@ const columns = [
   },
   {
     id: "contribution",
-    header: "Contribution",
+    header: <TextSmall strong>Contribution %</TextSmall>,
     size: 100,
     minSize: 30,
     cell: ({ row }) => {
@@ -63,16 +63,16 @@ const columns = [
   },
   {
     id: "anomalyRate",
-    header: "Anomaly %",
+    header: <TextSmall strong>Anomaly %</TextSmall>,
     size: 100,
     minSize: 30,
     cell: ({ row }) => {
-      return `${row.original.instance.sts.arp}%`
+      return <Text>{row.original.instance.sts.arp}%</Text>
     },
   },
   {
     id: "alerts",
-    header: "Chart alerts",
+    header: <TextSmall strong>Chart alerts</TextSmall>,
     size: 100,
     minSize: 30,
     cell: ({ row }) => {
