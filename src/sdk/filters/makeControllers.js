@@ -44,10 +44,13 @@ export default chart => {
 
     const prevGroupBy = chart.getAttribute("groupBy")
 
-    chart.updateAttribute(
-      "groupBy",
-      checked ? [...new Set([...prevGroupBy, value])] : prevGroupBy.filter(g => g !== value)
-    )
+    let newValues = checked
+      ? [...new Set([...prevGroupBy, value])]
+      : prevGroupBy.filter(g => g !== value)
+
+    if (!newValues.length) newValues = ["dimension"]
+
+    chart.updateAttribute("groupBy", newValues)
 
     const attributes = getInitialFilterAttributes(chart)
     chart.updateAttributes(attributes)
