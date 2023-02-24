@@ -53,9 +53,22 @@ const GroupByItem = ({ label, dimensions }) => (
   </Flex>
 )
 
-const GroupByLabelItem = ({ label, dimensions }) => (
+const GroupByLabelItem = ({ item, label, dimensions }) => (
   <Flex column>
-    <TextSmall strong>{label}</TextSmall>
+    <TextSmall as={Flex} alignItems="center">
+      <TextSmall strong as={Flex} width={30}>
+        {label}
+      </TextSmall>
+      <Flex flex={false} width={40}>
+        metrics {item.ds.sl} out of {item.ds.sl + item.ds.ex}
+      </Flex>
+      <Flex flex={false} width={40}>
+        contribution {item.sts.con}%
+      </Flex>
+      <Flex flex={false} width={40}>
+        anomaly {item.sts.arp}%
+      </Flex>
+    </TextSmall>
     <TextMicro as={Flex} color="textLite" column>
       {dimensions.map((dim, index) => (
         <TextMicro as={Flex} key={dim.id + index} color="textLite" gap={2}>
@@ -63,10 +76,13 @@ const GroupByLabelItem = ({ label, dimensions }) => (
             {dim.id}
           </TextMicro>
           <Flex flex={false} width={40}>
-            metrics: {dim.ds.sl} out of {dim.ds.sl + dim.ds.ex}
+            metrics {dim.ds.sl} out of {dim.ds.sl + dim.ds.ex}
           </Flex>
           <Flex flex={false} width={40}>
-            contribution: {dim.sts.con}%
+            contribution {dim.sts.con}%
+          </Flex>
+          <Flex flex={false} width={40}>
+            anomaly {dim.sts.arp}%
           </Flex>
         </TextMicro>
       ))}
@@ -86,9 +102,17 @@ const Item = ({ item, value, onItemClick, dimensions, type = "groupBy", ...rest 
         onChange={e => onItemClick({ value: item.value, checked: e.target.checked, type })}
         label={
           type === "groupBy" ? (
-            <GroupByItem label={item.label || item.value} dimensions={dimensions} />
+            <GroupByItem
+              label={item.label || item.value}
+              dimensions={dimensions}
+              item={item.data}
+            />
           ) : (
-            <GroupByLabelItem label={item.label || item.value} dimensions={dimensions} />
+            <GroupByLabelItem
+              label={item.label || item.value}
+              dimensions={dimensions}
+              item={item.data}
+            />
           )
         }
       />
@@ -106,6 +130,7 @@ const Dropdown = ({ hideShadow, items, itemProps, value, onItemClick, close, ...
         label: label.id,
         value: label.id,
         "data-track": chart.track(`group-by-label-${label.id}`),
+        data: label,
         children: label.vl,
       })),
     [labels]
