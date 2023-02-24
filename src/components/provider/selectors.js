@@ -91,17 +91,14 @@ export const useMetadata = () => {
 }
 
 export const useTitle = () => {
-  const { title, context } = useMetadata()
-  const attributeTitle = useAttributeValue("title")
-  const attrContext = useAttributeValue("context")
+  const title = useAttributeValue("title")
+  const contextScope = useAttributeValue("contextScope")
 
-  const composite = useAttributeValue("composite")
+  const titleByContext = contextScope.length === 1 && chartTitleByContextMap[contextScope[0]]
 
-  const chartContext = attrContext || context
-  const titleByContext = chartTitleByContextMap[chartContext]
+  if (titleByContext) return titleByContext
 
-  if (composite && titleByContext) return titleByContext
-  return attributeTitle || title
+  return title
 }
 
 export const useName = () => {
