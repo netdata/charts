@@ -22,17 +22,17 @@ const columns = [
     size: 100,
     minSize: 30,
     cell: ({ row }) => {
-      const { sl, ex } = row.original.node.is
+      const { qr, sl, ex } = row.original.node.is
       return (
         <>
           <TextSmall color="textLite">
-            <TextSmall color={["green", "deyork"]}>{sl}</TextSmall> out of {sl + ex}
+            <TextSmall color={["green", "deyork"]}>{qr}</TextSmall> out of {sl + ex}
           </TextSmall>
           <ProgressBar
             background="borderSecondary"
             color={["green", "deyork"]}
             height={2}
-            width={`${(sl / (sl + ex)) * 100}%`}
+            width={`${(qr / (sl + ex)) * 100}%`}
             containerWidth="100%"
             border="none"
           />
@@ -46,17 +46,17 @@ const columns = [
     size: 100,
     minSize: 30,
     cell: ({ row }) => {
-      const { sl, ex } = row.original.node.ds
+      const { qr, sl, ex } = row.original.node.ds
       return (
         <>
           <TextSmall color="textLite">
-            <TextSmall color={["green", "deyork"]}>{sl}</TextSmall> out of {sl + ex}
+            <TextSmall color={["green", "deyork"]}>{qr}</TextSmall> out of {sl + ex}
           </TextSmall>
           <ProgressBar
             background="borderSecondary"
             color={["green", "deyork"]}
             height={2}
-            width={`${(sl / (sl + ex)) * 100}%`}
+            width={`${(qr / (sl + ex)) * 100}%`}
             containerWidth="100%"
             border="none"
           />
@@ -137,8 +137,8 @@ const Nodes = ({ labelProps, ...rest }) => {
           label: node.nm || id,
           value: id,
           "data-track": chart.track(`nodes-${id}`),
-          instances: node.is.sl + node.is.sl / (node.is.ex + node.is.sl),
-          metrics: node.ds.sl + node.ds.sl / (node.ds.ex + node.ds.sl),
+          instances: node.is.qr + node.is.qr / (node.is.ex + node.is.sl),
+          metrics: node.ds.qr + node.ds.qr / (node.ds.ex + node.ds.sl),
           contribution: node.sts.con,
           anomalyRate: node.sts.arp,
           alerts: node.al.cr * 3 + node.al.wr * 2 + node.al.cl,

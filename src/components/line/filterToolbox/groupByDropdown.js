@@ -60,7 +60,7 @@ const GroupByLabelItem = ({ item, label, dimensions }) => (
         {label}
       </TextSmall>
       <Flex flex={false} width={40}>
-        metrics {item.ds.sl} out of {item.ds.sl + item.ds.ex}
+        metrics {item.ds.qr} out of {item.ds.sl + item.ds.ex}
       </Flex>
       <Flex flex={false} width={40}>
         contribution {item.sts.con}%
@@ -76,7 +76,7 @@ const GroupByLabelItem = ({ item, label, dimensions }) => (
             {dim.id}
           </TextMicro>
           <Flex flex={false} width={40}>
-            metrics {dim.ds.sl} out of {dim.ds.sl + dim.ds.ex}
+            metrics {dim.ds.qr} out of {dim.ds.sl + dim.ds.ex}
           </Flex>
           <Flex flex={false} width={40}>
             contribution {dim.sts.con}%

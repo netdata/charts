@@ -22,17 +22,17 @@ const columns = [
     size: 100,
     minSize: 30,
     cell: ({ row }) => {
-      const { sl, ex } = row.original.instance.ds
+      const { qr, sl, ex } = row.original.instance.ds
       return (
         <>
           <TextSmall color="textLite">
-            <TextSmall color={["green", "deyork"]}>{sl}</TextSmall> out of {sl + ex}
+            <TextSmall color={["green", "deyork"]}>{qr}</TextSmall> out of {sl + ex}
           </TextSmall>
           <ProgressBar
             background="borderSecondary"
             color={["green", "deyork"]}
             height={2}
-            width={`${(sl / (sl + ex)) * 100}%`}
+            width={`${(qr / (sl + ex)) * 100}%`}
             containerWidth="100%"
             border="none"
           />
@@ -96,7 +96,7 @@ const Instances = ({ labelProps, ...rest }) => {
         label: instance.nm || instance.id,
         value: instance.id,
         "data-track": chart.track(`instances-${instance.id}`),
-        metrics: instance.ds.sl + instance.ds.sl / (instance.ds.ex + instance.ds.sl),
+        metrics: instance.ds.qr + instance.ds.qr / (instance.ds.ex + instance.ds.sl),
         contribution: instance.sts.con,
         anomalyRate: instance.sts.arp,
         alerts: instance.al.cr * 3 + instance.al.wr * 2 + instance.al.cl,
