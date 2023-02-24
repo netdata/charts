@@ -22,7 +22,7 @@ const columns = [
     size: 100,
     minSize: 30,
     cell: ({ row }) => {
-      const { sl, ex } = row.original.host.is
+      const { sl, ex } = row.original.node.is
       return (
         <>
           <TextSmall color="textLite">
@@ -46,7 +46,7 @@ const columns = [
     size: 100,
     minSize: 30,
     cell: ({ row }) => {
-      const { sl, ex } = row.original.host.ds
+      const { sl, ex } = row.original.node.ds
       return (
         <>
           <TextSmall color="textLite">
@@ -73,13 +73,13 @@ const columns = [
       return (
         <>
           <TextSmall color={["green", "deyork"]}>
-            {Math.round((row.original.host.sts.con + Number.EPSILON) * 100) / 100}%
+            {Math.round((row.original.node.sts.con + Number.EPSILON) * 100) / 100}%
           </TextSmall>
           <ProgressBar
             background="borderSecondary"
             color={["green", "deyork"]}
             height={2}
-            width={`${row.original.host.sts.con}%`}
+            width={`${row.original.node.sts.con}%`}
             containerWidth="100%"
             border="none"
           />
@@ -93,7 +93,7 @@ const columns = [
     size: 100,
     minSize: 30,
     cell: ({ row }) => {
-      return <Text>{Math.round((row.original.host.sts.arp + Number.EPSILON) * 100) / 100}%</Text>
+      return <Text>{Math.round((row.original.node.sts.arp + Number.EPSILON) * 100) / 100}%</Text>
     },
     meta: row => ({
       cellStyles: {},
@@ -105,7 +105,7 @@ const columns = [
     size: 100,
     minSize: 30,
     cell: ({ row }) => {
-      const { cl, cr, wr } = row.original.host.al
+      const { cl, cr, wr } = row.original.node.al
       const pillLeft = {
         type: "critical",
       }
@@ -130,14 +130,19 @@ const Nodes = ({ labelProps, ...rest }) => {
   const { nodes } = useMetadata()
   const options = useMemo(
     () =>
-      nodes.map(host => {
-        const id = isAgent ? host.mg : host.nd
+      nodes.map(node => {
+        const id = isAgent ? node.mg : node.nd
 
         return {
-          label: host.nm || id,
+          label: node.nm || id,
           value: id,
           "data-track": chart.track(`nodes-${id}`),
-          host,
+          instances: node.is.sl + node.is.sl / (node.is.ex + node.is.sl),
+          metrics: node.ds.sl + node.ds.sl / (node.ds.ex + node.ds.sl),
+          contribution: node.sts.con,
+          anomalyRate: node.sts.arp,
+          alerts: node.al.cr * 3 + node.al.wr * 2 + node.al.cl,
+          node,
         }
       }),
     [nodes]

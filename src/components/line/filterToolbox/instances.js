@@ -96,6 +96,10 @@ const Instances = ({ labelProps, ...rest }) => {
         label: instance.nm || instance.id,
         value: instance.id,
         "data-track": chart.track(`instances-${instance.id}`),
+        metrics: instance.ds.sl + instance.ds.sl / (instance.ds.ex + instance.ds.sl),
+        contribution: instance.sts.con,
+        anomalyRate: instance.sts.arp,
+        alerts: instance.al.cr * 3 + instance.al.wr * 2 + instance.al.cl,
         instance,
       })),
     [instances]
