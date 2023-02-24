@@ -11,7 +11,7 @@ const tooltipProps = {
 const columns = [
   {
     id: "label",
-    header: "Instance",
+    header: <TextSmall strong>Instances</TextSmall>,
     size: 100,
     minSize: 60,
     cell: ({ getValue }) => getValue(),
