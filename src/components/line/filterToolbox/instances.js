@@ -14,7 +14,7 @@ const columns = [
     header: <TextSmall strong>Instances</TextSmall>,
     size: 160,
     minSize: 60,
-    cell: ({ getValue }) => getValue(),
+    cell: ({ getValue }) => <Text>{getValue()}</Text>,
   },
   {
     id: "metrics",

@@ -14,7 +14,7 @@ const columns = [
     header: <TextSmall strong>Name</TextSmall>,
     size: 180,
     minSize: 60,
-    cell: ({ getValue }) => getValue(),
+    cell: ({ getValue }) => <Text>{getValue()}</Text>,
   },
   {
     id: "instances",
