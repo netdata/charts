@@ -14,7 +14,7 @@ const columns = [
     header: <TextSmall strong>Instances</TextSmall>,
     size: 160,
     minSize: 60,
-    cell: ({ getValue }) => <Text>{getValue()}</Text>,
+    cell: ({ getValue }) => <TextSmall>{getValue()}</TextSmall>,
   },
   {
     id: "metrics",
@@ -70,7 +70,9 @@ const columns = [
     minSize: 30,
     cell: ({ row }) => {
       return (
-        <Text>{Math.round((row.original.instance.sts.arp + Number.EPSILON) * 100) / 100}%</Text>
+        <TextSmall>
+          {Math.round((row.original.instance.sts.arp + Number.EPSILON) * 100) / 100}%
+        </TextSmall>
       )
     },
     meta: row => ({
