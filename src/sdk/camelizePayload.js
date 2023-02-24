@@ -9,7 +9,7 @@ const camelizeResult = result => {
 export default payload => {
   const {
     summary = {}, // set default value
-    summary: { hosts = [], instances = [], dimensions = [], labels = [], alerts = [] },
+    summary: { nodes = [], instances = [], dimensions = [], labels = [], alerts = [] },
     functions = [],
     detailed = {},
     db: { update_every: updateEvery, first_entry: firstEntry, last_entry: lastEntry },
@@ -34,8 +34,8 @@ export default payload => {
     chartType,
     metadata: {
       title,
-      fullyLoaded: hosts.length > 0,
-      hosts,
+      fullyLoaded: nodes.length > 0,
+      nodes,
       instances,
       dimensions,
       labels,

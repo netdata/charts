@@ -1,7 +1,7 @@
 export default {
   api: 2,
   summary: {
-    hosts: [],
+    nodes: [],
     contexts: [],
     instances: [],
     dimensions: [],

@@ -58,7 +58,7 @@ export default chart => {
   }
 
   const updateNodesAttribute = value => {
-    chart.updateAttribute("selectedHosts", value)
+    chart.updateAttribute("selectedNodes", value)
     chart.fetchAndRender()
   }
 

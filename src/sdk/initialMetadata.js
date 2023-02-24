@@ -27,7 +27,7 @@ export default {
   // summary
   dimensions: [],
   labels: [],
-  hosts: [],
+  nodes: [],
   instances: [],
   alerts: [],
 }

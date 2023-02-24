@@ -4,7 +4,7 @@ import DropdownMenu from "./groupByDropdown"
 
 const defaultItems = [
   { label: "dimension", value: "dimension", childrenKey: "dimensions" },
-  { label: "node", value: "node", childrenKey: "hosts" },
+  { label: "node", value: "node", childrenKey: "nodes" },
   { label: "instance", value: "instance", childrenKey: "instances" },
 ]
 

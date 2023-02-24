@@ -6,9 +6,9 @@ const getPayload = chart => {
   const {
     selectedContexts,
     context,
-    hostScope,
+    nodesScope,
     contextScope,
-    selectedHosts,
+    selectedNodes,
     selectedInstances,
     selectedDimensions,
     selectedLabels,
@@ -23,8 +23,8 @@ const getPayload = chart => {
     options: options.join("|"),
     contexts: selectedContexts.join("|") || context || wildcard,
     scope_contexts: contextScope.join("|") || wildcard,
-    scope_hosts: hostScope.join("|") || wildcard,
-    hosts: selectedHosts.join("|") || wildcard,
+    scope_nodes: nodesScope.join("|") || wildcard,
+    nodes: selectedNodes.join("|") || wildcard,
     instances: selectedInstances.join("|") || wildcard,
     dimensions: selectedDimensions.join("|") || wildcard,
     ...(selectedLabels && {

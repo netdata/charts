@@ -67,28 +67,28 @@ const columns = [
 
 const Nodes = ({ labelProps, ...rest }) => {
   const chart = useChart()
-  const value = useAttributeValue("selectedHosts")
+  const value = useAttributeValue("selectedNodes")
   const isAgent = chart.getAttributes("agent")
-  const { hosts } = useMetadata()
+  const { nodes } = useMetadata()
   const options = useMemo(
     () =>
-      hosts.map(host => {
+      nodes.map(host => {
         const id = isAgent ? host.mg : host.nd
 
         return {
           label: host.nm || id,
           value: id,
-          "data-track": chart.track(`hosts-${id}`),
+          "data-track": chart.track(`nodes-${id}`),
           host,
         }
       }),
-    [hosts]
+    [nodes]
   )
 
   return (
     <DropdownTable
       allName="all nodes"
-      data-track={chart.track("hosts")}
+      data-track={chart.track("nodes")}
       labelProps={labelProps}
       onChange={chart.updateNodesAttribute}
       options={options}

@@ -135,7 +135,7 @@ export default ({
 
     if (
       !deepEqual(getMetadata(), metadata, {
-        keep: ["fullyLoaded", "dimensions", "labels", "hosts", "instances", "functions"],
+        keep: ["fullyLoaded", "dimensions", "labels", "nodes", "instances", "functions"],
       })
     )
       setMetadataAttributes(metadata)

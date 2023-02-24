@@ -32,11 +32,11 @@ export default {
   selectedLegendDimensions: [],
 
   contextScope: [],
-  hostScope: [],
+  nodesScope: [],
   selectedContexts: [],
   selectedDimensions: [],
   selectedLabels: [],
-  selectedHosts: [],
+  selectedNodes: [],
   selectedInstances: [],
 
   contextsHardHash: null,

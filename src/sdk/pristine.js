@@ -10,7 +10,7 @@ const { updatePristine, resetPristine } = makePristine(pristineKey, [
   "groupingMethod",
   "chartType",
   "selectedLabels",
-  "selectedHosts",
+  "selectedNodes",
   "selectedInstances",
 ])
 
