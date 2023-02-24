@@ -11,7 +11,7 @@ const columns = [
   {
     id: "label",
     header: "Name",
-    size: 100,
+    size: 180,
     minSize: 60,
     cell: ({ getValue }) => getValue(),
   },

@@ -11,7 +11,13 @@ const Container = styled(Flex)`
     "box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2), 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12);"}
   list-style-type: none;
 `
-
+const meta = {
+  cellStyles: {
+    height: "40px",
+  },
+  headStyles: { height: "32px" },
+  styles: { verticalAlign: "middle" },
+}
 const noop = () => {}
 
 const Dropdown = ({ hideShadow, items, onItemClick, close, columns, ...rest }) => {
@@ -24,7 +30,7 @@ const Dropdown = ({ hideShadow, items, onItemClick, close, columns, ...rest }) =
       margin={[1, 0]}
       column
       tabindex="-1"
-      width="auto"
+      width="880px"
       {...rest}
     >
       <NetdataTable
@@ -34,6 +40,10 @@ const Dropdown = ({ hideShadow, items, onItemClick, close, columns, ...rest }) =
         data={items}
         onRowSelected={selected => onItemClick(selected.map(s => s.value))}
         onGlobalSearchChange={noop}
+        sx={{
+          borderCollapse: "collapse",
+        }}
+        meta={meta}
         // bulkActions={bulkActions}
         // rowActions={rowActions}
       />
