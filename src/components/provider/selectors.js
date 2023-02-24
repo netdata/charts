@@ -103,9 +103,9 @@ export const useTitle = () => {
 
 export const useName = () => {
   const name = useAttributeValue("name")
-  const selectedContexts = useAttributeValue("selectedContexts")
+  const contextScope = useAttributeValue("contextScope")
 
-  return name || selectedContexts.join(", ")
+  return name || contextScope.join(", ")
 }
 
 export const useVisibleDimensionId = id => {

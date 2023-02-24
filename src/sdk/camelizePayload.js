@@ -32,8 +32,8 @@ export default payload => {
     lastEntry,
     units,
     chartType,
+    title,
     metadata: {
-      title,
       fullyLoaded: nodes.length > 0,
       nodes,
       instances,
