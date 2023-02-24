@@ -1,6 +1,7 @@
 import React, { useMemo } from "react"
 import { useChart, useAttributeValue, useMetadata } from "@/components/provider"
 import DropdownTable from "./dropdownTable"
+import { ProgressBar, Text, TextSmall } from "@netdata/netdata-ui"
 
 const tooltipProps = {
   heading: "Dimensions",
@@ -22,7 +23,21 @@ const columns = [
     minSize: 30,
     cell: ({ row }) => {
       const { sl, ex } = row.original.dimension.ds
-      return `${sl} out of ${sl + ex}`
+      return (
+        <>
+          <TextSmall>
+            <TextSmall color={["green", "deyork"]}>{sl}</TextSmall> out of {sl + ex}
+          </TextSmall>
+          <ProgressBar
+            background="borderSecondary"
+            color={["green", "deyork"]}
+            height={2}
+            width={`${(sl / (sl + ex)) * 100}%`}
+            containerWidth="100%"
+            border="none"
+          />
+        </>
+      )
     },
   },
   {
@@ -31,7 +46,19 @@ const columns = [
     size: 100,
     minSize: 30,
     cell: ({ row }) => {
-      return `${row.original.dimension.sts.con}%`
+      return (
+        <>
+          <TextSmall color={["green", "deyork"]}>{row.original.dimension.sts.con}%</TextSmall>
+          <ProgressBar
+            background="borderSecondary"
+            color={["green", "deyork"]}
+            height={2}
+            width={`${row.original.dimension.sts.con}%`}
+            containerWidth="100%"
+            border="none"
+          />
+        </>
+      )
     },
   },
   {

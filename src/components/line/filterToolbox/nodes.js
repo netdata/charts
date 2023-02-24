@@ -29,7 +29,7 @@ const columns = [
             <TextSmall color={["green", "deyork"]}>{sl}</TextSmall> out of {sl + ex}
           </TextSmall>
           <ProgressBar
-            background="sideBarMini"
+            background="borderSecondary"
             color={["green", "deyork"]}
             height={2}
             width={`${(sl / (sl + ex)) * 100}%`}
@@ -53,7 +53,7 @@ const columns = [
             <TextSmall color={["green", "deyork"]}>{sl}</TextSmall> out of {sl + ex}
           </TextSmall>
           <ProgressBar
-            background="sideBarMini"
+            background="borderSecondary"
             color={["green", "deyork"]}
             height={2}
             width={`${(sl / (sl + ex)) * 100}%`}
@@ -74,7 +74,7 @@ const columns = [
         <>
           <TextSmall color={["green", "deyork"]}>{row.original.host.sts.con}%</TextSmall>
           <ProgressBar
-            background="sideBarMini"
+            background="borderSecondary"
             color={["green", "deyork"]}
             height={2}
             width={`${row.original.host.sts.con}%`}
