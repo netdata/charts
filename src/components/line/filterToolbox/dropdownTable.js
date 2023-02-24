@@ -17,7 +17,6 @@ const noop = () => {}
 const Dropdown = ({ hideShadow, items, onItemClick, close, columns, ...rest }) => {
   return (
     <Container
-      as="ul"
       role="listbox"
       background="dropdown"
       hideShadow={hideShadow}

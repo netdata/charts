@@ -33,8 +33,22 @@ module.exports = {
       },
       {
         test: /\.svg$/,
-        include: [/node_modules\/@netdata\/netdata-ui/, /src\/components\/line\/skeleton/],
-        loader: "raw-loader",
+        oneOf: [
+          {
+            use: ["raw-loader"],
+            include: [/src\/components\/line\/skeleton/],
+            exclude: [/node_modules\/@netdata\/netdata-ui/],
+          },
+          {
+            use: [
+              {
+                loader: "svg-sprite-loader",
+              },
+              "svgo-loader",
+            ],
+            include: [/node_modules\/@netdata\/netdata-ui/],
+          },
+        ],
       },
       {
         test: /\.s?[ac]ss$/,

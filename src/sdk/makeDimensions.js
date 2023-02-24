@@ -1,5 +1,5 @@
 import dimensionColors from "./theme/dimensionColors"
-import { setsAreEqual } from "../helpers/deepEqual"
+import deepEqual, { setsAreEqual } from "../helpers/deepEqual"
 
 export default (chart, sdk) => {
   let prevDimensionIds = []
@@ -29,7 +29,7 @@ export default (chart, sdk) => {
 
   const bySortMethod = {
     default: () =>
-      getPayloadDimensionIds().sort((a, b) => getDimensionPriority(a) - getDimensionPriority(b)),
+      getSourceDimensionIds().sort((a, b) => getDimensionPriority(a) - getDimensionPriority(b)),
     nameAsc: () =>
       getSourceDimensionIds().sort((a, b) =>
         getDimensionName(a).localeCompare(getDimensionName(b))
@@ -110,7 +110,7 @@ export default (chart, sdk) => {
     const dimensionIds = getPayloadDimensionIds()
 
     sortDimensions()
-    if (prevDimensionIds === dimensionIds) return
+    if (deepEqual(prevDimensionIds, dimensionIds)) return
 
     prevDimensionIds = dimensionIds
     dimensionsById = dimensionIds.reduce((acc, id, index) => {
@@ -130,15 +130,14 @@ export default (chart, sdk) => {
   const isDimensionVisible = id => visibleDimensionSet.has(id)
 
   const getMemKey = () => {
-    const { colors, groupBy, context: attrContext, id } = chart.getAttributes()
-    const { context } = chart.getMetadata()
+    const { colors, groupBy, contextScope, id } = chart.getAttributes()
 
     if (groupBy.length > 1 || (groupBy.length === 1 && groupBy[0] !== "dimension"))
       return groupBy.join("|")
 
     if (colors.length) return chart.getAttribute("id")
 
-    return context || attrContext || id
+    return contextScope.join("|") || id
   }
 
   const getDimensionColor = id => {

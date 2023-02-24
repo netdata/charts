@@ -23,8 +23,31 @@ export default chart => {
     prevChartType = metadata.chartType
   }
 
-  const updateGroupByAttribute = value => {
-    chart.updateAttribute("groupBy", value)
+  const updateGroupByAttribute = ({ value, checked, type = "groupBy" } = {}) => {
+    if (type === "groupByLabel") {
+      const prevGroupByLabel = chart.getAttribute("groupByLabel")
+
+      chart.updateAttribute(
+        "groupByLabel",
+        checked
+          ? [...new Set([...prevGroupByLabel, value])]
+          : prevGroupByLabel.filter(g => g !== value)
+      )
+
+      // Override
+      // - if empty in order to remove "label" from groupBy
+      // - if added in order to add "label" in groupBy
+      if (checked || !chart.getAttribute("groupByLabel").length) {
+        value = "label"
+      }
+    }
+
+    const prevGroupBy = chart.getAttribute("groupBy")
+
+    chart.updateAttribute(
+      "groupBy",
+      checked ? [...new Set([...prevGroupBy, value])] : prevGroupBy.filter(g => g !== value)
+    )
 
     const attributes = getInitialFilterAttributes(chart)
     chart.updateAttributes(attributes)

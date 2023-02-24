@@ -1,3 +1,4 @@
+// Deprecate
 import React, { useCallback, useMemo } from "react"
 import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
 import { ItemContainer } from "@netdata/netdata-ui/lib/components/drops/menu/dropdownItem"

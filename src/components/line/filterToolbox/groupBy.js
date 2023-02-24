@@ -1,12 +1,11 @@
 import React, { useMemo, memo } from "react"
-import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
-import { useChart, useAttributeValue, useMetadata } from "@/components/provider"
-import Label from "./label"
+import { useChart, useAttributeValue } from "@/components/provider"
+import DropdownMenu from "./groupByDropdown"
 
 const defaultItems = [
-  { label: "dimension", value: "dimension" },
-  { label: "node", value: "node" },
-  { label: "instance", value: "chart" },
+  { label: "dimension", value: "dimension", childrenKey: "dimensions" },
+  { label: "node", value: "node", childrenKey: "hosts" },
+  { label: "instance", value: "instance", childrenKey: "instances" },
 ]
 
 const tooltipProps = {
@@ -26,43 +25,33 @@ const tooltipProps = {
   ),
 }
 
-const GroupBy = ({ labelProps }) => {
+const GroupBy = ({ labelProps, ...rest }) => {
   const chart = useChart()
-  const value = useAttributeValue("groupBy")
-  const { chartLabels = {} } = useMetadata()
+  const groupBy = useAttributeValue("groupBy")
+  const groupByLabel = useAttributeValue("groupByLabel")
 
-  const items = useMemo(
-    () => [
-      ...defaultItems.map(value => ({
-        ...value,
-        "data-track": chart.track(`group-by-${value.value}`),
+  const options = useMemo(
+    () =>
+      defaultItems.map(item => ({
+        ...item,
+        "data-track": chart.track(`group-by-${item.value}`),
+        children: chart.getMetadata()[item.childrenKey].map(v => ({ ...v, id: v.nm })),
       })),
-      ...Object.keys(chartLabels || {}).map(value => ({
-        value,
-        label: value,
-        "data-track": chart.track(`group-by-${value}`),
-      })),
-    ],
-    [chartLabels]
+    []
   )
-  const selected = useMemo(() => items.find(item => item.value === value) || items[0], [value])
 
   return (
-    <Menu
-      value={value}
+    <DropdownMenu
+      allName="everything"
+      data-track={chart.track("group-by")}
+      labelProps={labelProps}
       onChange={chart.updateGroupByAttribute}
-      items={items}
-      data-track={chart.track("groupBy")}
-      dropProps={{ align: { top: "bottom", left: "left" }, "data-toolbox": true, width: { min: "130px" } }}
-    >
-      <Label
-        secondaryLabel="Group by"
-        label={selected?.label || "Loading"}
-        title={tooltipProps.heading}
-        tooltipProps={tooltipProps}
-        {...labelProps}
-      />
-    </Menu>
+      options={options}
+      secondaryLabel="Group by"
+      tooltipProps={tooltipProps}
+      value={{ groupBy, groupByLabel }}
+      {...rest}
+    />
   )
 }
 
