@@ -72,7 +72,9 @@ const columns = [
     cell: ({ row }) => {
       return (
         <>
-          <TextSmall color={["green", "deyork"]}>{row.original.host.sts.con}%</TextSmall>
+          <TextSmall color={["green", "deyork"]}>
+            {Math.round((row.original.host.sts.con + Number.EPSILON) * 100) / 100}%
+          </TextSmall>
           <ProgressBar
             background="borderSecondary"
             color={["green", "deyork"]}
@@ -91,12 +93,10 @@ const columns = [
     size: 100,
     minSize: 30,
     cell: ({ row }) => {
-      return <Text>{row.original.host.sts.arp}%</Text>
+      return <Text>{Math.round((row.original.host.sts.arp + Number.EPSILON) * 100) / 100}%</Text>
     },
     meta: row => ({
-      cellStyles: {
-        background: `rgba(0,0,0,${row.original.host.sts.arp})`,
-      },
+      cellStyles: {},
     }),
   },
   {
