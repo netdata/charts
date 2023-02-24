@@ -19,10 +19,7 @@ const meta = {
   styles: { verticalAlign: "middle" },
   searchContainerStyles: {
     width: "100%",
-    padding: [4],
-  },
-  searchStyles: {
-    height: "24px",
+    padding: [2, 2, 0],
   },
 }
 const noop = () => {}
@@ -37,7 +34,7 @@ const Dropdown = ({ hideShadow, items, onItemClick, close, columns, ...rest }) =
       margin={[1, 0]}
       column
       tabindex="-1"
-      width="880px"
+      width="800px"
       {...rest}
     >
       <NetdataTable
