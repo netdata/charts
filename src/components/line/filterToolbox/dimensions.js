@@ -28,7 +28,7 @@ const columns = [
     size: 100,
     minSize: 30,
     cell: ({ row }) => {
-      const { qr = 0, sl = 0, ex = 0 } = row.original.dimension.ds
+      const { qr = 0, sl = 0, ex = 0 } = row.original.info.ds
       return (
         <>
           <TextSmall>
@@ -79,8 +79,8 @@ const columns = [
     },
     meta: row => ({
       cellStyles: {
-        ...(row.original.dimension.sts.arp > 0 && {
-          backgroundColor: `rgba(222, 189, 255, ${row.original.dimension.sts.arp / 100})`,
+        ...(row.original.info.sts.arp > 0 && {
+          backgroundColor: `rgba(222, 189, 255, ${row.original.info.sts.arp / 100})`,
         }),
       },
     }),
@@ -108,7 +108,7 @@ const Dimensions = ({ labelProps, ...rest }) => {
           metrics: dimension.ds.qr + dimension.ds.qr / (dimension.ds.ex + dimension.ds.sl),
           contribution: dimension.sts?.con || 0,
           anomalyRate: dimension.sts?.arp || 0,
-          dimension,
+          info: dimension,
           selected,
         }
       }),

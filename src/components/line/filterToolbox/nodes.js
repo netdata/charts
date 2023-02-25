@@ -128,8 +128,8 @@ const columns = [
     },
     meta: row => ({
       cellStyles: {
-        ...(row.original.node.sts?.arp > 0 && {
-          backgroundColor: `rgba(222, 189, 255, ${row.original.node.sts.arp / 100})`,
+        ...(row.original.info?.sts?.arp > 0 && {
+          backgroundColor: `rgba(222, 189, 255, ${row.original.info.sts.arp / 100})`,
         }),
       },
     }),
