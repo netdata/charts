@@ -82,7 +82,7 @@ export default (chart, sdk) => {
 
     if (!sortedDimensionIds) return
 
-    colors = sortedDimensionIds.map(id => getDimensionColor(id))
+    colors = sortedDimensionIds.map(id => selectDimensionColor(id))
 
     chart.trigger("dimensionChanged")
   }
@@ -140,13 +140,27 @@ export default (chart, sdk) => {
     return contextScope.join("|") || id
   }
 
-  const getDimensionColor = id => {
+  const selectDimensionColor = id => {
     const key = getMemKey()
     const colors = chart.getAttribute("colors")
     const sparkline = chart.getAttribute("sparkline")
     if (sparkline && colors && colors.length === 1) return colors[0]
 
     const color = sdk.getRoot().getNextColor(getNextColor, key, id)
+
+    if (typeof color === "string") return color
+
+    const index = chart.getUI().getThemeIndex()
+    return color[index]
+  }
+
+  const getDimensionColor = id => {
+    const key = getMemKey()
+    const colors = chart.getAttribute("colors")
+    const sparkline = chart.getAttribute("sparkline")
+    if (sparkline && colors && colors.length === 1) return colors[0]
+
+    const color = sdk.getRoot().findColor(key, id)
 
     if (typeof color === "string") return color
 
@@ -212,7 +226,7 @@ export default (chart, sdk) => {
     if (!dimensions) return
 
     const keys = hasSparklineDimension() ? sparklineDimensions : Object.keys(dimensions)
-    keys.forEach(getDimensionColor)
+    keys.forEach(selectDimensionColor)
   }
 
   return {
@@ -225,6 +239,7 @@ export default (chart, sdk) => {
     isDimensionVisible,
     toggleDimensionId,
     getColors,
+    selectDimensionColor,
     getDimensionColor,
     getDimensionName,
     getDimensionValue,

@@ -15,6 +15,8 @@ const Container = ({ id, ...rest }) => {
   const chart = useChart()
   const bg = chart.getDimensionColor(id)
 
+  if (!bg) return null
+
   return <Color bg={bg} {...rest} />
 }
 

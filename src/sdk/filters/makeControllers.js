@@ -1,5 +1,6 @@
-import getInitialFilterAttributes, { stackedAggregations } from "./getInitialAttributes"
+import deepEqual from "@/helpers/deepEqual"
 import pristine, { pristineKey } from "@/sdk/pristine"
+import getInitialFilterAttributes, { stackedAggregations } from "./getInitialAttributes"
 
 export default chart => {
   const metadata = chart.getMetadata()
@@ -23,57 +24,75 @@ export default chart => {
     prevChartType = metadata.chartType
   }
 
-  const updateGroupByAttribute = ({ value, checked, type = "groupBy" } = {}) => {
-    if (type === "groupByLabel") {
-      const prevGroupByLabel = chart.getAttribute("groupByLabel")
+  const canBeGroupedByAttrs = {
+    node: true,
+    instance: true,
+    dimension: true,
+  }
 
-      chart.updateAttribute(
-        "groupByLabel",
-        checked
-          ? [...new Set([...prevGroupByLabel, value])]
-          : prevGroupByLabel.filter(g => g !== value)
-      )
+  const updateGroupByAttribute = ({ values, selected }) => {
+    const prevGroupByLabel = chart.getAttribute("groupByLabel")
+    const selectedLabels = selected.filter(sel => sel.isLabel)
 
-      // Override
-      // - if empty in order to remove "label" from groupBy
-      // - if added in order to add "label" in groupBy
-      if (checked || !chart.getAttribute("groupByLabel").length) {
-        value = "label"
-      }
-    }
+    chart.updateAttribute(
+      "groupByLabel",
+      selectedLabels.map(sel => sel.value)
+    )
+
+    let newValues = values.filter(value => canBeGroupedByAttrs[value])
+
+    if (selectedLabels.length) newValues.push("label")
 
     const prevGroupBy = chart.getAttribute("groupBy")
-
-    let newValues = checked
-      ? [...new Set([...prevGroupBy, value])]
-      : prevGroupBy.filter(g => g !== value)
 
     if (!newValues.length) newValues = ["dimension"]
 
     chart.updateAttribute("groupBy", newValues)
 
+    if (
+      deepEqual(prevGroupBy, chart.getAttribute("groupBy")) &&
+      deepEqual(prevGroupByLabel, chart.getAttribute("groupByLabel"))
+    )
+      return
+
     const attributes = getInitialFilterAttributes(chart)
     chart.updateAttributes(attributes)
-    chart.fetchAndRender().then(() => onGroupChange(value))
+    chart.fetchAndRender().then(() => onGroupChange(chart.getAttribute("groupBy")))
   }
 
-  const updateNodesAttribute = value => {
-    chart.updateAttribute("selectedNodes", value)
+  const updateNodesAttribute = ({ values }) => {
+    const selectedNodes = chart.getAttribute("selectedNodes")
+    chart.updateAttribute("selectedNodes", values)
+
+    if (deepEqual(selectedNodes, chart.getAttribute("selectedNodes"))) return
+
     chart.fetchAndRender()
   }
 
-  const updateInstancesAttribute = value => {
-    chart.updateAttribute("selectedInstances", value)
+  const updateInstancesAttribute = ({ values }) => {
+    const selectedInstances = chart.getAttribute("selectedInstances")
+    chart.updateAttribute("selectedInstances", values)
+
+    if (deepEqual(selectedInstances, chart.getAttribute("selectedInstances"))) return
+
     chart.fetchAndRender()
   }
 
-  const updateDimensionsAttribute = value => {
-    chart.updateAttribute("selectedDimensions", value)
+  const updateDimensionsAttribute = ({ values }) => {
+    const selectedDimensions = chart.getAttribute("selectedDimensions")
+    chart.updateAttribute("selectedDimensions", values)
+
+    if (deepEqual(selectedDimensions, chart.getAttribute("selectedDimensions"))) return
+
     chart.fetchAndRender()
   }
 
-  const updateFilteredLabelsAttribute = value => {
-    chart.updateAttribute("filteredLabels", value)
+  const updateFilteredLabelsAttribute = ({ values }) => {
+    const filteredLabels = chart.getAttribute("filteredLabels")
+    chart.updateAttribute("filteredLabels", values)
+
+    if (deepEqual(filteredLabels, chart.getAttribute("filteredLabels"))) return
+
     chart.fetchAndRender()
   }
 

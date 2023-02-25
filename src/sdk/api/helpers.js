@@ -9,6 +9,7 @@ export const getChartURLOptions = chart => {
     "flip",
     "ms",
     "jw-anomaly-rates",
+    "minify",
   ].filter(Boolean)
 }
 

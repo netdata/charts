@@ -99,6 +99,16 @@ export default {
   // selectedNodeIds: [], deprecate
   // selectedChartId: "", deprecate
 
+  dimensionsSortBy: [],
+  instancesSortBy: [],
+  nodesSortBy: [],
+  groupBySortBy: [],
+  labelsSortBy: [],
+
+  nodesExpanded: {},
+  groupByExpanded: {},
+  labelsExpanded: {},
+
   aggregationGroups: [],
   postGroupBy: "",
   selectedChart: "",

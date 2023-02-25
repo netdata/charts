@@ -1,7 +1,8 @@
-import React, { useMemo } from "react"
+import React, { memo, useMemo } from "react"
+import { Flex, ProgressBar, Text, TextSmall } from "@netdata/netdata-ui"
 import { useChart, useAttributeValue, useMetadata } from "@/components/provider"
+import Color from "@/components/line/dimensions/color"
 import DropdownTable from "./dropdownTable"
-import { ProgressBar, Text, TextSmall } from "@netdata/netdata-ui"
 
 const tooltipProps = {
   heading: "Instances",
@@ -11,18 +12,25 @@ const tooltipProps = {
 const columns = [
   {
     id: "label",
-    header: <TextSmall strong>Instances</TextSmall>,
+    header: <TextSmall strong>Name</TextSmall>,
     size: 160,
     minSize: 60,
-    cell: ({ getValue }) => <TextSmall>{getValue()}</TextSmall>,
+    cell: ({ row, getValue }) => (
+      <Flex gap={1}>
+        <Color id={row.original.value} />
+        <TextSmall>{getValue()}</TextSmall>
+      </Flex>
+    ),
   },
   {
     id: "metrics",
     header: <TextSmall strong>Metrics</TextSmall>,
     size: 100,
     minSize: 30,
-    cell: ({ row }) => {
-      const { qr, sl, ex } = row.original.instance.ds
+    cell: ({ row, getValue }) => {
+      if (!row.original.info?.ds) return <TextSmall color="textLite">{getValue()}</TextSmall>
+
+      const { qr = 0, sl = 0, ex = 0 } = row.original.info.ds
       return (
         <>
           <TextSmall color="textLite">
@@ -45,17 +53,17 @@ const columns = [
     header: <TextSmall strong>Contribution %</TextSmall>,
     size: 100,
     minSize: 30,
-    cell: ({ row }) => {
+    cell: ({ getValue }) => {
       return (
         <>
           <TextSmall color="primary">
-            {Math.round((row.original.instance.sts.con + Number.EPSILON) * 100) / 100}%
+            {Math.round((getValue() + Number.EPSILON) * 100) / 100}%
           </TextSmall>
           <ProgressBar
             background="borderSecondary"
             color={["green", "deyork"]}
             height={2}
-            width={`${row.original.instance.sts.con}%`}
+            width={`${getValue()}%`}
             containerWidth="100%"
             border="none"
           />
@@ -68,16 +76,12 @@ const columns = [
     header: <TextSmall strong>Anomaly %</TextSmall>,
     size: 100,
     minSize: 30,
-    cell: ({ row }) => {
-      return (
-        <TextSmall>
-          {Math.round((row.original.instance.sts.arp + Number.EPSILON) * 100) / 100}%
-        </TextSmall>
-      )
+    cell: ({ getValue }) => {
+      return <TextSmall>{Math.round((getValue() + Number.EPSILON) * 100) / 100}%</TextSmall>
     },
     meta: row => ({
       cellStyles: {
-        ...(row.original.instance.sts.arp > 0 && {
+        ...(row.original.instance?.sts?.arp > 0 && {
           backgroundColor: `rgba(222, 189, 255, ${row.original.instance.sts.arp / 100})`,
         }),
       },
@@ -88,8 +92,10 @@ const columns = [
     header: <TextSmall strong>Chart alerts</TextSmall>,
     size: 100,
     minSize: 30,
-    cell: ({ row }) => {
-      const { cl, cr, wr } = row.original.instance.al
+    cell: ({ row, getValue }) => {
+      if (!row.original.info?.al) return <TextSmall color="textLite">{getValue()}</TextSmall>
+
+      const { cl = 0, cr = 0, wr = 0 } = row.original.info.al
       return `cr: ${cr}, wr: ${wr}, cl: ${cl}`
     },
   },
@@ -98,25 +104,39 @@ const columns = [
 const Instances = ({ labelProps, ...rest }) => {
   const chart = useChart()
   const value = useAttributeValue("selectedInstances")
-  const { instances } = useMetadata()
+  const { nodes, instances } = useMetadata()
+
+  let label = "all instances"
+
   const options = useMemo(
     () =>
-      instances.map(instance => ({
-        label: instance.nm || instance.id,
-        value: instance.id,
-        "data-track": chart.track(`instances-${instance.id}`),
-        metrics: instance.ds.qr + instance.ds.qr / (instance.ds.ex + instance.ds.sl),
-        contribution: instance.sts.con,
-        anomalyRate: instance.sts.arp,
-        alerts: instance.al.cr * 3 + instance.al.wr * 2 + instance.al.cl,
-        instance,
-      })),
-    [instances]
+      instances.map(instance => {
+        const selected = value.includes(instance.id)
+
+        if (selected && value.length === 1) label = instance.nm || instance.id
+
+        const { nm: nodeName, mg: nodeId } = nodes[instance.ni]
+
+        return {
+          label: `${instance.nm || instance.id}@${nodeName}`,
+          value: `${instance.id}@${nodeId}`,
+          "data-track": chart.track(`instances-${instance.id}`),
+          metrics: instance.ds.qr + instance.ds.qr / (instance.ds.ex + instance.ds.sl),
+          contribution: instance.sts?.con || 0,
+          anomalyRate: instance.sts?.arp || 0,
+          alerts: instance.al ? instance.al.cr * 3 + instance.al.wr * 2 + instance.al.cl : "-",
+          info: instance,
+          selected,
+        }
+      }),
+    [instances, value]
   )
+
+  if (value.length > 1) label = `${value.length} instances`
 
   return (
     <DropdownTable
-      allName="all instances"
+      label={label}
       data-track={chart.track("instances")}
       labelProps={labelProps}
       onChange={chart.updateInstancesAttribute}
@@ -129,4 +149,4 @@ const Instances = ({ labelProps, ...rest }) => {
   )
 }
 
-export default Instances
+export default memo(Instances)
