@@ -105,7 +105,7 @@ const Dimensions = ({ labelProps, ...rest }) => {
           label: dimension.nm || dimension.id,
           value: dimension.id,
           "data-track": chart.track(`dimensions-${dimension.id}`),
-          metrics: dimension.ds.qr + dimension.ds.qr / (dimension.ds.ex + dimension.ds.sl),
+          metrics: dimension.ds ? dimension.ds.qr + dimension.ds.qr / (dimension.ds.ex + dimension.ds.sl) : "-",
           contribution: dimension.sts?.con || 0,
           anomalyRate: dimension.sts?.arp || 0,
           info: dimension,
