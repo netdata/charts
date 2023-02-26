@@ -111,18 +111,20 @@ const Instances = ({ labelProps, ...rest }) => {
   const options = useMemo(
     () =>
       instances.map(instance => {
+        const { nm: nodeName, mg: nodeId } = nodes[instance.ni]
         const id = `${instance.id}@${nodeId}`
+
         const selected = value.includes(id)
 
         if (selected && value.length === 1) label = instance.nm || instance.id
-
-        const { nm: nodeName, mg: nodeId } = nodes[instance.ni]
 
         return {
           label: `${instance.nm || instance.id}@${nodeName}`,
           value: id,
           "data-track": chart.track(`instances-${instance.id}`),
-          metrics: instance.ds ? instance.ds.qr + instance.ds.qr / (instance.ds.ex + instance.ds.sl) : "-",
+          metrics: instance.ds
+            ? instance.ds.qr + instance.ds.qr / (instance.ds.ex + instance.ds.sl)
+            : "-",
           contribution: instance.sts?.con || 0,
           anomalyRate: instance.sts?.arp || 0,
           alerts: instance.al ? instance.al.cr * 3 + instance.al.wr * 2 + instance.al.cl : "-",
