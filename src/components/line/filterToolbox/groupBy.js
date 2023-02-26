@@ -56,7 +56,10 @@ const columns = [
         {row.getCanExpand() && (
           <Label
             label={metricsByValue[row.original.value] || metricsByValue.label}
-            onClick={row.getToggleExpandedHandler()}
+            onClick={e => {
+              row.getToggleExpandedHandler()(e)
+              setTimeout(() => e.target.scrollIntoView({ behavior: "smooth", block: "nearest" }))
+            }}
             iconRotate={row.getIsExpanded() ? 2 : null}
             textProps={{ fontSize: "10px", color: "textLite" }}
           />

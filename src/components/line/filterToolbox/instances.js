@@ -1,5 +1,5 @@
 import React, { memo, useMemo } from "react"
-import { Flex, ProgressBar, Text, TextSmall } from "@netdata/netdata-ui"
+import { Flex, ProgressBar, TextSmall } from "@netdata/netdata-ui"
 import { useChart, useAttribute, useAttributeValue, useMetadata } from "@/components/provider"
 import Color from "@/components/line/dimensions/color"
 import DropdownTable from "./dropdownTable"
@@ -136,7 +136,7 @@ const Instances = ({ labelProps, ...rest }) => {
   )
 
   const [sortBy, onSortByChange] = useAttribute("instancesSortBy")
-  debugger
+
   if (value.length > 1) label = `${value.length} instances`
 
   return (
