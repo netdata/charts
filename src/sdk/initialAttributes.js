@@ -99,11 +99,11 @@ export default {
   // selectedNodeIds: [], deprecate
   // selectedChartId: "", deprecate
 
-  dimensionsSortBy: [],
-  instancesSortBy: [],
-  nodesSortBy: [],
+  dimensionsSortBy: [{ id: "contribution", desc: true }],
+  instancesSortBy: [{ id: "contribution", desc: true }],
+  nodesSortBy: [{ id: "contribution", desc: true }],
   groupBySortBy: [],
-  labelsSortBy: [],
+  labelsSortBy: [{ id: "contribution", desc: true }],
 
   nodesExpanded: {},
   groupByExpanded: {},

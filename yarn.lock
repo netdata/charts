@@ -3259,11 +3259,6 @@
     call-me-maybe "^1.0.1"
     glob-to-regexp "^0.3.0"
 
-"@netdata/dygraphs@^2.1.1":
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/@netdata/dygraphs/-/dygraphs-2.1.1.tgz#47c36a1580999752523dfe647a268c3a0334d66c"
-  integrity sha512-iZOmwvoNfjNvLcnbvnzCuIWjSsHrNR4+915T2WbXTHw7QgB7dk5+dPU/X4ufaIfSSx/ycqnJXj5lJIaBjT5zxg==
-
 "@netdata/netdata-ui@^2.10.4":
   version "2.10.4"
   resolved "https://registry.yarnpkg.com/@netdata/netdata-ui/-/netdata-ui-2.10.4.tgz#2377d7c625ca8c80683b394c1b58d101179c55e9"
@@ -7599,6 +7594,11 @@ duplexify@^3.4.2, duplexify@^3.6.0:
     inherits "^2.0.1"
     readable-stream "^2.0.0"
     stream-shift "^1.0.0"
+
+dygraphs@^2.2.1:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/dygraphs/-/dygraphs-2.2.1.tgz#2d67f8ef8cebaccef02569ada437bbce79c37b28"
+  integrity sha512-xnuvsvh2H/FKvJjTSlXgJpwCOhLOi3u0sHw1gsJg/Bmf29y6bnO14PbTz8MwHOa3GIbKqqgKVBMSOi+Z1gI2Gg==
 
 easy-pie-chart@^2.1.7:
   version "2.1.7"

@@ -1,5 +1,5 @@
-import Dygraph from "@netdata/dygraphs"
-import { dragGetY_ } from "@netdata/dygraphs/src/dygraph-utils"
+import Dygraph from "dygraphs"
+import { dragGetY_ } from "dygraphs/src/dygraph-utils"
 
 export default chartUI => {
   let startY

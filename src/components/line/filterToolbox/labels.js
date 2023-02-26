@@ -162,10 +162,9 @@ const columns = [
   },
 ]
 
-const GroupBy = ({ labelProps, ...rest }) => {
+const Labels = ({ labelProps, ...rest }) => {
   const chart = useChart()
   const groupBy = useAttributeValue("groupBy")
-  const groupByLabel = useAttributeValue("groupByLabel")
 
   let label = "everything"
 
@@ -185,7 +184,7 @@ const GroupBy = ({ labelProps, ...rest }) => {
         label: dim.nm || dim.id,
         value: dim.id,
         unique: "-",
-        metrics: dim.ds ? dim.ds.qr + dim.ds.qr / (dim.ds.ex + dim.ds.sl) : "-",
+        metrics: dim.ds.qr + dim.ds.qr / (dim.ds.ex + dim.ds.sl),
         contribution: dim.sts?.con || 0,
         anomalyRate: dim.sts?.arp || 0,
         alerts: dim.al ? dim.al.cr * 3 + dim.al.wr * 2 + dim.al.cl : "-",
@@ -201,7 +200,7 @@ const GroupBy = ({ labelProps, ...rest }) => {
         value: item.id,
         "data-track": chart.track(`group-by-label-${item.id}`),
         unique: item.vl?.length || 0,
-        metrics: item.ds ? item.ds.qr + item.ds.qr / (item.ds.ex + item.ds.sl) : "-",
+        metrics: item.ds.qr + item.ds.qr / (item.ds.ex + item.ds.sl),
         contribution: item.sts?.con || 0,
         anomalyRate: item.sts?.arp || 0,
         alerts: item.al ? item.al.cr * 3 + item.al.wr * 2 + item.al.cl : "-",
@@ -212,7 +211,7 @@ const GroupBy = ({ labelProps, ...rest }) => {
           label: dim.nm || dim.id,
           value: dim.id,
           unique: "-",
-          metrics: dim.ds ? dim.ds.qr + dim.ds.qr / (dim.ds.ex + dim.ds.sl) : "-",
+          metrics: dim.ds.qr + dim.ds.qr / (dim.ds.ex + dim.ds.sl),
           contribution: dim.sts?.con || 0,
           anomalyRate: dim.sts?.arp || 0,
           alerts: dim.al ? dim.al.cr * 3 + dim.al.wr * 2 + dim.al.cl : "-",
@@ -239,7 +238,7 @@ const GroupBy = ({ labelProps, ...rest }) => {
 
   const value = useMemo(() => [...groupBy, ...groupByLabel], [groupBy, groupByLabel])
 
-  const [sortBy, onSortByChange] = useAttribute("groupBySortBy")
+  const [sortBy, onSortByChange] = useAttribute("labelsSortBy")
 
   return (
     <DropdownTable
@@ -260,4 +259,4 @@ const GroupBy = ({ labelProps, ...rest }) => {
   )
 }
 
-export default memo(GroupBy)
+export default memo(Labels)

@@ -1,6 +1,6 @@
 import React, { memo, useMemo } from "react"
 import { Flex, ProgressBar, Text, TextSmall } from "@netdata/netdata-ui"
-import { useChart, useAttributeValue, useMetadata } from "@/components/provider"
+import { useChart, useAttribute, useAttributeValue, useMetadata } from "@/components/provider"
 import Color from "@/components/line/dimensions/color"
 import DropdownTable from "./dropdownTable"
 
@@ -92,7 +92,7 @@ const Dimensions = ({ labelProps, ...rest }) => {
   const value = useAttributeValue("selectedDimensions")
   const { dimensions } = useMetadata()
 
-  let label = "all dimensions"
+  let label = `${dimensions.length} dimensions`
 
   const options = useMemo(
     () =>
@@ -115,6 +115,8 @@ const Dimensions = ({ labelProps, ...rest }) => {
     [dimensions, value]
   )
 
+  const [sortBy, onSortByChange] = useAttribute("nodesSortBy")
+
   if (value.length > 1) label = `${value.length} dimensions`
 
   return (
@@ -127,6 +129,8 @@ const Dimensions = ({ labelProps, ...rest }) => {
       tooltipProps={tooltipProps}
       value={value}
       columns={columns}
+      sortBy={sortBy}
+      onSortByChange={onSortByChange}
       {...rest}
     />
   )

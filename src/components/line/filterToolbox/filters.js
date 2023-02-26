@@ -6,7 +6,7 @@ import Instances from "./instances"
 import Nodes from "./nodes"
 import GroupBy from "./groupBy"
 import TimeAggregation from "./timeAggregation"
-import ChartLabels from "./chartLabels"
+import Labels from "./labels"
 import Reset from "./reset"
 
 export const Container = ({ children, ...rest }) => <Flex {...rest}>{children}</Flex>

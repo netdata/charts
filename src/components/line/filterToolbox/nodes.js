@@ -1,6 +1,6 @@
 import React, { memo, useMemo } from "react"
 import { ProgressBar, Text, TextSmall, AlertMasterCard, Flex } from "@netdata/netdata-ui"
-import { useChart, useAttributeValue, useMetadata } from "@/components/provider"
+import { useChart, useAttribute, useAttributeValue, useMetadata } from "@/components/provider"
 import Color from "@/components/line/dimensions/color"
 import DropdownTable from "./dropdownTable"
 import Label from "./label"
@@ -165,7 +165,7 @@ const Nodes = ({ labelProps, ...rest }) => {
   const value = useAttributeValue("selectedNodes")
   const isAgent = chart.getAttributes("agent")
   const { nodes, instances } = useMetadata()
-  let label = "all nodes"
+  let label = `${nodes.length} nodes`
 
   const options = useMemo(
     () =>
@@ -204,6 +204,8 @@ const Nodes = ({ labelProps, ...rest }) => {
     [nodes, value]
   )
 
+  const [sortBy, onSortByChange] = useAttribute("nodesSortBy")
+
   if (value.length > 1) label = `${value.length} nodes`
 
   return (
@@ -217,6 +219,8 @@ const Nodes = ({ labelProps, ...rest }) => {
       tooltipProps={tooltipProps}
       value={value}
       columns={columns}
+      sortBy={sortBy}
+      onSortByChange={onSortByChange}
       {...rest}
     />
   )

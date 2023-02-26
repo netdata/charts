@@ -41,6 +41,7 @@ const Dropdown = ({
   close,
   columns,
   sortBy,
+  onSortByChange,
   tableMeta = meta,
   ...rest
 }) => {
@@ -69,6 +70,7 @@ const Dropdown = ({
         meta={tableMeta}
         sortBy={sortBy}
         rowSelection={rowSelection}
+        onSortingChange={onSortByChange}
         // bulkActions={bulkActions}
         // rowActions={rowActions}
       />
@@ -97,6 +99,7 @@ const DropdownTable = ({
   value,
   columns,
   sortBy = defaultSortBy,
+  onSortByChange,
   tableMeta,
   ...rest
 }) => {
@@ -128,6 +131,7 @@ const DropdownTable = ({
         columns,
         rowSelection,
         sortBy,
+        onSortByChange,
         tableMeta,
       }}
       value={value}

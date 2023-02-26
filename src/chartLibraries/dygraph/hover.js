@@ -1,4 +1,4 @@
-import { removeEvent, addEvent } from "@netdata/dygraphs/src/dygraph-utils"
+import { removeEvent, addEvent } from "dygraphs/src/dygraph-utils"
 
 export default chartUI => {
   const mouseout = event => {

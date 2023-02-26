@@ -1,6 +1,6 @@
 import React, { memo, useMemo } from "react"
 import { Flex, ProgressBar, Text, TextSmall } from "@netdata/netdata-ui"
-import { useChart, useAttributeValue, useMetadata } from "@/components/provider"
+import { useChart, useAttribute, useAttributeValue, useMetadata } from "@/components/provider"
 import Color from "@/components/line/dimensions/color"
 import DropdownTable from "./dropdownTable"
 
@@ -106,12 +106,13 @@ const Instances = ({ labelProps, ...rest }) => {
   const value = useAttributeValue("selectedInstances")
   const { nodes, instances } = useMetadata()
 
-  let label = "all instances"
+  let label = `${instances.length} instances`
 
   const options = useMemo(
     () =>
       instances.map(instance => {
-        const selected = value.includes(instance.id)
+        const id = `${instance.id}@${nodeId}`
+        const selected = value.includes(id)
 
         if (selected && value.length === 1) label = instance.nm || instance.id
 
@@ -119,7 +120,7 @@ const Instances = ({ labelProps, ...rest }) => {
 
         return {
           label: `${instance.nm || instance.id}@${nodeName}`,
-          value: `${instance.id}@${nodeId}`,
+          value: id,
           "data-track": chart.track(`instances-${instance.id}`),
           metrics: instance.ds ? instance.ds.qr + instance.ds.qr / (instance.ds.ex + instance.ds.sl) : "-",
           contribution: instance.sts?.con || 0,
@@ -132,6 +133,8 @@ const Instances = ({ labelProps, ...rest }) => {
     [instances, value]
   )
 
+  const [sortBy, onSortByChange] = useAttribute("instancesSortBy")
+  debugger
   if (value.length > 1) label = `${value.length} instances`
 
   return (
@@ -144,6 +147,8 @@ const Instances = ({ labelProps, ...rest }) => {
       tooltipProps={tooltipProps}
       value={value}
       columns={columns}
+      sortBy={sortBy}
+      onSortByChange={onSortByChange}
       {...rest}
     />
   )
