@@ -153,7 +153,7 @@ const DropdownTable = ({
         stretch: null,
       }}
       dropdownProps={{
-        height: { max: "90vh" },
+        height: { max: "80vh" },
         width: "100%",
         overflow: "auto",
         columns,
