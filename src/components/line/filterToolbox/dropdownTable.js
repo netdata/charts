@@ -27,16 +27,17 @@ export const meta = (row, cell, index) => ({
   },
   searchContainerStyles: {
     width: "100%",
-    padding: [2],
+    padding: [4, 2, 1, 2],
   },
   searchStyles: {
     inputContainerStyles: {
       height: "20px",
-      border: { side: "bottom", size: "1px", color: "inputBorder" },
+      border: { side: "all", size: "1px", color: "inputBorder" },
+      round: "2px",
       padding: [1, 2],
-      round: false,
+      borderRadius: 2,
       _hover: {
-        border: { side: "bottom", size: "1px", color: "inputBorderHover" },
+        border: { side: "all", size: "1px", color: "inputBorderHover" },
       },
     },
   },
