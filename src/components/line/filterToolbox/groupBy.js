@@ -8,7 +8,6 @@ import {
   metricsColumn,
   contributionColumn,
   anomalyRateColumn,
-  alertsColumn,
 } from "./columns"
 
 const defaultItems = [
@@ -28,7 +27,6 @@ const columns = [
   metricsColumn(),
   contributionColumn(),
   anomalyRateColumn(),
-  alertsColumn(),
 ]
 
 const GroupBy = ({ labelProps, ...rest }) => {
