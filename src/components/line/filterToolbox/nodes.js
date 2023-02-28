@@ -79,7 +79,7 @@ const Nodes = ({ labelProps, ...rest }) => {
       onSortByChange={onSortByChange}
       expanded={expanded}
       onExpandedChange={onExpandedChange}
-      enableSubRowSelection={true}
+      enableSubRowSelection={false}
       {...rest}
     />
   )
