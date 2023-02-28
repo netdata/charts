@@ -3,26 +3,14 @@ import { useChart, useAttribute, useAttributeValue, useMetadata } from "@/compon
 import DropdownTable from "./dropdownTable"
 import { getStats } from "./utils"
 
-import {
-  labelColumn,
-  metricsColumn,
-  contributionColumn,
-  anomalyRateColumn,
-  alertsColumn,
-} from "./columns"
+import { labelColumn, metricsColumn, contributionColumn, anomalyRateColumn } from "./columns"
 
 const tooltipProps = {
   heading: "Dimensions",
   body: "View or filter the original dimensions contributing time-series metrics to this chart. This menu also presents the contribution of each original dimension on the chart, and a break down of the anomaly rate of the data per dimension.",
 }
 
-const columns = [
-  labelColumn(),
-  metricsColumn(),
-  contributionColumn(),
-  anomalyRateColumn(),
-  alertsColumn(),
-]
+const columns = [labelColumn(), metricsColumn(), contributionColumn(), anomalyRateColumn()]
 
 const Dimensions = ({ labelProps, ...rest }) => {
   const chart = useChart()

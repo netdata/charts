@@ -6,8 +6,8 @@ export const Value = props => (
   <TextMicro color="textDescription" data-testid="chartDimensions-value" {...props} />
 )
 
-const Container = ({ id, visible, ...rest }) => {
-  const value = useLatestValue(id)
+const Container = ({ id, visible, resultKey, ...rest }) => {
+  const value = useLatestValue(id, resultKey)
 
   if (!visible) return null
 

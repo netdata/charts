@@ -1,9 +1,14 @@
 import Dygraph from "dygraphs"
-import "dygraphs/src/extras/smooth-plotter"
 import makeChartUI from "@/sdk/makeChartUI"
 import makeExecuteLatest from "@/helpers/makeExecuteLatest"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
-import { stackedBarPlotter, multiColumnBarPlotter, makeHeatmapPlotter } from "./plotters"
+import {
+  makeLinePlotter,
+  makeStackedBarPlotter,
+  makeMultiColumnBarPlotter,
+  makeHeatmapPlotter,
+  makeAnomalyPlotter,
+} from "./plotters"
 import makeNavigation from "./navigation"
 import makeHover from "./hover"
 import makeHoverX from "./hoverX"
@@ -85,6 +90,14 @@ export default (sdk, chart) => {
         dblclick: executeLatest.add((...args) => chartUI.trigger("dblclick", ...args)),
         wheel: (...args) => chartUI.trigger("wheel", ...args),
       },
+      series: {
+        ANOMALY_RATE: {
+          plotter: makeAnomalyPlotter(chartUI),
+          drawPoints: false,
+          pointSize: 0,
+          highlightCircleSize: 0,
+        },
+      },
 
       strokeBorderWidth: 0,
       axisLabelFontSize: attributes.axisLabelFontSize,
@@ -95,9 +108,9 @@ export default (sdk, chart) => {
       drawGapEdgePoints: true,
       // ylabel: attributes.unit,
       yLabelWidth: 12,
-      yRangePad: 1,
+      yRangePad: 30,
       labelsSeparateLines: true,
-      rightGap: -6,
+      rightGap: -5,
 
       ...makeChartTypeOptions(),
       ...makeThemingOptions(),
@@ -203,9 +216,9 @@ export default (sdk, chart) => {
   }
 
   const makePlotterByChartType = ({ sparkline }) => ({
-    line: sparkline ? null : window.smoothPlotter,
-    stackedBar: stackedBarPlotter,
-    multibar: multiColumnBarPlotter,
+    line: sparkline ? null : makeLinePlotter(chartUI),
+    stackedBar: makeStackedBarPlotter(chartUI),
+    multibar: makeMultiColumnBarPlotter(chartUI),
     heatmap: makeHeatmapPlotter(chartUI),
     default: null,
   })
@@ -230,7 +243,7 @@ export default (sdk, chart) => {
       }
       return chart.getConvertedValue(y)
     },
-    yTicker: null,
+    yTicker: Dygraph.numericTicks,
   }
 
   const optionsByChartType = {
@@ -340,9 +353,10 @@ export default (sdk, chart) => {
 
     const selectedLegendDimensions = chart.getAttribute("selectedLegendDimensions")
 
-    const visibility = dimensionIds.map(
-      selectedLegendDimensions.length ? chart.isDimensionVisible : () => true
-    )
+    const visibility = [
+      ...dimensionIds.map(selectedLegendDimensions.length ? chart.isDimensionVisible : () => true),
+      () => false,
+    ]
 
     return { visibility }
   }

@@ -2,7 +2,7 @@ import React, { memo } from "react"
 import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
 import { useUnitSign } from "@/components/provider"
 
-const Value = props => (
+export const Value = props => (
   <TextMicro
     color="textDescription"
     whiteSpace="nowrap"

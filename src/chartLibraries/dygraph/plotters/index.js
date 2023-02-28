@@ -1,3 +1,5 @@
-export { default as stackedBarPlotter } from "./stackedBar"
-export { default as multiColumnBarPlotter } from "./multiColumnBar"
+export { default as makeLinePlotter } from "./linePlotter"
+export { default as makeStackedBarPlotter } from "./stackedBar"
+export { default as makeMultiColumnBarPlotter } from "./multiColumnBar"
 export { default as makeHeatmapPlotter } from "./heatmap"
+export { default as makeAnomalyPlotter } from "./anomaly"

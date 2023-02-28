@@ -1,17 +1,22 @@
-const camelizeResult = result => {
+const camelizeResult = (result, { anomalyResult }) => {
   if (Array.isArray(result)) return result
 
   const { labels, data, post_aggregated_data } = result
 
+  if (anomalyResult && typeof anomalyResult === "object" && Array.isArray(anomalyResult.data)) {
+    const enhancedData = data.map((row, i) => {
+      const [, ...anomalyRow] = anomalyResult.data[i]
+      return [...row, anomalyRow.reduce((a, b) => a + b, 0) / anomalyRow.length]
+    })
+
+    return {
+      labels: [...labels, "ANOMALY_RATE"],
+      data: enhancedData,
+      postAggregatedData: post_aggregated_data,
+    }
+  }
+
   return { labels, data, postAggregatedData: post_aggregated_data }
-}
-
-const camelizeAnomalyResult = result => {
-  if (Array.isArray(result)) return result
-
-  const { labels, data } = result
-
-  return { labels, data }
 }
 
 export default payload => {
@@ -34,8 +39,8 @@ export default payload => {
   } = payload
 
   return {
-    result: camelizeResult(result),
-    anomaly: camelizeAnomalyResult(anomalyResult),
+    result: camelizeResult(result, { anomalyResult }),
+    anomalyResult,
     updateEvery,
     viewUpdateEvery,
     firstEntry,

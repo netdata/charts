@@ -1,12 +1,15 @@
 import React, { forwardRef } from "react"
 import { useTheme } from "styled-components"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
+import { Flex, ProgressBar, getColor } from "@netdata/netdata-ui"
 import Color, { Color as ColorContainer } from "@/components/line/dimensions/color"
 import Name, { Name as NameContainer } from "@/components/line/dimensions/name"
 import Value, { Value as ValueContainer } from "@/components/line/dimensions/value"
 import Units from "@/components/line/dimensions/units"
-import { useVisibleDimensionId, useChart } from "@/components/provider"
+import {
+  useVisibleDimensionId,
+  useChart,
+  useLatestAnomalyAverageValue,
+} from "@/components/provider"
 import Tooltip from "@/components/tooltip"
 
 const DimensionContainer = forwardRef((props, ref) => (
@@ -54,6 +57,12 @@ export const EmptyDimension = () => {
   )
 }
 
+const AnomalyProgressBar = ({ id }) => {
+  const value = useLatestAnomalyAverageValue(id)
+
+  return <ProgressBar height={1} width={`${value}%`} />
+}
+
 const Dimension = forwardRef(({ id }, ref) => {
   const visible = useVisibleDimensionId(id)
   const chart = useChart()
@@ -84,6 +93,7 @@ const Dimension = forwardRef(({ id }, ref) => {
             <Units visible={visible} />
           </Flex>
           {renderDimensionChildren?.(id, chart)}
+          <AnomalyProgressBar id={id} />
         </Flex>
       </Tooltip>
     </DimensionContainer>

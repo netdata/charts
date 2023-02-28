@@ -211,7 +211,7 @@ export const useUnit = () => {
   return chart.getUnits()
 }
 
-export const useLatestValue = id => {
+export const useLatestValue = (id, resultKey = "result") => {
   const chart = useChart()
 
   const [value, setState] = useState(null)
@@ -219,7 +219,7 @@ export const useLatestValue = id => {
   useLayoutEffect(() => {
     const getValue = () => {
       const hover = chart.getAttribute("hoverX")
-      const { result } = chart.getPayload()
+      const result = chart.getPayload()[resultKey]
       const dimensionIds = chart.getPayloadDimensionIds()
 
       if (result.data.length === 0) return ""
@@ -228,11 +228,43 @@ export const useLatestValue = id => {
       index = index === -1 ? result.data.length - 1 : index
 
       id = id || dimensionIds[0]
-      const value = chart.getDimensionValue(id, index)
+      const value = chart.getDimensionValue(id, index, resultKey)
 
       if (isNaN(value)) return ""
 
       return chart.getConvertedValue(value)
+    }
+
+    return unregister(
+      chart.onAttributeChange("hoverX", () => setState(getValue())),
+      chart.on("dimensionChanged", () => setState(getValue())),
+      chart.getUI().on("rendered", () => setState(getValue()))
+    )
+  }, [chart, id])
+
+  return value
+}
+
+export const useLatestAnomalyAverageValue = id => {
+  const chart = useChart()
+
+  const [value, setState] = useState(null)
+
+  useLayoutEffect(() => {
+    const getValue = () => {
+      const hover = chart.getAttribute("hoverX")
+      const { anomalyResult } = chart.getPayload()
+
+      if (anomalyResult.data.length === 0) return ""
+
+      let index = hover ? chart.getClosestRow(hover[0]) : -1
+      index = index === -1 ? anomalyResult.data.length - 1 : index
+
+      const [, ...values] = anomalyResult.data[index]
+
+      if (!Array.isArray(values)) return 0
+
+      return values.reduce((a, b) => a + b, 0) / values.length
     }
 
     return unregister(

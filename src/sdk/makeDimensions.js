@@ -182,8 +182,8 @@ export default (chart, sdk) => {
     return viewDimensions.priorities[dimensionsById[id]]
   }
 
-  const getDimensionValue = (id, index) => {
-    const { result } = chart.getPayload()
+  const getDimensionValue = (id, index, resultKey = "result") => {
+    const result = chart.getPayload()[resultKey]
     const pointData = result.data[index]
 
     if (!pointData) return null
