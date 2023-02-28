@@ -25,7 +25,9 @@ const seconds2time = (seconds, maxTimeUnit, minTimeUnit = "MS") => {
   const daysString = maxTimeUnit === "DAYS" ? `${days}d:` : ""
   const hoursString = maxTimeUnit === "DAYS" || maxTimeUnit === "HOURS" ? `${zeropad(hours)}:` : ""
   const minutesString = `${zeropad(minutes)}:`
-  const secondsString = zeropad(minTimeUnit === "MS" ? secondsReturn.toFixed(2) : secondsReturn)
+  const secondsString = zeropad(
+    minTimeUnit === "MS" ? secondsReturn.toFixed(2) : Math.round(secondsReturn)
+  )
 
   return `${daysString}${hoursString}${minutesString}${secondsString}`
 }
