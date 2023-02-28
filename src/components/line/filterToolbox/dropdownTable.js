@@ -83,6 +83,7 @@ const Dropdown = ({
         onGlobalSearchChange={noop}
         sx={{
           borderCollapse: "collapse",
+          tableLayout: "fixed",
         }}
         meta={tableMeta}
         sortBy={sortBy}

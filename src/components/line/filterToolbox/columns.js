@@ -1,5 +1,5 @@
 import React from "react"
-import { Flex, ProgressBar, TextSmall, AlertMasterCard } from "@netdata/netdata-ui"
+import { Flex, ProgressBar, TextSmall, MasterCard } from "@netdata/netdata-ui"
 import Color from "@/components/line/dimensions/color"
 import Label from "./label"
 
@@ -150,12 +150,12 @@ export const anomalyRateColumn = () => ({
 
     return (
       <>
-        <TextSmall color="primary">
+        <TextSmall color="textLite">
           {Math.round((getValue() + Number.EPSILON) * 100) / 100}%
         </TextSmall>
         <ProgressBar
           background="borderSecondary"
-          color={["green", "deyork"]}
+          color={["purple", "lilac"]}
           height={2}
           width={`${getValue()}%`}
           containerWidth="100%"
@@ -184,12 +184,7 @@ export const alertsColumn = () => ({
     return (
       <div>
         <Flex flex={false}>
-          <AlertMasterCard
-            pillLeft={pillLeft}
-            pillRight={pillRight}
-            pillEnd={pillEnd}
-            height="tiny"
-          />
+          <MasterCard pillLeft={pillLeft} pillRight={pillRight} pillEnd={pillEnd} />
         </Flex>
       </div>
     )
