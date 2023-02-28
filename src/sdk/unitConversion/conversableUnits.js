@@ -7,7 +7,9 @@ const fahrenheit = {
   convert: value => (value * 9) / 5 + 32,
 }
 
-const seconds2time = (seconds, maxTimeUnit) => {
+const seconds2time = (seconds, maxTimeUnit, minTimeUnit = "MS") => {
+  // todo maybe we should resign from MS, if we're only showing zeroes. we just need to properly
+  // annotate units in this case (not to show "HH:MM:SS.ms")
   let secondsReturn = Math.abs(seconds)
 
   const days = maxTimeUnit === "DAYS" ? Math.floor(secondsReturn / 86400) : 0
@@ -23,7 +25,9 @@ const seconds2time = (seconds, maxTimeUnit) => {
   const daysString = maxTimeUnit === "DAYS" ? `${days}d:` : ""
   const hoursString = maxTimeUnit === "DAYS" || maxTimeUnit === "HOURS" ? `${zeropad(hours)}:` : ""
   const minutesString = `${zeropad(minutes)}:`
-  let secondsString = zeropad(secondsReturn.toFixed(2))
+  const secondsString = zeropad(
+    minTimeUnit === "MS" ? secondsReturn.toFixed(2) : Math.round(secondsReturn)
+  )
 
   return `${daysString}${hoursString}${minutesString}${secondsString}`
 }
@@ -92,6 +96,10 @@ export default {
     "dHH:MM:SS.ms": {
       check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400,
       convert: value => seconds2time(value, "DAYS"),
+    },
+    "dHH:MM:ss": {
+      check: () => false, // only accepting desiredUnits
+      convert: value => seconds2time(value, "DAYS", "SECONDS"),
     },
   },
   // todo as seconds and milliseconds
