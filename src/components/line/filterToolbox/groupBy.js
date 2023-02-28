@@ -1,168 +1,34 @@
 import React, { useMemo, memo } from "react"
-import { Flex, ProgressBar, Text, TextSmall, AlertMasterCard } from "@netdata/netdata-ui"
 import { useChart, useAttribute, useAttributeValue } from "@/components/provider"
 import DropdownTable from "./dropdownTable"
-import Color from "@/components/line/dimensions/color"
-import Label from "./label"
+import { getStats } from "./utils"
+import {
+  labelColumn,
+  uniqueColumn,
+  metricsColumn,
+  contributionColumn,
+  anomalyRateColumn,
+  alertsColumn,
+} from "./columns"
 
 const defaultItems = [
-  { label: "dimension", value: "dimension", key: "dimensions" },
-  { label: "node", value: "node", key: "nodes" },
-  { label: "instance", value: "instance", key: "instances" },
+  { nm: "dimension", id: "dimension", key: "dimensions" },
+  { nm: "node", id: "node", key: "nodes" },
+  { nm: "instance", id: "instance", key: "instances" },
 ]
 
-const metricsByValue = {
-  dimension: "dimensions",
-  node: "nodes",
-  instance: "instances",
-  label: "labels",
-}
-
 const tooltipProps = {
-  heading: "Grouping by",
-  body: (
-    <div>
-      Select the grouping by:
-      <ul>
-        <li>Nodes to drill down and see metrics across nodes</li>
-        <li>Dimension to have an overview of your War Room</li> Chart to drill down to the
-        individual charts.
-        <li>
-          If a node has more than one software or hardware instance these form different charts
-        </li>
-      </ul>
-    </div>
-  ),
+  heading: "Group by",
+  body: "Slice and dice the source time-series metrics in multiple ways, to get different viewing angles on them. Multiple groupings can be selected at the same time to fine tune the segmentation.",
 }
 
 const columns = [
-  {
-    id: "label",
-    header: () => <TextSmall strong>Name</TextSmall>,
-    size: 180,
-    minSize: 60,
-    cell: ({ getValue, row }) => (
-      <Flex justifyContent="between" alignItems="center" padding={[0, 0, 0, row.depth * 3]}>
-        <Flex gap={1}>
-          <Color id={row.original.value} />
-          <TextSmall
-            strong={row.getCanExpand()}
-            onClick={!row.original.disabled ? row.getToggleSelectedHandler() : undefined}
-            cursor={row.original.disabled ? "default" : "pointer"}
-          >
-            {getValue()}
-          </TextSmall>
-        </Flex>
-        {row.getCanExpand() && (
-          <Label
-            label={metricsByValue[row.original.value] || metricsByValue.label}
-            onClick={e => {
-              row.getToggleExpandedHandler()(e)
-              setTimeout(() => e.target.scrollIntoView({ behavior: "smooth", block: "nearest" }))
-            }}
-            iconRotate={row.getIsExpanded() ? 2 : null}
-            textProps={{ fontSize: "10px", color: "textLite" }}
-          />
-        )}
-      </Flex>
-    ),
-  },
-  {
-    id: "unique",
-    header: <TextSmall strong>Unique</TextSmall>,
-    size: 100,
-    minSize: 30,
-    cell: ({ getValue }) => {
-      return <TextSmall color="textLite">{getValue()}</TextSmall>
-    },
-  },
-  {
-    id: "metrics",
-    header: <TextSmall strong>Metrics</TextSmall>,
-    size: 100,
-    minSize: 30,
-    cell: ({ row, getValue }) => {
-      if (!row.original.info?.ds) return <TextSmall color="textLite">{getValue()}</TextSmall>
-
-      const { qr = 0, sl = 0, ex = 0 } = row.original.info.ds
-      return (
-        <>
-          <TextSmall color="textLite">
-            <TextSmall color={["green", "deyork"]}>{qr}</TextSmall> out of {sl + ex}
-          </TextSmall>
-          <ProgressBar
-            background="borderSecondary"
-            color={["green", "deyork"]}
-            height={2}
-            width={`${(qr / (sl + ex)) * 100}%`}
-            containerWidth="100%"
-            border="none"
-          />
-        </>
-      )
-    },
-  },
-  {
-    id: "contribution",
-    header: <TextSmall strong>Contribution %</TextSmall>,
-    size: 100,
-    minSize: 30,
-    cell: ({ row, getValue }) => {
-      if (!row.original.info?.sts) return <TextSmall color="textLite">{getValue()}</TextSmall>
-
-      return (
-        <>
-          <TextSmall color={["green", "deyork"]}>
-            {Math.round((getValue() + Number.EPSILON) * 100) / 100}%
-          </TextSmall>
-          <ProgressBar
-            background="borderSecondary"
-            color={["green", "deyork"]}
-            height={2}
-            width={`${getValue()}%`}
-            containerWidth="100%"
-            border="none"
-          />
-        </>
-      )
-    },
-  },
-  {
-    id: "anomalyRate",
-    header: <TextSmall strong>Anomaly %</TextSmall>,
-    size: 100,
-    minSize: 30,
-    cell: ({ getValue }) => {
-      return <Text>{Math.round((getValue() + Number.EPSILON) * 100) / 100}%</Text>
-    },
-    meta: row => ({
-      cellStyles: {},
-    }),
-  },
-  {
-    id: "alerts",
-    header: <TextSmall strong>Chart alerts</TextSmall>,
-    size: 100,
-    minSize: 30,
-    cell: ({ row, getValue }) => {
-      if (!row.original.info?.al) return <TextSmall color="textLite">{getValue()}</TextSmall>
-
-      const { cl = 0, cr = 0, wr = 0 } = row.original.info.al
-      const pillLeft = {
-        type: "critical",
-      }
-      const pillRight = {
-        type: "critical",
-      }
-      return (
-        <>
-          <Text>
-            cr: {cr}, wr: {wr}, cl: {cl}
-          </Text>
-        </>
-      )
-    },
-  },
+  labelColumn("label"),
+  uniqueColumn(),
+  metricsColumn(),
+  contributionColumn(),
+  anomalyRateColumn(),
+  alertsColumn(),
 ]
 
 const GroupBy = ({ labelProps, ...rest }) => {
@@ -175,54 +41,34 @@ const GroupBy = ({ labelProps, ...rest }) => {
   const options = useMemo(() => {
     const metadata = chart.getMetadata()
 
-    const defaultOptions = defaultItems.map(item => ({
-      ...item,
-      "data-track": chart.track(`group-by-${item.value}`),
-      unique: metadata[item.key]?.length || 0,
-      metrics: metadata.dimensions.length,
-      contribution: "-",
-      anomalyRate: "-",
-      alerts: "-",
-      selected: groupBy.includes(item.value),
-      children: metadata[item.key].map(dim => ({
-        label: dim.nm || dim.id,
-        value: dim.id,
-        unique: "-",
-        metrics: dim.ds ? dim.ds.qr + dim.ds.qr / (dim.ds.ex + dim.ds.sl) : "-",
-        contribution: dim.sts?.con || 0,
-        anomalyRate: dim.sts?.arp || 0,
-        alerts: dim.al ? dim.al.cr * 3 + dim.al.wr * 2 + dim.al.cl : "-",
-        info: dim,
-        disabled: "hidden",
-      })),
-    }))
+    const defaultOptions = defaultItems.map(item => {
+      const selected = groupBy.includes(item.id)
+
+      return getStats(chart, item, {
+        key: "group-by",
+        childrenKey: "label",
+        props: {
+          contribution: "-",
+          anomalyRate: "-",
+          alerts: "-",
+          selected,
+        },
+        childProps: { unique: "-", disabled: "hidden" },
+        children: metadata[item.key],
+      })
+    })
 
     return [
       ...defaultOptions,
-      ...metadata.labels.map(item => ({
-        label: item.id,
-        value: item.id,
-        "data-track": chart.track(`group-by-label-${item.id}`),
-        unique: item.vl?.length || 0,
-        metrics: item.ds ? item.ds.qr + item.ds.qr / (item.ds.ex + item.ds.sl) : "-",
-        contribution: item.sts?.con || 0,
-        anomalyRate: item.sts?.arp || 0,
-        alerts: item.al ? item.al.cr * 3 + item.al.wr * 2 + item.al.cl : "-",
-        info: item,
-        isLabel: true,
-        selected: groupByLabel.includes(item.id),
-        children: item.vl.map(dim => ({
-          label: dim.nm || dim.id,
-          value: dim.id,
-          unique: "-",
-          metrics: dim.ds ? dim.ds.qr + dim.ds.qr / (dim.ds.ex + dim.ds.sl) : "-",
-          contribution: dim.sts?.con || 0,
-          anomalyRate: dim.sts?.arp || 0,
-          alerts: dim.al ? dim.al.cr * 3 + dim.al.wr * 2 + dim.al.cl : "-",
-          info: dim,
-          disabled: "hidden",
-        })),
-      })),
+      ...metadata.labels.map(item =>
+        getStats(chart, item, {
+          key: "group-by",
+          childrenKey: "label",
+          props: { isLabel: true, selected: groupByLabel.includes(item.id) },
+          childProps: { unique: "-", disabled: "hidden" },
+          children: item.vl,
+        })
+      ),
     ]
   }, [groupBy, groupByLabel])
 
@@ -243,13 +89,14 @@ const GroupBy = ({ labelProps, ...rest }) => {
   const value = useMemo(() => [...groupBy, ...groupByLabel], [groupBy, groupByLabel])
 
   const [sortBy, onSortByChange] = useAttribute("groupBySortBy")
+  const [expanded, onExpandedChange] = useAttribute("groupByExpanded")
 
   return (
     <DropdownTable
       label={label}
       data-track={chart.track("group-by")}
       labelProps={labelProps}
-      onChange={value => chart.updateGroupByAttribute(value)}
+      onChange={chart.updateGroupByAttribute}
       options={options}
       secondaryLabel="Group by"
       tooltipProps={tooltipProps}
@@ -258,6 +105,8 @@ const GroupBy = ({ labelProps, ...rest }) => {
       enableSubRowSelection={false}
       sortBy={sortBy}
       onSortByChange={onSortByChange}
+      expanded={expanded}
+      onExpandedChange={onExpandedChange}
       {...rest}
     />
   )

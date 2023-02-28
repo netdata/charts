@@ -117,7 +117,7 @@ export default ({
   const doneFetch = (nextRawPayload, { errored = false, error = null } = {}) => {
     if (!errored) backoffMs = 0
 
-    const { metadata, result, chartType, ...restPayload } = camelizePayload(nextRawPayload)
+    const { metadata, result, anomaly, chartType, ...restPayload } = camelizePayload(nextRawPayload)
 
     const prevPayload = nextPayload
 
@@ -128,6 +128,7 @@ export default ({
         ...restPayload,
         result,
         chartType,
+        anomaly,
       }
     } else {
       nextPayload = { ...initialPayload, ...nextPayload, ...restPayload, result, chartType }

@@ -27,11 +27,7 @@ const getPayload = chart => {
     nodes: selectedNodes.join("|") || wildcard,
     instances: selectedInstances.join("|") || wildcard,
     dimensions: selectedDimensions.join("|") || wildcard,
-    ...(selectedLabels && {
-      labels: Object.entries(selectedLabels)
-        .map(([key, value]) => `${key}:${value}*`)
-        .join("|"),
-    }),
+    labels: selectedLabels.join("|") || wildcard,
     ...getChartPayload(chart),
     group_by: chart.getAttribute("groupBy").join("|"),
     ...(!!groupByLabel && { group_by_label: groupByLabel }),

@@ -15,27 +15,17 @@ const useItems = chart =>
   )
 
 const tooltipProps = {
-  dimension: {
-    heading: "Aggregate function",
-    body: "It is applied for the selected dimensions across the nodes.",
-  },
-  node: {
-    heading: "Aggregate function",
-    body: "It is applied on all charts from each node for the aggregated dimensions.",
-  },
+  heading: "Metrics aggregation",
+  body: "View or select the aggregation function applied when multiple source time-series metrics need to be grouped together to be presented as dimensions on this chart.",
 }
 
 const Aggregate = ({ labelProps, ...rest }) => {
   const chart = useChart()
   const value = useAttributeValue("aggregationMethod")
-  const groupBy = useAttributeValue("groupBy")
 
   const items = useItems(chart)
 
   const { short } = items.find(item => item.value === value) || items[0]
-
-  const tooltipAttrs =
-    groupBy.length === 1 && groupBy[0] === "dimension" ? tooltipProps.dimension : tooltipProps.node
 
   return (
     <Menu
@@ -49,8 +39,8 @@ const Aggregate = ({ labelProps, ...rest }) => {
       <Label
         secondaryLabel="the"
         label={short}
-        title={tooltipAttrs.heading}
-        tooltipProps={tooltipAttrs}
+        title={tooltipProps.heading}
+        tooltipProps={tooltipProps}
         {...labelProps}
       />
     </Menu>

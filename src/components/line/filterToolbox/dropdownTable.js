@@ -22,16 +22,31 @@ export const meta = (row, cell, index) => ({
     height: "32px",
   },
   styles: { verticalAlign: "middle" },
+  bulkActionsStyles: {
+    padding: [0, 0, 2],
+  },
   searchContainerStyles: {
     width: "100%",
-    padding: [2, 2, 0],
+    padding: [2],
   },
-  enableSelectionSorting: true,
+  searchStyles: {
+    inputContainerStyles: {
+      height: "20px",
+      border: { side: "bottom", size: "1px", color: "inputBorder" },
+      padding: [1, 2],
+      round: false,
+      _hover: {
+        border: { side: "bottom", size: "1px", color: "inputBorderHover" },
+      },
+    },
+  },
 })
 
 const noop = () => {}
 
 const defaultSortBy = [{ id: "contribution", desc: true }]
+
+const defaultExpanded = {}
 
 const Dropdown = ({
   hideShadow,
@@ -42,7 +57,10 @@ const Dropdown = ({
   columns,
   sortBy,
   onSortByChange,
+  expanded,
+  onExpandedChange,
   tableMeta = meta,
+  enableSubRowSelection,
   ...rest
 }) => {
   return (
@@ -54,7 +72,7 @@ const Dropdown = ({
       margin={[1, 0]}
       column
       tabindex="-1"
-      width="800px"
+      flex
       {...rest}
     >
       <NetdataTable
@@ -62,7 +80,7 @@ const Dropdown = ({
         enableSelection
         dataColumns={columns}
         data={items}
-        onRowSelected={selected => onItemClick({ values: selected.map(s => s.value), selected })}
+        onRowSelected={onItemClick}
         onGlobalSearchChange={noop}
         sx={{
           borderCollapse: "collapse",
@@ -71,6 +89,9 @@ const Dropdown = ({
         sortBy={sortBy}
         rowSelection={rowSelection}
         onSortingChange={onSortByChange}
+        expanded={expanded}
+        onExpandedChange={onExpandedChange}
+        enableSubRowSelection={enableSubRowSelection}
         // bulkActions={bulkActions}
         // rowActions={rowActions}
       />
@@ -100,7 +121,10 @@ const DropdownTable = ({
   columns,
   sortBy = defaultSortBy,
   onSortByChange,
+  expanded = defaultExpanded,
+  onExpandedChange,
   tableMeta,
+  enableSubRowSelection,
   ...rest
 }) => {
   const newValuesRef = useRef(value)
@@ -124,15 +148,21 @@ const DropdownTable = ({
         align: { top: "bottom", left: "left" },
         "data-toolbox": true,
         keepHorizontal: true,
+        width: "90%",
+        stretch: null,
       }}
       dropdownProps={{
-        height: { max: "60vh" },
+        height: { max: "90vh" },
+        width: "100%",
         overflow: "auto",
         columns,
         rowSelection,
         sortBy,
         onSortByChange,
+        expanded,
+        onExpandedChange,
         tableMeta,
+        enableSubRowSelection,
       }}
       value={value}
       onClose={() => onChange(newValuesRef.current)}

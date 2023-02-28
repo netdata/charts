@@ -36,7 +36,7 @@ export default {
     labels: [],
     data: [],
   },
-  anomaly_rates: {
+  anomaly: {
     labels: [],
     data: [],
   },

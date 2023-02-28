@@ -18,8 +18,8 @@ const FilterToolbox = props => (
     <Nodes />
     <Instances />
     <Dimensions />
+    <Labels />
     <TimeAggregation />
-    {/*<ChartLabels />*/}
     <Reset />
   </Container>
 )

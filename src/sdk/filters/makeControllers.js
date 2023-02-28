@@ -24,13 +24,13 @@ export default chart => {
     prevChartType = metadata.chartType
   }
 
-  const canBeGroupedByAttrs = {
+  const allowedGroupByValues = {
     node: true,
     instance: true,
     dimension: true,
   }
 
-  const updateGroupByAttribute = ({ values, selected }) => {
+  const updateGroupByAttribute = selected => {
     const prevGroupByLabel = chart.getAttribute("groupByLabel")
     const selectedLabels = selected.filter(sel => sel.isLabel)
 
@@ -39,7 +39,11 @@ export default chart => {
       selectedLabels.map(sel => sel.value)
     )
 
-    let newValues = values.filter(value => canBeGroupedByAttrs[value])
+    let newValues = selected.reduce((h, sel) => {
+      if (!allowedGroupByValues[sel.value]) return h
+      h.push(sel.value)
+      return h
+    }, [])
 
     if (selectedLabels.length) newValues.push("label")
 
@@ -60,38 +64,65 @@ export default chart => {
     chart.fetchAndRender().then(() => onGroupChange(chart.getAttribute("groupBy")))
   }
 
-  const updateNodesAttribute = ({ values }) => {
-    const selectedNodes = chart.getAttribute("selectedNodes")
-    chart.updateAttribute("selectedNodes", values)
+  const updateNodesAttribute = selected => {
+    const { selectedNodes, selectedInstances } = selected.reduce(
+      (h, sel) => {
+        if (sel.isInstance) {
+          h.selectedInstances.push(sel.value)
+        } else {
+          h.selectedNodes.push(sel.value)
+        }
+        return h
+      },
+      { selectedNodes: [], selectedInstances: [] }
+    )
 
-    if (deepEqual(selectedNodes, chart.getAttribute("selectedNodes"))) return
+    const prevSelectedNodes = chart.getAttribute("selectedNodes")
+    chart.updateAttribute("selectedNodes", selectedNodes)
+
+    const prevSelectedInstances = chart.getAttribute("selectedInstances")
+    chart.updateAttribute("selectedInstances", selectedInstances)
+    if (
+      deepEqual(prevSelectedNodes, chart.getAttribute("selectedNodes")) &&
+      deepEqual(prevSelectedInstances, chart.getAttribute("selectedInstances"))
+    )
+      return
 
     chart.fetchAndRender()
   }
 
-  const updateInstancesAttribute = ({ values }) => {
+  const updateInstancesAttribute = selected => {
     const selectedInstances = chart.getAttribute("selectedInstances")
-    chart.updateAttribute("selectedInstances", values)
+    chart.updateAttribute(
+      "selectedInstances",
+      selected.map(sel => sel.value)
+    )
 
     if (deepEqual(selectedInstances, chart.getAttribute("selectedInstances"))) return
 
     chart.fetchAndRender()
   }
 
-  const updateDimensionsAttribute = ({ values }) => {
+  const updateDimensionsAttribute = selected => {
     const selectedDimensions = chart.getAttribute("selectedDimensions")
-    chart.updateAttribute("selectedDimensions", values)
+    chart.updateAttribute(
+      "selectedDimensions",
+      selected.map(sel => sel.value)
+    )
 
     if (deepEqual(selectedDimensions, chart.getAttribute("selectedDimensions"))) return
 
     chart.fetchAndRender()
   }
 
-  const updateFilteredLabelsAttribute = ({ values }) => {
-    const filteredLabels = chart.getAttribute("filteredLabels")
-    chart.updateAttribute("filteredLabels", values)
+  const updateLabelsAttribute = selected => {
+    const prevSelectedLabels = chart.getAttribute("selectedLabels")
+    chart.updateAttribute(
+      "selectedLabels",
+      selected.map(sel => sel.value)
+    )
 
-    if (deepEqual(filteredLabels, chart.getAttribute("filteredLabels"))) return
+    if (deepEqual(prevSelectedLabels, chart.getAttribute("selectedLabels"))) return
 
     chart.fetchAndRender()
   }
@@ -146,7 +177,7 @@ export default chart => {
     updateNodesAttribute,
     updateInstancesAttribute,
     updateDimensionsAttribute,
-    updateFilteredLabelsAttribute,
+    updateLabelsAttribute,
     updateAggregationMethodAttribute,
     updateTimeAggregationMethodAttribute,
     resetPristine,

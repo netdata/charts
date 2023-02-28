@@ -1,6 +1,6 @@
 import React from "react"
 import styled from "styled-components"
-import { Button } from "@netdata/netdata-ui/lib/components/button"
+import { Button } from "@netdata/netdata-ui"
 import { useChart, useAttributeValue } from "@/components/provider/selectors"
 
 const StyledButton = styled(Button).attrs({
@@ -10,7 +10,7 @@ const StyledButton = styled(Button).attrs({
   height: "initial",
   padding: [0, 1],
   title: "Reset Filters",
-  size: "small",
+  small: true,
 })`
   && {
     height: initial;
