@@ -32,9 +32,8 @@ export const meta = (row, cell, index) => ({
     inputContainerStyles: {
       height: "20px",
       border: { side: "all", size: "1px", color: "inputBorder" },
-      round: "2px",
+      round: true,
       padding: [1, 2],
-      borderRadius: 2,
       _hover: {
         border: { side: "all", size: "1px", color: "inputBorderHover" },
       },
