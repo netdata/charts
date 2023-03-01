@@ -8,10 +8,10 @@ import {
   useImmediateListener,
   useOnResize,
 } from "@/components/provider"
-import styled from "styled-components"
+import styled, { keyframes } from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { Text } from "@netdata/netdata-ui/lib/components/typography"
-import { withChartProvider, useIsFetching } from "@/components/provider"
+import { withChartProvider, useIsFetching, useLoadingColor } from "@/components/provider"
 import withChartTrack from "@/components/hocs/withChartTrack"
 import withIntersection from "./withIntersection"
 import withDifferedMount from "@/components/hocs/withDifferedMount"
@@ -91,13 +91,25 @@ export const Stats = () => {
   )
 }
 
-export const Skeleton = styled(Flex).attrs({
+const frames = keyframes`
+  from { opacity: 0.2; }
+  to { opacity: 0.6; }
+`
+
+export const Skeleton = styled(Flex).attrs(props => ({
   background: "borderSecondary",
   position: "absolute",
   round: "100%",
-})`
+  ...props,
+}))`
   inset: 0;
+  animation: ${frames} 1.6s ease-in infinite;
 `
+
+export const SkeletonIcon = () => {
+  const color = useLoadingColor()
+  return <Skeleton background={color} />
+}
 
 export const Container = styled(Flex).attrs({ position: "relative" })`
   padding-bottom: 100%;
@@ -108,7 +120,7 @@ export const EasyPie = props => {
 
   return (
     <Container {...props}>
-      {!loaded && <Skeleton />}
+      {!loaded && <SkeletonIcon />}
       {loaded && (
         <ChartWrapper>
           <Stats />

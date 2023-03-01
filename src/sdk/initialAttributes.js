@@ -123,6 +123,10 @@ export default {
   themeGaugeStroke: ["#ECEEEF", "#383B40"],
 
   themeLabelColor: ["#35414a", "#ffffff"],
+  themeNeutralBackground: ["#ECEEEF", "#383B40"],
+  themeWarningBackground: ["#FFEDB3", "#FFE182"],
+  themeErrorBackground: ["#FFEBEF", "#F59B9B"],
+
   legendScroll: 0,
 
   initializedFilters: false,

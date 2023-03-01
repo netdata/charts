@@ -64,7 +64,7 @@ export default (sdk, chart) => {
   const getThemeAttribute = name => {
     const attributes = chart.getAttributes()
     const index = getThemeIndex()
-    return attributes[name][index]
+    return attributes[name]?.[index] || name
   }
 
   const getChartWidth = () => {

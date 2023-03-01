@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import styled from "styled-components"
+import styled, { keyframes } from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { Text } from "@netdata/netdata-ui/lib/components/typography"
 import ChartContainer from "@/components/chartContainer"
@@ -13,7 +13,7 @@ import {
 } from "@/components/provider"
 import { getSizeBy } from "@netdata/netdata-ui/lib/theme/utils"
 import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
-import { withChartProvider, useIsFetching } from "@/components/provider"
+import { withChartProvider, useIsFetching, useLoadingColor } from "@/components/provider"
 import withChartTrack from "@/components/hocs/withChartTrack"
 import withIntersection from "./withIntersection"
 import withDifferedMount from "@/components/hocs/withDifferedMount"
@@ -133,14 +133,26 @@ export const Stats = () => {
   )
 }
 
-export const Skeleton = styled(Flex).attrs({
+const frames = keyframes`
+  from { opacity: 0.2; }
+  to { opacity: 0.6; }
+`
+
+export const Skeleton = styled(Flex).attrs(props => ({
   background: "borderSecondary",
   position: "absolute",
-})`
+  ...props,
+}))`
   inset: ${getSizeBy(1)} ${getSizeBy(3)} ${getSizeBy(3)};
   border-top-left-radius: 100%;
   border-top-right-radius: 100%;
+  animation: ${frames} 1.6s ease-in infinite;
 `
+
+export const SkeletonIcon = () => {
+  const color = useLoadingColor()
+  return <Skeleton background={color} />
+}
 
 export const Container = styled(Flex).attrs({ position: "relative" })`
   padding-bottom: 60%;
@@ -156,7 +168,7 @@ export const Gauge = props => {
 
   return (
     <Container {...props}>
-      {!loaded && <Skeleton />}
+      {!loaded && <SkeletonIcon />}
       {loaded && (
         <ChartWrapper>
           <ChartContainer as="canvas" />

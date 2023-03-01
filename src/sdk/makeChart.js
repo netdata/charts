@@ -114,24 +114,19 @@ export default ({
     return Array.isArray(result) ? result.length : result.data?.length || 0
   }
 
-  const doneFetch = (nextRawPayload, { errored = false, error = null } = {}) => {
-    if (!errored) backoffMs = 0
-
+  const doneFetch = nextRawPayload => {
+    backoffMs = 0
     const { metadata, result, anomaly, chartType, ...restPayload } = camelizePayload(nextRawPayload)
 
     const prevPayload = nextPayload
 
-    if (errored && nextPayload?.result?.data?.length) {
-      nextPayload = {
-        ...initialPayload,
-        ...nextPayload,
-        ...restPayload,
-        result,
-        chartType,
-        anomaly,
-      }
-    } else {
-      nextPayload = { ...initialPayload, ...nextPayload, ...restPayload, result, chartType }
+    nextPayload = {
+      ...initialPayload,
+      ...nextPayload,
+      ...restPayload,
+      result,
+      chartType,
+      anomaly,
     }
 
     if (
@@ -151,7 +146,7 @@ export default ({
 
     invalidateClosestRowCache()
 
-    if (!node.getAttribute("loaded") && !errored) node.getParent().trigger("chartLoaded", node)
+    if (!node.getAttribute("loaded")) node.getParent().trigger("chartLoaded", node)
 
     const wasLoaded = node.getAttribute("loaded")
 
@@ -164,11 +159,11 @@ export default ({
       outOfLimits: !dataLength,
       chartType: attributes.selectedChartType || attributes.chartType || chartType,
       ...restPayload,
-      error,
+      error: null,
     })
 
-    if (wasLoaded && !errored) node.trigger("successFetch", nextPayload, prevPayload)
-    invalidateContexts(nextRawPayload?.versions?.contexts_hard_hash)
+    if (wasLoaded) node.trigger("successFetch", nextPayload, prevPayload)
+    invalidateContexts(nextPayload?.versions?.contexts_hard_hash)
     finishFetch()
   }
 
@@ -186,22 +181,25 @@ export default ({
   const failFetch = error => {
     if (!node) return
 
-    node.updateAttributes({
-      loading: false,
-    })
     if (error?.name === "AbortError") return
 
     backoff()
     if (!error || error.name !== "AbortError") node.trigger("failFetch", error)
 
-    doneFetch(
-      { ...initialPayload, ...error },
-      {
-        errored: true,
-        error:
-          errorCodesToMessage[error?.errorMessage] || error?.errorMessage || "Something went wrong",
-      }
-    )
+    if (!node.getAttribute("loaded")) node.getParent().trigger("chartLoaded", node)
+
+    node.updateAttributes({
+      loaded: true, //node.getAttribute("loaded"),
+      loading: false,
+      updatedAt: Date.now(),
+      error:
+        errorCodesToMessage[error?.errorMessage] ||
+        error?.errorMessage ||
+        error?.message ||
+        "Something went wrong",
+    })
+
+    finishFetch()
   }
 
   const dataFetch = () => {
@@ -241,7 +239,7 @@ export default ({
     updateMetadata()
     if (!isNewerThanRetention())
       return Promise.resolve().then(() =>
-        doneFetch(initialPayload, { errored: true, error: "Exceeds agent data retention settings" })
+        failFetch({ message: "Exceeds agent data retention settings" })
       )
 
     const doFetchMetadata = () => {
@@ -259,10 +257,7 @@ export default ({
           updateMetadata()
           if (!isNewerThanRetention())
             return Promise.resolve().then(() =>
-              doneFetch(initialPayload, {
-                errored: true,
-                error: "Exceeds agent data retention settings",
-              })
+              failFetch({ message: "Exceeds agent data retention settings" })
             )
         })
         .catch(failFetch)

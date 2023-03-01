@@ -14,13 +14,14 @@ const Container = styled(Flex).attrs(props => ({
   background: "dropdown",
   column: true,
   padding: [4],
+  gap: 1,
 }))`
   box-shadow: 0px 8px 12px rgba(9, 30, 66, 0.15), 0px 0px 1px rgba(9, 30, 66, 0.31);
 `
 
 const emptyArray = [null, null]
 
-const maxDimensions = 16
+const maxDimensions = Math.floor((window.innerHeight - 300) / 15) || 16
 const half = maxDimensions / 2
 
 const getFrom = (total, index) => {
@@ -65,11 +66,11 @@ const Dimensions = () => {
     return [from, to, total, ids]
   }, [chart, row, x])
 
-  const chartWidth = chart.getUI().getEstimatedChartWidth() * 0.7
+  const chartWidth = chart.getUI().getEstimatedChartWidth() * 0.9
 
   return (
     <Container data-testid="chartPopover-dimensions" maxWidth={chartWidth}>
-      <Flex column>
+      <Flex column gap={1}>
         {x && <Timestamp value={x} />}
         <UpdateEvery />
       </Flex>
@@ -80,7 +81,7 @@ const Dimensions = () => {
             key={id}
             id={id}
             strong={row === id}
-            chars={chartWidth ? chartWidth / 8 : 200}
+            chars={chartWidth ? chartWidth / 3 : 200}
           />
         ))}
       </Flex>

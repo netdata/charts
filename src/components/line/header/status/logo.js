@@ -2,7 +2,7 @@ import React from "react"
 import styled, { keyframes, css } from "styled-components"
 import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
 import loading from "@netdata/netdata-ui/lib/components/icon/assets/loading.svg"
-import { useIsFetching } from "@/components/provider"
+import { useIsFetching, useLoadingColor } from "@/components/provider"
 import Icon from "@/components/icon"
 
 const frames = keyframes`
@@ -26,18 +26,20 @@ const animation = css`
 `
 
 const StyledIcon = styled(Icon)`
-  stroke: ${({ theme }) => getColor("tabsBorder")({ theme })};
+  stroke: ${({ strokeColor, theme }) => getColor(strokeColor)({ theme })};
   stroke-width: 2;
   ${({ isFetching }) => isFetching && animation}
 `
 
 const Logo = props => {
   const isFetching = useIsFetching()
+  const color = useLoadingColor("tabsBorder")
 
   return (
     <StyledIcon
       svg={loading}
       color="mainBackground"
+      strokeColor={color}
       isFetching={isFetching}
       title={isFetching ? "Playing" : "Paused"}
       data-testid="chartHeaderStatus-logo"

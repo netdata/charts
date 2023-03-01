@@ -72,12 +72,8 @@ const Container = () => {
         })
       ),
       chart.on("blurChart", () => setOpen(false)),
-      chart.onAttributeChange("panning", panning => {
-        if (panning) setOpen(false)
-      }),
-      chart.onAttributeChange("highlighting", panning => {
-        if (panning) setOpen(false)
-      }),
+      chart.onAttributeChange("panning", panning => panning && setOpen(false)),
+      chart.onAttributeChange("highlighting", panning => panning && setOpen(false)),
       () => executeLatest && executeLatest.clear()
     )
   }, [chart])

@@ -7,11 +7,12 @@ export default (chartUI, id) => {
   const beforeSecs = before / 1000
 
   const firstEntry = chartUI.chart.getFirstEntry()
-  const outOfLimits = chartUI.chart.getAttribute("outOfLimits")
+  const { outOfLimits, error } = chartUI.chart.getAttributes()
 
-  if (!outOfLimits && (!firstEntry || firstEntry > beforeSecs)) return
+  if (!outOfLimits && (!firstEntry || firstEntry > beforeSecs / 1000) && !error) return
 
-  const range = outOfLimits ? [beforeSecs, beforeSecs] : [firstEntry, firstEntry]
+  const range = outOfLimits || error ? [before / 1000, before / 1000] : [firstEntry, firstEntry]
+
   const area = getArea(dygraph, range)
 
   trigger(chartUI, id, area)

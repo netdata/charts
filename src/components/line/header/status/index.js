@@ -27,7 +27,8 @@ const propsByStatus = {
 
 const useStatusProps = ({ initialLoading, error }) =>
   useMemo(() => {
-    if (error) return propsByStatus.error
+    if (error)
+      return { ...propsByStatus.error, children: `${propsByStatus.error.children}: ${error}` }
     if (initialLoading) return propsByStatus.loading
     return null
   }, [initialLoading, error])

@@ -1,5 +1,6 @@
-import { unregister } from "@/helpers/makeListeners"
 import { useCallback, useLayoutEffect, useContext, useMemo, useReducer, useState } from "react"
+import { scaleLinear } from "d3-scale"
+import { unregister } from "@/helpers/makeListeners"
 import chartTitleByContextMap from "../helpers/chartTitleByContextMap"
 import context from "./context"
 
@@ -35,6 +36,37 @@ export const useInitialLoading = () => {
   useImmediateListener(() => chart.onAttributeChange("loaded", forceUpdate), [chart])
 
   return !chart.getAttribute("loaded")
+}
+
+export const useLoadingColor = (defaultColor = "themeNeutralBackground") => {
+  const chart = useChart()
+  const [color, setColor] = useState(defaultColor)
+  const fetchStartedAt = useAttributeValue("fetchStartedAt")
+  const loading = useAttributeValue("loading")
+
+  useLayoutEffect(() => {
+    if (!loading) {
+      setColor(defaultColor)
+      return
+    }
+
+    const getColor = scaleLinear()
+      .domain([0, 500, 2000, 100000])
+      .range([
+        chart.getUI().getThemeAttribute(defaultColor),
+        chart.getUI().getThemeAttribute(defaultColor),
+        chart.getUI().getThemeAttribute("themeWarningBackground"),
+        chart.getUI().getThemeAttribute("themeErrorBackground"),
+      ])
+
+    const id = setInterval(() => {
+      setColor(getColor(Date.now() - fetchStartedAt))
+    }, 500)
+
+    return () => clearInterval(id)
+  }, [loading, fetchStartedAt, chart])
+
+  return color
 }
 
 export const useIsFetching = () => {
@@ -129,19 +161,19 @@ export const usePayload = () => {
 }
 
 export const useChartError = () => {
-  const [error, setError] = useState(false)
+  const [error, setError] = useState(null)
   const chart = useChart()
   const forceUpdate = useForceUpdate()
 
   useImmediateListener(() => {
-    const handleFetch = ({ hasError }) => {
-      setError(hasError)
+    const handleFetch = errorMessage => {
+      setError(errorMessage)
       forceUpdate()
     }
 
     return chart
-      .on("successFetch", () => handleFetch({ hasError: false }))
-      .on("failFetch", () => handleFetch({ hasError: true }))
+      .on("successFetch", () => handleFetch(chart.getAttribute("error")))
+      .on("failFetch", () => handleFetch(chart.getAttribute("error")))
   }, [chart])
 
   return error
@@ -220,12 +252,13 @@ export const useLatestValue = (id, resultKey = "result") => {
     const getValue = () => {
       const hover = chart.getAttribute("hoverX")
       const result = chart.getPayload()[resultKey]
-      const dimensionIds = chart.getPayloadDimensionIds()
 
       if (result.data.length === 0) return ""
 
       let index = hover ? chart.getClosestRow(hover[0]) : -1
       index = index === -1 ? result.data.length - 1 : index
+
+      const dimensionIds = chart.getPayloadDimensionIds()
 
       id = id || dimensionIds[0]
       const value = chart.getDimensionValue(id, index, resultKey)
@@ -234,6 +267,8 @@ export const useLatestValue = (id, resultKey = "result") => {
 
       return chart.getConvertedValue(value)
     }
+
+    if (value === null) setState(getValue())
 
     return unregister(
       chart.onAttributeChange("hoverX", () => setState(getValue())),

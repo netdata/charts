@@ -2,7 +2,7 @@ import React from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { Text } from "@netdata/netdata-ui/lib/components/typography"
-import { useChart, useAttributeValue } from "@/components/provider"
+import { useChart, useChartError } from "@/components/provider"
 
 const NoDataContainer = styled(Flex).attrs({
   column: true,
@@ -19,7 +19,8 @@ const NoData = props => {
   const chart = useChart()
 
   const chartWidth = chart.getUI().getChartWidth()
-  const error = useAttributeValue("error")
+  const error = useChartError()
+  console.log("error", error)
 
   if (chartWidth < 240) return null
 

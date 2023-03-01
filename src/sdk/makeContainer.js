@@ -73,6 +73,8 @@ export default ({ sdk, parent, attributes } = {}) => {
   const findColor = (groupId, id) => {
     const byId = colorsByGroupId[groupId]
 
+    if (!byId) return []
+
     const re = new RegExp(`((,${id})|(${id},))`)
     const lookupId = Object.keys(byId).find(dimId => dimId === id || re.test(dimId))
 
