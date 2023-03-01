@@ -37,7 +37,7 @@ export const meta = (row, cell, index) => ({
       round: true,
       padding: [1, 2],
       _hover: {
-        border: { side: "all", size: "1px", color: "inputBorderHover" },
+        border: { side: "all", size: "1px", color: "borderSecondary" },
       },
     },
   },
