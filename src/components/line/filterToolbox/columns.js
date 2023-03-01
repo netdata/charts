@@ -22,7 +22,7 @@ export const labelColumn = fallbackExpandKey => ({
       <Flex gap={1}>
         <Color id={row.original.value} />
         <TextSmall
-          strong={row.getCanExpand()}
+          strong
           onClick={!row.original.disabled ? row.getToggleSelectedHandler() : undefined}
           cursor={row.original.disabled ? "default" : "pointer"}
         >
