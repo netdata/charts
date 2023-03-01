@@ -29,7 +29,7 @@ const Nodes = ({ labelProps, ...rest }) => {
   const chart = useChart()
   const value = useAttributeValue("selectedNodes")
   const isAgent = chart.getAttributes("agent")
-  const { nodes, instances } = useMetadata()
+  const { nodes, instances, nodesTotals } = useMetadata()
   let label = `${nodes.length} nodes`
 
   const selectedInstances = useAttributeValue("selectedInstances")
@@ -80,6 +80,7 @@ const Nodes = ({ labelProps, ...rest }) => {
       expanded={expanded}
       onExpandedChange={onExpandedChange}
       enableSubRowSelection={false}
+      totals={nodesTotals}
       {...rest}
     />
   )

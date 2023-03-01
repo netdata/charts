@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback, useMemo } from "react"
+import React, { useEffect, useState, useCallback, useMemo } from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { Text, TextSmall, TextMicro } from "@netdata/netdata-ui/lib/components/typography"
@@ -67,6 +67,9 @@ const Dropdown = ({
   onExpandedChange,
   tableMeta = meta,
   enableSubRowSelection,
+  value,
+  newValues,
+  totals,
   ...rest
 }) => {
   return (
@@ -101,41 +104,57 @@ const Dropdown = ({
         // bulkActions={bulkActions}
         // rowActions={rowActions}
       />
-      <Flex
-        padding={[2]}
-        justifyContent="between"
-        border={{ side: "top", color: "borderSecondary" }}
-      >
-        <Flex gap={1} alignItems="end">
-          <TextSmall color="textLite">
-            Selected <TextSmall strong>4</TextSmall> out of <TextSmall strong>887</TextSmall>
-          </TextSmall>
-          <TextMicro cursor="pointer" color="primary">
-            clear
-          </TextMicro>
+      {totals && (
+        <Flex
+          padding={[2]}
+          justifyContent="between"
+          border={{ side: "top", color: "borderSecondary" }}
+        >
+          <Flex gap={1} alignItems="end">
+            <TextSmall color="textLite">
+              Selected{" "}
+              <TextSmall strong>
+                {newValues.length || (totals.sl || 0) + (totals.ex || 0)}
+              </TextSmall>{" "}
+              out of <TextSmall strong>{(totals.sl || 0) + (totals.ex || 0)}</TextSmall>
+            </TextSmall>
+            <TextMicro cursor="pointer" color="primary" onClick={() => onItemClick([])}>
+              clear
+            </TextMicro>
+            <TextMicro cursor="pointer" color="primary" onClick={() => onItemClick(value)}>
+              undo
+            </TextMicro>
+          </Flex>
+
+          <Flex>
+            <TextMicro color="textLite">
+              <TextMicro color="primary">{totals.qr || 0}</TextMicro> queried{" "}
+              <Icon
+                margin={[-0.5, 1, -0.5, 0]}
+                width="14px"
+                height="14px"
+                color="primary"
+                svg={checkmark_s}
+              />
+              {totals.fl && (
+                <>
+                  + <TextMicro color="errorLite">{totals.fl || 0}</TextMicro> failed{" "}
+                  <Icon
+                    margin={[-0.5, 1, -0.5, 0]}
+                    width="14px"
+                    height="14px"
+                    color="errorLite"
+                    svg={warning_triangle_hollow}
+                  />
+                </>
+              )}
+              of <TextMicro>{value.length || (totals.sl || 0) + (totals.ex || 0)}</TextMicro>{" "}
+              selected, out of <TextMicro>{(totals.sl || 0) + (totals.ex || 0)}</TextMicro>{" "}
+              available
+            </TextMicro>
+          </Flex>
         </Flex>
-        <Flex>
-          <TextMicro color="textLite">
-            <TextMicro color="primary">19 </TextMicro>queried{" "}
-            <Icon
-              margin={[-0.5, 1, -0.5, 0]}
-              width="14px"
-              height="14px"
-              color="primary"
-              svg={checkmark_s}
-            />
-            + <TextMicro color="errorLite">12</TextMicro> failed{" "}
-            <Icon
-              margin={[-0.5, 1, -0.5, 0]}
-              width="14px"
-              height="14px"
-              color="errorLite"
-              svg={warning_triangle_hollow}
-            />
-            of <TextMicro>42</TextMicro> Selected, out of <TextMicro>887</TextMicro> available
-          </TextMicro>
-        </Flex>
-      </Flex>
+      )}
     </Container>
   )
 }
@@ -166,15 +185,16 @@ const DropdownTable = ({
   onExpandedChange,
   tableMeta,
   enableSubRowSelection,
+  totals,
   ...rest
 }) => {
-  const newValuesRef = useRef(value)
+  const [newValues, setNewValues] = useState(value)
 
   useEffect(() => {
-    newValuesRef.current = value
+    setNewValues(value)
   }, [value])
 
-  const onSelect = useCallback(val => (newValuesRef.current = val), [])
+  const onSelect = useCallback(val => setNewValues(val), [])
 
   const rowSelection = useMemo(() => buildSelections(options, {}), [options])
 
@@ -204,6 +224,9 @@ const DropdownTable = ({
         onExpandedChange,
         tableMeta,
         enableSubRowSelection,
+        value,
+        totals,
+        newValues,
       }}
       value={value}
       onClose={() => onChange(newValuesRef.current)}

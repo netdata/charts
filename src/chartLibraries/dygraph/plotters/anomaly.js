@@ -20,10 +20,12 @@ export default chartUI => plotter => {
     points.forEach(p => {
       const center_x = p.canvasx
 
-      ctx.fillStyle = getColor(p.yval)
+      const value = p.yval.reduce((a, b) => (a > b ? a : b), 0)
+
+      ctx.fillStyle = getColor(value)
       ctx.fillRect(center_x - bar_width / 2, 0, bar_width, 15)
 
-      ctx.strokeStyle = getColor(p.yval)
+      ctx.strokeStyle = getColor(value)
       ctx.strokeRect(center_x - bar_width / 2, 0, bar_width, 15)
     })
   }

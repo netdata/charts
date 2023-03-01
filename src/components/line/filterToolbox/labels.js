@@ -27,7 +27,7 @@ const Labels = ({ labelProps, ...rest }) => {
   const chart = useChart()
   const value = useAttributeValue("selectedLabels")
 
-  const { labels } = useMetadata()
+  const { labels, labelsTotals } = useMetadata()
   let label = `${labels.length} labels`
 
   const options = useMemo(
@@ -70,6 +70,7 @@ const Labels = ({ labelProps, ...rest }) => {
       onSortByChange={onSortByChange}
       expanded={expanded}
       onExpandedChange={onExpandedChange}
+      totals={labelsTotals}
       {...rest}
     />
   )

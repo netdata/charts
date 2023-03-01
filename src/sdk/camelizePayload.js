@@ -6,7 +6,7 @@ const camelizeResult = (result, { anomalyResult }) => {
   if (anomalyResult && typeof anomalyResult === "object" && Array.isArray(anomalyResult.data)) {
     const enhancedData = data.map((row, i) => {
       const [, ...anomalyRow] = anomalyResult.data[i]
-      return [...row, anomalyRow.reduce((a, b) => (a > b ? a : b), 0)]
+      return [...row, anomalyRow]
     })
 
     return {
@@ -25,6 +25,14 @@ export default payload => {
     summary: { nodes = [], instances = [], dimensions = [], labels = [], alerts = [] },
     functions = [],
     detailed = {},
+    totals = {}, // set default value
+    totals: {
+      contexts: contextsTotals = {},
+      dimensions: dimensionsTotals = {},
+      instances: instancesTotals = {},
+      label_key_values: labelsTotals = {},
+      nodes: nodesTotals = {},
+    },
     db: { update_every: updateEvery, first_entry: firstEntry, last_entry: lastEntry },
     view: {
       title,
@@ -58,6 +66,11 @@ export default payload => {
       viewDimensions,
       detailed,
       functions,
+      contextsTotals,
+      dimensionsTotals,
+      instancesTotals,
+      labelsTotals,
+      nodesTotals,
     },
     ...rest,
   }

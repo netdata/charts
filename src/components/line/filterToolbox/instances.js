@@ -26,7 +26,7 @@ const columns = [
 const Instances = ({ labelProps, ...rest }) => {
   const chart = useChart()
   const value = useAttributeValue("selectedInstances")
-  const { nodes, instances } = useMetadata()
+  const { nodes, instances, instancesTotals } = useMetadata()
 
   let label = `${instances.length} instances`
 
@@ -65,6 +65,7 @@ const Instances = ({ labelProps, ...rest }) => {
       columns={columns}
       sortBy={sortBy}
       onSortByChange={onSortByChange}
+      totals={instancesTotals}
       {...rest}
     />
   )

@@ -15,7 +15,7 @@ const columns = [labelColumn(), metricsColumn(), contributionColumn(), anomalyRa
 const Dimensions = ({ labelProps, ...rest }) => {
   const chart = useChart()
   const value = useAttributeValue("selectedDimensions")
-  const { dimensions } = useMetadata()
+  const { dimensions, dimensionsTotals } = useMetadata()
 
   let label = `${dimensions.length} dimensions`
 
@@ -50,6 +50,7 @@ const Dimensions = ({ labelProps, ...rest }) => {
       columns={columns}
       sortBy={sortBy}
       onSortByChange={onSortByChange}
+      totals={dimensionsTotals}
       {...rest}
     />
   )

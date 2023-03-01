@@ -20,7 +20,6 @@ const NoData = props => {
 
   const chartWidth = chart.getUI().getChartWidth()
   const error = useChartError()
-  console.log("error", error)
 
   if (chartWidth < 240) return null
 
