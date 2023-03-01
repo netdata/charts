@@ -60,7 +60,7 @@ export const EmptyDimension = () => {
 const AnomalyProgressBar = ({ id }) => {
   const value = useLatestAnomalyAverageValue(id)
 
-  return <ProgressBar height={1} width={`${value}%`} />
+  return <ProgressBar height={0.5} color={["purple", "lilac"]} width={`${value}%`} />
 }
 
 const Dimension = forwardRef(({ id }, ref) => {
