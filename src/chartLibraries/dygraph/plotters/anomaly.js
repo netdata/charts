@@ -15,7 +15,7 @@ export default chartUI => plotter => {
 
     const getColor = scaleLinear()
       .domain([0, 100])
-      .range([chartUI.getThemeAttribute("themeScaleColor"), "#FF4136"])
+      .range([chartUI.getThemeAttribute("themeScaleColor"), "#9F75F9"])
 
     points.forEach(p => {
       const center_x = p.canvasx

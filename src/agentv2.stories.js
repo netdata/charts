@@ -50,7 +50,7 @@ export const OneChart = Template.bind({})
 
 OneChart.args = {
   nodesScope: "*",
-  contextScope: "net.net",
+  contextScope: "system.interrupts",
   contexts: "*",
-  host: "http://10.10.11.2:19999/api/v2/data", //"http://192.168.1.205:19999/api/v2/data"
+  host: "http://192.168.1.205:19999/api/v2/data", // "http://10.10.11.2:19999/api/v2/data"
 }

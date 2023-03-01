@@ -25,9 +25,9 @@ const Dimension = ({ id, strong, chars }) => {
         strong={strong}
         visible={visible}
         resultKey="anomalyResult"
-        color="errorLite"
+        color={["purple", "lilac"]}
       />
-      <Unit color="errorLite">%</Unit>
+      <Unit color={["purple", "lilac"]}>%</Unit>
     </Flex>
   )
 }

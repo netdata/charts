@@ -31,7 +31,8 @@ export const meta = (row, cell, index) => ({
   searchStyles: {
     inputContainerStyles: {
       height: "20px",
-      border: { side: "all", size: "1px", color: "inputBorder" },
+      border: { side: "all", size: "1px", color: "inputBg" },
+      background: "inputBg",
       round: true,
       padding: [1, 2],
       _hover: {
@@ -83,7 +84,6 @@ const Dropdown = ({
         onGlobalSearchChange={noop}
         sx={{
           borderCollapse: "collapse",
-          tableLayout: "fixed",
         }}
         meta={tableMeta}
         sortBy={sortBy}
