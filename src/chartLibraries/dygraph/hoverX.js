@@ -26,19 +26,19 @@ export default chartUI => {
 
     if (!Array.isArray(validPoints) || validPoints.length === 0) return
 
-    const getY = index => {
-      if (index < validPoints.length) return validPoints[index].canvasy
-      return chartUI.getDygraph().getArea().h
-    }
+    if (offsetY < 15 && validPoints[validPoints.length - 1].name === "ANOMALY_RATE")
+      return "ANOMALY_RATE"
 
-    if (offsetY < getY(0)) {
-      const { name } = getHighestPoint(validPoints)
-      return name
-    }
+    const getY = index =>
+      index < validPoints.length ? validPoints[index].canvasy : chartUI.getDygraph().getArea().h
 
-    if (offsetY > getY(validPoints.length - 1)) return validPoints[validPoints.length - 1]?.name
+    if (offsetY < getY(0)) return getHighestPoint(validPoints).name
 
-    const point = validPoints.find((p, index) => getY(index) < offsetY && getY(index + 1) > offsetY)
+    if (offsetY > getY(validPoints.length - 2)) return validPoints[validPoints.length - 2]?.name // Disregard ANOMALY_RATE
+
+    const point = validPoints
+      .slice(0, validPoints.length - 1) // Disregard ANOMALY_RATE
+      .find((p, index) => getY(index) < offsetY && getY(index + 1) > offsetY)
 
     return point?.name
   }
@@ -84,14 +84,14 @@ export default chartUI => {
 
     if (!seriesName) return
 
-    // const { offsetX, offsetY } = event
     const seriesProps = chartUI.getDygraph().getPropertiesForSeries(seriesName)
+
     if (!seriesProps) return
 
     const dimensionIds = chartUI.chart.getPayloadDimensionIds()
 
     if (!dimensionIds) return
-    const dimensionId = dimensionIds[seriesProps.column - 1]
+    const dimensionId = dimensionIds[seriesProps.column - 1] || seriesProps.name
 
     chartUI.sdk.trigger("highlightHover", chartUI.chart, x, dimensionId)
     chartUI.chart.trigger("highlightHover", x, dimensionId)
@@ -103,6 +103,7 @@ export default chartUI => {
     lastPoints = points
     lastTimestamp = x
 
+    lastX = event.offsetX
     lastY = event.offsetY
 
     triggerHighlight(event, x, points)
