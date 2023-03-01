@@ -1,8 +1,13 @@
 import React, { useEffect, useRef, useCallback, useMemo } from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import { Text, TextSmall, TextMicro } from "@netdata/netdata-ui/lib/components/typography"
 import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
+import checkmark_s from "@netdata/netdata-ui/lib/components/icon/assets/checkmark_s.svg"
+import warning_triangle_hollow from "@netdata/netdata-ui/lib/components/icon/assets/warning_triangle_hollow.svg"
+
 import { NetdataTable } from "@netdata/netdata-ui/lib/components/tableV2"
+import Icon from "@/components/icon"
 import Label from "./label"
 
 const Container = styled(Flex)`
@@ -96,6 +101,41 @@ const Dropdown = ({
         // bulkActions={bulkActions}
         // rowActions={rowActions}
       />
+      <Flex
+        padding={[2]}
+        justifyContent="between"
+        border={{ side: "top", color: "borderSecondary" }}
+      >
+        <Flex gap={1} alignItems="end">
+          <TextSmall color="textLite">
+            Selected <TextSmall strong>4</TextSmall> out of <TextSmall strong>887</TextSmall>
+          </TextSmall>
+          <TextMicro cursor="pointer" color="primary">
+            clear
+          </TextMicro>
+        </Flex>
+        <Flex>
+          <TextMicro color="textLite">
+            <TextMicro color="primary">19 </TextMicro>queried{" "}
+            <Icon
+              margin={[-0.5, 1, -0.5, 0]}
+              width="14px"
+              height="14px"
+              color="primary"
+              svg={checkmark_s}
+            />
+            + <TextMicro color="errorLite">12</TextMicro> failed{" "}
+            <Icon
+              margin={[-0.5, 1, -0.5, 0]}
+              width="14px"
+              height="14px"
+              color="errorLite"
+              svg={warning_triangle_hollow}
+            />
+            of <TextMicro>42</TextMicro> Selected, out of <TextMicro>887</TextMicro> available
+          </TextMicro>
+        </Flex>
+      </Flex>
     </Container>
   )
 }
