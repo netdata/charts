@@ -7,8 +7,9 @@ import Label from "./label"
 
 const Container = styled(Flex)`
   ${({ hideShadow }) =>
-    !hideShadow && "box-shadow: 0 18px 28px rgba(9, 30, 66, 0.15), 0 0 1px rgba(9, 30, 66, 0.31);"}
+    !hideShadow && "box-shadow: 0 18px 28px rgba(9, 30, 66, 0.15), 0 0 1px rgba(9, 30, 66, 0.95);"}
   list-style-type: none;
+  border-radius: 2px;
 `
 export const meta = (row, cell, index) => ({
   cellStyles: {
