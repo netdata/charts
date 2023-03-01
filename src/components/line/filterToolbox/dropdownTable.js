@@ -229,7 +229,7 @@ const DropdownTable = ({
         newValues,
       }}
       value={value}
-      onClose={() => onChange(newValuesRef.current)}
+      onClose={() => onChange(newValues)}
       {...rest}
     >
       <Label
