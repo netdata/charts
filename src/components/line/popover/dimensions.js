@@ -78,6 +78,13 @@ const Dimensions = () => {
       </Flex>
       {from > 0 && <TextNano color="textLite">↑{from} more values</TextNano>}
       <Flex gap={1} column margin={[2, 0, 0]}>
+        <Flex justifyContent="between">
+          <TextNano>Dimension</TextNano>
+          <Flex gap={2}>
+            <TextNano>Value</TextNano>
+            <TextNano>Anomaly</TextNano>
+          </Flex>
+        </Flex>
         {ids.map(id => (
           <Dimension
             key={id}

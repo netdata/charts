@@ -1,5 +1,5 @@
 import React from "react"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import { TextMicro, Flex } from "@netdata/netdata-ui"
 import Color from "@/components/line/dimensions/color"
 import Name from "@/components/line/dimensions/name"
 import Value from "@/components/line/dimensions/value"

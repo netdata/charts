@@ -1,5 +1,6 @@
 import React, { memo, useMemo } from "react"
-import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
+import styled from "styled-components"
+import { Menu, Text, TextSmall, TextMicro, Flex, getColor } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart, usePayload } from "@/components/provider"
 import Label from "./label"
 
@@ -8,81 +9,106 @@ const useMenuItems = chart =>
     () => [
       {
         value: "min",
-        label: "Min",
+        label: "Minimum",
+        description: "Reveal short dives that would otherwise be smoothed out.",
         short: "MIN()",
         "data-track": chart.track("time-aggregation-min"),
       },
       {
         value: "max",
-        label: "Max",
+        label: "Maximum",
+        description: "Reveal short spikes that would otherwise be smoothed out.",
         short: "MAX()",
         "data-track": chart.track("time-aggregation-max"),
       },
       {
         value: "average",
-        label: "Average",
+        label: "Mean or Average",
+        description:
+          "Calculate the longer term average, as if data were collected at screen resolution.",
         short: "AVG()",
         "data-track": chart.track("time-aggregation-average"),
       },
       {
         value: "sum",
         label: "Sum",
+        description:
+          "Provide the sum of the points that are aggregated over time. Use it when a sense of volume is needed over the aggregation period. It may not be sensible to use this function on all data types.",
         short: "SUM()",
         "data-track": chart.track("time-aggregation-sum"),
       },
       {
-        value: "incremental-sum",
-        label: "Incremental sum (Delta)",
-        short: "DELTA()",
-        "data-track": chart.track("time-aggregation-incremental-sum"),
+        value: "percentile",
+        label: "Percentile",
+        description:
+          "Provide the maximum value of a percentage of the aggregated points, having the smaller values. The default is p95, which provides the maximum value of the aggregated points after ignoring the the top 5% of them.",
+        short: "PERCENTILE()",
+        "data-track": chart.track("time-aggregation-percentile95"),
       },
       {
-        value: "stddev",
-        label: "Standard deviation",
-        short: "STDDEV()",
-        "data-track": chart.track("time-aggregation-stddev"),
+        value: "trimmed-mean",
+        label: "Trimmed Average or Trimmed Mean",
+        description:
+          "Like average, but first remove a percentage of the extreme high and low values.",
+        short: "TRIMMEAN()",
+        "data-track": chart.track("time-aggregation-trimmed-mean5"),
       },
       {
         value: "median",
         label: "Median",
+        description:
+          "The middle value of all points that would otherwise be smoothed out. This function works like average, but short extreme dives and spikes influence it significantly less than average.",
         short: "MEDIAN()",
         "data-track": chart.track("time-aggregation-median"),
       },
       {
+        value: "trimmed-median",
+        label: "Trimmed Median",
+        description:
+          "Like median, but first remove a percentage of the extreme high and low values.",
+        short: "TRIMMEDIAN()",
+        "data-track": chart.track("time-aggregation-trimmed-median5"),
+      },
+      {
+        value: "stddev",
+        label: "Standard deviation",
+        description:
+          "Reveal how far each point lies from the average. A high standard deviation means that values are generally far from the average, while a low standard deviation indicates that values are clustered close to the mean. The result is again in the original units of the data source metric.",
+        short: "STDDEV()",
+        "data-track": chart.track("time-aggregation-stddev"),
+      },
+      {
+        value: "cv",
+        label: "Coefficient of variation or Relative standard deviation",
+        description:
+          "The ratio of the standard deviation to the average. Its use is the same as standard deviation, but expressed as a percentage related to the average. The units change to %.",
+        short: "CV()",
+        "data-track": chart.track("time-aggregation-cv"),
+      },
+      {
+        value: "incremental-sum",
+        label: "Incremental Sum or Delta",
+        description:
+          "Provide the difference between the newest and the oldest values of the aggregated points. Each point will be positive if the trend grows and negative if the trend shrinks.",
+        short: "DELTA()",
+        "data-track": chart.track("time-aggregation-incremental-sum"),
+      },
+
+      {
         value: "ses",
         label: "Single exponential smoothing",
+        description:
+          "Use the aggregated points to produce a forecast of the next value, and reveal the forecasted value. Use it when there are indications that the trend is more predictable using the more recent points than the older ones.",
         short: "SES()",
         "data-track": chart.track("time-aggregation-ses"),
       },
       {
         value: "des",
         label: "Double exponential smoothing",
+        description:
+          "Like single exponential smoothing, but better suited when the aggregated points may have a strong trend.",
         short: "DES()",
         "data-track": chart.track("time-aggregation-des"),
-      },
-      {
-        value: "cv",
-        label: "Coefficient variation",
-        short: "CV()",
-        "data-track": chart.track("time-aggregation-cv"),
-      },
-      {
-        value: "trimmed-median",
-        label: "Trimmed Median",
-        short: "TRIMMEDIAN()",
-        "data-track": chart.track("time-aggregation-trimmed-median5"),
-      },
-      {
-        value: "trimmed-mean",
-        label: "Trimmed Mean",
-        short: "TRIMMEAN()",
-        "data-track": chart.track("time-aggregation-trimmed-mean5"),
-      },
-      {
-        value: "percentile",
-        label: "Percentile",
-        short: "PERCENTILE()",
-        "data-track": chart.track("time-aggregation-percentile95"),
       },
     ],
     [chart]
@@ -218,6 +244,71 @@ const methodTooltipProps = {
   heading: "Time aggregation",
   body: "View or select the aggregation function applied on each time-series metric when the number of points in the database are more than the points your screen resolution provides to present this chart. This function is helpful when viewing long time-frames, like days, weeks or months, to quickly spot anomalies, spikes or dives.",
 }
+const dropTitle = (
+  <TextSmall>
+    When the screen resolution provides less points that the points available of the source
+    time-series metrics, use the following aggregation function over time on each metric to reduce
+    the number of points
+  </TextSmall>
+)
+export const ItemContainer = styled(Flex).attrs(props => ({
+  as: "li",
+  role: "option",
+  padding: [1, 2],
+  gap: 1,
+  justifyContent: "between",
+  ...props,
+}))`
+  cursor: ${({ disabled }) => (disabled ? "default" : "pointer")};
+  opacity: ${({ disabled, stale }) => (stale || disabled ? 0.7 : 1)};
+  align-items: ${({ alignItems }) => alignItems || "center"};
+  ${({ multi, selected, theme }) =>
+    !multi &&
+    selected &&
+    `
+    background-color: ${getBackground({ theme })};
+  `}
+  ${({ multi, selected, theme }) =>
+    !multi &&
+    !selected &&
+    `
+    &:hover {
+      background-color: ${getColor("borderSecondary")({ theme })};
+    }
+  `}
+`
+const DefaultItem = ({ item, onItemClick, itemProps, ...rest }) => {
+  const {
+    value,
+    disabled,
+    onClick,
+    label,
+    description,
+    selected,
+    indeterminate,
+    textColor,
+    iconName,
+    count,
+    level = 0,
+    ...restItem
+  } = item
+
+  const onSelect = event => {
+    if (onClick) onClick(event)
+    onItemClick({ value, label, checked: !selected, item })
+  }
+
+  return (
+    <ItemContainer {...itemProps}>
+      <Flex gap={2} alignItems="center" padding={[0, 0, 0, level * 4]} width="100%">
+        <Flex column padding={[0, 1]} alignItems="start" onClick={onSelect}>
+          <Text>{label}</Text>
+          <TextSmall color="textLite">{description}</TextSmall>
+        </Flex>
+      </Flex>
+    </ItemContainer>
+  )
+}
 
 const TimeAggregation = ({ labelProps, ...rest }) => {
   const chart = useChart()
@@ -243,6 +334,7 @@ const TimeAggregation = ({ labelProps, ...rest }) => {
           value={alias}
           onChange={handleAliasChange}
           items={aliasItems}
+          Item={DefaultItem}
           data-track={chart.track("groupingMethodAlias")}
           dropProps={{ align: { top: "bottom", left: "left" }, "data-toolbox": true }}
           {...rest}
@@ -260,8 +352,15 @@ const TimeAggregation = ({ labelProps, ...rest }) => {
         value={method}
         onChange={handleMethodChange}
         items={items}
+        Item={DefaultItem}
         data-track={chart.track("groupingMethod")}
-        dropProps={{ align: { top: "bottom", left: "left" }, "data-toolbox": true }}
+        dropTitle={dropTitle}
+        dropProps={{
+          align: { top: "bottom", left: "left" },
+          "data-toolbox": true,
+          width: "580px",
+        }}
+        dropdownProps={{ height: "60vh" }}
         {...rest}
       >
         <Label
