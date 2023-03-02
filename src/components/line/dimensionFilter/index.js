@@ -34,6 +34,8 @@ const iconBySort = {
   nameDesc: sortDescending,
   valueAsc: sortAscending,
   valueDesc: sortDescending,
+  anomalyAsc: sortAscending,
+  anomalyDesc: sortDescending,
 }
 
 const useSortings = chart =>
@@ -47,6 +49,16 @@ const useSortings = chart =>
         value: "valueDesc",
         label: "Sort by value Max→Min",
         "data-track": chart.track("valueDesc"),
+      },
+      {
+        value: "anomalyAsc",
+        label: "Sort by anomaly Min→Max",
+        "data-track": chart.track("anomalyAsc"),
+      },
+      {
+        value: "anomalyDesc",
+        label: "Sort by anomaly Max→Min",
+        "data-track": chart.track("anomalyDesc"),
       },
     ],
     [chart]

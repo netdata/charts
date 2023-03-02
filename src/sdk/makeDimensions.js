@@ -28,30 +28,40 @@ export default (chart, sdk) => {
   const getSourceDimensionIds = () => [...getPayloadDimensionIds()]
 
   const bySortMethod = {
-    default: () =>
-      getSourceDimensionIds().sort((a, b) => getDimensionPriority(a) - getDimensionPriority(b)),
-    nameAsc: () =>
-      getSourceDimensionIds().sort((a, b) =>
-        getDimensionName(a).localeCompare(getDimensionName(b))
-      ),
-    nameDesc: () =>
-      getSourceDimensionIds().sort((a, b) =>
-        getDimensionName(b).localeCompare(getDimensionName(a))
-      ),
-    valueDesc: x => {
+    default: (getIds = getSourceDimensionIds) =>
+      getIds().sort((a, b) => getDimensionPriority(a) - getDimensionPriority(b)),
+    nameAsc: (getIds = getSourceDimensionIds) =>
+      getIds().sort((a, b) => getDimensionName(a).localeCompare(getDimensionName(b))),
+    nameDesc: (getIds = getSourceDimensionIds) =>
+      getIds().sort((a, b) => getDimensionName(b).localeCompare(getDimensionName(a))),
+    valueDesc: (getIds = getSourceDimensionIds, x) => {
       const { result } = chart.getPayload()
       x = x || result.data.length - 1
 
-      return getSourceDimensionIds().sort(
-        (a, b) => getDimensionValue(b, x) - getDimensionValue(a, x)
+      return getIds().sort((a, b) => getDimensionValue(b, x) - getDimensionValue(a, x))
+    },
+    valueAsc: (getIds = getSourceDimensionIds, x) => {
+      const { result } = chart.getPayload()
+      x = x || result.data.length - 1
+
+      return getIds().sort((a, b) => getDimensionValue(a, x) - getDimensionValue(b, x))
+    },
+    anomalyDesc: (getIds = getSourceDimensionIds, x) => {
+      const { anomalyResult: result } = chart.getPayload()
+      x = x || result.data.length - 1
+
+      return getIds().sort(
+        (a, b) =>
+          getDimensionValue(b, x, "anomalyResult") - getDimensionValue(a, x, "anomalyResult")
       )
     },
-    valueAsc: x => {
-      const { result } = chart.getPayload()
+    anomalyAsc: (getIds = getSourceDimensionIds, x) => {
+      const { anomalyResult: result } = chart.getPayload()
       x = x || result.data.length - 1
 
-      return getSourceDimensionIds().sort(
-        (a, b) => getDimensionValue(a, x) - getDimensionValue(b, x)
+      return getIds().sort(
+        (a, b) =>
+          getDimensionValue(a, x, "anomalyResult") - getDimensionValue(b, x, "anomalyResult")
       )
     },
   }
@@ -89,7 +99,7 @@ export default (chart, sdk) => {
 
   const onHoverSortDimensions = (x, dimensionsSort = chart.getAttribute("dimensionsSort")) => {
     const sort = bySortMethod[dimensionsSort] || bySortMethod.default
-    return sort(x)
+    return sort(getVisibleDimensionIds, x)
   }
 
   const getNextColor = () => {

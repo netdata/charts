@@ -261,11 +261,10 @@ export const useLatestValue = (id, resultKey = "result") => {
       const dimensionIds = chart.getPayloadDimensionIds()
 
       id = id || dimensionIds[0]
-      const value = chart.getDimensionValue(id, index, resultKey)
+      const dimValue = chart.getDimensionValue(id, index, resultKey)
+      if (isNaN(dimValue)) return ""
 
-      if (isNaN(value)) return ""
-
-      return chart.getConvertedValue(value)
+      return chart.getConvertedValue(dimValue)
     }
 
     if (value === null) setState(getValue())

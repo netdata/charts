@@ -26,11 +26,17 @@ export default chartUI => {
 
     if (!Array.isArray(validPoints) || validPoints.length === 0) return
 
-    if (offsetY < 15 && validPoints[validPoints.length - 1].name === "ANOMALY_RATE")
-      return "ANOMALY_RATE"
+    if (offsetY < 15 && points[points.length - 1].name === "ANOMALY_RATE") return "ANOMALY_RATE"
 
-    const getY = index =>
-      index < validPoints.length ? validPoints[index].canvasy : chartUI.getDygraph().getArea().h
+    const getY = index => {
+      try {
+        return index < validPoints.length
+          ? validPoints[index].canvasy
+          : chartUI.getDygraph().getArea().h
+      } catch (e) {
+        return chartUI.getDygraph().getArea().h
+      }
+    }
 
     if (offsetY < getY(0)) return getHighestPoint(validPoints).name
 
@@ -45,6 +51,9 @@ export default chartUI => {
 
   const getClosestPoint = (event, points) => {
     const { offsetY } = event
+
+    if (offsetY < 15 && points[points.length - 1].name === "ANOMALY_RATE") return "ANOMALY_RATE"
+
     const distance = p => Math.pow(offsetY - p.canvasy, 2)
 
     let last = distance(points[0])

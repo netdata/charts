@@ -108,6 +108,7 @@ const Dropdown = ({
         <Flex
           padding={[2]}
           justifyContent="between"
+          alignItems="center"
           border={{ side: "top", color: "borderSecondary" }}
         >
           <Flex gap={1} alignItems="end">
@@ -126,33 +127,30 @@ const Dropdown = ({
             </TextMicro>
           </Flex>
 
-          <Flex>
-            <TextMicro color="textLite">
-              <TextMicro color="primary">{totals.qr || 0}</TextMicro> queried{" "}
-              <Icon
-                margin={[-0.5, 1, -0.5, 0]}
-                width="14px"
-                height="14px"
-                color="primary"
-                svg={checkmark_s}
-              />
-              {totals.fl && (
-                <>
-                  + <TextMicro color="errorLite">{totals.fl || 0}</TextMicro> failed{" "}
-                  <Icon
-                    margin={[-0.5, 1, -0.5, 0]}
-                    width="14px"
-                    height="14px"
-                    color="errorLite"
-                    svg={warning_triangle_hollow}
-                  />
-                </>
-              )}
-              of <TextMicro>{value.length || (totals.sl || 0) + (totals.ex || 0)}</TextMicro>{" "}
-              selected, out of <TextMicro>{(totals.sl || 0) + (totals.ex || 0)}</TextMicro>{" "}
-              available
-            </TextMicro>
-          </Flex>
+          <TextMicro color="textLite">
+            <TextMicro color="primary">{totals.qr || 0}</TextMicro> queried{" "}
+            <Icon
+              margin={[-0.5, 1, -0.5, 0]}
+              width="14px"
+              height="14px"
+              color="primary"
+              svg={checkmark_s}
+            />
+            {totals.fl && (
+              <>
+                + <TextMicro color="errorLite">{totals.fl || 0}</TextMicro> failed{" "}
+                <Icon
+                  margin={[-0.5, 1, -0.5, 0]}
+                  width="14px"
+                  height="14px"
+                  color="errorLite"
+                  svg={warning_triangle_hollow}
+                />
+              </>
+            )}
+            of <TextMicro>{value.length || (totals.sl || 0) + (totals.ex || 0)}</TextMicro>{" "}
+            selected, out of <TextMicro>{(totals.sl || 0) + (totals.ex || 0)}</TextMicro> available
+          </TextMicro>
         </Flex>
       )}
     </Container>
