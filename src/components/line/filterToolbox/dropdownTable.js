@@ -1,14 +1,11 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { Text, TextSmall, TextMicro } from "@netdata/netdata-ui/lib/components/typography"
+import { TextSmall, TextMicro } from "@netdata/netdata-ui/lib/components/typography"
 import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
-import checkmark_s from "@netdata/netdata-ui/lib/components/icon/assets/checkmark_s.svg"
-import warning_triangle_hollow from "@netdata/netdata-ui/lib/components/icon/assets/warning_triangle_hollow.svg"
-
 import { NetdataTable } from "@netdata/netdata-ui/lib/components/tableV2"
-import Icon from "@/components/icon"
 import Label from "./label"
+import Totals from "./totals"
 
 const Container = styled(Flex)`
   ${({ hideShadow }) =>
@@ -127,30 +124,7 @@ const Dropdown = ({
             </TextMicro>
           </Flex>
 
-          <TextMicro color="textLite">
-            <TextMicro color="primary">{totals.qr || 0}</TextMicro> queried{" "}
-            <Icon
-              margin={[-0.5, 1, -0.5, 0]}
-              width="14px"
-              height="14px"
-              color="primary"
-              svg={checkmark_s}
-            />
-            {totals.fl && (
-              <>
-                + <TextMicro color="errorLite">{totals.fl || 0}</TextMicro> failed{" "}
-                <Icon
-                  margin={[-0.5, 1, -0.5, 0]}
-                  width="14px"
-                  height="14px"
-                  color="errorLite"
-                  svg={warning_triangle_hollow}
-                />
-              </>
-            )}
-            of <TextMicro>{value.length || (totals.sl || 0) + (totals.ex || 0)}</TextMicro>{" "}
-            selected, out of <TextMicro>{(totals.sl || 0) + (totals.ex || 0)}</TextMicro> available
-          </TextMicro>
+          <Totals selected={value} {...totals} />
         </Flex>
       )}
     </Container>

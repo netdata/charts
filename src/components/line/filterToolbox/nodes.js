@@ -56,7 +56,7 @@ const Nodes = ({ labelProps, ...rest }) => {
           children: instances.filter(dim => dim.ni === node.ni),
         })
       }),
-    [nodes, value]
+    [nodes, value, selectedInstances]
   )
 
   const [sortBy, onSortByChange] = useAttribute("nodesSortBy")

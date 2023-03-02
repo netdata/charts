@@ -31,33 +31,29 @@ export default chart => {
   }
 
   const updateGroupByAttribute = selected => {
-    const prevGroupByLabel = chart.getAttribute("groupByLabel")
     const selectedLabels = selected.filter(sel => sel.isLabel)
+    const groupByLabel = selectedLabels.map(sel => sel.value)
 
-    chart.updateAttribute(
-      "groupByLabel",
-      selectedLabels.map(sel => sel.value)
-    )
-
-    let newValues = selected.reduce((h, sel) => {
+    let groupBy = selected.reduce((h, sel) => {
       if (!allowedGroupByValues[sel.value]) return h
       h.push(sel.value)
       return h
     }, [])
 
-    if (selectedLabels.length) newValues.push("label")
+    if (selectedLabels.length) groupBy.push("label")
 
-    const prevGroupBy = chart.getAttribute("groupBy")
-
-    if (!newValues.length) newValues = ["dimension"]
-
-    chart.updateAttribute("groupBy", newValues)
+    if (!groupBy.length) groupBy = ["dimension"]
 
     if (
-      deepEqual(prevGroupBy, chart.getAttribute("groupBy")) &&
-      deepEqual(prevGroupByLabel, chart.getAttribute("groupByLabel"))
+      deepEqual(groupBy, chart.getAttribute("groupBy")) &&
+      deepEqual(groupByLabel, chart.getAttribute("groupByLabel"))
     )
       return
+
+    chart.updateAttributes({
+      groupByLabel: groupByLabel,
+      groupBy: groupBy,
+    })
 
     const attributes = getInitialFilterAttributes(chart)
     chart.updateAttributes(attributes)
@@ -77,52 +73,46 @@ export default chart => {
       { selectedNodes: [], selectedInstances: [] }
     )
 
-    const prevSelectedNodes = chart.getAttribute("selectedNodes")
-    chart.updateAttribute("selectedNodes", selectedNodes)
-
-    const prevSelectedInstances = chart.getAttribute("selectedInstances")
-    chart.updateAttribute("selectedInstances", selectedInstances)
     if (
-      deepEqual(prevSelectedNodes, chart.getAttribute("selectedNodes")) &&
-      deepEqual(prevSelectedInstances, chart.getAttribute("selectedInstances"))
+      deepEqual(selectedNodes, chart.getAttribute("selectedNodes")) &&
+      deepEqual(selectedInstances, chart.getAttribute("selectedInstances"))
     )
       return
+
+    chart.updateAttributes({ selectedNodes: selectedNodes, selectedInstances: selectedInstances })
 
     chart.fetchAndRender()
   }
 
   const updateInstancesAttribute = selected => {
-    const selectedInstances = chart.getAttribute("selectedInstances")
+    const selectedInstances = selected.map(sel => sel.value)
+
+    if (deepEqual(selectedInstances, chart.getAttribute("selectedInstances"))) return
+
     chart.updateAttribute(
       "selectedInstances",
       selected.map(sel => sel.value)
     )
 
-    if (deepEqual(selectedInstances, chart.getAttribute("selectedInstances"))) return
-
     chart.fetchAndRender()
   }
 
   const updateDimensionsAttribute = selected => {
-    const selectedDimensions = chart.getAttribute("selectedDimensions")
-    chart.updateAttribute(
-      "selectedDimensions",
-      selected.map(sel => sel.value)
-    )
+    const selectedDimensions = selected.map(sel => sel.value)
 
     if (deepEqual(selectedDimensions, chart.getAttribute("selectedDimensions"))) return
+
+    chart.updateAttribute("selectedDimensions", selectedDimensions)
 
     chart.fetchAndRender()
   }
 
   const updateLabelsAttribute = selected => {
-    const prevSelectedLabels = chart.getAttribute("selectedLabels")
-    chart.updateAttribute(
-      "selectedLabels",
-      selected.map(sel => sel.value)
-    )
+    const selectedLabels = selected.map(sel => sel.value)
 
-    if (deepEqual(prevSelectedLabels, chart.getAttribute("selectedLabels"))) return
+    if (deepEqual(selectedLabels, chart.getAttribute("selectedLabels"))) return
+
+    chart.updateAttribute("selectedLabels", selectedLabels)
 
     chart.fetchAndRender()
   }
