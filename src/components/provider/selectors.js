@@ -51,11 +51,12 @@ export const useLoadingColor = (defaultColor = "themeNeutralBackground") => {
     }
 
     const getColor = scaleLinear()
-      .domain([0, 500, 2000, 100000])
+      .domain([0, 500, 2000, 5000, 100000])
       .range([
         chart.getUI().getThemeAttribute(defaultColor),
         chart.getUI().getThemeAttribute(defaultColor),
         chart.getUI().getThemeAttribute("themeWarningBackground"),
+        chart.getUI().getThemeAttribute("themeErrorBackground"),
         chart.getUI().getThemeAttribute("themeErrorBackground"),
       ])
 

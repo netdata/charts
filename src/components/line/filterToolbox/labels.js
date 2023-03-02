@@ -28,7 +28,6 @@ const Labels = ({ labelProps, ...rest }) => {
   const value = useAttributeValue("selectedLabels")
 
   const { labels, labelsTotals } = useMetadata()
-  let label = `${labels.length} labels`
 
   const options = useMemo(
     () =>
@@ -50,14 +49,12 @@ const Labels = ({ labelProps, ...rest }) => {
     [labels, value]
   )
 
-  if (value.length > 1) label = `${value.length} labels`
-
   const [sortBy, onSortByChange] = useAttribute("labelsSortBy")
   const [expanded, onExpandedChange] = useAttribute("labelsExpanded")
 
   return (
     <DropdownTable
-      label={label}
+      resourceName="label"
       data-track={chart.track("labels")}
       labelProps={labelProps}
       onChange={chart.updateLabelsAttribute}

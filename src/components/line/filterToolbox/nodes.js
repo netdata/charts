@@ -30,7 +30,6 @@ const Nodes = ({ labelProps, ...rest }) => {
   const value = useAttributeValue("selectedNodes")
   const isAgent = chart.getAttributes("agent")
   const { nodes, instances, nodesTotals } = useMetadata()
-  let label = `${nodes.length} nodes`
 
   const selectedInstances = useAttributeValue("selectedInstances")
 
@@ -39,8 +38,6 @@ const Nodes = ({ labelProps, ...rest }) => {
       nodes.map(node => {
         const id = isAgent ? node.mg : node.nd
         const selected = value.includes(id)
-
-        if (selected && value.length === 1) label = node.nm || id
 
         return getStats(chart, node, {
           id,
@@ -62,16 +59,13 @@ const Nodes = ({ labelProps, ...rest }) => {
   const [sortBy, onSortByChange] = useAttribute("nodesSortBy")
   const [expanded, onExpandedChange] = useAttribute("nodesExpanded")
 
-  if (value.length > 1) label = `${value.length} nodes`
-
   return (
     <DropdownTable
-      label={label}
+      resourceName="node"
       data-track={chart.track("nodes")}
       labelProps={labelProps}
       onChange={chart.updateNodesAttribute}
       options={options}
-      secondaryLabel="of"
       tooltipProps={tooltipProps}
       value={value}
       columns={columns}

@@ -105,6 +105,7 @@ const GroupBy = ({ labelProps, ...rest }) => {
       onSortByChange={onSortByChange}
       expanded={expanded}
       onExpandedChange={onExpandedChange}
+      emptyMessage="Deselecting everything will use GROUP BY DIMENSION by default"
       {...rest}
     />
   )

@@ -28,8 +28,6 @@ const Instances = ({ labelProps, ...rest }) => {
   const value = useAttributeValue("selectedInstances")
   const { nodes, instances, instancesTotals } = useMetadata()
 
-  let label = `${instances.length} instances`
-
   const options = useMemo(
     () =>
       instances.map(instance => {
@@ -37,8 +35,6 @@ const Instances = ({ labelProps, ...rest }) => {
         const id = `${instance.id}@${nodeId}`
 
         const selected = value.includes(id)
-
-        if (selected && value.length === 1) label = instance.nm || instance.id
 
         return getStats(chart, instance, {
           id,
@@ -51,11 +47,9 @@ const Instances = ({ labelProps, ...rest }) => {
 
   const [sortBy, onSortByChange] = useAttribute("instancesSortBy")
 
-  if (value.length > 1) label = `${value.length} instances`
-
   return (
     <DropdownTable
-      label={label}
+      resourceName="instance"
       data-track={chart.track("instances")}
       labelProps={labelProps}
       onChange={chart.updateInstancesAttribute}

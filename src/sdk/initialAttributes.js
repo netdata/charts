@@ -124,8 +124,8 @@ export default {
 
   themeLabelColor: ["#35414a", "#ffffff"],
   themeNeutralBackground: ["#ECEEEF", "#383B40"],
-  themeWarningBackground: ["#FFEDB3", "#FFE182"],
-  themeErrorBackground: ["#FFEBEF", "#F59B9B"],
+  themeWarningBackground: ["#FFCC26", "#FFCC26"],
+  themeErrorBackground: ["#F95251", "#F95251"],
 
   legendScroll: 0,
 

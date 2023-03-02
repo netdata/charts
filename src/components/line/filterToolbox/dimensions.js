@@ -17,14 +17,10 @@ const Dimensions = ({ labelProps, ...rest }) => {
   const value = useAttributeValue("selectedDimensions")
   const { dimensions, dimensionsTotals } = useMetadata()
 
-  let label = `${dimensions.length} dimensions`
-
   const options = useMemo(
     () =>
       dimensions.map(dimension => {
         const selected = value.includes(dimension.id)
-
-        if (selected && value.length === 1) label = dimension.nm || dimension.id
 
         return getStats(chart, dimension, {
           key: "dimensions",
@@ -36,11 +32,9 @@ const Dimensions = ({ labelProps, ...rest }) => {
 
   const [sortBy, onSortByChange] = useAttribute("nodesSortBy")
 
-  if (value.length > 1) label = `${value.length} dimensions`
-
   return (
     <DropdownTable
-      label={label}
+      resourceName="dimension"
       data-track={chart.track("dimensions")}
       labelProps={labelProps}
       onChange={chart.updateDimensionsAttribute}

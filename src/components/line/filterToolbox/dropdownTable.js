@@ -1,9 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react"
 import styled from "styled-components"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { TextSmall, TextMicro } from "@netdata/netdata-ui/lib/components/typography"
-import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
-import { NetdataTable } from "@netdata/netdata-ui/lib/components/tableV2"
+import { Flex, TextSmall, Menu, NetdataTable, Button } from "@netdata/netdata-ui"
+import deepEqual from "@/helpers/deepEqual"
 import Label from "./label"
 import Totals from "./totals"
 
@@ -54,6 +52,7 @@ const defaultExpanded = {}
 const Dropdown = ({
   hideShadow,
   rowSelection,
+  setRowSelection,
   items,
   onItemClick,
   close,
@@ -67,8 +66,11 @@ const Dropdown = ({
   value,
   newValues,
   totals,
+  emptyMessage,
   ...rest
 }) => {
+  const hasChanges = useMemo(() => deepEqual(value, newValues), [newValues])
+
   return (
     <Container
       role="listbox"
@@ -101,32 +103,53 @@ const Dropdown = ({
         // bulkActions={bulkActions}
         // rowActions={rowActions}
       />
-      {totals && (
-        <Flex
-          padding={[2]}
-          justifyContent="between"
-          alignItems="center"
-          border={{ side: "top", color: "borderSecondary" }}
-        >
-          <Flex gap={1} alignItems="end">
-            <TextSmall color="textLite">
-              Selected{" "}
-              <TextSmall strong>
-                {newValues.length || (totals.sl || 0) + (totals.ex || 0)}
-              </TextSmall>{" "}
-              out of <TextSmall strong>{(totals.sl || 0) + (totals.ex || 0)}</TextSmall>
-            </TextSmall>
-            <TextMicro cursor="pointer" color="primary" onClick={() => onItemClick([])}>
-              clear
-            </TextMicro>
-            <TextMicro cursor="pointer" color="primary" onClick={() => onItemClick(value)}>
-              undo
-            </TextMicro>
-          </Flex>
-
-          <Totals selected={value} {...totals} />
+      <Flex
+        padding={[2]}
+        justifyContent="between"
+        alignItems="center"
+        border={{ side: "top", color: "borderSecondary" }}
+      >
+        <Flex gap={1} alignItems="center">
+          <TextSmall color="textLite">
+            Selected <TextSmall strong>{newValues.length}</TextSmall> out of{" "}
+            <TextSmall strong>{(totals?.sl || 0) + (totals?.ex || 0) || items.length}</TextSmall>
+          </TextSmall>
+          <Button
+            padding={[0]}
+            flavour="borderless"
+            width="auto"
+            height="auto"
+            cursor="pointer"
+            color="primary"
+            onClick={() => {
+              setRowSelection({})
+              onItemClick([])
+            }}
+            disabled={!newValues.length && !value.length}
+            label="clear"
+            small
+          />
+          <Button
+            padding={[0]}
+            flavour="borderless"
+            width="auto"
+            height="auto"
+            cursor="pointer"
+            color="primary"
+            onClick={() => {
+              setRowSelection({ ...rowSelection })
+              onItemClick(value)
+            }}
+            disabled={!hasChanges}
+            label="reset"
+            small
+          />
+          {!newValues.length && !!emptyMessage && (
+            <TextSmall color="warningText">{emptyMessage}</TextSmall>
+          )}
         </Flex>
-      )}
+        {totals && <Totals selected={value} {...totals} />}
+      </Flex>
     </Container>
   )
 }
@@ -137,7 +160,7 @@ const buildSelections = (options, result, parentIndex) =>
 
     if (dim.selected) h[index] = true
 
-    if (dim.children) h = buildSelections(dim.children, h, index)
+    if (dim.children) buildSelections(dim.children, h, index)
 
     return h
   }, result)
@@ -158,17 +181,29 @@ const DropdownTable = ({
   tableMeta,
   enableSubRowSelection,
   totals,
+  emptyMessage,
+  resourceName,
   ...rest
 }) => {
+  const [isOpen, setIsOpen] = useState(false)
   const [newValues, setNewValues] = useState(value)
 
   useEffect(() => {
+    if (!isOpen) return
+
     setNewValues(value)
-  }, [value])
+  }, [isOpen])
+
+  const [rowSelection, setRowSelection] = useState(() => buildSelections(options, {}))
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    const newSelections = buildSelections(options, {})
+    setRowSelection(prev => (deepEqual(prev, newSelections) ? prev : newSelections))
+  }, [isOpen])
 
   const onSelect = useCallback(val => setNewValues(val), [])
-
-  const rowSelection = useMemo(() => buildSelections(options, {}), [options])
 
   return (
     <Menu
@@ -190,6 +225,7 @@ const DropdownTable = ({
         overflow: "auto",
         columns,
         rowSelection,
+        setRowSelection,
         sortBy,
         onSortByChange,
         expanded,
@@ -199,14 +235,19 @@ const DropdownTable = ({
         value,
         totals,
         newValues,
+        emptyMessage,
       }}
       value={value}
-      onClose={() => onChange(newValues)}
+      onOpen={() => setIsOpen(true)}
+      onClose={() => {
+        setIsOpen(false)
+        onChange(newValues)
+      }}
       {...rest}
     >
       <Label
         secondaryLabel={secondaryLabel}
-        label={label}
+        label={label || <Totals selected={value} {...totals} resourceName={resourceName} teaser />}
         title={tooltipProps.heading}
         tooltipProps={tooltipProps}
         {...labelProps}
