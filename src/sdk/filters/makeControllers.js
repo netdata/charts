@@ -113,21 +113,10 @@ export default chart => {
   }
 
   const updateAggregationMethodAttribute = value => {
+    debugger
+    if (chart.getAttribute("aggregationMethod") === value) return
+
     chart.updateAttribute("aggregationMethod", value)
-    const groupBy = chart.getAttribute("groupBy")
-
-    if (groupBy.length > 1 || groupBy[0] !== "dimension") {
-      prevChartType = prevChartType || chart.getAttribute("chartType")
-      chart.updateAttribute(
-        "chartType",
-        stackedAggregations[value] ? "stacked" : metadata.chartType
-      )
-    } else {
-      if (chart.getAttribute("chartType") === "line")
-        chart.updateAttribute("chartType", prevChartType)
-
-      prevChartType = metadata.chartType
-    }
 
     chart.fetchAndRender()
   }

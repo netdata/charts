@@ -11,6 +11,7 @@ const Container = styled(Flex)`
   list-style-type: none;
   border-radius: 2px;
 `
+
 export const meta = (row, cell, index) => ({
   cellStyles: {
     height: "40px",
