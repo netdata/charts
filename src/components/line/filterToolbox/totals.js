@@ -14,7 +14,9 @@ const Totals = ({
   resourceName,
 }) => (
   <TextMicro color="textLite">
-    <TextMicro color={teaser ? "textLite" : "primary"}>{qr}</TextMicro>
+    <TextMicro color={teaser ? "textLite" : "primary"}>
+      {selected.length && selected.length < qr ? selected.length : qr}
+    </TextMicro>
     {!teaser ? " queried" : " "}
     {!teaser && (
       <Icon
@@ -39,7 +41,7 @@ const Totals = ({
         />
       </>
     )}
-    {(fl > 0 || (teaser && qr !== (selected.length || sl + ex))) && (
+    {(fl > 0 || (teaser && qr < (selected.length || sl + ex))) && (
       <>
         of <TextMicro>{(teaser ? selected.length || sl + ex : selected.length) || sl}</TextMicro>
         {!teaser ? " selected" : ""}

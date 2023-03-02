@@ -188,12 +188,6 @@ const DropdownTable = ({
   const [isOpen, setIsOpen] = useState(false)
   const [newValues, setNewValues] = useState(value)
 
-  useEffect(() => {
-    if (!isOpen) return
-
-    setNewValues(value)
-  }, [isOpen])
-
   const [rowSelection, setRowSelection] = useState(() => buildSelections(options, {}))
 
   useEffect(() => {
@@ -201,6 +195,11 @@ const DropdownTable = ({
 
     const newSelections = buildSelections(options, {})
     setRowSelection(prev => (deepEqual(prev, newSelections) ? prev : newSelections))
+  }, [isOpen])
+
+  useEffect(() => {
+    if (isOpen) return
+    onChange(newValues)
   }, [isOpen])
 
   const onSelect = useCallback(val => setNewValues(val), [])
@@ -239,10 +238,7 @@ const DropdownTable = ({
       }}
       value={value}
       onOpen={() => setIsOpen(true)}
-      onClose={() => {
-        setIsOpen(false)
-        onChange(newValues)
-      }}
+      onClose={() => setIsOpen(false)}
       {...rest}
     >
       <Label

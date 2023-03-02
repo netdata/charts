@@ -95,7 +95,6 @@ export default {
   dimensions: [],
   groupBy: [],
   groupByLabel: [],
-  // selectedInstances: [], deprecate
   // selectedNodeIds: [], deprecate
   // selectedChartId: "", deprecate
 

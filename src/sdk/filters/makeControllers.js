@@ -73,13 +73,11 @@ export default chart => {
       { selectedNodes: [], selectedInstances: [] }
     )
 
-    if (
-      deepEqual(selectedNodes, chart.getAttribute("selectedNodes")) &&
-      deepEqual(selectedInstances, chart.getAttribute("selectedInstances"))
-    )
-      return
+    if (!deepEqual(selectedNodes, chart.getAttribute("selectedNodes")))
+      chart.updateAttribute("selectedNodes", selectedNodes)
 
-    chart.updateAttributes({ selectedNodes: selectedNodes, selectedInstances: selectedInstances })
+    if (!deepEqual(selectedInstances, chart.getAttribute("selectedInstances")))
+      chart.updateAttribute("selectedInstances", selectedInstances)
 
     chart.fetchAndRender()
   }
@@ -89,10 +87,7 @@ export default chart => {
 
     if (deepEqual(selectedInstances, chart.getAttribute("selectedInstances"))) return
 
-    chart.updateAttribute(
-      "selectedInstances",
-      selected.map(sel => sel.value)
-    )
+    chart.updateAttribute("selectedInstances", selectedInstances)
 
     chart.fetchAndRender()
   }
