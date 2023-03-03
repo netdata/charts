@@ -181,7 +181,10 @@ export default ({
   const failFetch = error => {
     if (!node) return
 
-    if (error?.name === "AbortError") return
+    if (error?.name === "AbortError") {
+      node.updateAttribute("loading", false)
+      return
+    }
 
     backoff()
     if (!error || error.name !== "AbortError") node.trigger("failFetch", error)
