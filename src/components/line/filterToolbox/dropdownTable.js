@@ -85,6 +85,7 @@ const Dropdown = ({
       {...rest}
     >
       <NetdataTable
+        background="dropdown"
         enableSorting
         enableSelection
         dataColumns={columns}

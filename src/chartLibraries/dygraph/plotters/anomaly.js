@@ -20,19 +20,23 @@ export default chartUI => plotter => {
     const dimensionIds = chartUI.chart.getPayloadDimensionIds()
     const selectedLegendDimensions = chartUI.chart.getAttribute("selectedLegendDimensions")
 
-    const selectedIdsSet = dimensionIds.reduce((set, id, index) => {
+    const selectedIdsSet = dimensionIds.reduce((h, id, index) => {
       if (!selectedLegendDimensions.length) {
-        set.add(index)
+        h.add(index)
       } else {
-        if (chartUI.chart.isDimensionVisible(id)) set.add(index)
+        if (chartUI.chart.isDimensionVisible(id)) h.add(index)
       }
-      return set
+      return h
     }, new Set())
+
+    const result = chartUI.chart.getPayload().anomalyResult
 
     points.forEach(p => {
       const center_x = p.canvasx
 
-      const value = p.yval.reduce(
+      const row = chartUI.chart.getClosestRow(p.xval)
+      const [, ...anomalyRow] = result.data[row]
+      const value = anomalyRow.reduce(
         (max, val, index) => (selectedIdsSet.has(index) ? (max > val ? max : val) : max),
         0
       )

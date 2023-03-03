@@ -73,13 +73,16 @@ export default chart => {
       { selectedNodes: [], selectedInstances: [] }
     )
 
-    if (!deepEqual(selectedNodes, chart.getAttribute("selectedNodes")))
-      chart.updateAttribute("selectedNodes", selectedNodes)
+    const nodesHaveChanges = !deepEqual(selectedNodes, chart.getAttribute("selectedNodes"))
+    if (nodesHaveChanges) chart.updateAttribute("selectedNodes", selectedNodes)
 
-    if (!deepEqual(selectedInstances, chart.getAttribute("selectedInstances")))
-      chart.updateAttribute("selectedInstances", selectedInstances)
+    const instancesHaveChanges = !deepEqual(
+      selectedInstances,
+      chart.getAttribute("selectedInstances")
+    )
+    if (instancesHaveChanges) chart.updateAttribute("selectedInstances", selectedInstances)
 
-    chart.fetchAndRender()
+    if (instancesHaveChanges || nodesHaveChanges) chart.fetchAndRender()
   }
 
   const updateInstancesAttribute = selected => {
@@ -113,7 +116,6 @@ export default chart => {
   }
 
   const updateAggregationMethodAttribute = value => {
-    debugger
     if (chart.getAttribute("aggregationMethod") === value) return
 
     chart.updateAttribute("aggregationMethod", value)
@@ -123,6 +125,9 @@ export default chart => {
 
   const updateTimeAggregationMethodAttribute = ({ alias, method }) => {
     const value = alias ? `${method}${alias}` : method
+
+    if (chart.getAttribute("groupingMethod") === value) return
+
     chart.updateAttribute("groupingMethod", value)
     chart.fetchAndRender()
   }

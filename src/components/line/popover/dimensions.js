@@ -21,7 +21,7 @@ const Container = styled(Flex).attrs(props => ({
 
 const emptyArray = [null, null]
 
-const maxDimensions = Math.floor((window.innerHeight - 300) / 15) || 16
+const maxDimensions = Math.floor((window.innerHeight - 500) / 15) || 16
 const half = maxDimensions / 2
 
 const getFrom = (total, index) => {

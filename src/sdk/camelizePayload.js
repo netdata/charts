@@ -6,7 +6,8 @@ const camelizeResult = (result, { anomalyResult }) => {
   if (anomalyResult && typeof anomalyResult === "object" && Array.isArray(anomalyResult.data)) {
     const enhancedData = data.map((row, i) => {
       const [, ...anomalyRow] = anomalyResult.data[i]
-      return [...row, anomalyRow]
+
+      return [...row, anomalyRow.reduce((max, val) => (max > val ? max : val), 0)]
     })
 
     return {

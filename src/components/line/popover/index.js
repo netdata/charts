@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef, forwardRef, Fragment } from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import makeExecuteLatest from "@/helpers/makeExecuteLatest"
 import { unregister } from "@/helpers/makeListeners"
 import { useChart } from "@/components/provider"
 import ReactDOM from "react-dom"
@@ -42,39 +41,34 @@ const Container = () => {
   updatePositionRef.current = useMakeUpdatePosition(target, dropRef, align, stretch)
 
   useEffect(() => {
-    const executeLatest = makeExecuteLatest()
     return unregister(
-      chart.getUI().on(
-        "mousemove",
-        executeLatest.add(event => {
-          if (chart.getAttribute("panning") || chart.getAttribute("highlighting")) return
+      chart.getUI().on("mousemove", event => {
+        if (chart.getAttribute("panning") || chart.getAttribute("highlighting")) return
 
-          const offsetX = event.offsetX || event.layerX
-          const offsetY = event.offsetY || event.layerY
+        const offsetX = event.offsetX || event.layerX
+        const offsetY = event.offsetY || event.layerY
 
-          setOpen(true)
+        setOpen(true)
 
-          if (!targetRef.current) return
+        if (!targetRef.current) return
 
-          targetRef.current.style.left = `${offsetX}px`
-          targetRef.current.style.top = `${offsetY}px`
+        targetRef.current.style.left = `${offsetX}px`
+        targetRef.current.style.top = `${offsetY}px`
 
-          updatePositionRef.current()
+        updatePositionRef.current()
 
-          const winHeight = window.innerHeight
-          const winWidth = window.innerWidth
+        const winHeight = window.innerHeight
+        const winWidth = window.innerWidth
 
-          const { width, height } = dropRef.current.getBoundingClientRect()
-          const left = offsetX + width > winWidth
-          const top = offsetY + height > winHeight
+        const { width, height } = dropRef.current.getBoundingClientRect()
+        const left = offsetX + width > winWidth
+        const top = offsetY + height > winHeight
 
-          setAlign(getAlign(left, top))
-        })
-      ),
+        setAlign(getAlign(left, top))
+      }),
       chart.on("blurChart", () => setOpen(false)),
       chart.onAttributeChange("panning", panning => panning && setOpen(false)),
-      chart.onAttributeChange("highlighting", panning => panning && setOpen(false)),
-      () => executeLatest && executeLatest.clear()
+      chart.onAttributeChange("highlighting", panning => panning && setOpen(false))
     )
   }, [chart])
 
@@ -93,6 +87,7 @@ const Container = () => {
           width={{ max: "100%" }}
           column
           data-testid="drop"
+          sx={{ pointerEvents: "none" }}
         >
           <Popover />
         </DropContainer>,

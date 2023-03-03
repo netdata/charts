@@ -265,7 +265,9 @@ export const useLatestValue = (id, resultKey = "result") => {
       const dimValue = chart.getDimensionValue(id, index, resultKey)
       if (isNaN(dimValue)) return ""
 
-      return chart.getConvertedValue(dimValue)
+      return resultKey === "anomalyResult"
+        ? parseFloat(dimValue).toFixed(2)
+        : chart.getConvertedValue(dimValue)
     }
 
     if (value === null) setState(getValue())

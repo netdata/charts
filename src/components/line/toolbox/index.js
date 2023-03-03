@@ -18,7 +18,7 @@ const Container = styled(Flex).attrs({
   border: { side: "all", color: "borderSecondary" },
 })`
   position: absolute;
-  top: 8px;
+  top: 16px;
   right: 8px;
   background: ${getRgbColor("elementBackground", 0.5)};
 

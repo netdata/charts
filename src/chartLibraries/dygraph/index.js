@@ -79,15 +79,15 @@ export default (sdk, chart) => {
       ),
       interactionModel: {
         willDestroyContextMyself: true,
-        mouseout: executeLatest.add((...args) => chartUI.trigger("mouseout", ...args)),
-        mousedown: executeLatest.add((...args) => chartUI.trigger("mousedown", ...args)),
-        mousemove: executeLatest.add((...args) => chartUI.trigger("mousemove", ...args)),
-        mouseover: executeLatest.add((...args) => chartUI.trigger("mouseover", ...args)),
-        mouseup: executeLatest.add((...args) => chartUI.trigger("mouseup", ...args)),
-        touchstart: executeLatest.add((...args) => chartUI.trigger("touchstart", ...args)),
-        touchmove: executeLatest.add((...args) => chartUI.trigger("touchmove", ...args)),
-        touchend: executeLatest.add((...args) => chartUI.trigger("touchend", ...args)),
-        dblclick: executeLatest.add((...args) => chartUI.trigger("dblclick", ...args)),
+        mouseout: (...args) => chartUI.trigger("mouseout", ...args),
+        mousedown: (...args) => chartUI.trigger("mousedown", ...args),
+        mousemove: (...args) => chartUI.trigger("mousemove", ...args),
+        mouseover: (...args) => chartUI.trigger("mouseover", ...args),
+        mouseup: (...args) => chartUI.trigger("mouseup", ...args),
+        touchstart: (...args) => chartUI.trigger("touchstart", ...args),
+        touchmove: (...args) => chartUI.trigger("touchmove", ...args),
+        touchend: (...args) => chartUI.trigger("touchend", ...args),
+        dblclick: (...args) => chartUI.trigger("dblclick", ...args),
         wheel: (...args) => chartUI.trigger("wheel", ...args),
       },
       series: {
@@ -118,27 +118,7 @@ export default (sdk, chart) => {
       ...makeDataOptions(),
       ...makeSparklineOptions(),
       ...makeColorOptions(),
-      // visibility return selected dimensions
-      // logscale
     })
-
-    // dygraph.mouseMoveHandler_
-    // removeEvent(dygraph.mouseEventElement_, "mousemove", dygraph.mouseMoveHandler_)
-    // dygraph.mouseMoveHandler_ = null
-
-    // const mousemove = event => {
-    //   const callback = dygraph.getFunctionOption("highlightCallback")
-
-    //   callback.call(
-    //     dygraph,
-    //     event,
-    //     dygraph.lastx_,
-    //     dygraph.selPoints_,
-    //     dygraph.lastRow_,
-    //     dygraph.highlightSet_
-    //   )
-    // }
-    // dygraph.addAndTrackEvent(dygraph.mouseEventElement_, "mousemove", mousemove)
 
     resizeObserver = makeResizeObserver(element, () => {
       chartUI.trigger("resize")
