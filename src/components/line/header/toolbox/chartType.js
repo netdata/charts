@@ -49,13 +49,13 @@ const useItems = chart =>
         svg: barChart,
         "data-track": chart.track("chartType-multibar"),
       },
-      {
-        value: "heatmap",
-        label: "Heatmap",
-        icon: <Icon svg={heatmapChart} {...iconProps} />,
-        svg: heatmapChart,
-        "data-track": chart.track("chartType-heatmap"),
-      },
+      // {
+      //   value: "heatmap",
+      //   label: "Heatmap",
+      //   icon: <Icon svg={heatmapChart} {...iconProps} />,
+      //   svg: heatmapChart,
+      //   "data-track": chart.track("chartType-heatmap"),
+      // },
     ],
     [chart]
   )
