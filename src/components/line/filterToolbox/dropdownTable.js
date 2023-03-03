@@ -217,7 +217,7 @@ const DropdownTable = ({
         align: { top: "bottom", left: "left" },
         "data-toolbox": true,
         keepHorizontal: true,
-        width: "90%",
+        width: "750px",
         stretch: null,
       }}
       dropdownProps={{
