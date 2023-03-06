@@ -1,14 +1,10 @@
 const camelizeResult = (result, { anomalyResult }) => {
-  if (Array.isArray(result)) return result
+  if (Array.isArray(result)) return { data: result }
 
   const { labels, data, post_aggregated_data } = result
 
   if (anomalyResult && typeof anomalyResult === "object" && Array.isArray(anomalyResult.data)) {
-    const enhancedData = data.map((row, i) => {
-      const [, ...anomalyRow] = anomalyResult.data[i]
-
-      return [...row, anomalyRow.reduce((max, val) => (max > val ? max : val), 0)]
-    })
+    const enhancedData = data.map((row, i) => [...row, 0]) // Initialize with zero for anomalies - allow stacked and area graphs to not display it
 
     return {
       labels: [...labels, "ANOMALY_RATE"],

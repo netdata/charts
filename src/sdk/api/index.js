@@ -5,9 +5,7 @@ export * from "./helpers"
 export const fetchChartData = (chart, options) => {
   const { agent } = chart.getAttributes()
 
-  if (agent) return fetchAgentData(chart, options)
-
-  return fetchAgentData(chart, options) // CHANGE WHEN READY ON CLOUD
+  return agent ? fetchAgentData(chart, options) : fetchAgentData(chart, options) // CHANGE WHEN READY ON CLOUD
 }
 
 export const fetchChartMetadata = () => {

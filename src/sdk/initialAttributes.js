@@ -13,7 +13,7 @@ export default {
   updateEvery: 0,
   pristineValueRange: undefined,
   valueRange: null,
-  getValueRange: ({ min, max, groupBy, valueRange, aggrMethod }) => {
+  getValueRange: ({ min = null, max = null, groupBy, valueRange, aggrMethod }) => {
     const minMax = min === max ? [0, max * 2] : [min || null, null]
     return groupBy.length === 1 && groupBy[0] === "dimension"
       ? valueRange || null
@@ -131,4 +131,7 @@ export default {
   initializedFilters: false,
   renderDimensionChildren: null,
   error: null,
+
+  shouldFetchMetadata: false,
+  agent: true, // default should be false when ready for cloud
 }

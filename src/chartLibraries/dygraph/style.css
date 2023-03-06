@@ -5,3 +5,10 @@
 .dark .dygraph-axis-label {
   color: #fff;
 }
+
+.dygraph-annotation {
+  position: absolute;
+  z-index: 10;
+  overflow: hidden;
+  border: 1px solid;
+}

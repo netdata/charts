@@ -11,7 +11,10 @@ export default chartUI => {
     makeOverlay(chartUI, id)
   }
 
-  const drawOverlays = () => {
+  const drawOverlays = (dygraph, isInitial) => {
+    // if (!isInitial) return
+    // TODO Is the above needed?
+
     const overlays = chartUI.chart.getAttribute("overlays")
     Object.keys(overlays).forEach(drawOverlay)
   }

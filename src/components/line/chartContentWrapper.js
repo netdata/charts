@@ -27,7 +27,7 @@ export const ContentWrapper = props => (
 )
 
 export const Container = forwardRef((props, ref) => {
-  const chartLibrary = useAttributeValue("fetchStartedAt")
+  const chartLibrary = useAttributeValue("chartLibrary")
   const navigation = useAttributeValue("navigation")
 
   return (

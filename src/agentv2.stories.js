@@ -1,7 +1,9 @@
 import React from "react"
 import { ThemeProvider } from "styled-components"
 import { DefaultTheme } from "@netdata/netdata-ui/lib/theme"
+import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import Line from "@/components/line"
+import GaugeComponent from "@/components/gauge"
 import makeDefaultSDK from "./makeDefaultSDK"
 
 const Template = ({ nodesScope, contextScope, contexts, host }) => {
@@ -12,16 +14,39 @@ const Template = ({ nodesScope, contextScope, contexts, host }) => {
       nodesScope: [nodesScope],
       contextScope: [contextScope],
       host: host,
-      aggregationMethod: "avg",
+      aggregationMethod: "sum",
       agent: true,
+      syncHover: true,
+      groupingMethod: "average",
       composite: true,
+      chartUrlOptions: ["raw"],
     },
   })
 
   sdk.appendChild(chart)
 
+  const chart2 = sdk.makeChart({
+    attributes: {
+      selectedContexts: [contexts],
+      nodesScope: [nodesScope],
+      contextScope: [contextScope],
+      host: host,
+      aggregationMethod: "sum",
+      groupBy: ["selected"],
+      agent: true,
+      chartLibrary: "gauge",
+      chartUrlOptions: ["percentage"],
+      syncHover: true,
+    },
+  })
+
+  sdk.appendChild(chart2)
+
   return (
     <ThemeProvider theme={DefaultTheme}>
+      <Flex width="180px">
+        <GaugeComponent chart={chart2} />
+      </Flex>
       <Line chart={chart} height="315px" />
     </ThemeProvider>
   )
@@ -50,7 +75,7 @@ export const OneChart = Template.bind({})
 
 OneChart.args = {
   nodesScope: "*",
-  contextScope: "system.interrupts",
+  contextScope: "disk.space",
   contexts: "*",
-  host: "http://192.168.1.205:19999/api/v2/data", // "http://10.10.11.2:19999/api/v2/data"
+  host: "http://10.10.11.2:19999/api/v2/data", //"http://192.168.1.205:19999/api/v2/data",
 }

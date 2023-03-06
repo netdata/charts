@@ -8,12 +8,14 @@ import {
   makeMultiColumnBarPlotter,
   makeHeatmapPlotter,
   makeAnomalyPlotter,
+  makePartialsPlotter,
 } from "./plotters"
 import makeNavigation from "./navigation"
 import makeHover from "./hover"
 import makeHoverX from "./hoverX"
 import makeOverlays from "./overlays"
 import crosshair from "./crosshair"
+import drawAnnotations from "./drawAnnotations"
 
 const getDateWindow = chart => {
   const { after, before } = chart.getAttributes()
@@ -65,6 +67,7 @@ export default (sdk, chart) => {
 
     dygraph = new Dygraph(element, isEmpty ? [[0]] : normalizeData(result.data), {
       // timingName: "TEST",
+      legend: "never",
       showLabelsOnHighlight: false,
       labels: isEmpty ? ["X"] : result.labels,
 
@@ -79,20 +82,26 @@ export default (sdk, chart) => {
       ),
       interactionModel: {
         willDestroyContextMyself: true,
-        mouseout: (...args) => chartUI.trigger("mouseout", ...args),
-        mousedown: (...args) => chartUI.trigger("mousedown", ...args),
-        mousemove: (...args) => chartUI.trigger("mousemove", ...args),
-        mouseover: (...args) => chartUI.trigger("mouseover", ...args),
-        mouseup: (...args) => chartUI.trigger("mouseup", ...args),
-        touchstart: (...args) => chartUI.trigger("touchstart", ...args),
-        touchmove: (...args) => chartUI.trigger("touchmove", ...args),
-        touchend: (...args) => chartUI.trigger("touchend", ...args),
-        dblclick: (...args) => chartUI.trigger("dblclick", ...args),
-        wheel: (...args) => chartUI.trigger("wheel", ...args),
+        mouseout: executeLatest.add((...args) => chartUI.trigger("mouseout", ...args)),
+        mousedown: executeLatest.add((...args) => chartUI.trigger("mousedown", ...args)),
+        mousemove: executeLatest.add((...args) => chartUI.trigger("mousemove", ...args)),
+        mouseover: executeLatest.add((...args) => chartUI.trigger("mouseover", ...args)),
+        mouseup: executeLatest.add((...args) => chartUI.trigger("mouseup", ...args)),
+        touchstart: executeLatest.add((...args) => chartUI.trigger("touchstart", ...args)),
+        touchmove: executeLatest.add((...args) => chartUI.trigger("touchmove", ...args)),
+        touchend: executeLatest.add((...args) => chartUI.trigger("touchend", ...args)),
+        dblclick: executeLatest.add((...args) => chartUI.trigger("dblclick", ...args)),
+        wheel: executeLatest.add((...args) => chartUI.trigger("wheel", ...args)),
       },
       series: {
         ANOMALY_RATE: {
           plotter: makeAnomalyPlotter(chartUI),
+          drawPoints: false,
+          pointSize: 0,
+          highlightCircleSize: 0,
+        },
+        PARTIALS: {
+          plotter: makePartialsPlotter(chartUI),
           drawPoints: false,
           pointSize: 0,
           highlightCircleSize: 0,
@@ -151,6 +160,7 @@ export default (sdk, chart) => {
       chart.onAttributeChange("enabledNavigation", navigation.toggle),
       chart.onAttributeChange("navigation", navigation.set),
       chart.onAttributeChange("overlays", overlays.toggle),
+      chart.onAttributeChange("annotations", () => drawAnnotations(dygraph, chartUI)),
       chart.onAttributeChange("theme", (nextTheme, prevTheme) => {
         element.classList.remove(prevTheme)
         element.classList.add(nextTheme)
@@ -178,7 +188,7 @@ export default (sdk, chart) => {
                   min,
                   max,
                   groupBy: attributes.groupBy,
-                  valueRange: [0, 4] || valueRange,
+                  valueRange,
                   aggrMethod: attributes.aggregationMethod,
                 }),
         })
@@ -190,6 +200,7 @@ export default (sdk, chart) => {
 
     hover = makeHover(instance)
     overlays.toggle()
+    drawAnnotations(dygraph, chartUI)
 
     chartUI.render()
     chartUI.trigger("rendered")
@@ -200,7 +211,7 @@ export default (sdk, chart) => {
     stackedBar: makeStackedBarPlotter(chartUI),
     multibar: makeMultiColumnBarPlotter(chartUI),
     heatmap: makeHeatmapPlotter(chartUI),
-    default: null,
+    default: Dygraph.Plotters.fillPlotter,
   })
 
   let prevMin
@@ -333,9 +344,13 @@ export default (sdk, chart) => {
 
     const selectedLegendDimensions = chart.getAttribute("selectedLegendDimensions")
 
+    const suffixLabels = Array(chart.getPayload().result.labels.length - dimensionIds.length).fill(
+      true
+    )
+
     const visibility = [
       ...dimensionIds.map(selectedLegendDimensions.length ? chart.isDimensionVisible : () => true),
-      () => false,
+      ...suffixLabels,
     ]
 
     return { visibility }
@@ -451,7 +466,6 @@ export default (sdk, chart) => {
       ...makeVisibilityOptions(),
       ...makeColorOptions(),
     })
-    chartUI.trigger("rendered")
   }
 
   const getPreceded = () => {

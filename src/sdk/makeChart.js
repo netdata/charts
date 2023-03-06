@@ -159,6 +159,7 @@ export default ({
       outOfLimits: !dataLength,
       chartType: attributes.selectedChartType || attributes.chartType || chartType,
       ...restPayload,
+      title: attributes.title || restPayload.title,
       error: null,
     })
 
@@ -236,14 +237,7 @@ export default ({
   const fetch = () => {
     if (!node) return
 
-    node.trigger("startFetch")
-    node.updateAttributes({ loading: true, fetchStartedAt: Date.now() })
-
-    updateMetadata()
-    if (!isNewerThanRetention())
-      return Promise.resolve().then(() =>
-        failFetch({ message: "Exceeds agent data retention settings" })
-      )
+    let promise
 
     const doFetchMetadata = () => {
       if (!node) return
@@ -268,6 +262,16 @@ export default ({
 
     const fetchData = () => {
       if (!node) return
+
+      cancelFetch()
+      node.trigger("startFetch")
+      node.updateAttributes({ loading: true, fetchStartedAt: Date.now() })
+
+      updateMetadata()
+      if (!isNewerThanRetention())
+        return Promise.resolve().then(() =>
+          failFetch({ message: "Exceeds agent data retention settings" })
+        )
 
       return dataFetch().then(() => {
         const { fullyLoaded } = getMetadata()
