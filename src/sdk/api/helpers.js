@@ -35,7 +35,6 @@ export const getChartPayload = chart => {
     time_resampling: groupingTime,
     after: afterWithPadding,
     ...(after > 0 && { before: beforeWithPadding }),
-    with_metadata: true,
   }
 }
 

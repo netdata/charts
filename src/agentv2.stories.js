@@ -4,6 +4,7 @@ import { DefaultTheme } from "@netdata/netdata-ui/lib/theme"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import Line from "@/components/line"
 import GaugeComponent from "@/components/gauge"
+import EasyPieComponent from "@/components/easyPie"
 import makeDefaultSDK from "./makeDefaultSDK"
 
 const Template = ({ nodesScope, contextScope, contexts, host }) => {
@@ -42,10 +43,28 @@ const Template = ({ nodesScope, contextScope, contexts, host }) => {
 
   sdk.appendChild(chart2)
 
+  const chart3 = sdk.makeChart({
+    attributes: {
+      selectedContexts: [contexts],
+      nodesScope: [nodesScope],
+      contextScope: [contextScope],
+      host: host,
+      aggregationMethod: "sum",
+      selectedDimensions: ["sent"],
+      groupBy: ["dimension"],
+      agent: true,
+      chartLibrary: "easypiechart",
+      syncHover: true,
+    },
+  })
+
+  sdk.appendChild(chart3)
+
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <Flex width="180px">
+      <Flex width="180px" gap={3}>
         <GaugeComponent chart={chart2} />
+        <EasyPieComponent chart={chart3} />
       </Flex>
       <Line chart={chart} height="315px" />
     </ThemeProvider>
@@ -75,7 +94,7 @@ export const OneChart = Template.bind({})
 
 OneChart.args = {
   nodesScope: "*",
-  contextScope: "disk.space",
+  contextScope: "system.net",
   contexts: "*",
-  host: "http://10.10.11.2:19999/api/v2/data", //"http://192.168.1.205:19999/api/v2/data",
+  host: "http://10.10.11.2:19999/api/v2/data", // "http://192.168.1.205:19999/api/v2/data",
 }
