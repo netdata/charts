@@ -10,7 +10,6 @@ import ChartContentWrapper from "./chartContentWrapper"
 
 export const NoInteractLine = props => {
   const chart = useChart()
-  const composite = useAttributeValue("composite")
 
   const ref = useHover(
     {
@@ -24,7 +23,7 @@ export const NoInteractLine = props => {
 
   return (
     <Container ref={ref} {...props}>
-      {composite && <FilterToolbox />}
+      <FilterToolbox />
       <ContentWrapper>
         <ChartContentWrapper />
       </ContentWrapper>

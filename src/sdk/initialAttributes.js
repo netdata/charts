@@ -90,7 +90,6 @@ export default {
   axisLabelFontSize: 10,
 
   outOfLimits: false,
-  composite: false,
   aggregationMethod: "",
   dimensions: [],
   groupBy: [],

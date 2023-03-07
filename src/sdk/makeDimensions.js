@@ -12,10 +12,7 @@ export default (chart, sdk) => {
 
   const sparklineDimensions = ["sum"]
 
-  const hasSparklineDimension = () => {
-    const { composite, sparkline } = chart.getAttributes()
-    return !composite && sparkline
-  }
+  const hasSparklineDimension = () => chart.getAttributes().sparkline
 
   const getPayloadDimensionIds = () => {
     if (hasSparklineDimension()) return sparklineDimensions

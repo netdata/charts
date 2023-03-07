@@ -11,7 +11,6 @@ import Container from "./container"
 
 export const Line = props => {
   const chart = useChart()
-  const composite = useAttributeValue("composite")
   const detailed = useAttributeValue("detailed")
 
   const ref = useHover(
@@ -27,7 +26,7 @@ export const Line = props => {
   return (
     <Container ref={ref} {...props}>
       <Header />
-      {composite && <FilterToolbox />}
+      <FilterToolbox />
       <ContentWrapper>
         <ChartContentWrapper />
         {detailed && <Details />}

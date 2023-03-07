@@ -67,7 +67,9 @@ export const Item = ({ value: selectedValue, item, onItemClick, itemProps }) => 
           </Text>
         )}
         {!!description && (
-          <TextSmall color={justDesc ? undefined : "textLite"}>{description}</TextSmall>
+          <TextSmall strong={justDesc} color="textLite">
+            {description}
+          </TextSmall>
         )}
       </Flex>
     </ItemContainer>

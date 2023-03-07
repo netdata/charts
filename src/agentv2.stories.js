@@ -19,7 +19,6 @@ const Template = ({ nodesScope, contextScope, contexts, host }) => {
       agent: true,
       syncHover: true,
       groupingMethod: "average",
-      composite: true,
       chartUrlOptions: ["raw"],
     },
   })

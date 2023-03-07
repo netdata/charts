@@ -30,7 +30,6 @@ const makeChart = props => {
   const chart = sdk.makeChart({
     getChart,
     attributes: {
-      composite: true,
       chartLibrary: "groupBoxes",
       groupBy: ["label"],
       groupByLabel: ["k8s_namespace", "k8s_container_id"],

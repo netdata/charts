@@ -59,4 +59,4 @@ const TooltipContent = ({ header, body }) => (
   </Flex>
 )
 
-export default Label || withTooltip(Label, { Content: TooltipContent, align: "top" })
+export default withTooltip(Label, { Content: TooltipContent, align: "top" })
