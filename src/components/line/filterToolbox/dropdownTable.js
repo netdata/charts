@@ -1,15 +1,15 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react"
 import styled from "styled-components"
-import { Flex, TextSmall, Menu, NetdataTable, Button } from "@netdata/netdata-ui"
+import { Flex, TextSmall, Menu, NetdataTable, Button, getColor } from "@netdata/netdata-ui"
 import deepEqual from "@/helpers/deepEqual"
 import Label from "./label"
 import Totals from "./totals"
 
 const Container = styled(Flex)`
-  ${({ hideShadow }) =>
-    !hideShadow && "box-shadow: 0 18px 28px rgba(9, 30, 66, 0.15), 0 0 1px rgba(9, 30, 66, 0.95);"}
+  box-shadow: 0 18px 28px ${getColor("dropdownShadow")};
   list-style-type: none;
   border-radius: 2px;
+  border: 1px solid ${getColor("borderSecondary")};
 `
 
 export const meta = (row, cell, index) => ({
@@ -24,11 +24,11 @@ export const meta = (row, cell, index) => ({
   },
   styles: { verticalAlign: "middle" },
   bulkActionsStyles: {
-    padding: [0, 0, 2],
+    padding: [2, 0],
   },
   searchContainerStyles: {
     width: "100%",
-    padding: [4, 2, 1, 2],
+    padding: [0, 2, 0, 2],
   },
   searchStyles: {
     inputContainerStyles: {
@@ -68,6 +68,7 @@ const Dropdown = ({
   newValues,
   totals,
   emptyMessage,
+  title,
   ...rest
 }) => {
   const hasChanges = useMemo(() => deepEqual(value, newValues), [newValues])
@@ -76,7 +77,6 @@ const Dropdown = ({
     <Container
       role="listbox"
       background="dropdown"
-      hideShadow={hideShadow}
       padding={[0]}
       margin={[1, 0]}
       column
@@ -85,16 +85,14 @@ const Dropdown = ({
       {...rest}
     >
       <NetdataTable
-        background="dropdown"
+        title={title}
+        background="dropdownTable"
         enableSorting
         enableSelection
         dataColumns={columns}
         data={items}
         onRowSelected={onItemClick}
         onGlobalSearchChange={noop}
-        sx={{
-          borderCollapse: "collapse",
-        }}
         meta={tableMeta}
         sortBy={sortBy}
         rowSelection={rowSelection}
@@ -102,6 +100,7 @@ const Dropdown = ({
         expanded={expanded}
         onExpandedChange={onExpandedChange}
         enableSubRowSelection={enableSubRowSelection}
+        width="850px"
         // bulkActions={bulkActions}
         // rowActions={rowActions}
       />
@@ -185,6 +184,7 @@ const DropdownTable = ({
   totals,
   emptyMessage,
   resourceName,
+  title,
   ...rest
 }) => {
   const [isOpen, setIsOpen] = useState(false)
@@ -217,11 +217,10 @@ const DropdownTable = ({
         align: { top: "bottom", left: "left" },
         "data-toolbox": true,
         keepHorizontal: true,
-        width: "750px",
         stretch: null,
       }}
       dropdownProps={{
-        height: { max: "80vh" },
+        height: { max: "60vh" },
         width: "100%",
         overflow: "auto",
         columns,
@@ -237,6 +236,7 @@ const DropdownTable = ({
         totals,
         newValues,
         emptyMessage,
+        title,
       }}
       value={value}
       onOpen={() => setIsOpen(true)}

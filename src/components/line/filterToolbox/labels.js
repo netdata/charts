@@ -54,6 +54,7 @@ const Labels = ({ labelProps, ...rest }) => {
 
   return (
     <DropdownTable
+      title="Labels"
       resourceName="label"
       data-track={chart.track("labels")}
       labelProps={labelProps}

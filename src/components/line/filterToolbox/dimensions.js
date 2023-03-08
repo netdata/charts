@@ -34,6 +34,7 @@ const Dimensions = ({ labelProps, ...rest }) => {
 
   return (
     <DropdownTable
+      title="Dimensions"
       resourceName="dimension"
       data-track={chart.track("dimensions")}
       labelProps={labelProps}

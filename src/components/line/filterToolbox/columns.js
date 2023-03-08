@@ -15,7 +15,7 @@ const metricsByValue = {
 export const labelColumn = fallbackExpandKey => ({
   id: "label",
   header: () => <TextSmall strong>Name</TextSmall>,
-  size: 180,
+  size: 300,
   minSize: 60,
   cell: ({ getValue, row }) => (
     <Flex justifyContent="between" alignItems="center" padding={[0, 0, 0, row.depth * 3]}>
@@ -25,6 +25,7 @@ export const labelColumn = fallbackExpandKey => ({
           strong
           onClick={!row.original.disabled ? row.getToggleSelectedHandler() : undefined}
           cursor={row.original.disabled ? "default" : "pointer"}
+          whiteSpace="normal"
         >
           {getValue()}
         </TextSmall>
@@ -51,7 +52,7 @@ export const labelColumn = fallbackExpandKey => ({
 export const uniqueColumn = () => ({
   id: "unique",
   header: <TextSmall strong>Unique</TextSmall>,
-  size: 50,
+  size: 45,
   minSize: 30,
   cell: ({ getValue }) => <TextSmall color="textLite">{getValue()}</TextSmall>,
   sortingFn: "basic",
@@ -60,7 +61,7 @@ export const uniqueColumn = () => ({
 export const instancesColumn = () => ({
   id: "instances",
   header: <TextSmall strong>Instances</TextSmall>,
-  size: 50,
+  size: 90,
   minSize: 30,
   cell: ({ getValue, row }) => {
     if (!row.original.info?.is) return <TextSmall color="textLite">{getValue()}</TextSmall>
@@ -72,7 +73,7 @@ export const instancesColumn = () => ({
           <TextSmall color="primary">{qr}</TextSmall> out of {sl + ex}
         </TextSmall>
         <ProgressBar
-          background="borderSecondary"
+          background="progressBg"
           color={["green", "deyork"]}
           height={2}
           width={`${(qr / (sl + ex)) * 100}%`}
@@ -88,7 +89,7 @@ export const instancesColumn = () => ({
 export const metricsColumn = () => ({
   id: "metrics",
   header: <TextSmall strong>Metrics</TextSmall>,
-  size: 50,
+  size: 90,
   minSize: 30,
   cell: ({ row, getValue }) => {
     if (!row.original.info?.ds) return <TextSmall color="textLite">{getValue()}</TextSmall>
@@ -100,7 +101,7 @@ export const metricsColumn = () => ({
           <TextSmall color="primary">{qr}</TextSmall> out of {sl + ex}
         </TextSmall>
         <ProgressBar
-          background="borderSecondary"
+          background="progressBg"
           color={["green", "deyork"]}
           height={2}
           width={`${(qr / (sl + ex)) * 100}%`}
@@ -116,7 +117,7 @@ export const metricsColumn = () => ({
 export const contributionColumn = () => ({
   id: "contribution",
   header: <TextSmall strong>Contribution %</TextSmall>,
-  size: 50,
+  size: 120,
   minSize: 30,
   cell: ({ row, getValue }) => {
     if (!row.original.info?.sts) return <TextSmall color="textLite">{getValue()}</TextSmall>
@@ -127,7 +128,7 @@ export const contributionColumn = () => ({
           {Math.round((getValue() + Number.EPSILON) * 100) / 100}%
         </TextSmall>
         <ProgressBar
-          background="borderSecondary"
+          background="progressBg"
           color={["green", "deyork"]}
           height={2}
           width={`${getValue()}%`}
@@ -143,7 +144,7 @@ export const contributionColumn = () => ({
 export const anomalyRateColumn = () => ({
   id: "anomalyRate",
   header: <TextSmall strong>Anomaly %</TextSmall>,
-  size: 50,
+  size: 120,
   minSize: 30,
   cell: ({ row, getValue }) => {
     if (!row.original.info?.sts) return <TextSmall color="textLite">{getValue()}</TextSmall>
@@ -154,7 +155,7 @@ export const anomalyRateColumn = () => ({
           {Math.round((getValue() + Number.EPSILON) * 100) / 100}%
         </TextSmall>
         <ProgressBar
-          background="borderSecondary"
+          background="progressBg"
           color={["purple", "lilac"]}
           height={2}
           width={`${getValue()}%`}
@@ -170,7 +171,7 @@ export const anomalyRateColumn = () => ({
 export const alertsColumn = () => ({
   id: "alerts",
   header: <TextSmall strong>Chart alerts</TextSmall>,
-  size: 50,
+  size: 130,
   minSize: 30,
   cell: ({ row, getValue }) => {
     if (!row.original.info?.al) return <TextSmall color="textLite">{getValue()}</TextSmall>
