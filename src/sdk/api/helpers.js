@@ -14,6 +14,18 @@ export const getChartURLOptions = chart => {
   ].filter(Boolean)
 }
 
+const oneValueOptions = {
+  group_by: "selected",
+  group_by_label: "",
+  aggregation: "sum",
+}
+
+const defaultOptionsByLibrary = {
+  gauge: oneValueOptions,
+  easypiechart: oneValueOptions,
+  default: {},
+}
+
 export const getChartPayload = chart => {
   const ui = chart.getUI()
 
@@ -21,7 +33,7 @@ export const getChartPayload = chart => {
   const width = ui.getParentWidth() || ui.getEstimatedChartWidth() || ui.getChartWidth()
 
   const pixelsPerPoint = ui.getPixelsPerPoint()
-  const { after, before, groupingMethod, groupingTime } = chart.getAttributes()
+  const { after, before, groupingMethod, groupingTime, chartLibrary } = chart.getAttributes()
 
   const dataPadding = Math.round((before - after) / 2)
   const afterWithPadding = after - dataPadding
@@ -35,6 +47,7 @@ export const getChartPayload = chart => {
     time_resampling: groupingTime,
     after: afterWithPadding,
     ...(after > 0 && { before: beforeWithPadding }),
+    ...(defaultOptionsByLibrary[chartLibrary] || defaultOptionsByLibrary.default),
   }
 }
 

@@ -61,8 +61,8 @@ const Dimensions = () => {
     const rowIndex = dimensionIds.findIndex(id => id === row)
 
     const total = dimensionIds.length
-    const from = getFrom(total, rowIndex)
-    const to = getTo(total, rowIndex)
+    const from = Math.floor(getFrom(total, rowIndex))
+    const to = Math.ceil(getTo(total, rowIndex))
     const ids = dimensionIds.slice(from, to)
 
     return [from, to, total, ids]

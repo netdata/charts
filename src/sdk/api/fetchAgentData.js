@@ -28,10 +28,10 @@ const getPayload = chart => {
     instances: selectedInstances.join("|") || wildcard,
     dimensions: selectedDimensions.join("|") || wildcard,
     labels: selectedLabels.join("|") || wildcard,
-    ...getChartPayload(chart),
     group_by: chart.getAttribute("groupBy").join("|"),
     ...(!!groupByLabel && { group_by_label: groupByLabel }),
     aggregation: aggregationMethod,
+    ...getChartPayload(chart),
   }
 }
 

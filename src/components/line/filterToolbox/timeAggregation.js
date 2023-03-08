@@ -38,8 +38,8 @@ const useMenuItems = (chart, tiers = []) => {
           short: "SUM()",
           "data-track": chart.track("time-aggregation-sum"),
         },
-        Array.isArray(tiers) &&
-          typeof tiers[0]?.points !== "undefined" && {
+        Array.isArray(restTiers) &&
+          typeof firstTier?.points !== "undefined" && {
             justDesc: true,
             description: `The functions below lose accuracy when applied on tiered data, compared to high resolution data. Your current query is ${
               (firstTier.points * 100.0) / tiers.reduce((h, t) => h + t.points, 0)
@@ -122,7 +122,7 @@ const useMenuItems = (chart, tiers = []) => {
           "data-track": chart.track("time-aggregation-des"),
         },
       ].filter(Boolean),
-    [chart, firstTier.points]
+    [chart, firstTier?.points]
   )
 }
 

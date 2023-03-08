@@ -10,6 +10,7 @@ import {
   makeAnomalyPlotter,
   makePartialsPlotter,
 } from "./plotters"
+import { numericTicker } from "./tickers"
 import makeNavigation from "./navigation"
 import makeHover from "./hover"
 import makeHoverX from "./hoverX"
@@ -234,7 +235,7 @@ export default (sdk, chart) => {
       }
       return chart.getConvertedValue(y)
     },
-    yTicker: Dygraph.numericTicks,
+    yTicker: numericTicker,
   }
 
   const optionsByChartType = {
@@ -426,7 +427,7 @@ export default (sdk, chart) => {
     const dimensionIds = chart.getPayloadDimensionIds()
 
     if (!dimensionIds.length) return {}
-    const colors = dimensionIds.map(id => chart.getDimensionColor(id))
+    const colors = dimensionIds.map(id => chart.selectDimensionColor(id))
 
     return { colors }
   }

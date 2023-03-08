@@ -1,7 +1,7 @@
 import React from "react"
 import useHover from "@/components/useHover"
 import withChart from "@/components/hocs/withChart"
-import { useChart, useAttributeValue } from "@/components/provider"
+import { useChart } from "@/components/provider"
 import FilterToolbox from "@/components/line/filterToolbox"
 import Footer from "@/components/line/footer"
 import Container from "@/components/line/container"

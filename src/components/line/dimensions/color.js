@@ -13,7 +13,7 @@ export const Color = styled(Flex).attrs(({ bg }) => ({
 
 const Container = ({ id, ...rest }) => {
   const chart = useChart()
-  const bg = chart.getDimensionColor(id)
+  const bg = chart.selectDimensionColor(id)
 
   if (!bg) return null
 

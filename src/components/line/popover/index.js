@@ -84,7 +84,7 @@ const Container = () => {
           data-toolbox
           margin={[align.top ? 4 : -4, align.right ? -5 : 5]}
           ref={dropRef}
-          width={{ min: "30vh", max: "100%" }}
+          width={{ max: "100%" }}
           column
           data-testid="drop"
           sx={{ pointerEvents: "none" }}
