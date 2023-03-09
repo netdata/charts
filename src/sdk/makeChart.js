@@ -184,13 +184,14 @@ export default ({
   }
 
   const invalidateContexts = hardHash => {
-    if (!hardHash) return
+    if (!node || !hardHash) return
+
     const container = node.getParent()
     if (!container) return
+
     const containerHardHash = container.getAttribute("contextsHardHash")
-    if (containerHardHash !== hardHash) {
-      container.updateAttribute("contextsHardHash", hardHash)
-    }
+
+    if (containerHardHash !== hardHash) container.updateAttribute("contextsHardHash", hardHash)
   }
 
   const failFetch = error => {
