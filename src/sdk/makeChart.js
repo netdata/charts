@@ -179,7 +179,19 @@ export default ({
     })
 
     if (wasLoaded && !errored) node.trigger("successFetch", nextPayload, prevPayload)
+    invalidateContexts(nextRawPayload?.versions?.contexts_hard_hash)
     finishFetch()
+  }
+
+  const invalidateContexts = hardHash => {
+    if (!node || !hardHash) return
+
+    const container = node.getParent()
+    if (!container) return
+
+    const containerHardHash = container.getAttribute("contextsHardHash")
+
+    if (containerHardHash !== hardHash) container.updateAttribute("contextsHardHash", hardHash)
   }
 
   const failFetch = error => {

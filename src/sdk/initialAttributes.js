@@ -30,6 +30,7 @@ export default {
   sparkline: false,
   chartType: "",
   selectedDimensions: [],
+  contextsHardHash: null,
   enabledHover: true,
   syncHover: true,
   hoverX: null,
