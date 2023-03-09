@@ -3,10 +3,6 @@ export default (a, b, pixels, opts, dygraph, vals) => {
   let ticks = []
   let i, j, tickV, nTicks
 
-  a = a + 15
-  b = b - 15
-  pixels = pixels - 50
-
   if (vals) {
     for (i = 0; i < vals.length; i++) {
       ticks.push({ v: vals[i] })
@@ -67,7 +63,9 @@ export default (a, b, pixels, opts, dygraph, vals) => {
 
   return [
     { label_v: max - pointHeight, label: "AR %" },
-    ...ticks,
+    ...ticks.filter(
+      tick => dygraph.toPercentYCoord(tick.v, 0) < 0.92 && dygraph.toPercentYCoord(tick.v, 0) > 0.08
+    ),
     { label_v: min + pointHeight, label: "Annotations" },
   ]
 }

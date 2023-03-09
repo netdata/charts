@@ -8,9 +8,6 @@ const Container = styled(Flex).attrs(props => ({
   round: true,
   ...props,
 }))`
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
   ::selection {
     background: transparent;
   }
