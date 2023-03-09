@@ -187,7 +187,8 @@ export default (chart, sdk) => {
     const { result } = chart.getPayload()
     const pointData = result.all[index]
 
-    if (!pointData) return null
+    if (!pointData?.[dimensionsById[id] + 1]) return null
+
     return pointData[dimensionsById[id] + 1][valueKey]
   }
 
