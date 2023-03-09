@@ -212,7 +212,7 @@ export default (sdk, chart) => {
     stackedBar: makeStackedBarPlotter(chartUI),
     multibar: makeMultiColumnBarPlotter(chartUI),
     heatmap: makeHeatmapPlotter(chartUI),
-    default: Dygraph.Plotters.fillPlotter,
+    default: null,
   })
 
   let prevMin
