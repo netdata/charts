@@ -54,7 +54,7 @@ export const EmptyDimension = () => {
 }
 
 const AnomalyProgressBar = ({ id }) => {
-  const value = useLatestValue(id, "anomalyResult")
+  const value = useLatestValue(id, "ar")
 
   return <ProgressBar height={0.5} color={["purple", "lilac"]} width={`${value}%`} />
 }

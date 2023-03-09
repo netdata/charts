@@ -42,7 +42,7 @@ export const getChartPayload = chart => {
 
   return {
     points: Math.round((width / pixelsPerPoint) * pointsMultiplier),
-    format,
+    format: "json2" || format, // TODO use format
     time_group: groupingMethod,
     time_resampling: groupingTime,
     after: afterWithPadding,

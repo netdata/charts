@@ -19,8 +19,6 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
       agent: true,
       syncHover: true,
       groupingMethod: "average",
-      chartUrlOptions: ["raw"],
-      valueRange: [0, 100],
     },
   })
 
@@ -91,7 +89,8 @@ export default {
     //   control: { type: "text" },
     // },
     theme: {
-      control: { type: "select", options: ["default", "dark"] },
+      control: { type: "select" },
+      options: ["default", "dark"],
     },
   },
 }
@@ -100,9 +99,9 @@ export const OneChart = Template.bind({})
 
 OneChart.args = {
   nodesScope: "*",
-  contextScope: "system.cpu",
+  contextScope: "net.net",
   contexts: "*",
   singleDimension: "*",
   theme: "default",
-  host: "http://10.10.11.2:19999/api/v2/data", // "http://192.168.1.205:19999/api/v2/data",
+  host: "http://192.168.1.205:19999/api/v2/data", // "http://10.10.11.2:19999/api/v2/data",
 }

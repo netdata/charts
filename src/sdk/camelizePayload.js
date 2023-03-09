@@ -1,19 +1,45 @@
-const camelizeResult = (result, { anomalyResult }) => {
+const transformDataRow = (row, point) =>
+  row.reduce(
+    (h, dim, i) => {
+      h.values.push(i === 0 ? dim : dim[point.value])
+      h.all.push(
+        i === 0
+          ? { value: dim }
+          : Object.keys(point).reduce((p, k) => {
+              p[k] = dim[point[k]]
+              return p
+            }, {})
+      )
+
+      if (i === row.length - 1) {
+        h.values = [...h.values, 0, 0]
+        h.all = [...h.all, {}, {}]
+      }
+
+      return h
+    },
+    { values: [], all: [] }
+  )
+
+const transformResult = result => {
   if (Array.isArray(result)) return { data: result }
 
-  const { labels, data, post_aggregated_data } = result
+  const enhancedData = result.data.reduce(
+    (h, row) => {
+      const enhancedRow = transformDataRow(row, result.point)
 
-  if (anomalyResult && typeof anomalyResult === "object" && Array.isArray(anomalyResult.data)) {
-    const enhancedData = data.map((row, i) => [...row, 0]) // Initialize with zero for anomalies - allow stacked and area graphs to not display it
+      h.data.push(enhancedRow.values)
+      h.all.push(enhancedRow.all)
 
-    return {
-      labels: [...labels, "ANOMALY_RATE"],
-      data: enhancedData,
-      postAggregatedData: post_aggregated_data,
-    }
+      return h
+    },
+    { data: [], all: [] }
+  ) // Initialize with zero for ar and pa - allow stacked and area graphs to not display it
+
+  return {
+    labels: [...result.labels, "ANOMALY_RATE", "ANNOTATIONS"],
+    ...enhancedData,
   }
-
-  return { labels, data, postAggregatedData: post_aggregated_data }
 }
 
 export default payload => {
@@ -39,13 +65,11 @@ export default payload => {
       chart_type: chartType,
     },
     result,
-    anomaly_rates: anomalyResult,
     ...rest
   } = payload
 
   return {
-    result: camelizeResult(result, { anomalyResult }),
-    anomalyResult,
+    result: transformResult(result),
     updateEvery,
     viewUpdateEvery,
     firstEntry,

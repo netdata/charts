@@ -44,22 +44,16 @@ export default (chart, sdk) => {
       return getIds().sort((a, b) => getDimensionValue(a, x) - getDimensionValue(b, x))
     },
     anomalyDesc: (getIds = getSourceDimensionIds, x) => {
-      const { anomalyResult: result } = chart.getPayload()
-      x = x || result.data.length - 1
+      const { result } = chart.getPayload()
+      x = x || result.all.length - 1
 
-      return getIds().sort(
-        (a, b) =>
-          getDimensionValue(b, x, "anomalyResult") - getDimensionValue(a, x, "anomalyResult")
-      )
+      return getIds().sort((a, b) => getDimensionValue(b, x, "ar") - getDimensionValue(a, x, "ar"))
     },
     anomalyAsc: (getIds = getSourceDimensionIds, x) => {
-      const { anomalyResult: result } = chart.getPayload()
-      x = x || result.data.length - 1
+      const { result } = chart.getPayload()
+      x = x || result.all.length - 1
 
-      return getIds().sort(
-        (a, b) =>
-          getDimensionValue(a, x, "anomalyResult") - getDimensionValue(b, x, "anomalyResult")
-      )
+      return getIds().sort((a, b) => getDimensionValue(a, x, "ar") - getDimensionValue(b, x, "ar"))
     },
   }
 
@@ -189,12 +183,12 @@ export default (chart, sdk) => {
     return viewDimensions.priorities[dimensionsById[id]]
   }
 
-  const getDimensionValue = (id, index, resultKey = "result") => {
-    const result = chart.getPayload()[resultKey]
-    const pointData = result.data[index]
+  const getDimensionValue = (id, index, valueKey = "value") => {
+    const { result } = chart.getPayload()
+    const pointData = result.all[index]
 
     if (!pointData) return null
-    return pointData[dimensionsById[id] + 1]
+    return pointData[dimensionsById[id] + 1][valueKey]
   }
 
   const toggleDimensionId = (id, { merge = false } = {}) => {

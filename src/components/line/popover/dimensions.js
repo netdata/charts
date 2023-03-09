@@ -3,6 +3,7 @@ import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { useChart, useAttributeValue } from "@/components/provider"
 import { TextNano } from "@netdata/netdata-ui/lib/components/typography"
+import Units from "@/components/line/dimensions/units"
 import UpdateEvery from "./updateEvery"
 import Timestamp from "./timestamp"
 import Dimension from "./dimension"
@@ -80,9 +81,14 @@ const Dimensions = () => {
       <Flex gap={1} column margin={[2, 0, 0]}>
         <Flex justifyContent="between">
           <TextNano>Dimension</TextNano>
-          <Flex gap={2}>
-            <TextNano>Value</TextNano>
-            <TextNano>Anomaly</TextNano>
+          <Flex gap={2} basis="80px" justifyContent="end">
+            <Flex gap={1} justifyItems="end" flex={false} basis="40px" alignItems="center">
+              <TextNano>Value</TextNano>
+              <Units visible />
+            </Flex>
+            <Flex justifyContent="end" flex={false} basis="40px">
+              <TextNano textAlign="right">AR %</TextNano>
+            </Flex>
           </Flex>
         </Flex>
         {ids.map(id => (

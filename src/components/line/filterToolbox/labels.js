@@ -35,9 +35,8 @@ const Labels = ({ labelProps, ...rest }) => {
         getStats(chart, item, {
           key: "labels",
           childrenKey: "values",
-          props: { isLabel: true },
+          props: { selected: value.includes(item.id) },
           childProps: {
-            isLabelValue: true,
             unique: "-",
             parentId: item.id,
             getIsSelected: val => value.includes(`${item.id}:${val.id}`),

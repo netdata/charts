@@ -244,7 +244,7 @@ export const useUnit = () => {
   return chart.getUnits()
 }
 
-export const useLatestValue = (id, resultKey = "result") => {
+export const useLatestValue = (id, valueKey = "value") => {
   const chart = useChart()
 
   const [value, setState] = useState(null)
@@ -252,21 +252,24 @@ export const useLatestValue = (id, resultKey = "result") => {
   useLayoutEffect(() => {
     const getValue = () => {
       const hover = chart.getAttribute("hoverX")
-      const result = chart.getPayload()[resultKey]
+      const { result } = chart.getPayload()
 
-      if (result.data.length === 0) return ""
+      if (result.all.length === 0) return ""
 
       let index = hover ? chart.getClosestRow(hover[0]) : -1
-      index = index === -1 ? result.data.length - 1 : index
+      index = index === -1 ? result.all.length - 1 : index
 
       const dimensionIds = chart.getPayloadDimensionIds()
 
       id = id || dimensionIds[0]
-      const dimValue = chart.getDimensionValue(id, index, resultKey)
+      const dimValue = chart.getDimensionValue(id, index, valueKey)
+
       if (isNaN(dimValue)) return ""
 
-      return resultKey === "anomalyResult"
-        ? parseFloat(dimValue).toFixed(2)
+      return valueKey === "ar"
+        ? dimValue === 0
+          ? "-"
+          : parseFloat(dimValue).toFixed(2)
         : chart.getConvertedValue(dimValue)
     }
 
@@ -290,18 +293,18 @@ export const useLatestAnomalyAverageValue = id => {
   useLayoutEffect(() => {
     const getValue = () => {
       const hover = chart.getAttribute("hoverX")
-      const { anomalyResult } = chart.getPayload()
+      const { result } = chart.getPayload()
 
-      if (anomalyResult.data.length === 0) return ""
+      if (result.all.length === 0) return ""
 
       let index = hover ? chart.getClosestRow(hover[0]) : -1
-      index = index === -1 ? anomalyResult.data.length - 1 : index
+      index = index === -1 ? result.all.length - 1 : index
 
-      const [, ...values] = anomalyResult.data[index]
+      const [, ...values] = result.all[index]
 
       if (!Array.isArray(values)) return 0
 
-      return values.reduce((a, b) => a + b, 0) / values.length
+      return values.reduce((a, b) => a.ar + b.ar, 0) / values.length
     }
 
     return unregister(

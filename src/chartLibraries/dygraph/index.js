@@ -8,7 +8,7 @@ import {
   makeMultiColumnBarPlotter,
   makeHeatmapPlotter,
   makeAnomalyPlotter,
-  makePartialsPlotter,
+  makeAnnotationsPlotter,
 } from "./plotters"
 import { numericTicker } from "./tickers"
 import makeNavigation from "./navigation"
@@ -101,8 +101,8 @@ export default (sdk, chart) => {
           pointSize: 0,
           highlightCircleSize: 0,
         },
-        PARTIALS: {
-          plotter: makePartialsPlotter(chartUI),
+        ANNOTATIONS: {
+          plotter: makeAnnotationsPlotter(chartUI),
           drawPoints: false,
           pointSize: 0,
           highlightCircleSize: 0,

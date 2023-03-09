@@ -26,7 +26,7 @@ export default chartUI => {
 
     if (!Array.isArray(validPoints) || validPoints.length === 0) return
 
-    if (offsetY < 15 && points[points.length - 1].name === "ANOMALY_RATE") return "ANOMALY_RATE"
+    if (offsetY < 15) return "ANOMALY_RATE"
 
     const getY = index => {
       try {
