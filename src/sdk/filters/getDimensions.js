@@ -47,8 +47,9 @@ export default (chart, groupBy) => {
   const { dimensions: allDimensions, id, chartType } = chart.getMetadata()
   const dimensionsArray =
     !allDimensions || !Object.keys(allDimensions).length ? [] : Object.keys(allDimensions)
+  const prevDimensions = chart.getAttribute("dimensions")
 
-  if (groupBy === "dimension") return []
+  if (groupBy === "dimension" || !prevDimensions?.length) return []
 
   if (groupBy in groupsWithCustomLogic) {
     if (id in byNodeDefaultDimensions) return [byNodeDefaultDimensions[id]]
