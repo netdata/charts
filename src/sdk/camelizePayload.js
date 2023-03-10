@@ -1,4 +1,4 @@
-const transformDataRow = (row, point) =>
+const transformDataRow = (row, point, avg = 0) =>
   row.reduce(
     (h, dim, i) => {
       h.values.push(i === 0 ? dim : dim[point.value])
@@ -12,7 +12,7 @@ const transformDataRow = (row, point) =>
       )
 
       if (i === row.length - 1) {
-        h.values = [...h.values, 0, 0]
+        h.values = [...h.values, avg, avg]
         h.all = [...h.all, {}, {}]
       }
 
@@ -21,12 +21,12 @@ const transformDataRow = (row, point) =>
     { values: [], all: [] }
   )
 
-const transformResult = result => {
+const transformResult = (result, avg) => {
   if (Array.isArray(result)) return { data: result }
 
   const enhancedData = result.data.reduce(
     (h, row) => {
-      const enhancedRow = transformDataRow(row, result.point)
+      const enhancedRow = transformDataRow(row, result.point, avg)
 
       h.data.push(enhancedRow.values)
       h.all.push(enhancedRow.all)
@@ -69,7 +69,7 @@ export default payload => {
   } = payload
 
   return {
-    result: transformResult(result),
+    result: transformResult(result, (rest.min + rest.max) / 2),
     updateEvery,
     viewUpdateEvery,
     firstEntry,
