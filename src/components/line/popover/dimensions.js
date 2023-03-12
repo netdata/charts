@@ -2,7 +2,7 @@ import React, { useMemo, memo } from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { useChart, useAttributeValue } from "@/components/provider"
-import { TextNano } from "@netdata/netdata-ui/lib/components/typography"
+import { TextMicro, TextNano } from "@netdata/netdata-ui/lib/components/typography"
 import Units from "@/components/line/dimensions/units"
 import UpdateEvery from "./updateEvery"
 import Timestamp from "./timestamp"
@@ -11,13 +11,24 @@ import Dimension from "./dimension"
 const Container = styled(Flex).attrs(props => ({
   round: true,
   border: { side: "all", color: "elementBackground" },
-  width: { min: "196px", max: props.maxWidth ? `${props.maxWidth}px` : "596px" },
+  width: { min: "196px", max: props.maxWidth ? `${props.maxWidth}px` : "80vw" },
   background: "dropdown",
   column: true,
   padding: [4],
   gap: 1,
 }))`
   box-shadow: 0px 8px 12px rgba(9, 30, 66, 0.15), 0px 0px 1px rgba(9, 30, 66, 0.31);
+`
+
+const Grid = styled.div`
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(150px, 2fr) 60px 60px minmax(80px, 1fr);
+  align-items: center;
+`
+
+const GridHeader = styled.div`
+  display: contents;
 `
 
 const emptyArray = [null, null]
@@ -45,6 +56,17 @@ const getTo = (total, index) => {
   return index + half
 }
 
+const rowFlavours = {
+  ANOMALY_RATE: "ANOMALY_RATE",
+  ANNOTATIONS: "ANNOTATIONS",
+  default: "VALUE",
+}
+
+const rowSorting = {
+  ANOMALY_RATE: "anomalyDesc",
+  default: "valueDesc",
+}
+
 const Dimensions = () => {
   const chart = useChart()
   const [x, row] = useAttributeValue("hoverX") || emptyArray
@@ -53,7 +75,7 @@ const Dimensions = () => {
     const index = chart.getClosestRow(x)
 
     let dimensionIds =
-      chart.onHoverSortDimensions(index, row === "ANOMALY_RATE" ? "anomalyDesc" : "valueDesc") || []
+      chart.onHoverSortDimensions(index, rowSorting[row] || rowSorting.default) || []
 
     if (chart.getAttribute("selectedDimensions").length > 0) {
       dimensionIds = dimensionIds.filter(id => chart.isDimensionVisible(id))
@@ -72,34 +94,33 @@ const Dimensions = () => {
   const chartWidth = chart.getUI().getEstimatedChartWidth() * 0.9
 
   return (
-    <Container data-testid="chartPopover-dimensions" maxWidth={chartWidth}>
+    <Container data-testid="chartPopover-dimensions" maxWidth={chartWidth} gap={2}>
       <Flex column gap={1}>
         {x && <Timestamp value={x} />}
         <UpdateEvery />
       </Flex>
       {from > 0 && <TextNano color="textLite">↑{from} more values</TextNano>}
-      <Flex gap={1} column margin={[2, 0, 0]}>
-        <Flex justifyContent="between">
-          <TextNano>Dimension</TextNano>
-          <Flex gap={2} basis="80px" justifyContent="end">
-            <Flex gap={1} justifyItems="end" flex={false} basis="40px" alignItems="center">
-              <TextNano>Value</TextNano>
-              <Units visible />
-            </Flex>
-            <Flex justifyContent="end" flex={false} basis="40px">
-              <TextNano textAlign="right">AR %</TextNano>
-            </Flex>
-          </Flex>
-        </Flex>
+      <Grid gap={1} column>
+        <GridHeader>
+          <TextMicro strong>Dimension</TextMicro>
+          <Units visible textAlign="right" strong />
+          <TextMicro strong textAlign="right">
+            AR %
+          </TextMicro>
+          <TextMicro strong textAlign="right">
+            Annotations
+          </TextMicro>
+        </GridHeader>
         {ids.map(id => (
           <Dimension
             key={id}
             id={id}
             strong={row === id}
             chars={chartWidth ? chartWidth / 3 : 200}
+            row={rowFlavours[row] || rowFlavours.default}
           />
         ))}
-      </Flex>
+      </Grid>
       {to < total && (
         <TextNano color="textLite" margin={[2, 0, 0]}>
           ↓{total - to} more values

@@ -21,6 +21,7 @@ export default chart => {
 
   const { aggregationMethod: aggregationMethodAttr, dimensions } = chart.getAttributes()
   const [groupBy, groupByLabel] = getDefaultGroupBy(chart)
+
   const chartType = chart.getAttribute("chartType")
   const filteredLabels = chart.getAttribute("filteredLabels") || {}
   const aggregationMethod = aggregationMethodAttr || getAggregateMethod(units)

@@ -1,15 +1,20 @@
 import React, { useRef, useLayoutEffect, Fragment, useState, useCallback } from "react"
 import Drop from "@netdata/netdata-ui/lib/components/drops/drop"
+import { useChart } from "@/components/provider"
+import useTransition from "@/components/helpers/useEffectWithTransition"
 import drawBoxes from "./drawBoxes"
 import getAlign from "./getAlign"
+import useGroupBoxRowData from "./useGroupBoxRowData"
 
 const aligns = {
   top: { bottom: "top" },
   bottom: { top: "bottom" },
 }
 
-const GroupBox = ({ data, renderTooltip, getColor, ...options }) => {
-  const dataRef = useRef()
+const GroupBox = ({ dimensions, renderTooltip, getColor, ...options }) => {
+  const chart = useChart()
+
+  const dimensionsRef = useRef()
   const canvasRef = useRef()
   const boxesRef = useRef()
 
@@ -35,6 +40,7 @@ const GroupBox = ({ data, renderTooltip, getColor, ...options }) => {
 
   useLayoutEffect(() => {
     boxesRef.current = drawBoxes(
+      chart,
       canvasRef.current,
       {
         onMouseenter: ({ index, ...rect }) => {
@@ -71,23 +77,29 @@ const GroupBox = ({ data, renderTooltip, getColor, ...options }) => {
     return () => boxesRef.current.clear()
   }, [])
 
-  useLayoutEffect(() => {
-    if (
-      hover &&
-      dataRef.current &&
-      dataRef.current.labels[hover.index] !== data.labels[hover.index]
-    ) {
-      boxesRef.current.deactivateBox()
-      setHover(null)
-      boxHoverRef.current = -1
-    }
-    dataRef.current = data
-    boxesRef.current.update(data, getColor)
-  }, [data, getColor])
+  const pointData = useGroupBoxRowData()
 
-  const onMouseEnter = useCallback(() => {
-    dropHoverRef.current = true
-  }, [])
+  const [, startTransitionEffect, stopTransitionEffect] = useTransition()
+
+  useLayoutEffect(() => {
+    startTransitionEffect(function* () {
+      if (
+        hover &&
+        dimensionsRef.current &&
+        dimensionsRef.current[hover.index] !== dimensions[hover.index]
+      ) {
+        boxesRef.current.deactivateBox()
+        setHover(null)
+        boxHoverRef.current = -1
+      }
+      dimensionsRef.current = dimensions
+      yield* boxesRef.current.update(dimensions, getColor, pointData)
+    })
+
+    return () => stopTransitionEffect()
+  }, [pointData, getColor, startTransitionEffect, stopTransitionEffect])
+
+  const onMouseEnter = useCallback(() => (dropHoverRef.current = true), [])
 
   const onMouseLeave = useCallback(() => {
     dropHoverRef.current = false

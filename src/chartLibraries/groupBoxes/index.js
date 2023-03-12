@@ -2,24 +2,26 @@ import { unregister } from "@/helpers/makeListeners"
 import makeChartUI from "@/sdk/makeChartUI"
 import transform from "./transform"
 
-const getUrlOptions = () => ["absolute"]
+const getUrlOptions = () => ["group-by-labels"]
 
-const initialValue = { labels: [], data: [] }
+const initialValue = { labels: [], data: [], values: {}, tree: {} }
 
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
-  let groupBoxData
-  let groupBoxLayout = initialValue
+  let groupBoxData = initialValue
+  let groupBoxRowData = null
   let offs
 
   let initialized = false
 
   const mount = () => {
+    chart.updateDimensions()
     updateGroupBox()
 
     offs = unregister(
-      chart.onAttributeChange("hoverX", updateGroupBoxLayout),
-      chart.onAttributeChange("filteredRows", () => updateGroupBox({ force: true }))
+      chart.onAttributeChange("hoverX", updateGroupBoxRowData),
+      chart.on("finishFetch", () => updateGroupBox({ force: true })),
+      chart.onAttributeChange("visibleDimensionsChanged", () => updateGroupBox({ force: true }))
     )
   }
 
@@ -35,12 +37,19 @@ export default (sdk, chart) => {
     if (result.data.length === 0) return
 
     groupBoxData = transform(chart)
-    updateGroupBoxLayout()
+
+    updateGroupBoxRowData()
+
     initialized = true
+
+    chartUI.trigger("groupBoxChanged", groupBoxData)
   }
 
-  const updateGroupBoxLayout = () => {
+  const getGroupBox = () => groupBoxData
+
+  const updateGroupBoxRowData = () => {
     const { result } = chart.getPayload()
+
     if (result.data.length === 0) return
 
     const hoverX = chart.getAttribute("hoverX")
@@ -48,29 +57,20 @@ export default (sdk, chart) => {
 
     if (!groupBoxData) return
 
-    const rowData = result.data[row]
-    if (row !== -1 && !Array.isArray(rowData)) return
+    groupBoxRowData = row === -1 ? result.all[result.all.length - 1] : result.all[row]
+    if (row !== -1 && !Array.isArray(groupBoxRowData)) {
+      groupBoxRowData = null
+      return
+    }
 
-    const data = groupBoxData.data.map(groupedBox => {
-      return {
-        labels: groupedBox.labels,
-        data:
-          row === -1
-            ? groupedBox.postAggregations
-            : groupedBox.indexes.map(index => rowData[index + 1]),
-      }
-    })
-
-    groupBoxLayout = { labels: groupBoxData.labels, data, raw: groupBoxData }
-
-    chartUI.trigger("groupBoxLayoutChanged", groupBoxLayout)
+    chartUI.trigger("groupBoxRowDataChanged", groupBoxRowData)
   }
 
-  const getGroupBoxLayout = () => groupBoxLayout
+  const getGroupBoxRowData = () => groupBoxRowData
 
   const render = () => {
+    chart.updateDimensions()
     chartUI.render()
-    updateGroupBox()
 
     chartUI.trigger("rendered")
   }
@@ -82,7 +82,8 @@ export default (sdk, chart) => {
     render,
     format: "json",
     getUrlOptions,
-    getGroupBoxLayout,
+    getGroupBox,
+    getGroupBoxRowData,
   }
 
   return instance

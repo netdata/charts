@@ -255,10 +255,12 @@ export default (sdk, chart) => {
     area: {
       ...defaultOptions,
       fillGraph: true,
+      forceIncludeZero: true,
     },
     stackedBar: {
       ...defaultOptions,
       stackedGraph: true,
+      forceIncludeZero: true,
     },
     heatmap: {
       makeYAxisLabelFormatter: labels => y => y === 0 ? null : chart.getDimensionName(labels[y]),
@@ -297,9 +299,6 @@ export default (sdk, chart) => {
       yTicker,
     } = optionsByChartType[chartType] || optionsByChartType.default
 
-    const { selectedLegendDimensions } = chart.getAttributes()
-    const dimensionIds = chart.getPayloadDimensionIds()
-
     const yAxisLabelFormatter = makeYAxisLabelFormatter(result.labels)
 
     return {
@@ -308,9 +307,7 @@ export default (sdk, chart) => {
       fillAlpha: sparkline ? 1 : fillAlpha,
       highlightCircleSize: sparkline ? 3 : 4,
       strokeWidth: sparkline ? 0 : strokeWidth,
-      includeZero:
-        includeZero ||
-        (forceIncludeZero && dimensionIds.length > 1 && selectedLegendDimensions.length > 1),
+      includeZero: includeZero || forceIncludeZero,
       stackedGraphNaNFill: "none",
       plotter,
       errorBars,

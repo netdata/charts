@@ -50,6 +50,7 @@ export default chart => {
     )
       return
 
+    debugger
     chart.updateAttributes({
       groupByLabel: groupByLabel,
       groupBy: groupBy,

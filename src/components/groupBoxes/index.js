@@ -4,6 +4,7 @@ import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import withChart from "@/components/hocs/withChart"
 import { useAttributeValue, useLoadingColor } from "@/components/provider"
 import ChartContainer from "@/components/chartContainer"
+import FilterToolbox from "@/components/line/filterToolbox"
 import Container from "./container"
 
 const frames = keyframes`
@@ -30,7 +31,12 @@ export const GroupBoxesContainer = props => {
 
   if (!loaded) return <SkeletonIcon {...props} />
 
-  return <ChartContainer as={Container} {...props} />
+  return (
+    <Flex column>
+      <FilterToolbox />
+      <ChartContainer as={Container} {...props} />
+    </Flex>
+  )
 }
 
 export default withChart(GroupBoxesContainer)

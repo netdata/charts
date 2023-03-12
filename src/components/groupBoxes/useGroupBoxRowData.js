@@ -5,7 +5,7 @@ export default () => {
 
   const forceUpdate = useForceUpdate()
 
-  useImmediateListener(() => chart.getUI().on("groupBoxLayoutChanged", forceUpdate), [chart])
+  useImmediateListener(() => chart.getUI().on("groupBoxRowDataChanged", forceUpdate), [chart])
 
-  return chart.getUI().getGroupBoxLayout()
+  return chart.getUI().getGroupBoxRowData()
 }

@@ -8,7 +8,7 @@ import useMakeUpdatePosition from "@netdata/netdata-ui/lib/components/drops/drop
 import useDropElement from "@netdata/netdata-ui/lib/hooks/use-drop-element"
 import Dimensions from "./dimensions"
 
-const Popover = forwardRef((props, ref) => (
+const DimensionsPopover = forwardRef((props, ref) => (
   <Flex data-testid="chartPopover" ref={ref}>
     <Dimensions />
   </Flex>
@@ -89,7 +89,7 @@ const Container = () => {
           data-testid="drop"
           sx={{ pointerEvents: "none" }}
         >
-          <Popover />
+          <DimensionsPopover />
         </DropContainer>,
         el
       )}

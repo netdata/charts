@@ -1,11 +1,21 @@
 import React from "react"
 import { ThemeProvider } from "styled-components"
 import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui/lib/theme"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import { Flex, Text } from "@netdata/netdata-ui"
 import Line from "@/components/line"
 import GaugeComponent from "@/components/gauge"
 import EasyPieComponent from "@/components/easyPie"
+import GroupBoxes from "@/components/groupBoxes"
 import makeDefaultSDK from "./makeDefaultSDK"
+
+const Popover = ({ children }) => (
+  <Flex background="elementBackground" padding={[4]} round border>
+    <Text>{children}</Text>
+  </Flex>
+)
+
+const renderBoxPopover = () => <Popover>Box Popover</Popover>
+const renderGroupPopover = () => <Popover>Group Popover</Popover>
 
 const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimension }) => {
   const sdk = makeDefaultSDK({ attributes: { theme } })
@@ -56,6 +66,20 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
 
   sdk.appendChild(chart3)
 
+  const chart4 = sdk.makeChart({
+    attributes: {
+      selectedContexts: [contexts],
+      nodesScope: [nodesScope],
+      contextScope: [contextScope],
+      host: host,
+      agent: true,
+      chartLibrary: "groupBoxes",
+      groupBy: ["label"],
+      groupByLabel: ["k8s_namespace", "k8s_container_id"],
+    },
+  })
+  sdk.appendChild(chart4)
+
   return (
     <ThemeProvider theme={theme === "default" ? DefaultTheme : DarkTheme}>
       <Flex background="mainBackground" column gap={2} padding={[3]}>
@@ -64,6 +88,11 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
           <EasyPieComponent chart={chart3} />
         </Flex>
         <Line chart={chart} height="315px" />
+        <GroupBoxes
+          chart={chart4}
+          renderBoxPopover={renderBoxPopover}
+          renderGroupPopover={renderGroupPopover}
+        />
       </Flex>
     </ThemeProvider>
   )
@@ -99,9 +128,9 @@ export const OneChart = Template.bind({})
 
 OneChart.args = {
   nodesScope: "*",
-  contextScope: "net.net",
+  contextScope: "k8s.cgroup.cpu_limit",
   contexts: "*",
   singleDimension: "*",
   theme: "default",
-  host: "http://192.168.1.205:19999/api/v2/data", // "http://10.10.11.2:19999/api/v2/data",
+  host: "http://10.10.11.2:19999/api/v2/data", // "http://192.168.1.205:19999/api/v2/data",
 }

@@ -12,11 +12,11 @@ export const Value = props => (
   />
 )
 
-const Units = ({ visible }) => {
+const Units = ({ visible, ...rest }) => {
   const units = useUnitSign()
 
   if (!visible) return null
-  return <Value>{units}</Value>
+  return <Value {...rest}>{units}</Value>
 }
 
 export default memo(Units)

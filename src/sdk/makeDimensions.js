@@ -133,12 +133,11 @@ export default (chart, sdk) => {
   const getMemKey = () => {
     const { colors, groupBy, contextScope, id } = chart.getAttributes()
 
-    if (groupBy.length > 1 || (groupBy.length === 1 && groupBy[0] !== "dimension"))
-      return groupBy.join("|")
+    return groupBy.join("|")
 
-    if (colors.length) return chart.getAttribute("id")
+    // if (colors.length) return chart.getAttribute("id")
 
-    return contextScope.join("|") || id
+    // return contextScope.join("|") || id
   }
 
   const selectDimensionColor = id => {
@@ -183,13 +182,18 @@ export default (chart, sdk) => {
     return viewDimensions.priorities[dimensionsById[id]]
   }
 
-  const getDimensionValue = (id, index, valueKey = "value") => {
+  const getRowDimensionValue = (id, pointData, valueKey = "value") => {
+    if (typeof pointData?.[dimensionsById[id] + 1] === "undefined") return null
+
+    const value = pointData[dimensionsById[id] + 1]
+    return value !== null && typeof value === "object" ? value[valueKey] : value
+  }
+
+  const getDimensionValue = (id, index, valueKey) => {
     const { result } = chart.getPayload()
     const pointData = result.all[index]
 
-    if (!pointData?.[dimensionsById[id] + 1]) return null
-
-    return pointData[dimensionsById[id] + 1][valueKey]
+    return getRowDimensionValue(id, pointData, valueKey)
   }
 
   const toggleDimensionId = (id, { merge = false } = {}) => {
@@ -244,6 +248,7 @@ export default (chart, sdk) => {
     selectDimensionColor,
     getDimensionColor,
     getDimensionName,
+    getRowDimensionValue,
     getDimensionValue,
     onHoverSortDimensions,
     getPayloadDimensionIds,

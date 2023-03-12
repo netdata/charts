@@ -1,6 +1,7 @@
 import { useCallback, useLayoutEffect, useContext, useMemo, useReducer, useState } from "react"
 import { scaleLinear } from "d3-scale"
 import { unregister } from "@/helpers/makeListeners"
+import { enums, parts, check, colors } from "@/helpers/annotations"
 import chartTitleByContextMap from "../helpers/chartTitleByContextMap"
 import context from "./context"
 
@@ -254,7 +255,7 @@ export const useLatestValue = (id, valueKey = "value") => {
       const hover = chart.getAttribute("hoverX")
       const { result } = chart.getPayload()
 
-      if (result.all.length === 0) return ""
+      if (result.all.length === 0) return null
 
       let index = hover ? chart.getClosestRow(hover[0]) : -1
       index = index === -1 ? result.all.length - 1 : index
@@ -264,28 +265,41 @@ export const useLatestValue = (id, valueKey = "value") => {
       id = id || dimensionIds[0]
       const dimValue = chart.getDimensionValue(id, index, valueKey)
 
-      if (isNaN(dimValue)) return ""
+      if (isNaN(dimValue)) return null
 
-      return valueKey === "ar"
-        ? dimValue === 0
-          ? "-"
-          : parseFloat(dimValue).toFixed(2)
-        : chart.getConvertedValue(dimValue)
+      return dimValue
     }
 
-    if (value === null) setState(getValue())
+    setState(getValue())
 
     return unregister(
       chart.onAttributeChange("hoverX", () => setState(getValue())),
       chart.on("dimensionChanged", () => setState(getValue())),
       chart.getUI().on("rendered", () => setState(getValue()))
     )
-  }, [chart, id])
+  }, [chart, id, valueKey])
 
   return value
 }
 
-export const useLatestAnomalyAverageValue = id => {
+export const useLatestConvertedValue = (id, valueKey = "value") => {
+  const chart = useChart()
+
+  const value = useLatestValue(id, valueKey)
+
+  return useMemo(() => {
+    if (value === null || isNaN(value)) return ""
+
+    if (valueKey === "ar") return value === 0 ? "-" : parseFloat(value).toFixed(2)
+
+    if (valueKey === "pa")
+      return parts.reduce((h, a) => (check(value, enums[a]) ? { ...h, [a]: colors[a] } : h), {})
+
+    return chart.getConvertedValue(value)
+  }, [chart, id, value, valueKey])
+}
+
+export const useLatestRowAverageValue = (valueKey = "value") => {
   const chart = useChart()
 
   const [value, setState] = useState(null)
@@ -304,7 +318,7 @@ export const useLatestAnomalyAverageValue = id => {
 
       if (!Array.isArray(values)) return 0
 
-      return values.reduce((a, b) => a.ar + b.ar, 0) / values.length
+      return values.reduce((a, b) => a[valueKey] + b[valueKey], 0) / values.length
     }
 
     return unregister(
@@ -312,7 +326,7 @@ export const useLatestAnomalyAverageValue = id => {
       chart.on("dimensionChanged", () => setState(getValue())),
       chart.getUI().on("rendered", () => setState(getValue()))
     )
-  }, [chart, id])
+  }, [chart])
 
   return value
 }

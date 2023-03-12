@@ -1,4 +1,4 @@
-const transformDataRow = (row, point, avg = 0) =>
+const transformDataRow = (row, point, avg) =>
   row.reduce(
     (h, dim, i) => {
       h.values.push(i === 0 ? dim : dim[point.value])
@@ -21,12 +21,26 @@ const transformDataRow = (row, point, avg = 0) =>
     { values: [], all: [] }
   )
 
-const transformResult = (result, avg) => {
+const buildTree = (h, keys, id) => {
+  const [key, ...subKeys] = keys
+
+  if (!h[key] && !subKeys.length) {
+    h[key] = id
+    return h
+  }
+
+  if (!h[key]) h[key] = {}
+
+  h[key] = buildTree(h[key], subKeys, id)
+  return h
+}
+
+const transformResult = (result, avgValues) => {
   if (Array.isArray(result)) return { data: result }
 
   const enhancedData = result.data.reduce(
-    (h, row) => {
-      const enhancedRow = transformDataRow(row, result.point, avg)
+    (h, row, index) => {
+      const enhancedRow = transformDataRow(row, result.point, avgValues[index])
 
       h.data.push(enhancedRow.values)
       h.all.push(enhancedRow.all)
@@ -36,9 +50,18 @@ const transformResult = (result, avg) => {
     { data: [], all: [] }
   ) // Initialize with zero for ar and pa - allow stacked and area graphs to not display it
 
+  const tree = result.labels.reduce((h, id, i) => {
+    if (i === 0) return h
+
+    const keys = id.split(",")
+
+    return buildTree(h, keys, id)
+  }, {})
+
   return {
     labels: [...result.labels, "ANOMALY_RATE", "ANNOTATIONS"],
     ...enhancedData,
+    tree,
   }
 }
 
@@ -63,13 +86,16 @@ export default payload => {
       units,
       dimensions: viewDimensions,
       chart_type: chartType,
+      min,
+      max,
     },
     result,
     ...rest
   } = payload
 
   return {
-    result: transformResult(result, (rest.min + rest.max) / 2),
+    ...rest,
+    result: transformResult(result, viewDimensions.view_average_values),
     updateEvery,
     viewUpdateEvery,
     firstEntry,
@@ -94,6 +120,7 @@ export default payload => {
       labelsTotals,
       nodesTotals,
     },
-    ...rest,
+    min,
+    max,
   }
 }

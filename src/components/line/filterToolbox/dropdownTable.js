@@ -51,7 +51,6 @@ const defaultSortBy = [{ id: "contribution", desc: true }]
 const defaultExpanded = {}
 
 const Dropdown = ({
-  hideShadow,
   rowSelection,
   setRowSelection,
   items,
@@ -71,7 +70,7 @@ const Dropdown = ({
   title,
   ...rest
 }) => {
-  const hasChanges = useMemo(() => deepEqual(value, newValues), [newValues])
+  const hasChanges = useMemo(() => !!newValues && deepEqual(value, newValues), [newValues])
 
   return (
     <Container
@@ -112,7 +111,7 @@ const Dropdown = ({
       >
         <Flex gap={1} alignItems="center">
           <TextSmall color="textLite">
-            Selected <TextSmall strong>{newValues.length}</TextSmall> out of{" "}
+            Selected <TextSmall strong>{newValues?.length || 0}</TextSmall> out of{" "}
             <TextSmall strong>{(totals?.sl || 0) + (totals?.ex || 0) || items.length}</TextSmall>
           </TextSmall>
           <Button
@@ -126,7 +125,7 @@ const Dropdown = ({
               setRowSelection({})
               onItemClick([])
             }}
-            disabled={!newValues.length && !value.length}
+            disabled={!newValues?.length && !value.length}
             label="clear"
             small
           />
@@ -145,7 +144,7 @@ const Dropdown = ({
             label="reset"
             small
           />
-          {!newValues.length && !!emptyMessage && (
+          {!newValues?.length && !!emptyMessage && (
             <TextSmall color="warningText">{emptyMessage}</TextSmall>
           )}
         </Flex>
@@ -188,7 +187,7 @@ const DropdownTable = ({
   ...rest
 }) => {
   const [isOpen, setIsOpen] = useState(false)
-  const [newValues, setNewValues] = useState(value)
+  const [newValues, setNewValues] = useState()
 
   const [rowSelection, setRowSelection] = useState(() => buildSelections(options, {}))
 
@@ -200,15 +199,14 @@ const DropdownTable = ({
   }, [isOpen])
 
   useEffect(() => {
-    if (isOpen) return
+    if (isOpen || !newValues) return
+
     onChange(newValues)
   }, [isOpen])
 
-  const onSelect = useCallback(val => setNewValues(val), [])
-
   return (
     <Menu
-      onChange={onSelect}
+      onChange={setNewValues}
       items={options}
       hasSearch={false}
       closeOnClick={false}

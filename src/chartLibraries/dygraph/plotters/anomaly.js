@@ -14,8 +14,8 @@ export default chartUI => plotter => {
     const bar_width = Math.floor(min_sep)
 
     const getColor = scaleLinear()
-      .domain([0, 100])
-      .range([chartUI.getThemeAttribute("themeScaleColor"), "#9F75F9"])
+      .domain([0, 0.00001, 100])
+      .range([chartUI.getThemeAttribute("themeScaleColor"), "#F0EAF6", "#9F75F9"])
 
     const dimensionIds = chartUI.chart.getPayloadDimensionIds()
     const selectedLegendDimensions = chartUI.chart.getAttribute("selectedLegendDimensions")

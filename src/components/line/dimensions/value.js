@@ -1,17 +1,17 @@
 import React from "react"
 import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
-import { useLatestValue } from "@/components/provider"
+import { useLatestConvertedValue } from "@/components/provider"
 
 export const Value = props => (
   <TextMicro color="textDescription" data-testid="chartDimensions-value" {...props} />
 )
 
-const Container = ({ id, visible, valueKey, ...rest }) => {
-  const value = useLatestValue(id, valueKey)
+const ValueComponent = ({ id, visible, valueKey, Component = Value, ...rest }) => {
+  const value = useLatestConvertedValue(id, valueKey)
 
   if (!visible) return null
 
-  return <Value {...rest}>{value}</Value>
+  return <Component {...rest}>{value}</Component>
 }
 
-export default Container
+export default ValueComponent
