@@ -301,13 +301,18 @@ export default (sdk, chart) => {
 
     const yAxisLabelFormatter = makeYAxisLabelFormatter(result.labels)
 
+    const { selectedLegendDimensions } = chart.getAttributes()
+    const dimensionIds = chart.getPayloadDimensionIds()
+
     return {
       stackedGraph,
       fillGraph,
       fillAlpha: sparkline ? 1 : fillAlpha,
       highlightCircleSize: sparkline ? 3 : 4,
       strokeWidth: sparkline ? 0 : strokeWidth,
-      includeZero: includeZero || forceIncludeZero,
+      includeZero:
+        includeZero ||
+        (forceIncludeZero && dimensionIds.length > 1 && selectedLegendDimensions.length > 1),
       stackedGraphNaNFill: "none",
       plotter,
       errorBars,
