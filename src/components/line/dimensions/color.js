@@ -19,8 +19,7 @@ export const BaseColorBar = ({ value, min, max, valueKey, bg, ...rest }) => {
     if (!ref.current) return
 
     const animateWidth = () =>
-      ref.current &&
-      (ref.current.style.width = `${(Math.abs(value) / (max > min ? max : min)) * 100}%`)
+      ref.current && (ref.current.style.width = `${((Math.abs(value) - min) * 100) / (max - min)}%`)
 
     requestAnimationFrame(animateWidth)
   }, [value, valueKey, min, max])
@@ -35,10 +34,19 @@ export const ColorBar = ({ id, valueKey, ...rest }) => {
   const bg = valueKey === "ar" ? ["purple", "lilac"] : chart.selectDimensionColor(id)
 
   const min = Math.abs(valueKey === "ar" ? 0 : chart.getAttribute("min"))
-  const max = valueKey === "ar" ? chart.getAttribute("maxAr") : chart.getAttribute("max")
+  const max = Math.abs(valueKey === "ar" ? chart.getAttribute("maxAr") : chart.getAttribute("max"))
   const value = useLatestValue(id, valueKey) || 0
 
-  return <BaseColorBar value={value} min={min} max={max} valueKey={valueKey} bg={bg} {...rest} />
+  return (
+    <BaseColorBar
+      value={value}
+      min={max > min ? min : max}
+      max={max > min ? max : min}
+      valueKey={valueKey}
+      bg={bg}
+      {...rest}
+    />
+  )
 }
 
 const ColorValue = ({ id, ...rest }) => {
