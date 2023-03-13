@@ -79,7 +79,13 @@ export default payload => {
       label_key_values: labelsTotals = {},
       nodes: nodesTotals = {},
     },
-    db: { update_every: updateEvery, first_entry: firstEntry, last_entry: lastEntry, tiers },
+    db: {
+      update_every: updateEvery,
+      first_entry: firstEntry,
+      last_entry: lastEntry,
+      tiers,
+      per_tier: perTier,
+    },
     view: {
       title,
       update_every: viewUpdateEvery,
@@ -104,6 +110,7 @@ export default payload => {
     chartType,
     title,
     tiers,
+    perTier,
     metadata: {
       fullyLoaded: nodes.length > 0,
       nodes,

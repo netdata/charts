@@ -5,7 +5,6 @@ import Color, { ColorBar } from "@/components/line/dimensions/color"
 import Name from "@/components/line/dimensions/name"
 import Value, { Value as ValuePart } from "@/components/line/dimensions/value"
 import { useChart, useVisibleDimensionId } from "@/components/provider"
-import { labels as annotationLabels } from "@/helpers/annotations"
 
 const GridRow = styled(Flex).attrs({
   position: "relative",

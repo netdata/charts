@@ -3,8 +3,8 @@ import { TextSmall } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart, usePayload } from "@/components/provider"
 import Dropdown from "./dropdownSingleSelect"
 
-const useMenuItems = (chart, tiers = []) => {
-  const [firstTier, ...restTiers] = tiers
+const useMenuItems = (chart, perTier = []) => {
+  const [firstTier, ...restTiers] = perTier
   return useMemo(
     () =>
       [
@@ -42,10 +42,10 @@ const useMenuItems = (chart, tiers = []) => {
           typeof firstTier?.points !== "undefined" && {
             justDesc: true,
             description: `The functions below lose accuracy when applied on tiered data, compared to high resolution data. Your current query is ${
-              (firstTier.points * 100.0) / tiers.reduce((h, t) => h + t.points, 0)
+              (firstTier.points * 100.0) / perTier.reduce((h, t) => h + t.points, 0)
             }% high resolution and ${
               (restTiers.reduce((h, t) => h + t.points, 0) * 100.0) /
-              tiers.reduce((h, t) => h + t.points, 0)
+              perTier.reduce((h, t) => h + t.points, 0)
             }% tiered data of lower resolution.`,
           },
         {
@@ -271,9 +271,9 @@ const TimeAggregation = ({ labelProps, ...rest }) => {
   const chart = useChart()
   const groupingMethod = useAttributeValue("groupingMethod")
   const [method = "", alias = ""] = groupingMethod.match(/[\d.]+|\D+/g) || []
-  const { viewUpdateEvery = 0, tiers } = usePayload()
+  const { viewUpdateEvery = 0, perTier } = usePayload()
 
-  const items = useMenuItems(chart, tiers)
+  const items = useMenuItems(chart, perTier)
   const aliasItems = useMenuAliasItems({ chart, method })
 
   const { short } = items.find(item => item.value === method) || items[0]
