@@ -33,15 +33,21 @@ export const ColorBar = ({ id, valueKey, ...rest }) => {
   const chart = useChart()
   const bg = valueKey === "ar" ? ["purple", "lilac"] : chart.selectDimensionColor(id)
 
-  const min = Math.abs(valueKey === "ar" ? 0 : chart.getAttribute("min"))
-  const max = Math.abs(valueKey === "ar" ? chart.getAttribute("maxAr") : chart.getAttribute("max"))
+  const min = valueKey === "ar" ? 0 : chart.getAttribute("min")
+  const max = valueKey === "ar" ? chart.getAttribute("maxAr") : chart.getAttribute("max")
+
+  const minAbs = Math.abs(min)
+  const maxAbs = Math.abs(max)
+
+  const percentMin = max > 0 ? (min < 0 ? 0 : min) : maxAbs
+
   const value = useLatestValue(id, valueKey) || 0
 
   return (
     <BaseColorBar
       value={value}
-      min={max > min ? min : max}
-      max={max > min ? max : min}
+      min={percentMin}
+      max={maxAbs > minAbs ? maxAbs : minAbs}
       valueKey={valueKey}
       bg={bg}
       {...rest}
