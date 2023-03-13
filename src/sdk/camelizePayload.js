@@ -1,4 +1,4 @@
-const transformDataRow = (row, point, avg, stats) =>
+const transformDataRow = (row, point, stats) =>
   row.reduce(
     (h, dim, i) => {
       h.values.push(i === 0 ? dim : dim[point.value])
@@ -12,7 +12,7 @@ const transformDataRow = (row, point, avg, stats) =>
       )
 
       if (i === row.length - 1) {
-        h.values = [...h.values, avg, avg]
+        h.values = [...h.values, null, null]
         h.all = [...h.all, {}, {}]
       }
 
@@ -37,10 +37,10 @@ const buildTree = (h, keys, id) => {
   return h
 }
 
-const transformResult = (result, avg, stats) => {
+const transformResult = (result, stats) => {
   const enhancedData = result.data.reduce(
     (h, row, index) => {
-      const enhancedRow = transformDataRow(row, result.point, avg, stats)
+      const enhancedRow = transformDataRow(row, result.point, stats)
 
       h.data.push(enhancedRow.values)
       h.all.push(enhancedRow.all)
@@ -103,7 +103,7 @@ export default payload => {
 
   return {
     ...rest,
-    result: transformResult(result, (min + max) / 2, stats),
+    result: transformResult(result, stats),
     updateEvery,
     viewUpdateEvery,
     firstEntry,

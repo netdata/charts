@@ -288,7 +288,8 @@ export const useConvertedValue = (value, valueKey) => {
   return useMemo(() => {
     if (value === null || isNaN(value)) return ""
 
-    if (valueKey === "ar" || "percent") return value === 0 ? "-" : parseFloat(value).toFixed(2)
+    if (valueKey === "ar" || valueKey === "percent")
+      return value === 0 ? "-" : parseFloat(value).toFixed(2)
 
     if (valueKey === "pa")
       return parts.reduce((h, a) => (check(value, enums[a]) ? { ...h, [a]: colors[a] } : h), {})

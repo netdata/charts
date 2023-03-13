@@ -94,8 +94,6 @@ export default {
   dimensions: [],
   groupBy: [],
   groupByLabel: [],
-  // selectedNodeIds: [], deprecate
-  // selectedChartId: "", deprecate
 
   dimensionsSortBy: [{ id: "contribution", desc: true }],
   instancesSortBy: [{ id: "contribution", desc: true }],
@@ -110,7 +108,6 @@ export default {
   aggregationGroups: [],
   postGroupBy: "",
   selectedChart: "",
-  // filteredLabels: {}, depreactae
 
   pristine: {},
 
