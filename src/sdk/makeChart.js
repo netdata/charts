@@ -164,7 +164,7 @@ export default ({
     })
 
     if (wasLoaded) node.trigger("successFetch", nextPayload, prevPayload)
-    invalidateContexts(nextPayload?.versions?.contexts_hard_hash)
+    invalidateContexts(nextPayload.versions?.contexts_hard_hash)
     finishFetch()
   }
 
