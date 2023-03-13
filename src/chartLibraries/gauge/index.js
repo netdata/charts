@@ -41,9 +41,7 @@ export default (sdk, chart) => {
     gauge.maxValue = 100
     gauge.setMinValue(0)
 
-    resizeObserver = makeResizeObserver(element, () => {
-      chartUI.trigger("resize")
-    })
+    resizeObserver = makeResizeObserver(element, () => chartUI.trigger("resize"))
 
     const { loaded } = chart.getAttributes()
 

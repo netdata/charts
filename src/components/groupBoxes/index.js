@@ -1,11 +1,15 @@
 import React from "react"
 import styled, { keyframes } from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import useHover from "@/components/useHover"
 import withChart from "@/components/hocs/withChart"
-import { useAttributeValue, useLoadingColor } from "@/components/provider"
+import { useChart, useAttributeValue, useLoadingColor } from "@/components/provider"
 import ChartContainer from "@/components/chartContainer"
 import FilterToolbox from "@/components/line/filterToolbox"
-import Container from "./container"
+import Container from "@/components/line/container"
+import Details from "@/components/line//details"
+import GroupBoxes from "./groupBoxes"
+import Footer from "./footer"
 
 const frames = keyframes`
   from { opacity: 0.2; }
@@ -27,15 +31,35 @@ export const SkeletonIcon = () => {
 }
 
 export const GroupBoxesContainer = props => {
+  const chart = useChart()
+
+  const ref = useHover(
+    {
+      onHover: chart.focus,
+      onBlur: chart.blur,
+      isOut: node =>
+        !node || (!node.closest("[data-toolbox]") && !node.closest("[data-testid=chart]")),
+    },
+    [chart]
+  )
+
   const loaded = useAttributeValue("loaded")
+  const detailed = useAttributeValue("detailed")
 
   if (!loaded) return <SkeletonIcon {...props} />
 
   return (
-    <Flex column>
+    <Container ref={ref} {...props}>
       <FilterToolbox />
-      <ChartContainer as={Container} {...props} />
-    </Flex>
+      {detailed ? (
+        <Details />
+      ) : (
+        <ChartContainer column gap={4} padding={[4, 2]}>
+          <GroupBoxes />
+        </ChartContainer>
+      )}
+      {!detailed && <Footer />}
+    </Container>
   )
 }
 

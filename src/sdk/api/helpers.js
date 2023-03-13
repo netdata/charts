@@ -29,7 +29,6 @@ const defaultOptionsByLibrary = {
 export const getChartPayload = chart => {
   const ui = chart.getUI()
 
-  const { format } = ui
   const width = ui.getParentWidth() || ui.getEstimatedChartWidth() || ui.getChartWidth()
 
   const pixelsPerPoint = ui.getPixelsPerPoint()
@@ -42,7 +41,7 @@ export const getChartPayload = chart => {
 
   return {
     points: Math.round((width / pixelsPerPoint) * pointsMultiplier),
-    format: "json2" || format, // TODO use format
+    format: "json2",
     time_group: groupingMethod,
     time_resampling: groupingTime,
     after: afterWithPadding,

@@ -87,7 +87,6 @@ export default (sdk, chart) => {
 
   const instance = {
     ...chartUI,
-    format: "array",
     mount,
     unmount,
     render,

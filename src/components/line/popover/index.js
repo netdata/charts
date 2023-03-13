@@ -27,7 +27,7 @@ const getAlign = (left, top) => {
   return rightBottomAlign
 }
 
-const Container = () => {
+const Popover = () => {
   const chart = useChart()
   const dropRef = useRef()
   const [target, setTarget] = useState()
@@ -97,4 +97,4 @@ const Container = () => {
   )
 }
 
-export default Container
+export default Popover

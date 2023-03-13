@@ -282,21 +282,25 @@ export const useLatestValue = (id, valueKey = "value") => {
   return value
 }
 
-export const useLatestConvertedValue = (id, valueKey = "value") => {
+export const useConvertedValue = (value, valueKey) => {
   const chart = useChart()
-
-  const value = useLatestValue(id, valueKey)
 
   return useMemo(() => {
     if (value === null || isNaN(value)) return ""
 
-    if (valueKey === "ar") return value === 0 ? "-" : parseFloat(value).toFixed(2)
+    if (valueKey === "ar" || "percent") return value === 0 ? "-" : parseFloat(value).toFixed(2)
 
     if (valueKey === "pa")
       return parts.reduce((h, a) => (check(value, enums[a]) ? { ...h, [a]: colors[a] } : h), {})
 
     return chart.getConvertedValue(value)
-  }, [chart, id, value, valueKey])
+  }, [chart, value, valueKey])
+}
+
+export const useLatestConvertedValue = (id, valueKey = "value") => {
+  const value = useLatestValue(id, valueKey)
+
+  return useConvertedValue(value, valueKey)
 }
 
 export const useLatestRowAverageValue = (valueKey = "value") => {

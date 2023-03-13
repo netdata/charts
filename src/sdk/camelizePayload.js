@@ -1,4 +1,4 @@
-const transformDataRow = (row, point, avg) =>
+const transformDataRow = (row, point, avg, stats) =>
   row.reduce(
     (h, dim, i) => {
       h.values.push(i === 0 ? dim : dim[point.value])
@@ -15,6 +15,8 @@ const transformDataRow = (row, point, avg) =>
         h.values = [...h.values, avg, avg]
         h.all = [...h.all, {}, {}]
       }
+
+      stats.maxAr = i !== 0 && stats.maxAr < dim[point.ar] ? dim[point.ar] : stats.maxAr
 
       return h
     },
@@ -35,12 +37,10 @@ const buildTree = (h, keys, id) => {
   return h
 }
 
-const transformResult = (result, avgValues) => {
-  if (Array.isArray(result)) return { data: result }
-
+const transformResult = (result, avg, stats) => {
   const enhancedData = result.data.reduce(
     (h, row, index) => {
-      const enhancedRow = transformDataRow(row, result.point, avgValues[index])
+      const enhancedRow = transformDataRow(row, result.point, avg, stats)
 
       h.data.push(enhancedRow.values)
       h.all.push(enhancedRow.all)
@@ -48,7 +48,7 @@ const transformResult = (result, avgValues) => {
       return h
     },
     { data: [], all: [] }
-  ) // Initialize with zero for ar and pa - allow stacked and area graphs to not display it
+  )
 
   const tree = result.labels.reduce((h, id, i) => {
     if (i === 0) return h
@@ -99,9 +99,11 @@ export default payload => {
     ...rest
   } = payload
 
+  let stats = { maxAr: 0 }
+
   return {
     ...rest,
-    result: transformResult(result, viewDimensions.view_average_values),
+    result: transformResult(result, (min + max) / 2, stats),
     updateEvery,
     viewUpdateEvery,
     firstEntry,
@@ -129,5 +131,6 @@ export default payload => {
     },
     min,
     max,
+    ...stats,
   }
 }

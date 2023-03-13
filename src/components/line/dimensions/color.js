@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useLayoutEffect, useRef } from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { useChart, useLatestValue } from "@/components/provider"
@@ -12,23 +12,33 @@ export const Color = styled(Flex).attrs(({ bg, ...rest }) => ({
   ...rest,
 }))``
 
+export const BaseColorBar = ({ value, min, max, valueKey, bg, ...rest }) => {
+  const ref = useRef()
+
+  useLayoutEffect(() => {
+    if (!ref.current) return
+
+    const animateWidth = () =>
+      ref.current &&
+      (ref.current.style.width = `${(Math.abs(value) / (max > min ? max : min)) * 100}%`)
+
+    requestAnimationFrame(animateWidth)
+  }, [value, valueKey, min, max])
+
+  if (!bg) return null
+
+  return <Color ref={ref} bg={bg} width={{ min: !value ? 0 : 2 }} {...rest} />
+}
+
 export const ColorBar = ({ id, valueKey, ...rest }) => {
   const chart = useChart()
   const bg = valueKey === "ar" ? ["purple", "lilac"] : chart.selectDimensionColor(id)
 
-  const min = valueKey === "ar" ? 0 : chart.getAttribute("min")
-  const max = valueKey === "ar" ? 100 : chart.getAttribute("max")
+  const min = Math.abs(valueKey === "ar" ? 0 : chart.getAttribute("min"))
+  const max = valueKey === "ar" ? chart.getAttribute("maxAr") : chart.getAttribute("max")
   const value = useLatestValue(id, valueKey) || 0
 
-  if (!bg) return null
-
-  return (
-    <Color
-      bg={bg}
-      width={{ min: 1, base: `${Math.abs(value / (value < 0 ? min : max)) * 100}%` }}
-      {...rest}
-    />
-  )
+  return <BaseColorBar value={value} min={min} max={max} valueKey={valueKey} bg={bg} {...rest} />
 }
 
 const ColorValue = ({ id, ...rest }) => {

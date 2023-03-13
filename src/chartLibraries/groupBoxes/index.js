@@ -80,7 +80,6 @@ export default (sdk, chart) => {
     mount,
     unmount,
     render,
-    format: "json",
     getUrlOptions,
     getGroupBox,
     getGroupBoxRowData,
