@@ -1,5 +1,6 @@
 import React, { useMemo, memo } from "react"
 import { useChart, useAttribute, useAttributeValue } from "@/components/provider"
+import { TextBig } from "@netdata/netdata-ui/lib/components/typography"
 import DropdownTable from "./dropdownTable"
 import { getStats } from "./utils"
 import {
@@ -91,6 +92,12 @@ const GroupBy = ({ labelProps, ...rest }) => {
 
   return (
     <DropdownTable
+      // TODO: move whiteSpace prop to netdata ui table title
+      title={
+        <TextBig strong whiteSpace="nowrap">
+          Group by
+        </TextBig>
+      }
       label={label}
       data-track={chart.track("group-by")}
       labelProps={labelProps}
