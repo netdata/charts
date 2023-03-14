@@ -70,11 +70,10 @@ export default ({
     const { loaded, viewUpdateEvery: viewUpdateEveryAttribute } = node.getAttributes()
     if (viewUpdateEveryAttribute) return viewUpdateEveryAttribute * 1000
 
-    const { viewUpdateEvery, updateEvery: granularity } = getPayload()
+    const { viewUpdateEvery, updateEvery } = getPayload()
     if (loaded && viewUpdateEvery) return viewUpdateEvery * 1000
 
-    const { updateEvery } = getMetadata()
-    return (granularity || updateEvery) * 1000 || 2000
+    return updateEvery * 1000 || 2000
   }
 
   const startAutofetch = () => {
@@ -238,8 +237,6 @@ export default ({
   const fetch = () => {
     if (!node) return
 
-    let promise
-
     const doFetchMetadata = () => {
       if (!node) return
 
@@ -375,18 +372,13 @@ export default ({
     }
   }
 
-  const getFirstEntry = () => {
-    const { firstEntry: firstEntryMetadata } = getMetadata()
-    const { firstEntry: firstEntryPayload } = getPayload()
-    return firstEntryMetadata || firstEntryPayload
-  }
+  const getFirstEntry = () => getPayload().firstEntry
 
   const getUnits = () => {
     if (!node) return
 
-    const { units: metadataUnits } = getMetadata()
-    const { units: attributeUnits, unitsConversion } = node.getAttributes()
-    return unitsConversion || attributeUnits || metadataUnits
+    const { units, unitsConversion } = node.getAttributes()
+    return unitsConversion || units
   }
 
   node.onAttributeChange("autofetch", autofetch => {

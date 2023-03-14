@@ -231,7 +231,7 @@ export default (chart, sdk) => {
     let { dimensions } = chart.getMetadata()
     if (!dimensions) return
 
-    const keys = hasSparklineDimension() ? sparklineDimensions : Object.keys(dimensions)
+    const keys = hasSparklineDimension() ? sparklineDimensions : dimensions.map(dim => dim.id)
     keys.forEach(selectDimensionColor)
   }
 

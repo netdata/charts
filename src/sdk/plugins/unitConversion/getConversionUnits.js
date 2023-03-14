@@ -60,9 +60,7 @@ const getFractionDigits = value => {
 const getFilteredIndex = index => (index === 3 ? 2 : index)
 
 export default (chart, min, max) => {
-  const { units: metadataUnits } = chart.getMetadata()
-  const { units: attributeUnits } = chart.getAttributes()
-  const units = attributeUnits || metadataUnits
+  const { units } = chart.getAttributes()
 
   const [method, divider, unitsConversion = units] = getMethod(chart, units, min, max)
 

@@ -35,8 +35,8 @@ export const getChartPayload = chart => {
   const { after, before, groupingMethod, groupingTime, chartLibrary } = chart.getAttributes()
 
   const dataPadding = Math.round((before - after) / 2)
-  const afterWithPadding = after - dataPadding
-  const beforeWithPadding = before + dataPadding
+  const afterWithPadding = after < 0 ? after : after - dataPadding
+  const beforeWithPadding = after < 0 ? before : before + dataPadding
   const pointsMultiplier = after < 0 ? 1.5 : 2
 
   return {
