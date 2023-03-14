@@ -5,7 +5,12 @@ import Color, { Color as ColorContainer } from "@/components/line/dimensions/col
 import Name, { Name as NameContainer } from "@/components/line/dimensions/name"
 import Value, { Value as ValueContainer } from "@/components/line/dimensions/value"
 import Units from "@/components/line/dimensions/units"
-import { useVisibleDimensionId, useChart, useLatestValue } from "@/components/provider"
+import {
+  useVisibleDimensionId,
+  useChart,
+  useLatestValue,
+  useAttributeValue,
+} from "@/components/provider"
 import Tooltip from "@/components/tooltip"
 
 const DimensionContainer = forwardRef((props, ref) => (
@@ -55,8 +60,11 @@ export const EmptyDimension = () => {
 
 const AnomalyProgressBar = ({ id }) => {
   const value = useLatestValue(id, "ar")
+  const maxAr = useAttributeValue("maxAr")
 
-  return <ProgressBar height={0.5} color="anomalyText" width={`${value}%`} />
+  return (
+    <ProgressBar height={0.5} color="anomalyText" width={`${(Math.abs(value) * 100) / maxAr}%`} />
+  )
 }
 
 const Dimension = forwardRef(({ id }, ref) => {
