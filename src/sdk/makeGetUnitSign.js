@@ -75,7 +75,8 @@ export const unitMap = {
 const numRegex = /num\s\(([1KMGTPE])\)?\s(.+)/
 
 export default node => () => {
-  let units = node.getUnits()
+  let units = node.getAttribute("unitsConversion") || node.getAttribute("units")
+
   let prefix = ""
 
   if (numRegex.test(units)) {

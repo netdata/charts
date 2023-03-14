@@ -379,8 +379,8 @@ export default ({
   const getUnits = () => {
     if (!node) return
 
-    const { units, unitsConversion } = node.getAttributes()
-    return unitsConversion || units
+    const { units } = node.getAttributes()
+    return units
   }
 
   node.onAttributeChange("autofetch", autofetch => {
