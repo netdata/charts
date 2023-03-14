@@ -319,6 +319,8 @@ export default ({
   const getConvertedValue = value => {
     if (!node) return
 
+    if (value === null) return "-"
+
     const { unitsConversionMethod, unitsConversionDivider, unitsConversionFractionDigits } =
       node.getAttributes()
     const converted = convert(instance, unitsConversionMethod, value, unitsConversionDivider)

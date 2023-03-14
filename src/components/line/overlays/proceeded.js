@@ -23,6 +23,8 @@ const Proceeded = ({ defaultValue, ...rest }) => {
 
   if (chartWidth < 240) return null
 
+  if (!error || !defaultValue) return null
+
   return (
     <ProceededContainer {...rest}>
       <Text textAlign="center" textTransform="firstLetter">

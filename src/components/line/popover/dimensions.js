@@ -64,6 +64,7 @@ export const rowFlavours = {
 
 const rowSorting = {
   ANOMALY_RATE: "anomalyDesc",
+  ANNOTATIONS: "annotationsDesc",
   default: "valueDesc",
 }
 

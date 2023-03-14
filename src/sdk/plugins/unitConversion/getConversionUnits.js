@@ -5,9 +5,8 @@ import convert from "@/sdk/unitConversion"
 const scalable = (units, min, max, desiredUnits) => {
   const scales = scalableUnits[units]
 
-  if (desiredUnits !== "auto") {
-    return desiredUnits in scales ? ["divide", scales[desiredUnits], desiredUnits] : ["original"]
-  }
+  if (desiredUnits !== "auto" && desiredUnits in scales)
+    return ["divide", scales[desiredUnits], desiredUnits]
 
   const absMin = Math.abs(min)
   const absMax = Math.abs(max)
@@ -17,7 +16,9 @@ const scalable = (units, min, max, desiredUnits) => {
     .reverse()
     .find(scale => delta > scales[scale])
 
-  return scale ? ["divide", scales[scale], scale] : ["original"]
+  return scale
+    ? ["divide", scales[scale], units === "num" ? `${scale} ${desiredUnits}` : scale]
+    : ["original"]
 }
 
 const conversable = (chart, units, max, desiredUnits) => {
@@ -43,11 +44,11 @@ const getMethod = (chart, units, min, max) => {
 
   if (desiredUnits === "original") return ["original"]
 
-  if (scalableUnits[units]) return scalable(units, min, max, desiredUnits)
-
   if (conversableUnits[units]) return conversable(chart, units, max, desiredUnits)
 
-  return ["original"]
+  if (scalableUnits[units]) return scalable(units, min, max, desiredUnits)
+
+  return scalable("num", min, max, units)
 }
 
 const decimals = [1000, 10, 1, 0.1, 0.01, 0.001, 0.0001]

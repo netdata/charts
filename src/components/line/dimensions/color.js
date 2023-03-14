@@ -19,14 +19,15 @@ export const BaseColorBar = ({ value, min, max, valueKey, bg, ...rest }) => {
     if (!ref.current) return
 
     const animateWidth = () =>
-      ref.current && (ref.current.style.width = `${((Math.abs(value) - min) * 100) / (max - min)}%`)
+      ref.current &&
+      (ref.current.style.width = value ? `${((Math.abs(value) - min) * 100) / (max - min)}%` : 0)
 
     requestAnimationFrame(animateWidth)
   }, [value, valueKey, min, max])
 
   if (!bg) return null
 
-  return <Color ref={ref} bg={bg} width={{ min: !value ? 0 : 2 }} {...rest} />
+  return <Color ref={ref} bg={bg} width={{ min: 1 }} {...rest} />
 }
 
 export const ColorBar = ({ id, valueKey, ...rest }) => {

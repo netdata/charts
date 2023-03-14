@@ -55,6 +55,18 @@ export default (chart, sdk) => {
 
       return getIds().sort((a, b) => getDimensionValue(a, x, "ar") - getDimensionValue(b, x, "ar"))
     },
+    annotationsDesc: (getIds = getSourceDimensionIds, x) => {
+      const { result } = chart.getPayload()
+      x = x || result.all.length - 1
+
+      return getIds().sort((a, b) => getDimensionValue(b, x, "pa") - getDimensionValue(a, x, "pa"))
+    },
+    annotationsAsc: (getIds = getSourceDimensionIds, x) => {
+      const { result } = chart.getPayload()
+      x = x || result.all.length - 1
+
+      return getIds().sort((a, b) => getDimensionValue(a, x, "pa") - getDimensionValue(b, x, "pa"))
+    },
   }
 
   const updateVisibleDimensions = () => {

@@ -72,7 +72,17 @@ export const unitMap = {
   Watt: "W",
 }
 
+const numRegex = /num\s\(([1KMGTPE])\)?\s(.+)/
+
 export default node => () => {
-  const units = node.getUnits()
-  return unitMap[units] || units
+  let units = node.getUnits()
+  let prefix = ""
+
+  if (numRegex.test(units)) {
+    const customMatch = units.match(numRegex)
+
+    prefix = customMatch[1] && customMatch[1] !== "1" ? `${customMatch[1]} ` : ""
+    units = customMatch[2]
+  }
+  return `${prefix}${unitMap[units] || units}`
 }
