@@ -39,7 +39,7 @@ const Labels = ({ index, label, groupLabel, data, id }) => {
         <TextMicro>{groupLabel}</TextMicro>
         <Text strong>{label}</Text>
         <Flex gap={2} alignItems="center">
-          <BaseColorBar value={value} min={0} max={100} bg={["purple", "lilac"]} height="18px" />
+          <BaseColorBar value={value} min={0} max={100} bg="rgba(43, 44, 170, 0.4)" height="18px" />
           <TextMicro strong>{convertedValue}%</TextMicro>
         </Flex>
       </Flex>

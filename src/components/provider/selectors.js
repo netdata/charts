@@ -289,7 +289,7 @@ export const useConvertedValue = (value, valueKey) => {
     if (value === null || isNaN(value)) return ""
 
     if (valueKey === "ar" || valueKey === "percent")
-      return value === 0 ? "-" : parseFloat(value).toFixed(2)
+      return value === 0 ? "-" : (Math.round((value + Number.EPSILON) * 100) / 100).toFixed(2)
 
     if (valueKey === "pa")
       return parts.reduce((h, a) => (check(value, enums[a]) ? { ...h, [a]: colors[a] } : h), {})

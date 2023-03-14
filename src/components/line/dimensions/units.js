@@ -16,6 +16,7 @@ const Units = ({ visible, ...rest }) => {
   const units = useUnitSign()
 
   if (!visible) return null
+
   return <Value {...rest}>{units}</Value>
 }
 

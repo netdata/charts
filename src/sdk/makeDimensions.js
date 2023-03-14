@@ -133,11 +133,9 @@ export default (chart, sdk) => {
   const getMemKey = () => {
     const { colors, groupBy, contextScope, id } = chart.getAttributes()
 
-    return groupBy.join("|")
+    if (colors.length) return chart.getAttribute("id")
 
-    // if (colors.length) return chart.getAttribute("id")
-
-    // return contextScope.join("|") || id
+    return contextScope.join("|") || id
   }
 
   const selectDimensionColor = id => {
@@ -145,6 +143,8 @@ export default (chart, sdk) => {
     const colors = chart.getAttribute("colors")
     const sparkline = chart.getAttribute("sparkline")
     if (sparkline && colors && colors.length === 1) return colors[0]
+
+    id = id === "selected" ? chart.getAttribute("selectedDimensions").join("") : id
 
     const color = sdk.getRoot().getNextColor(getNextColor, key, id)
 

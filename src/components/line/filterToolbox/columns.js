@@ -156,7 +156,7 @@ export const anomalyRateColumn = () => ({
         </TextSmall>
         <ProgressBar
           background="progressBg"
-          color={["purple", "lilac"]}
+          color="anomalyText"
           height={2}
           width={`${getValue()}%`}
           containerWidth="100%"

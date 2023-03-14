@@ -67,8 +67,8 @@ export default ({
   const getUpdateEvery = () => {
     if (!node) return
 
-    const { loaded, updateEvery: updateEveryAttribute } = node.getAttributes()
-    if (updateEveryAttribute) return updateEveryAttribute * 1000
+    const { loaded, viewUpdateEvery: viewUpdateEveryAttribute } = node.getAttributes()
+    if (viewUpdateEveryAttribute) return viewUpdateEveryAttribute * 1000
 
     const { viewUpdateEvery, updateEvery: granularity } = getPayload()
     if (loaded && viewUpdateEvery) return viewUpdateEvery * 1000
@@ -164,6 +164,7 @@ export default ({
     })
 
     if (wasLoaded) node.trigger("successFetch", nextPayload, prevPayload)
+
     invalidateContexts(nextPayload.versions?.contexts_hard_hash)
     finishFetch()
   }

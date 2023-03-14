@@ -56,7 +56,7 @@ const getTo = (total, index) => {
   return index + half
 }
 
-const rowFlavours = {
+export const rowFlavours = {
   ANOMALY_RATE: "ANOMALY_RATE",
   ANNOTATIONS: "ANNOTATIONS",
   default: "VALUE",
@@ -92,6 +92,7 @@ const Dimensions = () => {
   }, [chart, row, x])
 
   const chartWidth = chart.getUI().getEstimatedChartWidth() * 0.9
+  const rowFlavour = rowFlavours[row] || rowFlavours.default
 
   return (
     <Container data-testid="chartPopover-dimensions" maxWidth={chartWidth} gap={2}>
@@ -103,11 +104,29 @@ const Dimensions = () => {
       <Grid gap={1} column>
         <GridHeader>
           <TextMicro strong>Dimension</TextMicro>
-          <Units visible textAlign="right" strong />
-          <TextMicro strong textAlign="right">
+          <TextMicro
+            color={rowFlavour === rowFlavours.default ? "text" : "textLite"}
+            textAlign="right"
+          >
+            Value{" "}
+            <Units
+              visible
+              strong={rowFlavour === rowFlavours.default}
+              color={rowFlavour === rowFlavours.default ? "text" : "textLite"}
+            />
+          </TextMicro>
+          <TextMicro
+            strong={rowFlavour === rowFlavours.ANOMALY_RATE}
+            color={rowFlavour === rowFlavours.ANOMALY_RATE ? "text" : "textLite"}
+            textAlign="right"
+          >
             AR %
           </TextMicro>
-          <TextMicro strong textAlign="right">
+          <TextMicro
+            strong={rowFlavour === rowFlavours.ANNOTATIONS}
+            color={rowFlavour === rowFlavours.ANNOTATIONS ? "text" : "textLite"}
+            textAlign="right"
+          >
             Annotations
           </TextMicro>
         </GridHeader>
@@ -117,7 +136,7 @@ const Dimensions = () => {
             id={id}
             strong={row === id}
             chars={chartWidth ? chartWidth / 3 : 200}
-            row={rowFlavours[row] || rowFlavours.default}
+            rowFlavour={rowFlavour}
           />
         ))}
       </Grid>

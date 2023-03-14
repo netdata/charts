@@ -1,19 +1,22 @@
 const getHighestPoint = points => {
   let highest = points[0] || {}
-  points.reduce((acc, point) => {
+  points.reduce((h, point) => {
+    if (isNaN(point.canvasy)) return h
+
     const { yval } = point
-    if (yval > acc) {
+    if (yval > h) {
       highest = point
       return yval
     }
 
-    return acc
+    return h
   }, 0)
 
   return highest
 }
 
 export default chartUI => {
+  // TODO Deprecated ???
   const getClosestArea = (event, points) => {
     const { offsetY } = event
 
@@ -26,6 +29,7 @@ export default chartUI => {
 
     if (!Array.isArray(validPoints) || validPoints.length === 0) return
 
+    if (offsetY > chartUI.getDygraph().getArea().h - 10) return "ANNOTATIONS"
     if (offsetY < 15) return "ANOMALY_RATE"
 
     const getY = index => {
@@ -40,7 +44,7 @@ export default chartUI => {
 
     if (offsetY < getY(0)) return getHighestPoint(validPoints).name
 
-    if (offsetY > getY(validPoints.length - 2)) return validPoints[validPoints.length - 2]?.name // Disregard ANOMALY_RATE
+    if (offsetY > getY(validPoints.length - 3)) return validPoints[validPoints.length - 3]?.name // Disregard lasts
 
     const point = validPoints
       .slice(0, validPoints.length - 1) // Disregard ANOMALY_RATE
@@ -52,25 +56,28 @@ export default chartUI => {
   const getClosestPoint = (event, points) => {
     const { offsetY } = event
 
-    if (offsetY < 15 && points[points.length - 1].name === "ANOMALY_RATE") return "ANOMALY_RATE"
+    if (offsetY > chartUI.getDygraph().getArea().h - 10) return "ANNOTATIONS"
+    if (offsetY < 15) return "ANOMALY_RATE"
 
     const distance = p => Math.pow(offsetY - p.canvasy, 2)
 
     let last = distance(points[0])
-    const closest = points.reduce((a, b) => {
-      const distanceB = distance(b)
-      if (last < distanceB) return a
+    const closest = points.reduce((h, p) => {
+      if (isNaN(p.canvasy)) return h
 
-      last = distanceB
-      return b
+      const distancePoint = distance(p)
+      if (last < distancePoint) return h
+
+      last = distancePoint
+      return p
     })
 
     return closest.name
   }
 
   const getClosestByChartType = {
-    stacked: getClosestArea,
-    area: getClosestArea,
+    stacked: getClosestPoint,
+    area: getClosestPoint,
     default: getClosestPoint,
   }
 
@@ -88,7 +95,7 @@ export default chartUI => {
   let lastPoints
   let lastTimestamp
 
-  const triggerHighlight = (event, x, points) => {
+  const triggerHighlight = (event, x, points, ...rest) => {
     const seriesName = points && getClosestSeries(event, points)
 
     if (!seriesName) return

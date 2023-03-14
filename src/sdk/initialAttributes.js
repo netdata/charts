@@ -122,6 +122,9 @@ export default {
   themeWarningBackground: ["#FFCC26", "#FFCC26"],
   themeErrorBackground: ["#F95251", "#F95251"],
 
+  themeAnomalyScaleColor: ["#B596F8", "#DB94F4"],
+  themeAnomalyLiteScaleColor: ["#E8DEFD", "#4E0A65"],
+
   legendScroll: 0,
 
   initializedFilters: false,

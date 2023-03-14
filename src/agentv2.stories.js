@@ -39,7 +39,7 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
       selectedContexts: [contexts],
       nodesScope: [nodesScope],
       contextScope: [contextScope],
-      // selectedDimensions: [singleDimension],
+      selectedDimensions: ["in"],
       host: host,
       agent: true,
       chartLibrary: "gauge",
@@ -55,7 +55,7 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
       selectedContexts: [contexts],
       nodesScope: [nodesScope],
       contextScope: [contextScope],
-      // selectedDimensions: [singleDimension],
+      selectedDimensions: ["out"],
       host: host,
       agent: true,
       chartLibrary: "easypiechart",
@@ -128,9 +128,9 @@ export const OneChart = Template.bind({})
 
 OneChart.args = {
   nodesScope: "*",
-  contextScope: "k8s.cgroup.cpu_limit",
+  contextScope: "disk.backlog",
   contexts: "*",
   singleDimension: "*",
   theme: "default",
-  host: "http://10.10.11.2:19999/api/v2/data", // "http://192.168.1.205:19999/api/v2/data",
+  host: "http://192.168.1.205:19999/api/v2/data", // "http://10.10.11.2:19999/api/v2/data",
 }

@@ -5,6 +5,7 @@ import Color, { ColorBar } from "@/components/line/dimensions/color"
 import Name from "@/components/line/dimensions/name"
 import Value, { Value as ValuePart } from "@/components/line/dimensions/value"
 import { useChart, useVisibleDimensionId } from "@/components/provider"
+import { rowFlavours } from "./dimensions"
 
 const GridRow = styled(Flex).attrs({
   position: "relative",
@@ -60,7 +61,7 @@ const AnnotationsValue = ({ children: annotations, ...rest }) => (
   </Flex>
 )
 
-const Dimension = ({ id, strong, chars, row }) => {
+const Dimension = ({ id, strong, chars, rowFlavour }) => {
   const visible = useVisibleDimensionId(id)
 
   const chart = useChart()
@@ -69,7 +70,11 @@ const Dimension = ({ id, strong, chars, row }) => {
   return (
     <GridRow opacity={visible ? null : "weak"}>
       <Flex alignItems="center" gap={1} position="relative">
-        <ColorBackground id={id} valueKey={rowValueKeys[row] || rowValueKeys.default} height="18px">
+        <ColorBackground
+          id={id}
+          valueKey={rowValueKeys[rowFlavour] || rowValueKeys.default}
+          height="18px"
+        >
           <Color id={id} />
         </ColorBackground>
         <Name padding={[1, 2]} flex id={id} strong={strong} maxLength={chars} />
@@ -80,15 +85,16 @@ const Dimension = ({ id, strong, chars, row }) => {
         visible={visible}
         Component={ValueOnDot}
         fractionDigits={fractionDigits}
+        color={rowFlavour === rowFlavours.default ? "text" : "textLite"}
       />
       <Value
         id={id}
         strong={strong}
         visible={visible}
         valueKey="ar"
-        color={["purple", "lilac"]}
         Component={ValueOnDot}
         fractionDigits={2}
+        color={rowFlavour === rowFlavours.ANOMALY_RATE ? "anomalyTextFocus" : "anomalyText"}
       />
       <Value
         textAlign="right"
@@ -97,6 +103,7 @@ const Dimension = ({ id, strong, chars, row }) => {
         visible={visible}
         valueKey="pa"
         Component={AnnotationsValue}
+        color={rowFlavour === rowFlavours.ANNOTATIONS ? "text" : "textLite"}
       />
     </GridRow>
   )
