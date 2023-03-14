@@ -16,7 +16,6 @@ const getHighestPoint = points => {
 }
 
 export default chartUI => {
-  // TODO Deprecated ???
   const getClosestArea = (event, points) => {
     const { offsetY } = event
 
@@ -44,10 +43,10 @@ export default chartUI => {
 
     if (offsetY < getY(0)) return getHighestPoint(validPoints).name
 
-    if (offsetY > getY(validPoints.length - 3)) return validPoints[validPoints.length - 3]?.name // Disregard lasts
+    if (offsetY > getY(validPoints.length - 1)) return validPoints[validPoints.length - 1]?.name
 
     const point = validPoints
-      .slice(0, validPoints.length - 1) // Disregard ANOMALY_RATE
+      .slice(0, validPoints.length - 1)
       .find((p, index) => getY(index) < offsetY && getY(index + 1) > offsetY)
 
     return point?.name
@@ -76,8 +75,8 @@ export default chartUI => {
   }
 
   const getClosestByChartType = {
-    stacked: getClosestPoint,
-    area: getClosestPoint,
+    stacked: getClosestArea,
+    area: getClosestArea,
     default: getClosestPoint,
   }
 
