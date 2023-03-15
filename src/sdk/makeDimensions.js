@@ -143,7 +143,7 @@ export default (chart, sdk) => {
   const isDimensionVisible = id => visibleDimensionSet.has(id)
 
   const getMemKey = () => {
-    const { colors, groupBy, contextScope, id } = chart.getAttributes()
+    const { colors, contextScope, id } = chart.getAttributes()
 
     if (colors.length) return chart.getAttribute("id")
 
@@ -152,11 +152,11 @@ export default (chart, sdk) => {
 
   const selectDimensionColor = id => {
     const key = getMemKey()
-    const colors = chart.getAttribute("colors")
+    const colorsAttr = chart.getAttribute("colors")
     const sparkline = chart.getAttribute("sparkline")
-    if (sparkline && colors && colors.length === 1) return colors[0]
+    if (sparkline && colorsAttr && colorsAttr.length === 1) return colorsAttr[0]
 
-    id = id === "selected" ? chart.getAttribute("selectedDimensions").join("") : id
+    id = id === "selected" ? chart.getAttribute("selectedDimensions")[0] : id
 
     const color = sdk.getRoot().getNextColor(getNextColor, key, id)
 
@@ -168,9 +168,9 @@ export default (chart, sdk) => {
 
   const getDimensionColor = id => {
     const key = getMemKey()
-    const colors = chart.getAttribute("colors")
+    const colorsAttr = chart.getAttribute("colors")
     const sparkline = chart.getAttribute("sparkline")
-    if (sparkline && colors && colors.length === 1) return colors[0]
+    if (sparkline && colorsAttr && colorsAttr.length === 1) return colorsAttr[0]
 
     const color = sdk.getRoot().findColor(key, id)
 

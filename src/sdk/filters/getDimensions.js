@@ -44,11 +44,11 @@ const selectDimensionByChartType = {
 }
 
 export default (chart, { groupBy, groupByLabel }) => {
-  if (groupBy.length > 1) return []
-  if (groupBy[0] === "dimension") return []
-
   const { dimensions } = chart.getMetadata()
-  const { contextScope, chartType } = chart.getAttributes()
+  const { contextScope, chartType, selectedDimensions } = chart.getAttributes()
+
+  if (groupBy.length > 1) return selectedDimensions
+  if (groupBy[0] === "dimension") return selectedDimensions
 
   const [firstContext] = contextScope
 
@@ -57,8 +57,8 @@ export default (chart, { groupBy, groupByLabel }) => {
     groupByLabel.some(group => !!selectDimensionByGroup[group])
   ) {
     if (dimensionsByContext[firstContext]) return [dimensionsByContext[firstContext]]
-    return selectDimensionByChartType[chartType] ? [] : [dimensions[0]]
+    return selectDimensionByChartType[chartType] ? selectedDimensions : [dimensions[0].id]
   }
 
-  return dimensions
+  return selectedDimensions
 }
