@@ -14,7 +14,6 @@ const Container = styled(Flex).attrs({
   background: "mainBackground",
   overflow: { vertical: "auto" },
 })`
-  position: absolute;
   inset: 0;
 `
 

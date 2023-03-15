@@ -55,8 +55,7 @@ export default chart => {
       groupBy: groupBy,
     })
 
-    const attributes = getInitialFilterAttributes(chart)
-    chart.updateAttributes(attributes)
+    chart.updateAttributes(getInitialFilterAttributes(chart))
     chart.fetchAndRender().then(() => onGroupChange(chart.getAttribute("groupBy")))
   }
 
@@ -123,6 +122,15 @@ export default chart => {
     chart.fetchAndRender()
   }
 
+  const updateContextScopeAttribute = value => {
+    if (chart.getAttribute("contextScope")[0] === value) return
+
+    chart.updateAttribute("contextScope", [value])
+    chart.updateAttributes(getInitialFilterAttributes(chart))
+
+    chart.fetchAndRender()
+  }
+
   const updateTimeAggregationMethodAttribute = ({ alias, method }) => {
     const value = alias ? `${method}${alias}` : method
 
@@ -159,6 +167,7 @@ export default chart => {
     updateLabelsAttribute,
     updateAggregationMethodAttribute,
     updateTimeAggregationMethodAttribute,
+    updateContextScopeAttribute,
     resetPristine,
     removePristine,
   }

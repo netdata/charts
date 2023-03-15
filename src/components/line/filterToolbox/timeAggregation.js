@@ -45,7 +45,7 @@ const useMenuItems = (chart, perTier = []) => {
               (firstTier.points * 100.0) / perTier.reduce((h, t) => h + t.points, 0)
             }% high resolution and ${
               (restTiers.reduce((h, t) => h + t.points, 0) * 100.0) /
-              perTier.reduce((h, t) => h + t.points, 0)
+              perTier.reduce((h, t) => h + t.points, 0).toFixed(2)
             }% tiered data of lower resolution.`,
           },
         {

@@ -42,7 +42,7 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
       selectedDimensions: ["in"],
       host: host,
       agent: true,
-      chartLibrary: "gauge",
+      chartLibrary: "easypiechart",
       chartUrlOptions: ["percentage"],
       syncHover: true,
     },
@@ -84,7 +84,7 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
     <ThemeProvider theme={theme === "default" ? DefaultTheme : DarkTheme}>
       <Flex background="mainBackground" column gap={2} padding={[3]}>
         <Flex width="180px" gap={3}>
-          <GaugeComponent chart={chart2} />
+          <EasyPieComponent chart={chart2} />
           <EasyPieComponent chart={chart3} />
         </Flex>
         <Line chart={chart} height="315px" />
@@ -128,9 +128,9 @@ export const OneChart = Template.bind({})
 
 OneChart.args = {
   nodesScope: "*",
-  contextScope: "disk.backlog",
+  contextScope: "system.io",
   contexts: "*",
   singleDimension: "*",
   theme: "default",
-  host: "http://192.168.1.205:19999/api/v2/data", // "http://10.10.11.2:19999/api/v2/data",
+  host: "http://10.10.11.2:19999/api/v2/data", // "http://192.168.1.205:19999/api/v2/data",
 }

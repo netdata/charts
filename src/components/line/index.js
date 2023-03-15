@@ -27,10 +27,7 @@ export const Line = props => {
     <Container ref={ref} {...props}>
       <Header />
       <FilterToolbox />
-      <ContentWrapper>
-        <ChartContentWrapper />
-        {detailed && <Details />}
-      </ContentWrapper>
+      <ContentWrapper>{detailed ? <Details /> : <ChartContentWrapper />}</ContentWrapper>
       {!detailed && <Footer />}
     </Container>
   )

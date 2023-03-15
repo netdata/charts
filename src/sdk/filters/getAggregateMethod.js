@@ -1,4 +1,5 @@
 const averageUnits = new Set([
+  "%",
   "percentage",
   "percent",
   "rotations/min",
@@ -37,11 +38,16 @@ const averageUnits = new Set([
 
 const averageRegex = /(%|\/operation|\/run| run|\/request)/
 
-export default unit => {
+export default chart => {
+  const unit = chart.getUnits()
+
   if (!unit) return "sum"
 
-  const lowerUnit = unit.toLowerCase()
+  let lowerUnit = unit.toLowerCase()
+  if (averageUnits.has(lowerUnit) || averageRegex.test(lowerUnit)) return "avg"
 
+  const unitSign = chart.getUnitSign()
+  lowerUnit = unitSign.toLowerCase()
   if (averageUnits.has(lowerUnit) || averageRegex.test(lowerUnit)) return "avg"
 
   return "sum"

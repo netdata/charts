@@ -8,11 +8,11 @@ const notStackedByGroupBy = {
 }
 
 const getChartType = (chart, { groupBy, groupByLabel }) => {
-  const { aggregationMethod: aggregationMethodAttr, units, chartType } = chart.getAttributes()
+  const { aggregationMethod: aggregationMethodAttr, chartType } = chart.getAttributes()
 
   if (groupBy.length > 1 || groupByLabel.length > 1) return chartType || initialAttributes.chartType
 
-  const aggregationMethod = aggregationMethodAttr || getAggregateMethod(units)
+  const aggregationMethod = aggregationMethodAttr || getAggregateMethod(chart)
 
   if (
     !notStackedByGroupBy[groupBy[0]] &&

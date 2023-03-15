@@ -295,10 +295,8 @@ export default ({
     dimensions.updateMetadataColors()
     node.trigger("metadataChanged")
 
-    if (!node.getAttribute("initializedFilters")) {
-      const attributes = getInitialFilterAttributes(instance)
-      node.setAttributes(attributes)
-    }
+    if (!node.getAttribute("initializedFilters"))
+      node.setAttributes(getInitialFilterAttributes(instance))
   }
 
   const getUI = () => ui

@@ -4,6 +4,7 @@ import Aggregate from "./aggregate"
 import Dimensions from "./dimensions"
 import Instances from "./instances"
 import Nodes from "./nodes"
+import ContextScope from "./contextScope"
 import GroupBy from "./groupBy"
 import TimeAggregation from "./timeAggregation"
 import Labels from "./labels"
@@ -13,6 +14,7 @@ export const Container = ({ children, ...rest }) => <Flex {...rest}>{children}</
 
 const FilterToolbox = props => (
   <Container {...props}>
+    <ContextScope />
     <GroupBy labelProps={{ secondaryLabel: "Group by" }} />
     <Aggregate />
     <Nodes />

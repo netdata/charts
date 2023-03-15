@@ -31,6 +31,7 @@ export default {
   chartType: "",
   selectedLegendDimensions: [],
 
+  contextItems: [],
   contextScope: [],
   nodesScope: [],
   selectedContexts: [],
@@ -122,8 +123,8 @@ export default {
   themeWarningBackground: ["#FFCC26", "#FFCC26"],
   themeErrorBackground: ["#F95251", "#F95251"],
 
-  themeAnomalyScaleColor: ["#B596F8", "#DB94F4"],
-  themeAnomalyLiteScaleColor: ["#E8DEFD", "#4E0A65"],
+  themeAnomalyScaleColor: ["#9F75F9", "#9F75F9"],
+  themeAnomalyLiteScaleColor: ["#F0EAF6", "#504576"],
 
   legendScroll: 0,
 
