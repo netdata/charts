@@ -20,6 +20,7 @@ const ColorBackground = styled(ColorBar).attrs({
   top: 1,
   left: 2,
   backgroundOpacity: 0.4,
+  round: 0.5,
 })``
 
 const rowValueKeys = {
