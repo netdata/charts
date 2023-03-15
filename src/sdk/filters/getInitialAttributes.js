@@ -24,7 +24,7 @@ export default chart => {
 
   const chartType = chart.getAttribute("chartType")
   const filteredLabels = chart.getAttribute("filteredLabels") || {}
-  const aggregationMethod = aggregationMethodAttr || getAggregateMethod(units)
+  const aggregationMethod = aggregationMethodAttr || getAggregateMethod(chart)
 
   return {
     aggregationMethod,

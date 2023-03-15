@@ -95,7 +95,7 @@ export default (chart, sdk) => {
 
     if (!sortedDimensionIds) return
 
-    colors = sortedDimensionIds.map(id => selectDimensionColor(id))
+    colors = sortedDimensionIds.map(selectDimensionColor)
 
     chart.trigger("dimensionChanged")
   }
@@ -241,7 +241,7 @@ export default (chart, sdk) => {
 
   const updateMetadataColors = () => {
     let { dimensions } = chart.getMetadata()
-    if (!dimensions) return
+    if (!dimensions?.length) return
 
     const keys = hasSparklineDimension() ? sparklineDimensions : dimensions.map(dim => dim.id)
     keys.forEach(selectDimensionColor)
