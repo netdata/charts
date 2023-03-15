@@ -1,6 +1,6 @@
 import React, { forwardRef } from "react"
 import { useTheme } from "styled-components"
-import { Flex, ProgressBar, getColor } from "@netdata/netdata-ui"
+import { TextBig, Flex, ProgressBar, getColor } from "@netdata/netdata-ui"
 import Color, { Color as ColorContainer } from "@/components/line/dimensions/color"
 import Name, { Name as NameContainer } from "@/components/line/dimensions/name"
 import Value, { Value as ValueContainer } from "@/components/line/dimensions/value"
@@ -92,8 +92,8 @@ const Dimension = forwardRef(({ id }, ref) => {
         <Flex flex column overflow="hidden" data-testid="chartLegendDimension-details">
           <Name id={id} maxLength={32} />
 
-          <Flex gap={1} data-testid="chartLegendDimension-valueContainer" flex>
-            <Value id={id} strong visible={visible} />
+          <Flex gap={1} alignItems="end" data-testid="chartLegendDimension-valueContainer" flex>
+            <Value id={id} strong visible={visible} Component={TextBig} />
             <Units visible={visible} />
           </Flex>
           {renderDimensionChildren?.(id, chart)}
