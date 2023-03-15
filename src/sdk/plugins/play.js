@@ -31,7 +31,7 @@ export default sdk => {
     const { after, hovering, active, paused } = chart.getAttributes()
     const autofetch = (chart.type === "container" || active) && after < 0 && !hovering && !paused
 
-    if (!autofetch && !force) return
+    if (!autofetch && !force) return chart.getUI().render()
 
     if (chart.getAttribute("loaded")) {
       chart.updateAttribute("autofetch", autofetch)
