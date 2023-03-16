@@ -37,6 +37,12 @@ export const ItemContainer = styled(Flex).attrs(props => ({
       background-color: ${getColor("borderSecondary")({ theme })};
     }
   `}
+  ${({ justDesc, theme }) =>
+    justDesc &&
+    `
+    pointer-events: none;
+    border-top: 1px solid ${getColor("borderSecondary")({ theme })};
+  `}
 `
 
 export const Item = ({ value: selectedValue, item, onItemClick, itemProps }) => {
@@ -49,7 +55,14 @@ export const Item = ({ value: selectedValue, item, onItemClick, itemProps }) => 
       disabled={selected}
       selected={selected}
       onClick={() => onItemClick(value)}
-      {...(justDesc && { border: { side: "top", color: "borderSecondary" } })}
+      justDesc={justDesc}
+      // {...(justDesc && {
+      //   border: { side: "top", color: "borderSecondary" },
+      // })}
+      // sx={
+      //   justDesc && {
+      //     border: { side: "top", color: `${getColor("borderSecondary")({ theme })}` },
+      //   }
     >
       <Flex column padding={[0, 1]} alignItems="start" width="100%">
         {!!label && (
