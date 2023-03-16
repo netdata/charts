@@ -56,13 +56,6 @@ export const Item = ({ value: selectedValue, item, onItemClick, itemProps }) => 
       selected={selected}
       onClick={() => onItemClick(value)}
       justDesc={justDesc}
-      // {...(justDesc && {
-      //   border: { side: "top", color: "borderSecondary" },
-      // })}
-      // sx={
-      //   justDesc && {
-      //     border: { side: "top", color: `${getColor("borderSecondary")({ theme })}` },
-      //   }
     >
       <Flex column padding={[0, 1]} alignItems="start" width="100%">
         {!!label && (
