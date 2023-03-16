@@ -85,5 +85,8 @@ export default node => () => {
     prefix = customMatch[1] && customMatch[1] !== "1" ? `${customMatch[1]} ` : ""
     units = customMatch[2]
   }
+
+  if (!units) return null
+
   return `${prefix}${unitMap[units] || units}`
 }
