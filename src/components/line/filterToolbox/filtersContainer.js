@@ -1,5 +1,5 @@
 import styled from "styled-components"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import { Flex } from "@netdata/netdata-ui"
 
 const FiltersContainer = styled(Flex).attrs({
   justifyContent: "between",

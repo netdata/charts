@@ -275,6 +275,7 @@ export const useLatestValue = (id, valueKey = "value") => {
     return unregister(
       chart.onAttributeChange("hoverX", () => setState(getValue())),
       chart.on("dimensionChanged", () => setState(getValue())),
+      chart.onAttributeChange("unitsConversion", () => setState(getValue())),
       chart.getUI().on("rendered", () => setState(getValue()))
     )
   }, [chart, id, valueKey])
@@ -284,6 +285,7 @@ export const useLatestValue = (id, valueKey = "value") => {
 
 export const useConvertedValue = (value, valueKey) => {
   const chart = useChart()
+  const unitsConversion = useAttributeValue("unitsConversion")
 
   return useMemo(() => {
     if (value === null || isNaN(value)) return "-"
@@ -295,7 +297,7 @@ export const useConvertedValue = (value, valueKey) => {
       return parts.reduce((h, a) => (check(value, enums[a]) ? { ...h, [a]: colors[a] } : h), {})
 
     return chart.getConvertedValue(value)
-  }, [chart, value, valueKey])
+  }, [chart, value, valueKey, unitsConversion])
 }
 
 export const useLatestConvertedValue = (id, valueKey = "value") => {

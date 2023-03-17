@@ -57,7 +57,7 @@ export default (Component, { Fallback: DefaultFallback = Fallback } = {}) => {
       return (
         <Intersection
           ref={setMyRef}
-          height={height}
+          height="100%"
           width={defaultWidth}
           flex={flex}
           margin={margin}
@@ -67,7 +67,7 @@ export default (Component, { Fallback: DefaultFallback = Fallback } = {}) => {
           data-testid={dataTestId}
           data-chartid={dataChartId}
         >
-          {() => <Component readOnly={readOnly} height="100%" width="100%" flex {...rest} />}
+          {() => <Component readOnly={readOnly} height={height} width="100%" flex {...rest} />}
         </Intersection>
       )
     }

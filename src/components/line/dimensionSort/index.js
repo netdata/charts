@@ -64,7 +64,7 @@ const useSortings = chart =>
     [chart]
   )
 
-const DimensionFilter = props => {
+const DimensionSort = props => {
   const chart = useChart()
   const [value, setValue] = useState(chart.getAttribute("dimensionsSort"))
 
@@ -75,7 +75,7 @@ const DimensionFilter = props => {
   const sortings = useSortings(chart)
 
   return (
-    <Flex padding={[0, 4, 3]} data-testid="chartDimensionFilter" {...props}>
+    <Flex padding={[0, 4, 3]} data-testid="chartDimensionSort" {...props}>
       <Menu
         value={value}
         items={sortings}
@@ -86,7 +86,7 @@ const DimensionFilter = props => {
       >
         <Button
           icon={<Icon svg={iconBySort[value]} size="16px" />}
-          data-testid="chartDimensionFilter-toggle"
+          data-testid="chartDimensionSort-toggle"
           title="Sort dimensions by name or value"
           small
         />
@@ -95,4 +95,4 @@ const DimensionFilter = props => {
   )
 }
 
-export default DimensionFilter
+export default DimensionSort

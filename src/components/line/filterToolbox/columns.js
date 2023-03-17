@@ -143,7 +143,7 @@ export const contributionColumn = () => ({
 
 export const anomalyRateColumn = () => ({
   id: "anomalyRate",
-  header: <TextSmall strong>Anomaly %</TextSmall>,
+  header: <TextSmall strong>AR %</TextSmall>,
   size: 120,
   minSize: 30,
   cell: ({ row, getValue }) => {

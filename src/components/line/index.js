@@ -1,5 +1,8 @@
 import React from "react"
+import { Transition } from "react-transition-group"
+import { Flex, Collapsible } from "@netdata/netdata-ui"
 import useHover from "@/components/useHover"
+import useDebouncedValue from "@/components/helpers/useDebouncedValue"
 import withChart from "@/components/hocs/withChart"
 import { useChart, useAttributeValue } from "@/components/provider"
 import Header from "./header"
@@ -8,8 +11,10 @@ import ChartContentWrapper, { ContentWrapper } from "./chartContentWrapper"
 import FilterToolbox from "./filterToolbox"
 import Footer from "./footer"
 import Container from "./container"
+import Expander from "./expander"
+import Drawer from "./drawer"
 
-export const Line = props => {
+export const Line = ({ height, ...rest }) => {
   const chart = useChart()
   const detailed = useAttributeValue("detailed")
 
@@ -23,13 +28,44 @@ export const Line = props => {
     [chart]
   )
 
+  const focused = useAttributeValue("focused")
+  const debouncedFocused = useDebouncedValue(focused, 500)
+
+  const expanded = useAttributeValue("expanded")
+
   return (
-    <Container ref={ref} {...props}>
-      <Header />
-      <FilterToolbox />
-      <ContentWrapper>{detailed ? <Details /> : <ChartContentWrapper />}</ContentWrapper>
-      {!detailed && <Footer />}
-    </Container>
+    <Transition nodeRef={ref} in={expanded} timeout={1000}>
+      {expandTransitionState => (
+        <Transition nodeRef={ref} in={focused && debouncedFocused} timeout={100}>
+          {focusTransitionState => (
+            <Container ref={ref} {...rest} expandTransitionState={expandTransitionState}>
+              <Flex
+                column
+                focusTransitionState={focusTransitionState}
+                position="relative"
+                height={height}
+              >
+                <Header />
+                <FilterToolbox />
+                <ContentWrapper>{detailed ? <Details /> : <ChartContentWrapper />}</ContentWrapper>
+              </Flex>
+              <Collapsible open={!expanded && !detailed} duration={250}>
+                <Footer expandTransitionState={expandTransitionState} />
+              </Collapsible>
+
+              <Collapsible open={expanded} duration={300}>
+                <Drawer expandTransitionState={expandTransitionState} />
+              </Collapsible>
+              <Expander
+                expanded={expanded}
+                focusTransitionState={focusTransitionState}
+                expandTransitionState={expandTransitionState}
+              />
+            </Container>
+          )}
+        </Transition>
+      )}
+    </Transition>
   )
 }
 

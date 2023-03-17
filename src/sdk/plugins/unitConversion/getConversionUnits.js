@@ -2,7 +2,7 @@ import conversableUnits, { makeConversableKey } from "@/sdk/unitConversion/conve
 import scalableUnits from "@/sdk/unitConversion/scalableUnits"
 import convert from "@/sdk/unitConversion"
 
-const scalable = (units, min, max, desiredUnits) => {
+const scalable = (units, min, max, desiredUnits, div = 1) => {
   const scales = scalableUnits[units]
 
   if (desiredUnits !== "auto" && desiredUnits in scales)
@@ -14,7 +14,7 @@ const scalable = (units, min, max, desiredUnits) => {
 
   const scale = Object.keys(scales)
     .reverse()
-    .find(scale => delta > scales[scale])
+    .find(scale => delta / div > scales[scale])
 
   return scale
     ? ["divide", scales[scale], units === "num" ? `${scale} ${desiredUnits}` : scale]
@@ -39,31 +39,29 @@ const conversable = (chart, units, max, desiredUnits) => {
   return [makeConversableKey(units, key), undefined, key]
 }
 
-const getMethod = (chart, units, min, max) => {
+const getMethod = (chart, units, min, max, div = 1) => {
   const { desiredUnits } = chart.getAttributes()
 
   if (desiredUnits === "original") return ["original"]
 
-  if (conversableUnits[units]) return conversable(chart, units, max, desiredUnits)
+  if (conversableUnits[units]) return conversable(chart, units, max, desiredUnits, div)
 
-  if (scalableUnits[units]) return scalable(units, min, max, desiredUnits)
+  if (scalableUnits[units]) return scalable(units, min, max, desiredUnits, div)
 
-  return scalable("num", min, max, units)
+  return scalable("num", min, max, units, div)
 }
 
-const decimals = [1000, 10, 1, 0.1, 0.01, 0.001, 0.0001]
+const decimals = [1000, 100, 10, 1, 0.1, 0.01, 0.001, 0.0001, 0.0001]
 
 const getFractionDigits = value => {
   const index = decimals.findIndex(d => value > d)
-  return index === -1 ? decimals.length : getFilteredIndex(index)
+  return index === -1 ? decimals.length - 1 : index
 }
 
-const getFilteredIndex = index => (index === 3 ? 2 : index)
-
-export default (chart, min, max) => {
+const getConversionUnits = (chart, min, max, div = 1, maxDecimals = 5) => {
   const { units } = chart.getAttributes()
 
-  const [method, divider, unitsConversion = units] = getMethod(chart, units, min, max)
+  const [method, divider, unitsConversion = units] = getMethod(chart, units, min, max, div)
 
   const cMin = convert(chart, method, min, divider)
   const cMax = convert(chart, method, max, divider)
@@ -73,5 +71,15 @@ export default (chart, min, max) => {
   const fractionDigits =
     method === "original" || method === "divide" ? getFractionDigits(delta) : -1
 
-  return { method, divider, units: unitsConversion, fractionDigits }
+  if (cMin !== cMax && cMin.toFixed(maxDecimals) === cMax.toFixed(maxDecimals))
+    return getConversionUnits(chart, min, max, div * 10)
+
+  return {
+    method,
+    divider,
+    units: unitsConversion,
+    fractionDigits: fractionDigits > maxDecimals ? maxDecimals : fractionDigits,
+  }
 }
+
+export default getConversionUnits

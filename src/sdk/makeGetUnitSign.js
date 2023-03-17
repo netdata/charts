@@ -1,8 +1,6 @@
 export const unitMap = {
   "active connections": "a-con",
   arrays: "arrays",
-  bytes: "bytes",
-  "bytes/s": "b/s",
   "calls/s": "c/s",
   Celsius: "cels",
   charts: "charts",
@@ -70,23 +68,44 @@ export const unitMap = {
   value: "value",
   Volts: "V",
   Watt: "W",
+  bits: "b",
+  bytes: "B",
+  kilobytes: "KB",
+  megabytes: "MB",
+  gigabytes: "GB",
+  terabytes: "TB",
+  petabytes: "PB",
+  exabytes: "EB",
+  zettabytes: "ZB",
+  yottabytes: "YB",
+  "bits/s": "b/s",
+  "bytes/s": "B/s",
+  "kilobytes/s": "KB/s",
+  "megabytes/s": "MB/s",
+  "gigabytes/s": "GB/s",
+  "terabytes/s": "TB/s",
+  "petabytes/s": "PB/s",
+  "exabytes/s": "EB/s",
+  "zettabytes/s": "ZB/s",
+  "yottabytes/s": "YB/s",
 }
 
-const numRegex = /num\s\(([1KMGTPE])\)?\s(.+)/
+const numRegex = /num\s\(([fpnμmcAhkMGTPE])\)?\s(.+)?/
 
-export default node => () => {
-  let units = node.getAttribute("unitsConversion") || node.getAttribute("units")
+export default node =>
+  (long = false) => {
+    let units = node.getAttribute("unitsConversion") || node.getAttribute("units")
 
-  let prefix = ""
+    let prefix = ""
 
-  if (numRegex.test(units)) {
-    const customMatch = units.match(numRegex)
+    if (numRegex.test(units)) {
+      const customMatch = units.match(numRegex)
 
-    prefix = customMatch[1] && customMatch[1] !== "1" ? `${customMatch[1]} ` : ""
-    units = customMatch[2]
+      prefix = customMatch[1] && customMatch[1] !== "A" ? `${customMatch[1]} ` : ""
+      units = customMatch[2]
+    }
+
+    if (!units) return null
+
+    return `${prefix}${long ? units : unitMap[units] || units}`
   }
-
-  if (!units) return null
-
-  return `${prefix}${unitMap[units] || units}`
-}

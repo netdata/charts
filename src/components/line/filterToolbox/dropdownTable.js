@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react"
+import React, { useEffect, useState, useMemo } from "react"
 import styled from "styled-components"
 import { Flex, TextSmall, Menu, NetdataTable, Button, getColor } from "@netdata/netdata-ui"
 import deepEqual from "@/helpers/deepEqual"

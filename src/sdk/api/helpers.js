@@ -34,9 +34,6 @@ export const getChartPayload = chart => {
   const pixelsPerPoint = ui.getPixelsPerPoint()
   const { after, before, groupingMethod, groupingTime, chartLibrary } = chart.getAttributes()
 
-  const dataPadding = Math.round((before - after) / 2)
-  const afterWithPadding = after < 0 ? after : after - dataPadding
-  const beforeWithPadding = after < 0 ? before : before + dataPadding
   const pointsMultiplier = after < 0 ? 1.5 : 2
 
   return {
@@ -44,8 +41,8 @@ export const getChartPayload = chart => {
     format: "json2",
     time_group: groupingMethod,
     time_resampling: groupingTime,
-    after: afterWithPadding,
-    ...(after > 0 && { before: beforeWithPadding }),
+    after,
+    ...(after > 0 && { before }),
     ...(defaultOptionsByLibrary[chartLibrary] || defaultOptionsByLibrary.default),
   }
 }

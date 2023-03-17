@@ -26,6 +26,7 @@ export default {
   updatedAt: 0,
   fetchStartedAt: 0,
   focused: false,
+  expanded: false,
   active: false,
   sparkline: false,
   chartType: "",

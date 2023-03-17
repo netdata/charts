@@ -1,11 +1,11 @@
 import React from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { TextSmall } from "@netdata/netdata-ui/lib/components/typography"
-import { useTitle, useUnitSign, useName, withChartProvider } from "@/components/provider"
+import { useTitle, useUnit, useName, withChartProvider } from "@/components/provider"
 
 export const Title = props => {
   const title = useTitle()
-  const unitSign = useUnitSign()
+  const unit = useUnit()
   const name = useName()
 
   return (
@@ -26,9 +26,9 @@ export const Title = props => {
           {name}
         </TextSmall>
       )}
-      {!!unitSign && (
+      {!!unit && (
         <TextSmall color="textLite" whiteSpace="nowrap">
-          • [{unitSign}]
+          • [{unit}]
         </TextSmall>
       )}
     </Flex>
