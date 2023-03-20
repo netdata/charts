@@ -6,7 +6,6 @@ import Dimensions from "./dimensions"
 
 export const Container = styled.div.attrs({ "data-testid": "chartDrawer" })`
   display: grid;
-  width: 100%;
   grid-template-columns: 1fr 1fr 1fr 1fr;
   grid-template-rows: auto;
   grid-template-areas:
