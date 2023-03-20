@@ -130,7 +130,6 @@ export default {
   legendScroll: 0,
 
   initializedFilters: false,
-  renderDimensionChildren: null,
   error: null,
 
   shouldFetchMetadata: false,

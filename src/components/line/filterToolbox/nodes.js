@@ -28,29 +28,31 @@ const columns = [
 const Nodes = ({ labelProps, ...rest }) => {
   const chart = useChart()
   const value = useAttributeValue("selectedNodes")
-  const isAgent = chart.getAttributes("agent")
   const { nodes, instances, nodesTotals } = useMetadata()
 
   const selectedInstances = useAttributeValue("selectedInstances")
 
   const options = useMemo(
     () =>
-      nodes.map(node => {
-        const id = isAgent ? node.mg : node.nd
+      Object.keys(nodes).map(id => {
         const selected = value.includes(id)
 
-        return getStats(chart, node, {
+        return getStats(chart, nodes[id], {
           id,
           key: "nodes",
           childrenKey: "instances",
           props: { selected },
           childProps: {
             isInstance: true,
-            getValue: instance => `${instance.nm || instance.id}@${node.mg}`,
+            getValue: instance => `${instance.nm || instance.id}@${id}`,
             getIsSelected: instance =>
-              selectedInstances.includes(`${instance.nm || instance.id}@${node.mg}`),
+              selectedInstances.includes(`${instance.nm || instance.id}@${id}`),
           },
-          children: instances.filter(dim => dim.ni === node.ni),
+          children: Object.keys(instances).reduce(
+            (h, instanceId) =>
+              instances[instanceId].ni === nodes[id].ni ? [...h, instances[instanceId]] : h,
+            []
+          ),
         })
       }),
     [nodes, value, selectedInstances]

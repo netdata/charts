@@ -55,7 +55,7 @@ export const SimpleReal = () => {
   const { id } = getChartMetadata()
   const sdk = makeDefaultSDK({ getChartMetadata })
   const chart = sdk.makeChart({
-    attributes: { host: "http://d1.firehol.org/api/v1/data", id },
+    attributes: { host: "http://d1.firehol.org/api/v1", id },
   })
   sdk.appendChild(chart)
 
@@ -473,7 +473,7 @@ export const MultipleReal = () => {
 
   const charts = Array.from(Array(10)).map((v, index) => {
     const chart = sdk.makeChart({
-      attributes: { host: "http://d1.firehol.org/api/v1/data" },
+      attributes: { host: "http://d1.firehol.org/api/v1" },
     })
     sdk.appendChild(chart)
 

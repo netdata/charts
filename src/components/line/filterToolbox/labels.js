@@ -31,18 +31,18 @@ const Labels = ({ labelProps, ...rest }) => {
 
   const options = useMemo(
     () =>
-      labels.map(item =>
-        getStats(chart, item, {
+      Object.keys(labels).map(id =>
+        getStats(chart, labels[id], {
           key: "labels",
           childrenKey: "values",
-          props: { selected: value.includes(item.id) },
+          props: { selected: value.includes(id) },
           childProps: {
             unique: "-",
-            parentId: item.id,
-            getIsSelected: val => value.includes(`${item.id}:${val.id}`),
-            getValue: val => `${item.id}:${val.id}`,
+            parentId: id,
+            getIsSelected: val => value.includes(`${id}:${val.id}`),
+            getValue: val => `${id}:${val.id}`,
           },
-          children: item.vl,
+          children: labels[id].vl,
         })
       ),
     [labels, value]

@@ -39,7 +39,7 @@ const buildTree = (h, keys, id) => {
 
 const transformResult = (result, stats) => {
   const enhancedData = result.data.reduce(
-    (h, row, index) => {
+    (h, row) => {
       const enhancedRow = transformDataRow(row, result.point, stats)
 
       h.data.push(enhancedRow.values)
@@ -115,11 +115,12 @@ export default payload => {
     perTier,
     metadata: {
       fullyLoaded: nodes.length > 0,
-      nodes,
-      instances,
-      dimensions,
-      labels,
-      alerts,
+      nodes: nodes.reduce((h, n) => ({ ...h, [n.mg]: n }), {}),
+      nodesIndexes: nodes.reduce((h, n) => ({ ...h, [n.ni]: n.mg }), {}),
+      instances: instances.reduce((h, i) => ({ ...h, [i.id]: i }), {}),
+      dimensions: dimensions.reduce((h, d) => ({ ...h, [d.id]: d }), {}),
+      labels: labels.reduce((h, l) => ({ ...h, [l.id]: l }), {}),
+      alerts: alerts.reduce((h, a) => ({ ...h, [a.name]: a }), {}),
       viewDimensions,
       detailed,
       functions,

@@ -235,7 +235,7 @@ export const useUnitSign = () => {
   return chart.getUnitSign()
 }
 
-export const useUnit = () => {
+export const useUnits = () => {
   const chart = useChart()
 
   const forceUpdate = useForceUpdate()

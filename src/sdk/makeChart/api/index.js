@@ -7,5 +7,3 @@ export const fetchChartData = (chart, options) => {
 
   return agent ? fetchAgentData(chart, options) : fetchAgentData(chart, options) // CHANGE WHEN READY ON CLOUD
 }
-
-export const fetchChartMetadata = () => Promise.resolve({}) // TODO DEPRECATED

@@ -19,10 +19,10 @@ const Dimensions = ({ labelProps, ...rest }) => {
 
   const options = useMemo(
     () =>
-      dimensions.map(dimension => {
-        const selected = value.includes(dimension.id)
+      Object.keys(dimensions).map(id => {
+        const selected = value.includes(id)
 
-        return getStats(chart, dimension, {
+        return getStats(chart, dimensions[id], {
           key: "dimensions",
           props: { selected },
         })

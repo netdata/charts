@@ -1,4 +1,4 @@
-import { fetchChartMetadata } from "./api"
+import { fetchChartMetadata } from "./makeChart/api"
 import initialMetadata from "./initialMetadata"
 
 export default ({ getChart }) => {

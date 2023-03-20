@@ -41,7 +41,7 @@ export default (chart, options) => {
   const payload = getPayload(chart)
 
   const query = new URLSearchParams(payload).toString()
-  const url = `${host}?${query}`
+  const url = `${host}/data?${query}`
 
   return fetch(url, options).then(response => response.json())
 }

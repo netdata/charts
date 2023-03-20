@@ -9,7 +9,7 @@ export const tooltipStyleProps = {
   round: 1,
   width: { max: "300px", base: "fit-content" },
   "data-toolbox": true,
-  background: ["neutral", "black"],
+  background: "tooltip",
 }
 
 const DefaultContent = ({ children, ...rest }) => (

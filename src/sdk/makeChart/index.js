@@ -1,8 +1,8 @@
 import deepEqual from "@/helpers/deepEqual"
 import makeKeyboardListener from "@/helpers/makeKeyboardListener"
-import makeNode from "./makeNode"
+import makeNode from "../makeNode"
 import initialPayload from "./initialPayload"
-import convert from "./unitConversion"
+import convert from "../unitConversion"
 import { fetchChartData, errorCodesToMessage } from "./api"
 import makeDimensions from "./makeDimensions"
 import makeGetClosestRow from "./makeGetClosestRow"
@@ -10,7 +10,7 @@ import getInitialFilterAttributes from "./filters/getInitialAttributes"
 import makeFilterControllers from "./filters/makeControllers"
 import makeGetUnitSign from "./makeGetUnitSign"
 import camelizePayload from "./camelizePayload"
-import initialMetadata from "./initialMetadata"
+import initialMetadata from "../initialMetadata"
 
 const maxBackoffMs = 30 * 1000
 
@@ -486,6 +486,7 @@ export default ({
   return {
     ...instance,
     ...dimensions,
+    ...weights,
     ...makeFilterControllers(instance),
     track,
     destroy,

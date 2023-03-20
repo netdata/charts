@@ -26,20 +26,20 @@ const columns = [
 const Instances = ({ labelProps, ...rest }) => {
   const chart = useChart()
   const value = useAttributeValue("selectedInstances")
-  const { nodes, instances, instancesTotals } = useMetadata()
+  const { nodes, nodesIndexes, instances, instancesTotals } = useMetadata()
 
   const options = useMemo(
     () =>
-      instances.map(instance => {
-        const { nm: nodeName, mg: nodeId } = nodes[instance.ni]
-        const id = `${instance.id}@${nodeId}`
+      Object.keys(instances).map(id => {
+        const { nm: nodeName, mg: nodeId } = nodes[nodesIndexes[instances[id].ni]]
+        const fullId = `${id}@${nodeId}`
 
-        const selected = value.includes(id)
+        const selected = value.includes(fullId)
 
-        return getStats(chart, instance, {
-          id,
+        return getStats(chart, instances[id], {
+          id: fullId,
           key: "instances",
-          props: { label: `${instance.nm || instance.id}@${nodeName}`, selected },
+          props: { label: `${instances[id].nm || id}@${nodeName}`, selected },
         })
       }),
     [instances, value]

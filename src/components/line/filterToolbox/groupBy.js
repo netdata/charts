@@ -53,19 +53,19 @@ const GroupBy = ({ labelProps, ...rest }) => {
           selected,
         },
         childProps: { unique: "-", disabled: "hidden" },
-        children: metadata[item.key],
+        children: Object.values(metadata[item.key]),
       })
     })
 
     return [
       ...defaultOptions,
-      ...metadata.labels.map(item =>
-        getStats(chart, item, {
+      ...Object.keys(metadata.labels).map(id =>
+        getStats(chart, metadata.labels[id], {
           key: "group-by",
           childrenKey: "label",
-          props: { isLabel: true, selected: groupByLabel.includes(item.id) },
+          props: { isLabel: true, selected: groupByLabel.includes(id) },
           childProps: { unique: "-", disabled: "hidden" },
-          children: item.vl,
+          children: metadata.labels[id].vl,
         })
       ),
     ]

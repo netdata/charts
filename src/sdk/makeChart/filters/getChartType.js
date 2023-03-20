@@ -1,6 +1,6 @@
 import initialAttributes from "@/sdk/initialAttributes"
-import { stackedAggregations } from "@/sdk/filters/getInitialAttributes"
-import getAggregateMethod from "@/sdk/filters/getAggregateMethod"
+import { stackedAggregations } from "./getInitialAttributes"
+import getAggregateMethod from "./getAggregateMethod"
 
 const notStackedByGroupBy = {
   dimension: true,

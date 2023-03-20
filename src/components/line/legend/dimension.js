@@ -1,14 +1,16 @@
 import React, { forwardRef } from "react"
 import { useTheme } from "styled-components"
-import { TextBig, Flex, ProgressBar, getColor } from "@netdata/netdata-ui"
+import { TextBig, TextSmall, Flex, ProgressBar, getColor } from "@netdata/netdata-ui"
 import Color, { Color as ColorContainer } from "@/components/line/dimensions/color"
 import Name, { Name as NameContainer } from "@/components/line/dimensions/name"
 import Value, { Value as ValueContainer } from "@/components/line/dimensions/value"
+import { tooltipStyleProps } from "@/components/tooltip"
 import Units from "@/components/line/dimensions/units"
 import {
   useVisibleDimensionId,
   useChart,
   useLatestValue,
+  useUnits,
   useAttributeValue,
 } from "@/components/provider"
 import Tooltip from "@/components/tooltip"
@@ -67,12 +69,29 @@ const AnomalyProgressBar = ({ id }) => {
   )
 }
 
+const TooltipContent = props => <Flex {...tooltipStyleProps} {...props} column gap={1} />
+
+const TooltipValue = ({ id, name }) => {
+  const units = useUnits()
+  const value = useLatestValue(id)
+
+  return (
+    <>
+      <TextSmall color="bright" strong wordBreak="break-word">
+        {name}
+      </TextSmall>
+      <TextSmall color="bright" whiteSpace="nowrap">
+        {value} {units}
+      </TextSmall>
+    </>
+  )
+}
+
 const Dimension = forwardRef(({ id }, ref) => {
   const visible = useVisibleDimensionId(id)
   const chart = useChart()
 
   const name = chart.getDimensionName(id)
-  const renderDimensionChildren = chart.getAttribute("renderDimensionChildren")
 
   const onClick = e => {
     const merge = e.shiftKey || e.ctrlKey || e.metaKey
@@ -88,7 +107,10 @@ const Dimension = forwardRef(({ id }, ref) => {
       data-track={chart.track(`dimension-${name}`)}
     >
       <Color id={id} />
-      <Tooltip content={name}>
+      <Tooltip
+        Content={TooltipContent}
+        content={visible ? <TooltipValue id={id} name={name} /> : null}
+      >
         <Flex flex column overflow="hidden" data-testid="chartLegendDimension-details">
           <Name id={id} maxLength={32} />
 
@@ -96,7 +118,6 @@ const Dimension = forwardRef(({ id }, ref) => {
             <Value id={id} strong visible={visible} Component={TextBig} />
             <Units visible={visible} />
           </Flex>
-          {renderDimensionChildren?.(id, chart)}
           <AnomalyProgressBar id={id} />
         </Flex>
       </Tooltip>
