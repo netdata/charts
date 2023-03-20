@@ -69,7 +69,7 @@ const Popover = () => {
 
         setAlign(getAlign(left, top))
       }),
-      chart.on("blurChart", () => setOpen(false)),
+      chart.getUI().on("mouseout", () => setOpen(false)),
       chart.onAttributeChange("panning", panning => panning && setOpen(false)),
       chart.onAttributeChange("highlighting", panning => panning && setOpen(false))
     )

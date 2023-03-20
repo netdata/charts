@@ -14,7 +14,7 @@ import Container from "./container"
 import Expander from "./expander"
 import Drawer from "./drawer"
 
-export const Line = ({ height, ...rest }) => {
+export const Line = ({ hasHeader = true, height, ...rest }) => {
   const chart = useChart()
   const detailed = useAttributeValue("detailed")
 
@@ -38,14 +38,14 @@ export const Line = ({ height, ...rest }) => {
       {expandTransitionState => (
         <Transition nodeRef={ref} in={focused && debouncedFocused} timeout={100}>
           {focusTransitionState => (
-            <Container ref={ref} {...rest} expandTransitionState={expandTransitionState}>
-              <Flex
-                column
-                focusTransitionState={focusTransitionState}
-                position="relative"
-                height={height}
-              >
-                <Header />
+            <Container
+              ref={ref}
+              {...rest}
+              expandTransitionState={expandTransitionState}
+              focusTransitionState={focusTransitionState}
+            >
+              <Flex column position="relative" height={height}>
+                {hasHeader && <Header />}
                 <FilterToolbox />
                 <ContentWrapper>{detailed ? <Details /> : <ChartContentWrapper />}</ContentWrapper>
               </Flex>

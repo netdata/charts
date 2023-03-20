@@ -16,7 +16,6 @@ const Container = styled(Flex).attrs(props => ({
   ...props,
 }))`
   transition: all 0.3s ease-in-out;
-  box-shadow: 0px 8px 12px rgba(9, 30, 66, 0.15), 0px 0px 1px rgba(9, 30, 66, 0.31);
   opacity: 0;
   z-index: 1;
   bottom: 1px;
@@ -25,6 +24,30 @@ const Container = styled(Flex).attrs(props => ({
   border-right: 1px solid ${getColor("borderSecondary")};
   border-bottom: 1px solid ${getColor("borderSecondary")};
   border-left: 1px solid ${getColor("borderSecondary")};
+
+  ::after {
+    content: "";
+    position: absolute;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0px 8px 12px rgba(9, 30, 66, 0.15), 0px 0px 1px rgba(9, 30, 66, 0.31);
+
+    opacity: 0;
+    z-index: 0;
+    top: 0;
+    bottom: 0;
+    left: -1px;
+    right: -1px;
+
+    ${props =>
+      props.focusTransitionState === "entering" || props.focusTransitionState === "entered"
+        ? `
+      opacity: 1;
+      z-index: 0;
+      `
+        : `
+      opacity: 0;
+      `}
+  }
 
   &:hover > * {
     color: ${getColor("textFocus")};

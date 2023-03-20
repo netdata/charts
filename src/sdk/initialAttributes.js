@@ -1,3 +1,7 @@
+import ChartType from "@/components/line/header/toolbox/chartType"
+import Fullscreen from "@/components/line/header/toolbox/fullscreen"
+import Information from "@/components/line/header/toolbox/information"
+
 export default {
   id: "",
   name: "",
@@ -134,4 +138,6 @@ export default {
 
   shouldFetchMetadata: false,
   agent: true, // default should be false when ready for cloud
+
+  toolboxElements: [Information, ChartType, Fullscreen],
 }

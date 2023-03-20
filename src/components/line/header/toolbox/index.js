@@ -1,4 +1,4 @@
-import React from "react"
+import React, { Fragment } from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { useAttributeValue } from "@/components/provider"
 import Separator from "@/components/line/separator"
@@ -21,14 +21,16 @@ const Container = props => (
 
 const Toolbox = props => {
   const disabled = !useAttributeValue("focused")
+  const toolboxElements = useAttributeValue("toolboxElements")
 
   return (
     <Container {...props}>
-      <Information disabled={disabled} />
-      <Separator disabled={disabled} />
-      <ChartType disabled={disabled} />
-      <Separator disabled={disabled} />
-      <Fullscreen disabled={disabled} />
+      {toolboxElements.map((Element, index, arr) => (
+        <Fragment key={index}>
+          <Element disabled={disabled} />
+          {arr[index + 1] ? <Separator disabled={disabled} /> : null}
+        </Fragment>
+      ))}
     </Container>
   )
 }
