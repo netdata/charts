@@ -1,4 +1,4 @@
-import React, { useEffect } from "react"
+import React, { useLayoutEffect } from "react"
 import { useChart } from "@/components/provider"
 
 const mount = window.requestIdleCallback || window.requestAnimationFrame
@@ -8,7 +8,7 @@ export default Component => {
   const DifferedMount = ({ isVisible = true, ...rest }) => {
     const chart = useChart()
 
-    useEffect(() => {
+    useLayoutEffect(() => {
       if (!isVisible) return
 
       const id = mount(chart.activate)

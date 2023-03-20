@@ -9,6 +9,7 @@ import makeGetClosestRow from "./makeGetClosestRow"
 import getInitialFilterAttributes from "./filters/getInitialAttributes"
 import makeFilterControllers from "./filters/makeControllers"
 import makeGetUnitSign from "./makeGetUnitSign"
+import makeWeights from "./makeWeights"
 import camelizePayload from "./camelizePayload"
 import initialMetadata from "../initialMetadata"
 
@@ -52,17 +53,17 @@ export default ({
   const cancelFetch = () => abortController && abortController.abort()
 
   const getMetadata = () =>
-    node ? getMetadataDecorator().get(instance) || initialMetadata : initialMetadata
+    node ? getMetadataDecorator().get(node) || initialMetadata : initialMetadata
   const setMetadataAttributes = (values = {}) => {
     if (!node || !getMetadataDecorator().set) return getMetadata()
 
-    getMetadataDecorator().set(instance, values)
+    getMetadataDecorator().set(node, values)
     updateMetadata()
     return getMetadata()
   }
   const setMetadataAttribute = (attribute, value) => setMetadataAttributes({ [attribute]: value })
   const fetchMetadata = () =>
-    node ? getMetadataDecorator().fetch(instance) : Promise.resolve(initialMetadata)
+    node ? getMetadataDecorator().fetch(node) : Promise.resolve(initialMetadata)
 
   const getUpdateEvery = () => {
     if (!node) return
@@ -209,7 +210,7 @@ export default ({
   const dataFetch = () => {
     abortController = new AbortController()
     const options = { signal: abortController.signal }
-    return getChart(instance, options)
+    return getChart(node, options)
       .then(data => {
         if (data?.errorMsgKey) return failFetch(data)
         if (!(Array.isArray(data?.result) || Array.isArray(data?.result?.data))) return failFetch()
@@ -296,7 +297,7 @@ export default ({
     node.trigger("metadataChanged")
 
     if (!node.getAttribute("initializedFilters"))
-      node.setAttributes(getInitialFilterAttributes(instance))
+      node.setAttributes(getInitialFilterAttributes(node))
   }
 
   const getUI = () => ui
@@ -321,7 +322,7 @@ export default ({
 
     const { unitsConversionMethod, unitsConversionDivider, unitsConversionFractionDigits } =
       node.getAttributes()
-    const converted = convert(instance, unitsConversionMethod, value, unitsConversionDivider)
+    const converted = convert(node, unitsConversionMethod, value, unitsConversionDivider)
 
     if (unitsConversionFractionDigits === -1) return converted
 
@@ -349,13 +350,13 @@ export default ({
   const activate = () => {
     if (!node) return
     node.updateAttribute("active", true)
-    sdk.trigger("active", instance, true)
+    sdk.trigger("active", node, true)
   }
 
   const deactivate = () => {
     if (!node) return
     node.updateAttribute("active", false)
-    sdk.trigger("active", instance, false)
+    sdk.trigger("active", node, false)
   }
 
   const stopAutofetch = () => {
@@ -408,10 +409,10 @@ export default ({
   const getApplicableNodes = (attributes, options) => {
     if (!node) return []
 
-    if (!node.match(attributes)) return [instance]
+    if (!node.match(attributes)) return [node]
 
     const ancestor = node.getAncestor(attributes)
-    if (!ancestor) return [instance]
+    if (!ancestor) return [node]
 
     return ancestor.getNodes(attributes, options)
   }
@@ -443,7 +444,7 @@ export default ({
     return true
   }
 
-  const instance = {
+  node = {
     ...node,
     getUI,
     setUI,
@@ -467,7 +468,7 @@ export default ({
     consumePayload,
   }
 
-  instance.getUnitSign = makeGetUnitSign(instance)
+  node.getUnitSign = makeGetUnitSign(node)
 
   onKeyChange(["Alt", "Shift", "KeyF"], () => {
     if (!node) return
@@ -479,15 +480,16 @@ export default ({
     node.resetNavigation()
   })
 
-  const dimensions = makeDimensions(instance, sdk)
+  const dimensions = makeDimensions(node, sdk)
+  const weights = makeWeights(node, sdk)
 
-  const track = makeTrack(instance)
+  const track = makeTrack(node)
 
   return {
-    ...instance,
+    ...node,
     ...dimensions,
     ...weights,
-    ...makeFilterControllers(instance),
+    ...makeFilterControllers(node),
     track,
     destroy,
     onKeyChange,

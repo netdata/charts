@@ -1,4 +1,4 @@
-import React, { memo, forwardRef, useCallback } from "react"
+import React, { memo, forwardRef, useCallback, useLayoutEffect } from "react"
 import Intersection from "@netdata/netdata-ui/lib/components/intersection"
 import useForwardRef from "@netdata/netdata-ui/lib/hooks/use-forward-ref"
 import { useAttributeValue, useChart } from "@/components/provider"
@@ -32,6 +32,7 @@ export default (Component, { Fallback: DefaultFallback = Fallback } = {}) => {
         "data-chartid": dataChartId,
         "data-testid": dataTestId = "chartIntersector",
         parentRef,
+        isVisible,
         ...rest
       },
       ref
@@ -54,6 +55,30 @@ export default (Component, { Fallback: DefaultFallback = Fallback } = {}) => {
         [chart]
       )
 
+      useLayoutEffect(() => {
+        if (!isVisible) return
+
+        onVisibility(true)
+      }, [isVisible])
+
+      if (typeof isVisible !== "undefined")
+        return (
+          <div ref={setMyRef} height={isVisible ? "100%" : height}>
+            {isVisible ? (
+              <Component
+                readOnly={readOnly}
+                height={height}
+                width="100%"
+                flex
+                isVisible={isVisible}
+                {...rest}
+              />
+            ) : (
+              <DefaultFallback />
+            )}
+          </div>
+        )
+
       return (
         <Intersection
           ref={setMyRef}
@@ -67,7 +92,9 @@ export default (Component, { Fallback: DefaultFallback = Fallback } = {}) => {
           data-testid={dataTestId}
           data-chartid={dataChartId}
         >
-          {() => <Component readOnly={readOnly} height={height} width="100%" flex {...rest} />}
+          {() => (
+            <Component readOnly={readOnly} height={height} width="100%" flex {...rest} isVisible />
+          )}
         </Intersection>
       )
     }

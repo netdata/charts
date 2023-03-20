@@ -12,7 +12,6 @@ import {
 } from "./plotters"
 import { numericTicker } from "./tickers"
 import makeNavigation from "./navigation"
-import makeHover from "./hover"
 import makeHoverX from "./hoverX"
 import makeOverlays from "./overlays"
 import crosshair from "./crosshair"
@@ -32,7 +31,6 @@ export default (sdk, chart) => {
   let dygraph = null
   let listeners = []
   let navigation = null
-  let hover = null
   let hoverX = null
   let overlays = null
   let resizeObserver = null
@@ -208,7 +206,6 @@ export default (sdk, chart) => {
       }),
     ].filter(Boolean)
 
-    hover = makeHover(instance)
     overlays.toggle()
     drawAnnotations(dygraph, chartUI)
 
@@ -451,7 +448,6 @@ export default (sdk, chart) => {
     listeners.forEach(listener => listener())
     listeners = []
     chartUI.unmount()
-    hover()
     hoverX.destroy()
     navigation.destroy()
     dygraph.destroy()

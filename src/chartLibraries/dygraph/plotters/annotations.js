@@ -43,6 +43,11 @@ export default chartUI => plotter => {
 
       const { h } = plotter.dygraph.getArea()
 
+      ctx.fillStyle = chartUI.getThemeAttribute("themeScaleColor")
+      ctx.fillRect(center_x - bar_width / 2, h - 8, bar_width, h)
+      ctx.strokeStyle = chartUI.getThemeAttribute("themeScaleColor")
+      ctx.strokeRect(center_x - bar_width / 2, h - 8, bar_width, h)
+
       const scale = 8 - 8 / values.length
       values.forEach((val, i) => {
         ctx.fillStyle = colors[val] || chartUI.getThemeAttribute("themeScaleColor")

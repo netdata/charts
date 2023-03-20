@@ -1,6 +1,7 @@
 import React from "react"
 import styled from "styled-components"
 import { Flex, Button } from "@netdata/netdata-ui"
+import { useChart } from "@/components/provider"
 import GridItem from "../gridItem"
 
 const Container = styled(GridItem).attrs({
@@ -13,10 +14,12 @@ const Container = styled(GridItem).attrs({
 `
 
 const Header = ({ ...rest }) => {
+  const chart = useChart()
+
   return (
     <Container {...rest}>
       <Flex gap={6}>
-        <Button tiny flavour="hollow" label="Analyze" />
+        <Button tiny flavour="hollow" label="Analyze" onClick={chart.fetchWeights} />
         <Flex gap={1}>
           <Button tiny neutral label="Window" />
           <Button tiny neutral label="Selected area" />
