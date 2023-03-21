@@ -1,25 +1,19 @@
 import React from "react"
 import { withChartProvider } from "@/components/provider"
 import withChartTrack from "./withChartTrack"
-import withIntersection from "./withIntersection"
 import withFullscreen from "./withFullscreen"
 import withDifferedMount from "./withDifferedMount"
 import withHeight from "./withHeight"
+import withTile from "./withTile"
 
-export default Component => {
-  const ChartWithDifferedMount = withDifferedMount(Component)
+export default (Component, options = {}) => {
+  let ComponentWithChart = withFullscreen(withHeight(withChartTrack(withDifferedMount(Component))))
 
-  const ChartWithGA = withChartTrack(ChartWithDifferedMount)
+  if (options.tile) ComponentWithChart = withTile(ComponentWithChart)
 
-  const ChartWithIntersection = withIntersection(ChartWithGA)
+  ComponentWithChart = withChartProvider(ComponentWithChart)
 
-  const ChartWithHeight = withHeight(ChartWithIntersection)
-
-  const ChartWithFullscreen = withFullscreen(ChartWithHeight)
-
-  const ChartWithProvider = withChartProvider(ChartWithFullscreen)
-
-  const HOCContainer = props => <ChartWithProvider {...props} />
+  const HOCContainer = props => <ComponentWithChart {...props} />
 
   return HOCContainer
 }

@@ -1,13 +1,12 @@
 import React from "react"
 import { Flex, ProgressBar, TextSmall, TextMicro, MasterCard } from "@netdata/netdata-ui"
-import Label from "../../filterToolbox/label"
-
 import styled from "styled-components"
 import Color, { ColorBar } from "@/components/line/dimensions/color"
 import Name from "@/components/line/dimensions/name"
 import Units from "@/components/line/dimensions/units"
 import Value, { Value as ValuePart } from "@/components/line/dimensions/value"
 import { useChart, useAttributeValue, useVisibleDimensionId } from "@/components/provider"
+import Label from "@/components/filterToolbox/label"
 import { rowFlavours } from "../../popover/dimensions"
 
 const ColorBackground = styled(ColorBar).attrs({

@@ -1,6 +1,6 @@
-import ChartType from "@/components/line/header/toolbox/chartType"
-import Fullscreen from "@/components/line/header/toolbox/fullscreen"
-import Information from "@/components/line/header/toolbox/information"
+import ChartType from "@/components/toolbox/chartType"
+import Fullscreen from "@/components/toolbox/fullscreen"
+import Information from "@/components/toolbox/information"
 
 export default {
   id: "",
@@ -30,7 +30,6 @@ export default {
   updatedAt: 0,
   fetchStartedAt: 0,
   focused: false,
-  expanded: false,
   active: false,
   sparkline: false,
   chartType: "",
@@ -136,8 +135,10 @@ export default {
   initializedFilters: false,
   error: null,
 
-  shouldFetchMetadata: false,
   agent: true, // default should be false when ready for cloud
 
   toolboxElements: [Information, ChartType, Fullscreen],
+
+  expanded: false,
+  expandedHeight: 300,
 }

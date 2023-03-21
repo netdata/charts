@@ -24,18 +24,20 @@ export default (sdk, chart) => {
     chart.updateDimensions()
 
     gauge = new Gauge(element).setOptions({
-      angle: 0.14,
-      lineWidth: 0.57,
+      angle: -0.2, // The span of the gauge arc
+      lineWidth: 0.2, // The line thickness
+      radiusScale: 1, // Relative radius
       pointer: {
-        length: 0.85,
-        strokeWidth: 0.045,
+        length: 0.6,
+        strokeWidth: 0.035,
         color,
       },
-      limitMax: true,
-      limitMin: true,
-      colorStart: chart.getColors()[0],
       strokeColor,
-      generateGradient: false,
+      limitMax: false,
+      limitMin: false,
+      colorStart: chart.selectDimensionColor(), // Colors
+      generateGradient: true,
+      // highDpiSupport: true, // High resolution support
     })
 
     gauge.maxValue = 100
@@ -114,19 +116,20 @@ export default (sdk, chart) => {
 
     let [min, max] = getMinMax(value)
 
+    if (min !== prevMin || max !== prevMax) {
+      chartUI.sdk.trigger("yAxisChange", chart, min, max)
+    }
+
     if (renderedValue === value && min === prevMin && max === prevMax) return
+
+    prevMin = min
+    prevMax = max
 
     chartUI.render()
 
     renderedValue = value
     const percentage = Math.max(Math.min(((value - min) / (max - min)) * 100, 99.999), 0.001)
     gauge.set(percentage)
-
-    if (min !== prevMin || max !== prevMax) {
-      prevMin = min
-      prevMax = max
-      chartUI.sdk.trigger("yAxisChange", chart, min, max)
-    }
 
     chartUI.trigger("rendered")
   }

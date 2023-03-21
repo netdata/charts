@@ -30,7 +30,7 @@ export default (sdk, chart) => {
       chart.updateDimensions()
 
       easyPie = new EasyPie(element, {
-        barColor: chart.getColors()[0],
+        barColor: chart.selectDimensionColor(),
         animate: { duration: 500, enabled: true },
         ...makeThemingOptions(),
         ...makeDimensionOptions(),

@@ -1,6 +1,6 @@
 import React from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import Status from "./status"
+import Status from "@/components/status"
 import { Title } from "./title"
 import Toolbox from "./toolbox"
 

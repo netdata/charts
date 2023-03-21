@@ -128,6 +128,7 @@ export default payload => {
         (h, i) => ({ ...h, [`${i.id}@${nodes[nodesIndexes[i.ni]].mg}`]: i }),
         {}
       ),
+      dimensionIds: dimensions.map(({ id }) => id),
       dimensions: dimensions.reduce((h, d) => ({ ...h, [d.id]: d }), {}),
       labels: labels.reduce((h, l) => ({ ...h, [l.id]: l }), {}),
       alerts: alerts.reduce((h, a) => ({ ...h, [a.name]: a }), {}),

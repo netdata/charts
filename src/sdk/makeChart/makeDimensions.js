@@ -8,7 +8,6 @@ export default (chart, sdk) => {
   let visibleDimensionIds = []
   let visibleDimensionSet = new Set()
   let colorCursor = 0
-  let colors = []
 
   const sparklineDimensions = ["sum"]
 
@@ -95,8 +94,6 @@ export default (chart, sdk) => {
 
     if (!sortedDimensionIds) return
 
-    colors = sortedDimensionIds.map(selectDimensionColor)
-
     chart.trigger("dimensionChanged")
   }
 
@@ -156,7 +153,7 @@ export default (chart, sdk) => {
     const sparkline = chart.getAttribute("sparkline")
     if (sparkline && colorsAttr && colorsAttr.length === 1) return colorsAttr[0]
 
-    id = id === "selected" ? chart.getAttribute("selectedDimensions")[0] : id
+    id = !id || id === "selected" ? chart.getAttribute("selectedDimensions")[0] : id
 
     const color = sdk.getRoot().getNextColor(getNextColor, key, id)
 
@@ -165,22 +162,6 @@ export default (chart, sdk) => {
     const index = chart.getUI().getThemeIndex()
     return color[index]
   }
-
-  const getDimensionColor = id => {
-    const key = getMemKey()
-    const colorsAttr = chart.getAttribute("colors")
-    const sparkline = chart.getAttribute("sparkline")
-    if (sparkline && colorsAttr && colorsAttr.length === 1) return colorsAttr[0]
-
-    const color = sdk.getRoot().findColor(key, id)
-
-    if (typeof color === "string") return color
-
-    const index = chart.getUI().getThemeIndex()
-    return color[index]
-  }
-
-  const getColors = () => colors
 
   const getDimensionName = id => {
     const { viewDimensions } = chart.getMetadata()
@@ -240,10 +221,11 @@ export default (chart, sdk) => {
   })
 
   const updateMetadataColors = () => {
-    let { dimensions } = chart.getMetadata()
-    if (!dimensions?.length) return
+    let { dimensionIds } = chart.getMetadata()
+    if (!Object.keys(dimensionIds)?.length) return
 
-    const keys = hasSparklineDimension() ? sparklineDimensions : dimensions.map(dim => dim.id)
+    const keys = hasSparklineDimension() ? sparklineDimensions : dimensionIds
+
     keys.forEach(selectDimensionColor)
   }
 
@@ -256,9 +238,7 @@ export default (chart, sdk) => {
     getVisibleDimensionIds,
     isDimensionVisible,
     toggleDimensionId,
-    getColors,
     selectDimensionColor,
-    getDimensionColor,
     getDimensionName,
     getRowDimensionValue,
     getDimensionValue,

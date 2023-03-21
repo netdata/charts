@@ -429,9 +429,6 @@ export default (sdk, chart) => {
   }
 
   const makeColorOptions = () => {
-    const sparkline = chart.getAttribute("sparkline")
-    if (sparkline) return { colors: chart.getColors() }
-
     const dimensionIds = chart.getPayloadDimensionIds()
 
     if (!dimensionIds.length) return {}

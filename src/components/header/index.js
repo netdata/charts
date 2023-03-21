@@ -1,10 +1,10 @@
 import React from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import Status from "./status"
-import { Title } from "./title"
-import Toolbox from "./toolbox"
+import Status from "@/components/status"
+import Toolbox from "@/components/toolbox"
+import { Title } from "@/components/title"
 
-const Container = props => (
+export const Container = props => (
   <Flex
     alignItems="center"
     justifyContent="start"
@@ -24,7 +24,5 @@ const Header = () => (
     <Toolbox />
   </Container>
 )
-
-export { Container, Status, Title, Toolbox }
 
 export default Header

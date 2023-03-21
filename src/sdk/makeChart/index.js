@@ -238,27 +238,6 @@ export default ({
   const fetch = () => {
     if (!node) return
 
-    const doFetchMetadata = () => {
-      if (!node) return
-
-      return fetchMetadata()
-        .catch(error => {
-          // Do not throw (but rather resolve the promise) if the error is due to filters changing.
-          // It is not a chart data error, but rather metadata issue.
-          if (error.message === "not_found" && error.cause === "filters") return
-
-          throw error
-        })
-        .then(() => {
-          updateMetadata()
-          if (!isNewerThanRetention())
-            return Promise.resolve().then(() =>
-              failFetch({ message: "Exceeds agent data retention settings" })
-            )
-        })
-        .catch(failFetch)
-    }
-
     const fetchData = () => {
       if (!node) return
 
@@ -266,22 +245,13 @@ export default ({
       node.trigger("startFetch")
       node.updateAttributes({ loading: true, fetchStartedAt: Date.now() })
 
-      updateMetadata()
       if (!isNewerThanRetention())
         return Promise.resolve().then(() =>
           failFetch({ message: "Exceeds agent data retention settings" })
         )
 
-      return dataFetch().then(() => {
-        const { fullyLoaded } = getMetadata()
-
-        if (fullyLoaded) return
-
-        return doFetchMetadata()
-      })
+      return dataFetch()
     }
-
-    if (node.getAttribute("shouldFetchMetadata")) return doFetchMetadata().then(fetchData)
 
     return fetchData()
   }

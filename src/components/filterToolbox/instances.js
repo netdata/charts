@@ -31,13 +31,12 @@ const Instances = ({ labelProps, ...rest }) => {
   const options = useMemo(
     () =>
       Object.keys(instances).map(id => {
-        const { nm: nodeName, mg: nodeId } = nodes[nodesIndexes[instances[id].ni]]
-        const fullId = `${id}@${nodeId}`
+        const { nm: nodeName } = nodes[nodesIndexes[instances[id].ni]]
 
-        const selected = value.includes(fullId)
+        const selected = value.includes(id)
 
         return getStats(chart, instances[id], {
-          id: fullId,
+          id,
           key: "instances",
           props: { label: `${instances[id].nm || id}@${nodeName}`, selected },
         })

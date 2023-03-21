@@ -2,7 +2,7 @@ import React from "react"
 import useHover from "@/components/useHover"
 import withChart from "@/components/hocs/withChart"
 import { useChart } from "@/components/provider"
-import Container from "@/components/line/container"
+import Container from "@/components/container"
 import ChartContentWrapper from "./chartContentWrapper"
 
 export const Sparkline = props => {

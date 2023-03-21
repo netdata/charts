@@ -1,11 +1,11 @@
-import React, { useLayoutEffect } from "react"
+import React, { forwardRef, useLayoutEffect } from "react"
 import { useChart } from "@/components/provider"
 
 const mount = window.requestIdleCallback || window.requestAnimationFrame
 const unmount = window.cancelIdleCallback || window.cancelAnimationFrame
 
 export default Component => {
-  const DifferedMount = ({ isVisible = true, ...rest }) => {
+  const DifferedMount = forwardRef(({ isVisible = true, ...rest }, ref) => {
     const chart = useChart()
 
     useLayoutEffect(() => {
@@ -19,8 +19,8 @@ export default Component => {
       }
     }, [isVisible, chart])
 
-    return <Component {...rest} />
-  }
+    return <Component ref={ref} {...rest} />
+  })
 
   return DifferedMount
 }

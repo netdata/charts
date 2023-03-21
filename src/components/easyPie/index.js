@@ -1,8 +1,7 @@
-import React, { useState } from "react"
+import React, { forwardRef, useState } from "react"
 import ChartContainer from "@/components/chartContainer"
 import {
   useChart,
-  useTitle,
   useUnitSign,
   useAttributeValue,
   useImmediateListener,
@@ -11,10 +10,8 @@ import {
 import styled, { keyframes } from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { Text } from "@netdata/netdata-ui/lib/components/typography"
-import { withChartProvider, useIsFetching, useLoadingColor } from "@/components/provider"
-import withChartTrack from "@/components/hocs/withChartTrack"
-import withIntersection from "./withIntersection"
-import withDifferedMount from "@/components/hocs/withDifferedMount"
+import withChart from "@/components/hocs/withChart"
+import { ChartWrapper } from "@/components/hocs/withTile"
 import textAnimation from "../helpers/textAnimation"
 
 export const Label = styled(Text)`
@@ -44,16 +41,6 @@ export const Value = () => {
   )
 }
 
-export const Title = () => {
-  const title = useTitle()
-  const isFetching = useIsFetching()
-  return (
-    <Label color="border" fontSize="1.2em" strong isFetching={isFetching}>
-      {title}
-    </Label>
-  )
-}
-
 export const Unit = () => {
   const unit = useUnitSign()
   return (
@@ -63,33 +50,24 @@ export const Unit = () => {
   )
 }
 
-export const ChartWrapper = styled(ChartContainer)`
-  position: absolute;
-  inset: 0;
-`
-
 export const StatsContainer = styled(Flex).attrs({
   position: "absolute",
   column: true,
-  justifyContent: "between",
   alignContent: "center",
+  justifyContent: "center",
+  gap: 2,
 })`
-  inset: ${({ inset }) => inset};
+  inset: 0;
   text-align: center;
   font-size: ${({ fontSize }) => fontSize};
 `
 
-export const Stats = () => {
-  const { width } = useOnResize()
-
-  return (
-    <StatsContainer inset={`${width * 0.3}px 0`} fontSize={`${width / 15}px`}>
-      <Title />
-      <Value />
-      <Unit />
-    </StatsContainer>
-  )
-}
+export const Stats = ({ size }) => (
+  <StatsContainer fontSize={`${size / 12}px`}>
+    <Value />
+    <Unit />
+  </StatsContainer>
+)
 
 const frames = keyframes`
   from { opacity: 0.2; }
@@ -98,36 +76,31 @@ const frames = keyframes`
 
 export const Skeleton = styled(Flex).attrs(props => ({
   background: "borderSecondary",
-  position: "absolute",
   round: "100%",
+  width: "100%",
+  height: "100%",
   ...props,
 }))`
-  inset: 0;
   animation: ${frames} 1.6s ease-in infinite;
 `
 
-export const SkeletonIcon = () => {
-  const color = useLoadingColor()
-  return <Skeleton background={color} />
-}
-
-export const Container = styled(Flex).attrs({ position: "relative" })`
-  padding-bottom: 100%;
-`
-
-export const EasyPie = props => {
+export const EasyPie = forwardRef((props, ref) => {
   const loaded = useAttributeValue("loaded")
 
-  return (
-    <Container {...props}>
-      {!loaded && <SkeletonIcon />}
-      {loaded && (
-        <ChartWrapper>
-          <Stats />
-        </ChartWrapper>
-      )}
-    </Container>
-  )
-}
+  const { width, height } = useOnResize()
+  const size = width < height ? width : height
 
-export default withChartProvider(withIntersection(withChartTrack(withDifferedMount(EasyPie))))
+  return (
+    <ChartWrapper alignItems="center" ref={ref}>
+      {loaded ? (
+        <ChartContainer position="relative" justifyContent="center" alignItems="center" {...props}>
+          <Stats size={size} />
+        </ChartContainer>
+      ) : (
+        <Skeleton size={size} />
+      )}
+    </ChartWrapper>
+  )
+})
+
+export default withChart(EasyPie, { tile: true })

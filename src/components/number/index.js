@@ -1,20 +1,13 @@
-import React, { useState } from "react"
+import React, { forwardRef, useState } from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { Text } from "@netdata/netdata-ui/lib/components/typography"
 import ChartContainer from "@/components/chartContainer"
-import {
-  useChart,
-  useTitle,
-  useUnitSign,
-  useImmediateListener,
-  useOnResize,
-} from "@/components/provider"
+import { useChart, useTitle, useUnitSign, useImmediateListener } from "@/components/provider"
 import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
-import { withChartProvider, useIsFetching } from "@/components/provider"
-import withChartTrack from "@/components/hocs/withChartTrack"
-import withIntersection from "./withIntersection"
-import withDifferedMount from "@/components/hocs/withDifferedMount"
+import { useIsFetching } from "@/components/provider"
+import withChart from "@/components/hocs/withChart"
+import { ChartWrapper } from "@/components/hocs/withTile"
 import textAnimation from "../helpers/textAnimation"
 
 const Label = styled(Text)`
@@ -63,52 +56,21 @@ export const Value = props => {
 export const Unit = props => {
   const unit = useUnitSign()
   return (
-    <Label color="border" fontSize="1em" alignSelf="start" {...props}>
+    <Label color="border" fontSize="1em" {...props}>
       {unit}
     </Label>
   )
 }
 
-export const StatsContainer = styled(Flex).attrs({
-  position: "absolute",
-  justifyContent: "between",
-  alignContent: "center",
-})`
-  inset: 0 6%;
-  text-align: center;
-  font-size: ${({ fontSize }) => fontSize};
-`
-
-export const Stats = props => {
-  const { width } = useOnResize()
-  return (
-    <StatsContainer fontSize={`${width / 20}px`} {...props}>
-      <Title />
-      <Flex>
-        <Value size="large" />
-        <Unit size="small" />
+export const NumberChart = forwardRef((props, ref) => (
+  <ChartWrapper {...props} ref={ref}>
+    <ChartContainer height="auto" width="auto" column alignItems="center" justifyContent="center">
+      <Flex column>
+        <Value fontSize="1.2em" />
+        <Unit fontSize="0.8em" />
       </Flex>
-    </StatsContainer>
-  )
-}
+    </ChartContainer>
+  </ChartWrapper>
+))
 
-const Container = styled(Flex).attrs({ position: "relative" })`
-  padding-bottom: 60%;
-`
-
-const ChartWrapper = styled.div`
-  position: absolute;
-  inset: 0;
-`
-
-export const NumberChart = props => (
-  <Container {...props}>
-    <ChartWrapper>
-      <ChartContainer>
-        <Stats />
-      </ChartContainer>
-    </ChartWrapper>
-  </Container>
-)
-
-export default withChartProvider(withIntersection(withChartTrack(withDifferedMount(NumberChart))))
+export default withChart(NumberChart, { tile: true })

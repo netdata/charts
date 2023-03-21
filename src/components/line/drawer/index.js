@@ -1,6 +1,7 @@
 import React from "react"
 import styled from "styled-components"
-import { getColor } from "@netdata/netdata-ui"
+import { Flex } from "@netdata/netdata-ui"
+import { useAttributeValue } from "@/components/provider"
 import Header from "./header"
 import Dimensions from "./dimensions"
 
@@ -14,16 +15,19 @@ export const Container = styled.div.attrs({ "data-testid": "chartDrawer" })`
   column-gap: 4px;
   row-gap: 8px;
   align-items: center;
-  border-top: 1px solid ${getColor("borderSecondary")};
   padding: 16px;
 `
 
 const Drawer = () => {
+  const expandedHeight = useAttributeValue("expandedHeight")
+
   return (
-    <Container>
-      <Header />
-      <Dimensions />
-    </Container>
+    <Flex height={`${expandedHeight}px`} flex={false}>
+      <Container>
+        <Header />
+        <Dimensions />
+      </Container>
+    </Flex>
   )
 }
 

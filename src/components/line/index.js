@@ -1,24 +1,20 @@
-import React from "react"
-import { Transition } from "react-transition-group"
-import { Flex, Collapsible } from "@netdata/netdata-ui"
+import React, { forwardRef } from "react"
+import useForwardRef from "@netdata/netdata-ui/lib/hooks/use-forward-ref"
 import useHover from "@/components/useHover"
-import useDebouncedValue from "@/components/helpers/useDebouncedValue"
 import withChart from "@/components/hocs/withChart"
 import { useChart, useAttributeValue } from "@/components/provider"
-import Header from "./header"
-import Details from "./details"
+import Header from "@/components/header"
+import Details from "@/components/details"
 import ChartContentWrapper, { ContentWrapper } from "./chartContentWrapper"
-import FilterToolbox from "./filterToolbox"
+import FilterToolbox from "@/components/filterToolbox"
+import Container from "@/components/container"
 import Footer from "./footer"
-import Container from "./container"
-import Expander from "./expander"
-import Drawer from "./drawer"
 
-export const Line = ({ hasHeader = true, height, ...rest }) => {
+export const Line = forwardRef(({ hasHeader = true, height, ...rest }, ref) => {
   const chart = useChart()
   const detailed = useAttributeValue("detailed")
 
-  const ref = useHover(
+  const hoverRef = useHover(
     {
       onHover: chart.focus,
       onBlur: chart.blur,
@@ -28,45 +24,19 @@ export const Line = ({ hasHeader = true, height, ...rest }) => {
     [chart]
   )
 
-  const focused = useAttributeValue("focused")
-  const debouncedFocused = useDebouncedValue(focused, 500)
-
-  const expanded = useAttributeValue("expanded")
+  const [, setRef] = useForwardRef(node => {
+    hoverRef.current = node
+    ref.current = node
+  })
 
   return (
-    <Transition nodeRef={ref} in={expanded} timeout={1000}>
-      {expandTransitionState => (
-        <Transition nodeRef={ref} in={focused && debouncedFocused} timeout={100}>
-          {focusTransitionState => (
-            <Container
-              ref={ref}
-              {...rest}
-              expandTransitionState={expandTransitionState}
-              focusTransitionState={focusTransitionState}
-            >
-              <Flex column position="relative" height={height}>
-                {hasHeader && <Header />}
-                <FilterToolbox />
-                <ContentWrapper>{detailed ? <Details /> : <ChartContentWrapper />}</ContentWrapper>
-              </Flex>
-              <Collapsible open={!expanded && !detailed} duration={250}>
-                <Footer expandTransitionState={expandTransitionState} />
-              </Collapsible>
-
-              <Collapsible open={expanded} duration={300}>
-                <Drawer expandTransitionState={expandTransitionState} />
-              </Collapsible>
-              <Expander
-                expanded={expanded}
-                focusTransitionState={focusTransitionState}
-                expandTransitionState={expandTransitionState}
-              />
-            </Container>
-          )}
-        </Transition>
-      )}
-    </Transition>
+    <Container ref={setRef} {...rest} height={height}>
+      {hasHeader && <Header />}
+      <FilterToolbox />
+      <ContentWrapper>{detailed ? <Details /> : <ChartContentWrapper />}</ContentWrapper>
+      <Footer />
+    </Container>
   )
-}
+})
 
 export default withChart(Line)

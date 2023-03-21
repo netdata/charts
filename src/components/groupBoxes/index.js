@@ -1,18 +1,19 @@
-import React from "react"
+import React, { forwardRef } from "react"
+import useForwardRef from "@netdata/netdata-ui/lib/hooks/use-forward-ref"
 import useHover from "@/components/useHover"
 import withChart from "@/components/hocs/withChart"
 import { useChart, useAttributeValue } from "@/components/provider"
 import ChartContainer from "@/components/chartContainer"
-import Header from "./header"
-import FilterToolbox from "@/components/line/filterToolbox"
-import Container from "@/components/line/container"
+import Header from "@/components/header"
+import FilterToolbox from "@/components/filterToolbox"
+import Container from "@/components/container"
 import GroupBoxes from "./groupBoxes"
 import Footer from "./footer"
 
-export const GroupBoxesContainer = props => {
+export const GroupBoxesContainer = forwardRef((props, ref) => {
   const chart = useChart()
 
-  const ref = useHover(
+  const hoverRef = useHover(
     {
       onHover: chart.focus,
       onBlur: chart.blur,
@@ -22,10 +23,15 @@ export const GroupBoxesContainer = props => {
     [chart]
   )
 
+  const [, setRef] = useForwardRef(node => {
+    hoverRef.current = node
+    ref.current = node
+  })
+
   const detailed = useAttributeValue("detailed")
 
   return (
-    <Container ref={ref} {...props}>
+    <Container ref={setRef} {...props}>
       <Header />
       <FilterToolbox />
       <ChartContainer column gap={4} padding={[4, 2]}>
@@ -35,6 +41,6 @@ export const GroupBoxesContainer = props => {
       {!detailed && <Footer />}
     </Container>
   )
-}
+})
 
 export default withChart(GroupBoxesContainer)

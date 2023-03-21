@@ -5,6 +5,7 @@ import { Flex, Text } from "@netdata/netdata-ui"
 import Line from "@/components/line"
 import GaugeComponent from "@/components/gauge"
 import EasyPieComponent from "@/components/easyPie"
+import NumberComponent from "@/components/number"
 import GroupBoxes from "@/components/groupBoxes"
 import makeDefaultSDK from "./makeDefaultSDK"
 
@@ -58,7 +59,7 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
       selectedDimensions: ["out"],
       host: host,
       agent: true,
-      chartLibrary: "easypiechart",
+      chartLibrary: "gauge",
       syncHover: true,
       chartUrlOptions: ["percentage"],
     },
@@ -66,33 +67,50 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
 
   sdk.appendChild(chart3)
 
-  const chart4 = sdk.makeChart({
-    attributes: {
-      selectedContexts: [contexts],
-      nodesScope: [nodesScope],
-      contextScope: [contextScope],
-      host: host,
-      agent: true,
-      chartLibrary: "groupBoxes",
-      groupBy: ["label"],
-      groupByLabel: ["k8s_namespace", "k8s_container_id"],
-    },
-  })
-  sdk.appendChild(chart4)
+  // const chart4 = sdk.makeChart({
+  //   attributes: {
+  //     selectedContexts: [contexts],
+  //     nodesScope: [nodesScope],
+  //     contextScope: [contextScope],
+  //     host: host,
+  //     agent: true,
+  //     chartLibrary: "groupBoxes",
+  //     groupBy: ["label"],
+  //     groupByLabel: ["k8s_namespace", "k8s_container_id"],
+  //   },
+  // })
+  // sdk.appendChild(chart4)
+
+  // const chart5 = sdk.makeChart({
+  //   attributes: {
+  //     selectedContexts: [contexts],
+  //     nodesScope: [nodesScope],
+  //     contextScope: [contextScope],
+  //     selectedDimensions: ["out"],
+  //     host: host,
+  //     agent: true,
+  //     chartLibrary: "number",
+  //     syncHover: true,
+  //     chartUrlOptions: ["percentage"],
+  //   },
+  // })
+
+  // sdk.appendChild(chart5)
 
   return (
     <ThemeProvider theme={theme === "default" ? DefaultTheme : DarkTheme}>
       <Flex background="mainBackground" column gap={2} padding={[3]}>
-        <Flex width="180px" gap={3}>
+        <Flex>
           <EasyPieComponent chart={chart2} />
-          <EasyPieComponent chart={chart3} />
+          <GaugeComponent chart={chart3} />
+          {/*<NumberComponent chart={chart5} />*/}
         </Flex>
         <Line chart={chart} height="315px" />
-        <GroupBoxes
+        {/*<GroupBoxes
           chart={chart4}
           renderBoxPopover={renderBoxPopover}
           renderGroupPopover={renderGroupPopover}
-        />
+        />*/}
       </Flex>
     </ThemeProvider>
   )
