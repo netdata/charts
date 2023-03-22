@@ -91,7 +91,7 @@ export default (sdk, chart) => {
 
     const units = chart.getUnits()
 
-    if (units === "percentage" || units === "%") {
+    if (units === "percentage" || units === "percent" || units === "pcent" || units.startsWith("%")) {
       min = 0
       max = 100
     }
