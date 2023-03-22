@@ -3,7 +3,7 @@ import { useChart } from "@/components/provider"
 import { unregister } from "@/helpers/makeListeners"
 
 export default Component => {
-  const HeightComponent = ({ height: defaultHeight = "100%", flex = true, parentRef, ...rest }) => {
+  const HeightComponent = ({ height: defaultHeight = "100%", flex = true, ...rest }) => {
     const chart = useChart()
     const ref = useRef()
 
@@ -39,11 +39,10 @@ export default Component => {
     }, [chart])
 
     useLayoutEffect(() => {
-      if (!parentRef?.current && !ref.current) return
+      if (!ref.current) return
 
       chart.getUI().setEstimatedWidth(ref.current.offsetWidth)
       chart.getUI().setEstimatedHeight(ref.current.offsetHeight)
-      if (parentRef?.current) chart.getUI().setParentWidth(parentRef.current.offsetWidth)
     }, [chart])
 
     return <Component ref={ref} height={height} flex={flex} {...rest} />

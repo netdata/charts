@@ -141,8 +141,8 @@ export default payload => {
       labelsTotals,
       nodesTotals,
     },
-    min,
-    max,
+    min: units === "percentage" || units === "%" ? 0 : min,
+    max: units === "percentage" || units === "%" ? 100 : max,
     ...stats,
   }
 }

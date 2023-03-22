@@ -211,7 +211,7 @@ export const useOnResize = () => {
   return {
     width: chart.getUI().getChartWidth(),
     height: chart.getUI().getChartHeight(),
-    parentWidth: chart.getUI().getParentWidth(),
+    parentWidth: chart.getAttribute("width"),
   }
 }
 

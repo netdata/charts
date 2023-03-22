@@ -1,6 +1,6 @@
 import React, { forwardRef, useState } from "react"
 import styled, { keyframes } from "styled-components"
-import { Box, Flex, Text } from "@netdata/netdata-ui"
+import { Flex, Text } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
 import {
   useChart,

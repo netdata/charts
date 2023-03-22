@@ -53,6 +53,10 @@ export default (sdk, chart) => {
       element.G__height = null
 
       gauge = new Gauge(element).setOptions(makeGaugeOptions())
+
+      gauge.maxValue = 100
+      gauge.setMinValue(0)
+
       chartUI.trigger("resize")
     })
 

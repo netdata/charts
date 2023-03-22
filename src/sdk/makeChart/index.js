@@ -192,7 +192,7 @@ export default ({
     if (!node.getAttribute("loaded")) node.getParent().trigger("chartLoaded", node)
 
     node.updateAttributes({
-      loaded: true, //node.getAttribute("loaded"),
+      loaded: true,
       loading: false,
       updatedAt: Date.now(),
       error:
@@ -273,10 +273,7 @@ export default ({
   const fetchAndRender = ({ initialize = false } = {}) => {
     if (!!node && initialize) node.updateAttribute("loaded", false)
 
-    return fetch().then(() => {
-      // if (getUI() && Date.now() - getUI().getRenderedAt() < 1000) return
-      render()
-    })
+    return fetch().then(render)
   }
 
   const getConvertedValue = (value, { fractionDigits } = {}) => {

@@ -17,7 +17,7 @@ export const getChartURLOptions = chart => {
 const oneValueOptions = {
   group_by: "selected",
   group_by_label: "",
-  aggregation: "sum",
+  aggregation: "avg",
 }
 
 const defaultOptionsByLibrary = {
@@ -29,7 +29,7 @@ const defaultOptionsByLibrary = {
 export const getChartPayload = chart => {
   const ui = chart.getUI()
 
-  const width = ui.getParentWidth() || ui.getEstimatedChartWidth() || ui.getChartWidth()
+  const width = ui.getAttribute("width") || ui.getEstimatedChartWidth() || ui.getChartWidth()
 
   const pixelsPerPoint = ui.getPixelsPerPoint()
   const { after, before, groupingMethod, groupingTime, chartLibrary } = chart.getAttributes()

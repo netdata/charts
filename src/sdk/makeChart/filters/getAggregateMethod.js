@@ -41,7 +41,7 @@ const averageRegex = /(%|\/operation|\/run| run|\/request)/
 export default chart => {
   const unit = chart.getUnits()
 
-  if (!unit) return "sum"
+  if (!unit) return "avg"
 
   let lowerUnit = unit.toLowerCase()
   if (averageUnits.has(lowerUnit) || averageRegex.test(lowerUnit)) return "avg"

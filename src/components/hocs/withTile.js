@@ -3,7 +3,7 @@ import styled from "styled-components"
 import { useWindowSize } from "react-use"
 import { Box, Flex, Text } from "@netdata/netdata-ui"
 import Status from "@/components/status"
-import { useAttributeValue, useTitle } from "@/components/provider"
+import { useAttributeValue, useTitle, useOnResize } from "@/components/provider"
 
 const Label = styled(Text)`
   line-height: 1;
@@ -47,8 +47,9 @@ export const Title = () => {
   )
 }
 
-export const HeadWrapper = ({ children, parentWidth, ...rest }) => {
+export const HeadWrapper = ({ children, ...rest }) => {
   const chartLibrary = useAttributeValue("chartLibrary")
+  const { parentWidth } = useOnResize()
 
   const { width: windowWidth } = useWindowSize()
   let size = parseInt((parentWidth || windowWidth) / 30, 10)
@@ -75,9 +76,9 @@ export const ChartWrapper = styled(Flex).attrs(props => ({
 }))``
 
 export default Component =>
-  ({ parentWidth, count, ...rest }) =>
+  ({ count, ...rest }) =>
     (
-      <HeadWrapper parentWidth={parentWidth} count={count}>
+      <HeadWrapper count={count}>
         <Component {...rest} />
       </HeadWrapper>
     )

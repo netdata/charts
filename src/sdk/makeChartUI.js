@@ -16,7 +16,6 @@ export default (sdk, chart) => {
   let renderedAt = 0
   let estimatedWidth = 0
   let estimatedHeight = 0
-  let parentWidth = null
 
   const mount = el => {
     element = el
@@ -51,10 +50,6 @@ export default (sdk, chart) => {
 
   const getEstimatedHeight = () => estimatedHeight
 
-  const setParentWidth = width => (parentWidth = width)
-
-  const getParentWidth = () => parentWidth
-
   const getEstimatedChartWidth = () => (element ? element.offsetWidth : estimatedWidth || 300)
 
   const getEstimatedChartHeight = () => (element ? element.offsetHeight : estimatedHeight || 300)
@@ -86,8 +81,6 @@ export default (sdk, chart) => {
     getElement,
     setEstimatedWidth,
     getEstimatedWidth,
-    setParentWidth,
-    getParentWidth,
     getEstimatedChartWidth,
     getChartWidth,
     getChartHeight,
