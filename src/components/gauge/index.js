@@ -125,7 +125,7 @@ export const Stats = () => {
       </StatsContainer>
       <StatsContainer
         fontSize={`${size / 15}px`}
-        inset={`90% ${(100 - ((width - size) * 90) / width) / 2}% 0%`}
+        inset={`90% ${(100 - ((size * 0.8) * 100) / width) / 2}% 0%`}
       >
         <Bounds />
       </StatsContainer>
