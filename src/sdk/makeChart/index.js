@@ -163,19 +163,29 @@ export default ({
 
     if (wasLoaded) node.trigger("successFetch", nextPayload, prevPayload)
 
-    invalidateContexts(nextPayload.versions?.contexts_hard_hash)
+    updateVersions(nextPayload.versions)
     finishFetch()
   }
 
-  const invalidateContexts = hardHash => {
-    if (!node || !hardHash) return
+  const updateVersions = ({
+    alerts_hard_hash: alertsHardHash,
+    alerts_soft_hash: alertsSoftHash,
+    contexts_hard_hash: contextsHardHash,
+    contexts_soft_hash: contextsSoftHash,
+    nodes_hard_hash: nodesHardHash,
+  }) => {
+    if (!node) return
 
     const container = node.getParent()
     if (!container) return
 
-    const containerHardHash = container.getAttribute("contextsHardHash")
-
-    if (containerHardHash !== hardHash) container.updateAttribute("contextsHardHash", hardHash)
+    container.updateAttribute("versions", {
+      alertsHardHash,
+      alertsSoftHash,
+      contextsHardHash,
+      contextsSoftHash,
+      nodesHardHash,
+    })
   }
 
   const failFetch = error => {

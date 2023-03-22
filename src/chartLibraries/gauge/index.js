@@ -170,6 +170,7 @@ export default (sdk, chart) => {
     render,
     getValue,
     getUrlOptions,
+    getMinMax,
   }
 
   return instance

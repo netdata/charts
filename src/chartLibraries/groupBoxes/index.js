@@ -70,6 +70,7 @@ export default (sdk, chart) => {
 
   const render = () => {
     chart.updateDimensions()
+
     chartUI.render()
 
     chartUI.trigger("rendered")

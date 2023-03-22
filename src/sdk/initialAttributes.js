@@ -44,7 +44,7 @@ export default {
   selectedNodes: [],
   selectedInstances: [],
 
-  contextsHardHash: null,
+  versions: {},
 
   enabledHover: true,
   syncHover: true,

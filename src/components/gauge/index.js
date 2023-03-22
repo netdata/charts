@@ -69,13 +69,13 @@ const useEmptyValue = () => {
   return value
 }
 
-export const Bound = ({ bound, empty, ...rest }) => {
+export const Bound = ({ bound, value, empty, ...rest }) => {
   const chart = useChart()
-  const value = useAttributeValue(bound)
+  const attrValue = useAttributeValue(bound)
 
   return (
     <Label color="border" fontSize="1.3em" {...rest}>
-      {empty ? "-" : chart.getConvertedValue(value)}
+      {empty ? "-" : chart.getConvertedValue(value || attrValue)}
     </Label>
   )
 }
@@ -89,10 +89,13 @@ export const BoundsContainer = styled(Flex).attrs({
 export const Bounds = () => {
   const empty = useEmptyValue()
 
+  const chart = useChart()
+  const minMax = chart.getUI().getMinMax()
+
   return (
     <BoundsContainer>
-      <Bound bound="min" empty={empty} />
-      <Bound bound="max" empty={empty} />
+      <Bound bound="min" empty={empty} value={minMax[0]} />
+      <Bound bound="max" empty={empty} value={minMax[1]} />
     </BoundsContainer>
   )
 }
