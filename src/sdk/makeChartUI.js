@@ -13,7 +13,7 @@ const getPixelsPerPoint = () => 3
 export default (sdk, chart) => {
   const listeners = makeListeners()
   let element = null
-  let renderedAt = 0
+  let renderedAt = chart.getAttribute("renderedAt") || 0
   let estimatedWidth = 0
   let estimatedHeight = 0
 

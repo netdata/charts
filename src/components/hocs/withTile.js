@@ -38,7 +38,7 @@ export const Title = () => {
   return (
     <Flex alignItems="center" justifyContent="center" position="relative">
       <Box position="absolute" left={0}>
-        <Status />
+        <Status plain />
       </Box>
       <Label fontSize="1em" textAlign="center" color="sectionDescription">
         {title}

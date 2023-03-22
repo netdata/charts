@@ -68,7 +68,11 @@ export default sdk => {
   const offs = sdk
     .on("active", chart => {
       autofetchIfActive(chart, true)
-      if (chart.getAttribute("hovering")) chart.fetchAndRender()
+      if (
+        chart.getAttribute("hovering") &&
+        chart.getAttribute("renderedAt") < chart.getUI().getRenderedAt()
+      )
+        chart.fetchAndRender()
     })
     .on("hoverChart", chart => {
       if (chart.getAttribute("paused") || !chart.getAttribute("autofetch")) return

@@ -36,17 +36,17 @@ const useStatusProps = ({ initialLoading, error }) =>
 const StatusBadge = ({ type, status, ...rest }) =>
   type ? <Badge type={type} data-testid={`chartHeaderStatus-${status}`} {...rest} /> : null
 
-const Status = props => {
+const Status = ({ plain, ...rest }) => {
   const initialLoading = useInitialLoading()
   const empty = useEmpty()
   const error = useChartError()
   const statusProps = useStatusProps({ initialLoading, error })
 
   return (
-    <Flex gap={2} data-testid="chartHeaderStatus" basis="0" {...props}>
+    <Flex gap={2} data-testid="chartHeaderStatus" basis="0" {...rest}>
       <ReloadContainer />
-      <StatusBadge {...statusProps} />
-      {!initialLoading && empty && !statusProps && (
+      {!plain && <StatusBadge {...statusProps} />}
+      {!plain && !initialLoading && empty && !statusProps && (
         <StatusBadge type="neutral" status="empty">
           No data
         </StatusBadge>

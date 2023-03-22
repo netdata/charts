@@ -7,7 +7,7 @@ export default sdk => {
     })
     .on("hoverChart", chart => {
       chart.getApplicableNodes({ syncHover: true }).forEach(node => {
-        node.updateAttribute("hovering", true)
+        node.updateAttributes({ hovering: true, renderedAt: chart.getUI().getRenderedAt() })
       })
     })
     .on("blurChart", chart => {

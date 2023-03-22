@@ -29,14 +29,17 @@ const defaultOptionsByLibrary = {
 export const getChartPayload = chart => {
   const ui = chart.getUI()
 
-  const width = ui.getAttribute("width") || ui.getEstimatedChartWidth() || ui.getChartWidth()
+  const width = chart.getAttribute("width") || ui.getEstimatedChartWidth() || ui.getChartWidth()
 
   const pixelsPerPoint = ui.getPixelsPerPoint()
   const { after, before, groupingMethod, groupingTime, chartLibrary } = chart.getAttributes()
 
   const pointsMultiplier = after < 0 ? 1.5 : 2
 
-  const renderedAt = chart.getAttribute("hovering") ? Math.ceil(ui.getRenderedAt() / 1000) : null
+  const renderedAt =
+    chart.getAttribute("hovering") && chart.getAttribute("renderedAt")
+      ? Math.ceil(chart.getAttribute("renderedAt") / 1000)
+      : null
 
   const afterBefore =
     after > 0

@@ -74,7 +74,7 @@ export const Bound = ({ bound, empty, ...rest }) => {
   const value = useAttributeValue(bound)
 
   return (
-    <Label color="main" fontSize="1.3em" {...rest}>
+    <Label color="border" fontSize="1.3em" {...rest}>
       {empty ? "-" : chart.getConvertedValue(value)}
     </Label>
   )
