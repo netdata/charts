@@ -52,7 +52,7 @@ export default (sdk, chart) => {
       element.G__width = null
       element.G__height = null
 
-      gauge = new Gauge(element).setOptions(makeGaugeOptions())
+      gauge = gauge.configDisplayScale()
 
       gauge.maxValue = 100
       gauge.setMinValue(0)
