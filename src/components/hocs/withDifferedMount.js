@@ -1,22 +1,16 @@
-import React, { forwardRef, useLayoutEffect } from "react"
-import { useChart } from "@/components/provider"
-
-const mount = window.requestIdleCallback || window.requestAnimationFrame
-const unmount = window.cancelIdleCallback || window.cancelAnimationFrame
+import React, { forwardRef } from "react"
+import { useChart, useImmediateListener } from "@/components/provider"
 
 export default Component => {
   const DifferedMount = forwardRef(({ isVisible = true, ...rest }, ref) => {
     const chart = useChart()
 
-    useLayoutEffect(() => {
+    useImmediateListener(() => {
       if (!isVisible) return
 
-      const id = mount(chart.activate)
+      chart.activate()
 
-      return () => {
-        unmount(id)
-        chart.deactivate()
-      }
+      return chart.deactivate
     }, [isVisible, chart])
 
     return <Component ref={ref} {...rest} />

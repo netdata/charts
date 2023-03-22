@@ -67,8 +67,8 @@ export default (sdk, chart) => {
   }
 
   const makeThemingOptions = () => ({
-    trackColor: chartUI.getThemeAttribute("themeTrackColor"),
-    scaleColor: chartUI.getThemeAttribute("themeScaleColor"),
+    trackColor: chartUI.getThemeAttribute("themeEasyPieTrackColor"),
+    scaleColor: chartUI.getThemeAttribute("themeEasyPieScaleColor"),
   })
 
   const makeDimensionOptions = () => {
@@ -79,6 +79,7 @@ export default (sdk, chart) => {
     return {
       lineWidth: multiplier < 4 ? 2 : Math.floor(multiplier),
       size: size < 20 ? 20 : size,
+      scaleLength: multiplier < 4 ? 2 : Math.floor(multiplier),
     }
   }
 

@@ -21,9 +21,10 @@ export default (sdk, chart) => {
 
     const { color, strokeColor } = makeThemingOptions()
 
+    chart.consumePayload()
     chart.updateDimensions()
 
-    gauge = new Gauge(element).setOptions({
+    const makeGaugeOptions = () => ({
       angle: -0.2, // The span of the gauge arc
       lineWidth: 0.2, // The line thickness
       radiusScale: 1, // Relative radius
@@ -37,13 +38,23 @@ export default (sdk, chart) => {
       limitMin: false,
       colorStart: chart.selectDimensionColor(), // Colors
       generateGradient: true,
-      // highDpiSupport: true, // High resolution support
+      highDpiSupport: true, // High resolution support
     })
+
+    gauge = new Gauge(element).setOptions(makeGaugeOptions())
 
     gauge.maxValue = 100
     gauge.setMinValue(0)
 
-    resizeObserver = makeResizeObserver(element, () => chartUI.trigger("resize"))
+    resizeObserver = makeResizeObserver(element.closest("div"), () => {
+      element.style.width = "100%"
+      element.style.height = "100%"
+      element.G__width = null
+      element.G__height = null
+
+      gauge = new Gauge(element).setOptions(makeGaugeOptions())
+      chartUI.trigger("resize")
+    })
 
     const { loaded } = chart.getAttributes()
 

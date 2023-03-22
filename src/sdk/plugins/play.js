@@ -66,7 +66,10 @@ export default sdk => {
   window.addEventListener("focus", focus)
 
   const offs = sdk
-    .on("active", chart => autofetchIfActive(chart, true))
+    .on("active", chart => {
+      autofetchIfActive(chart, true)
+      if (chart.getAttribute("hovering")) chart.fetchAndRender()
+    })
     .on("hoverChart", chart => {
       if (chart.getAttribute("paused") || !chart.getAttribute("autofetch")) return
       const autofetch = false

@@ -62,8 +62,6 @@ export default ({
     return getMetadata()
   }
   const setMetadataAttribute = (attribute, value) => setMetadataAttributes({ [attribute]: value })
-  const fetchMetadata = () =>
-    node ? getMetadataDecorator().fetch(node) : Promise.resolve(initialMetadata)
 
   const getUpdateEvery = () => {
     if (!node) return
@@ -210,6 +208,7 @@ export default ({
   const dataFetch = () => {
     abortController = new AbortController()
     const options = { signal: abortController.signal }
+
     return getChart(node, options)
       .then(data => {
         if (data?.errorMsgKey) return failFetch(data)
@@ -238,22 +237,16 @@ export default ({
   const fetch = () => {
     if (!node) return
 
-    const fetchData = () => {
-      if (!node) return
+    cancelFetch()
+    node.trigger("startFetch")
+    node.updateAttributes({ loading: true, fetchStartedAt: Date.now() })
 
-      cancelFetch()
-      node.trigger("startFetch")
-      node.updateAttributes({ loading: true, fetchStartedAt: Date.now() })
+    if (!isNewerThanRetention())
+      return Promise.resolve().then(() =>
+        failFetch({ message: "Exceeds agent data retention settings" })
+      )
 
-      if (!isNewerThanRetention())
-        return Promise.resolve().then(() =>
-          failFetch({ message: "Exceeds agent data retention settings" })
-        )
-
-      return dataFetch()
-    }
-
-    return fetchData()
+    return dataFetch()
   }
 
   const updateMetadata = () => {
@@ -279,13 +272,14 @@ export default ({
 
   const fetchAndRender = ({ initialize = false } = {}) => {
     if (!!node && initialize) node.updateAttribute("loaded", false)
+
     return fetch().then(() => {
-      if (getUI() && Date.now() - getUI().getRenderedAt() < 1000) return
+      // if (getUI() && Date.now() - getUI().getRenderedAt() < 1000) return
       render()
     })
   }
 
-  const getConvertedValue = value => {
+  const getConvertedValue = (value, { fractionDigits } = {}) => {
     if (!node) return
 
     if (value === null) return "-"
@@ -298,8 +292,8 @@ export default ({
 
     return Intl.NumberFormat(undefined, {
       useGrouping: true,
-      minimumFractionDigits: unitsConversionFractionDigits,
-      maximumFractionDigits: unitsConversionFractionDigits,
+      minimumFractionDigits: fractionDigits || unitsConversionFractionDigits,
+      maximumFractionDigits: fractionDigits || unitsConversionFractionDigits,
     }).format(converted)
   }
 

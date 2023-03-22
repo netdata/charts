@@ -119,6 +119,9 @@ export default {
   themeTrackColor: ["#ECEEEF", "#383B40"],
   themeScaleColor: ["#F7F8F8", "#2B3136"],
 
+  themeEasyPieTrackColor: ["#ECEEEF", "#383B40"],
+  themeEasyPieScaleColor: ["#CFD5DA", "#536775"],
+
   themeGaugePointer: ["#8F9EAA", "#536775"],
   themeGaugeStroke: ["#ECEEEF", "#383B40"],
 

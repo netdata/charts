@@ -9,7 +9,6 @@ import {
   useImmediateListener,
   useOnResize,
 } from "@/components/provider"
-import { getSizeBy } from "@netdata/netdata-ui/lib/theme/utils"
 import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
 import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
@@ -34,14 +33,14 @@ export const Value = () => {
     if (!hoverX && after > 0) return "-"
 
     const v = chart.getUI().getValue()
-    return chart.getConvertedValue(v)
+    return chart.getConvertedValue(v, { fractionDigits: 2 })
   }
   const [value, setValue] = useState(getValue)
 
   useImmediateListener(() => chart.getUI().on("rendered", () => setValue(getValue())), [])
 
   return (
-    <StrokeLabel flex="2" color="main" fontSize="2.2em" strong>
+    <StrokeLabel flex="2" color="main" fontSize="2em" strong>
       {value}
     </StrokeLabel>
   )
@@ -75,15 +74,17 @@ export const Bound = ({ bound, empty, ...rest }) => {
   const value = useAttributeValue(bound)
 
   return (
-    <Label color="main" fontSize="1.7em" {...rest}>
+    <Label color="main" fontSize="1.3em" {...rest}>
       {empty ? "-" : chart.getConvertedValue(value)}
     </Label>
   )
 }
 
-export const BoundsContainer = styled(Flex).attrs({ justifyContent: "between" })`
-  padding-left: 6%;
-`
+export const BoundsContainer = styled(Flex).attrs({
+  alignItems: "center",
+  justifyContent: "between",
+  flex: true,
+})``
 
 export const Bounds = () => {
   const empty = useEmptyValue()
@@ -99,8 +100,8 @@ export const Bounds = () => {
 export const StatsContainer = styled(Flex).attrs({
   position: "absolute",
   column: true,
-  justifyContent: "between",
   alignContent: "center",
+  justifyContent: "center",
 })`
   inset: ${({ inset }) => inset};
   text-align: center;
@@ -108,16 +109,24 @@ export const StatsContainer = styled(Flex).attrs({
 `
 
 export const Stats = () => {
-  const { width } = useOnResize()
+  const { width, height } = useOnResize()
+  const size = width < height ? width : height
 
   return (
-    <StatsContainer fontSize={`${width / 30}px`} inset="70% 25% 20%">
-      <Flex column>
-        <Value />
+    <>
+      <StatsContainer fontSize={`${size / 15}px`} inset="50% 15% 0%">
         <Unit />
-      </Flex>
-      <Bounds />
-    </StatsContainer>
+      </StatsContainer>
+      <StatsContainer fontSize={`${size / 15}px`} inset="35% 15% 0%">
+        <Value />
+      </StatsContainer>
+      <StatsContainer
+        fontSize={`${size / 15}px`}
+        inset={`90% ${(100 - ((width - size) * 90) / width) / 2}% 0%`}
+      >
+        <Bounds />
+      </StatsContainer>
+    </>
   )
 }
 
@@ -140,15 +149,15 @@ export const Gauge = forwardRef((props, ref) => {
   const loaded = useAttributeValue("loaded")
 
   return (
-    <ChartWrapper justifyContent="start" ref={ref}>
-      <Box height="80%" width="100%" position="relative">
-        {loaded ? (
-          <ChartContainer as="canvas" width="100% !important" height="100% !important" />
-        ) : (
-          <Skeleton />
-        )}
-        <Stats />
-      </Box>
+    <ChartWrapper alignItems="center" justifyContent="start" ref={ref}>
+      {loaded ? (
+        <>
+          <ChartContainer as="canvas" justifyContent="center" alignItems="center" />
+          <Stats />
+        </>
+      ) : (
+        <Skeleton />
+      )}
     </ChartWrapper>
   )
 })

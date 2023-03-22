@@ -28,14 +28,14 @@ export const Value = () => {
     if (!hoverX && after > 0) return "-"
 
     const v = chart.getUI().getValue()
-    return chart.getConvertedValue(v)
+    return chart.getConvertedValue(v, { fractionDigits: 2 })
   }
   const [value, setValue] = useState(getValue)
 
   useImmediateListener(() => chart.getUI().on("rendered", () => setValue(getValue())), [])
 
   return (
-    <Label color="main" fontSize="2em">
+    <Label color="main" fontSize="2em" strong>
       {value}
     </Label>
   )
@@ -63,7 +63,7 @@ export const StatsContainer = styled(Flex).attrs({
 `
 
 export const Stats = ({ size }) => (
-  <StatsContainer fontSize={`${size / 12}px`}>
+  <StatsContainer fontSize={`${size / 15}px`}>
     <Value />
     <Unit />
   </StatsContainer>

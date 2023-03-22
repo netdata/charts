@@ -36,13 +36,19 @@ export const getChartPayload = chart => {
 
   const pointsMultiplier = after < 0 ? 1.5 : 2
 
+  const renderedAt = chart.getAttribute("hovering") ? Math.ceil(ui.getRenderedAt() / 1000) : null
+
+  const afterBefore =
+    after > 0
+      ? { after, before }
+      : { after: renderedAt ? renderedAt + after : after, before: renderedAt ? renderedAt : 0 }
+
   return {
     points: Math.round((width / pixelsPerPoint) * pointsMultiplier),
     format: "json2",
     time_group: groupingMethod,
     time_resampling: groupingTime,
-    after,
-    ...(after > 0 && { before }),
+    ...afterBefore,
     ...(defaultOptionsByLibrary[chartLibrary] || defaultOptionsByLibrary.default),
   }
 }
