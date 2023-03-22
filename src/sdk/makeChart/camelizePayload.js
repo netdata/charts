@@ -68,7 +68,13 @@ const transformResult = (result, stats) => {
 export default payload => {
   const {
     summary = {}, // set default value
-    summary: { nodes: nodesArray = [], instances = [], dimensions = [], labels = [], alerts = [] },
+    summary: {
+      nodes: nodesArray = [],
+      instances = [],
+      dimensions: dimensionsArray = [],
+      labels = [],
+      alerts = [],
+    },
     functions = [],
     detailed = {},
     totals = {}, // set default value
@@ -108,6 +114,13 @@ export default payload => {
     nodesIndexes[n.ni] = n.mg
   })
 
+  let dimensionIds = []
+  let dimensions = {}
+  dimensionsArray.forEach(d => {
+    dimensions[d.id] = d
+    dimensionIds.push(d.id)
+  })
+
   return {
     ...rest,
     result: transformResult(result, stats),
@@ -124,12 +137,12 @@ export default payload => {
       fullyLoaded: nodesArray.length > 0,
       nodes,
       nodesIndexes,
-      instances: instances.reduce(
-        (h, i) => ({ ...h, [`${i.id}@${nodes[nodesIndexes[i.ni]].mg}`]: i }),
-        {}
-      ),
-      dimensionIds: dimensions.map(({ id }) => id),
-      dimensions: dimensions.reduce((h, d) => ({ ...h, [d.id]: d }), {}),
+      instances: instances.reduce((h, i) => {
+        h[`${i.id}@${nodes[nodesIndexes[i.ni]].mg}`] = i
+        return h
+      }, {}),
+      dimensions,
+      dimensionIds,
       labels: labels.reduce((h, l) => ({ ...h, [l.id]: l }), {}),
       alerts: alerts.reduce((h, a) => ({ ...h, [a.name]: a }), {}),
       viewDimensions,
