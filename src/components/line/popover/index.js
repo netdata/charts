@@ -53,10 +53,7 @@ const Popover = () => {
         if (!targetRef.current) return
 
         targetRef.current.style.left = `${offsetX}px`
-        targetRef.current.style.top =
-          targetRef.current.style.top < offsetY + 50 || targetRef.current.style.top > offsetY - 50
-            ? targetRef.current.style.top
-            : `${offsetY}px`
+        targetRef.current.style.top = `${offsetY}px`
 
         updatePositionRef.current()
 
