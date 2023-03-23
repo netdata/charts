@@ -1,5 +1,5 @@
 import React from "react"
-import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
+import { TextMicro } from "@netdata/netdata-ui"
 import { useLatestConvertedValue } from "@/components/provider"
 
 export const Value = props => (

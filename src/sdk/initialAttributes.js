@@ -138,7 +138,7 @@ export default {
   initializedFilters: false,
   error: null,
 
-  agent: true, // default should be false when ready for cloud
+  agent: true,
 
   toolboxElements: [Information, ChartType, Fullscreen],
 

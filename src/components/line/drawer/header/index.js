@@ -13,7 +13,7 @@ const Container = styled(GridItem).attrs({
   }
 `
 
-const Header = ({ ...rest }) => {
+const Header = ({ onClick, ...rest }) => {
   const chart = useChart()
 
   return (

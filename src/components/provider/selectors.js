@@ -225,14 +225,14 @@ export const useDimensionIds = () => {
   return chart.getDimensionIds()
 }
 
-export const useUnitSign = () => {
+export const useUnitSign = long => {
   const chart = useChart()
 
   const forceUpdate = useForceUpdate()
 
   useImmediateListener(() => chart.onAttributeChange("unitsConversion", forceUpdate), [chart])
 
-  return chart.getUnitSign()
+  return chart.getUnitSign(long)
 }
 
 export const useUnits = () => {

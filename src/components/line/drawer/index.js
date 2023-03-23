@@ -8,13 +8,13 @@ import Dimensions from "./dimensions"
 export const Container = styled.div.attrs({ "data-testid": "chartDrawer" })`
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
-  grid-template-rows: auto;
+  grid-template-rows: 40px auto;
   grid-template-areas:
     "header header header header"
     "table table table chart";
   column-gap: 4px;
   row-gap: 8px;
-  align-items: center;
+  align-items: start;
   padding: 16px;
 `
 

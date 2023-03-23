@@ -6,10 +6,24 @@ import DimensionFilter from "@/components/line/dimensionSort"
 import Resize from "@/components/line/resize"
 import { useDimensionIds, useAttributeValue } from "@/components/provider/selectors"
 import Indicators from "@/components/line/indicators"
-import { labelColumn, valueColumn, anomalyColumn, annotationsColumn } from "./columns"
+import {
+  labelColumn,
+  valueColumn,
+  anomalyColumn,
+  annotationsColumn,
+  minColumn,
+  maxColumn,
+} from "./columns"
 import GridItem from "../gridItem"
 
-const columns = [labelColumn(), valueColumn(), anomalyColumn(), annotationsColumn()]
+const columns = [
+  labelColumn(),
+  valueColumn(),
+  minColumn(),
+  maxColumn(),
+  anomalyColumn(),
+  annotationsColumn(),
+]
 
 const meta = (row, cell, index) => ({
   cellStyles: {

@@ -48,7 +48,6 @@ export default (sdk, chart) => {
     gauge.setMinValue(0)
 
     resizeObserver = makeResizeObserver(element.parentNode, () => {
-      debugger
       const height = element.parentNode.clientHeight * 0.9
       element.G__height = height
       element.style.height = `${height}px`

@@ -15,8 +15,8 @@ export const getChartURLOptions = chart => {
 }
 
 const oneValueOptions = {
-  group_by: "selected",
-  group_by_label: "",
+  group_by: ["selected"],
+  group_by_label: [],
   aggregation: "avg",
 }
 

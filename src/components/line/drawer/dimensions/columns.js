@@ -50,15 +50,22 @@ export const labelColumn = fallbackExpandKey => ({
     const fractionDigits = chart.getAttribute("unitsConversionFractionDigits")
 
     return (
-      <Flex justifyContent="between" alignItems="center" padding={[0, 0, 0, depth * 3]}>
+      <Flex
+        justifyContent="between"
+        alignItems="center"
+        padding={[0, 0, 0, depth * 3]}
+        opacity={visible ? null : "weak"}
+      >
         <Flex alignItems="center" gap={1} position="relative" width="100%">
-          <ColorBackground
-            id={id}
-            valueKey={rowValueKeys[rowFlavour] || rowValueKeys.default}
-            height="18px"
-          >
-            <Color id={id} />
-          </ColorBackground>
+          {visible && (
+            <ColorBackground
+              id={id}
+              valueKey={rowValueKeys[rowFlavour] || rowValueKeys.default}
+              height="18px"
+            >
+              <Color id={id} />
+            </ColorBackground>
+          )}
           <Name padding={[1, 2]} flex id={id} />
         </Flex>
         {getCanExpand() && (
@@ -187,133 +194,49 @@ export const annotationsColumn = () => ({
   sortingFn: "basic",
 })
 
-export const instancesColumn = () => ({
-  id: "instances",
-  header: <TextSmall strong>Instances</TextSmall>,
-  size: 90,
-  minSize: 30,
-  cell: ({ getValue, row }) => {
-    if (!row.original.info?.is) return <TextSmall color="textLite">{getValue()}</TextSmall>
+export const minColumn = () => ({
+  id: "min",
+  header: <TextMicro>Min</TextMicro>,
+  size: 45,
+  minSize: 45,
+  cell: ({
+    row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
+  }) => {
+    const visible = useVisibleDimensionId(id)
 
-    const { qr = 0, sl = 0, ex = 0 } = row.original.info.is
     return (
-      <>
-        <TextSmall color="textLite">
-          <TextSmall color="primary">{qr}</TextSmall> out of {sl + ex}
-        </TextSmall>
-        <ProgressBar
-          background="progressBg"
-          color={["green", "deyork"]}
-          height={2}
-          width={`${(qr / (sl + ex)) * 100}%`}
-          containerWidth="100%"
-          border="none"
-        />
-      </>
+      <Value
+        textAlign="right"
+        id={id}
+        visible={visible}
+        valueKey="min"
+        Component={ValueOnDot}
+        fractionDigits={2}
+      />
     )
   },
   sortingFn: "basic",
 })
 
-export const metricsColumn = () => ({
-  id: "metrics",
-  header: <TextSmall strong>Metrics</TextSmall>,
-  size: 90,
-  minSize: 30,
-  cell: ({ row, getValue }) => {
-    if (!row.original.info?.ds) return <TextSmall color="textLite">{getValue()}</TextSmall>
-
-    const { qr = 0, sl = 0, ex = 0 } = row.original.info.ds
-    return (
-      <Flex alignItems="center" gap={1} position="relative">
-        <ColorBackground
-          id={id}
-          valueKey={rowValueKeys[rowFlavour] || rowValueKeys.default}
-          height="18px"
-        >
-          <Color id={id} />
-        </ColorBackground>
-        <Name padding={[1, 2]} flex id={id} strong={strong} maxLength={chars} />
-      </Flex>
-    )
-  },
-  sortingFn: "basic",
-})
-
-export const contributionColumn = () => ({
-  id: "contribution",
-  header: <TextSmall strong>Contribution %</TextSmall>,
-  size: 120,
-  minSize: 30,
-  cell: ({ row, getValue }) => {
-    if (!row.original.info?.sts) return <TextSmall color="textLite">{getValue()}</TextSmall>
+export const maxColumn = () => ({
+  id: "max",
+  header: <TextMicro>Min</TextMicro>,
+  size: 45,
+  minSize: 45,
+  cell: ({
+    row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
+  }) => {
+    const visible = useVisibleDimensionId(id)
 
     return (
-      <>
-        <TextSmall color="primary">
-          {Math.round((getValue() + Number.EPSILON) * 100) / 100}%
-        </TextSmall>
-        <ProgressBar
-          background="progressBg"
-          color={["green", "deyork"]}
-          height={2}
-          width={`${getValue()}%`}
-          containerWidth="100%"
-          border="none"
-        />
-      </>
-    )
-  },
-  sortingFn: "basic",
-})
-
-export const anomalyRateColumn = () => ({
-  id: "anomalyRate",
-  header: <TextSmall strong>AR %</TextSmall>,
-  size: 120,
-  minSize: 30,
-  cell: ({ row, getValue }) => {
-    if (!row.original.info?.sts) return <TextSmall color="textLite">{getValue()}</TextSmall>
-
-    return (
-      <>
-        <TextSmall color="textLite">
-          {Math.round((getValue() + Number.EPSILON) * 100) / 100}%
-        </TextSmall>
-        <ProgressBar
-          background="progressBg"
-          color="anomalyText"
-          height={2}
-          width={`${getValue()}%`}
-          containerWidth="100%"
-          border="none"
-        />
-      </>
-    )
-  },
-  sortingFn: "basic",
-})
-
-export const alertsColumn = () => ({
-  id: "alerts",
-  header: <TextSmall strong>Chart alerts</TextSmall>,
-  size: 130,
-  minSize: 30,
-  cell: ({ row, getValue }) => {
-    if (!row.original.info?.al) return <TextSmall color="textLite">{getValue()}</TextSmall>
-
-    const { cl = 0, cr = 0, wr = 0 } = row.original.info.al
-
-    const pillLeft = { text: cr, flavour: cr ? "error" : "disabledError" }
-    const pillRight = { text: wr, flavour: wr ? "warning" : "disabledWarning" }
-    const pillEnd = { text: cl, flavour: cl ? "clear" : "disabledClear" }
-
-    return (
-      <div>
-        <Flex flex={false}>
-          <MasterCard pillLeft={pillLeft} pillRight={pillRight} pillEnd={pillEnd} />
-        </Flex>
-      </div>
+      <Value
+        textAlign="right"
+        id={id}
+        visible={visible}
+        valueKey="max"
+        Component={ValueOnDot}
+        fractionDigits={2}
+      />
     )
   },
   sortingFn: "basic",
