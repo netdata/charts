@@ -1,4 +1,5 @@
 import { Gauge } from "gaugeJS"
+import { copyCanvas, createCanvas } from "@/helpers/canvas"
 import makeChartUI from "@/sdk/makeChartUI"
 import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
@@ -41,18 +42,19 @@ export default (sdk, chart) => {
       highDpiSupport: true, // High resolution support
     })
 
-    gauge = new Gauge(element).setOptions(makeGaugeOptions())
+    gauge = new Gauge(element.firstElementChild).setOptions(makeGaugeOptions())
 
     gauge.maxValue = 100
     gauge.setMinValue(0)
 
-    resizeObserver = makeResizeObserver(element.closest("div"), () => {
-      element.style.width = "100%"
-      element.style.height = "100%"
-      element.G__width = null
-      element.G__height = null
-
-      gauge = gauge.configDisplayScale()
+    resizeObserver = makeResizeObserver(element, () => {
+      gauge = null
+      element.firstElementChild.remove()
+      const newCanvas = document.createElement("canvas")
+      newCanvas.style.height = "100%"
+      element.appendChild(newCanvas)
+      // debugger
+      gauge = new Gauge(element.firstElementChild).setOptions(makeGaugeOptions())
 
       gauge.maxValue = 100
       gauge.setMinValue(0)
@@ -86,12 +88,12 @@ export default (sdk, chart) => {
     strokeColor: chartUI.getThemeAttribute("themeGaugeStroke"),
   })
 
-  const getMinMax = value => {
+  const getMinMax = (value = 0) => {
     let { min, max } = chart.getPayload()
 
-    const units = chart.getUnits()
+    const units = chart.getUnitSign()
 
-    if (units === "percentage" || units === "percent" || units === "pcent" || units.startsWith("%")) {
+    if (/%/.test(units)) {
       min = 0
       max = 100
     }

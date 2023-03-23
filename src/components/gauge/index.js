@@ -69,13 +69,14 @@ const useEmptyValue = () => {
   return value
 }
 
-export const Bound = ({ bound, value, empty, ...rest }) => {
+export const Bound = ({ bound, empty, index, ...rest }) => {
   const chart = useChart()
   const attrValue = useAttributeValue(bound)
+  const minMax = chart.getUI().getMinMax(attrValue)
 
   return (
     <Label color="border" fontSize="1.3em" {...rest}>
-      {empty ? "-" : chart.getConvertedValue(value || attrValue)}
+      {empty ? "-" : chart.getConvertedValue(minMax[index])}
     </Label>
   )
 }
@@ -89,13 +90,10 @@ export const BoundsContainer = styled(Flex).attrs({
 export const Bounds = () => {
   const empty = useEmptyValue()
 
-  const chart = useChart()
-  const minMax = chart.getUI().getMinMax()
-
   return (
     <BoundsContainer>
-      <Bound bound="min" empty={empty} value={minMax[0]} />
-      <Bound bound="max" empty={empty} value={minMax[1]} />
+      <Bound bound="min" empty={empty} index={0} />
+      <Bound bound="max" empty={empty} index={1} />
     </BoundsContainer>
   )
 }
@@ -125,7 +123,7 @@ export const Stats = () => {
       </StatsContainer>
       <StatsContainer
         fontSize={`${size / 15}px`}
-        inset={`90% ${(100 - ((size * 0.8) * 100) / width) / 2}% 0%`}
+        inset={`90% ${(100 - (size * 0.8 * 100) / width) / 2}% 0%`}
       >
         <Bounds />
       </StatsContainer>
@@ -152,10 +150,12 @@ export const Gauge = forwardRef((props, ref) => {
   const loaded = useAttributeValue("loaded")
 
   return (
-    <ChartWrapper alignItems="center" justifyContent="start" ref={ref}>
+    <ChartWrapper alignItems="center" justifyContent="center" column ref={ref}>
       {loaded ? (
         <>
-          <ChartContainer as="canvas" justifyContent="center" alignItems="center" />
+          <ChartContainer width="auto" height="100%" alignItems="center" justifyContent="start">
+            <canvas height="100%" />
+          </ChartContainer>
           <Stats />
         </>
       ) : (

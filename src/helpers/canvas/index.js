@@ -1,4 +1,4 @@
-export function createCanvas(width, height) {
+export const createCanvas = (width, height) => {
   const backgroundCanvas = document.createElement("canvas")
   backgroundCanvas.width = width
   backgroundCanvas.height = height
@@ -6,7 +6,7 @@ export function createCanvas(width, height) {
   return backgroundCanvas
 }
 
-export function copyCanvas(sourceCanvas, targetCanvas) {
+export const copyCanvas = (sourceCanvas, targetCanvas) => {
   targetCanvas.width = sourceCanvas.width
   targetCanvas.height = sourceCanvas.height
 

@@ -470,7 +470,7 @@ export default (sdk, chart) => {
       ...makeDataOptions(),
       ...makeVisibilityOptions(),
       ...makeColorOptions(),
-      ylabel: chart.getUnitSign(),
+      ylabel: chart.getUnitSign(true),
       digitsAfterDecimal: chart.getAttribute("unitsConversionFractionDigits"),
     })
   }

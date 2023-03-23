@@ -48,7 +48,10 @@ const getMethod = (chart, units, min, max) => {
 
   if (scalableUnits[units]) return scalable(units, min, max, desiredUnits)
 
-  return units === "%" || units === "percentage" ? ["original"] : scalable("num", min, max, units)
+  if (units === "percentage" || units === "percent" || units === "pcent" || /%/.test(units || ""))
+    return ["original"]
+
+  return scalable("num", min, max, units)
 }
 
 const decimals = [100, 10, 1, 0.1, 0.01, 0.001, 0.0001, 0.0001, 0.00001, 0.000001]

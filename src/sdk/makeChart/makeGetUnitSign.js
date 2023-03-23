@@ -51,6 +51,8 @@ export const unitMap = {
   "page faults/s": "p-f/s",
   pages: "pages",
   percentage: "%",
+  pcent: "%",
+  percent: "%",
   processes: "prc",
   "processes/s": "prc/s",
   "reads/s": "read/s",
