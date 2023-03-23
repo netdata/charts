@@ -42,19 +42,20 @@ export default (sdk, chart) => {
       highDpiSupport: true, // High resolution support
     })
 
-    gauge = new Gauge(element.firstElementChild).setOptions(makeGaugeOptions())
+    gauge = new Gauge(element).setOptions(makeGaugeOptions())
 
     gauge.maxValue = 100
     gauge.setMinValue(0)
 
-    resizeObserver = makeResizeObserver(element, () => {
-      gauge = null
-      element.firstElementChild.remove()
-      const newCanvas = document.createElement("canvas")
-      newCanvas.style.height = "100%"
-      element.appendChild(newCanvas)
-      // debugger
-      gauge = new Gauge(element.firstElementChild).setOptions(makeGaugeOptions())
+    resizeObserver = makeResizeObserver(element.parentNode, () => {
+      debugger
+      const height = element.parentNode.clientHeight * 0.9
+      element.G__height = height
+      element.style.height = `${height}px`
+      const width = element.parentNode.clientWidth
+      element.G__width = width
+      element.style.width = `${width}px`
+      gauge = gauge.configDisplayScale()
 
       gauge.maxValue = 100
       gauge.setMinValue(0)

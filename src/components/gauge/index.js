@@ -153,9 +153,7 @@ export const Gauge = forwardRef((props, ref) => {
     <ChartWrapper alignItems="center" justifyContent="center" column ref={ref}>
       {loaded ? (
         <>
-          <ChartContainer width="auto" height="100%" alignItems="center" justifyContent="start">
-            <canvas height="100%" />
-          </ChartContainer>
+          <ChartContainer as="canvas" />
           <Stats />
         </>
       ) : (
