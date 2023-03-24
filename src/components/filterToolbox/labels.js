@@ -8,6 +8,9 @@ import {
   metricsColumn,
   contributionColumn,
   anomalyRateColumn,
+  minColumn,
+  avgColumn,
+  maxColumn,
 } from "./columns"
 
 const tooltipProps = {
@@ -21,6 +24,9 @@ const columns = [
   metricsColumn(),
   contributionColumn(),
   anomalyRateColumn(),
+  minColumn(),
+  avgColumn(),
+  maxColumn(),
 ]
 
 const Labels = ({ labelProps, ...rest }) => {

@@ -58,10 +58,37 @@ export const uniqueColumn = () => ({
   sortingFn: "basic",
 })
 
+export const minColumn = () => ({
+  id: "min",
+  header: <TextSmall strong>Min</TextSmall>,
+  size: 60,
+  minSize: 30,
+  cell: ({ getValue }) => <TextSmall color="textLite">{getValue()}</TextSmall>,
+  sortingFn: "basic",
+})
+
+export const avgColumn = () => ({
+  id: "avg",
+  header: <TextSmall strong>Avg</TextSmall>,
+  size: 60,
+  minSize: 30,
+  cell: ({ getValue }) => <TextSmall color="textLite">{getValue()}</TextSmall>,
+  sortingFn: "basic",
+})
+
+export const maxColumn = () => ({
+  id: "max",
+  header: <TextSmall strong>Max</TextSmall>,
+  size: 60,
+  minSize: 30,
+  cell: ({ getValue }) => <TextSmall color="textLite">{getValue()}</TextSmall>,
+  sortingFn: "basic",
+})
+
 export const instancesColumn = () => ({
   id: "instances",
   header: <TextSmall strong>Instances</TextSmall>,
-  size: 90,
+  size: 60,
   minSize: 30,
   cell: ({ getValue, row }) => {
     if (!row.original.info?.is) return <TextSmall color="textLite">{getValue()}</TextSmall>
@@ -89,7 +116,7 @@ export const instancesColumn = () => ({
 export const metricsColumn = () => ({
   id: "metrics",
   header: <TextSmall strong>Metrics</TextSmall>,
-  size: 90,
+  size: 60,
   minSize: 30,
   cell: ({ row, getValue }) => {
     if (!row.original.info?.ds) return <TextSmall color="textLite">{getValue()}</TextSmall>
@@ -116,8 +143,8 @@ export const metricsColumn = () => ({
 
 export const contributionColumn = () => ({
   id: "contribution",
-  header: <TextSmall strong>Contribution %</TextSmall>,
-  size: 120,
+  header: <TextSmall strong>Vol %</TextSmall>,
+  size: 50,
   minSize: 30,
   cell: ({ row, getValue }) => {
     if (!row.original.info?.sts) return <TextSmall color="textLite">{getValue()}</TextSmall>
@@ -144,7 +171,7 @@ export const contributionColumn = () => ({
 export const anomalyRateColumn = () => ({
   id: "anomalyRate",
   header: <TextSmall strong>AR %</TextSmall>,
-  size: 120,
+  size: 50,
   minSize: 30,
   cell: ({ row, getValue }) => {
     if (!row.original.info?.sts) return <TextSmall color="textLite">{getValue()}</TextSmall>
@@ -170,9 +197,9 @@ export const anomalyRateColumn = () => ({
 
 export const alertsColumn = () => ({
   id: "alerts",
-  header: <TextSmall strong>Chart alerts</TextSmall>,
-  size: 130,
-  minSize: 30,
+  header: <TextSmall strong>Alerts</TextSmall>,
+  size: 50,
+  minSize: 50,
   cell: ({ row, getValue }) => {
     if (!row.original.info?.al) return <TextSmall color="textLite">{getValue()}</TextSmall>
 

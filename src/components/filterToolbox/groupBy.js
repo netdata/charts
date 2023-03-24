@@ -9,6 +9,9 @@ import {
   metricsColumn,
   contributionColumn,
   anomalyRateColumn,
+  minColumn,
+  avgColumn,
+  maxColumn,
 } from "./columns"
 
 const defaultItems = [
@@ -28,6 +31,9 @@ const columns = [
   metricsColumn(),
   contributionColumn(),
   anomalyRateColumn(),
+  minColumn(),
+  avgColumn(),
+  maxColumn(),
 ]
 
 const GroupBy = ({ labelProps, ...rest }) => {
@@ -50,6 +56,9 @@ const GroupBy = ({ labelProps, ...rest }) => {
           contribution: "-",
           anomalyRate: "-",
           alerts: "-",
+          min: "-",
+          avg: "-",
+          max: "-",
           selected,
         },
         childProps: { unique: "-", disabled: "hidden" },
