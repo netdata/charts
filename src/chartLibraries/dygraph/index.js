@@ -15,7 +15,6 @@ import makeNavigation from "./navigation"
 import makeHoverX from "./hoverX"
 import makeOverlays from "./overlays"
 import crosshair from "./crosshair"
-import drawAnnotations from "./drawAnnotations"
 
 const getDateWindow = chart => {
   const { after, before } = chart.getAttributes()
@@ -160,7 +159,6 @@ export default (sdk, chart) => {
       chart.onAttributeChange("enabledNavigation", navigation.toggle),
       chart.onAttributeChange("navigation", navigation.set),
       chart.onAttributeChange("overlays", overlays.toggle),
-      chart.onAttributeChange("annotations", () => drawAnnotations(dygraph, chartUI)),
       chart.onAttributeChange("theme", (nextTheme, prevTheme) => {
         element.classList.remove(prevTheme)
         element.classList.add(nextTheme)
@@ -207,7 +205,6 @@ export default (sdk, chart) => {
     ].filter(Boolean)
 
     overlays.toggle()
-    drawAnnotations(dygraph, chartUI)
 
     chartUI.render()
     chartUI.trigger("rendered")
