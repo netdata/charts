@@ -1,6 +1,7 @@
 import React from "react"
 import { Flex, ProgressBar, TextSmall, MasterCard } from "@netdata/netdata-ui"
 import Color from "@/components/line/dimensions/color"
+import { useConvertedValue } from "@/components/provider"
 import Label from "./label"
 
 const metricsByValue = {
@@ -63,7 +64,10 @@ export const minColumn = () => ({
   header: <TextSmall strong>Min</TextSmall>,
   size: 60,
   minSize: 30,
-  cell: ({ getValue }) => <TextSmall color="textLite">{getValue()}</TextSmall>,
+  cell: ({ getValue }) => {
+    const value = useConvertedValue(getValue())
+    return <TextSmall color="textLite">{value}</TextSmall>
+  },
   sortingFn: "basic",
 })
 
@@ -72,16 +76,22 @@ export const avgColumn = () => ({
   header: <TextSmall strong>Avg</TextSmall>,
   size: 60,
   minSize: 30,
-  cell: ({ getValue }) => <TextSmall color="textLite">{getValue()}</TextSmall>,
+  cell: ({ getValue }) => {
+    const value = useConvertedValue(getValue())
+    return <TextSmall color="textLite">{value}</TextSmall>
+  },
   sortingFn: "basic",
 })
 
 export const maxColumn = () => ({
   id: "max",
-  header: <TextSmall strong>Max</TextSmall>,
+  header: (...args) => <TextSmall strong>Max</TextSmall>,
   size: 60,
   minSize: 30,
-  cell: ({ getValue }) => <TextSmall color="textLite">{getValue()}</TextSmall>,
+  cell: ({ getValue }) => {
+    const value = useConvertedValue(getValue())
+    return <TextSmall color="textLite">{value}</TextSmall>
+  },
   sortingFn: "basic",
 })
 
@@ -116,8 +126,8 @@ export const instancesColumn = () => ({
 export const metricsColumn = () => ({
   id: "metrics",
   header: <TextSmall strong>Metrics</TextSmall>,
-  size: 60,
-  minSize: 30,
+  size: 80,
+  minSize: 60,
   cell: ({ row, getValue }) => {
     if (!row.original.info?.ds) return <TextSmall color="textLite">{getValue()}</TextSmall>
 
@@ -144,7 +154,7 @@ export const metricsColumn = () => ({
 export const contributionColumn = () => ({
   id: "contribution",
   header: <TextSmall strong>Vol %</TextSmall>,
-  size: 50,
+  size: 60,
   minSize: 30,
   cell: ({ row, getValue }) => {
     if (!row.original.info?.sts) return <TextSmall color="textLite">{getValue()}</TextSmall>
@@ -171,7 +181,7 @@ export const contributionColumn = () => ({
 export const anomalyRateColumn = () => ({
   id: "anomalyRate",
   header: <TextSmall strong>AR %</TextSmall>,
-  size: 50,
+  size: 60,
   minSize: 30,
   cell: ({ row, getValue }) => {
     if (!row.original.info?.sts) return <TextSmall color="textLite">{getValue()}</TextSmall>
@@ -198,8 +208,8 @@ export const anomalyRateColumn = () => ({
 export const alertsColumn = () => ({
   id: "alerts",
   header: <TextSmall strong>Alerts</TextSmall>,
-  size: 50,
-  minSize: 50,
+  size: 70,
+  minSize: 60,
   cell: ({ row, getValue }) => {
     if (!row.original.info?.al) return <TextSmall color="textLite">{getValue()}</TextSmall>
 
