@@ -12,24 +12,30 @@ const seconds2time = (seconds, maxTimeUnit, minTimeUnit = "MS") => {
   // annotate units in this case (not to show "HH:MM:SS.ms")
   let secondsReturn = Math.abs(seconds)
 
-  const days = maxTimeUnit === "DAYS" ? Math.floor(secondsReturn / 86_400) : 0
+  const days = Math.floor(secondsReturn / 86_400)
+  const daysString = maxTimeUnit === "DAYS" ? `${days}d` : ""
+
   secondsReturn -= days * 86_400
 
-  const hours =
-    maxTimeUnit === "DAYS" || maxTimeUnit === "HOURS" ? Math.floor(secondsReturn / 3_600) : 0
+  const hours = Math.floor(secondsReturn / 3_600)
+  const hoursString = zeropad(hours)
+
+  if (maxTimeUnit === "DAYS") return `${daysString}:${hoursString}`
+
   secondsReturn -= hours * 3_600
 
   const minutes = Math.floor(secondsReturn / 60)
+  const minutesString = zeropad(minutes)
+
+  if (maxTimeUnit === "HOURS") return `${hoursString}:${minutesString}`
+
   secondsReturn -= minutes * 60
 
-  const daysString = maxTimeUnit === "DAYS" ? `${days}d:` : ""
-  const hoursString = maxTimeUnit === "DAYS" || maxTimeUnit === "HOURS" ? `${zeropad(hours)}:` : ""
-  const minutesString = `${zeropad(minutes)}:`
   const secondsString = zeropad(
     minTimeUnit === "MS" ? secondsReturn.toFixed(2) : Math.round(secondsReturn)
   )
 
-  return `${daysString}${hoursString}${minutesString}${secondsString}`
+  return `${minutesString}:${secondsString}`
 }
 
 const twoFixed =
@@ -57,19 +63,27 @@ export default {
       check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 1_000 && max < 60_000,
       convert: twoFixed(0.001),
     },
-    "MM:SS.ms": {
+    "duration (minutes, seconds)": {
       check: (chart, max) =>
         chart.getAttribute("secondsAsTime") && max >= 60_000 && max < 3_600_000,
       convert: value => seconds2time(value / 1_000, "MINUTES"),
     },
-    "HH:MM:SS.ms": {
+    "duration (hours, minutes)": {
       check: (chart, max) =>
         chart.getAttribute("secondsAsTime") && max >= 3_600_000 && max < 86_400_000,
       convert: value => seconds2time(value / 1_000, "HOURS"),
     },
-    "dHH:MM:SS.ms": {
+    "duration (days, hours)": {
       check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400_000,
       convert: value => seconds2time(value / 1_000, "DAYS"),
+    },
+    "duration (months, days)": {
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400_000 * 30,
+      convert: value => seconds2time(value, "DAYS"),
+    },
+    "duration (years, months)": {
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400_000 * 30 * 12,
+      convert: value => seconds2time(value, "DAYS"),
     },
   },
 
@@ -86,16 +100,24 @@ export default {
       check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 1 && max < 60,
       convert: twoFixed(1),
     },
-    "MM:SS.ms": {
+    "duration (minutes, seconds)": {
       check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 60 && max < 3_600,
       convert: value => seconds2time(value, "MINUTES"),
     },
-    "HH:MM:SS.ms": {
+    "duration (hours, minutes)": {
       check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 3_600 && max < 86_400,
       convert: value => seconds2time(value, "HOURS"),
     },
-    "dHH:MM:SS.ms": {
+    "duration (days, hours)": {
       check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400,
+      convert: value => seconds2time(value, "DAYS"),
+    },
+    "duration (months, days)": {
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400 * 30,
+      convert: value => seconds2time(value, "DAYS"),
+    },
+    "duration (years, months)": {
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400 * 30 * 12,
       convert: value => seconds2time(value, "DAYS"),
     },
     "dHH:MM:ss": {

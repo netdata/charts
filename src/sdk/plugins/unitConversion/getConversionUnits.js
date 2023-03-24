@@ -71,7 +71,8 @@ const getConversionUnits = (chart, min, max, maxDecimals = 5) => {
 
   const delta = Math.abs(cMin === cMax ? cMin : cMax - cMin)
 
-  const fractionDigits = method === "original" || method === "divide" ? getFractionDigits(delta) : 0
+  const fractionDigits =
+    method === "original" || method === "divide" ? getFractionDigits(delta) : -1
 
   return {
     method,

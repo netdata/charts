@@ -265,8 +265,6 @@ export const useLatestValue = (id, valueKey = "value") => {
       id = id || dimensionIds[0]
       const dimValue = chart.getDimensionValue(id, index, valueKey)
 
-      if (isNaN(dimValue)) return null
-
       return dimValue
     }
 
@@ -288,7 +286,7 @@ export const useConvertedValue = (value, valueKey) => {
   const unitsConversion = useAttributeValue("unitsConversion")
 
   return useMemo(() => {
-    if (value === null || isNaN(value)) return "-"
+    if (value === null) return "-"
 
     if (valueKey === "ar" || valueKey === "percent")
       return value === 0 ? "-" : (Math.round((value + Number.EPSILON) * 100) / 100).toFixed(2)

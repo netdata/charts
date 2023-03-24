@@ -86,12 +86,11 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
       selectedContexts: [contexts],
       nodesScope: [nodesScope],
       contextScope: [contextScope],
-      selectedDimensions: ["out"],
+      selectedDimensions: ["netdata"],
       host: host,
       agent: true,
       chartLibrary: "number",
       syncHover: true,
-      chartUrlOptions: ["percentage"],
     },
   })
 
@@ -146,7 +145,7 @@ export const OneChart = Template.bind({})
 
 OneChart.args = {
   nodesScope: "*",
-  contextScope: "system.io",
+  contextScope: "apps.uptime",
   contexts: "*",
   singleDimension: "*",
   theme: "default",
