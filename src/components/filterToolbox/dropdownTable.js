@@ -10,6 +10,9 @@ const Container = styled(Flex)`
   list-style-type: none;
   border-radius: 2px;
   border: 1px solid ${getColor("borderSecondary")};
+  * {
+    box-sizing: border-box;
+  }
 `
 
 export const meta = (row, cell, index) => ({
@@ -32,7 +35,7 @@ export const meta = (row, cell, index) => ({
   },
   searchStyles: {
     inputContainerStyles: {
-      height: "20px",
+      height: "32px",
       border: { side: "all", size: "1px", color: "inputBg" },
       background: "inputBg",
       round: true,
