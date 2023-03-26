@@ -3,8 +3,8 @@ import pristine, { pristineKey } from "@/sdk/pristine"
 import getInitialFilterAttributes, { stackedAggregations } from "./getInitialAttributes"
 
 export default chart => {
-  const metadata = chart.getMetadata()
-  let prevChartType = metadata.chartType
+  const chartType = chart.getAttribute("chartType")
+  let prevChartType = chartType
   const onGroupChange = groupBy => {
     chart.updateAttribute("selectedLegendDimensions", [])
     if (chart.getAttribute("selectedChartType")) return
@@ -14,12 +14,12 @@ export default chart => {
       const aggregationMethod = chart.getAttribute("aggregationMethod")
       return chart.updateAttribute(
         "chartType",
-        stackedAggregations[aggregationMethod] ? "stacked" : metadata.chartType
+        stackedAggregations[aggregationMethod] ? "stacked" : chartType
       )
     } else {
       chart.updateAttribute("chartType", prevChartType)
     }
-    prevChartType = metadata.chartType
+    prevChartType = chartType
   }
 
   const allowedGroupByValues = {

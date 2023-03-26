@@ -114,16 +114,6 @@ export const useAttribute = name => {
   return [getValue(), updateValue]
 }
 
-export const useMetadata = () => {
-  const chart = useChart()
-
-  const forceUpdate = useForceUpdate()
-
-  useImmediateListener(() => chart.on("metadataChanged", forceUpdate), [chart])
-
-  return chart.getMetadata()
-}
-
 export const useTitle = () => {
   const title = useAttributeValue("title")
   const contextScope = useAttributeValue("contextScope")
@@ -245,48 +235,12 @@ export const useUnits = () => {
   return chart.getUnits()
 }
 
-export const useLatestValue = (id, valueKey = "value") => {
-  const chart = useChart()
-
-  const [value, setState] = useState(null)
-
-  useLayoutEffect(() => {
-    const getValue = () => {
-      const hover = chart.getAttribute("hoverX")
-      const { result } = chart.getPayload()
-
-      if (result.all.length === 0) return null
-
-      let index = hover ? chart.getClosestRow(hover[0]) : -1
-      index = index === -1 ? result.all.length - 1 : index
-
-      const dimensionIds = chart.getPayloadDimensionIds()
-
-      id = id || dimensionIds[0]
-      const dimValue = chart.getDimensionValue(id, index, valueKey)
-
-      return dimValue
-    }
-
-    setState(getValue())
-
-    return unregister(
-      chart.onAttributeChange("hoverX", () => setState(getValue())),
-      chart.on("dimensionChanged", () => setState(getValue())),
-      chart.onAttributeChange("unitsConversion", () => setState(getValue())),
-      chart.getUI().on("rendered", () => setState(getValue()))
-    )
-  }, [chart, id, valueKey])
-
-  return value
-}
-
-export const useConvertedValue = (value, valueKey) => {
+export const useConverted = (value, valueKey) => {
   const chart = useChart()
   const unitsConversion = useAttributeValue("unitsConversion")
 
   return useMemo(() => {
-    if (value === null) return "-"
+    if (value === null || value === "-") return "-"
 
     if (valueKey === "ar" || valueKey === "percent")
       return value === 0 ? "-" : (Math.round((value + Number.EPSILON) * 100) / 100).toFixed(2)
@@ -296,12 +250,6 @@ export const useConvertedValue = (value, valueKey) => {
 
     return chart.getConvertedValue(value)
   }, [chart, value, valueKey, unitsConversion])
-}
-
-export const useLatestConvertedValue = (id, valueKey = "value") => {
-  const value = useLatestValue(id, valueKey)
-
-  return useConvertedValue(value, valueKey)
 }
 
 export const useLatestRowAverageValue = (valueKey = "value") => {
@@ -335,3 +283,68 @@ export const useLatestRowAverageValue = (valueKey = "value") => {
 
   return value
 }
+
+const getValueByPeriod = {
+  latest: ({ chart, id, valueKey, objKey }) => {
+    const hover = chart.getAttribute("hoverX")
+    const { result } = chart.getPayload()
+
+    if (!result.all.length) return null
+
+    let index = hover ? chart.getClosestRow(hover[0]) : -1
+    index = index === -1 ? result.all.length - 1 : index
+
+    const dimensionIds = chart.getPayloadDimensionIds()
+
+    id = id || dimensionIds[0]
+    const dimValue = chart.getDimensionValue(id, index, valueKey, objKey)
+
+    return dimValue
+  },
+  window: ({ chart, id, valueKey, objKey }) => {
+    const viewDimensions = chart.getAttribute("viewDimensions")
+
+    let values = viewDimensions[valueKey]
+    if (objKey) values = values[objKey]
+
+    if (!values?.length) return null
+
+    const dimensionIds = chart.getPayloadDimensionIds()
+
+    id = id || dimensionIds[0]
+    return values[chart.getDimensionIndex(id)]
+  },
+}
+
+export const useValue = (id, period = "latest", valueKey = "value", objKey) => {
+  const chart = useChart()
+
+  const [value, setState] = useState(null)
+
+  useLayoutEffect(() => {
+    const getValue = () =>
+      (getValueByPeriod[period] || getValueByPeriod.latest)({ chart, id, valueKey, objKey })
+
+    setState(getValue())
+
+    return unregister(
+      chart.onAttributeChange("hoverX", () => setState(getValue())),
+      chart.on("dimensionChanged", () => setState(getValue())),
+      chart.onAttributeChange("unitsConversion", () => setState(getValue())),
+      chart.getUI().on("rendered", () => setState(getValue()))
+    )
+  }, [chart, id, valueKey, period])
+
+  return value
+}
+
+export const useLatestValue = (id, valueKey = "value") => useValue(id, "latest", valueKey)
+
+export const useConvertedValue = (id, period = "latest", valueKey = "value") => {
+  const value = useValue(id, period, valueKey)
+
+  return useConverted(value, valueKey)
+}
+
+export const useLatestConvertedValue = (id, valueKey = "value") =>
+  useConvertedValue(id, "latest", valueKey)

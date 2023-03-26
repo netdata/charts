@@ -1,4 +1,4 @@
-import React, { useMemo, memo } from "react"
+import React, { useCallback, useMemo, memo } from "react"
 import { useChart, useAttribute, useAttributeValue } from "@/components/provider"
 import { TextBig } from "@netdata/netdata-ui/lib/components/typography"
 import DropdownTable from "./dropdownTable"
@@ -43,8 +43,8 @@ const GroupBy = ({ labelProps, ...rest }) => {
 
   let label = "everything"
 
-  const options = useMemo(() => {
-    const metadata = chart.getMetadata()
+  const getOptions = useCallback(() => {
+    const attributes = chart.getAttributes()
 
     const defaultOptions = defaultItems.map(item => {
       const selected = groupBy.includes(item.id)
@@ -62,19 +62,19 @@ const GroupBy = ({ labelProps, ...rest }) => {
           selected,
         },
         childProps: { unique: "-", disabled: "hidden" },
-        children: Object.values(metadata[item.key]),
+        children: Object.values(attributes[item.key]),
       })
     })
 
     return [
       ...defaultOptions,
-      ...Object.keys(metadata.labels).map(id =>
-        getStats(chart, metadata.labels[id], {
+      ...Object.keys(attributes.labels).map(id =>
+        getStats(chart, attributes.labels[id], {
           key: "group-by",
           childrenKey: "label",
           props: { isLabel: true, selected: groupByLabel.includes(id) },
           childProps: { unique: "-", disabled: "hidden" },
-          children: metadata.labels[id].vl,
+          children: attributes.labels[id].vl,
         })
       ),
     ]
@@ -101,7 +101,6 @@ const GroupBy = ({ labelProps, ...rest }) => {
 
   return (
     <DropdownTable
-      // TODO: move whiteSpace prop to netdata ui table title
       title={
         <TextBig strong whiteSpace="nowrap">
           Group by
@@ -111,7 +110,7 @@ const GroupBy = ({ labelProps, ...rest }) => {
       data-track={chart.track("group-by")}
       labelProps={labelProps}
       onChange={chart.updateGroupByAttribute}
-      options={options}
+      getOptions={getOptions}
       secondaryLabel="Group by"
       tooltipProps={tooltipProps}
       value={value}

@@ -42,21 +42,6 @@ export const SimpleDark = () => {
   )
 }
 
-export const DelayedMetadata = () => {
-  const sdk = makeDefaultSDK({})
-
-  const chart = sdk.makeChart({
-    getChart,
-  })
-  sdk.appendChild(chart)
-
-  return (
-    <ThemeProvider theme={DefaultTheme}>
-      <Line chart={chart} height="315px" />
-    </ThemeProvider>
-  )
-}
-
 export default {
   title: "Composite",
   component: Simple,

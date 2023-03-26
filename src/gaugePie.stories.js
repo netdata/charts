@@ -3,22 +3,17 @@ import { ThemeProvider } from "styled-components"
 import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui/lib/theme"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { Button } from "@netdata/netdata-ui/lib/components/button"
-import { camelizeKeys } from "@/helpers/objectTransform"
 import EasyPie from "@/components/easyPie"
 import GaugeComponent from "@/components/gauge"
 import makeMockPayload from "@/helpers/makeMockPayload"
 import makeDefaultSDK from "./makeDefaultSDK"
 
-import systemIoChart from "@/fixtures/systemIoChart"
 import systemIoInGaugePie from "@/fixtures/systemIoInGaugePie"
 
-const metadata = camelizeKeys(systemIoChart, { omit: ["dimensions"] })
-
-const getChartMetadata = () => metadata
 const getChart = makeMockPayload(systemIoInGaugePie, { delay: 600 })
 
 export const Simple = () => {
-  const sdk = makeDefaultSDK({ getChartMetadata })
+  const sdk = makeDefaultSDK()
   const chart = sdk.makeChart({
     getChart,
     attributes: { updateEvery: 1, chartLibrary: "easypiechart" },
@@ -35,7 +30,7 @@ export const Simple = () => {
 }
 
 export const SimplePercentage = () => {
-  const sdk = makeDefaultSDK({ getChartMetadata })
+  const sdk = makeDefaultSDK()
   const chart = sdk.makeChart({
     getChart,
     attributes: { updateEvery: 1, chartLibrary: "easypiechart", units: "percentage" },
@@ -54,7 +49,7 @@ export const SimplePercentage = () => {
 export const Width = () => {
   const [width, setWidth] = useState(false)
   const chart = useMemo(() => {
-    const sdk = makeDefaultSDK({ getChartMetadata })
+    const sdk = makeDefaultSDK()
     const chart = sdk.makeChart({
       getChart,
       attributes: { updateEvery: 1, chartLibrary: "easypiechart" },
@@ -74,7 +69,7 @@ export const Width = () => {
 }
 
 export const SimpleDark = () => {
-  const sdk = makeDefaultSDK({ getChartMetadata })
+  const sdk = makeDefaultSDK()
   const chart = sdk.makeChart({
     getChart,
     attributes: { updateEvery: 1, chartLibrary: "easypiechart", theme: "dark" },
@@ -91,7 +86,7 @@ export const SimpleDark = () => {
 }
 
 export const InitialLoading = () => {
-  const sdk = makeDefaultSDK({ getChartMetadata })
+  const sdk = makeDefaultSDK()
   const chart = sdk.makeChart({ getChart: () => new Promise(() => {}) })
   const darkChart = sdk.makeChart({
     getChart: () => new Promise(() => {}),
@@ -110,7 +105,7 @@ export const InitialLoading = () => {
 }
 
 export const GaugePercent = () => {
-  const sdk = makeDefaultSDK({ getChartMetadata })
+  const sdk = makeDefaultSDK()
   const chart = sdk.makeChart({
     getChart,
     attributes: { updateEvery: 1, chartLibrary: "gauge", units: "percentage" },
@@ -129,7 +124,7 @@ export const GaugePercent = () => {
 export const GaugeWidth = () => {
   const [width, setWidth] = useState(false)
   const chart = useMemo(() => {
-    const sdk = makeDefaultSDK({ getChartMetadata })
+    const sdk = makeDefaultSDK()
     const chart = sdk.makeChart({
       getChart,
       attributes: { updateEvery: 1, chartLibrary: "gauge", units: "percentage" },
@@ -149,7 +144,7 @@ export const GaugeWidth = () => {
 }
 
 export const Gauge = () => {
-  const sdk = makeDefaultSDK({ getChartMetadata })
+  const sdk = makeDefaultSDK()
   const chart = sdk.makeChart({
     getChart,
     attributes: { updateEvery: 1, chartLibrary: "gauge" },
@@ -166,7 +161,7 @@ export const Gauge = () => {
 }
 
 export const GaugeInitialLoading = () => {
-  const sdk = makeDefaultSDK({ getChartMetadata })
+  const sdk = makeDefaultSDK()
   const chart = sdk.makeChart({ getChart: () => new Promise(() => {}) })
   const darkChart = sdk.makeChart({
     getChart: () => new Promise(() => {}),

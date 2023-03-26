@@ -2,7 +2,7 @@ import React, { memo } from "react"
 import styled from "styled-components"
 import { Flex, Text, TextMicro } from "@netdata/netdata-ui"
 import { useChart, useConvertedValue } from "@/components/provider"
-import Color, { BaseColorBar } from "@/components/line/dimensions/color"
+import { BaseColorBar } from "@/components/line/dimensions/color"
 import Label from "./label"
 
 const Container = styled(Flex).attrs(props => ({
@@ -27,7 +27,7 @@ const Grid = styled.div`
 
 const Labels = ({ index, label, groupLabel, data, id }) => {
   const chart = useChart()
-  const { viewDimensions } = chart.getMetadata()
+  const viewDimensions = chart.getAttribute("viewDimensions")
 
   const chartWidth = chart.getUI().getEstimatedChartWidth() * 0.9
   const value = chart.getRowDimensionValue(id, data)

@@ -11,12 +11,12 @@ export default (chart, sdk) => {
 
   const sparklineDimensions = ["sum"]
 
-  const hasSparklineDimension = () => chart.getAttributes().sparkline
+  const hasSparklineDimension = () => chart.getAttribute("sparkline")
 
   const getPayloadDimensionIds = () => {
     if (hasSparklineDimension()) return sparklineDimensions
 
-    const { viewDimensions } = chart.getMetadata()
+    const viewDimensions = chart.getAttribute("viewDimensions")
 
     return viewDimensions?.ids || []
   }
@@ -164,29 +164,31 @@ export default (chart, sdk) => {
   }
 
   const getDimensionName = id => {
-    const { viewDimensions } = chart.getMetadata()
+    const viewDimensions = chart.getAttribute("viewDimensions")
 
     return viewDimensions.names[dimensionsById[id]]
   }
 
   const getDimensionPriority = id => {
-    const { viewDimensions } = chart.getMetadata()
+    const viewDimensions = chart.getAttribute("viewDimensions")
 
     return viewDimensions.priorities[dimensionsById[id]]
   }
 
-  const getRowDimensionValue = (id, pointData, valueKey = "value") => {
-    if (typeof pointData?.[dimensionsById[id] + 1] === "undefined") return null
+  const getRowDimensionValue = (id, pointData, valueKey = "value", objKey) => {
+    if (objKey) pointData = pointData[objKey]
 
-    const value = pointData[dimensionsById[id] + 1]
+    const value = pointData?.[dimensionsById[id] + 1]
+    if (typeof value === "undefined") return null
+
     return value !== null && typeof value === "object" ? value[valueKey] : value
   }
 
-  const getDimensionValue = (id, index, valueKey) => {
+  const getDimensionValue = (id, index, valueKey, objKey) => {
     const { result } = chart.getPayload()
     const pointData = result.all[index]
 
-    return getRowDimensionValue(id, pointData, valueKey)
+    return getRowDimensionValue(id, pointData, valueKey, objKey)
   }
 
   const toggleDimensionId = (id, { merge = false } = {}) => {
@@ -215,13 +217,9 @@ export default (chart, sdk) => {
 
   chart.onAttributeChange("dimensionsSort", sortDimensions)
   chart.onAttributeChange("selectedLegendDimensions", updateVisibleDimensions)
-  chart.on("metadataChanged", () => {
-    sortDimensions()
-    updateVisibleDimensions()
-  })
 
-  const updateMetadataColors = () => {
-    let { dimensionIds } = chart.getMetadata()
+  const updateColors = () => {
+    let dimensionIds = chart.getAttribute("dimensionIds")
     if (!Object.keys(dimensionIds)?.length) return
 
     const keys = hasSparklineDimension() ? sparklineDimensions : dimensionIds
@@ -232,7 +230,7 @@ export default (chart, sdk) => {
   return {
     sortDimensions,
     updateDimensions,
-    updateMetadataColors,
+    updateColors,
     getDimensionIndex,
     getDimensionIds,
     getVisibleDimensionIds,

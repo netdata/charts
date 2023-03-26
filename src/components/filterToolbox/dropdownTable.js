@@ -54,9 +54,7 @@ const defaultSortBy = [{ id: "contribution", desc: true }]
 const defaultExpanded = {}
 
 const Dropdown = ({
-  rowSelection,
-  setRowSelection,
-  items,
+  getOptions,
   onItemClick,
   close,
   columns,
@@ -73,6 +71,14 @@ const Dropdown = ({
   title,
   ...rest
 }) => {
+  const items = useMemo(getOptions, [])
+  const [rowSelection, setRowSelection] = useState(() => buildSelections(items, {}))
+
+  useEffect(() => {
+    const newSelections = buildSelections(items, {})
+    setRowSelection(prev => (deepEqual(prev, newSelections) ? prev : newSelections))
+  }, [])
+
   const hasChanges = useMemo(() => !!newValues && deepEqual(value, newValues), [newValues])
 
   return (
@@ -172,7 +178,7 @@ const DropdownTable = ({
   label,
   labelProps,
   onChange,
-  options,
+  getOptions,
   secondaryLabel,
   tooltipProps,
   value,
@@ -192,15 +198,6 @@ const DropdownTable = ({
   const [isOpen, setIsOpen] = useState(false)
   const [newValues, setNewValues] = useState()
 
-  const [rowSelection, setRowSelection] = useState(() => buildSelections(options, {}))
-
-  useEffect(() => {
-    if (!isOpen) return
-
-    const newSelections = buildSelections(options, {})
-    setRowSelection(prev => (deepEqual(prev, newSelections) ? prev : newSelections))
-  }, [isOpen])
-
   useEffect(() => {
     if (isOpen || !newValues) return
 
@@ -210,7 +207,6 @@ const DropdownTable = ({
   return (
     <Menu
       onChange={setNewValues}
-      items={options}
       hasSearch={false}
       closeOnClick={false}
       Dropdown={Dropdown}
@@ -225,8 +221,7 @@ const DropdownTable = ({
         width: "100%",
         overflow: "auto",
         columns,
-        rowSelection,
-        setRowSelection,
+        getOptions,
         sortBy,
         onSortByChange,
         expanded,

@@ -1,29 +1,45 @@
-import React from "react"
+import React, { useMemo } from "react"
 import styled from "styled-components"
-import { Flex, NetdataTable, getColor } from "@netdata/netdata-ui"
+import { NetdataTable, TextSmall } from "@netdata/netdata-ui"
 import Legend from "@/components/line/legend"
 import DimensionFilter from "@/components/line/dimensionSort"
 import Resize from "@/components/line/resize"
 import { useDimensionIds, useAttributeValue } from "@/components/provider/selectors"
 import Indicators from "@/components/line/indicators"
-import {
-  labelColumn,
-  valueColumn,
-  anomalyColumn,
-  annotationsColumn,
-  minColumn,
-  maxColumn,
-} from "./columns"
+import { labelColumn, valueColumn, anomalyColumn, minColumn, avgColumn, maxColumn } from "./columns"
 import GridItem from "../gridItem"
 
-const columns = [
-  labelColumn(),
-  valueColumn(),
-  minColumn(),
-  maxColumn(),
-  anomalyColumn(),
-  annotationsColumn(),
-]
+const useColumns = (options = {}) =>
+  useMemo(
+    () => [
+      {
+        id: "Dimension group",
+        header: () => <TextSmall>Dimension</TextSmall>,
+        columns: [labelColumn(), valueColumn()],
+      },
+      {
+        id: "Visible group",
+        header: () => <TextSmall>Visible</TextSmall>,
+        columns: [
+          minColumn(options),
+          avgColumn(options),
+          maxColumn(options),
+          anomalyColumn(options),
+        ],
+      },
+      {
+        id: "DB group",
+        header: () => <TextSmall>DB</TextSmall>,
+        columns: [
+          minColumn({ ...options, objKey: "sts" }),
+          avgColumn({ ...options, objKey: "sts" }),
+          maxColumn({ ...options, objKey: "sts" }),
+          anomalyColumn({ ...options, objKey: "sts" }),
+        ],
+      },
+    ],
+    [options.period]
+  )
 
 const meta = (row, cell, index) => ({
   cellStyles: {
@@ -57,8 +73,11 @@ const meta = (row, cell, index) => ({
   },
 })
 
-const Drawer = () => {
+const Dimensions = () => {
   const dimensionIds = useDimensionIds()
+
+  const tab = useAttributeValue("weightsTab")
+  const columns = useColumns({ period: tab })
 
   return (
     <GridItem area="table">
@@ -84,4 +103,4 @@ const Drawer = () => {
   )
 }
 
-export default Drawer
+export default Dimensions

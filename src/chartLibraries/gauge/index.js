@@ -89,7 +89,7 @@ export default (sdk, chart) => {
   })
 
   const getMinMax = (value = 0) => {
-    let { min, max } = chart.getPayload()
+    let { min, max } = chart.getAttributes()
 
     const units = chart.getUnitSign()
 

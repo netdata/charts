@@ -19,13 +19,13 @@ export const Container = props => (
 
 const Footer = () => {
   const enabledHeightResize = useAttributeValue("enabledHeightResize")
-  const detailed = useAttributeValue("detailed")
+  const showingInfo = useAttributeValue("showingInfo")
   const expanded = useAttributeValue("expanded")
 
   return (
     <Container>
       <Indicators />
-      {!detailed &&
+      {!showingInfo &&
         (!expanded ? (
           <Flex alignItems="center">
             <DimensionSort />

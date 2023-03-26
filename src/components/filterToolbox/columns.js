@@ -1,7 +1,8 @@
 import React from "react"
-import { Flex, ProgressBar, TextSmall, MasterCard } from "@netdata/netdata-ui"
+import { Flex, ProgressBar, TextSmall, TextMicro, MasterCard } from "@netdata/netdata-ui"
 import Color from "@/components/line/dimensions/color"
-import { useConvertedValue } from "@/components/provider"
+import Units from "@/components/line/dimensions/units"
+import { useConverted } from "@/components/provider"
 import Label from "./label"
 
 const metricsByValue = {
@@ -52,7 +53,7 @@ export const labelColumn = fallbackExpandKey => ({
 
 export const uniqueColumn = () => ({
   id: "unique",
-  header: <TextSmall strong>Unique</TextSmall>,
+  header: <TextMicro strong>Unique</TextMicro>,
   size: 45,
   minSize: 30,
   cell: ({ getValue }) => <TextSmall color="textLite">{getValue()}</TextSmall>,
@@ -61,11 +62,15 @@ export const uniqueColumn = () => ({
 
 export const minColumn = () => ({
   id: "min",
-  header: <TextSmall strong>Min</TextSmall>,
+  header: (
+    <TextMicro strong>
+      Min <Units visible />
+    </TextMicro>
+  ),
   size: 60,
   minSize: 30,
   cell: ({ getValue }) => {
-    const value = useConvertedValue(getValue())
+    const value = useConverted(getValue())
     return <TextSmall color="textLite">{value}</TextSmall>
   },
   sortingFn: "basic",
@@ -73,11 +78,15 @@ export const minColumn = () => ({
 
 export const avgColumn = () => ({
   id: "avg",
-  header: <TextSmall strong>Avg</TextSmall>,
+  header: (
+    <TextMicro strong>
+      Avg <Units visible />
+    </TextMicro>
+  ),
   size: 60,
   minSize: 30,
   cell: ({ getValue }) => {
-    const value = useConvertedValue(getValue())
+    const value = useConverted(getValue())
     return <TextSmall color="textLite">{value}</TextSmall>
   },
   sortingFn: "basic",
@@ -85,11 +94,15 @@ export const avgColumn = () => ({
 
 export const maxColumn = () => ({
   id: "max",
-  header: (...args) => <TextSmall strong>Max</TextSmall>,
+  header: (
+    <TextMicro strong>
+      Max <Units visible />
+    </TextMicro>
+  ),
   size: 60,
   minSize: 30,
   cell: ({ getValue }) => {
-    const value = useConvertedValue(getValue())
+    const value = useConverted(getValue())
     return <TextSmall color="textLite">{value}</TextSmall>
   },
   sortingFn: "basic",
@@ -97,7 +110,7 @@ export const maxColumn = () => ({
 
 export const instancesColumn = () => ({
   id: "instances",
-  header: <TextSmall strong>Instances</TextSmall>,
+  header: <TextMicro strong>Instances</TextMicro>,
   size: 60,
   minSize: 30,
   cell: ({ getValue, row }) => {
@@ -125,7 +138,7 @@ export const instancesColumn = () => ({
 
 export const metricsColumn = () => ({
   id: "metrics",
-  header: <TextSmall strong>Metrics</TextSmall>,
+  header: <TextMicro strong>Metrics</TextMicro>,
   size: 80,
   minSize: 60,
   cell: ({ row, getValue }) => {
@@ -153,7 +166,7 @@ export const metricsColumn = () => ({
 
 export const contributionColumn = () => ({
   id: "contribution",
-  header: <TextSmall strong>Vol %</TextSmall>,
+  header: <TextMicro strong>Vol %</TextMicro>,
   size: 60,
   minSize: 30,
   cell: ({ row, getValue }) => {
@@ -180,7 +193,7 @@ export const contributionColumn = () => ({
 
 export const anomalyRateColumn = () => ({
   id: "anomalyRate",
-  header: <TextSmall strong>AR %</TextSmall>,
+  header: <TextMicro strong>AR %</TextMicro>,
   size: 60,
   minSize: 30,
   cell: ({ row, getValue }) => {
@@ -207,7 +220,7 @@ export const anomalyRateColumn = () => ({
 
 export const alertsColumn = () => ({
   id: "alerts",
-  header: <TextSmall strong>Alerts</TextSmall>,
+  header: <TextMicro strong>Alerts</TextMicro>,
   size: 70,
   minSize: 60,
   cell: ({ row, getValue }) => {

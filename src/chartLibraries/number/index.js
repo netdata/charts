@@ -26,7 +26,7 @@ export default (sdk, chart) => {
   }
 
   const getMinMax = value => {
-    let { min, max } = chart.getPayload()
+    let { min, max } = chart.getAttributes()
     if (min < 0 && max === 0) {
       max = -min
       min = 0

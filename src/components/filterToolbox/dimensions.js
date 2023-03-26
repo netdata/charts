@@ -1,5 +1,5 @@
-import React, { memo, useMemo } from "react"
-import { useChart, useAttribute, useAttributeValue, useMetadata } from "@/components/provider"
+import React, { memo, useCallback } from "react"
+import { useChart, useAttribute, useAttributeValue } from "@/components/provider"
 import DropdownTable from "./dropdownTable"
 import { getStats } from "./utils"
 
@@ -31,9 +31,10 @@ const columns = [
 const Dimensions = ({ labelProps, ...rest }) => {
   const chart = useChart()
   const value = useAttributeValue("selectedDimensions")
-  const { dimensions, dimensionsTotals } = useMetadata()
+  const dimensions = useAttributeValue("dimensions")
+  const dimensionsTotals = useAttributeValue("dimensionsTotals")
 
-  const options = useMemo(
+  const getOptions = useCallback(
     () =>
       Object.keys(dimensions).map(id => {
         const selected = value.includes(id)
@@ -55,7 +56,7 @@ const Dimensions = ({ labelProps, ...rest }) => {
       data-track={chart.track("dimensions")}
       labelProps={labelProps}
       onChange={chart.updateDimensionsAttribute}
-      options={options}
+      getOptions={getOptions}
       tooltipProps={tooltipProps}
       value={value}
       columns={columns}

@@ -14,7 +14,7 @@ export default {
   title: "",
   min: 0,
   max: 0,
-  updateEvery: 0,
+
   pristineValueRange: undefined,
   valueRange: null,
   getValueRange: ({ min = null, max = null, groupBy, valueRange, aggrMethod }) => {
@@ -57,13 +57,15 @@ export default {
   hovering: false,
   syncHighlight: true,
   highlighting: false,
+
   desiredUnits: "auto",
   syncUnits: false,
+
   unitsConversionMethod: "",
   unitsConversionDivider: -1,
   unitsConversionFractionDigits: 0,
   unitsConversion: "",
-  units: "",
+
   temperature: "celsius",
   secondsAsTime: true,
   timezone: undefined,
@@ -83,7 +85,7 @@ export default {
   overlays: {},
   themeGridColor: ["#F7F8F8", "#282827"],
   themeCrosshair: ["#536775", "#536775"],
-  detailed: false,
+  showingInfo: false,
   colors: [],
   height: "",
   enabledHeightResize: true,
@@ -96,7 +98,7 @@ export default {
 
   outOfLimits: false,
   aggregationMethod: "",
-  dimensions: [],
+
   groupBy: [],
   groupByLabel: [],
 
@@ -109,10 +111,6 @@ export default {
   nodesExpanded: {},
   groupByExpanded: {},
   labelsExpanded: {},
-
-  aggregationGroups: [],
-  postGroupBy: "",
-  selectedChart: "",
 
   pristine: {},
 
@@ -144,4 +142,32 @@ export default {
 
   expanded: false,
   expandedHeight: 300,
+
+  viewDimensions: {
+    ids: [],
+    names: [],
+    count: 0,
+    priorities: [],
+    grouped: [],
+    algorithm: "absolute", // absolute|incremental
+  },
+
+  // view
+  units: "",
+  viewUpdateEvery: 0, // view.update_every
+
+  // db
+  updateEvery: 0,
+  firstEntry: 0,
+  lastEntry: 0,
+
+  // summary
+  dimensions: [],
+  labels: [],
+  nodes: [],
+  instances: [],
+  alerts: [],
+
+  weightsAction: "values",
+  weightsTab: "window",
 }

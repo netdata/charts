@@ -1,17 +1,9 @@
 import makeListeners from "@/helpers/makeListeners"
 import makeContainer from "./makeContainer"
 import makeChart from "./makeChart"
-import makeChartsMetadata from "./makeChartsMetadata"
 import initialAttributes from "./initialAttributes"
 
-export default ({
-  ui,
-  plugins: defaultPlugins = {},
-  attributes: defaultAttributes,
-  on = {},
-  getChartMetadata,
-  chartsMetadata = makeChartsMetadata({ getChart: getChartMetadata }),
-}) => {
+export default ({ ui, plugins: defaultPlugins = {}, attributes: defaultAttributes, on = {} }) => {
   const listeners = makeListeners()
   const attributes = { ui }
   const plugins = {}
@@ -77,7 +69,6 @@ export default ({
 
   const instance = {
     ...listeners,
-    chartsMetadata,
     getRoot,
     register,
     unregister,

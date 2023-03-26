@@ -5,7 +5,7 @@ import { useChart, useAttribute } from "@/components/provider"
 
 const Information = props => {
   const chart = useChart()
-  const [value, setValue] = useAttribute("detailed")
+  const [value, setValue] = useAttribute("showingInfo")
 
   return (
     <Button

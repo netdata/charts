@@ -3,7 +3,7 @@ import plugins from "@netdata/netdata-ui/lib/components/icon/assets/plugins.svg"
 import { TextSmall } from "@netdata/netdata-ui/lib/components/typography"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import Icon from "@/components/icon"
-import { useMetadata } from "@/components/provider"
+import { useAttributeValue } from "@/components/provider"
 import Row from "./row"
 
 const Info = ({ title, children }) => (
@@ -16,8 +16,7 @@ const Info = ({ title, children }) => (
 )
 
 const Context = () => {
-  const { chartLabels, context, plugin } = useMetadata()
-  const pluginText = plugin || chartLabels?._collect_plugin?.[0]
+  const contextScope = useAttributeValue("contextScope")
 
   return (
     <Row
@@ -26,8 +25,7 @@ const Context = () => {
       color="key"
       data-testid="cartDetails-context"
     >
-      <Info title="Plugin">{pluginText}</Info>
-      <Info title="Context">{context}</Info>
+      <Info title="Context">{contextScope.join(", ")}</Info>
     </Row>
   )
 }

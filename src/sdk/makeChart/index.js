@@ -1,4 +1,3 @@
-import deepEqual from "@/helpers/deepEqual"
 import makeKeyboardListener from "@/helpers/makeKeyboardListener"
 import makeNode from "../makeNode"
 import initialPayload from "./initialPayload"
@@ -11,7 +10,6 @@ import makeFilterControllers from "./filters/makeControllers"
 import makeGetUnitSign from "./makeGetUnitSign"
 import makeWeights from "./makeWeights"
 import camelizePayload from "./camelizePayload"
-import initialMetadata from "../initialMetadata"
 
 const maxBackoffMs = 30 * 1000
 
@@ -21,17 +19,15 @@ export default ({
   sdk,
   parent,
   getChart = fetchChartData,
-  chartsMetadata,
   attributes,
   makeTrack = defaultMakeTrack,
 } = {}) => {
   let node = makeNode({ sdk, parent, attributes })
   let ui = null
   let abortController = null
-  let payload = initialPayload
+  let payload = { result: initialPayload.result }
   let nextPayload = null
   let fetchTimeoutId = null
-  let prevMetadata = null
 
   let backoffMs = null
   const backoff = ms => {
@@ -43,25 +39,11 @@ export default ({
     backoffMs = tmpBackoffMs > maxBackoffMs ? maxBackoffMs : tmpBackoffMs
   }
 
-  const getMetadataDecorator = () =>
-    node ? chartsMetadata || sdk.chartsMetadata : sdk.chartsMetadata
-
   const getPayload = () => payload
 
   const { invalidateClosestRowCache, getClosestRow } = makeGetClosestRow(getPayload)
 
   const cancelFetch = () => abortController && abortController.abort()
-
-  const getMetadata = () =>
-    node ? getMetadataDecorator().get(node) || initialMetadata : initialMetadata
-  const setMetadataAttributes = (values = {}) => {
-    if (!node || !getMetadataDecorator().set) return getMetadata()
-
-    getMetadataDecorator().set(node, values)
-    updateMetadata()
-    return getMetadata()
-  }
-  const setMetadataAttribute = (attribute, value) => setMetadataAttributes({ [attribute]: value })
 
   const getUpdateEvery = () => {
     if (!node) return
@@ -69,7 +51,7 @@ export default ({
     const { loaded, viewUpdateEvery: viewUpdateEveryAttribute } = node.getAttributes()
     if (viewUpdateEveryAttribute) return viewUpdateEveryAttribute * 1000
 
-    const { viewUpdateEvery, updateEvery } = getPayload()
+    const { viewUpdateEvery, updateEvery } = node.getAttributes()
     if (loaded && viewUpdateEvery) return viewUpdateEvery * 1000
 
     return updateEvery * 1000 || 2000
@@ -114,25 +96,13 @@ export default ({
 
   const doneFetch = nextRawPayload => {
     backoffMs = 0
-    const { metadata, result, chartType, ...restPayload } = camelizePayload(nextRawPayload)
+    const { result, chartType, versions, ...restPayload } = camelizePayload(nextRawPayload)
 
     const prevPayload = nextPayload
 
     nextPayload = {
-      ...initialPayload,
-      ...nextPayload,
-      ...restPayload,
       result,
-      chartType,
-      metadata,
     }
-
-    if (
-      !deepEqual(getMetadata(), metadata, {
-        keep: ["fullyLoaded", "dimensions", "labels", "nodes", "instances", "functions"],
-      })
-    )
-      setMetadataAttributes(metadata)
 
     const dataLength = getDataLength(nextPayload)
     if (
@@ -157,13 +127,20 @@ export default ({
       outOfLimits: !dataLength,
       chartType: attributes.selectedChartType || attributes.chartType || chartType,
       ...restPayload,
+      versions,
       title: attributes.title || restPayload.title,
       error: null,
     })
 
+    dimensions.sortDimensions()
+    dimensions.updateColors()
+
+    if (!node.getAttribute("initializedFilters"))
+      node.setAttributes(getInitialFilterAttributes(node))
+
     if (wasLoaded) node.trigger("successFetch", nextPayload, prevPayload)
 
-    updateVersions(nextPayload.versions)
+    updateVersions(versions)
     finishFetch()
   }
 
@@ -230,18 +207,11 @@ export default ({
   }
 
   const isNewerThanRetention = () => {
-    const metadata = getMetadata()
+    if (!node) return false
 
-    if (metadata) {
-      if (!node) return
-
-      const { firstEntry } = metadata
-      const { after, before } = node.getAttributes()
-      const absoluteBefore = after >= 0 ? before : Date.now() / 1000
-      return !firstEntry || firstEntry <= absoluteBefore
-    }
-
-    return false
+    const { firstEntry, after, before } = node.getAttributes()
+    const absoluteBefore = after >= 0 ? before : Date.now() / 1000
+    return !firstEntry || firstEntry <= absoluteBefore
   }
 
   const fetch = () => {
@@ -257,20 +227,6 @@ export default ({
       )
 
     return dataFetch()
-  }
-
-  const updateMetadata = () => {
-    if (!node) return
-
-    const metadata = getMetadata()
-    if (deepEqual(metadata, prevMetadata, { omit: ["lastEntry"] })) return
-
-    prevMetadata = getMetadata()
-    dimensions.updateMetadataColors()
-    node.trigger("metadataChanged")
-
-    if (!node.getAttribute("initializedFilters"))
-      node.setAttributes(getInitialFilterAttributes(node))
   }
 
   const getUI = () => ui
@@ -344,7 +300,7 @@ export default ({
     }
   }
 
-  const getFirstEntry = () => getPayload().firstEntry
+  const getFirstEntry = () => node.getAttribute("firstEntry")
 
   const getUnits = () => {
     if (!node) return
@@ -419,9 +375,6 @@ export default ({
     ...node,
     getUI,
     setUI,
-    getMetadata,
-    setMetadataAttribute,
-    setMetadataAttributes,
     getPayload,
     fetch,
     doneFetch,

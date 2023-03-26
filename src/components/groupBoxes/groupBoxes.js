@@ -68,7 +68,7 @@ const GroupBoxes = () => {
   const getColor = makeGetColor(min, max)
 
   const loaded = useAttributeValue("loaded")
-  const detailed = useAttributeValue("detailed")
+  const showingInfo = useAttributeValue("showingInfo")
 
   if (!loaded) return <SkeletonIcon />
 
@@ -81,7 +81,7 @@ const GroupBoxes = () => {
       position="relative"
       height={{ min: "150px" }}
     >
-      {detailed ? (
+      {showingInfo ? (
         <Details />
       ) : (
         Object.keys(tree).map(key => (

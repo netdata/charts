@@ -6,7 +6,7 @@ import { useChart, useAttributeValue } from "@/components/provider"
 const UpdateEvery = () => {
   const chart = useChart()
 
-  const { viewUpdateEvery = 0, updateEvery = 0 } = chart.getPayload()
+  const { viewUpdateEvery = 0, updateEvery = 0 } = chart.getAttributes()
 
   const groupingMethod = useAttributeValue("groupingMethod")
 

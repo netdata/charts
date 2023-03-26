@@ -58,7 +58,7 @@ export default (sdk, chart) => {
     chart.consumePayload()
     chart.updateDimensions()
     const attributes = chart.getAttributes()
-    const { result, min, max } = chart.getPayload()
+    const { result } = chart.getPayload()
 
     executeLatest = makeExecuteLatest()
     const isEmpty = attributes.outOfLimits || result.data.length === 0
@@ -191,8 +191,8 @@ export default (sdk, chart) => {
                     : result.labels.length,
                 ]
               : attributes.getValueRange({
-                  min,
-                  max,
+                  min: attributes.min,
+                  max: attributes.max,
                   groupBy: attributes.groupBy,
                   valueRange,
                   aggrMethod: attributes.aggregationMethod,
@@ -370,8 +370,10 @@ export default (sdk, chart) => {
       aggregationMethod,
       chartType,
       selectedLegendDimensions,
+      min,
+      max,
     } = chart.getAttributes()
-    const { result, min, max } = chart.getPayload()
+    const { result } = chart.getPayload()
     const dateWindow = getDateWindow(chart)
     const isEmpty = outOfLimits || result.data.length === 0
 

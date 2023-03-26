@@ -3,17 +3,12 @@ import { ThemeProvider } from "styled-components"
 import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui/lib/theme"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { Text } from "@netdata/netdata-ui/lib/components/typography"
-import { camelizeKeys } from "@/helpers/objectTransform"
 import GroupBoxes from "@/components/groupBoxes"
 import makeMockPayload from "@/helpers/makeMockPayload"
 import makeDefaultSDK from "./makeDefaultSDK"
 
-import kubernetesCpuLimitChart from "@/fixtures/kubernetesCpuLimitChart"
 import kubernetesCpuLimit from "@/fixtures/kubernetesCpuLimit"
 
-const metadata = camelizeKeys(kubernetesCpuLimitChart, { omit: ["dimensions", "chartLabels"] })
-
-const getChartMetadata = () => metadata
 const getChart = makeMockPayload(kubernetesCpuLimit, { delay: 600 })
 
 const Popover = ({ children }) => (
@@ -26,7 +21,7 @@ const renderBoxPopover = () => <Popover>Box Popover</Popover>
 const renderGroupPopover = () => <Popover>Group Popover</Popover>
 
 const makeChart = props => {
-  const sdk = makeDefaultSDK({ getChartMetadata })
+  const sdk = makeDefaultSDK()
   const chart = sdk.makeChart({
     getChart,
     attributes: {

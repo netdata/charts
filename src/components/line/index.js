@@ -12,7 +12,7 @@ import Footer from "./footer"
 
 export const Line = forwardRef(({ hasHeader = true, height, ...rest }, ref) => {
   const chart = useChart()
-  const detailed = useAttributeValue("detailed")
+  const showingInfo = useAttributeValue("showingInfo")
 
   const hoverRef = useHover(
     {
@@ -33,7 +33,7 @@ export const Line = forwardRef(({ hasHeader = true, height, ...rest }, ref) => {
     <Container ref={setRef} {...rest} height={height}>
       {hasHeader && <Header />}
       <FilterToolbox />
-      <ContentWrapper>{detailed ? <Details /> : <ChartContentWrapper />}</ContentWrapper>
+      <ContentWrapper>{showingInfo ? <Details /> : <ChartContentWrapper />}</ContentWrapper>
       <Footer />
     </Container>
   )

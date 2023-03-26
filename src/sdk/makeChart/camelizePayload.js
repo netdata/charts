@@ -67,7 +67,6 @@ const transformResult = (result, stats) => {
 
 export default payload => {
   const {
-    summary = {}, // set default value
     summary: {
       nodes: nodesArray = [],
       instances = [],
@@ -76,8 +75,7 @@ export default payload => {
       alerts = [],
     },
     functions = [],
-    detailed = {},
-    totals = {}, // set default value
+    details = {},
     totals: {
       contexts: contextsTotals = {},
       dimensions: dimensionsTotals = {},
@@ -133,27 +131,24 @@ export default payload => {
     title,
     tiers,
     perTier,
-    metadata: {
-      fullyLoaded: nodesArray.length > 0,
-      nodes,
-      nodesIndexes,
-      instances: instances.reduce((h, i) => {
-        h[`${i.id}@${nodes[nodesIndexes[i.ni]].mg}`] = i
-        return h
-      }, {}),
-      dimensions,
-      dimensionIds,
-      labels: labels.reduce((h, l) => ({ ...h, [l.id]: l }), {}),
-      alerts: alerts.reduce((h, a) => ({ ...h, [a.name]: a }), {}),
-      viewDimensions,
-      detailed,
-      functions,
-      contextsTotals,
-      dimensionsTotals,
-      instancesTotals,
-      labelsTotals,
-      nodesTotals,
-    },
+    nodes,
+    nodesIndexes,
+    instances: instances.reduce((h, i) => {
+      h[`${i.id}@${nodes[nodesIndexes[i.ni]].mg}`] = i
+      return h
+    }, {}),
+    dimensions,
+    dimensionIds,
+    labels: labels.reduce((h, l) => ({ ...h, [l.id]: l }), {}),
+    alerts: alerts.reduce((h, a) => ({ ...h, [a.name]: a }), {}),
+    viewDimensions,
+    details,
+    functions,
+    contextsTotals,
+    dimensionsTotals,
+    instancesTotals,
+    labelsTotals,
+    nodesTotals,
     min,
     max,
     ...stats,

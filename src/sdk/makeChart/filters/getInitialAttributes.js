@@ -9,7 +9,7 @@ export const stackedAggregations = {
 }
 
 export default chart => {
-  const { dimensions } = chart.getMetadata()
+  const dimensions = chart.getAttribute("dimensions")
   const aggregationMethodAttr = chart.getAttribute("aggregationMethod")
   const [groupBy, groupByLabel] = getDefaultGroupBy(chart)
 

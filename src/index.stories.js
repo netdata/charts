@@ -12,7 +12,6 @@ import makeDefaultSDK from "./makeDefaultSDK"
 
 import noData from "@/fixtures/noData"
 
-import systemLoadLineChart from "@/fixtures/systemLoadLineChart"
 import systemLoadLine from "@/fixtures/systemLoadLine"
 
 import systemCpuStacked from "@/fixtures/systemCpuStacked"
@@ -36,27 +35,11 @@ import appVmsStackedChart from "@/fixtures/appVmsStackedChart"
 import netOperstate from "@/fixtures/netOperstate"
 import netOperstateChart from "@/fixtures/netOperstateChart"
 
-const getChartMetadata = () => camelizeKeys(systemLoadLineChart, { omit: ["dimensions"] })
 const getChart = makeMockPayload(systemLoadLine[0], { delay: 600 })
 
 export const Simple = () => {
-  const sdk = makeDefaultSDK({ getChartMetadata })
+  const sdk = makeDefaultSDK()
   const chart = sdk.makeChart({ getChart })
-  sdk.appendChild(chart)
-
-  return (
-    <ThemeProvider theme={DefaultTheme}>
-      <Line chart={chart} height="315px" />
-    </ThemeProvider>
-  )
-}
-
-export const SimpleReal = () => {
-  const { id } = getChartMetadata()
-  const sdk = makeDefaultSDK({ getChartMetadata })
-  const chart = sdk.makeChart({
-    attributes: { host: "http://d1.firehol.org/api/v1", id },
-  })
   sdk.appendChild(chart)
 
   return (
@@ -69,7 +52,7 @@ export const SimpleReal = () => {
 export const Width = () => {
   const [width, setWidth] = useState(false)
   const chart = useMemo(() => {
-    const sdk = makeDefaultSDK({ getChartMetadata })
+    const sdk = makeDefaultSDK()
     const chart = sdk.makeChart({ getChart, attributes: { navigation: "selectVertical" } })
     sdk.appendChild(chart)
     return chart
@@ -88,7 +71,7 @@ export const Width = () => {
 }
 
 export const SimpleDark = () => {
-  const sdk = makeDefaultSDK({ getChartMetadata, attributes: { theme: "dark" } })
+  const sdk = makeDefaultSDK({ attributes: { theme: "dark" } })
   const chart = sdk.makeChart({ getChart })
   sdk.appendChild(chart)
 
@@ -102,7 +85,7 @@ export const SimpleDark = () => {
 }
 
 export const NoData = () => {
-  const sdk = makeDefaultSDK({ getChartMetadata })
+  const sdk = makeDefaultSDK()
   const chart = sdk.makeChart({
     getChart: () => new Promise(r => setTimeout(() => r(noData), 600)),
   })
@@ -132,7 +115,7 @@ const TimezonePicker = withChartProvider(() => {
 
 export const Timezone = () => {
   const chart = useMemo(() => {
-    const sdk = makeDefaultSDK({ getChartMetadata })
+    const sdk = makeDefaultSDK()
     const chart = sdk.makeChart({ getChart, attributes: { timezone: "Pacific/Honolulu" } })
     sdk.appendChild(chart)
 
@@ -186,7 +169,7 @@ const TimePicker = withChartProvider(() => {
 
 export const Timepicker = () => {
   const chart = useMemo(() => {
-    const sdk = makeDefaultSDK({ getChartMetadata })
+    const sdk = makeDefaultSDK()
     const chart = sdk.makeChart({ getChart, attributes: {} })
     sdk.appendChild(chart)
 
@@ -201,38 +184,8 @@ export const Timepicker = () => {
   )
 }
 
-export const BeforeFirstEntry = () => {
-  const fromTimestamp = Date.now() - 10 * 60 * 1000
-  const firstEntry = Math.floor(fromTimestamp / 1000)
-
-  const after = firstEntry - 100 * 60
-  const before = after + 15 * 60
-
-  const sdk = makeDefaultSDK({
-    getChartMetadata: () => ({ ...getChartMetadata(), firstEntry }),
-    attributes: { after, before },
-  })
-  const chart = sdk.makeChart({
-    getChart: chart =>
-      getChart(chart).then(payload => ({
-        ...payload,
-        result: {
-          ...payload.result,
-          data: payload.result.data.filter(d => d[0] > fromTimestamp),
-        },
-      })),
-  })
-  sdk.appendChild(chart)
-
-  return (
-    <ThemeProvider theme={DefaultTheme}>
-      <Line chart={chart} height="315px" />
-    </ThemeProvider>
-  )
-}
-
 export const SelectedDimensions = () => {
-  const sdk = makeDefaultSDK({ getChartMetadata })
+  const sdk = makeDefaultSDK()
   const chart = sdk.makeChart({
     getChart,
     attributes: {
@@ -248,34 +201,8 @@ export const SelectedDimensions = () => {
   )
 }
 
-export const PrecededData = () => {
-  const fromTimestamp = Math.floor(Date.now() - 10 * 60 * 1000)
-  const firstEntry = Math.floor(fromTimestamp / 1000)
-
-  const sdk = makeDefaultSDK({
-    getChartMetadata: () => ({ ...getChartMetadata(), firstEntry }),
-  })
-  const chart = sdk.makeChart({
-    getChart: chart =>
-      getChart(chart).then(payload => ({
-        ...payload,
-        result: {
-          ...payload.result,
-          data: payload.result.data.filter(d => d[0] > fromTimestamp),
-        },
-      })),
-  })
-  sdk.appendChild(chart)
-
-  return (
-    <ThemeProvider theme={DefaultTheme}>
-      <Line chart={chart} height="315px" />
-    </ThemeProvider>
-  )
-}
-
 export const AlertInTimeWindow = () => {
-  const sdk = makeDefaultSDK({ getChartMetadata })
+  const sdk = makeDefaultSDK()
 
   const chart = sdk.makeChart({
     getChart,
@@ -300,39 +227,8 @@ export const AlertInTimeWindow = () => {
   )
 }
 
-export const AlertRangeInTimeWindow = () => {
-  const getChartMetadata = () => camelizeKeys(systemCpuStackedChart, { omit: ["dimensions"] })
-  const getChart = makeMockPayload(systemCpuStacked, { delay: 1000 })
-
-  const sdk = makeDefaultSDK({ getChartMetadata })
-
-  const chart = sdk.makeChart({
-    getChart,
-    attributes: {
-      overlays: {
-        alarmRange: {
-          type: "alarmRange",
-          status: "critical",
-          valueTriggered: "123 %",
-          valueLast: "456 %",
-          whenTriggered: Math.floor(Date.now() / 1000 - 6 * 60),
-          whenLast: Math.floor(Date.now() / 1000 - 1 * 60),
-        },
-        proceeded: { type: "proceeded" },
-      },
-    },
-  })
-  sdk.appendChild(chart)
-
-  return (
-    <ThemeProvider theme={DefaultTheme}>
-      <Line chart={chart} height="315px" />
-    </ThemeProvider>
-  )
-}
-
 export const HighlightInTimeWindow = () => {
-  const sdk = makeDefaultSDK({ getChartMetadata })
+  const sdk = makeDefaultSDK()
 
   const chart = sdk.makeChart({
     getChart,
@@ -355,47 +251,9 @@ export const HighlightInTimeWindow = () => {
   )
 }
 
-export const AlertBeforeFirstEntry = () => {
-  const fromTimestamp = Math.floor(Date.now() - 10 * 60 * 1000)
-  const firstEntry = Math.floor(fromTimestamp / 1000)
-
-  const sdk = makeDefaultSDK({
-    getChartMetadata: () => ({ ...getChartMetadata(), firstEntry }),
-  })
-
-  const chart = sdk.makeChart({
-    getChart: chart =>
-      getChart(chart).then(payload => ({
-        ...payload,
-        result: {
-          ...payload.result,
-          data: payload.result.data.filter(d => d[0] > fromTimestamp),
-        },
-      })),
-    attributes: {
-      overlays: {
-        proceeded: { type: "proceeded" },
-        alarm: {
-          type: "alarm",
-          status: "critical",
-          value: 136,
-          when: firstEntry - 1 * 60,
-        },
-      },
-    },
-  })
-  sdk.appendChild(chart)
-
-  return (
-    <ThemeProvider theme={DefaultTheme}>
-      <Line chart={chart} height="315px" />
-    </ThemeProvider>
-  )
-}
-
 export const Timeout = () => {
   let requests = 0
-  const sdk = makeDefaultSDK({ getChartMetadata })
+  const sdk = makeDefaultSDK()
   const chart = sdk.makeChart({
     getChart: params => {
       if (requests++ % 2 === 1)
@@ -414,7 +272,7 @@ export const Timeout = () => {
 
 export const Error = () => {
   let requests = 0
-  const sdk = makeDefaultSDK({ getChartMetadata })
+  const sdk = makeDefaultSDK()
   const chart = sdk.makeChart({
     getChart: params => {
       if (requests++ % 2 === 1)
@@ -432,7 +290,7 @@ export const Error = () => {
 }
 
 export const InitialLoading = () => {
-  const sdk = makeDefaultSDK({ getChartMetadata })
+  const sdk = makeDefaultSDK()
   const chart = sdk.makeChart({ getChart: () => new Promise(() => {}) })
   const darkChart = sdk.makeChart({
     getChart: () => new Promise(() => {}),
@@ -456,7 +314,7 @@ export const InitialLoading = () => {
 }
 
 export const NoInteractions = () => {
-  const sdk = makeDefaultSDK({ getChartMetadata })
+  const sdk = makeDefaultSDK()
   const chart = sdk.makeChart({ getChart, attributes: { enabledNavigation: false } })
   sdk.appendChild(chart)
 
@@ -467,32 +325,8 @@ export const NoInteractions = () => {
   )
 }
 
-export const MultipleReal = () => {
-  const { id } = getChartMetadata()
-  const sdk = makeDefaultSDK({ getChartMetadata })
-
-  const charts = Array.from(Array(10)).map((v, index) => {
-    const chart = sdk.makeChart({
-      attributes: { host: "http://d1.firehol.org/api/v1" },
-    })
-    sdk.appendChild(chart)
-
-    return chart
-  })
-
-  return (
-    <ThemeProvider theme={DefaultTheme}>
-      <Flex column gap={20}>
-        {charts.map(chart => (
-          <Line key={chart.getAttribute("id")} chart={chart} height="315px" />
-        ))}
-      </Flex>
-    </ThemeProvider>
-  )
-}
-
 export const Multiple = () => {
-  const sdk = makeDefaultSDK({ getChartMetadata })
+  const sdk = makeDefaultSDK()
 
   const charts = Array.from(Array(10)).map((v, index) => {
     const chart = sdk.makeChart({ attributes: { id: index }, getChart })
@@ -513,7 +347,7 @@ export const Multiple = () => {
 }
 
 export const Sync = () => {
-  const sdk = makeDefaultSDK({ getChartMetadata })
+  const sdk = makeDefaultSDK()
 
   const charts = Array.from(Array(3)).map((v, index) => {
     const chart = sdk.makeChart({ attributes: { id: index, syncHover: index !== 1 }, getChart })
@@ -528,112 +362,6 @@ export const Sync = () => {
           <Line key={chart.getAttribute("id")} chart={chart} height="315px" />
         ))}
       </Flex>
-    </ThemeProvider>
-  )
-}
-
-export const SystemCpuStackedChart = () => {
-  const getChartMetadata = () => camelizeKeys(systemCpuStackedChart, { omit: ["dimensions"] })
-  const getChart = makeMockPayload(systemCpuStacked, { delay: 1000 })
-
-  const sdk = makeDefaultSDK({ getChartMetadata })
-  const chart = sdk.makeChart({ getChart })
-  sdk.appendChild(chart)
-
-  return (
-    <ThemeProvider theme={DefaultTheme}>
-      <Line chart={chart} height="315px" />
-    </ThemeProvider>
-  )
-}
-
-export const SystemRamStacked = () => {
-  const getChartMetadata = () => camelizeKeys(systemRamStackedChart, { omit: ["dimensions"] })
-  const getChart = makeMockPayload(systemRamStacked, { delay: 1000 })
-
-  const sdk = makeDefaultSDK({ getChartMetadata })
-  const chart = sdk.makeChart({ getChart })
-  sdk.appendChild(chart)
-
-  return (
-    <ThemeProvider theme={DefaultTheme}>
-      <Line chart={chart} height="315px" />
-    </ThemeProvider>
-  )
-}
-
-export const AreaWebLogNginxResponseTimeArea = () => {
-  const getChartMetadata = () =>
-    camelizeKeys(webLogNginxResponseTimeAreaChart, { omit: ["dimensions"] })
-  const getChart = makeMockPayload(webLogNginxResponseTimeArea, { delay: 1000 })
-
-  const sdk = makeDefaultSDK({ getChartMetadata })
-  const chart = sdk.makeChart({ getChart })
-  sdk.appendChild(chart)
-
-  return (
-    <ThemeProvider theme={DefaultTheme}>
-      <Line chart={chart} height="315px" />
-    </ThemeProvider>
-  )
-}
-
-export const SystemIpv6Area = () => {
-  const getChartMetadata = () => camelizeKeys(systemIpv6AreaChart, { omit: ["dimensions"] })
-  const getChart = makeMockPayload(systemIpv6Area, { delay: 1000 })
-
-  const sdk = makeDefaultSDK({ getChartMetadata })
-  const chart = sdk.makeChart({ getChart })
-  sdk.appendChild(chart)
-
-  return (
-    <ThemeProvider theme={DefaultTheme}>
-      <Line chart={chart} height="315px" />
-    </ThemeProvider>
-  )
-}
-
-export const SystemIpArea = () => {
-  const getChartMetadata = () => camelizeKeys(systemIpAreaChart, { omit: ["dimensions"] })
-  const getChart = makeMockPayload(systemIpArea, { delay: 1000 })
-
-  const sdk = makeDefaultSDK({ getChartMetadata })
-  const chart = sdk.makeChart({ getChart })
-  sdk.appendChild(chart)
-
-  return (
-    <ThemeProvider theme={DefaultTheme}>
-      <Line chart={chart} height="315px" />
-    </ThemeProvider>
-  )
-}
-
-export const AppVmsStacked = () => {
-  const getChartMetadata = () => camelizeKeys(appVmsStackedChart, { omit: ["dimensions"] })
-  const getChart = makeMockPayload(appVmsStacked, { delay: 1000 })
-
-  const sdk = makeDefaultSDK({ getChartMetadata })
-  const chart = sdk.makeChart({ getChart })
-  sdk.appendChild(chart)
-
-  return (
-    <ThemeProvider theme={DefaultTheme}>
-      <Line chart={chart} height="315px" />
-    </ThemeProvider>
-  )
-}
-
-export const ConstantLineChart = () => {
-  const getChartMetadata = () => camelizeKeys(netOperstateChart, { omit: ["dimensions"] })
-  const getChart = makeMockPayload(netOperstate, { delay: 1000 })
-
-  const sdk = makeDefaultSDK({ getChartMetadata })
-  const chart = sdk.makeChart({ getChart })
-  sdk.appendChild(chart)
-
-  return (
-    <ThemeProvider theme={DefaultTheme}>
-      <Line chart={chart} height="315px" />
     </ThemeProvider>
   )
 }

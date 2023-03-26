@@ -28,7 +28,7 @@ export const GroupBoxesContainer = forwardRef((props, ref) => {
     ref.current = node
   })
 
-  const detailed = useAttributeValue("detailed")
+  const showingInfo = useAttributeValue("showingInfo")
 
   return (
     <Container ref={setRef} {...props}>
@@ -38,7 +38,7 @@ export const GroupBoxesContainer = forwardRef((props, ref) => {
         <GroupBoxes />
       </ChartContainer>
 
-      {!detailed && <Footer />}
+      {!showingInfo && <Footer />}
     </Container>
   )
 })

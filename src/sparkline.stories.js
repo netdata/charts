@@ -2,23 +2,17 @@ import React from "react"
 import { ThemeProvider } from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui/lib/theme"
-import { camelizeKeys } from "@/helpers/objectTransform"
 import Sparkline from "@/components/line/sparkline"
 import makeMockPayload from "@/helpers/makeMockPayload"
 import makeDefaultSDK from "./makeDefaultSDK"
 
-import cgroupCpuSparklineOverviewChart from "@/fixtures/cgroupCpuSparklineOverviewChart"
 import cgroupCpuSparkline from "@/fixtures/cgroupCpuSparklineOverview"
-
-import systemCpuSparklineChart from "@/fixtures/systemCpuSparklineChart"
 import systemCpuSparkline from "@/fixtures/systemCpuSparkline"
 
-const getChartMetadata = () =>
-  camelizeKeys(cgroupCpuSparklineOverviewChart, { omit: ["dimensions"] })
 const getChart = makeMockPayload(cgroupCpuSparkline, { delay: 600 })
 
 export const Simple = () => {
-  const sdk = makeDefaultSDK({ getChartMetadata })
+  const sdk = makeDefaultSDK()
   const chart = sdk.makeChart({
     getChart,
     attributes: {
@@ -37,7 +31,7 @@ export const Simple = () => {
 }
 
 export const SimpleDark = () => {
-  const sdk = makeDefaultSDK({ getChartMetadata, attributes: { theme: "dark", sparkline: true } })
+  const sdk = makeDefaultSDK({ attributes: { theme: "dark", sparkline: true } })
   const chart = sdk.makeChart({ getChart })
   sdk.appendChild(chart)
 
@@ -51,7 +45,7 @@ export const SimpleDark = () => {
 }
 
 export const InitialLoading = () => {
-  const sdk = makeDefaultSDK({ getChartMetadata })
+  const sdk = makeDefaultSDK()
   const chart = sdk.makeChart({ getChart: () => new Promise(() => {}) })
   const darkChart = sdk.makeChart({
     getChart: () => new Promise(() => {}),
@@ -75,9 +69,7 @@ export const InitialLoading = () => {
 }
 
 export const SimpleNodes = () => {
-  const sdk = makeDefaultSDK({
-    getChartMetadata: () => camelizeKeys(systemCpuSparklineChart, { omit: ["dimensions"] }),
-  })
+  const sdk = makeDefaultSDK()
   const chart = sdk.makeChart({
     getChart: makeMockPayload(systemCpuSparkline, { delay: 600 }),
     attributes: {

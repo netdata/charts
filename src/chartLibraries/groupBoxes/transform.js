@@ -19,7 +19,7 @@ export default chart => {
   const {
     viewDimensions = {}, // set default value
     viewDimensions: { ids: dimensionIds = [] },
-  } = chart.getMetadata()
+  } = chart.getAttributes()
 
   const tree = dimensionIds.reduce((h, id) => {
     const keys = id.split(",")

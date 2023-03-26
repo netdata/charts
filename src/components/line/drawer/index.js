@@ -20,12 +20,14 @@ export const Container = styled.div.attrs({ "data-testid": "chartDrawer" })`
 
 const Drawer = () => {
   const expandedHeight = useAttributeValue("expandedHeight")
+  const action = useAttributeValue("weightsAction")
+  const tab = useAttributeValue("weightsTab")
 
   return (
     <Flex height={`${expandedHeight}px`} flex={false}>
       <Container>
         <Header />
-        <Dimensions />
+        <Dimensions period={tab} />
       </Container>
     </Flex>
   )

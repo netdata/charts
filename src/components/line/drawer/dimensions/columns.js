@@ -1,5 +1,5 @@
 import React from "react"
-import { Flex, ProgressBar, TextSmall, TextMicro, MasterCard } from "@netdata/netdata-ui"
+import { Flex, TextSmall, TextMicro } from "@netdata/netdata-ui"
 import styled from "styled-components"
 import Color, { ColorBar } from "@/components/line/dimensions/color"
 import Name from "@/components/line/dimensions/name"
@@ -35,7 +35,7 @@ const emptyArray = []
 
 export const labelColumn = fallbackExpandKey => ({
   id: "label",
-  header: () => <TextSmall strong>Dimension</TextSmall>,
+  header: () => <TextSmall strong>Name</TextSmall>,
   size: 300,
   minSize: 60,
   cell: ({
@@ -122,14 +122,20 @@ export const valueColumn = () => ({
     const fractionDigits = chart.getAttribute("unitsConversionFractionDigits")
 
     return (
-      <Value id={id} visible={visible} Component={ValueOnDot} fractionDigits={fractionDigits} />
+      <Value
+        period="latest"
+        id={id}
+        visible={visible}
+        Component={ValueOnDot}
+        fractionDigits={fractionDigits}
+      />
     )
   },
   sortingFn: "basic",
 })
 
-export const anomalyColumn = () => ({
-  id: "ar",
+export const anomalyColumn = ({ period, objKey }) => ({
+  id: objKey ? `${objKey}-ar` : "ar",
   header: <TextMicro>AR %</TextMicro>,
   size: 45,
   minSize: 45,
@@ -140,6 +146,8 @@ export const anomalyColumn = () => ({
 
     return (
       <Value
+        period={period}
+        objKey={objKey}
         textAlign="right"
         id={id}
         visible={visible}
@@ -153,27 +161,13 @@ export const anomalyColumn = () => ({
   sortingFn: "basic",
 })
 
-const AnnotationsValue = ({ children: annotations, ...rest }) => (
-  <Flex gap={1} justifyContent="end">
-    {Object.keys(annotations).map(ann => (
-      <Flex
-        key={ann}
-        border={{ size: "1px", side: "all", color: annotations[ann] }}
-        round
-        flex={false}
-        padding={[0, 0.5]}
-      >
-        <ValuePart {...rest} color={annotations[ann]}>
-          {ann}
-        </ValuePart>
-      </Flex>
-    ))}
-  </Flex>
-)
-
-export const annotationsColumn = () => ({
-  id: "pa",
-  header: <TextMicro>Annotations</TextMicro>,
+export const minColumn = ({ period, objKey }) => ({
+  id: objKey ? `${objKey}-min` : "min",
+  header: (
+    <TextMicro>
+      Min <Units visible />
+    </TextMicro>
+  ),
   size: 45,
   minSize: 45,
   cell: ({
@@ -183,29 +177,8 @@ export const annotationsColumn = () => ({
 
     return (
       <Value
-        textAlign="right"
-        id={id}
-        visible={visible}
-        valueKey="pa"
-        Component={AnnotationsValue}
-      />
-    )
-  },
-  sortingFn: "basic",
-})
-
-export const minColumn = () => ({
-  id: "min",
-  header: <TextMicro>Min</TextMicro>,
-  size: 45,
-  minSize: 45,
-  cell: ({
-    row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
-  }) => {
-    const visible = useVisibleDimensionId(id)
-
-    return (
-      <Value
+        period={period}
+        objKey={objKey}
         textAlign="right"
         id={id}
         visible={visible}
@@ -218,9 +191,13 @@ export const minColumn = () => ({
   sortingFn: "basic",
 })
 
-export const maxColumn = () => ({
-  id: "max",
-  header: <TextMicro>Min</TextMicro>,
+export const avgColumn = ({ period, objKey }) => ({
+  id: objKey ? `${objKey}-avg` : "avg",
+  header: (
+    <TextMicro>
+      Avg <Units visible />
+    </TextMicro>
+  ),
   size: 45,
   minSize: 45,
   cell: ({
@@ -230,6 +207,38 @@ export const maxColumn = () => ({
 
     return (
       <Value
+        period={period}
+        objKey={objKey}
+        textAlign="right"
+        id={id}
+        visible={visible}
+        valueKey="avg"
+        Component={ValueOnDot}
+        fractionDigits={2}
+      />
+    )
+  },
+  sortingFn: "basic",
+})
+
+export const maxColumn = ({ period, objKey }) => ({
+  id: objKey ? `${objKey}-max` : "max",
+  header: (
+    <TextMicro>
+      Max <Units visible />
+    </TextMicro>
+  ),
+  size: 45,
+  minSize: 45,
+  cell: ({
+    row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
+  }) => {
+    const visible = useVisibleDimensionId(id)
+
+    return (
+      <Value
+        period={period}
+        objKey={objKey}
         textAlign="right"
         id={id}
         visible={visible}

@@ -1,13 +1,20 @@
 import React from "react"
 import { TextMicro } from "@netdata/netdata-ui"
-import { useLatestConvertedValue } from "@/components/provider"
+import { useConvertedValue } from "@/components/provider"
 
 export const Value = props => (
   <TextMicro color="textDescription" data-testid="chartDimensions-value" {...props} />
 )
 
-const ValueComponent = ({ id, visible, valueKey, Component = Value, ...rest }) => {
-  const value = useLatestConvertedValue(id, valueKey)
+const ValueComponent = ({
+  id,
+  visible,
+  valueKey,
+  period = "latest",
+  Component = Value,
+  ...rest
+}) => {
+  const value = useConvertedValue(id, period, valueKey)
 
   if (!visible) return null
 
