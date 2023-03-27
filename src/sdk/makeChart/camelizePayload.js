@@ -16,7 +16,7 @@ const transformDataRow = (row, point, stats) =>
         h.all = [...h.all, {}, {}]
       }
 
-      stats.maxAr = i !== 0 && stats.maxAr < dim[point.ar] ? dim[point.ar] : stats.maxAr
+      stats.maxArp = i !== 0 && stats.maxArp < dim[point.arp] ? dim[point.arp] : stats.maxArp
 
       return h
     },
@@ -103,7 +103,7 @@ export default payload => {
     ...rest
   } = payload
 
-  let stats = { maxAr: 0 }
+  let stats = { maxArp: 0 }
 
   let nodes = {}
   let nodesIndexes = {}

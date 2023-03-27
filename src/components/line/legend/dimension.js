@@ -62,10 +62,10 @@ export const EmptyDimension = () => {
 
 const AnomalyProgressBar = ({ id }) => {
   const value = useLatestValue(id, "arp")
-  const maxAr = useAttributeValue("maxAr")
+  const maxArp = useAttributeValue("maxArp")
 
   return (
-    <ProgressBar height={0.5} color="anomalyText" width={`${(Math.abs(value) * 100) / maxAr}%`} />
+    <ProgressBar height={0.5} color="anomalyText" width={`${(Math.abs(value) * 100) / maxArp}%`} />
   )
 }
 

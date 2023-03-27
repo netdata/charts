@@ -41,7 +41,7 @@ export default chartUI => plotter => {
       const row = chartUI.chart.getClosestRow(p.xval)
       const [, ...anomalyRow] = all[row]
       const value = anomalyRow.reduce(
-        (max, { ar = 0 }, index) => (selectedIdsSet.has(index) ? (max > ar ? max : ar) : max),
+        (max, { arp = 0 }, index) => (selectedIdsSet.has(index) ? (max > arp ? max : arp) : max),
         0
       )
 
