@@ -47,7 +47,7 @@ const Instances = ({ labelProps, ...rest }) => {
         return getStats(chart, instances[id], {
           id,
           key: "instances",
-          props: { label: `${instances[id].nm || id}@${nodeName}`, selected },
+          props: { label: `${instances[id].nm || instances[id].id}@${nodeName}`, selected },
         })
       }),
     [instances, value]
