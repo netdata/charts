@@ -25,15 +25,16 @@ const Footer = () => {
   return (
     <Container>
       <Indicators />
-      {!showingInfo &&
-        (!expanded ? (
+      {!showingInfo && (
+        <>
           <Flex alignItems="center">
             <DimensionSort />
             <Legend />
           </Flex>
-        ) : (
-          <Drawer />
-        ))}
+
+          {expanded && <Drawer />}
+        </>
+      )}
       <Flex
         flex
         position="relative"

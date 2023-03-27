@@ -69,7 +69,7 @@ export default payload => {
   const {
     summary: {
       nodes: nodesArray = [],
-      instances = [],
+      instances: instancesArray = [],
       dimensions: dimensionsArray = [],
       labels = [],
       alerts = [],
@@ -119,6 +119,14 @@ export default payload => {
     dimensionIds.push(d.id)
   })
 
+  let instanceId = null
+  const instances = instancesArray.reduce((h, i) => {
+    instanceId = `${i.id}@${nodes[nodesIndexes[i.ni]].mg}`
+    h[instanceId] = i
+    h[instanceId].nm = `${i.nm || i.id}@${nodes[nodesIndexes[i.ni]].nm}`
+    return h
+  }, {})
+
   return {
     ...rest,
     result: transformResult(result, stats),
@@ -133,10 +141,7 @@ export default payload => {
     perTier,
     nodes,
     nodesIndexes,
-    instances: instances.reduce((h, i) => {
-      h[`${i.id}@${nodes[nodesIndexes[i.ni]].mg}`] = i
-      return h
-    }, {}),
+    instances,
     dimensions,
     dimensionIds,
     labels: labels.reduce((h, l) => ({ ...h, [l.id]: l }), {}),

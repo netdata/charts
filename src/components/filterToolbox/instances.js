@@ -32,24 +32,18 @@ const columns = [
 const Instances = ({ labelProps, ...rest }) => {
   const chart = useChart()
   const value = useAttributeValue("selectedInstances")
-  const nodes = useAttributeValue("nodes")
-  const nodesIndexes = useAttributeValue("nodesIndexes")
   const instances = useAttributeValue("instances")
   const instancesTotals = useAttributeValue("instancesTotals")
 
   const getOptions = useCallback(
     () =>
-      Object.keys(instances).map(id => {
-        const { nm: nodeName } = nodes[nodesIndexes[instances[id].ni]]
-
-        const selected = value.includes(id)
-
-        return getStats(chart, instances[id], {
+      Object.keys(instances).map(id =>
+        getStats(chart, instances[id], {
           id,
           key: "instances",
-          props: { label: `${instances[id].nm || instances[id].id}@${nodeName}`, selected },
+          props: { selected: value.includes(id) },
         })
-      }),
+      ),
     [instances, value]
   )
 
