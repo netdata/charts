@@ -80,11 +80,10 @@ export default ({
     const div = fetchingPeriod / updateEveryMs
     const updateEveryMultiples = Math.floor(div)
 
-    if (updateEveryMultiples >= 1)
-      if (fetchStartedAt === 0) {
-        node.trigger("fetch")
-        return
-      }
+    if (updateEveryMultiples >= 1) {
+      node.trigger("fetch")
+      return
+    }
 
     const remaining =
       backoffMs || updateEveryMs - Math.round((div - Math.floor(div)) * updateEveryMs)
