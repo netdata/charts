@@ -118,13 +118,13 @@ export default (sdk, chart) => {
       return chartUI.trigger("rendered")
     }
 
-    const { result } = chart.getPayload()
+    const { data } = chart.getPayload()
 
-    if (result.data?.length === undefined) return
+    if (data?.length === undefined) return
 
-    const row = hoverX ? chart.getClosestRow(hoverX[0]) : result.data.length - 1
+    const row = hoverX ? chart.getClosestRow(hoverX[0]) : data.length - 1
 
-    const rowData = result.data[row]
+    const rowData = data[row]
     if (!Array.isArray(rowData)) return
 
     const [, ...rows] = rowData

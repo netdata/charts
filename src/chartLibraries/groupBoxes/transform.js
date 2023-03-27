@@ -13,9 +13,7 @@ const buildTree = (h, keys, id) => {
 }
 
 export default chart => {
-  const {
-    result: { data, labels, all },
-  } = chart.getPayload()
+  const { data, labels, all } = chart.getPayload()
   const {
     viewDimensions = {}, // set default value
     viewDimensions: { ids: dimensionIds = [] },

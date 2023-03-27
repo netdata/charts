@@ -25,13 +25,13 @@ export default chartUI => plotter => {
       return h
     }, new Set())
 
-    const { result } = chartUI.chart.getPayload()
+    const { all } = chartUI.chart.getPayload()
 
     points.forEach(p => {
       const center_x = p.canvasx
 
       const row = chartUI.chart.getClosestRow(p.xval)
-      const [, ...annotations] = result.all[row]
+      const [, ...annotations] = all[row]
       const valueSet = annotations.reduce((selected, { pa = 0 }, index) => {
         if (selectedIdsSet.has(index) && !!pa)
           parts.forEach(a => check(pa, enums[a]) && selected.add(a))

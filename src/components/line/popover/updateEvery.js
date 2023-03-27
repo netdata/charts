@@ -1,12 +1,11 @@
 import React, { Fragment } from "react"
 import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { useChart, useAttributeValue } from "@/components/provider"
+import { useAttributeValue } from "@/components/provider"
 
 const UpdateEvery = () => {
-  const chart = useChart()
-
-  const { viewUpdateEvery = 0, updateEvery = 0 } = chart.getAttributes()
+  const viewUpdateEvery = useAttributeValue("viewUpdateEvery")
+  const updateEvery = useAttributeValue("updateEvery")
 
   const groupingMethod = useAttributeValue("groupingMethod")
 

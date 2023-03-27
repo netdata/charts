@@ -33,13 +33,13 @@ export default chartUI => plotter => {
       return h
     }, new Set())
 
-    const { result } = chartUI.chart.getPayload()
+    const { all } = chartUI.chart.getPayload()
 
     points.forEach(p => {
       const center_x = p.canvasx
 
       const row = chartUI.chart.getClosestRow(p.xval)
-      const [, ...anomalyRow] = result.all[row]
+      const [, ...anomalyRow] = all[row]
       const value = anomalyRow.reduce(
         (max, { ar = 0 }, index) => (selectedIdsSet.has(index) ? (max > ar ? max : ar) : max),
         0

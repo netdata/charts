@@ -31,42 +31,42 @@ export default (chart, sdk) => {
     nameDesc: (getIds = getSourceDimensionIds) =>
       getIds().sort((a, b) => getDimensionName(b).localeCompare(getDimensionName(a))),
     valueDesc: (getIds = getSourceDimensionIds, x) => {
-      const { result } = chart.getPayload()
-      x = x || result.data.length - 1
+      const { data } = chart.getPayload()
+      x = x || data.length - 1
 
       return getIds().sort((a, b) => getDimensionValue(b, x) - getDimensionValue(a, x))
     },
     valueAsc: (getIds = getSourceDimensionIds, x) => {
-      const { result } = chart.getPayload()
-      x = x || result.data.length - 1
+      const { data } = chart.getPayload()
+      x = x || data.length - 1
 
       return getIds().sort((a, b) => getDimensionValue(a, x) - getDimensionValue(b, x))
     },
     anomalyDesc: (getIds = getSourceDimensionIds, x) => {
-      const { result } = chart.getPayload()
-      x = x || result.all.length - 1
+      const { all } = chart.getPayload()
+      x = x || all.length - 1
 
       return getIds().sort(
         (a, b) => getDimensionValue(b, x, "arp") - getDimensionValue(a, x, "arp")
       )
     },
     anomalyAsc: (getIds = getSourceDimensionIds, x) => {
-      const { result } = chart.getPayload()
-      x = x || result.all.length - 1
+      const { all } = chart.getPayload()
+      x = x || all.length - 1
 
       return getIds().sort(
         (a, b) => getDimensionValue(a, x, "arp") - getDimensionValue(b, x, "arp")
       )
     },
     annotationsDesc: (getIds = getSourceDimensionIds, x) => {
-      const { result } = chart.getPayload()
-      x = x || result.all.length - 1
+      const { all } = chart.getPayload()
+      x = x || all.length - 1
 
       return getIds().sort((a, b) => getDimensionValue(b, x, "pa") - getDimensionValue(a, x, "pa"))
     },
     annotationsAsc: (getIds = getSourceDimensionIds, x) => {
-      const { result } = chart.getPayload()
-      x = x || result.all.length - 1
+      const { all } = chart.getPayload()
+      x = x || all.length - 1
 
       return getIds().sort((a, b) => getDimensionValue(a, x, "pa") - getDimensionValue(b, x, "pa"))
     },
@@ -189,8 +189,8 @@ export default (chart, sdk) => {
   }
 
   const getDimensionValue = (id, index, valueKey, objKey) => {
-    const { result } = chart.getPayload()
-    const pointData = result.all[index]
+    const { all } = chart.getPayload()
+    const pointData = all[index]
 
     return getRowDimensionValue(id, pointData, valueKey, objKey)
   }

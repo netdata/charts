@@ -88,9 +88,9 @@ export const useEmpty = () => {
 
   useImmediateListener(() => chart.on("finishFetch", forceUpdate), [chart])
 
-  const { result } = chart.getPayload()
+  const { data } = chart.getPayload()
 
-  return Array.isArray(result) ? result.length === 0 : result.data.length === 0
+  return data.length === 0
 }
 
 export const useAttribute = name => {
@@ -260,14 +260,14 @@ export const useLatestRowAverageValue = (valueKey = "value") => {
   useLayoutEffect(() => {
     const getValue = () => {
       const hover = chart.getAttribute("hoverX")
-      const { result } = chart.getPayload()
+      const { all } = chart.getPayload()
 
-      if (result.all.length === 0) return ""
+      if (all.length === 0) return ""
 
       let index = hover ? chart.getClosestRow(hover[0]) : -1
-      index = index === -1 ? result.all.length - 1 : index
+      index = index === -1 ? all.length - 1 : index
 
-      const [, ...values] = result.all[index]
+      const [, ...values] = all[index]
 
       if (!Array.isArray(values)) return 0
 
@@ -287,12 +287,12 @@ export const useLatestRowAverageValue = (valueKey = "value") => {
 const getValueByPeriod = {
   latest: ({ chart, id, valueKey, objKey }) => {
     const hover = chart.getAttribute("hoverX")
-    const { result } = chart.getPayload()
+    const { all } = chart.getPayload()
 
-    if (!result.all.length) return null
+    if (!all.length) return null
 
     let index = hover ? chart.getClosestRow(hover[0]) : -1
-    index = index === -1 ? result.all.length - 1 : index
+    index = index === -1 ? all.length - 1 : index
 
     const dimensionIds = chart.getPayloadDimensionIds()
 

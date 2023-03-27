@@ -1,6 +1,6 @@
 import React, { memo, useMemo } from "react"
 import { TextSmall } from "@netdata/netdata-ui"
-import { useAttributeValue, useChart, usePayload } from "@/components/provider"
+import { useAttributeValue, useChart } from "@/components/provider"
 import Dropdown from "./dropdownSingleSelect"
 
 const useMenuItems = (chart, perTier = []) => {
@@ -271,7 +271,9 @@ const TimeAggregation = ({ labelProps, ...rest }) => {
   const chart = useChart()
   const groupingMethod = useAttributeValue("groupingMethod")
   const [method = "", alias = ""] = groupingMethod.match(/[\d.]+|\D+/g) || []
-  const { viewUpdateEvery = 0, perTier } = usePayload()
+
+  const viewUpdateEvery = useAttributeValue("viewUpdateEvery")
+  const perTier = useAttributeValue("perTier")
 
   const items = useMenuItems(chart, perTier)
   const aliasItems = useMenuAliasItems({ chart, method })

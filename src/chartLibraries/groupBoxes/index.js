@@ -33,8 +33,8 @@ export default (sdk, chart) => {
   const updateGroupBox = ({ force = false } = {}) => {
     if (initialized && !force && !chart.consumePayload()) return
 
-    const { result } = chart.getPayload()
-    if (result.data.length === 0) return
+    const { data } = chart.getPayload()
+    if (data.length === 0) return
 
     groupBoxData = transform(chart)
 
@@ -48,16 +48,16 @@ export default (sdk, chart) => {
   const getGroupBox = () => groupBoxData
 
   const updateGroupBoxRowData = () => {
-    const { result } = chart.getPayload()
+    const { all } = chart.getPayload()
 
-    if (result.data.length === 0) return
+    if (all.length === 0) return
 
     const hoverX = chart.getAttribute("hoverX")
     const row = hoverX ? chart.getClosestRow(hoverX[0]) : -1
 
     if (!groupBoxData) return
 
-    groupBoxRowData = row === -1 ? result.all[result.all.length - 1] : result.all[row]
+    groupBoxRowData = row === -1 ? all[all.length - 1] : all[row]
     if (row !== -1 && !Array.isArray(groupBoxRowData)) {
       groupBoxRowData = null
       return

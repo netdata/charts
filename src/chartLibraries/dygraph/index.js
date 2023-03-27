@@ -58,16 +58,16 @@ export default (sdk, chart) => {
     chart.consumePayload()
     chart.updateDimensions()
     const attributes = chart.getAttributes()
-    const { result } = chart.getPayload()
+    const { data, labels } = chart.getPayload()
 
     executeLatest = makeExecuteLatest()
-    const isEmpty = attributes.outOfLimits || result.data.length === 0
+    const isEmpty = attributes.outOfLimits || data.length === 0
 
-    dygraph = new Dygraph(element, isEmpty ? [[0]] : normalizeData(result.data), {
+    dygraph = new Dygraph(element, isEmpty ? [[0]] : normalizeData(data), {
       // timingName: "TEST",
       legend: "never",
       showLabelsOnHighlight: false,
-      labels: isEmpty ? ["X"] : result.labels,
+      labels: isEmpty ? ["X"] : labels,
 
       dateWindow: getDateWindow(chart),
       highlightCallback: executeLatest.add((event, x, points, row, seriesName) =>
@@ -188,7 +188,7 @@ export default (sdk, chart) => {
                   0,
                   attributes.selectedLegendDimensions.length
                     ? attributes.selectedLegendDimensions.length
-                    : result.labels.length,
+                    : labels.length,
                 ]
               : attributes.getValueRange({
                   min: attributes.min,
@@ -284,7 +284,7 @@ export default (sdk, chart) => {
   }
 
   const makeChartTypeOptions = () => {
-    const { result } = chart.getPayload()
+    const { labels } = chart.getPayload()
     const { chartType, sparkline, includeZero, enabledXAxis, enabledYAxis, yAxisLabelWidth } =
       chart.getAttributes()
 
@@ -302,7 +302,7 @@ export default (sdk, chart) => {
       yTicker,
     } = optionsByChartType[chartType] || optionsByChartType.default
 
-    const yAxisLabelFormatter = makeYAxisLabelFormatter(result.labels)
+    const yAxisLabelFormatter = makeYAxisLabelFormatter(labels)
 
     const { selectedLegendDimensions } = chart.getAttributes()
     const dimensionIds = chart.getPayloadDimensionIds()
@@ -350,9 +350,7 @@ export default (sdk, chart) => {
 
     const selectedLegendDimensions = chart.getAttribute("selectedLegendDimensions")
 
-    const suffixLabels = Array(chart.getPayload().result.labels.length - dimensionIds.length).fill(
-      true
-    )
+    const suffixLabels = Array(chart.getPayload().labels.length - dimensionIds.length).fill(true)
 
     const visibility = [
       ...dimensionIds.map(selectedLegendDimensions.length ? chart.isDimensionVisible : () => true),
@@ -373,24 +371,19 @@ export default (sdk, chart) => {
       min,
       max,
     } = chart.getAttributes()
-    const { result } = chart.getPayload()
+    const { data, labels } = chart.getPayload()
     const dateWindow = getDateWindow(chart)
-    const isEmpty = outOfLimits || result.data.length === 0
+    const isEmpty = outOfLimits || data.length === 0
 
     const groupBy = chart.getAttribute("groupBy")
 
     return {
-      file: isEmpty ? [[0]] : normalizeData(result.data),
-      labels: isEmpty ? ["X"] : result.labels,
+      file: isEmpty ? [[0]] : normalizeData(data),
+      labels: isEmpty ? ["X"] : labels,
       dateWindow,
       valueRange:
         chartType === "heatmap"
-          ? [
-              0,
-              selectedLegendDimensions.length
-                ? selectedLegendDimensions.length
-                : result.labels.length,
-            ]
+          ? [0, selectedLegendDimensions.length ? selectedLegendDimensions.length : labels.length]
           : getValueRange({
               min,
               max,

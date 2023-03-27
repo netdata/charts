@@ -4,7 +4,7 @@ export default (chartUI, row) => {
   const { h } = dygraph.getArea()
   const { canvas_ctx_: ctx } = dygraph
 
-  const rowData = chartUI.chart.getPayload().result.data[row]
+  const rowData = chartUI.chart.getPayload().data[row]
 
   if (!Array.isArray(rowData)) return
 

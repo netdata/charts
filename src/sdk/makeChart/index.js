@@ -1,6 +1,5 @@
 import makeKeyboardListener from "@/helpers/makeKeyboardListener"
 import makeNode from "../makeNode"
-import initialPayload from "./initialPayload"
 import convert from "../unitConversion"
 import { fetchChartData, errorCodesToMessage } from "./api"
 import makeDimensions from "./makeDimensions"
@@ -15,6 +14,13 @@ const maxBackoffMs = 30 * 1000
 
 const defaultMakeTrack = () => value => value
 
+const initialPayload = {
+  labels: [],
+  data: [],
+  all: [],
+  tree: {},
+}
+
 export default ({
   sdk,
   parent,
@@ -25,7 +31,7 @@ export default ({
   let node = makeNode({ sdk, parent, attributes })
   let ui = null
   let abortController = null
-  let payload = { result: initialPayload.result }
+  let payload = initialPayload
   let nextPayload = null
   let fetchTimeoutId = null
 
@@ -90,8 +96,8 @@ export default ({
   }
 
   const getDataLength = payload => {
-    const { result } = payload || {}
-    return Array.isArray(result) ? result.length : result.data?.length || 0
+    const { data } = payload || initialPayload
+    return data?.length || 0
   }
 
   const doneFetch = nextRawPayload => {
@@ -99,10 +105,7 @@ export default ({
     const { result, chartType, versions, ...restPayload } = camelizePayload(nextRawPayload)
 
     const prevPayload = nextPayload
-
-    nextPayload = {
-      result,
-    }
+    nextPayload = result
 
     const dataLength = getDataLength(nextPayload)
     if (

@@ -8,9 +8,7 @@ export default getPayload => {
   }
 
   const getClosestRowBinary = timestamp => {
-    const {
-      result: { data },
-    } = getPayload()
+    const { data } = getPayload()
 
     if (data.length === 0) return -1
 

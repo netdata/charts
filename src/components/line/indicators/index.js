@@ -25,12 +25,12 @@ const Latest = () => {
 
   const [x] = useAttributeValue("hoverX") || []
 
-  const { result } = usePayload()
+  const { data } = usePayload()
 
-  if (!result.data.length) return null
+  if (!data.length) return null
 
-  const index = x ? chart.getClosestRow(x) : result.data.length - 1
-  const timestamp = result.data[index]?.[0]
+  const index = x ? chart.getClosestRow(x) : data.length - 1
+  const timestamp = data[index]?.[0]
 
   return (
     <Flex gap={1}>
