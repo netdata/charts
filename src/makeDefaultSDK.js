@@ -29,7 +29,7 @@ export default ({ attributes, ...options } = {}) =>
       move,
     },
     attributes: {
-      _v: "v2",
+      _v: "v3",
       chartLibrary: "dygraph",
       navigation: "pan",
       after: -1 * minutes15,

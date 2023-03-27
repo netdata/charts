@@ -99,7 +99,6 @@ export default sdk => {
       if (autofetch === chart.getAttribute("autofetch")) return
 
       toggleRender(autofetch)
-
       chart.getApplicableNodes({ syncPanning: true }).forEach(node => {
         node.updateAttribute("autofetch", autofetch)
       })

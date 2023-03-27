@@ -70,14 +70,21 @@ export default ({
 
     if (!autofetch || loading || !active || paused) return
 
-    if (fetchStartedAt === 0) return fetch()
+    if (fetchStartedAt === 0) {
+      node.trigger("fetch")
+      return
+    }
 
     const fetchingPeriod = Date.now() - fetchStartedAt
     const updateEveryMs = getUpdateEvery()
     const div = fetchingPeriod / updateEveryMs
     const updateEveryMultiples = Math.floor(div)
 
-    if (updateEveryMultiples >= 1) return fetch()
+    if (updateEveryMultiples >= 1)
+      if (fetchStartedAt === 0) {
+        node.trigger("fetch")
+        return
+      }
 
     const remaining =
       backoffMs || updateEveryMs - Math.round((div - Math.floor(div)) * updateEveryMs)
@@ -231,6 +238,8 @@ export default ({
 
     return dataFetch()
   }
+
+  node.on("fetch", fetch)
 
   const getUI = () => ui
   const setUI = newUi => {
