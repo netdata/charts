@@ -6,8 +6,8 @@ import Sparkline from "@/components/line/sparkline"
 import makeMockPayload from "@/helpers/makeMockPayload"
 import makeDefaultSDK from "./makeDefaultSDK"
 
-import cgroupCpuSparkline from "@/fixtures/cgroupCpuSparklineOverview"
-import systemCpuSparkline from "@/fixtures/systemCpuSparkline"
+import cgroupCpuSparkline from "../fixtures/cgroupCpuSparklineOverview"
+import systemCpuSparkline from "../fixtures/systemCpuSparkline"
 
 const getChart = makeMockPayload(cgroupCpuSparkline, { delay: 600 })
 

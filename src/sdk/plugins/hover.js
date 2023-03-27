@@ -5,6 +5,11 @@ export default sdk => {
         node.updateAttribute("hoverX", [dimensionX, dimensionY])
       })
     })
+    .on("highlightBlur", chart => {
+      chart.getApplicableNodes({ syncHover: true }).forEach(node => {
+        node.updateAttribute("hoverX", null)
+      })
+    })
     .on("hoverChart", chart => {
       chart.getApplicableNodes({ syncHover: true }).forEach(node => {
         node.updateAttributes({ hovering: true, renderedAt: chart.getUI().getRenderedAt() })
@@ -12,7 +17,7 @@ export default sdk => {
     })
     .on("blurChart", chart => {
       chart.getApplicableNodes({ syncHover: true }).forEach(node => {
-        node.updateAttributes({ hoverX: null, hovering: false })
+        node.updateAttributes({ hovering: false })
       })
     })
 }

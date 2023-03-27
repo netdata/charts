@@ -18,7 +18,7 @@ const ColorBackground = styled(ColorBar).attrs({
 })``
 
 const rowValueKeys = {
-  ANOMALY_RATE: "ar",
+  ANOMALY_RATE: "arp",
   default: "value",
 }
 
@@ -135,7 +135,7 @@ export const valueColumn = () => ({
 })
 
 export const anomalyColumn = ({ period, objKey }) => ({
-  id: objKey ? `${objKey}-ar` : "ar",
+  id: objKey ? `${objKey}-arp` : "arp",
   header: <TextMicro>AR %</TextMicro>,
   size: 45,
   minSize: 45,
@@ -151,7 +151,7 @@ export const anomalyColumn = ({ period, objKey }) => ({
         textAlign="right"
         id={id}
         visible={visible}
-        valueKey="ar"
+        valueKey="arp"
         Component={ValueOnDot}
         fractionDigits={2}
         color="anomalyTextFocus"

@@ -4,7 +4,7 @@ import correlationsIcon from "@netdata/netdata-ui/lib/components/icon/assets/cor
 import Icon, { Button } from "@/components/icon"
 import Tooltip from "@/components/tooltip"
 import { useChart, useAttributeValue } from "@/components/provider"
-import { getDateDiff } from "@/components/line/indicators/dateTime"
+import { getDateDiff } from "@/components/line/indicators"
 import { TextNano } from "@netdata/netdata-ui/lib/components/typography"
 
 const minTimeframe = 15

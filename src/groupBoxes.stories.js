@@ -7,7 +7,7 @@ import GroupBoxes from "@/components/groupBoxes"
 import makeMockPayload from "@/helpers/makeMockPayload"
 import makeDefaultSDK from "./makeDefaultSDK"
 
-import kubernetesCpuLimit from "@/fixtures/kubernetesCpuLimit"
+import kubernetesCpuLimit from "../fixtures/kubernetesCpuLimit"
 
 const getChart = makeMockPayload(kubernetesCpuLimit, { delay: 600 })
 

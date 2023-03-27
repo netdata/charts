@@ -13,8 +13,8 @@
     "/dist"
   ],
   "scripts": {
-    "build:cjs": "babel src --out-dir dist --copy-files --ignore **/*.stories.js --ignore ./src/fixtures",
-    "build:es6": "BABEL_ENV=es6 babel src --out-dir dist/es6 --copy-files --ignore **/*.stories.js --ignore ./src/fixtures",
+    "build:cjs": "babel src --out-dir dist --copy-files --ignore **/*.stories.js",
+    "build:es6": "BABEL_ENV=es6 babel src --out-dir dist/es6 --copy-files --ignore **/*.stories.js",
     "build:umd": "NODE_ENV=production webpack",
     "build": "yarn build:umd && yarn build:cjs && yarn build:es6",
     "test": "jest --config ./jest/config.js",

@@ -94,7 +94,7 @@ export default chartUI => {
   let lastPoints
   let lastTimestamp
 
-  const triggerHighlight = (event, x, points, ...rest) => {
+  const triggerHighlight = (event, x, points) => {
     const seriesName = points && getClosestSeries(event, points)
 
     if (!seriesName) return
@@ -133,6 +133,11 @@ export default chartUI => {
     triggerHighlight(event, lastTimestamp, lastPoints)
   }
 
+  const mouseout = () => {
+    chartUI.sdk.trigger("highlightBlur", chartUI.chart)
+    chartUI.chart.trigger("highlightBlur")
+  }
+
   const destroy = () => {
     lastY = null
     lastPoints = null
@@ -144,7 +149,10 @@ export default chartUI => {
 
   const toggle = enabled => {
     return enabled
-      ? chartUI.on("highlightCallback", highlight).on("mousemove", mousemove)
+      ? chartUI
+          .on("highlightCallback", highlight)
+          .on("mousemove", mousemove)
+          .on("mouseout", mouseout)
       : destroy()
   }
 

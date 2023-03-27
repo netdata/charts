@@ -27,7 +27,7 @@ const Drawer = () => {
     <Flex height={`${expandedHeight}px`} flex={false}>
       <Container>
         <Header />
-        <Dimensions period={tab} />
+        <Dimensions />
       </Container>
     </Flex>
   )

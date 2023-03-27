@@ -6,7 +6,7 @@ import Line from "@/components/line"
 import makeMockPayload from "@/helpers/makeMockPayload"
 import makeDefaultSDK from "./makeDefaultSDK"
 
-import requests from "@/fixtures/compositeRequests"
+import requests from "../fixtures/compositeRequests"
 
 const getChart = makeMockPayload(requests, { delay: 600 })
 

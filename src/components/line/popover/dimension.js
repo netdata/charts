@@ -24,7 +24,7 @@ const ColorBackground = styled(ColorBar).attrs({
 })``
 
 const rowValueKeys = {
-  ANOMALY_RATE: "ar",
+  ANOMALY_RATE: "arp",
   default: "value",
 }
 
@@ -92,7 +92,7 @@ const Dimension = ({ id, strong, chars, rowFlavour }) => {
         id={id}
         strong={strong}
         visible={visible}
-        valueKey="ar"
+        valueKey="arp"
         Component={ValueOnDot}
         fractionDigits={2}
         color={rowFlavour === rowFlavours.ANOMALY_RATE ? "anomalyTextFocus" : "anomalyText"}

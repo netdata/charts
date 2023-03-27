@@ -3,6 +3,7 @@ import styled from "styled-components"
 import { Flex, Button } from "@netdata/netdata-ui"
 import { useChart, useAttributeValue } from "@/components/provider"
 import GridItem from "../gridItem"
+import { actions, tabs } from "../constants"
 
 const Container = styled(GridItem).attrs({
   area: "header",
@@ -12,21 +13,6 @@ const Container = styled(GridItem).attrs({
     height: 0;
   }
 `
-
-const actions = {
-  values: "values",
-  drillDown: "drillDown",
-  compare: "compare",
-  correlate: "correlate",
-}
-
-const tabs = {
-  window: "window",
-  selectedArea: "selectedArea",
-  selectedPoint: "selectedPoint",
-  highlighted: "highlighted",
-  latest: "latest",
-}
 
 const Header = ({ onClick, ...rest }) => {
   const chart = useChart()
@@ -75,27 +61,6 @@ const Header = ({ onClick, ...rest }) => {
             label="Selected area"
             disabled
             onClick={() => chart.updateAttribute("weightsTab", tabs.selectedArea)}
-          />
-          <Button
-            tiny
-            neutral={tabs.selectedPoint !== tab}
-            label="Selected point"
-            disabled
-            onClick={() => chart.updateAttribute("weightsTab", tabs.selectedPoint)}
-          />
-          <Button
-            tiny
-            neutral={tabs.highlighted !== tab}
-            label="Highlighted"
-            disabled
-            onClick={() => chart.updateAttribute("weightsTab", tabs.highlighted)}
-          />
-          <Button
-            tiny
-            neutral={tabs.latest !== tab}
-            label="Latest"
-            disabled
-            onClick={() => chart.updateAttribute("weightsTab", tabs.latest)}
           />
         </Flex>
       </Flex>

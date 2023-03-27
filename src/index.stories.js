@@ -3,37 +3,15 @@ import { ThemeProvider } from "styled-components"
 import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui/lib/theme"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { Button } from "@netdata/netdata-ui/lib/components/button"
-import { camelizeKeys } from "@/helpers/objectTransform"
 import Line from "@/components/line"
 import NoInteractLine from "@/components/line/noInteract"
 import makeMockPayload from "@/helpers/makeMockPayload"
 import { useAttribute, useAttributeValue, useChart, withChartProvider } from "@/components/provider"
 import makeDefaultSDK from "./makeDefaultSDK"
 
-import noData from "@/fixtures/noData"
+import noData from "../fixtures/noData"
 
-import systemLoadLine from "@/fixtures/systemLoadLine"
-
-import systemCpuStacked from "@/fixtures/systemCpuStacked"
-import systemCpuStackedChart from "@/fixtures/systemCpuStackedChart"
-
-import systemRamStacked from "@/fixtures/systemRamStacked"
-import systemRamStackedChart from "@/fixtures/systemRamStackedChart"
-
-import webLogNginxResponseTimeArea from "@/fixtures/webLogNginxResponseTimeArea"
-import webLogNginxResponseTimeAreaChart from "@/fixtures/webLogNginxResponseTimeAreaChart"
-
-import systemIpv6Area from "@/fixtures/systemIpv6Area"
-import systemIpv6AreaChart from "@/fixtures/systemIpv6AreaChart"
-
-import systemIpArea from "@/fixtures/systemIpArea"
-import systemIpAreaChart from "@/fixtures/systemIpAreaChart"
-
-import appVmsStacked from "@/fixtures/appVmsStacked"
-import appVmsStackedChart from "@/fixtures/appVmsStackedChart"
-
-import netOperstate from "@/fixtures/netOperstate"
-import netOperstateChart from "@/fixtures/netOperstateChart"
+import systemLoadLine from "../fixtures/systemLoadLine"
 
 const getChart = makeMockPayload(systemLoadLine[0], { delay: 600 })
 

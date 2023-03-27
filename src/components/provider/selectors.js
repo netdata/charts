@@ -242,7 +242,7 @@ export const useConverted = (value, valueKey) => {
   return useMemo(() => {
     if (value === null || value === "-") return "-"
 
-    if (valueKey === "ar" || valueKey === "percent")
+    if (valueKey === "arp" || valueKey === "percent")
       return value === 0 ? "-" : (Math.round((value + Number.EPSILON) * 100) / 100).toFixed(2)
 
     if (valueKey === "pa")
@@ -313,6 +313,15 @@ const getValueByPeriod = {
 
     id = id || dimensionIds[0]
     return values[chart.getDimensionIndex(id)]
+  },
+  highlight: ({ chart, id, valueKey, objKey }) => {
+    const { highlight } = chart.getAttribute("overlays")
+    debugger
+    if (!highlight?.range) return null
+
+    const range = highlight?.range
+
+    const { after, before } = highlight?.moveX ?? {}
   },
 }
 

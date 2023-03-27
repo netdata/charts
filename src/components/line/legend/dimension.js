@@ -61,7 +61,7 @@ export const EmptyDimension = () => {
 }
 
 const AnomalyProgressBar = ({ id }) => {
-  const value = useLatestValue(id, "ar")
+  const value = useLatestValue(id, "arp")
   const maxAr = useAttributeValue("maxAr")
 
   return (

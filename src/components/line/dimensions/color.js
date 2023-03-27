@@ -32,10 +32,10 @@ export const BaseColorBar = ({ value, min, max, valueKey, bg, ...rest }) => {
 
 export const ColorBar = ({ id, valueKey, ...rest }) => {
   const chart = useChart()
-  const bg = valueKey === "ar" ? "anomalyTextLite" : chart.selectDimensionColor(id)
+  const bg = valueKey === "arp" ? "anomalyTextLite" : chart.selectDimensionColor(id)
 
-  const min = valueKey === "ar" ? 0 : chart.getAttribute("min")
-  const max = valueKey === "ar" ? chart.getAttribute("maxAr") : chart.getAttribute("max")
+  const min = valueKey === "arp" ? 0 : chart.getAttribute("min")
+  const max = valueKey === "arp" ? chart.getAttribute("maxAr") : chart.getAttribute("max")
 
   const minAbs = Math.abs(min)
   const maxAbs = Math.abs(max)

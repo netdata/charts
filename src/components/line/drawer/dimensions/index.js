@@ -1,45 +1,46 @@
 import React, { useMemo } from "react"
-import styled from "styled-components"
 import { NetdataTable, TextSmall } from "@netdata/netdata-ui"
-import Legend from "@/components/line/legend"
-import DimensionFilter from "@/components/line/dimensionSort"
-import Resize from "@/components/line/resize"
+import { uppercase } from "@/helpers/objectTransform"
 import { useDimensionIds, useAttributeValue } from "@/components/provider/selectors"
-import Indicators from "@/components/line/indicators"
 import { labelColumn, valueColumn, anomalyColumn, minColumn, avgColumn, maxColumn } from "./columns"
 import GridItem from "../gridItem"
 
-const useColumns = (options = {}) =>
-  useMemo(
-    () => [
+const useColumns = (period, options = {}) => {
+  const hover = useAttributeValue("hoverX")
+
+  return useMemo(() => {
+    const columnOptions = { period, ...options }
+    const dbOptions = { ...columnOptions, objKey: "sts" }
+
+    return [
       {
-        id: "Dimension group",
-        header: () => <TextSmall>Dimension</TextSmall>,
+        id: "Dimensions",
+        header: () => <TextSmall>Dimension ({hover ? "hovering" : "latest"} value)</TextSmall>,
         columns: [labelColumn(), valueColumn()],
       },
       {
-        id: "Visible group",
-        header: () => <TextSmall>Visible</TextSmall>,
+        id: "visible",
+        header: () => <TextSmall>{uppercase(period)} points</TextSmall>,
         columns: [
-          minColumn(options),
-          avgColumn(options),
-          maxColumn(options),
-          anomalyColumn(options),
+          minColumn(columnOptions),
+          avgColumn(columnOptions),
+          maxColumn(columnOptions),
+          anomalyColumn(columnOptions),
         ],
       },
       {
-        id: "DB group",
-        header: () => <TextSmall>DB</TextSmall>,
+        id: "aggregated",
+        header: () => <TextSmall>Aggregated points</TextSmall>,
         columns: [
-          minColumn({ ...options, objKey: "sts" }),
-          avgColumn({ ...options, objKey: "sts" }),
-          maxColumn({ ...options, objKey: "sts" }),
-          anomalyColumn({ ...options, objKey: "sts" }),
+          minColumn(dbOptions),
+          avgColumn(dbOptions),
+          maxColumn(dbOptions),
+          anomalyColumn(dbOptions),
         ],
       },
-    ],
-    [options.period]
-  )
+    ]
+  }, [period, !!hover])
+}
 
 const meta = (row, cell, index) => ({
   cellStyles: {
@@ -77,7 +78,7 @@ const Dimensions = () => {
   const dimensionIds = useDimensionIds()
 
   const tab = useAttributeValue("weightsTab")
-  const columns = useColumns({ period: tab })
+  const columns = useColumns(tab)
 
   return (
     <GridItem area="table">

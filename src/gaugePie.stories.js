@@ -8,7 +8,7 @@ import GaugeComponent from "@/components/gauge"
 import makeMockPayload from "@/helpers/makeMockPayload"
 import makeDefaultSDK from "./makeDefaultSDK"
 
-import systemIoInGaugePie from "@/fixtures/systemIoInGaugePie"
+import systemIoInGaugePie from "../fixtures/systemIoInGaugePie"
 
 const getChart = makeMockPayload(systemIoInGaugePie, { delay: 600 })
 

@@ -46,13 +46,17 @@ export default (chart, sdk) => {
       const { result } = chart.getPayload()
       x = x || result.all.length - 1
 
-      return getIds().sort((a, b) => getDimensionValue(b, x, "ar") - getDimensionValue(a, x, "ar"))
+      return getIds().sort(
+        (a, b) => getDimensionValue(b, x, "arp") - getDimensionValue(a, x, "arp")
+      )
     },
     anomalyAsc: (getIds = getSourceDimensionIds, x) => {
       const { result } = chart.getPayload()
       x = x || result.all.length - 1
 
-      return getIds().sort((a, b) => getDimensionValue(a, x, "ar") - getDimensionValue(b, x, "ar"))
+      return getIds().sort(
+        (a, b) => getDimensionValue(a, x, "arp") - getDimensionValue(b, x, "arp")
+      )
     },
     annotationsDesc: (getIds = getSourceDimensionIds, x) => {
       const { result } = chart.getPayload()
