@@ -10,33 +10,35 @@ import FilterToolbox from "@/components/filterToolbox"
 import Container from "@/components/container"
 import Footer from "./footer"
 
-export const Line = forwardRef(({ hasHeader = true, height, ...rest }, ref) => {
-  const chart = useChart()
-  const showingInfo = useAttributeValue("showingInfo")
+export const Line = forwardRef(
+  ({ hasHeader = true, hasFooter = true, hasFilters = true, height, ...rest }, ref) => {
+    const chart = useChart()
+    const showingInfo = useAttributeValue("showingInfo")
 
-  const hoverRef = useHover(
-    {
-      onHover: chart.focus,
-      onBlur: chart.blur,
-      isOut: node =>
-        !node || (!node.closest("[data-toolbox]") && !node.closest("[data-testid=chart]")),
-    },
-    [chart]
-  )
+    const hoverRef = useHover(
+      {
+        onHover: chart.focus,
+        onBlur: chart.blur,
+        isOut: node =>
+          !node || (!node.closest("[data-toolbox]") && !node.closest("[data-testid=chart]")),
+      },
+      [chart]
+    )
 
-  const [, setRef] = useForwardRef(node => {
-    hoverRef.current = node
-    ref.current = node
-  })
+    const [, setRef] = useForwardRef(node => {
+      hoverRef.current = node
+      ref.current = node
+    })
 
-  return (
-    <Container ref={setRef} {...rest} height={height}>
-      {hasHeader && <Header />}
-      <FilterToolbox />
-      <ContentWrapper>{showingInfo ? <Details /> : <ChartContentWrapper />}</ContentWrapper>
-      <Footer />
-    </Container>
-  )
-})
+    return (
+      <Container ref={setRef} {...rest} height={height}>
+        {hasHeader && <Header />}
+        {hasFilters && <FilterToolbox />}
+        <ContentWrapper>{showingInfo ? <Details /> : <ChartContentWrapper />}</ContentWrapper>
+        {hasFooter && <Footer />}
+      </Container>
+    )
+  }
+)
 
 export default withChart(Line)

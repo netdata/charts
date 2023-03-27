@@ -92,7 +92,10 @@ export default {
   pristineEnabledHeightResize: {},
   enabledXAxis: true,
   enabledYAxis: true,
+
   hasToolbox: true,
+  expandable: true,
+
   yAxisLabelWidth: null, // default is most probably 50
   axisLabelFontSize: 10,
 
