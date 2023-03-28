@@ -11,10 +11,11 @@ const ValueComponent = ({
   visible,
   valueKey,
   period = "latest",
+  objKey,
   Component = Value,
   ...rest
 }) => {
-  const value = useConvertedValue(id, period, valueKey)
+  const value = useConvertedValue(id, period, valueKey, objKey)
 
   if (!visible) return null
 

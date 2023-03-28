@@ -302,10 +302,14 @@ const getValueByPeriod = {
     return dimValue
   },
   window: ({ chart, id, valueKey, objKey }) => {
-    const viewDimensions = chart.getAttribute("viewDimensions")
+    let viewDimensions = chart.getAttribute("viewDimensions")
 
-    let values = viewDimensions[valueKey]
-    if (objKey) values = values[objKey]
+    let values = null
+    if (objKey) {
+      viewDimensions = viewDimensions[objKey]
+    }
+
+    values = viewDimensions[valueKey]
 
     if (!values?.length) return null
 
@@ -342,18 +346,18 @@ export const useValue = (id, period = "latest", valueKey = "value", objKey) => {
       chart.onAttributeChange("unitsConversion", () => setState(getValue())),
       chart.getUI().on("rendered", () => setState(getValue()))
     )
-  }, [chart, id, valueKey, period])
+  }, [chart, id, valueKey, period, objKey])
 
   return value
 }
 
 export const useLatestValue = (id, valueKey = "value") => useValue(id, "latest", valueKey)
 
-export const useConvertedValue = (id, period = "latest", valueKey = "value") => {
-  const value = useValue(id, period, valueKey)
+export const useConvertedValue = (id, period = "latest", valueKey = "value", objKey) => {
+  const value = useValue(id, period, valueKey, objKey)
 
   return useConverted(value, valueKey)
 }
 
-export const useLatestConvertedValue = (id, valueKey = "value") =>
-  useConvertedValue(id, "latest", valueKey)
+export const useLatestConvertedValue = (id, valueKey = "value", objKey) =>
+  useConvertedValue(id, "latest", valueKey, objKey)
