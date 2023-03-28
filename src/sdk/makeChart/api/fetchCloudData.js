@@ -54,7 +54,7 @@ const getPayload = chart => {
       time: {
         time_group,
         // time_group_options: "",
-        // time_resampling, TODO uncomment when backend is ready
+        time_resampling,
       },
     },
     window: {
