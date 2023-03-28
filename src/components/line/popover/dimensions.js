@@ -11,7 +11,7 @@ import Dimension from "./dimension"
 const Container = styled(Flex).attrs(props => ({
   round: true,
   border: { side: "all", color: "elementBackground" },
-  width: { min: "196px", max: props.maxWidth ? `${props.maxWidth}px` : "80vw" },
+  width: { min: "196px", max: "80vw" },
   background: "dropdown",
   column: true,
   padding: [4],
@@ -96,7 +96,7 @@ const Dimensions = () => {
   const rowFlavour = rowFlavours[row] || rowFlavours.default
 
   return (
-    <Container data-testid="chartPopover-dimensions" maxWidth={chartWidth} gap={2}>
+    <Container data-testid="chartPopover-dimensions" gap={2}>
       <Flex column gap={1}>
         {x && <Timestamp value={x} />}
         <UpdateEvery />
