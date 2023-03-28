@@ -11,64 +11,68 @@ export default (chart, sdk) => {
 
   const sparklineDimensions = ["sum"]
 
-  const hasSparklineDimension = () => chart.getAttribute("sparkline")
+  chart.hasSparklineDimension = () => chart.getAttribute("sparkline")
 
-  const getPayloadDimensionIds = () => {
-    if (hasSparklineDimension()) return sparklineDimensions
+  chart.getPayloadDimensionIds = () => {
+    if (chart.hasSparklineDimension()) return sparklineDimensions
 
     const viewDimensions = chart.getAttribute("viewDimensions")
 
     return viewDimensions?.ids || []
   }
 
-  const getSourceDimensionIds = () => [...getPayloadDimensionIds()]
+  chart.getSourceDimensionIds = () => [...chart.getPayloadDimensionIds()]
 
   const bySortMethod = {
-    default: (getIds = getSourceDimensionIds) =>
-      getIds().sort((a, b) => getDimensionPriority(a) - getDimensionPriority(b)),
-    nameAsc: (getIds = getSourceDimensionIds) =>
-      getIds().sort((a, b) => getDimensionName(a).localeCompare(getDimensionName(b))),
-    nameDesc: (getIds = getSourceDimensionIds) =>
-      getIds().sort((a, b) => getDimensionName(b).localeCompare(getDimensionName(a))),
-    valueDesc: (getIds = getSourceDimensionIds, x) => {
+    default: (getIds = chart.getSourceDimensionIds) =>
+      getIds().sort((a, b) => chart.getDimensionPriority(a) - chart.getDimensionPriority(b)),
+    nameAsc: (getIds = chart.getSourceDimensionIds) =>
+      getIds().sort((a, b) => chart.getDimensionName(a).localeCompare(chart.getDimensionName(b))),
+    nameDesc: (getIds = chart.getSourceDimensionIds) =>
+      getIds().sort((a, b) => chart.getDimensionName(b).localeCompare(chart.getDimensionName(a))),
+    valueDesc: (getIds = chart.getSourceDimensionIds, x) => {
       const { data } = chart.getPayload()
       x = x || data.length - 1
 
-      return getIds().sort((a, b) => getDimensionValue(b, x) - getDimensionValue(a, x))
+      return getIds().sort((a, b) => chart.getDimensionValue(b, x) - chart.getDimensionValue(a, x))
     },
-    valueAsc: (getIds = getSourceDimensionIds, x) => {
+    valueAsc: (getIds = chart.getSourceDimensionIds, x) => {
       const { data } = chart.getPayload()
       x = x || data.length - 1
 
-      return getIds().sort((a, b) => getDimensionValue(a, x) - getDimensionValue(b, x))
+      return getIds().sort((a, b) => chart.getDimensionValue(a, x) - chart.getDimensionValue(b, x))
     },
-    anomalyDesc: (getIds = getSourceDimensionIds, x) => {
+    anomalyDesc: (getIds = chart.getSourceDimensionIds, x) => {
       const { all } = chart.getPayload()
       x = x || all.length - 1
 
       return getIds().sort(
-        (a, b) => getDimensionValue(b, x, "arp") - getDimensionValue(a, x, "arp")
+        (a, b) => chart.getDimensionValue(b, x, "arp") - chart.getDimensionValue(a, x, "arp")
       )
     },
-    anomalyAsc: (getIds = getSourceDimensionIds, x) => {
+    anomalyAsc: (getIds = chart.getSourceDimensionIds, x) => {
       const { all } = chart.getPayload()
       x = x || all.length - 1
 
       return getIds().sort(
-        (a, b) => getDimensionValue(a, x, "arp") - getDimensionValue(b, x, "arp")
+        (a, b) => chart.getDimensionValue(a, x, "arp") - chart.getDimensionValue(b, x, "arp")
       )
     },
-    annotationsDesc: (getIds = getSourceDimensionIds, x) => {
+    annotationsDesc: (getIds = chart.getSourceDimensionIds, x) => {
       const { all } = chart.getPayload()
       x = x || all.length - 1
 
-      return getIds().sort((a, b) => getDimensionValue(b, x, "pa") - getDimensionValue(a, x, "pa"))
+      return getIds().sort(
+        (a, b) => chart.getDimensionValue(b, x, "pa") - chart.getDimensionValue(a, x, "pa")
+      )
     },
-    annotationsAsc: (getIds = getSourceDimensionIds, x) => {
+    annotationsAsc: (getIds = chart.getSourceDimensionIds, x) => {
       const { all } = chart.getPayload()
       x = x || all.length - 1
 
-      return getIds().sort((a, b) => getDimensionValue(a, x, "pa") - getDimensionValue(b, x, "pa"))
+      return getIds().sort(
+        (a, b) => chart.getDimensionValue(a, x, "pa") - chart.getDimensionValue(b, x, "pa")
+      )
     },
   }
 
@@ -79,7 +83,7 @@ export default (chart, sdk) => {
       ? sortedDimensionIds.filter(
           id =>
             selectedLegendDimensions.includes(id) ||
-            selectedLegendDimensions.includes(getDimensionName(id))
+            selectedLegendDimensions.includes(chart.getDimensionName(id))
         )
       : sortedDimensionIds
 
@@ -90,7 +94,7 @@ export default (chart, sdk) => {
       chart.trigger("visibleDimensionsChanged")
   }
 
-  const sortDimensions = () => {
+  chart.sortDimensions = () => {
     const dimensionsSort = chart.getAttribute("dimensionsSort")
     const sort = bySortMethod[dimensionsSort] || bySortMethod.default
     sortedDimensionIds = sort()
@@ -101,9 +105,9 @@ export default (chart, sdk) => {
     chart.trigger("dimensionChanged")
   }
 
-  const onHoverSortDimensions = (x, dimensionsSort = chart.getAttribute("dimensionsSort")) => {
+  chart.onHoverSortDimensions = (x, dimensionsSort = chart.getAttribute("dimensionsSort")) => {
     const sort = bySortMethod[dimensionsSort] || bySortMethod.default
-    return sort(getVisibleDimensionIds, x)
+    return sort(chart.getVisibleDimensionIds, x)
   }
 
   const getNextColor = () => {
@@ -120,10 +124,10 @@ export default (chart, sdk) => {
     return nextColor
   }
 
-  const updateDimensions = () => {
-    const dimensionIds = getPayloadDimensionIds()
+  chart.updateDimensions = () => {
+    const dimensionIds = chart.getPayloadDimensionIds()
 
-    sortDimensions()
+    chart.sortDimensions()
     if (deepEqual(prevDimensionIds, dimensionIds)) return
 
     prevDimensionIds = dimensionIds
@@ -132,16 +136,16 @@ export default (chart, sdk) => {
       return acc
     }, {})
 
-    sortDimensions()
+    chart.sortDimensions()
   }
 
-  const getDimensionIndex = id => dimensionsById[id]
+  chart.getDimensionIndex = id => dimensionsById[id]
 
-  const getDimensionIds = () => sortedDimensionIds
+  chart.getDimensionIds = () => sortedDimensionIds
 
-  const getVisibleDimensionIds = () => visibleDimensionIds
+  chart.getVisibleDimensionIds = () => visibleDimensionIds
 
-  const isDimensionVisible = id => visibleDimensionSet.has(id)
+  chart.isDimensionVisible = id => visibleDimensionSet.has(id)
 
   const getMemKey = () => {
     const { colors, contextScope, id } = chart.getAttributes()
@@ -151,7 +155,7 @@ export default (chart, sdk) => {
     return contextScope.join("|") || id
   }
 
-  const selectDimensionColor = id => {
+  chart.selectDimensionColor = id => {
     const key = getMemKey()
     const colorsAttr = chart.getAttribute("colors")
     const sparkline = chart.getAttribute("sparkline")
@@ -167,19 +171,19 @@ export default (chart, sdk) => {
     return color[index]
   }
 
-  const getDimensionName = id => {
+  chart.getDimensionName = id => {
     const viewDimensions = chart.getAttribute("viewDimensions")
 
     return viewDimensions.names[dimensionsById[id]]
   }
 
-  const getDimensionPriority = id => {
+  chart.getDimensionPriority = id => {
     const viewDimensions = chart.getAttribute("viewDimensions")
 
     return viewDimensions.priorities[dimensionsById[id]]
   }
 
-  const getRowDimensionValue = (id, pointData, valueKey = "value", objKey) => {
+  chart.getRowDimensionValue = (id, pointData, valueKey = "value", objKey) => {
     if (objKey) pointData = pointData[objKey]
 
     const value = pointData?.[dimensionsById[id] + 1]
@@ -188,25 +192,25 @@ export default (chart, sdk) => {
     return value !== null && typeof value === "object" ? value[valueKey] : value
   }
 
-  const getDimensionValue = (id, index, valueKey, objKey) => {
+  chart.getDimensionValue = (id, index, valueKey, objKey) => {
     const { all } = chart.getPayload()
     const pointData = all[index]
 
-    return getRowDimensionValue(id, pointData, valueKey, objKey)
+    return chart.getRowDimensionValue(id, pointData, valueKey, objKey)
   }
 
-  const toggleDimensionId = (id, { merge = false } = {}) => {
+  chart.toggleDimensionId = (id, { merge = false } = {}) => {
     const selectedLegendDimensions = chart.getAttribute("selectedLegendDimensions")
 
     if (!selectedLegendDimensions.length) {
       chart.updateAttribute(
         "selectedLegendDimensions",
-        merge ? getDimensionIds().filter(d => d !== id) : [id]
+        merge ? chart.getDimensionIds().filter(d => d !== id) : [id]
       )
       return
     }
 
-    if (isDimensionVisible(id)) {
+    if (chart.isDimensionVisible(id)) {
       const newSelectedLegendDimensions = selectedLegendDimensions.filter(d => d !== id)
       chart.updateAttribute(
         "selectedLegendDimensions",
@@ -219,32 +223,15 @@ export default (chart, sdk) => {
     chart.updateAttribute("selectedLegendDimensions", newSelectedLegendDimensions)
   }
 
-  chart.onAttributeChange("dimensionsSort", sortDimensions)
+  chart.onAttributeChange("dimensionsSort", chart.sortDimensions)
   chart.onAttributeChange("selectedLegendDimensions", updateVisibleDimensions)
 
-  const updateColors = () => {
+  chart.updateColors = () => {
     let dimensionIds = chart.getAttribute("dimensionIds")
     if (!Object.keys(dimensionIds)?.length) return
 
-    const keys = hasSparklineDimension() ? sparklineDimensions : dimensionIds
+    const keys = chart.hasSparklineDimension() ? sparklineDimensions : dimensionIds
 
-    keys.forEach(selectDimensionColor)
-  }
-
-  return {
-    sortDimensions,
-    updateDimensions,
-    updateColors,
-    getDimensionIndex,
-    getDimensionIds,
-    getVisibleDimensionIds,
-    isDimensionVisible,
-    toggleDimensionId,
-    selectDimensionColor,
-    getDimensionName,
-    getRowDimensionValue,
-    getDimensionValue,
-    onHoverSortDimensions,
-    getPayloadDimensionIds,
+    keys.forEach(chart.selectDimensionColor)
   }
 }

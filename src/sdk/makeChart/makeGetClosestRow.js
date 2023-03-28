@@ -1,14 +1,14 @@
-export default getPayload => {
+export default chart => {
   let cachedHoverTimestamp = -1
   let cachedHoverRow = -1
 
-  const invalidateClosestRowCache = () => {
+  chart.invalidateClosestRowCache = () => {
     cachedHoverTimestamp = -1
     cachedHoverRow = -1
   }
 
   const getClosestRowBinary = timestamp => {
-    const { data } = getPayload()
+    const { data } = chart.getPayload()
 
     if (data.length === 0) return -1
 
@@ -31,7 +31,7 @@ export default getPayload => {
     return start
   }
 
-  const getClosestRow = timestamp => {
+  chart.getClosestRow = timestamp => {
     if (cachedHoverTimestamp === timestamp) return cachedHoverRow
 
     cachedHoverTimestamp = timestamp
@@ -39,6 +39,4 @@ export default getPayload => {
 
     return cachedHoverRow
   }
-
-  return { invalidateClosestRowCache, getClosestRow }
 }

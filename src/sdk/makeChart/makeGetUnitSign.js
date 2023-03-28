@@ -103,7 +103,7 @@ export const unitMap = {
 const numRegex = /num\s\(([fpnμmcAhkMGTPE])\)?\s(.+)?/
 
 export default node =>
-  (long = false) => {
+  (node.getUnitSign = (long = false) => {
     let units = node.getAttribute("unitsConversion") || node.getAttribute("units")
 
     let prefix = ""
@@ -118,4 +118,4 @@ export default node =>
     if (!units) return null
 
     return `${prefix}${long ? units : unitMap[units] || units}`
-  }
+  })

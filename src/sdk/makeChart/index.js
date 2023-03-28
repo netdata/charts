@@ -1,25 +1,16 @@
 import makeKeyboardListener from "@/helpers/makeKeyboardListener"
 import makeNode from "../makeNode"
 import convert from "../unitConversion"
-import { fetchChartData, errorCodesToMessage } from "./api"
+import { fetchChartData } from "./api"
 import makeDimensions from "./makeDimensions"
-import makeGetClosestRow from "./makeGetClosestRow"
-import getInitialFilterAttributes from "./filters/getInitialAttributes"
 import makeFilterControllers from "./filters/makeControllers"
+import makeDataFetch from "./makeDataFetch"
 import makeGetUnitSign from "./makeGetUnitSign"
 import makeWeights from "./makeWeights"
-import camelizePayload from "./camelizePayload"
 
 const maxBackoffMs = 30 * 1000
 
 const defaultMakeTrack = () => value => value
-
-const initialPayload = {
-  labels: [],
-  data: [],
-  all: [],
-  tree: {},
-}
 
 export default ({
   sdk,
@@ -29,27 +20,21 @@ export default ({
   makeTrack = defaultMakeTrack,
 } = {}) => {
   let node = makeNode({ sdk, parent, attributes })
-  let ui = null
-  let abortController = null
-  let payload = initialPayload
-  let nextPayload = null
+  node.getChart = getChart
+
   let fetchTimeoutId = null
 
-  let backoffMs = null
-  const backoff = ms => {
+  node.backoffMs = null
+  node.backoff = ms => {
     if (ms) {
-      backoffMs = ms
+      node.backoffMs = ms
       return
     }
-    const tmpBackoffMs = backoffMs ? backoffMs * 2 : getUpdateEvery()
-    backoffMs = tmpBackoffMs > maxBackoffMs ? maxBackoffMs : tmpBackoffMs
+    const tmpBackoffMs = node.backoffMs ? node.backoffMs * 2 : node.getUpdateEvery()
+    node.backoffMs = tmpBackoffMs > maxBackoffMs ? maxBackoffMs : tmpBackoffMs
   }
 
-  const getPayload = () => payload
-
-  const { invalidateClosestRowCache, getClosestRow } = makeGetClosestRow(getPayload)
-
-  const cancelFetch = () => abortController && abortController.abort()
+  let ui = null
 
   const getUpdateEvery = () => {
     if (!node) return
@@ -63,7 +48,7 @@ export default ({
     return updateEvery * 1000 || 2000
   }
 
-  const startAutofetch = () => {
+  node.startAutofetch = () => {
     if (!node) return
 
     const { fetchStartedAt, loading, autofetch, active, paused } = node.getAttributes()
@@ -86,174 +71,22 @@ export default ({
     }
 
     const remaining =
-      backoffMs || updateEveryMs - Math.round((div - Math.floor(div)) * updateEveryMs)
+      node.backoffMs || updateEveryMs - Math.round((div - Math.floor(div)) * updateEveryMs)
 
     clearTimeout(fetchTimeoutId)
     fetchTimeoutId = setTimeout(() => {
-      startAutofetch()
+      node.startAutofetch()
     }, remaining)
   }
 
-  const finishFetch = () => {
-    if (!node) return
-
-    startAutofetch()
-    node.trigger("finishFetch")
-  }
-
-  const getDataLength = payload => {
-    const { data } = payload || initialPayload
-    return data?.length || 0
-  }
-
-  const doneFetch = nextRawPayload => {
-    backoffMs = 0
-    const { result, chartType, versions, ...restPayload } = camelizePayload(nextRawPayload)
-
-    const prevPayload = nextPayload
-    nextPayload = result
-
-    const dataLength = getDataLength(nextPayload)
-    if (
-      !node.getAttribute("loaded") ||
-      (dataLength > 0 && getDataLength(payload) === 0) ||
-      (getDataLength(payload) > 0 && dataLength === 0)
-    )
-      consumePayload()
-
-    invalidateClosestRowCache()
-
-    if (!node.getAttribute("loaded")) node.getParent().trigger("chartLoaded", node)
-
-    const wasLoaded = node.getAttribute("loaded")
-
-    const attributes = node.getAttributes()
-
-    node.updateAttributes({
-      loaded: true,
-      loading: false,
-      updatedAt: Date.now(),
-      outOfLimits: !dataLength,
-      chartType: attributes.selectedChartType || attributes.chartType || chartType,
-      ...restPayload,
-      versions,
-      title: attributes.title || restPayload.title,
-      error: null,
-    })
-
-    dimensions.sortDimensions()
-    dimensions.updateColors()
-
-    if (!node.getAttribute("initializedFilters"))
-      node.setAttributes(getInitialFilterAttributes(node))
-
-    if (wasLoaded) node.trigger("successFetch", nextPayload, prevPayload)
-
-    updateVersions(versions)
-    finishFetch()
-  }
-
-  const updateVersions = ({
-    alerts_hard_hash: alertsHardHash,
-    alerts_soft_hash: alertsSoftHash,
-    contexts_hard_hash: contextsHardHash,
-    contexts_soft_hash: contextsSoftHash,
-    nodes_hard_hash: nodesHardHash,
-  }) => {
-    if (!node) return
-
-    const container = node.getParent()
-    if (!container) return
-
-    container.updateAttribute("versions", {
-      alertsHardHash,
-      alertsSoftHash,
-      contextsHardHash,
-      contextsSoftHash,
-      nodesHardHash,
-    })
-  }
-
-  const failFetch = error => {
-    if (!node) return
-
-    if (error?.name === "AbortError") {
-      node.updateAttribute("loading", false)
-      return
-    }
-
-    backoff()
-    if (!error || error.name !== "AbortError") node.trigger("failFetch", error)
-
-    if (!node.getAttribute("loaded")) node.getParent().trigger("chartLoaded", node)
-
-    node.updateAttributes({
-      loaded: true,
-      loading: false,
-      updatedAt: Date.now(),
-      error:
-        errorCodesToMessage[error?.errorMessage] ||
-        error?.errorMessage ||
-        error?.message ||
-        "Something went wrong",
-    })
-
-    finishFetch()
-  }
-
-  const dataFetch = () => {
-    abortController = new AbortController()
-    const options = { signal: abortController.signal }
-
-    return getChart(node, options)
-      .then(data => {
-        if (data?.errorMsgKey) return failFetch(data)
-        if (!(Array.isArray(data?.result) || Array.isArray(data?.result?.data))) return failFetch()
-
-        return doneFetch(data)
-      })
-      .catch(failFetch)
-  }
-
-  const isNewerThanRetention = () => {
-    if (!node) return false
-
-    const { firstEntry, after, before } = node.getAttributes()
-    const absoluteBefore = after >= 0 ? before : Date.now() / 1000
-    return !firstEntry || firstEntry <= absoluteBefore
-  }
-
-  const fetch = () => {
-    if (!node) return
-
-    cancelFetch()
-    node.trigger("startFetch")
-    node.updateAttributes({ loading: true, fetchStartedAt: Date.now() })
-
-    if (!isNewerThanRetention())
-      return Promise.resolve().then(() =>
-        failFetch({ message: "Exceeds agent data retention settings" })
-      )
-
-    return dataFetch()
-  }
-
-  node.on("fetch", fetch)
-
-  const getUI = () => ui
-  const setUI = newUi => {
+  node.getUI = () => ui
+  node.setUI = newUi => {
     ui = newUi
   }
 
   const render = () => ui && ui.render()
 
-  const fetchAndRender = ({ initialize = false } = {}) => {
-    if (!!node && initialize) node.updateAttribute("loaded", false)
-
-    return fetch().then(render)
-  }
-
-  const getConvertedValue = (value, { fractionDigits } = {}) => {
+  node.getConvertedValue = (value, { fractionDigits } = {}) => {
     if (!node) return
 
     if (value === null) return "-"
@@ -271,80 +104,42 @@ export default ({
     }).format(converted)
   }
 
-  const focus = event => {
+  node.focus = event => {
     if (!node) return
     node.updateAttributes({ focused: true, hovering: true })
     sdk.trigger("hoverChart", node, event)
     node.trigger("hoverChart", event)
   }
 
-  const blur = event => {
+  node.blur = event => {
     if (!node) return
     node.updateAttributes({ focused: false, hovering: false })
     sdk.trigger("blurChart", node, event)
     node.trigger("blurChart", event)
   }
 
-  const activate = () => {
+  node.activate = () => {
     if (!node) return
     node.updateAttribute("active", true)
     sdk.trigger("active", node, true)
   }
 
-  const deactivate = () => {
+  node.deactivate = () => {
     if (!node) return
     node.updateAttribute("active", false)
     sdk.trigger("active", node, false)
   }
 
-  const stopAutofetch = () => {
-    clearTimeout(fetchTimeoutId)
+  node.getFirstEntry = () => node.getAttribute("firstEntry")
 
-    if (!node) return
-
-    if (
-      !node.getAttribute("active") &&
-      node.getAttribute("loaded") &&
-      node.getAttribute("loading")
-    ) {
-      cancelFetch()
-    }
-  }
-
-  const getFirstEntry = () => node.getAttribute("firstEntry")
-
-  const getUnits = () => {
+  node.getUnits = () => {
     if (!node) return
 
     const { units } = node.getAttributes()
     return units
   }
 
-  node.onAttributeChange("autofetch", autofetch => {
-    if (autofetch) {
-      startAutofetch()
-    } else {
-      stopAutofetch()
-    }
-  })
-
-  node.onAttributeChange("active", active => {
-    if (!node) return
-
-    if (!active) return stopAutofetch()
-    if (node.getAttribute("autofetch")) return startAutofetch()
-  })
-
-  const { onKeyChange, initKeyboardListener, clearKeyboardListener } = makeKeyboardListener()
-
-  node.onAttributeChange("focused", focused => {
-    if (!node) return
-
-    focused ? initKeyboardListener() : clearKeyboardListener()
-    invalidateClosestRowCache()
-  })
-
-  const getApplicableNodes = (attributes, options) => {
+  node.getApplicableNodes = (attributes, options) => {
     if (!node) return []
 
     if (!node.match(attributes)) return [node]
@@ -355,55 +150,36 @@ export default ({
     return ancestor.getNodes(attributes, options)
   }
 
-  const destroy = () => {
+  node.fetchAndRender = ({ initialize = false } = {}) => {
+    if (!!node && initialize) node.updateAttribute("loaded", false)
+
+    return node.fetch().then(render)
+  }
+
+  node.stopAutofetch = () => {
+    clearTimeout(fetchTimeoutId)
+
     if (!node) return
 
-    cancelFetch()
-    stopAutofetch()
-    clearKeyboardListener()
-
-    if (ui) ui.unmount()
-
-    ui = null
-    node.destroy()
-    node = null
+    if (
+      !node.getAttribute("active") &&
+      node.getAttribute("loaded") &&
+      node.getAttribute("loading")
+    ) {
+      node.cancelFetch()
+    }
   }
+
+  makeDimensions(node, sdk)
+  makeDataFetch(node, sdk)
+  makeWeights(node, sdk)
 
   node.type = "chart"
-  node.getApplicableNodes = getApplicableNodes
+  makeGetUnitSign(node)
 
-  const consumePayload = () => {
-    if (payload === nextPayload || nextPayload === null) return false
+  node.track = makeTrack(node)
 
-    const prevPayload = payload
-    payload = nextPayload
-    if (node) node.trigger("payloadChanged", nextPayload, prevPayload)
-
-    return true
-  }
-
-  node = {
-    ...node,
-    getUI,
-    setUI,
-    getPayload,
-    fetch,
-    doneFetch,
-    cancelFetch,
-    fetchAndRender,
-    getConvertedValue,
-    startAutofetch,
-    focus,
-    blur,
-    activate,
-    deactivate,
-    getClosestRow,
-    getFirstEntry,
-    getUnits,
-    consumePayload,
-  }
-
-  node.getUnitSign = makeGetUnitSign(node)
+  const { onKeyChange, initKeyboardListener, clearKeyboardListener } = makeKeyboardListener()
 
   onKeyChange(["Alt", "Shift", "KeyF"], () => {
     if (!node) return
@@ -415,17 +191,45 @@ export default ({
     node.resetNavigation()
   })
 
-  const dimensions = makeDimensions(node, sdk)
-  const weights = makeWeights(node, sdk)
+  node.onAttributeChange("autofetch", autofetch => {
+    if (autofetch) {
+      node.startAutofetch()
+    } else {
+      node.stopAutofetch()
+    }
+  })
 
-  const track = makeTrack(node)
+  node.onAttributeChange("active", active => {
+    if (!node) return
+
+    if (!active) return node.stopAutofetch()
+    if (node.getAttribute("autofetch")) return node.startAutofetch()
+  })
+
+  node.onAttributeChange("focused", focused => {
+    if (!node) return
+
+    focused ? initKeyboardListener() : clearKeyboardListener()
+    node.invalidateClosestRowCache()
+  })
+
+  const destroy = () => {
+    if (!node) return
+
+    node.cancelFetch()
+    node.stopAutofetch()
+    clearKeyboardListener()
+
+    if (ui) ui.unmount()
+
+    ui = null
+    node.destroy()
+    node = null
+  }
 
   return {
     ...node,
-    ...dimensions,
-    ...weights,
     ...makeFilterControllers(node),
-    track,
     destroy,
     onKeyChange,
   }
