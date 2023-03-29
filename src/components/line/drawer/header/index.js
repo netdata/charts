@@ -2,17 +2,7 @@ import React from "react"
 import styled from "styled-components"
 import { Flex, Button } from "@netdata/netdata-ui"
 import { useChart, useAttributeValue } from "@/components/provider"
-import GridItem from "../gridItem"
 import { actions, tabs } from "../constants"
-
-const Container = styled(GridItem).attrs({
-  area: "header",
-  justifyContent: "between",
-})`
-  &::-webkit-scrollbar {
-    height: 0;
-  }
-`
 
 const Header = ({ onClick, ...rest }) => {
   const chart = useChart()
@@ -20,7 +10,7 @@ const Header = ({ onClick, ...rest }) => {
   const tab = useAttributeValue("weightsTab")
 
   return (
-    <Container {...rest}>
+    <Flex justifyContent="between" {...rest}>
       <Flex gap={6}>
         <Flex gap={1}>
           <Button
@@ -64,7 +54,7 @@ const Header = ({ onClick, ...rest }) => {
           />
         </Flex>
       </Flex>
-    </Container>
+    </Flex>
   )
 }
 

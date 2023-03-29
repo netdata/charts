@@ -42,7 +42,7 @@ export const ColorBar = ({ id, valueKey, ...rest }) => {
 
   const percentMin = max > 0 ? (min < 0 ? 0 : min) : maxAbs
 
-  const value = useLatestValue(id, valueKey) || 0
+  const value = useLatestValue(id, { valueKey }) || 0
 
   return (
     <BaseColorBar

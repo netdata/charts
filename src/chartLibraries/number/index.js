@@ -2,12 +2,9 @@ import makeChartUI from "@/sdk/makeChartUI"
 import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
 
-const getUrlOptions = () => ["absolute"]
-
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
   let listeners
-  let renderedValue = 0
   let resizeObserver
 
   const mount = element => {
@@ -50,8 +47,6 @@ export default (sdk, chart) => {
 
     if (!loaded) return
 
-    chart.consumePayload()
-
     if (!hoverX && after > 0) return chartUI.trigger("rendered")
 
     const { data } = chart.getPayload()
@@ -68,19 +63,14 @@ export default (sdk, chart) => {
     chartUI.render()
     const [min, max] = getMinMax(value)
 
-    renderedValue = value
-
     chartUI.sdk.trigger("yAxisChange", chart, min, max)
     chartUI.trigger("rendered")
   }
-
-  const getValue = () => renderedValue
 
   const unmount = () => {
     if (listeners) listeners()
 
     if (resizeObserver) resizeObserver()
-    renderedValue = 0
 
     chartUI.unmount()
   }
@@ -90,8 +80,6 @@ export default (sdk, chart) => {
     mount,
     unmount,
     render,
-    getValue,
-    getUrlOptions,
   }
 
   return instance

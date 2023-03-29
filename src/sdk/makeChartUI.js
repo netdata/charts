@@ -6,8 +6,6 @@ const themeIndex = {
   dark: 1,
 }
 
-const getUrlOptions = () => []
-
 const getPixelsPerPoint = () => 3
 
 export default (sdk, chart) => {
@@ -22,12 +20,6 @@ export default (sdk, chart) => {
     sdk.trigger("mountChartUI", chart)
   }
 
-  const executeLatest = makeExecuteLatest()
-  const latestRender = executeLatest.add(() => chart && chart.getUI() && chart.getUI().render())
-
-  chart.on("finishFetch", latestRender)
-  chart.on("visibleDimensionsChanged", latestRender)
-
   const unmount = () => {
     sdk.trigger("unmountChartUI", chart)
     listeners.offAll()
@@ -37,6 +29,13 @@ export default (sdk, chart) => {
   const render = () => {
     renderedAt = Date.now()
   }
+
+  const executeLatest = makeExecuteLatest()
+  const latestRender = executeLatest.add(render)
+
+  chart.on("render", latestRender)
+  chart.on("finishFetch", latestRender)
+  chart.on("visibleDimensionsChanged", latestRender)
 
   const getRenderedAt = () => renderedAt
 
@@ -90,6 +89,5 @@ export default (sdk, chart) => {
     getPixelsPerPoint,
     getThemeIndex,
     getThemeAttribute,
-    getUrlOptions,
   }
 }

@@ -27,7 +27,7 @@ const getAlign = (left, top) => {
   return rightBottomAlign
 }
 
-const Popover = () => {
+const Popover = ({ uiName }) => {
   const chart = useChart()
   const dropRef = useRef()
   const [target, setTarget] = useState()
@@ -42,7 +42,7 @@ const Popover = () => {
 
   useEffect(() => {
     return unregister(
-      chart.getUI().on("mousemove", event => {
+      chart.getUI(uiName).on("mousemove", event => {
         if (chart.getAttribute("panning") || chart.getAttribute("highlighting")) return
 
         const offsetX = event.offsetX || event.layerX
@@ -66,7 +66,7 @@ const Popover = () => {
 
         setAlign(getAlign(left, top))
       }),
-      chart.getUI().on("mouseout", () => setOpen(false)),
+      chart.getUI(uiName).on("mouseout", () => setOpen(false)),
       chart.onAttributeChange("panning", panning => panning && setOpen(false)),
       chart.onAttributeChange("highlighting", panning => panning && setOpen(false))
     )

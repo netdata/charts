@@ -34,7 +34,7 @@ export default ({
     node.backoffMs = tmpBackoffMs > maxBackoffMs ? maxBackoffMs : tmpBackoffMs
   }
 
-  let ui = null
+  let uiInstances = {}
 
   const getUpdateEvery = () => {
     if (!node) return
@@ -79,12 +79,12 @@ export default ({
     }, remaining)
   }
 
-  node.getUI = () => ui
-  node.setUI = newUi => {
-    ui = newUi
+  node.getUI = (uiName = "default") => uiInstances[uiName]
+  node.setUI = (newUi, uiName = "default") => {
+    uiInstances[uiName] = newUi
   }
 
-  const render = () => ui && ui.render()
+  const render = () => Object.keys(uiInstances).forEach(uiName => uiInstances[uiName].render())
 
   node.getConvertedValue = (value, { fractionDigits } = {}) => {
     if (!node) return
@@ -99,8 +99,8 @@ export default ({
 
     return Intl.NumberFormat(undefined, {
       useGrouping: true,
-      minimumFractionDigits: fractionDigits || unitsConversionFractionDigits,
-      maximumFractionDigits: fractionDigits || unitsConversionFractionDigits,
+      minimumFractionDigits: isNaN(fractionDigits) ? unitsConversionFractionDigits : fractionDigits,
+      maximumFractionDigits: isNaN(fractionDigits) ? unitsConversionFractionDigits : fractionDigits,
     }).format(converted)
   }
 
@@ -213,6 +213,26 @@ export default ({
     node.invalidateClosestRowCache()
   })
 
+  node.makeChartUI = (uiName, chartLibrary = node.getAttribute("chartLibrary")) => {
+    if (!(chartLibrary in sdk.ui))
+      console.error(
+        `Chart library "${chartLibrary}" does not exist in ${Object.keys(sdk.ui).join(", ")}`
+      )
+
+    const makeChartLibrary = sdk.ui[chartLibrary]
+
+    const chartUi = makeChartLibrary(sdk, node)
+    node.setUI(chartUi, uiName)
+  }
+
+  node.makeSubChart = (options = {}) => {
+    const subChart = sdk.makeChartCore(options)
+    const chartUi = sdk.makeChartUI(subChart)
+    subChart.setUI(chartUi, "default")
+
+    return subChart
+  }
+
   const destroy = () => {
     if (!node) return
 
@@ -220,9 +240,9 @@ export default ({
     node.stopAutofetch()
     clearKeyboardListener()
 
-    if (ui) ui.unmount()
+    Object.keys(uiInstances).forEach(uiName => uiInstances[uiName].unmount())
 
-    ui = null
+    uiInstances = null
     node.destroy()
     node = null
   }

@@ -4,12 +4,9 @@ import makeResizeObserver from "@/helpers/makeResizeObserver"
 import d3pie from "./library"
 import getInitialOptions from "./getInitialOptions"
 
-const getUrlOptions = () => ["absolute"]
-
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
   let pie = null
-  let renderedValue = 0
   let listeners
   let resizeObserver
 
@@ -27,9 +24,6 @@ export default (sdk, chart) => {
     element.classList.add(theme)
 
     const { loaded } = chart.getAttributes()
-
-    chart.consumePayload()
-    chart.updateDimensions()
 
     pie = new d3pie(element, getInitialOptions(chartUI))
 
@@ -58,9 +52,6 @@ export default (sdk, chart) => {
 
     if (!pie || !loaded) return
 
-    chart.consumePayload()
-    chart.updateDimensions()
-
     const { data } = chart.getPayload()
 
     if (data?.length === undefined) return
@@ -86,8 +77,6 @@ export default (sdk, chart) => {
     chartUI.trigger("rendered")
   }
 
-  const getValue = () => renderedValue
-
   const unmount = () => {
     if (listeners) listeners()
     if (resizeObserver) resizeObserver()
@@ -97,8 +86,6 @@ export default (sdk, chart) => {
       pie = null
     }
 
-    renderedValue = 0
-
     chartUI.unmount()
   }
 
@@ -107,7 +94,5 @@ export default (sdk, chart) => {
     mount,
     unmount,
     render,
-    getValue,
-    getUrlOptions,
   }
 }

@@ -8,6 +8,7 @@ import {
   useAttributeValue,
   useImmediateListener,
   useOnResize,
+  useLatestConvertedValue,
 } from "@/components/provider"
 import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
 import withChart from "@/components/hocs/withChart"
@@ -26,18 +27,7 @@ const StrokeLabel = styled(Label)`
     -0.02em 0 ${getColor("borderSecondary")}, 0 -0.02em ${getColor("borderSecondary")};
 `
 export const Value = () => {
-  const chart = useChart()
-
-  const getValue = () => {
-    const { hoverX, after } = chart.getAttributes()
-    if (!hoverX && after > 0) return "-"
-
-    const v = chart.getUI().getValue()
-    return chart.getConvertedValue(v, { fractionDigits: 2 })
-  }
-  const [value, setValue] = useState(getValue)
-
-  useImmediateListener(() => chart.getUI().on("rendered", () => setValue(getValue())), [])
+  const value = useLatestConvertedValue("selected")
 
   return (
     <StrokeLabel flex="2" color="main" fontSize="2em" strong>
@@ -55,7 +45,7 @@ export const Unit = () => {
   )
 }
 
-const useEmptyValue = () => {
+const useEmptyValue = uiName => {
   const chart = useChart()
 
   const getValue = () => {
@@ -64,15 +54,15 @@ const useEmptyValue = () => {
   }
   const [value, setValue] = useState(getValue)
 
-  useImmediateListener(() => chart.getUI().on("rendered", () => setValue(getValue())), [])
+  useImmediateListener(() => chart.getUI(uiName).on("rendered", () => setValue(getValue())), [])
 
   return value
 }
 
-export const Bound = ({ bound, empty, index, ...rest }) => {
+export const Bound = ({ bound, empty, index, uiName, ...rest }) => {
   const chart = useChart()
   const attrValue = useAttributeValue(bound)
-  const minMax = chart.getUI().getMinMax(attrValue)
+  const minMax = chart.getUI(uiName).getMinMax(attrValue)
 
   return (
     <Label color="border" fontSize="1.3em" {...rest}>
@@ -87,13 +77,13 @@ export const BoundsContainer = styled(Flex).attrs({
   flex: true,
 })``
 
-export const Bounds = () => {
-  const empty = useEmptyValue()
+export const Bounds = ({ uiName }) => {
+  const empty = useEmptyValue(uiName)
 
   return (
     <BoundsContainer>
-      <Bound bound="min" empty={empty} index={0} />
-      <Bound bound="max" empty={empty} index={1} />
+      <Bound bound="min" empty={empty} index={0} uiName={uiName} />
+      <Bound bound="max" empty={empty} index={1} uiName={uiName} />
     </BoundsContainer>
   )
 }
@@ -109,7 +99,7 @@ export const StatsContainer = styled(Flex).attrs({
   font-size: ${({ fontSize }) => fontSize};
 `
 
-export const Stats = () => {
+export const Stats = ({ uiName }) => {
   const { width, height } = useOnResize()
   const size = width < height ? width : height
 
@@ -125,7 +115,7 @@ export const Stats = () => {
         fontSize={`${size / 15}px`}
         inset={`90% ${(100 - (size * 0.8 * 100) / width) / 2}% 0%`}
       >
-        <Bounds />
+        <Bounds uiName={uiName} />
       </StatsContainer>
     </>
   )
@@ -146,14 +136,14 @@ export const Skeleton = styled(Flex).attrs(props => ({
   animation: ${frames} 1.6s ease-in infinite;
 `
 
-export const Gauge = forwardRef((props, ref) => {
+export const Gauge = forwardRef(({ uiName, ...rest }, ref) => {
   const loaded = useAttributeValue("loaded")
 
   return (
     <ChartWrapper alignItems="center" justifyContent="center" column ref={ref}>
       {loaded ? (
         <>
-          <ChartContainer as="canvas" />
+          <ChartContainer uiName={uiName} as="canvas" {...rest} />
           <Stats />
         </>
       ) : (

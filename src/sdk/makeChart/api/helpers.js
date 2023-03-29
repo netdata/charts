@@ -1,8 +1,8 @@
 export const getChartURLOptions = chart => {
-  const { chartUrlOptions, eliminateZeroDimensions, urlOptions } = chart.getAttributes()
+  const { chartUrlOptions = [], eliminateZeroDimensions, urlOptions } = chart.getAttributes()
 
   return [
-    ...(chartUrlOptions || chart.getUI().getUrlOptions()),
+    ...chartUrlOptions,
     ...urlOptions,
     "jsonwrap",
     eliminateZeroDimensions && "nonzero",
@@ -23,6 +23,7 @@ const oneValueOptions = {
 const defaultOptionsByLibrary = {
   gauge: oneValueOptions,
   easypiechart: oneValueOptions,
+  number: oneValueOptions,
   default: {},
 }
 

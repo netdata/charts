@@ -3,7 +3,7 @@ import { useAttributeValue } from "@/components/provider"
 import { Fragment } from "react"
 import types from "./types"
 
-const Overlays = () => {
+const Overlays = ({ uiName }) => {
   const overlays = useAttributeValue("overlays")
 
   return (
@@ -11,7 +11,7 @@ const Overlays = () => {
       {Object.keys(overlays).map(id => {
         const { type, ...rest } = overlays[id]
         const Overlay = types[type]
-        return <Overlay key={id} id={id} {...rest} />
+        return <Overlay key={id} id={id} uiName={uiName} {...rest} />
       })}
     </Fragment>
   )

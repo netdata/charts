@@ -47,7 +47,9 @@ export default (chart, sdk) => {
       x = x || all.length - 1
 
       return getIds().sort(
-        (a, b) => chart.getDimensionValue(b, x, "arp") - chart.getDimensionValue(a, x, "arp")
+        (a, b) =>
+          chart.getDimensionValue(b, x, { valueKey: "arp" }) -
+          chart.getDimensionValue(a, x, { valueKey: "arp" })
       )
     },
     anomalyAsc: (getIds = chart.getSourceDimensionIds, x) => {
@@ -55,7 +57,9 @@ export default (chart, sdk) => {
       x = x || all.length - 1
 
       return getIds().sort(
-        (a, b) => chart.getDimensionValue(a, x, "arp") - chart.getDimensionValue(b, x, "arp")
+        (a, b) =>
+          chart.getDimensionValue(a, x, { valueKey: "arp" }) -
+          chart.getDimensionValue(b, x, { valueKey: "arp" })
       )
     },
     annotationsDesc: (getIds = chart.getSourceDimensionIds, x) => {
@@ -63,7 +67,9 @@ export default (chart, sdk) => {
       x = x || all.length - 1
 
       return getIds().sort(
-        (a, b) => chart.getDimensionValue(b, x, "pa") - chart.getDimensionValue(a, x, "pa")
+        (a, b) =>
+          chart.getDimensionValue(b, x, { valueKey: "pa" }) -
+          chart.getDimensionValue(a, x, { valueKey: "pa" })
       )
     },
     annotationsAsc: (getIds = chart.getSourceDimensionIds, x) => {
@@ -71,7 +77,9 @@ export default (chart, sdk) => {
       x = x || all.length - 1
 
       return getIds().sort(
-        (a, b) => chart.getDimensionValue(a, x, "pa") - chart.getDimensionValue(b, x, "pa")
+        (a, b) =>
+          chart.getDimensionValue(a, x, { valueKey: "pa" }) -
+          chart.getDimensionValue(b, x, { valueKey: "pa" })
       )
     },
   }
@@ -79,6 +87,7 @@ export default (chart, sdk) => {
   const updateVisibleDimensions = () => {
     const selectedLegendDimensions = chart.getAttribute("selectedLegendDimensions")
 
+    debugger
     visibleDimensionIds = selectedLegendDimensions.length
       ? sortedDimensionIds.filter(
           id =>
@@ -136,7 +145,7 @@ export default (chart, sdk) => {
       return acc
     }, {})
 
-    chart.sortDimensions()
+    chart.updateColors()
   }
 
   chart.getDimensionIndex = id => dimensionsById[id]
@@ -183,20 +192,22 @@ export default (chart, sdk) => {
     return viewDimensions.priorities[dimensionsById[id]]
   }
 
-  chart.getRowDimensionValue = (id, pointData, valueKey = "value", objKey) => {
+  chart.getRowDimensionValue = (id, pointData, { valueKey = "value", objKey, abs = true } = {}) => {
     if (objKey) pointData = pointData[objKey]
 
-    const value = pointData?.[dimensionsById[id] + 1]
+    let value = pointData?.[dimensionsById[id] + 1]
     if (typeof value === "undefined") return null
 
-    return value !== null && typeof value === "object" ? value[valueKey] : value
+    value = value !== null && typeof value === "object" ? value[valueKey] : value
+
+    return abs ? Math.abs(value) : value
   }
 
-  chart.getDimensionValue = (id, index, valueKey, objKey) => {
+  chart.getDimensionValue = (id, index, options = {}) => {
     const { all } = chart.getPayload()
     const pointData = all[index]
 
-    return chart.getRowDimensionValue(id, pointData, valueKey, objKey)
+    return chart.getRowDimensionValue(id, pointData, options)
   }
 
   chart.toggleDimensionId = (id, { merge = false } = {}) => {

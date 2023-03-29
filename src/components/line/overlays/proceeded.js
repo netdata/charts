@@ -15,10 +15,10 @@ const ProceededContainer = styled(Flex).attrs({
   direction: initial;
 `
 
-const Proceeded = ({ defaultValue, ...rest }) => {
+const Proceeded = ({ defaultValue, uiName, ...rest }) => {
   const chart = useChart()
 
-  const chartWidth = chart.getUI().getChartWidth()
+  const chartWidth = chart.getUI(uiName).getChartWidth()
   const error = useChartError()
 
   if (chartWidth < 240) return null

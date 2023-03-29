@@ -52,7 +52,7 @@ export default ({ ui, plugins: defaultPlugins = {}, attributes: defaultAttribute
   const makeSDKChart = ({ ui, ...options }) => {
     const chart = makeChartCore(options)
     const chartUi = makeChartUI(chart)
-    chart.setUI({ ...chartUi, ...ui })
+    chart.setUI({ ...chartUi, ...ui }, "default")
 
     return chart
   }
@@ -82,6 +82,7 @@ export default ({ ui, plugins: defaultPlugins = {}, attributes: defaultAttribute
     appendChild,
     removeChild,
     version,
+    ui,
   }
 
   init()

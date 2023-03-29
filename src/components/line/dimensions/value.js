@@ -15,7 +15,7 @@ const ValueComponent = ({
   Component = Value,
   ...rest
 }) => {
-  const value = useConvertedValue(id, period, valueKey, objKey)
+  const value = useConvertedValue(id, period, { valueKey, objKey })
 
   if (!visible) return null
 

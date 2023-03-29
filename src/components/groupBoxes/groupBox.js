@@ -5,7 +5,7 @@ import drawBoxes from "./drawBoxes"
 import useGroupBoxRowData from "./useGroupBoxRowData"
 import Popover from "./popover"
 
-const GroupBox = ({ dimensions, getColor, groupIndex, groupLabel, ...options }) => {
+const GroupBox = ({ uiName, dimensions, getColor, groupIndex, groupLabel, ...options }) => {
   const chart = useChart()
 
   const dimensionsRef = useRef()
@@ -67,7 +67,7 @@ const GroupBox = ({ dimensions, getColor, groupIndex, groupLabel, ...options }) 
     return () => boxesRef.current.clear()
   }, [])
 
-  const pointData = useGroupBoxRowData()
+  const pointData = useGroupBoxRowData(uiName)
 
   const [, startTransitionEffect, stopTransitionEffect] = useTransition()
 

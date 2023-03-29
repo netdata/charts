@@ -1,11 +1,10 @@
-import React, { forwardRef, useState } from "react"
+import React, { forwardRef } from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { Text } from "@netdata/netdata-ui/lib/components/typography"
 import ChartContainer from "@/components/chartContainer"
-import { useChart, useUnitSign, useImmediateListener, useOnResize } from "@/components/provider"
+import { useUnitSign, useOnResize, useLatestConvertedValue } from "@/components/provider"
 import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
-import { useIsFetching } from "@/components/provider"
 import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
 import textAnimation from "../helpers/textAnimation"
@@ -22,18 +21,7 @@ const StrokeLabel = styled(Label)`
     -0.02em 0 ${getColor("borderSecondary")}, 0 -0.02em ${getColor("borderSecondary")};
 `
 export const Value = props => {
-  const chart = useChart()
-
-  const getValue = () => {
-    const { hoverX, after } = chart.getAttributes()
-    if (!hoverX && after > 0) return "-"
-
-    const v = chart.getUI().getValue()
-    return chart.getConvertedValue(v)
-  }
-  const [value, setValue] = useState(getValue)
-
-  useImmediateListener(() => chart.getUI().on("rendered", () => setValue(getValue())), [])
+  const value = useLatestConvertedValue("selected")
 
   return (
     <StrokeLabel flex="2" color="main" fontSize="2em" strong {...props}>
@@ -55,13 +43,13 @@ const StatesContainer = styled(Flex)`
   font-size: ${({ fontSize }) => fontSize};
 `
 
-export const NumberChart = forwardRef((props, ref) => {
+export const NumberChart = forwardRef(({ uiName, ...rest }, ref) => {
   const { width, height } = useOnResize()
   const size = width < height ? width : height
 
   return (
-    <ChartWrapper {...props} ref={ref}>
-      <ChartContainer column alignItems="center" justifyContent="center">
+    <ChartWrapper ref={ref}>
+      <ChartContainer uiName={uiName} column alignItems="center" justifyContent="center" {...rest}>
         <StatesContainer column fontSize={`${size / 15}px`} position="relative">
           <Value />
           <Unit />

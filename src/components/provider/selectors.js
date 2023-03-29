@@ -39,7 +39,7 @@ export const useInitialLoading = () => {
   return !chart.getAttribute("loaded")
 }
 
-export const useLoadingColor = (defaultColor = "themeNeutralBackground") => {
+export const useLoadingColor = (defaultColor = "themeNeutralBackground", { uiName } = {}) => {
   const chart = useChart()
   const [color, setColor] = useState(defaultColor)
   const fetchStartedAt = useAttributeValue("fetchStartedAt")
@@ -137,7 +137,10 @@ export const useVisibleDimensionId = id => {
 
   const forceUpdate = useForceUpdate()
 
-  useImmediateListener(() => chart.onAttributeChange("selectedDimensions", forceUpdate), [chart])
+  useImmediateListener(() => {
+    chart.onAttributeChange("selectedDimensions", forceUpdate)
+    chart.on("visibleDimensionsChanged", forceUpdate)
+  }, [chart])
 
   return chart.isDimensionVisible(id)
 }
@@ -235,7 +238,7 @@ export const useUnits = () => {
   return chart.getUnits()
 }
 
-export const useConverted = (value, valueKey) => {
+export const useConverted = (value, { valueKey, fractionDigits } = {}) => {
   const chart = useChart()
   const unitsConversion = useAttributeValue("unitsConversion")
 
@@ -243,16 +246,18 @@ export const useConverted = (value, valueKey) => {
     if (value === null || value === "-") return "-"
 
     if (valueKey === "arp" || valueKey === "percent")
-      return value === 0 ? "-" : (Math.round((value + Number.EPSILON) * 100) / 100).toFixed(2)
+      return value === 0
+        ? "-"
+        : (Math.round((value + Number.EPSILON) * 100) / 100).toFixed(fractionDigits || 2)
 
     if (valueKey === "pa")
       return parts.reduce((h, a) => (check(value, enums[a]) ? { ...h, [a]: colors[a] } : h), {})
 
-    return chart.getConvertedValue(value)
+    return chart.getConvertedValue(value, { fractionDigits })
   }, [chart, value, valueKey, unitsConversion])
 }
 
-export const useLatestRowValue = (valueKey = "value", objKey) => {
+export const useLatestRowValue = (options = {}) => {
   const chart = useChart()
 
   const [value, setState] = useState(null)
@@ -271,7 +276,7 @@ export const useLatestRowValue = (valueKey = "value", objKey) => {
 
       return dimensionIds.map(id => ({
         label: id,
-        value: chart.getDimensionValue(id, index, valueKey, objKey),
+        value: chart.getDimensionValue(id, index, options),
         color: chart.selectDimensionColor(id),
       }))
     }
@@ -279,7 +284,7 @@ export const useLatestRowValue = (valueKey = "value", objKey) => {
     return unregister(
       chart.onAttributeChange("hoverX", () => setState(getValue())),
       chart.on("dimensionChanged", () => setState(getValue())),
-      chart.getUI().on("rendered", () => setState(getValue()))
+      chart.getUI().on("render", () => setState(getValue()))
     )
   }, [chart])
 
@@ -287,7 +292,7 @@ export const useLatestRowValue = (valueKey = "value", objKey) => {
 }
 
 const getValueByPeriod = {
-  latest: ({ chart, id, valueKey, objKey }) => {
+  latest: ({ chart, id, ...options }) => {
     const hover = chart.getAttribute("hoverX")
     const { all } = chart.getPayload()
 
@@ -299,7 +304,7 @@ const getValueByPeriod = {
     const dimensionIds = chart.getPayloadDimensionIds()
 
     id = id || dimensionIds[0]
-    const dimValue = chart.getDimensionValue(id, index, valueKey, objKey)
+    const dimValue = chart.getDimensionValue(id, index, options)
 
     return dimValue
   },
@@ -331,14 +336,14 @@ const getValueByPeriod = {
   },
 }
 
-export const useValue = (id, period = "latest", valueKey = "value", objKey) => {
+export const useValue = (id, period = "latest", { valueKey = "value", objKey, abs } = {}) => {
   const chart = useChart()
 
   const [value, setState] = useState(null)
 
   useLayoutEffect(() => {
     const getValue = () =>
-      (getValueByPeriod[period] || getValueByPeriod.latest)({ chart, id, valueKey, objKey })
+      (getValueByPeriod[period] || getValueByPeriod.latest)({ chart, id, valueKey, objKey, abs })
 
     setState(getValue())
 
@@ -346,20 +351,19 @@ export const useValue = (id, period = "latest", valueKey = "value", objKey) => {
       chart.onAttributeChange("hoverX", () => setState(getValue())),
       chart.on("dimensionChanged", () => setState(getValue())),
       chart.onAttributeChange("unitsConversion", () => setState(getValue())),
-      chart.getUI().on("rendered", () => setState(getValue()))
+      chart.getUI().on("render", () => setState(getValue()))
     )
   }, [chart, id, valueKey, period, objKey])
 
   return value
 }
 
-export const useLatestValue = (id, valueKey = "value") => useValue(id, "latest", valueKey)
+export const useLatestValue = (id, options = {}) => useValue(id, "latest", options)
 
-export const useConvertedValue = (id, period = "latest", valueKey = "value", objKey) => {
-  const value = useValue(id, period, valueKey, objKey)
+export const useConvertedValue = (id, period = "latest", options = {}) => {
+  const value = useValue(id, period, options)
 
-  return useConverted(value, valueKey)
+  return useConverted(value, options)
 }
 
-export const useLatestConvertedValue = (id, valueKey = "value", objKey) =>
-  useConvertedValue(id, "latest", valueKey, objKey)
+export const useLatestConvertedValue = (id, options) => useConvertedValue(id, "latest", options)

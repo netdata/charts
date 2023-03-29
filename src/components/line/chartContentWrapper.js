@@ -46,7 +46,7 @@ export const Container = forwardRef((props, ref) => {
   )
 })
 
-const ChartContentWrapper = () => {
+const ChartContentWrapper = ({ uiName }) => {
   const [ref, hovered] = useHovered({
     isOut: node => !node || !node.closest("[data-toolbox]"),
   })
@@ -57,10 +57,10 @@ const ChartContentWrapper = () => {
   return (
     <Container ref={ref}>
       {!initialLoading && <ChartContainer />}
-      {!initialLoading && <Overlays />}
+      {!initialLoading && <Overlays uiName={uiName} />}
       {initialLoading && <Skeleton />}
       {hasToolbox && hovered && !empty && <Toolbox />}
-      <Popover />
+      <Popover uiName={uiName} />
     </Container>
   )
 }

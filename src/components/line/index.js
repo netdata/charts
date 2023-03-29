@@ -11,7 +11,7 @@ import Container from "@/components/container"
 import Footer from "./footer"
 
 export const Line = forwardRef(
-  ({ hasHeader = true, hasFooter = true, hasFilters = true, height, ...rest }, ref) => {
+  ({ hasHeader = true, hasFooter = true, hasFilters = true, height, uiName, ...rest }, ref) => {
     const chart = useChart()
     const showingInfo = useAttributeValue("showingInfo")
 
@@ -34,7 +34,9 @@ export const Line = forwardRef(
       <Container ref={setRef} {...rest} height={height}>
         {hasHeader && <Header />}
         {hasFilters && <FilterToolbox />}
-        <ContentWrapper>{showingInfo ? <Details /> : <ChartContentWrapper />}</ContentWrapper>
+        <ContentWrapper>
+          {showingInfo ? <Details /> : <ChartContentWrapper uiName={uiName} />}
+        </ContentWrapper>
         {hasFooter && <Footer />}
       </Container>
     )

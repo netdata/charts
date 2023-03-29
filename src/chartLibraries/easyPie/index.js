@@ -3,12 +3,9 @@ import makeChartUI from "@/sdk/makeChartUI"
 import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
 
-const getUrlOptions = () => ["absolute"]
-
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
   let easyPie = null
-  let renderedValue = 0
   let listeners
   let resizeObserver
 
@@ -26,9 +23,6 @@ export default (sdk, chart) => {
     const { loaded } = chart.getAttributes()
 
     const makeEasyPie = () => {
-      chart.consumePayload()
-      chart.updateDimensions()
-
       easyPie = new EasyPie(element, {
         barColor: chart.selectDimensionColor(),
         animate: { enabled: false },
@@ -108,10 +102,7 @@ export default (sdk, chart) => {
 
     if (!easyPie || !loaded) return
 
-    chart.consumePayload()
-
     if (!hoverX && after > 0) {
-      renderedValue = 0
       easyPie.update(0)
       return chartUI.trigger("rendered")
     }
@@ -129,12 +120,10 @@ export default (sdk, chart) => {
     const value = rows.reduce((acc, v) => acc + v, 0)
     let [min, max] = getMinMax(value)
 
-    if (renderedValue === value && min === prevMin && max === prevMax) return
-
     chartUI.render()
 
-    renderedValue = value
     const percentage = ((value - min) / (max - min)) * 100
+
     easyPie.update(percentage)
 
     if (min !== prevMin || max !== prevMax) {
@@ -146,8 +135,6 @@ export default (sdk, chart) => {
     chartUI.trigger("rendered")
   }
 
-  const getValue = () => renderedValue
-
   const unmount = () => {
     if (listeners) listeners()
     if (resizeObserver) resizeObserver()
@@ -157,7 +144,6 @@ export default (sdk, chart) => {
       easyPie = null
     }
 
-    renderedValue = 0
     prevMin = null
     prevMax = null
 
@@ -169,8 +155,6 @@ export default (sdk, chart) => {
     mount,
     unmount,
     render,
-    getValue,
-    getUrlOptions,
   }
 
   return instance

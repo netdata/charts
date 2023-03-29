@@ -1,9 +1,9 @@
 import React, { useMemo } from "react"
-import { NetdataTable, TextSmall } from "@netdata/netdata-ui"
+import { Flex, NetdataTable, TextSmall } from "@netdata/netdata-ui"
 import { uppercase } from "@/helpers/objectTransform"
-import { useDimensionIds, useAttributeValue } from "@/components/provider/selectors"
+import { useChart, useDimensionIds, useAttributeValue } from "@/components/provider/selectors"
+import D3pieComponent from "@/components/d3pie"
 import { labelColumn, valueColumn, anomalyColumn, minColumn, avgColumn, maxColumn } from "./columns"
-import GridItem from "../gridItem"
 
 const useColumns = (period, options = {}) => {
   const hover = useAttributeValue("hoverX")
@@ -80,8 +80,11 @@ const Dimensions = () => {
   const tab = useAttributeValue("weightsTab")
   const columns = useColumns(tab)
 
+  const chart = useChart()
+  useMemo(() => chart.makeChartUI("custom", "d3pie"), [])
+
   return (
-    <GridItem area="table">
+    <Flex gap={2}>
       <NetdataTable
         enableSorting
         // enableSelection
@@ -100,7 +103,8 @@ const Dimensions = () => {
         // bulkActions={bulkActions}
         // rowActions={rowActions}
       />
-    </GridItem>
+      <D3pieComponent chart={chart} uiName="custom" />
+    </Flex>
   )
 }
 

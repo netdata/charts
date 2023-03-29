@@ -41,9 +41,8 @@ export default chart => {
     nextPayload = result
 
     const dataLength = getDataLength(nextPayload)
-    if (!chart.getAttribute("loaded") || dataLength !== getDataLength(payload))
-      chart.consumePayload()
 
+    chart.consumePayload()
     chart.invalidateClosestRowCache()
 
     if (!chart.getAttribute("loaded")) chart.getParent().trigger("chartLoaded", chart)
@@ -64,8 +63,7 @@ export default chart => {
       error: null,
     })
 
-    chart.sortDimensions()
-    chart.updateColors()
+    chart.updateDimensions()
 
     if (!chart.getAttribute("initializedFilters"))
       chart.setAttributes(getInitialFilterAttributes(chart))

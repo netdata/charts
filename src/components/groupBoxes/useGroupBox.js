@@ -1,11 +1,11 @@
 import { useChart, useForceUpdate, useImmediateListener } from "@/components/provider"
 
-export default () => {
+export default uiName => {
   const chart = useChart()
 
   const forceUpdate = useForceUpdate()
 
-  useImmediateListener(() => chart.getUI().on("groupBoxChanged", forceUpdate), [chart])
+  useImmediateListener(() => chart.getUI(uiName).on("groupBoxChanged", forceUpdate), [chart])
 
-  return chart.getUI().getGroupBox()
+  return chart.getUI(uiName).getGroupBox()
 }

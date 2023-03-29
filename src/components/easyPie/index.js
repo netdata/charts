@@ -1,10 +1,9 @@
-import React, { forwardRef, useState } from "react"
+import React, { forwardRef } from "react"
 import ChartContainer from "@/components/chartContainer"
 import {
-  useChart,
   useUnitSign,
   useAttributeValue,
-  useImmediateListener,
+  useLatestConvertedValue,
   useOnResize,
 } from "@/components/provider"
 import styled, { keyframes } from "styled-components"
@@ -21,18 +20,7 @@ export const Label = styled(Text)`
 `
 
 export const Value = () => {
-  const chart = useChart()
-
-  const getValue = () => {
-    const { hoverX, after } = chart.getAttributes()
-    if (!hoverX && after > 0) return "-"
-
-    const v = chart.getUI().getValue()
-    return chart.getConvertedValue(v, { fractionDigits: 2 })
-  }
-  const [value, setValue] = useState(getValue)
-
-  useImmediateListener(() => chart.getUI().on("rendered", () => setValue(getValue())), [])
+  const value = useLatestConvertedValue("selected")
 
   return (
     <Label color="main" fontSize="2em" strong>
@@ -84,7 +72,7 @@ export const Skeleton = styled(Flex).attrs(props => ({
   animation: ${frames} 1.6s ease-in infinite;
 `
 
-export const EasyPie = forwardRef((props, ref) => {
+export const EasyPie = forwardRef(({ uiName, ...rest }, ref) => {
   const loaded = useAttributeValue("loaded")
 
   const { width, height } = useOnResize()
@@ -93,7 +81,13 @@ export const EasyPie = forwardRef((props, ref) => {
   return (
     <ChartWrapper alignItems="center" ref={ref}>
       {loaded ? (
-        <ChartContainer position="relative" justifyContent="center" alignItems="center" {...props}>
+        <ChartContainer
+          uiName={uiName}
+          position="relative"
+          justifyContent="center"
+          alignItems="center"
+          {...rest}
+        >
           <Stats size={size} />
         </ChartContainer>
       ) : (

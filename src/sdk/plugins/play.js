@@ -11,7 +11,7 @@ export default sdk => {
       .forEach(node => {
         if (node.getAttribute("loading") || Date.now() - node.getUI().getRenderedAt() < 1000) return
 
-        node.getUI().render()
+        node.trigger("render")
       })
 
     timeoutId = setTimeout(() => {
@@ -31,13 +31,13 @@ export default sdk => {
     const { after, hovering, active, paused } = chart.getAttributes()
     const autofetch = (chart.type === "container" || active) && after < 0 && !hovering && !paused
 
-    if (!autofetch && !force) return chart.getUI().render()
+    if (!autofetch && !force) return chart.trigger("render")
 
     if (chart.getAttribute("loaded")) {
       chart.updateAttribute("autofetch", autofetch)
 
       if (chart.type !== "chart") return
-      return chart.getUI().render()
+      return chart.trigger("render")
     }
 
     if (active && !autofetch) chart.fetchAndRender()

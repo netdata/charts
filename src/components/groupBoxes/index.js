@@ -10,7 +10,7 @@ import Container from "@/components/container"
 import GroupBoxes from "./groupBoxes"
 import Footer from "./footer"
 
-export const GroupBoxesContainer = forwardRef((props, ref) => {
+export const GroupBoxesContainer = forwardRef(({ uiName, ...rest }, ref) => {
   const chart = useChart()
 
   const hoverRef = useHover(
@@ -31,11 +31,11 @@ export const GroupBoxesContainer = forwardRef((props, ref) => {
   const showingInfo = useAttributeValue("showingInfo")
 
   return (
-    <Container ref={setRef} {...props}>
+    <Container ref={setRef} {...rest}>
       <Header />
       <FilterToolbox />
-      <ChartContainer column gap={4} padding={[4, 2]}>
-        <GroupBoxes />
+      <ChartContainer uiName={uiName} column gap={4} padding={[4, 2]}>
+        <GroupBoxes uiName={uiName} />
       </ChartContainer>
 
       {!showingInfo && <Footer />}

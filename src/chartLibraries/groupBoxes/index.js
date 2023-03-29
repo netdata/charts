@@ -2,8 +2,6 @@ import { unregister } from "@/helpers/makeListeners"
 import makeChartUI from "@/sdk/makeChartUI"
 import transform from "./transform"
 
-const getUrlOptions = () => ["group-by-labels"]
-
 const initialValue = { labels: [], data: [], values: {}, tree: {} }
 
 export default (sdk, chart) => {
@@ -15,13 +13,12 @@ export default (sdk, chart) => {
   let initialized = false
 
   const mount = () => {
-    chart.updateDimensions()
     updateGroupBox()
 
     offs = unregister(
       chart.onAttributeChange("hoverX", updateGroupBoxRowData),
       chart.on("finishFetch", () => updateGroupBox({ force: true })),
-      chart.onAttributeChange("visibleDimensionsChanged", () => updateGroupBox({ force: true }))
+      chart.on("visibleDimensionsChanged", () => updateGroupBox({ force: true }))
     )
   }
 
@@ -69,8 +66,6 @@ export default (sdk, chart) => {
   const getGroupBoxRowData = () => groupBoxRowData
 
   const render = () => {
-    chart.updateDimensions()
-
     chartUI.render()
 
     chartUI.trigger("rendered")
@@ -81,7 +76,6 @@ export default (sdk, chart) => {
     mount,
     unmount,
     render,
-    getUrlOptions,
     getGroupBox,
     getGroupBoxRowData,
   }

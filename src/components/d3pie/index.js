@@ -25,16 +25,16 @@ export const Skeleton = styled(Flex).attrs(props => ({
   animation: ${frames} 1.6s ease-in infinite;
 `
 
-export const D3pie = forwardRef((props, ref) => {
+export const D3pie = forwardRef(({ uiName, ...rest }, ref) => {
   const loaded = useAttributeValue("loaded")
   const { width, height } = useOnResize()
   const size = width < height ? width : height
 
   return (
-    <ChartWrapper alignItems="center" justifyContent="center" column ref={ref}>
+    <ChartWrapper alignItems="center" justifyContent="center" column ref={ref} {...rest}>
       {loaded ? (
         <StatsContainer position="relative" width="100%" height="100%" fontSize={`${size / 15}px`}>
-          <ChartContainer />
+          <ChartContainer uiName={uiName} />
         </StatsContainer>
       ) : (
         <Skeleton />

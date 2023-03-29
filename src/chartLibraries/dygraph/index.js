@@ -55,8 +55,6 @@ export default (sdk, chart) => {
     const theme = chart.getAttribute("theme")
     element.classList.add(theme)
 
-    chart.consumePayload()
-    chart.updateDimensions()
     const attributes = chart.getAttributes()
     const { data, labels } = chart.getPayload()
 
@@ -453,10 +451,6 @@ export default (sdk, chart) => {
     if (highlighting || panning) return
 
     chartUI.render()
-
-    chart.consumePayload()
-
-    chart.updateDimensions()
 
     dygraph.updateOptions({
       ...makeDataOptions(),

@@ -39,24 +39,24 @@ const HorizontalContainer = styled(Flex)`
   overflow: hidden;
 `
 
-const getHorizontalPosition = (align = alignment.elementMiddle, chart, area, element) => {
+const getHorizontalPosition = (align = alignment.elementMiddle, chart, area, element, uiName) => {
   const { from, width } = area
 
-  const chartWidth = chart.getUI().getChartWidth()
+  const chartWidth = chart.getUI(uiName).getChartWidth()
   const calcAlignment = calcByAlignment[align] || calcByAlignment.elementMiddle
 
   return calcAlignment({ from, width, chartWidth, element })
 }
 
-const Container = ({ id, align, right = 0, fixed, children, ...rest }) => {
+const Container = ({ id, align, right = 0, fixed, children, uiName, ...rest }) => {
   const ref = useRef()
   const [area, setArea] = useState()
   const chart = useChart()
 
   const updateRight = area => {
-    if (!chart || !chart.getUI() || !area || !ref.current) return
+    if (!chart || !chart.getUI(uiName) || !area || !ref.current) return
 
-    const [, calculatedRight] = getHorizontalPosition(align, chart, area, ref.current)
+    const [, calculatedRight] = getHorizontalPosition(align, chart, area, ref.current, uiName)
 
     ref.current.style.right = `calc(100% - ${calculatedRight + right}px)`
   }
@@ -64,7 +64,7 @@ const Container = ({ id, align, right = 0, fixed, children, ...rest }) => {
   useLayoutEffect(
     () =>
       !fixed &&
-      chart.getUI().on(`overlayedAreaChanged:${id}`, area => {
+      chart.getUI(uiName).on(`overlayedAreaChanged:${id}`, area => {
         updateRight(area)
         setArea(s => (!!s !== !!area ? area : s))
       }),

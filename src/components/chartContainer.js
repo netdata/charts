@@ -2,16 +2,16 @@ import React, { useLayoutEffect, useRef } from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { useChart } from "@/components/provider"
 
-const ChartContainer = props => {
+const ChartContainer = ({ uiName, ...rest }) => {
   const chart = useChart()
   const ref = useRef()
 
   useLayoutEffect(() => {
-    chart.getUI().mount(ref.current)
-    return () => chart.getUI() && chart.getUI().unmount()
+    chart.getUI(uiName).mount(ref.current)
+    return () => chart.getUI(uiName) && chart.getUI(uiName).unmount()
   }, [])
 
-  return <Flex data-testid="chartContent" ref={ref} height="100%" width="100%" {...props} />
+  return <Flex data-testid="chartContent" ref={ref} height="100%" width="100%" {...rest} />
 }
 
 export default ChartContainer

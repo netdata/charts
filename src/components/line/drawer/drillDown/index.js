@@ -1,9 +1,8 @@
 import React, { useMemo } from "react"
-import { NetdataTable, TextSmall } from "@netdata/netdata-ui"
+import { Flex, NetdataTable, TextSmall } from "@netdata/netdata-ui"
 import { uppercase } from "@/helpers/objectTransform"
 import { useDimensionIds, useAttributeValue } from "@/components/provider/selectors"
 import { labelColumn, valueColumn, anomalyColumn, minColumn, avgColumn, maxColumn } from "./columns"
-import GridItem from "../gridItem"
 
 const useColumns = (period, options = {}) => {
   const hover = useAttributeValue("hoverX")
@@ -81,7 +80,7 @@ const DrillDown = () => {
   const columns = useColumns(tab)
 
   return (
-    <GridItem area="table">
+    <Flex>
       <NetdataTable
         enableSorting
         // enableSelection
@@ -100,7 +99,7 @@ const DrillDown = () => {
         // bulkActions={bulkActions}
         // rowActions={rowActions}
       />
-    </GridItem>
+    </Flex>
   )
 }
 

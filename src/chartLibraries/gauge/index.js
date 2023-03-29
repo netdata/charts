@@ -3,13 +3,10 @@ import makeChartUI from "@/sdk/makeChartUI"
 import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
 
-const getUrlOptions = () => ["absolute"]
-
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
   let gauge = null
   let listeners
-  let renderedValue = 0
   let prevMin
   let prevMax
   let resizeObserver
@@ -20,9 +17,6 @@ export default (sdk, chart) => {
     chartUI.mount(element)
 
     const { color, strokeColor } = makeThemingOptions()
-
-    chart.consumePayload()
-    chart.updateDimensions()
 
     const makeGaugeOptions = () => ({
       angle: -0.2, // The span of the gauge arc
@@ -109,10 +103,7 @@ export default (sdk, chart) => {
 
     if (!gauge || !loaded) return
 
-    chart.consumePayload()
-
     if (!hoverX && after > 0) {
-      renderedValue = null
       gauge.set(0)
       return chartUI.trigger("rendered")
     }
@@ -136,21 +127,16 @@ export default (sdk, chart) => {
       chartUI.sdk.trigger("yAxisChange", chart, min, max)
     }
 
-    if (renderedValue === value && min === prevMin && max === prevMax) return
-
     prevMin = min
     prevMax = max
 
     chartUI.render()
 
-    renderedValue = value
     const percentage = Math.max(Math.min(((value - min) / (max - min)) * 100, 99.999), 0.001)
     gauge.set(percentage)
 
     chartUI.trigger("rendered")
   }
-
-  const getValue = () => renderedValue
 
   const unmount = () => {
     if (listeners) listeners()
@@ -159,7 +145,6 @@ export default (sdk, chart) => {
     gauge = null
     prevMin = null
     prevMax = null
-    renderedValue = 0
 
     chartUI.unmount()
   }
@@ -169,8 +154,6 @@ export default (sdk, chart) => {
     mount,
     unmount,
     render,
-    getValue,
-    getUrlOptions,
     getMinMax,
   }
 
