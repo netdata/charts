@@ -135,7 +135,6 @@ export default (chart, sdk) => {
   chart.updateDimensions = () => {
     const dimensionIds = chart.getPayloadDimensionIds()
 
-    chart.sortDimensions()
     if (deepEqual(prevDimensionIds, dimensionIds)) return
 
     prevDimensionIds = dimensionIds
@@ -144,6 +143,7 @@ export default (chart, sdk) => {
       return acc
     }, {})
 
+    chart.sortDimensions()
     chart.updateColors()
   }
 
