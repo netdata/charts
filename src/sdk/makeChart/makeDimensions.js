@@ -87,7 +87,6 @@ export default (chart, sdk) => {
   const updateVisibleDimensions = () => {
     const selectedLegendDimensions = chart.getAttribute("selectedLegendDimensions")
 
-    debugger
     visibleDimensionIds = selectedLegendDimensions.length
       ? sortedDimensionIds.filter(
           id =>

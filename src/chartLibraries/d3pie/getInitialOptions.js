@@ -1,6 +1,5 @@
 export default (chartUI, dataOptions = {}) => {
   const { clientWidth, clientHeight } = chartUI.getElement()
-  const size = clientWidth < clientHeight ? clientWidth : clientHeight
 
   return {
     header: {
@@ -29,7 +28,7 @@ export default (chartUI, dataOptions = {}) => {
       // none, random, value-asc, value-desc, label-asc, label-desc
       sortOrder: "value-desc",
       smallSegmentGrouping: {
-        enabled: true,
+        enabled: false,
         value: 1,
         // percentage, value
         valueType: "value",
@@ -51,7 +50,7 @@ export default (chartUI, dataOptions = {}) => {
         // label, value, percentage, label-value1, label-value2, label-percentage1,
         // label-percentage2
         format: "percentage",
-        hideWhenLessThanPercentage: 10,
+        hideWhenLessThanPercentage: 20,
       },
       mainLabel: {
         color: "segment", // or 'segment' for dynamic color

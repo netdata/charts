@@ -20,7 +20,7 @@ const renderBoxPopover = () => <Popover>Box Popover</Popover>
 const renderGroupPopover = () => <Popover>Group Popover</Popover>
 
 const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimension }) => {
-  const sdk = makeDefaultSDK({ attributes: { theme } })
+  const sdk = makeDefaultSDK({ attributes: { theme, width: 1000 } })
   const chart = sdk.makeChart({
     attributes: {
       selectedContexts: [contexts],

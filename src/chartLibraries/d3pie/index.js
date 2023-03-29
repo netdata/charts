@@ -1,6 +1,7 @@
 import makeChartUI from "@/sdk/makeChartUI"
 import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
+import makeExecuteLatest from "@/helpers/makeExecuteLatest"
 import d3pie from "./library"
 import getInitialOptions from "./getInitialOptions"
 
@@ -9,6 +10,7 @@ export default (sdk, chart) => {
   let pie = null
   let listeners
   let resizeObserver
+  const executeLatest = makeExecuteLatest()
 
   const reMake = () => {
     pie.destroy()
@@ -36,10 +38,13 @@ export default (sdk, chart) => {
       chartUI.trigger("resize")
     })
 
+    const latestRender = executeLatest.add(render)
+
     listeners = unregister(
-      chart.onAttributeChange("hoverX", render),
-      !loaded && chart.onceAttributeChange("loaded", render),
-      chart.onAttributeChange("theme", reMake)
+      chart.onAttributeChange("hoverX", latestRender),
+      !loaded && chart.onceAttributeChange("loaded", latestRender),
+      chart.onAttributeChange("theme", latestRender),
+      chart.on("visibleDimensionsChanged", latestRender)
     )
 
     render()

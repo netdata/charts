@@ -55,6 +55,8 @@ export default (sdk, chart) => {
     const theme = chart.getAttribute("theme")
     element.classList.add(theme)
 
+    chart.consumePayload()
+    chart.updateDimensions()
     const attributes = chart.getAttributes()
     const { data, labels } = chart.getPayload()
 
@@ -142,13 +144,13 @@ export default (sdk, chart) => {
       chart.onAttributeChange(
         "hoverX",
         executeLatest.add(dimensions => {
-          const nextSelection = dimensions ? chart.getClosestRow(dimensions[0]) : -1
+          const row = dimensions ? chart.getClosestRow(dimensions[0]) : -1
 
-          if (nextSelection === -1) return dygraph.setSelection()
+          if (row === -1) return dygraph.setSelection()
 
-          dygraph.setSelection(nextSelection)
+          dygraph.setSelection(row)
 
-          crosshair(instance, nextSelection)
+          crosshair(instance, row)
         })
       ),
       chart.onAttributeChange("after", latestRender),
@@ -450,6 +452,8 @@ export default (sdk, chart) => {
     const { highlighting, panning } = chart.getAttributes()
     if (highlighting || panning) return
 
+    chart.consumePayload()
+    chart.updateDimensions()
     chartUI.render()
 
     dygraph.updateOptions({
