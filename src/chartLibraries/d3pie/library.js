@@ -267,7 +267,6 @@ import * as d3 from "d3"
         return false
       }
       if (options.data.content.length === 0) {
-        console.error("d3pie error: no data supplied.")
         return false
       }
 

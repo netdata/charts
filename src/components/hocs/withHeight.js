@@ -16,7 +16,7 @@ export default Component => {
       return unregister(
         chart
           .on("resizeYMove", delta => {
-            const nextHeight = initialHeight + delta
+            const nextHeight = initialHeight + delta + 4
 
             if (nextHeight < 185) return
 
