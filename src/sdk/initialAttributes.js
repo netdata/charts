@@ -126,6 +126,10 @@ export default {
   themeGaugePointer: ["#8F9EAA", "#536775"],
   themeGaugeStroke: ["#ECEEEF", "#383B40"],
 
+  themeD3pieSmallColor: ["#536775", "#CFD5DA"],
+  themeD3pieStroke: ["#ECEEEF", "#383B40"],
+  themeInnerLabelColor: ["#F7F8F8", "#282827"],
+
   themeLabelColor: ["#35414a", "#ffffff"],
   themeNeutralBackground: ["#ECEEEF", "#383B40"],
   themeWarningBackground: ["#FFCC26", "#FFCC26"],

@@ -7,7 +7,6 @@ const Container = styled(Flex).attrs(props => ({
   position: "relative",
   border: { color: "borderSecondary", side: "all" },
   round: true,
-  overflow: "hidden",
   ...props,
 }))`
   ::selection {

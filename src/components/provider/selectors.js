@@ -252,7 +252,7 @@ export const useConverted = (value, valueKey) => {
   }, [chart, value, valueKey, unitsConversion])
 }
 
-export const useLatestRowAverageValue = (valueKey = "value") => {
+export const useLatestRowValue = (valueKey = "value", objKey) => {
   const chart = useChart()
 
   const [value, setState] = useState(null)
@@ -267,11 +267,13 @@ export const useLatestRowAverageValue = (valueKey = "value") => {
       let index = hover ? chart.getClosestRow(hover[0]) : -1
       index = index === -1 ? all.length - 1 : index
 
-      const [, ...values] = all[index]
+      const dimensionIds = chart.getVisibleDimensionIds()
 
-      if (!Array.isArray(values)) return 0
-
-      return values.reduce((a, b) => a[valueKey] + b[valueKey], 0) / values.length
+      return dimensionIds.map(id => ({
+        label: id,
+        value: chart.getDimensionValue(id, index, valueKey, objKey),
+        color: chart.selectDimensionColor(id),
+      }))
     }
 
     return unregister(

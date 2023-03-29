@@ -1,5 +1,4 @@
 import { Gauge } from "gaugeJS"
-import { copyCanvas, createCanvas } from "@/helpers/canvas"
 import makeChartUI from "@/sdk/makeChartUI"
 import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"

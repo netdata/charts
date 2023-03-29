@@ -31,7 +31,7 @@ export default (sdk, chart) => {
 
       easyPie = new EasyPie(element, {
         barColor: chart.selectDimensionColor(),
-        animate: { duration: 500, enabled: true },
+        animate: { enabled: false },
         ...makeThemingOptions(),
         ...makeDimensionOptions(),
       })

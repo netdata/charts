@@ -20,7 +20,7 @@
     "test": "jest --config ./jest/config.js",
     "lint": "eslint './src/**/*.js'",
     "clean": "rimraf lib dist es coverage",
-    "prepublish": "yarn clean && yarn build",
+    "prepublishOnly": "yarn clean && yarn build",
     "start": "start-storybook -p 6006",
     "deploy-storybook": "storybook-to-ghpages",
     "cp-cloud": "cp -R ./dist ../cloud-frontend/node_modules/@netdata/charts/",
@@ -82,6 +82,7 @@
   },
   "dependencies": {
     "babel-eslint": "^10.1.0",
+    "d3": "^7.8.3",
     "d3-scale": "^4.0.2",
     "dygraphs": "^2.2.1",
     "easy-pie-chart": "^2.1.7",

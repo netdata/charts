@@ -6,6 +6,7 @@ import Line from "@/components/line"
 import GaugeComponent from "@/components/gauge"
 import EasyPieComponent from "@/components/easyPie"
 import NumberComponent from "@/components/number"
+import D3pieComponent from "@/components/d3pie"
 import GroupBoxes from "@/components/groupBoxes"
 import makeDefaultSDK from "./makeDefaultSDK"
 
@@ -96,6 +97,22 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
 
   sdk.appendChild(chart5)
 
+  const chart6 = sdk.makeChart({
+    attributes: {
+      selectedContexts: [contexts],
+      nodesScope: [nodesScope],
+      contextScope: [contextScope],
+      host: host,
+      aggregationMethod: "avg",
+      agent: true,
+      syncHover: true,
+      groupingMethod: "average",
+      chartLibrary: "d3pie",
+    },
+  })
+
+  sdk.appendChild(chart6)
+
   return (
     <ThemeProvider theme={theme === "default" ? DefaultTheme : DarkTheme}>
       <Flex background="mainBackground" column gap={2} padding={[3]}>
@@ -103,6 +120,7 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
           <EasyPieComponent chart={chart2} />
           <GaugeComponent chart={chart3} />
           <NumberComponent chart={chart5} />
+          <D3pieComponent chart={chart6} />
         </Flex>
         <Line chart={chart} height="315px" />
         <GroupBoxes
