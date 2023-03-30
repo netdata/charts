@@ -29,7 +29,7 @@ const Labels = ({ index, label, groupLabel, data, id }) => {
   const chart = useChart()
   const viewDimensions = chart.getAttribute("viewDimensions")
 
-  const chartWidth = chart.getUI().getEstimatedChartWidth() * 0.9
+  const chartWidth = chart.getUI().getChartWidth() * 0.9
   const value = chart.getRowDimensionValue(id, data)
   const convertedValue = useConvertedValue(value, "percent")
 

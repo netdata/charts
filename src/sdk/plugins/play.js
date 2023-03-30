@@ -9,14 +9,12 @@ export default sdk => {
           node.type === "chart" && loaded && active && (windowFocused || autofetchOnWindowBlur)
       )
       .forEach(node => {
-        if (node.getAttribute("loading") || Date.now() - node.getUI().getRenderedAt() < 1000) return
+        if (node.getAttribute("loading")) return
 
         node.trigger("render")
       })
 
-    timeoutId = setTimeout(() => {
-      getNext()
-    }, 1000)
+    timeoutId = setTimeout(getNext, 1000)
   }
 
   const toggleRender = enable => {

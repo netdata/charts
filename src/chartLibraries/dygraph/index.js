@@ -55,8 +55,6 @@ export default (sdk, chart) => {
     const theme = chart.getAttribute("theme")
     element.classList.add(theme)
 
-    chart.consumePayload()
-    chart.updateDimensions()
     const attributes = chart.getAttributes()
     const { data, labels } = chart.getPayload()
 
@@ -165,7 +163,7 @@ export default (sdk, chart) => {
         dygraph.updateOptions(makeThemingOptions())
       }),
       chart.onAttributeChange("chartType", () => dygraph.updateOptions(makeChartTypeOptions())),
-      chart.onAttributeChange("selectedLegendDimensions", () => {
+      chart.onAttributeChange("selectedLegendDimensions", () =>
         dygraph.updateOptions({
           ...makeVisibilityOptions(),
           ...makeColorOptions(),
@@ -173,13 +171,13 @@ export default (sdk, chart) => {
           ylabel: chart.getUnitSign(true),
           digitsAfterDecimal: chart.getAttribute("unitsConversionFractionDigits"),
         })
-      }),
-      chart.onAttributeChange("unitsConversion", () => {
+      ),
+      chart.onAttributeChange("unitsConversion", () =>
         dygraph.updateOptions({
           ylabel: chart.getUnitSign(true),
           digitsAfterDecimal: chart.getAttribute("unitsConversionFractionDigits"),
         })
-      }),
+      ),
       chart.onAttributeChange("valueRange", valueRange => {
         dygraph.updateOptions({
           valueRange:
@@ -199,13 +197,12 @@ export default (sdk, chart) => {
                 }),
         })
       }),
-      chart.onAttributeChange("timezone", () => {
-        dygraph.updateOptions({})
-      }),
+      chart.onAttributeChange("timezone", () => dygraph.updateOptions({})),
     ].filter(Boolean)
 
     overlays.toggle()
 
+    chartUI.trigger("resize")
     chartUI.render()
     chartUI.trigger("rendered")
   }
@@ -452,8 +449,6 @@ export default (sdk, chart) => {
     const { highlighting, panning } = chart.getAttributes()
     if (highlighting || panning) return
 
-    chart.consumePayload()
-    chart.updateDimensions()
     chartUI.render()
 
     dygraph.updateOptions({
@@ -477,20 +472,13 @@ export default (sdk, chart) => {
     return dygraph.toDomXCoord(afterExtreme)
   }
 
-  const getEstimatedChartWidth = () => {
-    const width = chartUI.getEstimatedWidth()
-    const legendWidth = chart.getAttribute("legend") ? 140 : 0
-    return width - legendWidth
-  }
-
-  const getChartWidth = () => (dygraph ? dygraph.getArea().w : chartUI.getEstimatedChartWidth())
+  const getChartWidth = () => (dygraph ? dygraph.getArea().w : chartUI.getChartWidth())
   const getChartHeight = () => (dygraph ? dygraph.getArea().h : 100)
 
   const getXAxisRange = () => dygraph?.xAxisRange()
 
   const instance = {
     ...chartUI,
-    getEstimatedChartWidth,
     getChartWidth,
     getChartHeight,
     getPreceded,

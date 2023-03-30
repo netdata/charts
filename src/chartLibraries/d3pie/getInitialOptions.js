@@ -146,8 +146,8 @@ export default (chartUI, dataOptions = {}) => {
     size: {
       canvasHeight: Math.floor(clientHeight),
       canvasWidth: Math.floor(clientWidth),
-      pieInnerRadius: "45%",
-      pieOuterRadius: "80%",
+      pieInnerRadius: "25%",
+      pieOuterRadius: "50%",
     },
   }
 }

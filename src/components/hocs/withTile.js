@@ -47,11 +47,11 @@ export const Title = () => {
   )
 }
 
-export const HeadWrapper = ({ children, ...rest }) => {
+export const HeadWrapper = ({ children, uiName, ...rest }) => {
   const chartLibrary = useAttributeValue("chartLibrary")
   const { parentWidth } = useOnResize()
 
-  const { width: windowWidth } = useWindowSize()
+  const { width: windowWidth } = useWindowSize(uiName)
   let size = parseInt((parentWidth || windowWidth) / 30, 10)
   size = size < 20 ? 20 : size > 50 ? 50 : size
 
@@ -78,7 +78,7 @@ export const ChartWrapper = styled(Flex).attrs(props => ({
 export default Component =>
   ({ count, ...rest }) =>
     (
-      <HeadWrapper count={count}>
+      <HeadWrapper count={count} uiName={rest.uiName}>
         <Component {...rest} />
       </HeadWrapper>
     )

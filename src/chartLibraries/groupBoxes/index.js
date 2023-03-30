@@ -15,6 +15,8 @@ export default (sdk, chart) => {
   const mount = () => {
     updateGroupBox()
 
+    chartUI.trigger("resize")
+
     offs = unregister(
       chart.onAttributeChange("hoverX", updateGroupBoxRowData),
       chart.on("finishFetch", () => updateGroupBox({ force: true })),

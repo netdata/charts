@@ -38,13 +38,6 @@ export default Component => {
       )
     }, [chart])
 
-    useLayoutEffect(() => {
-      if (!ref.current) return
-
-      chart.getUI().setEstimatedWidth(ref.current.offsetWidth)
-      chart.getUI().setEstimatedHeight(ref.current.offsetHeight)
-    }, [chart])
-
     return <Component ref={ref} height={height} flex={flex} {...rest} />
   }
 

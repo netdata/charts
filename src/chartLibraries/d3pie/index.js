@@ -47,6 +47,7 @@ export default (sdk, chart) => {
       chart.on("visibleDimensionsChanged", latestRender)
     )
 
+    chartUI.trigger("resize")
     render()
   }
 

@@ -54,11 +54,11 @@ export const useLoadingColor = (defaultColor = "themeNeutralBackground", { uiNam
     const getColor = scaleLinear()
       .domain([0, 500, 2000, 5000, 100000])
       .range([
-        chart.getUI().getThemeAttribute(defaultColor),
-        chart.getUI().getThemeAttribute(defaultColor),
-        chart.getUI().getThemeAttribute("themeWarningBackground"),
-        chart.getUI().getThemeAttribute("themeErrorBackground"),
-        chart.getUI().getThemeAttribute("themeErrorBackground"),
+        chart.getUI(uiName).getThemeAttribute(defaultColor),
+        chart.getUI(uiName).getThemeAttribute(defaultColor),
+        chart.getUI(uiName).getThemeAttribute("themeWarningBackground"),
+        chart.getUI(uiName).getThemeAttribute("themeErrorBackground"),
+        chart.getUI(uiName).getThemeAttribute("themeErrorBackground"),
       ])
 
     const id = setInterval(() => {
@@ -194,16 +194,16 @@ export const useFormatDate = value => {
   return useMemo(() => chart.formatDate(value), [value, chart.getAttribute("timezone")])
 }
 
-export const useOnResize = () => {
+export const useOnResize = uiName => {
   const chart = useChart()
 
   const forceUpdate = useForceUpdate()
 
-  useImmediateListener(() => chart.getUI().on("resize", forceUpdate), [chart])
+  useImmediateListener(() => chart.getUI(uiName).on("resize", forceUpdate), [uiName, chart])
 
   return {
-    width: chart.getUI().getChartWidth(),
-    height: chart.getUI().getChartHeight(),
+    width: chart.getUI(uiName).getChartWidth(),
+    height: chart.getUI(uiName).getChartHeight(),
     parentWidth: chart.getAttribute("width"),
   }
 }
@@ -284,7 +284,7 @@ export const useLatestRowValue = (options = {}) => {
     return unregister(
       chart.onAttributeChange("hoverX", () => setState(getValue())),
       chart.on("dimensionChanged", () => setState(getValue())),
-      chart.getUI().on("render", () => setState(getValue()))
+      chart.on("render", () => setState(getValue()))
     )
   }, [chart])
 
@@ -351,7 +351,7 @@ export const useValue = (id, period = "latest", { valueKey = "value", objKey, ab
       chart.onAttributeChange("hoverX", () => setState(getValue())),
       chart.on("dimensionChanged", () => setState(getValue())),
       chart.onAttributeChange("unitsConversion", () => setState(getValue())),
-      chart.getUI().on("render", () => setState(getValue()))
+      chart.on("render", () => setState(getValue()))
     )
   }, [chart, id, valueKey, period, objKey])
 

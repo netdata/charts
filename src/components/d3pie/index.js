@@ -27,7 +27,7 @@ export const Skeleton = styled(Flex).attrs(props => ({
 
 export const D3pie = forwardRef(({ uiName, ...rest }, ref) => {
   const loaded = useAttributeValue("loaded")
-  const { width, height } = useOnResize()
+  const { width, height } = useOnResize(uiName)
   const size = width < height ? width : height
 
   return (

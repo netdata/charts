@@ -19,6 +19,7 @@ export default (sdk, chart) => {
       !loaded && chart.onceAttributeChange("loaded", render)
     )
 
+    chartUI.trigger("resize")
     render()
   }
 

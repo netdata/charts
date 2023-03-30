@@ -30,7 +30,7 @@ const defaultOptionsByLibrary = {
 export const getChartPayload = chart => {
   const ui = chart.getUI()
 
-  const width = chart.getAttribute("width") || ui.getEstimatedChartWidth() || ui.getChartWidth()
+  const width = chart.getAttribute("width") || ui.getChartWidth()
 
   const pixelsPerPoint = ui.getPixelsPerPoint()
   const { after, before, groupingMethod, groupingTime, chartLibrary } = chart.getAttributes()

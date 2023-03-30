@@ -249,21 +249,21 @@ import * as d3 from "d3"
 
       // confirm element is either a DOM element or a valid string for a DOM element
       if (!(element instanceof HTMLElement || element instanceof SVGElement)) {
-        console.error(
-          "d3pie error: the first d3pie() param must be a valid DOM element (not jQuery) or a ID string."
-        )
+        // console.error(
+        //   "d3pie error: the first d3pie() param must be a valid DOM element (not jQuery) or a ID string."
+        // )
         return false
       }
 
       // confirm the CSS prefix is valid. It has to start with a-Z and contain nothing but a-Z0-9_-
       if (!/[a-zA-Z][a-zA-Z0-9_-]*$/.test(cssPrefix)) {
-        console.error("d3pie error: invalid options.misc.cssPrefix")
+        // console.error("d3pie error: invalid options.misc.cssPrefix")
         return false
       }
 
       // confirm some data has been supplied
       if (!helpers.isArray(options.data.content)) {
-        console.error("d3pie error: invalid config structure: missing data.content property.")
+        // console.error("d3pie error: invalid config structure: missing data.content property.")
         return false
       }
       if (options.data.content.length === 0) {
@@ -277,11 +277,11 @@ import * as d3 from "d3"
           typeof options.data.content[i].value !== "number" ||
           isNaN(options.data.content[i].value)
         ) {
-          console.log("not valid: ", options.data.content[i])
+          // console.log("not valid: ", options.data.content[i])
           continue
         }
         if (options.data.content[i].value <= 0) {
-          console.log("not valid - should have positive value: ", options.data.content[i])
+          // console.log("not valid - should have positive value: ", options.data.content[i])
           continue
         }
         data.push(options.data.content[i])
@@ -359,7 +359,7 @@ import * as d3 from "d3"
         w = dimensions.width
         h = dimensions.height
       } else {
-        console.log("error: getDimensions() " + id + " not found.")
+        // console.log("error: getDimensions() " + id + " not found.")
       }
 
       return { w: w, h: h }

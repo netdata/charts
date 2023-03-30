@@ -1,14 +1,14 @@
 import React, { useMemo, memo } from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { useChart, useAttributeValue } from "@/components/provider"
+import { useChart, useAttributeValue, useOnResize } from "@/components/provider"
 import { TextMicro, TextNano } from "@netdata/netdata-ui/lib/components/typography"
 import Units from "@/components/line/dimensions/units"
 import UpdateEvery from "./updateEvery"
 import Timestamp from "./timestamp"
 import Dimension from "./dimension"
 
-const Container = styled(Flex).attrs(props => ({
+const Container = styled(Flex).attrs({
   round: true,
   border: { side: "all", color: "elementBackground" },
   width: { min: "196px", max: "80vw" },
@@ -16,7 +16,7 @@ const Container = styled(Flex).attrs(props => ({
   column: true,
   padding: [4],
   gap: 1,
-}))`
+})`
   box-shadow: 0px 8px 12px rgba(9, 30, 66, 0.15), 0px 0px 1px rgba(9, 30, 66, 0.31);
 `
 
@@ -68,7 +68,7 @@ const rowSorting = {
   default: "valueDesc",
 }
 
-const Dimensions = () => {
+const Dimensions = ({ uiName }) => {
   const chart = useChart()
   const [x, row] = useAttributeValue("hoverX") || emptyArray
 
@@ -92,7 +92,8 @@ const Dimensions = () => {
     return [from, to, total, ids]
   }, [chart, row, x])
 
-  const chartWidth = chart.getUI().getEstimatedChartWidth() * 0.9
+  const { parentWidth, width } = useOnResize(uiName)
+  const chartWidth = (parentWidth > width ? parentWidth : width) * 0.9
   const rowFlavour = rowFlavours[row] || rowFlavours.default
 
   return (
@@ -136,7 +137,7 @@ const Dimensions = () => {
             key={id}
             id={id}
             strong={row === id}
-            chars={chartWidth ? chartWidth / 3 : 200}
+            chars={chartWidth < 600 ? 200 : chartWidth / 3}
             rowFlavour={rowFlavour}
           />
         ))}

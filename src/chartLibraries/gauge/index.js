@@ -74,6 +74,7 @@ export default (sdk, chart) => {
       })
     )
 
+    chartUI.trigger("resize")
     render()
   }
   const makeThemingOptions = () => ({

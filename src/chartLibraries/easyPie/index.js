@@ -57,6 +57,7 @@ export default (sdk, chart) => {
       chart.onAttributeChange("theme", reMake)
     )
 
+    chartUI.trigger("resize")
     render()
   }
 

@@ -44,7 +44,7 @@ const StatesContainer = styled(Flex)`
 `
 
 export const NumberChart = forwardRef(({ uiName, ...rest }, ref) => {
-  const { width, height } = useOnResize()
+  const { width, height } = useOnResize(uiName)
   const size = width < height ? width : height
 
   return (

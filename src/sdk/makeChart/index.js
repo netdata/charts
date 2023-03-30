@@ -30,7 +30,7 @@ export default ({
       node.backoffMs = ms
       return
     }
-    const tmpBackoffMs = node.backoffMs ? node.backoffMs * 2 : node.getUpdateEvery()
+    const tmpBackoffMs = node.backoffMs ? node.backoffMs * 2 : getUpdateEvery()
     node.backoffMs = tmpBackoffMs > maxBackoffMs ? maxBackoffMs : tmpBackoffMs
   }
 
@@ -39,13 +39,10 @@ export default ({
   const getUpdateEvery = () => {
     if (!node) return
 
-    const { loaded, viewUpdateEvery: viewUpdateEveryAttribute } = node.getAttributes()
-    if (viewUpdateEveryAttribute) return viewUpdateEveryAttribute * 1000
+    const { loaded, viewUpdateEvery, updateEvery } = node.getAttributes()
+    if (viewUpdateEvery) return viewUpdateEvery * 1000
 
-    const { viewUpdateEvery, updateEvery } = node.getAttributes()
-    if (loaded && viewUpdateEvery) return viewUpdateEvery * 1000
-
-    return updateEvery * 1000 || 2000
+    return loaded ? updateEvery * 1000 || 1000 : 0
   }
 
   node.startAutofetch = () => {
@@ -85,6 +82,8 @@ export default ({
   }
 
   const render = () => Object.keys(uiInstances).forEach(uiName => uiInstances[uiName].render())
+
+  node.on("render", render)
 
   node.getConvertedValue = (value, { fractionDigits } = {}) => {
     if (!node) return
@@ -156,10 +155,10 @@ export default ({
     return node.fetch().then(render)
   }
 
-  node.stopAutofetch = () => {
+  node.stopAutofetch = (force = true) => {
     clearTimeout(fetchTimeoutId)
 
-    if (!node) return
+    if (!node || !force) return
 
     if (
       !node.getAttribute("active") &&
@@ -195,7 +194,7 @@ export default ({
     if (autofetch) {
       node.startAutofetch()
     } else {
-      node.stopAutofetch()
+      node.stopAutofetch(false)
     }
   })
 

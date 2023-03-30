@@ -100,7 +100,7 @@ export const StatsContainer = styled(Flex).attrs({
 `
 
 export const Stats = ({ uiName }) => {
-  const { width, height } = useOnResize()
+  const { width, height } = useOnResize(uiName)
   const size = width < height ? width : height
 
   return (
