@@ -71,9 +71,7 @@ export default ({ sdk, parent, attributes } = {}) => {
   let colorsByGroupId = {}
 
   const getNextColor = (getNext, groupId, id) => {
-    if (!(groupId in colorsByGroupId)) {
-      colorsByGroupId[groupId] = {}
-    }
+    if (!(groupId in colorsByGroupId)) colorsByGroupId[groupId] = {}
 
     const byId = colorsByGroupId[groupId]
 

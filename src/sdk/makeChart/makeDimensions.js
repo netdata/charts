@@ -18,7 +18,9 @@ export default (chart, sdk) => {
 
     const viewDimensions = chart.getAttribute("viewDimensions")
 
-    return viewDimensions?.ids || []
+    return (viewDimensions?.ids || []).sort(
+      (a, b) => chart.getDimensionPriority(a) - chart.getDimensionPriority(b)
+    )
   }
 
   chart.getSourceDimensionIds = () => [...chart.getPayloadDimensionIds()]
