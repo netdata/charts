@@ -102,7 +102,7 @@ export default {
   outOfLimits: false,
   aggregationMethod: "",
 
-  groupBy: [],
+  groupBy: ["dimension"],
   groupByLabel: [],
 
   dimensionsSortBy: [{ id: "contribution", desc: true }],

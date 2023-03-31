@@ -10,7 +10,6 @@ export const getChartURLOptions = chart => {
     "ms",
     "jw-anomaly-rates",
     "minify",
-    "annotations",
   ].filter(Boolean)
 }
 

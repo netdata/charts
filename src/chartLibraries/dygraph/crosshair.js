@@ -12,6 +12,8 @@ export default (chartUI, row) => {
 
   const themeCrosshair = chartUI.getThemeAttribute("themeCrosshair")
 
+  dygraph.setSelection(row)
+
   ctx.save()
   ctx.beginPath()
   ctx.setLineDash([5, 5])

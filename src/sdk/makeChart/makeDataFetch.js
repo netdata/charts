@@ -26,6 +26,7 @@ export default chart => {
 
     chart.startAutofetch()
     chart.trigger("finishFetch")
+    chart.trigger("render")
   }
 
   const getDataLength = payload => {
@@ -47,8 +48,6 @@ export default chart => {
 
     if (!chart.getAttribute("loaded")) chart.getParent().trigger("chartLoaded", chart)
 
-    const wasLoaded = chart.getAttribute("loaded")
-
     const attributes = chart.getAttributes()
 
     chart.updateAttributes({
@@ -68,7 +67,7 @@ export default chart => {
     if (!chart.getAttribute("initializedFilters"))
       chart.setAttributes(getInitialFilterAttributes(chart))
 
-    if (wasLoaded) chart.trigger("successFetch", nextPayload, prevPayload)
+    chart.trigger("successFetch", nextPayload, prevPayload)
 
     updateVersions(versions)
     finishFetch()

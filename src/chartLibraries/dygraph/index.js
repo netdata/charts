@@ -146,8 +146,6 @@ export default (sdk, chart) => {
 
           if (row === -1) return dygraph.setSelection()
 
-          dygraph.setSelection(row)
-
           crosshair(instance, row)
         })
       ),

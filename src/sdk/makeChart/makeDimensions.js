@@ -18,33 +18,31 @@ export default (chart, sdk) => {
 
     const viewDimensions = chart.getAttribute("viewDimensions")
 
-    return (viewDimensions?.ids || []).sort(
+    return [...(viewDimensions?.ids || [])].sort(
       (a, b) => chart.getDimensionPriority(a) - chart.getDimensionPriority(b)
     )
   }
 
-  chart.getSourceDimensionIds = () => [...chart.getPayloadDimensionIds()]
-
   const bySortMethod = {
-    default: (getIds = chart.getSourceDimensionIds) =>
+    default: (getIds = chart.getPayloadDimensionIds) =>
       getIds().sort((a, b) => chart.getDimensionPriority(a) - chart.getDimensionPriority(b)),
-    nameAsc: (getIds = chart.getSourceDimensionIds) =>
+    nameAsc: (getIds = chart.getPayloadDimensionIds) =>
       getIds().sort((a, b) => chart.getDimensionName(a).localeCompare(chart.getDimensionName(b))),
-    nameDesc: (getIds = chart.getSourceDimensionIds) =>
+    nameDesc: (getIds = chart.getPayloadDimensionIds) =>
       getIds().sort((a, b) => chart.getDimensionName(b).localeCompare(chart.getDimensionName(a))),
-    valueDesc: (getIds = chart.getSourceDimensionIds, x) => {
+    valueDesc: (getIds = chart.getPayloadDimensionIds, x) => {
       const { data } = chart.getPayload()
       x = x || data.length - 1
 
       return getIds().sort((a, b) => chart.getDimensionValue(b, x) - chart.getDimensionValue(a, x))
     },
-    valueAsc: (getIds = chart.getSourceDimensionIds, x) => {
+    valueAsc: (getIds = chart.getPayloadDimensionIds, x) => {
       const { data } = chart.getPayload()
       x = x || data.length - 1
 
       return getIds().sort((a, b) => chart.getDimensionValue(a, x) - chart.getDimensionValue(b, x))
     },
-    anomalyDesc: (getIds = chart.getSourceDimensionIds, x) => {
+    anomalyDesc: (getIds = chart.getPayloadDimensionIds, x) => {
       const { all } = chart.getPayload()
       x = x || all.length - 1
 
@@ -54,7 +52,7 @@ export default (chart, sdk) => {
           chart.getDimensionValue(a, x, { valueKey: "arp" })
       )
     },
-    anomalyAsc: (getIds = chart.getSourceDimensionIds, x) => {
+    anomalyAsc: (getIds = chart.getPayloadDimensionIds, x) => {
       const { all } = chart.getPayload()
       x = x || all.length - 1
 
@@ -64,7 +62,7 @@ export default (chart, sdk) => {
           chart.getDimensionValue(b, x, { valueKey: "arp" })
       )
     },
-    annotationsDesc: (getIds = chart.getSourceDimensionIds, x) => {
+    annotationsDesc: (getIds = chart.getPayloadDimensionIds, x) => {
       const { all } = chart.getPayload()
       x = x || all.length - 1
 
@@ -74,7 +72,7 @@ export default (chart, sdk) => {
           chart.getDimensionValue(a, x, { valueKey: "pa" })
       )
     },
-    annotationsAsc: (getIds = chart.getSourceDimensionIds, x) => {
+    annotationsAsc: (getIds = chart.getPayloadDimensionIds, x) => {
       const { all } = chart.getPayload()
       x = x || all.length - 1
 

@@ -32,7 +32,7 @@ const Totals = ({
       )}
       {!!fl && (
         <>
-          {!teaser ? "+ " : " "}
+          {!teaser ? "+ " : <TextMicro color="errorLite"> +</TextMicro>}
           <TextMicro color="errorLite">{fl}</TextMicro>
           {!teaser ? "failed " : " "}
           <Icon

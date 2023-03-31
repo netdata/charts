@@ -10,6 +10,7 @@ export default Component => {
 
     useImmediateListener(() => {
       if (!isVisible) return
+      if (!!rest.uiName && rest.uiName !== "default") return
 
       const id = mount(chart.activate)
 
@@ -17,7 +18,7 @@ export default Component => {
         unmount(id)
         chart.deactivate()
       }
-    }, [isVisible, chart])
+    }, [isVisible, chart, rest.uiName])
 
     return <Component ref={ref} {...rest} />
   })

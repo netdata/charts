@@ -26,21 +26,23 @@ export default sdk => {
   }
 
   const autofetchIfActive = (chart, force) => {
-    const { after, hovering, active, paused } = chart.getAttributes()
+    const { autofetch: prevAutofetch, after, hovering, active, paused } = chart.getAttributes()
     const autofetch = (chart.type === "container" || active) && after < 0 && !hovering && !paused
+
+    toggleRender(autofetch)
 
     if (!autofetch && !force) return chart.trigger("render")
 
     if (chart.getAttribute("loaded")) {
       chart.updateAttribute("autofetch", autofetch)
 
-      if (chart.type !== "chart") return
+      if (chart.type !== "chart" || prevAutofetch === autofetch) return
+
       return chart.trigger("render")
     }
 
     if (active && !autofetch) chart.fetchAndRender()
 
-    if (autofetch) toggleRender(autofetch)
     chart.updateAttribute("autofetch", autofetch)
   }
 
@@ -73,32 +75,21 @@ export default sdk => {
         chart.fetchAndRender()
     })
     .on("hoverChart", chart => {
-      if (chart.getAttribute("paused") || !chart.getAttribute("autofetch")) return
-      const autofetch = false
-
-      toggleRender(autofetch)
+      autofetchIfActive(chart, true)
       chart.getApplicableNodes({ syncHover: true }).forEach(node => {
-        node.updateAttribute("autofetch", autofetch)
+        node.updateAttribute("autofetch", chart.getAttribute("autofetch"))
       })
     })
     .on("blurChart", chart => {
-      const autofetch = chart.getAttribute("after") < 0 && chart.getAttribute("active")
-
-      if (chart.getAttribute("paused") || autofetch === chart.getAttribute("autofetch")) return
-
-      toggleRender(autofetch)
+      autofetchIfActive(chart, true)
       chart.getApplicableNodes({ syncHover: true }).forEach(node => {
-        node.updateAttribute("autofetch", autofetch)
+        node.updateAttribute("autofetch", chart.getAttribute("autofetch"))
       })
     })
-    .on("moveX", (chart, after) => {
-      const autofetch = after < 0 && !chart.getAttribute("hovering")
-
-      if (autofetch === chart.getAttribute("autofetch")) return
-
-      toggleRender(autofetch)
-      chart.getApplicableNodes({ syncPanning: true }).forEach(node => {
-        node.updateAttribute("autofetch", autofetch)
+    .on("moveX", chart => {
+      autofetchIfActive(chart, true)
+      chart.getApplicableNodes({ syncHover: true }).forEach(node => {
+        node.updateAttribute("autofetch", chart.getAttribute("autofetch"))
       })
     })
 

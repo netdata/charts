@@ -33,27 +33,30 @@ const GridHeader = styled.div`
 
 const emptyArray = [null, null]
 
-const maxDimensions = Math.floor((window.innerHeight - 500) / 15) || 16
-const half = maxDimensions / 2
+const getMaxDimensions = () => {
+  const maxDimensions = Math.floor((window.innerHeight - 500) / 15) || 16
+  return maxDimensions < 10 ? 10 : maxDimensions
+}
+const getHalf = () => getMaxDimensions() / 2
 
 const getFrom = (total, index) => {
-  if (total < maxDimensions) return 0
+  if (total < getMaxDimensions()) return 0
 
-  if (index < half) return 0
+  if (index < getHalf()) return 0
 
-  if (index > total - half) return index - (half + (total - index))
+  if (index > total - getHalf()) return index - (getHalf() + (total - index))
 
-  return index - half
+  return index - getHalf()
 }
 
 const getTo = (total, index) => {
-  if (total < maxDimensions) return total
+  if (total < getMaxDimensions()) return total
 
-  if (index < half) return index + half + (half - index)
+  if (index < getHalf()) return index + getHalf() + (getHalf() - index)
 
-  if (index > total - half) return total
+  if (index > total - getHalf()) return total
 
-  return index + half
+  return index + getHalf()
 }
 
 export const rowFlavours = {

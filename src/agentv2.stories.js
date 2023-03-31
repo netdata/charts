@@ -37,7 +37,7 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
 
   sdk.appendChild(chart)
 
-   const chart7 = sdk.makeChart({
+  const chart7 = sdk.makeChart({
     attributes: {
       id: "test",
       selectedContexts: [contexts],
@@ -181,7 +181,7 @@ export const OneChart = Template.bind({})
 
 OneChart.args = {
   nodesScope: "*",
-  contextScope: "system.io",
+  contextScope: "system.cpu",
   contexts: "*",
   singleDimension: "*",
   theme: "default",
