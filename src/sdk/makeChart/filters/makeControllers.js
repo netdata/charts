@@ -54,7 +54,7 @@ export default chart => {
     })
 
     chart.updateAttributes(getInitialFilterAttributes(chart))
-    chart.fetchAndRender().then(() => onGroupChange(chart.getAttribute("groupBy")))
+    chart.fetch().then(() => onGroupChange(chart.getAttribute("groupBy")))
   }
 
   const updateNodesAttribute = selected => {
@@ -79,7 +79,7 @@ export default chart => {
     )
     if (instancesHaveChanges) chart.updateAttribute("selectedInstances", selectedInstances)
 
-    if (instancesHaveChanges || nodesHaveChanges) chart.fetchAndRender()
+    if (instancesHaveChanges || nodesHaveChanges) chart.fetch()
   }
 
   const updateInstancesAttribute = selected => {
@@ -89,7 +89,7 @@ export default chart => {
 
     chart.updateAttribute("selectedInstances", selectedInstances)
 
-    chart.fetchAndRender()
+    chart.fetch()
   }
 
   const updateDimensionsAttribute = selected => {
@@ -99,7 +99,7 @@ export default chart => {
 
     chart.updateAttribute("selectedDimensions", selectedDimensions)
 
-    chart.fetchAndRender()
+    chart.fetch()
   }
 
   const updateLabelsAttribute = selected => {
@@ -109,7 +109,7 @@ export default chart => {
 
     chart.updateAttribute("selectedLabels", selectedLabels)
 
-    chart.fetchAndRender()
+    chart.fetch()
   }
 
   const updateAggregationMethodAttribute = value => {
@@ -117,7 +117,7 @@ export default chart => {
 
     chart.updateAttribute("aggregationMethod", value)
 
-    chart.fetchAndRender()
+    chart.fetch()
   }
 
   const updateContextScopeAttribute = value => {
@@ -126,7 +126,7 @@ export default chart => {
     chart.updateAttribute("contextScope", [value])
     chart.updateAttributes(getInitialFilterAttributes(chart))
 
-    chart.fetchAndRender()
+    chart.fetch()
   }
 
   const updateTimeAggregationMethodAttribute = ({ alias, method }) => {
@@ -135,7 +135,7 @@ export default chart => {
     if (chart.getAttribute("groupingMethod") === value) return
 
     chart.updateAttribute("groupingMethod", value)
-    chart.fetchAndRender()
+    chart.fetch()
   }
 
   const resetPristine = () => {
@@ -147,7 +147,7 @@ export default chart => {
     Object.keys(prev).forEach(key =>
       chart.attributeListeners.trigger(key, attributes[key], prev[key])
     )
-    chart.fetchAndRender()
+    chart.fetch()
   }
 
   const removePristine = () => {

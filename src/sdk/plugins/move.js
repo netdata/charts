@@ -24,7 +24,7 @@ export default sdk => {
         if (prevAfter === move.after && prevBefore === move.before) return
 
         if (node.type === "chart" && node.getAttribute("active")) {
-          node.fetchAndRender()
+          node.fetch()
         } else {
           node.updateAttribute("loaded", false)
         }

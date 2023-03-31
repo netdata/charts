@@ -155,12 +155,6 @@ export default ({
     return ancestor.getNodes(attributes, options)
   }
 
-  node.fetchAndRender = ({ initialize = false } = {}) => {
-    if (!!node && initialize) node.updateAttribute("loaded", false)
-
-    return node.fetch().then(render)
-  }
-
   node.stopAutofetch = (force = true) => {
     clearTimeout(fetchTimeoutId)
 
