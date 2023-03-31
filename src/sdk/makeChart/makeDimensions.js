@@ -18,9 +18,7 @@ export default (chart, sdk) => {
 
     const viewDimensions = chart.getAttribute("viewDimensions")
 
-    return [...(viewDimensions?.ids || [])].sort(
-      (a, b) => chart.getDimensionPriority(a) - chart.getDimensionPriority(b)
-    )
+    return [...(viewDimensions?.ids || [])]
   }
 
   const bySortMethod = {
@@ -238,7 +236,7 @@ export default (chart, sdk) => {
 
   chart.updateColors = () => {
     let dimensionIds = chart.getAttribute("dimensionIds")
-    if (!Object.keys(dimensionIds)?.length) return
+    if (!dimensionIds.length) return
 
     const keys = chart.hasSparklineDimension() ? sparklineDimensions : dimensionIds
 

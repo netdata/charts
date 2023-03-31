@@ -44,9 +44,9 @@ export default (sdk, chart) => {
     return attributes[name]?.[index] || name
   }
 
-  const getChartWidth = () => element ? element.offsetWidth : 800
+  const getChartWidth = () => (element ? element.offsetWidth : 800)
 
-  const getChartHeight = () => element ? element.offsetHeight : 300
+  const getChartHeight = () => (element ? element.offsetHeight : 300)
 
   return {
     ...listeners,

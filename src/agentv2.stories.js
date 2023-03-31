@@ -53,99 +53,99 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
 
   sdk.appendChild(chart7)
 
-  const chart2 = sdk.makeChart({
-    attributes: {
-      selectedContexts: [contexts],
-      nodesScope: [nodesScope],
-      contextScope: [contextScope],
-      selectedDimensions: ["in"],
-      host: host,
-      agent: true,
-      chartLibrary: "easypiechart",
-      chartUrlOptions: ["percentage"],
-      syncHover: true,
-    },
-  })
+  // const chart2 = sdk.makeChart({
+  //   attributes: {
+  //     selectedContexts: [contexts],
+  //     nodesScope: [nodesScope],
+  //     contextScope: [contextScope],
+  //     selectedDimensions: ["in"],
+  //     host: host,
+  //     agent: true,
+  //     chartLibrary: "easypiechart",
+  //     urlOptions: ["percentage"],
+  //     syncHover: true,
+  //   },
+  // })
 
-  sdk.appendChild(chart2)
+  // sdk.appendChild(chart2)
 
-  const chart3 = sdk.makeChart({
-    attributes: {
-      selectedContexts: [contexts],
-      nodesScope: [nodesScope],
-      contextScope: [contextScope],
-      selectedDimensions: ["out"],
-      host: host,
-      agent: true,
-      chartLibrary: "gauge",
-      syncHover: true,
-      chartUrlOptions: ["percentage"],
-    },
-  })
+  // const chart3 = sdk.makeChart({
+  //   attributes: {
+  //     selectedContexts: [contexts],
+  //     nodesScope: [nodesScope],
+  //     contextScope: [contextScope],
+  //     selectedDimensions: ["out"],
+  //     host: host,
+  //     agent: true,
+  //     chartLibrary: "gauge",
+  //     syncHover: true,
+  //     urlOptions: ["percentage"],
+  //   },
+  // })
 
-  sdk.appendChild(chart3)
+  // sdk.appendChild(chart3)
 
-  const chart4 = sdk.makeChart({
-    attributes: {
-      selectedContexts: [contexts],
-      nodesScope: [nodesScope],
-      contextScope: [contextScope],
-      host: host,
-      agent: true,
-      chartLibrary: "groupBoxes",
-      groupBy: ["label"],
-      groupByLabel: ["k8s_namespace", "k8s_container_id"],
-    },
-  })
-  sdk.appendChild(chart4)
+  // const chart4 = sdk.makeChart({
+  //   attributes: {
+  //     selectedContexts: [contexts],
+  //     nodesScope: [nodesScope],
+  //     contextScope: [contextScope],
+  //     host: host,
+  //     agent: true,
+  //     chartLibrary: "groupBoxes",
+  //     groupBy: ["label"],
+  //     groupByLabel: ["k8s_namespace", "k8s_container_id"],
+  //   },
+  // })
+  // sdk.appendChild(chart4)
 
-  const chart5 = sdk.makeChart({
-    attributes: {
-      selectedContexts: [contexts],
-      nodesScope: [nodesScope],
-      contextScope: [contextScope],
-      selectedDimensions: ["in"],
-      host: host,
-      agent: true,
-      chartLibrary: "number",
-      syncHover: true,
-    },
-  })
+  // const chart5 = sdk.makeChart({
+  //   attributes: {
+  //     selectedContexts: [contexts],
+  //     nodesScope: [nodesScope],
+  //     contextScope: [contextScope],
+  //     selectedDimensions: ["in"],
+  //     host: host,
+  //     agent: true,
+  //     chartLibrary: "number",
+  //     syncHover: true,
+  //   },
+  // })
 
-  sdk.appendChild(chart5)
+  // sdk.appendChild(chart5)
 
-  const chart6 = sdk.makeChart({
-    attributes: {
-      selectedContexts: [contexts],
-      nodesScope: [nodesScope],
-      contextScope: [contextScope],
-      host: host,
-      aggregationMethod: "avg",
-      agent: true,
-      syncHover: true,
-      groupingMethod: "average",
-      chartLibrary: "d3pie",
-    },
-  })
+  // const chart6 = sdk.makeChart({
+  //   attributes: {
+  //     selectedContexts: [contexts],
+  //     nodesScope: [nodesScope],
+  //     contextScope: [contextScope],
+  //     host: host,
+  //     aggregationMethod: "avg",
+  //     agent: true,
+  //     syncHover: true,
+  //     groupingMethod: "average",
+  //     chartLibrary: "d3pie",
+  //   },
+  // })
 
-  sdk.appendChild(chart6)
+  // sdk.appendChild(chart6)
 
   return (
     <ThemeProvider theme={theme === "default" ? DefaultTheme : DarkTheme}>
       <Flex background="mainBackground" column gap={2} padding={[3]}>
-        <Flex>
+        {/*<Flex>
           <EasyPieComponent chart={chart2} />
           <GaugeComponent chart={chart3} />
           <NumberComponent chart={chart5} />
           <D3pieComponent chart={chart6} />
-        </Flex>
+        </Flex>*/}
         <Line chart={chart} height="315px" />
-        <Line chart={chart7} height="315px" />
+        {/* <Line chart={chart7} height="315px" />
         <GroupBoxes
           chart={chart4}
           renderBoxPopover={renderBoxPopover}
           renderGroupPopover={renderGroupPopover}
-        />
+        />*/}
       </Flex>
     </ThemeProvider>
   )

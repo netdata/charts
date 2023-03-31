@@ -33,11 +33,20 @@ export default sdk => {
       loading,
       loaded,
     } = chart.getAttributes()
-    const autofetch = (chart.type === "container" || active) && after < 0 && !hovering && !paused
+
+    let autofetch = after < 0 && !hovering && !paused
+
+    if (chart.type === "container") return chart.updateAttribute("autofetch", autofetch)
+
+    autofetch = autofetch && active
 
     toggleRender(autofetch)
 
-    if (active && !autofetch && (!loaded || (fetchStartedAt < renderedAt && !loading)))
+    if (
+      active &&
+      !autofetch &&
+      (!loaded || (!!renderedAt && fetchStartedAt < renderedAt && !loading))
+    )
       chart.trigger("fetch")
 
     chart.updateAttribute("autofetch", autofetch)
@@ -77,7 +86,7 @@ export default sdk => {
       chart.getApplicableNodes({ syncHover: true }).forEach(autofetchIfActive)
     })
     .on("moveX", chart => {
-      chart.getApplicableNodes({ syncHover: true }).forEach(autofetchIfActive)
+      chart.getApplicableNodes({ syncPanning: true }).forEach(autofetchIfActive)
     })
 
   return () => {

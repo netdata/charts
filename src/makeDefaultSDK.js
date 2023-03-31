@@ -20,6 +20,8 @@ export default ({ attributes, ...options } = {}) =>
   makeSDK({
     ui: { dygraph, easypiechart, gauge, groupBoxes, number, d3pie },
     plugins: {
+      // order matters
+      move,
       unitConversion,
       hover,
       pan,
@@ -27,7 +29,6 @@ export default ({ attributes, ...options } = {}) =>
       select,
       selectVertical,
       play,
-      move,
     },
     attributes: {
       _v: "v3",

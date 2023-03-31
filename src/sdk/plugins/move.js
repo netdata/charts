@@ -23,7 +23,9 @@ export default sdk => {
 
         if (prevAfter === move.after && prevBefore === move.before) return
 
-        if (node.type === "chart" && node.getAttribute("active")) {
+        if (node.type !== "chart") return
+
+        if (node.getAttribute("active")) {
           node.fetch()
         } else {
           node.updateAttribute("loaded", false)

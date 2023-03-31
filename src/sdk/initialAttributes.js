@@ -78,7 +78,6 @@ export default {
   legend: true,
   groupingMethod: "average",
   groupingTime: 0,
-  chartUrlOptions: [],
   urlOptions: [],
   eliminateZeroDimensions: true,
   fullscreen: false,

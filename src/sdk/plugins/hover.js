@@ -12,12 +12,19 @@ export default sdk => {
     })
     .on("hoverChart", chart => {
       chart.getApplicableNodes({ syncHover: true }).forEach(node => {
-        node.updateAttributes({ hovering: true, renderedAt: chart.getUI().getRenderedAt() })
+        if (node.getAttribute("hovering")) return
+        node.updateAttributes({
+          hovering: true,
+          renderedAt:
+            chart.getAttribute("after") < 0
+              ? chart.getUI().getRenderedAt()
+              : chart.getAttribute("before"),
+        })
       })
     })
     .on("blurChart", chart => {
       chart.getApplicableNodes({ syncHover: true }).forEach(node => {
-        node.updateAttributes({ hovering: false })
+        node.updateAttributes({ hovering: false, renderedAt: null })
       })
     })
 }
