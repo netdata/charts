@@ -105,6 +105,9 @@ export default ({
 
   node.focus = event => {
     if (!node) return
+
+    if (node.getAttribute("focused") && node.getAttribute("hovering")) return
+
     node.updateAttributes({ focused: true, hovering: true })
     sdk.trigger("hoverChart", node, event)
     node.trigger("hoverChart", event)
@@ -112,6 +115,9 @@ export default ({
 
   node.blur = event => {
     if (!node) return
+
+    if (!node.getAttribute("focused") && !node.getAttribute("hovering")) return
+
     node.updateAttributes({ focused: false, hovering: false })
     sdk.trigger("blurChart", node, event)
     node.trigger("blurChart", event)

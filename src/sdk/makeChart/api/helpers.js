@@ -32,7 +32,8 @@ export const getChartPayload = chart => {
   const width = chart.getAttribute("width") || ui.getChartWidth()
 
   const pixelsPerPoint = ui.getPixelsPerPoint()
-  const { after, before, groupingMethod, groupingTime, chartLibrary } = chart.getAttributes()
+  const { after, before, groupingMethod, groupingTime, chartLibrary, fetchStartedAt } =
+    chart.getAttributes()
 
   const pointsMultiplier = after < 0 ? 1.5 : 2
 
@@ -44,7 +45,10 @@ export const getChartPayload = chart => {
   const afterBefore =
     after > 0
       ? { after, before }
-      : { after: renderedAt ? renderedAt + after : after, before: renderedAt ? renderedAt : 0 }
+      : {
+          after: renderedAt ? renderedAt + after : Math.ceil(fetchStartedAt / 1000) + after,
+          before: renderedAt ? renderedAt : Math.ceil(fetchStartedAt / 1000),
+        }
 
   return {
     points: Math.round((width / pixelsPerPoint) * pointsMultiplier),

@@ -2246,8 +2246,6 @@ import * as d3 from "d3"
     text.addSubtitle(this)
     text.addFooter(this)
 
-    // console.log(this);
-
     // the footer never moves. Put it in place now
     var self = this
     text.positionFooter(self)

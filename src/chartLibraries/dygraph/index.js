@@ -17,12 +17,14 @@ import makeOverlays from "./overlays"
 import crosshair from "./crosshair"
 
 const getDateWindow = chart => {
-  const { after, before } = chart.getAttributes()
+  const { after, before, hovering, renderedAt } = chart.getAttributes()
 
-  if (after > 0) return [after * 1000, before * 1000]
+  const staticNow = hovering && renderedAt ? renderedAt : null
+
+  if (after > 0 && !renderedAt) return [after * 1000, before * 1000]
 
   const now = Date.now()
-  return [now + after * 1000, now]
+  return [(staticNow || now) + after * 1000, staticNow || now]
 }
 
 export default (sdk, chart) => {
