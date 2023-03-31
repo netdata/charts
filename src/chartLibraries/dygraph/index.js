@@ -21,7 +21,7 @@ const getDateWindow = chart => {
 
   const staticNow = hovering && renderedAt ? renderedAt : null
 
-  if (after > 0 && !renderedAt) return [after * 1000, before * 1000]
+  if (after > 0) return [after * 1000, before * 1000]
 
   const now = Date.now()
   return [(staticNow || now) + after * 1000, staticNow || now]

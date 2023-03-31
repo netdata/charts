@@ -35,7 +35,7 @@ const emptyArray = [null, null]
 
 const getMaxDimensions = () => {
   const maxDimensions = Math.floor((window.innerHeight - 500) / 15) || 16
-  return maxDimensions < 10 ? 10 : maxDimensions
+  return maxDimensions < 5 ? 5 : maxDimensions > 10 ? 10 : 10
 }
 const getHalf = () => getMaxDimensions() / 2
 

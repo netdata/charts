@@ -1,3 +1,10 @@
+const defaultUrlOptionsByLibrary = {
+  gauge: oneValueOptions,
+  easypiechart: oneValueOptions,
+  number: oneValueOptions,
+  default: {},
+}
+
 export const getChartURLOptions = chart => {
   const { chartUrlOptions = [], eliminateZeroDimensions, urlOptions } = chart.getAttributes()
 
@@ -10,6 +17,7 @@ export const getChartURLOptions = chart => {
     "ms",
     "jw-anomaly-rates",
     "minify",
+    "group-by-labels",
   ].filter(Boolean)
 }
 
