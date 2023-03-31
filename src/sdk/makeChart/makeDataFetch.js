@@ -134,7 +134,7 @@ export default chart => {
 
     chart.cancelFetch()
     chart.trigger("startFetch")
-    chart.updateAttributes({ loading: true, fetchStartedAt: Date.now() })
+    chart.updateAttributes({ loading: true, fetchStartedAt: chart.getUI().getRenderedAt() || 0 })
 
     if (!isNewerThanRetention())
       return Promise.resolve().then(() =>

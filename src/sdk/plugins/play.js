@@ -37,10 +37,8 @@ export default sdk => {
 
     toggleRender(autofetch)
 
-    if (active && !autofetch && (!loaded || (fetchStartedAt < renderedAt && !loading))) {
-      chart.trigger("render")
+    if (active && !autofetch && (!loaded || (fetchStartedAt < renderedAt && !loading)))
       chart.trigger("fetch")
-    }
 
     chart.updateAttribute("autofetch", autofetch)
 
