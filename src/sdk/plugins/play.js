@@ -28,9 +28,6 @@ export default sdk => {
       hovering,
       active,
       paused,
-      fetchStartedAt,
-      renderedAt,
-      loading,
       loaded,
     } = chart.getAttributes()
 
@@ -43,16 +40,14 @@ export default sdk => {
     toggleRender(autofetch)
     chart.updateAttribute("autofetch", autofetch)
 
+    const [lastAfter, lastBefore] = chart.lastFetch
+    const [fetchAfter, fetchBefore] = chart.getDateWindow()
+
     if (
       active &&
       !autofetch &&
-      (!loaded || (!!renderedAt && fetchStartedAt < renderedAt && !loading))
+      (!loaded || (lastAfter === fetchAfter && lastBefore === fetchBefore))
     ) {
-      const [lastAfter, lastBefore] = chart.lastFetch
-      const [fetchAfter, fetchBefore] = chart.getDateWindow()
-
-      if (lastAfter === fetchAfter && lastBefore === fetchBefore) return
-
       chart.lastFetch = [fetchAfter, fetchBefore]
       chart.trigger("fetch")
     }
