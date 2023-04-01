@@ -45,6 +45,17 @@ export default ({
     return loaded ? updateEvery * 1000 || 1000 : 0
   }
 
+  node.getDateWindow = () => {
+    const { after, before, hovering, renderedAt } = node.getAttributes()
+
+    const staticNow = hovering && renderedAt ? renderedAt : null
+
+    if (after > 0) return [after * 1000, before * 1000]
+
+    const now = Date.now()
+    return [(staticNow || now) + after * 1000, staticNow || now]
+  }
+
   node.startAutofetch = () => {
     if (!node) return
 

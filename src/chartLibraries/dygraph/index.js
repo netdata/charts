@@ -16,17 +16,6 @@ import makeHoverX from "./hoverX"
 import makeOverlays from "./overlays"
 import crosshair from "./crosshair"
 
-const getDateWindow = chart => {
-  const { after, before, hovering, renderedAt } = chart.getAttributes()
-
-  const staticNow = hovering && renderedAt ? renderedAt : null
-
-  if (after > 0) return [after * 1000, before * 1000]
-
-  const now = Date.now()
-  return [(staticNow || now) + after * 1000, staticNow || now]
-}
-
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
   let dygraph = null
@@ -69,7 +58,7 @@ export default (sdk, chart) => {
       showLabelsOnHighlight: false,
       labels: isEmpty ? ["X"] : labels,
 
-      dateWindow: getDateWindow(chart),
+      dateWindow: chart.getDateWindow(),
       highlightCallback: executeLatest.add((event, x, points, row, seriesName) =>
         chartUI.trigger("highlightCallback", event, x, points, row, seriesName)
       ),
@@ -369,7 +358,7 @@ export default (sdk, chart) => {
       max,
     } = chart.getAttributes()
     const { data, labels } = chart.getPayload()
-    const dateWindow = getDateWindow(chart)
+    const dateWindow = chart.getDateWindow()
     const isEmpty = outOfLimits || data.length === 0
 
     const groupBy = chart.getAttribute("groupBy")

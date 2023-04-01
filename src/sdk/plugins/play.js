@@ -41,15 +41,21 @@ export default sdk => {
     autofetch = autofetch && active
 
     toggleRender(autofetch)
+    chart.updateAttribute("autofetch", autofetch)
 
     if (
       active &&
       !autofetch &&
       (!loaded || (!!renderedAt && fetchStartedAt < renderedAt && !loading))
-    )
-      chart.trigger("fetch")
+    ) {
+      const [lastAfter, lastBefore] = chart.lastFetch
+      const [fetchAfter, fetchBefore] = chart.getDateWindow()
 
-    chart.updateAttribute("autofetch", autofetch)
+      if (lastAfter === fetchAfter && lastBefore === fetchBefore) return
+
+      chart.lastFetch = [fetchAfter, fetchBefore]
+      chart.trigger("fetch")
+    }
 
     if (chart.type !== "chart" || prevAutofetch === autofetch || !active) return
 

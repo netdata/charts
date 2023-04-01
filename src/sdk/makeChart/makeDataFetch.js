@@ -15,6 +15,8 @@ export default chart => {
   let payload = initialPayload
   let nextPayload = null
 
+  chart.lastFetch = [null, null]
+
   chart.getPayload = () => payload
 
   makeGetClosestRow(chart)
