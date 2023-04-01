@@ -22,14 +22,7 @@ export default sdk => {
   }
 
   const autofetchIfActive = chart => {
-    const {
-      autofetch: prevAutofetch,
-      after,
-      hovering,
-      active,
-      paused,
-      loaded,
-    } = chart.getAttributes()
+    const { after, hovering, active, paused, loaded } = chart.getAttributes()
 
     let autofetch = after < 0 && !hovering && !paused
 
@@ -40,21 +33,19 @@ export default sdk => {
     toggleRender(autofetch)
     chart.updateAttribute("autofetch", autofetch)
 
+    if (chart.type === "chart" && active) chart.trigger("render")
+
     const [lastAfter, lastBefore] = chart.lastFetch
     const [fetchAfter, fetchBefore] = chart.getDateWindow()
 
     if (
       active &&
       !autofetch &&
-      (!loaded || (lastAfter === fetchAfter && lastBefore === fetchBefore))
+      (!loaded || (lastAfter !== fetchAfter && lastBefore !== fetchBefore))
     ) {
       chart.lastFetch = [fetchAfter, fetchBefore]
       chart.trigger("fetch")
     }
-
-    if (chart.type !== "chart" || prevAutofetch === autofetch || !active) return
-
-    return chart.trigger("render")
   }
 
   const blur = () => {
