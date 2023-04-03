@@ -95,11 +95,12 @@ export default {
   hasToolbox: true,
   expandable: true,
 
+  hasYlabel: true,
   yAxisLabelWidth: null, // default is most probably 50
   axisLabelFontSize: 10,
 
   outOfLimits: false,
-  aggregationMethod: "",
+  aggregationMethod: "avg",
 
   groupBy: ["dimension"],
   groupByLabel: [],
@@ -176,4 +177,6 @@ export default {
 
   weightsAction: "values",
   weightsTab: "window",
+
+  renderedAt: null,
 }

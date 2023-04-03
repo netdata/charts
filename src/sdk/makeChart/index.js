@@ -26,6 +26,8 @@ export default ({
 
   node.backoffMs = null
   node.backoff = ms => {
+    if (!node) return
+
     if (ms) {
       node.backoffMs = ms
       return
@@ -48,9 +50,9 @@ export default ({
   node.getDateWindow = () => {
     const { after, before, hovering, renderedAt } = node.getAttributes()
 
-    const staticNow = hovering && renderedAt ? renderedAt : null
-
     if (after > 0) return [after * 1000, before * 1000]
+
+    const staticNow = hovering && renderedAt ? renderedAt : null
 
     const now = Date.now()
     return [(staticNow || now) + after * 1000, staticNow || now]
@@ -74,6 +76,7 @@ export default ({
     const updateEveryMultiples = Math.floor(div)
 
     if (updateEveryMultiples >= 1) {
+      node.lastFetch = node.getDateWindow()
       node.trigger("fetch")
       return
     }
@@ -246,7 +249,6 @@ export default ({
   const destroy = () => {
     if (!node) return
 
-    node.cancelFetch()
     node.stopAutofetch()
     clearKeyboardListener()
 

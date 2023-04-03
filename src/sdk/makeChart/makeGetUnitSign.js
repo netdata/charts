@@ -115,7 +115,7 @@ export default node =>
       units = customMatch[2]
     }
 
-    if (!units) return null
+    if (!units) return ""
 
     return `${prefix}${long ? units : unitMap[units] || units}`
   })

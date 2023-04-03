@@ -11,7 +11,7 @@ const getPixelsPerPoint = () => 3
 export default (sdk, chart) => {
   const listeners = makeListeners()
   let element = null
-  let renderedAt = chart.getAttribute("renderedAt") || 0
+  let renderedAt = chart.getDateWindow()[1]
 
   const mount = el => {
     element = el
@@ -24,7 +24,7 @@ export default (sdk, chart) => {
     element = null
   }
 
-  const render = () => renderedAt = Date.now()
+  const render = () => (renderedAt = chart.getDateWindow()[1])
 
   const executeLatest = makeExecuteLatest()
   const latestRender = executeLatest.add(render)

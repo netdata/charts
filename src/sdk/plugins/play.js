@@ -21,7 +21,7 @@ export default sdk => {
     }
   }
 
-  const autofetchIfActive = chart => {
+  const autofetchIfActive = (chart, force = false) => {
     const { after, hovering, active, paused, loaded } = chart.getAttributes()
 
     let autofetch = after < 0 && !hovering && !paused
@@ -33,7 +33,7 @@ export default sdk => {
     toggleRender(autofetch)
     chart.updateAttribute("autofetch", autofetch)
 
-    if (chart.type === "chart" && active) chart.trigger("render")
+    // if (chart.type === "chart" && active) chart.trigger("render")
 
     const [lastAfter, lastBefore] = chart.lastFetch
     const [fetchAfter, fetchBefore] = chart.getDateWindow()
@@ -41,7 +41,7 @@ export default sdk => {
     if (
       active &&
       !autofetch &&
-      (!loaded || (lastAfter !== fetchAfter && lastBefore !== fetchBefore))
+      (force || (loaded && lastAfter !== fetchAfter && lastBefore !== fetchBefore))
     ) {
       chart.lastFetch = [fetchAfter, fetchBefore]
       chart.trigger("fetch")
@@ -69,16 +69,16 @@ export default sdk => {
 
   const offs = sdk
     .on("active", chart => {
-      autofetchIfActive(chart, true)
+      autofetchIfActive(chart, !chart.getAttribute("loaded"))
     })
-    .on("hoverChart", chart => {
-      chart.getApplicableNodes({ syncHover: true }).forEach(autofetchIfActive)
-    })
-    .on("blurChart", chart => {
-      chart.getApplicableNodes({ syncHover: true }).forEach(autofetchIfActive)
-    })
+    .on("hoverChart", chart =>
+      chart.getApplicableNodes({ syncHover: true }).forEach(node => autofetchIfActive(node))
+    )
+    .on("blurChart", chart =>
+      chart.getApplicableNodes({ syncHover: true }).forEach(node => autofetchIfActive(node))
+    )
     .on("moveX", chart => {
-      chart.getApplicableNodes({ syncPanning: true }).forEach(autofetchIfActive)
+      chart.getApplicableNodes({ syncPanning: true }).forEach(node => autofetchIfActive(node))
     })
 
   return () => {

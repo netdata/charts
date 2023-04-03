@@ -17,19 +17,9 @@ export default sdk => {
       const move = getMoveX(after, before, autoPlay)
 
       chart.getApplicableNodes({ syncPanning: true }).forEach(node => {
-        const { after: prevAfter, before: prevBefore } = node.getAttributes()
-
         node.updateAttributes(move)
 
-        if (prevAfter === move.after && prevBefore === move.before) return
-
-        if (node.type !== "chart") return
-
-        if (node.getAttribute("active")) {
-          node.fetch()
-        } else {
-          node.updateAttribute("loaded", false)
-        }
+        if (!node.getAttribute("active")) node.updateAttribute("loaded", false)
       })
     })
     .on("moveY", (chart, min, max) => {
