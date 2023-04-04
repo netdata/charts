@@ -33,8 +33,6 @@ export default sdk => {
     toggleRender(autofetch)
     chart.updateAttribute("autofetch", autofetch)
 
-    // if (chart.type === "chart" && active) chart.trigger("render")
-
     const [lastAfter, lastBefore] = chart.lastFetch
     const [fetchAfter, fetchBefore] = chart.getDateWindow()
 
@@ -45,6 +43,8 @@ export default sdk => {
     ) {
       chart.lastFetch = [fetchAfter, fetchBefore]
       chart.trigger("fetch")
+    } else if (active) {
+      chart.trigger("render")
     }
   }
 
