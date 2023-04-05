@@ -41,14 +41,12 @@ const getPayload = chart => {
         {
           aggregation: restPayload["aggregation[0]"] || aggregationMethod,
           group_by: restPayload["group_by[0]"] || chart.getAttribute("groupBy"),
-          ...(!!groupByLabel && { group_by_label: groupByLabel }),
+          group_by_label: groupByLabel,
         },
         !!restPayload["group_by[1]"] && {
           aggregation: restPayload["aggregation[1]"] || "avg",
-          group_by: restPayload["group_by[1]"] || "",
-          ...(!!restPayload["group_by_label[1]"] && {
-            group_by_label: restPayload["group_by_label[1]"],
-          }),
+          group_by: restPayload["group_by[1]"] || [],
+          group_by_label: restPayload["group_by_label[1]"] || [],
         },
       ].filter(Boolean),
       time: {

@@ -47,13 +47,27 @@ export default ({
     return loaded ? updateEvery * 1000 || 1000 : 0
   }
 
+  let cachedDateWindow = null
+  let prevAfter = null
+  let prevRenderedAt = null
+  let prevNow = null
   node.getDateWindow = () => {
     const { after, before, renderedAt } = node.getAttributes()
-
-    if (after > 0) return [after * 1000, before * 1000]
-
     const now = sdk.getRoot().getAttribute("fetchAt") || Date.now()
-    return [(renderedAt || now) + after * 1000, renderedAt || now]
+
+    if (prevAfter === after && prevRenderedAt === renderedAt && prevNow === now)
+      return cachedDateWindow
+
+    prevAfter = after
+    prevRenderedAt = renderedAt
+    prevNow = now
+
+    cachedDateWindow =
+      after > 0
+        ? [after * 1000, before * 1000]
+        : [(renderedAt || now) + after * 1000, renderedAt || now]
+
+    return cachedDateWindow
   }
 
   node.startAutofetch = () => {

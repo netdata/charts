@@ -31,7 +31,6 @@ export default sdk => {
 
     autofetch = autofetch && active
 
-    toggleRender(autofetch)
     chart.updateAttribute("autofetch", autofetch)
 
     const [lastAfter, lastBefore] = chart.lastFetch
@@ -49,6 +48,9 @@ export default sdk => {
 
   const blur = () => {
     windowFocused = false
+
+    toggleRender(false)
+
     sdk.getNodes({ autofetchOnWindowBlur: false }, { inherit: true }).forEach(node => {
       node.updateAttribute("paused", true)
       autofetchIfActive(node)
@@ -57,6 +59,9 @@ export default sdk => {
 
   const focus = () => {
     windowFocused = true
+
+    toggleRender(sdk.getRoot().getAttribute("after") < 0)
+
     sdk.getNodes({ autofetchOnWindowBlur: false }, { inherit: true }).forEach(node => {
       node.updateAttribute("paused", false)
       autofetchIfActive(node)
@@ -68,9 +73,17 @@ export default sdk => {
 
   const offs = sdk
     .on("active", chart => {
+      toggleRender(
+        chart.getAttribute("after") < 0 &&
+          !chart.getAttribute("hovering") &&
+          !chart.getAttribute("paused")
+      )
+
       autofetchIfActive(chart, !chart.getAttribute("loaded"))
     })
     .on("hoverChart", chart => {
+      toggleRender(false)
+
       if (chart.getAttribute("paused")) return
 
       chart.getApplicableNodes({ syncHover: true }).forEach(node => autofetchIfActive(node))
@@ -78,9 +91,13 @@ export default sdk => {
     .on("blurChart", chart => {
       if (chart.getAttribute("paused")) return
 
+      toggleRender(chart.getAttribute("after") < 0)
+
       chart.getApplicableNodes({ syncHover: true }).forEach(node => autofetchIfActive(node))
     })
     .on("moveX", chart => {
+      toggleRender(chart.getAttribute("after") < 0)
+
       chart.getApplicableNodes({ syncPanning: true }).forEach(node => autofetchIfActive(node))
     })
 
