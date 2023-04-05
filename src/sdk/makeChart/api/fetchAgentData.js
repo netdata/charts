@@ -29,15 +29,13 @@ const getPayload = chart => {
     dimensions: selectedDimensions.join("|") || wildcard,
     labels: selectedLabels.join("|") || wildcard,
     "group_by[0]": (extraPayload["group_by[0]"] || chart.getAttribute("groupBy")).join("|"),
-    "group_by_label[0]": (
-      extraPayload["group_by_label[0]"] || chart.getAttribute("groupByLabel")
-    ).join("|"),
+    "group_by_label[0]": (extraPayload["group_by_label[0]"] || chart.getAttribute("groupByLabel")).join("|"),
     ...(!!extraPayload["group_by[1]"] && {
-      aggregation: extraPayload["aggregation[1]"] || "avg",
-      group_by: extraPayload["group_by[1]"].join("|"),
-      group_by_label: (extraPayload["group_by_label[1]"] || []).join("|"),
+      "aggregation[1]": extraPayload["aggregation[1]"],
+      "group_by[1]": extraPayload["group_by[1]"].join("|"),
+      "group_by_label[1]": (extraPayload["group_by_label[1]"] || []).join("|"),
     }),
-    "aggregation[0]": aggregationMethod,
+    "aggregation[0]": extraPayload["aggregation[0]"] || aggregationMethod,
   }
 }
 
