@@ -17,19 +17,10 @@ const getPayload = chart => {
 
   const options = getChartURLOptions(chart)
 
-  const {
-    after,
-    before,
-    group_by,
-    group_by_label,
-    points,
-    time_group,
-    time_resampling,
-    aggregation,
-    format,
-  } = getChartPayload(chart)
+  const { after, before, points, time_group, time_resampling, format, ...restPayload } =
+    getChartPayload(chart)
 
-  const groupByLabel = group_by_label || chart.getAttribute("groupByLabel")
+  const groupByLabel = restPayload["group_by_label[0]"] || chart.getAttribute("groupByLabel")
 
   return {
     format,
@@ -46,11 +37,18 @@ const getPayload = chart => {
       labels: selectedLabels.length ? selectedLabels : wildcardArray,
     },
     aggregations: {
-      metrics: {
-        aggregation: aggregation || aggregationMethod,
-        group_by: group_by || chart.getAttribute("groupBy"),
-        ...(!!groupByLabel && { group_by_label: groupByLabel }),
-      },
+      metrics: [
+        {
+          aggregation: restPayload["aggregation[0]"] || aggregationMethod,
+          group_by: restPayload["group_by[0]"] || chart.getAttribute("groupBy"),
+          ...(!!groupByLabel && { group_by_label: groupByLabel }),
+        },
+        ...(!!restPayload["group_by[1]"] && {
+          aggregation: restPayload["aggregation[1]"] || "avg",
+          group_by: restPayload["group_by[1]"] || "",
+          group_by_label: restPayload["group_by[1]"] || "",
+        }),
+      ],
       time: {
         time_group,
         // time_group_options: "",

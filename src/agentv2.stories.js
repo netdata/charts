@@ -181,7 +181,7 @@ export const OneChart = Template.bind({})
 
 OneChart.args = {
   nodesScope: "*",
-  contextScope: "k8s.cgroup.cpu",
+  contextScope: "system.cpu",
   contexts: "*",
   singleDimension: "*",
   theme: "default",
