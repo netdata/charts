@@ -42,7 +42,7 @@ export default sdk => {
     if (
       active &&
       !autofetch &&
-      (force || (loaded && lastAfter !== fetchAfter && lastBefore !== fetchBefore))
+      (force || (loaded && (lastAfter !== fetchAfter || lastBefore !== fetchBefore)))
     ) {
       chart.lastFetch = [fetchAfter, fetchBefore]
       chart.trigger("fetch")
