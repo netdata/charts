@@ -1,9 +1,6 @@
 import React, { forwardRef } from "react"
 import { useChart, useImmediateListener } from "@/components/provider"
 
-const mount = window.requestIdleCallback || window.requestAnimationFrame
-const unmount = window.cancelIdleCallback || window.cancelAnimationFrame
-
 export default Component => {
   const DifferedMount = forwardRef(({ isVisible = true, ...rest }, ref) => {
     const chart = useChart()
@@ -12,10 +9,10 @@ export default Component => {
       if (!isVisible) return
       if (!!rest.uiName && rest.uiName !== "default") return
 
-      const id = mount(chart.activate)
+      const id = window.requestAnimationFrame(chart.activate)
 
       return () => {
-        unmount(id)
+        window.cancelAnimationFrame(id)
         chart.deactivate()
       }
     }, [isVisible, chart, rest.uiName])
