@@ -28,9 +28,9 @@ const getPayload = chart => {
     instances: selectedInstances.join("|") || wildcard,
     dimensions: selectedDimensions.join("|") || wildcard,
     labels: selectedLabels.join("|") || wildcard,
-    group_by: chart.getAttribute("groupBy").join("|"),
-    ...(!!groupByLabel && { group_by_label: groupByLabel }),
-    aggregation: aggregationMethod,
+    "group_by[0]": chart.getAttribute("groupBy").join("|"),
+    ...(!!groupByLabel && { "group_by_label[0]": groupByLabel }),
+    "aggregation[0]": aggregationMethod,
     ...getChartPayload(chart),
   }
 }

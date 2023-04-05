@@ -179,4 +179,5 @@ export default {
   weightsTab: "window",
 
   renderedAt: null,
+  fetchAt: null,
 }

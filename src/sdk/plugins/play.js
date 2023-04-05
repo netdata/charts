@@ -3,6 +3,9 @@ export default sdk => {
   let timeoutId
 
   const getNext = () => {
+    if (!sdk.getRoot().getAttribute("paused") && sdk.getRoot().getAttribute("after") < 0)
+      sdk.getRoot().setAttribute("fetchAt", Date.now())
+
     sdk
       .getNodes(
         (node, { loaded, active, autofetchOnWindowBlur }) =>
@@ -43,8 +46,6 @@ export default sdk => {
     ) {
       chart.lastFetch = [fetchAfter, fetchBefore]
       chart.trigger("fetch")
-    } else if (active) {
-      chart.trigger("render")
     }
   }
 
@@ -71,12 +72,16 @@ export default sdk => {
     .on("active", chart => {
       autofetchIfActive(chart, !chart.getAttribute("loaded"))
     })
-    .on("hoverChart", chart =>
+    .on("hoverChart", chart => {
+      if (chart.getAttribute("paused")) return
+
       chart.getApplicableNodes({ syncHover: true }).forEach(node => autofetchIfActive(node))
-    )
-    .on("blurChart", chart =>
+    })
+    .on("blurChart", chart => {
+      if (chart.getAttribute("paused")) return
+
       chart.getApplicableNodes({ syncHover: true }).forEach(node => autofetchIfActive(node))
-    )
+    })
     .on("moveX", chart => {
       chart.getApplicableNodes({ syncPanning: true }).forEach(node => autofetchIfActive(node))
     })

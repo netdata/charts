@@ -12,7 +12,7 @@ export default sdk => {
     })
     .on("hoverChart", chart => {
       chart.getApplicableNodes({ syncHover: true }).forEach(node => {
-        if (node.getAttribute("hovering")) return
+        if (node.getAttribute("hovering") || chart.getAttribute("paused")) return
 
         node.updateAttribute("hovering", true)
         node.setAttribute(
@@ -25,6 +25,8 @@ export default sdk => {
     })
     .on("blurChart", chart => {
       chart.getApplicableNodes({ syncHover: true }).forEach(node => {
+        if (chart.getAttribute("paused")) return
+
         node.updateAttribute("hovering", false)
         node.setAttribute("renderedAt", null)
       })

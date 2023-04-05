@@ -20,9 +20,12 @@ export const getChartURLOptions = chart => {
 }
 
 const oneValueOptions = {
-  group_by: ["selected"],
-  group_by_label: [],
-  aggregation: "avg",
+  "group_by[0]": "instance",
+  "group_by[1]": "selected",
+  "group_by_label[0]": "",
+  "group_by_label[1]": "",
+  "aggregation[0]": "sum",
+  "aggregation[1]": "avg",
 }
 
 const defaultOptionsByLibrary = {

@@ -48,14 +48,12 @@ export default ({
   }
 
   node.getDateWindow = () => {
-    const { after, before, hovering, renderedAt } = node.getAttributes()
+    const { after, before, renderedAt } = node.getAttributes()
 
     if (after > 0) return [after * 1000, before * 1000]
 
-    const staticNow = hovering && renderedAt ? renderedAt : null
-
-    const now = Date.now()
-    return [(staticNow || now) + after * 1000, staticNow || now]
+    const now = sdk.getRoot().getAttribute("fetchAt") || Date.now()
+    return [(renderedAt || now) + after * 1000, renderedAt || now]
   }
 
   node.startAutofetch = () => {
