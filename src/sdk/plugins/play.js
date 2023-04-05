@@ -17,11 +17,9 @@ export default sdk => {
   }
 
   const toggleRender = enable => {
-    if (enable && !timeoutId) return getNext()
-    if (!enable) {
-      clearTimeout(timeoutId)
-      timeoutId = null
-    }
+    clearTimeout(timeoutId)
+    timeoutId = null
+    if (enable) getNext()
   }
 
   const autofetchIfActive = (chart, force = false) => {
