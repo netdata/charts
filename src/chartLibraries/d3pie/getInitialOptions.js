@@ -26,13 +26,13 @@ export default (chartUI, dataOptions = {}) => {
     },
     data: {
       // none, random, value-asc, value-desc, label-asc, label-desc
-      sortOrder: "value-desc",
+      sortOrder: "label-asc",
       smallSegmentGrouping: {
-        enabled: false,
-        value: 1,
+        enabled: true,
+        value: 5,
         // percentage, value
-        valueType: "value",
-        label: "other",
+        valueType: "count",
+        label: "smaller",
         color: chartUI.getThemeAttribute("themeD3pieSmallColor"),
       },
       content: [],
@@ -50,7 +50,7 @@ export default (chartUI, dataOptions = {}) => {
         // label, value, percentage, label-value1, label-value2, label-percentage1,
         // label-percentage2
         format: "percentage",
-        hideWhenLessThanPercentage: 20,
+        hideWhenLessThanPercentage: 101,
       },
       mainLabel: {
         color: "segment", // or 'segment' for dynamic color
@@ -146,8 +146,8 @@ export default (chartUI, dataOptions = {}) => {
     size: {
       canvasHeight: Math.floor(clientHeight),
       canvasWidth: Math.floor(clientWidth),
-      pieInnerRadius: "25%",
-      pieOuterRadius: "50%",
+      pieInnerRadius: "50%",
+      pieOuterRadius: "75%",
     },
   }
 }

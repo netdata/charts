@@ -439,29 +439,61 @@ import * as d3 from "d3"
     },
 
     applySmallSegmentGrouping: function (data, smallSegmentGrouping) {
-      var totalSize
-      if (smallSegmentGrouping.valueType === "percentage") {
-        totalSize = math.getTotalPieSize(data)
-      }
-
-      // loop through each data item
       var newData = []
       var groupedData = []
       var totalGroupedData = 0
-      for (var i = 0; i < data.length; i++) {
-        if (smallSegmentGrouping.valueType === "percentage") {
-          var dataPercent = (data[i].value / totalSize) * 100
-          if (dataPercent <= smallSegmentGrouping.value) {
+      var totalGrouped = 0;
+
+      if(smallSegmentGrouping.valueType === "count") {
+        var data2 = [];
+        var i2 = 0;
+        for(var i = 0; i < data.length ;i++) {
+          data2[i2++] = {
+            idx: i,
+            value: data[i].value,
+          }
+        }
+        data2.sort(function (a, b) {
+          return a.value < b.value ? 1 : -1
+        })
+        for(i2 = 0; i2 < data2.length ;i2++) {
+          data[data2[i2].idx].smallSegmentPriority = i2
+        }
+
+        for(var i = 0; i < data.length ;i++) {
+          if (data[i].smallSegmentPriority >= smallSegmentGrouping.value) {
             groupedData.push(data[i])
             totalGroupedData += data[i].value
+            totalGrouped++
             continue
           }
           data[i].isGrouped = false
           newData.push(data[i])
-        } else {
+        }
+      }
+      else if (smallSegmentGrouping.valueType === "percentage") {
+        var totalSize = math.getTotalPieSize(data)
+        for (var i = 0; i < data.length; i++) {
+          if (smallSegmentGrouping.valueType === "percentage") {
+            var dataPercent = (data[i].value / totalSize) * 100
+            if (dataPercent <= smallSegmentGrouping.value) {
+              groupedData.push(data[i])
+              totalGroupedData += data[i].value
+              totalGrouped++
+              continue
+            }
+            data[i].isGrouped = false
+            newData.push(data[i])
+          }
+        }
+      }
+      else {
+        // loop through each data item
+        for (var i = 0; i < data.length; i++) {
           if (data[i].value <= smallSegmentGrouping.value) {
             groupedData.push(data[i])
             totalGroupedData += data[i].value
+            totalGrouped++
             continue
           }
           data[i].isGrouped = false
@@ -473,7 +505,7 @@ import * as d3 from "d3"
       if (groupedData.length) {
         newData.push({
           color: smallSegmentGrouping.color,
-          label: smallSegmentGrouping.label,
+          label: "[" + smallSegmentGrouping.label + " " + totalGrouped + "]",
           value: totalGroupedData,
           isGrouped: true,
           groupedData: groupedData,
