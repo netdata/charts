@@ -19,20 +19,20 @@ export const getChartURLOptions = chart => {
   ].filter(Boolean)
 }
 
-const oneValueOptions = {
-  "group_by[0]": ["instance"],
-  "group_by[1]": ["selected"],
-  "group_by_label[0]": [],
-  "group_by_label[1]": [],
-  "aggregation[0]": "sum",
-  "aggregation[1]": "avg",
-}
+const oneValueOptions = attrs => ({
+  "group_by[0]": attrs["group_by[0]"] || ["instance"],
+  "group_by[1]": attrs["group_by[1]"] || ["selected"],
+  "group_by_label[0]": attrs["group_by_label[0]"] || [],
+  "group_by_label[1]": attrs["group_by_label[1]"] || [],
+  "aggregation[0]": attrs["aggregation[0]"] || "sum",
+  "aggregation[1]": attrs["aggregation[1]"] || "avg",
+})
 
-const defaultOptionsByLibrary = {
+const getDefaultOptionsByLibrary = {
   gauge: oneValueOptions,
   easypiechart: oneValueOptions,
   number: oneValueOptions,
-  default: {},
+  default: () => {},
 }
 
 export const getChartPayload = chart => {
@@ -50,6 +50,7 @@ export const getChartPayload = chart => {
     renderedAt,
     hovering,
     fetchStartedAt,
+    ...restAttributes
   } = chart.getAttributes()
 
   const pointsMultiplier = after < 0 ? 1.5 : 2
@@ -71,7 +72,9 @@ export const getChartPayload = chart => {
     time_group: groupingMethod,
     time_resampling: groupingTime,
     ...afterBefore,
-    ...(defaultOptionsByLibrary[chartLibrary] || defaultOptionsByLibrary.default),
+    ...(getDefaultOptionsByLibrary[chartLibrary] || getDefaultOptionsByLibrary.default)(
+      restAttributes
+    ),
   }
 }
 

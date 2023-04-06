@@ -63,6 +63,7 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
       agent: true,
       chartLibrary: "easypiechart",
       urlOptions: ["percentage"],
+      "group_by[0]": ["percentage-of-instance"],
       syncHover: true,
     },
   })
@@ -181,7 +182,7 @@ export const OneChart = Template.bind({})
 
 OneChart.args = {
   nodesScope: "*",
-  contextScope: "system.cpu",
+  contextScope: "system.io",
   contexts: "*",
   singleDimension: "*",
   theme: "default",
