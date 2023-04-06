@@ -27,13 +27,20 @@ const getCanvasAttributes = (dimensions, { aspectRatio, cellSize, padding } = {}
   return { width, height, columns: Math.ceil(columns) }
 }
 
-const defaultColorRange = ["rgba(198, 227, 246, 0.9)", "rgba(43, 44, 170, 1)"]
-
-export const makeGetColor = (min, max, colorRange = defaultColorRange) =>
+export const makeGetColor = (min, max, colorRange) =>
   scaleLinear().domain([min, max]).range(colorRange)
 
 export default (chart, el, { onMouseenter, onMouseout }, options = {}) => {
-  const { cellSize, cellPadding, cellStroke = 2, lineWidth = 1, colorRange } = options
+  const {
+    cellSize,
+    cellPadding,
+    cellStroke = 2,
+    lineWidth = 1,
+    colorRange = [
+      chart.getThemeAttribute("themeGroupBoxesMin"),
+      chart.getThemeAttribute("themeGroupBoxesMax"),
+    ],
+  } = options
   const canvas = el.getContext("2d")
 
   const backgroundEl = createCanvas(canvas.width, canvas.height)
@@ -51,7 +58,7 @@ export default (chart, el, { onMouseenter, onMouseout }, options = {}) => {
     backgroundCanvas.clearRect(0, 0, backgroundEl.width, backgroundEl.height)
   }
 
-  function* update(dimensions, getColor, pointData) {
+  function* update(dimensions, pointData) {
     const { width, height, columns } = getCanvasAttributes(dimensions, options)
 
     backgroundEl.width = parseInt(width)
@@ -59,7 +66,10 @@ export default (chart, el, { onMouseenter, onMouseout }, options = {}) => {
 
     backgroundCanvas.clearRect(0, 0, backgroundEl.width, backgroundEl.height)
 
-    getColor = getColor || makeGetColor(dimensions, colorRange)
+    const min = chart.getAttribute("min")
+    const max = chart.getAttribute("max")
+
+    const getColor = makeGetColor(min, max, colorRange)
 
     const drawBox = (ctx, id, index) => {
       ctx.beginPath()

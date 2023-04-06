@@ -78,8 +78,8 @@ export default (sdk, chart) => {
     render()
   }
   const makeThemingOptions = () => ({
-    color: chartUI.getThemeAttribute("themeGaugePointer"),
-    strokeColor: chartUI.getThemeAttribute("themeGaugeStroke"),
+    color: chartUI.chart.getThemeAttribute("themeGaugePointer"),
+    strokeColor: chartUI.chart.getThemeAttribute("themeGaugeStroke"),
   })
 
   const getMinMax = (value = 0) => {

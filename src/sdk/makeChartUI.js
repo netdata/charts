@@ -1,11 +1,6 @@
 import makeListeners from "@/helpers/makeListeners"
 import makeExecuteLatest from "@/helpers/makeExecuteLatest"
 
-const themeIndex = {
-  default: 0,
-  dark: 1,
-}
-
 const getPixelsPerPoint = () => 3
 
 export default (sdk, chart) => {
@@ -36,14 +31,6 @@ export default (sdk, chart) => {
 
   const getElement = () => element
 
-  const getThemeIndex = () => themeIndex[chart.getAttribute("theme")] || themeIndex.default
-
-  const getThemeAttribute = name => {
-    const attributes = chart.getAttributes()
-    const index = getThemeIndex()
-    return attributes[name]?.[index] || name
-  }
-
   const getChartWidth = () => (element ? element.offsetWidth : 800)
 
   const getChartHeight = () => (element ? element.offsetHeight : 300)
@@ -60,7 +47,5 @@ export default (sdk, chart) => {
     getChartWidth,
     getChartHeight,
     getPixelsPerPoint,
-    getThemeIndex,
-    getThemeAttribute,
   }
 }

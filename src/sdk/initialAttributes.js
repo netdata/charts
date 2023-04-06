@@ -138,6 +138,9 @@ export default {
   themeAnomalyScaleColor: ["#9F75F9", "#9F75F9"],
   themeAnomalyLiteScaleColor: ["#F0EAF6", "#504576"],
 
+  themeGroupBoxesMin: ["#E4F1FF", "#000C18"],
+  themeGroupBoxesMax: ["#0075F2", "#0075F2"],
+
   legendScroll: 0,
 
   initializedFilters: false,

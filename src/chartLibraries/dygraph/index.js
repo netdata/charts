@@ -326,7 +326,7 @@ export default (sdk, chart) => {
   }
 
   const makeThemingOptions = () => {
-    const themeGridColor = chartUI.getThemeAttribute("themeGridColor")
+    const themeGridColor = chartUI.chart.getThemeAttribute("themeGridColor")
     return { axisLineColor: themeGridColor, gridLineColor: themeGridColor }
   }
 

@@ -39,7 +39,7 @@ export const useInitialLoading = () => {
   return !chart.getAttribute("loaded")
 }
 
-export const useLoadingColor = (defaultColor = "themeNeutralBackground", { uiName } = {}) => {
+export const useLoadingColor = (defaultColor = "themeNeutralBackground") => {
   const chart = useChart()
   const [color, setColor] = useState(defaultColor)
   const fetchStartedAt = useAttributeValue("fetchStartedAt")
@@ -54,11 +54,11 @@ export const useLoadingColor = (defaultColor = "themeNeutralBackground", { uiNam
     const getColor = scaleLinear()
       .domain([0, 500, 2000, 5000, 100000])
       .range([
-        chart.getUI(uiName).getThemeAttribute(defaultColor),
-        chart.getUI(uiName).getThemeAttribute(defaultColor),
-        chart.getUI(uiName).getThemeAttribute("themeWarningBackground"),
-        chart.getUI(uiName).getThemeAttribute("themeErrorBackground"),
-        chart.getUI(uiName).getThemeAttribute("themeErrorBackground"),
+        chart.getThemeAttribute(defaultColor),
+        chart.getThemeAttribute(defaultColor),
+        chart.getThemeAttribute("themeWarningBackground"),
+        chart.getThemeAttribute("themeErrorBackground"),
+        chart.getThemeAttribute("themeErrorBackground"),
       ])
 
     const id = setInterval(() => {

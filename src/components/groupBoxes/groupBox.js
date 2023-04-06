@@ -1,11 +1,11 @@
 import React, { useRef, useLayoutEffect, Fragment, useState, useMemo } from "react"
-import { useChart } from "@/components/provider"
+import { useChart, useAttributeValue } from "@/components/provider"
 import useTransition from "@/components/helpers/useEffectWithTransition"
 import drawBoxes from "./drawBoxes"
 import useGroupBoxRowData from "./useGroupBoxRowData"
 import Popover from "./popover"
 
-const GroupBox = ({ uiName, dimensions, getColor, groupIndex, groupLabel, ...options }) => {
+const GroupBox = ({ uiName, dimensions, groupIndex, groupLabel, ...options }) => {
   const chart = useChart()
 
   const dimensionsRef = useRef()
@@ -71,6 +71,8 @@ const GroupBox = ({ uiName, dimensions, getColor, groupIndex, groupLabel, ...opt
 
   const [, startTransitionEffect, stopTransitionEffect] = useTransition()
 
+  const theme = useAttributeValue("theme")
+
   useLayoutEffect(() => {
     startTransitionEffect(function* () {
       if (
@@ -83,11 +85,11 @@ const GroupBox = ({ uiName, dimensions, getColor, groupIndex, groupLabel, ...opt
         boxHoverRef.current = -1
       }
       dimensionsRef.current = dimensions
-      yield* boxesRef.current.update(dimensions, getColor, pointData)
+      yield* boxesRef.current.update(dimensions, pointData)
     })
 
     return () => stopTransitionEffect()
-  }, [pointData, getColor, startTransitionEffect, stopTransitionEffect])
+  }, [pointData, startTransitionEffect, stopTransitionEffect, theme])
 
   const label = useMemo(() => {
     if (!hover) return

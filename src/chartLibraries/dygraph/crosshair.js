@@ -10,7 +10,7 @@ export default (chartUI, row) => {
 
   const x = dygraph.toDomXCoord(rowData[0])
 
-  const themeCrosshair = chartUI.getThemeAttribute("themeCrosshair")
+  const themeCrosshair = chartUI.chart.getThemeAttribute("themeCrosshair")
 
   dygraph.setSelection(row)
 

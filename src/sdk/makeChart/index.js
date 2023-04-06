@@ -8,6 +8,11 @@ import makeDataFetch from "./makeDataFetch"
 import makeGetUnitSign from "./makeGetUnitSign"
 import makeWeights from "./makeWeights"
 
+const themeIndex = {
+  default: 0,
+  dark: 1,
+}
+
 const maxBackoffMs = 30 * 1000
 
 const defaultMakeTrack = () => value => value
@@ -256,6 +261,14 @@ export default ({
     subChart.setUI(chartUi, "default")
 
     return subChart
+  }
+
+  node.getThemeIndex = () => themeIndex[node.getAttribute("theme")] || themeIndex.default
+
+  node.getThemeAttribute = name => {
+    const attributes = node.getAttributes()
+    const index = node.getThemeIndex()
+    return attributes[name]?.[index] || name
   }
 
   const destroy = () => {

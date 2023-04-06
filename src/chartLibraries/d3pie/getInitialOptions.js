@@ -33,7 +33,7 @@ export default (chartUI, dataOptions = {}) => {
         // percentage, value
         valueType: "count",
         label: "smaller",
-        color: chartUI.getThemeAttribute("themeD3pieSmallColor"),
+        color: chartUI.chart.getThemeAttribute("themeD3pieSmallColor"),
       },
       content: [],
       ...dataOptions,
@@ -59,14 +59,14 @@ export default (chartUI, dataOptions = {}) => {
         font: '-apple-system, BlinkMacSystemFont, "Segoe UI", Ubuntu, "Helvetica Neue", sans-serif',
       },
       percentage: {
-        color: chartUI.getThemeAttribute("themeInnerLabelColor"),
+        color: chartUI.chart.getThemeAttribute("themeInnerLabelColor"),
         fontSize: "1em",
         fontWeight: "strong",
         decimalPlaces: 0,
         font: '-apple-system, BlinkMacSystemFont, "Segoe UI", Ubuntu, "Helvetica Neue", sans-serif',
       },
       value: {
-        color: chartUI.getThemeAttribute("themeD3pieSmallColor"),
+        color: chartUI.chart.getThemeAttribute("themeD3pieSmallColor"),
         fontSize: "1.3em",
         fontWeight: "strong",
         font: '-apple-system, BlinkMacSystemFont, "Segoe UI", Ubuntu, "Helvetica Neue", sans-serif',
@@ -120,7 +120,7 @@ export default (chartUI, dataOptions = {}) => {
       colors: {
         background: "transparent", // transparent or color #
         segments: [],
-        segmentStroke: chartUI.getThemeAttribute("themeD3pieStroke"),
+        segmentStroke: chartUI.chart.getThemeAttribute("themeD3pieStroke"),
       },
       gradient: {
         enabled: false,

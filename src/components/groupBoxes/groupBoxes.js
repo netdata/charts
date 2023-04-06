@@ -4,7 +4,7 @@ import { Flex, TextMicro } from "@netdata/netdata-ui"
 import { useLoadingColor, useAttributeValue } from "@/components/provider"
 import Details from "@/components/details"
 import GroupBox from "./groupBox"
-import { getWidth, makeGetColor } from "./drawBoxes"
+import { getWidth } from "./drawBoxes"
 import useGroupBox from "./useGroupBox"
 
 const frames = keyframes`
@@ -26,7 +26,7 @@ export const SkeletonIcon = () => {
   return <Skeleton background={color} />
 }
 
-const GroupBoxWrapper = ({ uiName, subTree, data, label, groupIndex, getColor }) => {
+const GroupBoxWrapper = ({ uiName, subTree, data, label, groupIndex }) => {
   const dimensions = Object.values(subTree)
 
   const style = useMemo(() => ({ maxWidth: `${getWidth(data)}px` }), [subTree])
@@ -45,14 +45,12 @@ const GroupBoxWrapper = ({ uiName, subTree, data, label, groupIndex, getColor })
             group={key}
             subTree={subTree[key]}
             data={data}
-            getColor={getColor}
             uiName={uiName}
           />
         ))
       ) : (
         <GroupBox
           dimensions={dimensions}
-          getColor={getColor}
           groupIndex={groupIndex}
           groupLabel={label}
           uiName={uiName}
@@ -66,8 +64,6 @@ const GroupBoxes = ({ uiName }) => {
   const { data, tree } = useGroupBox(uiName)
   const min = useAttributeValue("min")
   const max = useAttributeValue("max")
-
-  const getColor = makeGetColor(min, max)
 
   const loaded = useAttributeValue("loaded")
   const showingInfo = useAttributeValue("showingInfo")
@@ -93,7 +89,6 @@ const GroupBoxes = ({ uiName }) => {
             group={key}
             subTree={tree[key]}
             data={data}
-            getColor={getColor}
             uiName={uiName}
           />
         ))

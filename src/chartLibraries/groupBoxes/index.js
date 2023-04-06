@@ -20,7 +20,8 @@ export default (sdk, chart) => {
     offs = unregister(
       chart.onAttributeChange("hoverX", updateGroupBoxRowData),
       chart.on("finishFetch", () => updateGroupBox({ force: true })),
-      chart.on("visibleDimensionsChanged", () => updateGroupBox({ force: true }))
+      chart.on("visibleDimensionsChanged", () => updateGroupBox({ force: true })),
+      chart.onAttributeChange("theme", () => updateGroupBox({ force: true }))
     )
   }
 

@@ -5,7 +5,11 @@ import { TextNano } from "@netdata/netdata-ui/lib/components/typography"
 import { useChart, useAttributeValue, useUnitSign } from "@/components/provider"
 
 const LinearColorScaleBar = styled(Flex).attrs({ width: "320px", height: "12px", round: true })`
-  background: linear-gradient(to right, rgba(198, 227, 246, 0.9), rgba(43, 44, 170, 1));
+  background: linear-gradient(
+    to right,
+    ${({ minColor }) => minColor},
+    ${({ maxColor }) => maxColor}
+  );
 `
 
 const Legend = () => {
@@ -17,6 +21,10 @@ const Legend = () => {
   const selectedContexts = useAttributeValue("selectedContexts").join(", ")
   const contextScope = useAttributeValue("contextScope").join(", ")
 
+  useAttributeValue("theme") // rerender on theme change
+  const minColor = chart.getThemeAttribute("themeGroupBoxesMin")
+  const maxColor = chart.getThemeAttribute("themeGroupBoxesMax")
+
   return (
     <Flex data-testid="groupBox-legend" gap={4} alignItems="center">
       <TextNano strong>
@@ -26,7 +34,7 @@ const Legend = () => {
         <TextNano>
           {chart.getConvertedValue(min)} {units}
         </TextNano>
-        <LinearColorScaleBar />
+        <LinearColorScaleBar minColor={minColor} maxColor={maxColor} />
         <TextNano>
           {chart.getConvertedValue(max)} {units}
         </TextNano>

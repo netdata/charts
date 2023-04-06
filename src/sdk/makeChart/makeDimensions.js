@@ -173,7 +173,7 @@ export default (chart, sdk) => {
 
     if (typeof color === "string") return color
 
-    const index = chart.getUI().getThemeIndex()
+    const index = chart.getThemeIndex()
     return color[index]
   }
 

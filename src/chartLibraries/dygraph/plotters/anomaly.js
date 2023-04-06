@@ -16,9 +16,9 @@ export default chartUI => plotter => {
     const getColor = scaleLinear()
       .domain([0, 0.00001, 100])
       .range([
-        chartUI.getThemeAttribute("themeScaleColor"),
-        chartUI.getThemeAttribute("themeAnomalyLiteScaleColor"),
-        chartUI.getThemeAttribute("themeAnomalyScaleColor"),
+        chartUI.chart.getThemeAttribute("themeScaleColor"),
+        chartUI.chart.getThemeAttribute("themeAnomalyLiteScaleColor"),
+        chartUI.chart.getThemeAttribute("themeAnomalyScaleColor"),
       ])
 
     const dimensionIds = chartUI.chart.getPayloadDimensionIds()
