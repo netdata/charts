@@ -20,8 +20,6 @@ const getPayload = chart => {
   const { after, before, points, time_group, time_resampling, format, ...restPayload } =
     getChartPayload(chart)
 
-  const groupByLabel = restPayload["group_by_label[0]"] || chart.getAttribute("groupByLabel")
-
   return {
     format,
     options,
@@ -41,7 +39,7 @@ const getPayload = chart => {
         {
           aggregation: restPayload["aggregation[0]"] || aggregationMethod,
           group_by: restPayload["group_by[0]"] || chart.getAttribute("groupBy"),
-          group_by_label: groupByLabel,
+          group_by_label: restPayload["group_by_label[0]"] || chart.getAttribute("groupByLabel"),
         },
         !!restPayload["group_by[1]"] && {
           aggregation: restPayload["aggregation[1]"] || "avg",
