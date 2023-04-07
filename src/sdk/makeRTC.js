@@ -54,19 +54,24 @@ export default sdk => {
     localConnection.setLocalDescription(desc)
     console.log(`Offer from localConnection\n${desc.sdp}`)
 
-    const query = new URLSearchParams({ offer: desc.sdp }).toString()
-    const url = `${sdk.getRoot().getAttribute("host")}/rtc_offer?${query}`
+    const url = `${sdk.getRoot().getAttribute("host")}/rtc_offer`
 
-    fetch(url).then(response => {
+    fetch(url, {
+      method: "POST",
+      body: desc.sdp,
+    }).then(response => {
       console.log(`Answer from remoteConnection`, response.json())
       const { offer, candidates = [] } = response.json()
       localConnection.setRemoteDescription({ type: "offer", sdp: offer })
+      candidates.forEach(candidate =>
+        localConnection
+          .addIceCandidate(candidate)
+          .then(onAddIceCandidateSuccess, onAddIceCandidateError)
+      )
     })
   }
 
   const onIceCandidate = (pc, event) => {
-    // getOtherPc(pc)
-    // pc.addIceCandidate(event.candidate).then(onAddIceCandidateSuccess, onAddIceCandidateError)
     localConnection.createOffer().then(gotLocalOfferWithCandidates, onCreateSessionDescriptionError)
 
     console.log(`ICE candidate: ${event.candidate ? event.candidate.candidate : "(null)"}`)

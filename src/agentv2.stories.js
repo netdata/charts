@@ -213,5 +213,5 @@ OneChart.args = {
   contexts: "*",
   singleDimension: "*",
   theme: "default",
-  host: "http://10.10.11.2:19999/api/v2", // "http://192.168.1.205:19999/api/v2/data",
+  host: "http://192.168.1.205:19999/api/v2", // "http://10.10.11.2:19999/api/v2",
 }
