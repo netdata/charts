@@ -2,6 +2,7 @@ import makeListeners from "@/helpers/makeListeners"
 import makeContainer from "./makeContainer"
 import makeChart from "./makeChart"
 import initialAttributes from "./initialAttributes"
+import makeRTC from "./makeRTC"
 
 export default ({ ui, plugins: defaultPlugins = {}, attributes: defaultAttributes, on = {} }) => {
   const listeners = makeListeners()
@@ -86,6 +87,8 @@ export default ({ ui, plugins: defaultPlugins = {}, attributes: defaultAttribute
   }
 
   init()
+
+  makeRTC(instance)
 
   return instance
 }

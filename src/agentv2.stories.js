@@ -20,14 +20,13 @@ const renderBoxPopover = () => <Popover>Box Popover</Popover>
 const renderGroupPopover = () => <Popover>Group Popover</Popover>
 
 const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimension }) => {
-  const sdk = makeDefaultSDK({ attributes: { theme, width: 1000 } })
+  const sdk = makeDefaultSDK({ attributes: { theme, width: 1000, host } })
   const chart = sdk.makeChart({
     attributes: {
       id: "control",
       selectedContexts: [contexts],
       nodesScope: [nodesScope],
       contextScope: [contextScope],
-      host: host,
       aggregationMethod: "avg",
       agent: true,
       syncHover: true,
@@ -43,7 +42,6 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
       selectedContexts: [contexts],
       nodesScope: [nodesScope],
       contextScope: [contextScope],
-      host: host,
       aggregationMethod: "avg",
       agent: true,
       syncHover: true,
@@ -59,7 +57,6 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
       nodesScope: [nodesScope],
       contextScope: [contextScope],
       selectedDimensions: ["in"],
-      host: host,
       agent: true,
       chartLibrary: "easypiechart",
       urlOptions: ["percentage"],
@@ -76,7 +73,6 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
       nodesScope: [nodesScope],
       contextScope: [contextScope],
       selectedDimensions: ["out"],
-      host: host,
       agent: true,
       chartLibrary: "gauge",
       syncHover: true,
@@ -91,7 +87,6 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
       selectedContexts: [contexts],
       nodesScope: [nodesScope],
       contextScope: [contextScope],
-      host: host,
       agent: true,
       chartLibrary: "groupBoxes",
       groupBy: ["dimension", "node"],
@@ -104,7 +99,6 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
       selectedContexts: [contexts],
       nodesScope: [nodesScope],
       contextScope: [contextScope],
-      host: host,
       agent: true,
       chartLibrary: "number",
       syncHover: true,
@@ -118,7 +112,6 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
       selectedContexts: [contexts],
       nodesScope: [nodesScope],
       contextScope: [contextScope],
-      host: host,
       aggregationMethod: "avg",
       agent: true,
       syncHover: true,
