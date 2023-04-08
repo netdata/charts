@@ -59,15 +59,19 @@ export default sdk => {
     fetch(url, {
       method: "POST",
       body: desc.sdp,
-    }).then(response => {
-      console.log(`Answer from remoteConnection`, response.json())
-      const { offer, candidates = [] } = response.json()
-      localConnection.setRemoteDescription({ type: "offer", sdp: offer })
-      candidates.forEach(candidate =>
-        localConnection
-          .addIceCandidate(candidate)
-          .then(onAddIceCandidateSuccess, onAddIceCandidateError)
-      )
+    })
+        .then(response => response.json())
+        .then(data => {
+          console.log(`Answer from remoteConnection`, data)
+          const offer = data.sdp;
+          const candidates = data.candidates;
+          console.log(`Offer from remoteConnection`, offer)
+          localConnection.setRemoteDescription({ type: "offer", sdp: offer })
+          candidates.forEach(candidate =>
+              localConnection
+              .addIceCandidate(candidate)
+              .then(onAddIceCandidateSuccess, onAddIceCandidateError)
+          )
     })
   }
 
