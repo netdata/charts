@@ -5,23 +5,25 @@ export default sdk => {
   let receiveChannel
 
   const createConnection = () => {
-    const servers = {
-      iceCandidatePoolSize: 16,
-      iceTransportPolicy: "all",
-      rtcpMuxPolicy: "negotiate",
-    }
+    const servers = null
     localConnection = new RTCPeerConnection(servers)
 
     console.log("Created local peer connection object localConnection")
 
-    sendChannel = localConnection.createDataChannel("sendDataChannel")
-    console.log("Created send data channel")
+    sendChannel = localConnection.createDataChannel("base")
 
-    localConnection.onicecandidate = e => {
-      onIceCandidate(localConnection, e)
-    }
     sendChannel.onopen = onSendChannelStateChange
     sendChannel.onclose = onSendChannelStateChange
+
+    localConnection.onicegatheringstatechange = () => {
+      if (localConnection.iceGatheringState !== "complete") return
+
+      localConnection
+        .createOffer()
+        .then(gotLocalOfferWithCandidates, onCreateSessionDescriptionError)
+    }
+
+    localConnection.ondatachannel = receiveChannelCallback
 
     localConnection
       .createOffer()
@@ -52,7 +54,6 @@ export default sdk => {
 
   const gotLocalOfferWithCandidates = desc => {
     localConnection.setLocalDescription(desc)
-    console.log(`Offer from localConnection\n${desc.sdp}`)
 
     const url = `${sdk.getRoot().getAttribute("host")}/rtc_offer`
 
@@ -60,25 +61,16 @@ export default sdk => {
       method: "POST",
       body: desc.sdp,
     })
-        .then(response => response.json())
-        .then(data => {
-          console.log(`Answer from remoteConnection`, data)
-          const offer = data.sdp;
-          const candidates = data.candidates;
-          console.log(`Offer from remoteConnection`, offer)
-          localConnection.setRemoteDescription({ type: "offer", sdp: offer })
-          candidates.forEach(candidate =>
-              localConnection
-              .addIceCandidate(candidate)
-              .then(onAddIceCandidateSuccess, onAddIceCandidateError)
-          )
-    })
-  }
+      .then(response => response.json())
+      .then(({ sdp, candidates }) => {
+        localConnection.setRemoteDescription(new RTCSessionDescription({ type: "answer", sdp }))
 
-  const onIceCandidate = (pc, event) => {
-    localConnection.createOffer().then(gotLocalOfferWithCandidates, onCreateSessionDescriptionError)
-
-    console.log(`ICE candidate: ${event.candidate ? event.candidate.candidate : "(null)"}`)
+        candidates.forEach(candidate => {
+          localConnection
+            .addIceCandidate(new RTCIceCandidate({ candidate, sdpMid: null, sdpMLineIndex: 0 }))
+            .then(onAddIceCandidateSuccess, onAddIceCandidateError)
+        })
+      })
   }
 
   const onAddIceCandidateSuccess = () => {
@@ -86,11 +78,10 @@ export default sdk => {
   }
 
   const onAddIceCandidateError = error => {
-    console.log(`Failed to add Ice Candidate: ${error.toString()}`)
+    console.warn(`Failed to add Ice Candidate: ${error.toString()}`)
   }
 
   const receiveChannelCallback = event => {
-    console.log("Receive Channel Callback")
     receiveChannel = event.channel
     receiveChannel.onmessage = onReceiveMessageCallback
     receiveChannel.onopen = onReceiveChannelStateChange
@@ -103,6 +94,7 @@ export default sdk => {
 
   const onSendChannelStateChange = () => {
     const readyState = sendChannel.readyState
+    sendData("hello")
     console.log("Send channel state is: " + readyState)
   }
 
@@ -112,16 +104,6 @@ export default sdk => {
   }
 
   createConnection()
-
-  // let dataToSend = 1
-  // const send = () => {
-  //   setTimeout(() => {
-  //     sendData(dataToSend)
-  //     dataToSend = dataToSend + 1
-  //     send()
-  //   }, 1000)
-  // }
-  // send()
 
   return closeDataChannels
 }
