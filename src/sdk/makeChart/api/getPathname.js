@@ -44,5 +44,6 @@ const getPayload = chart => {
 export default chart => {
   const payload = getPayload(chart)
 
-  return new URLSearchParams(payload).toString()
+  const query = new URLSearchParams(payload).toString()
+  return `GET /api/v2/data?${query}`
 }
