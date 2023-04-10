@@ -25,6 +25,33 @@ export default sdk => {
 
     rtcConnection.ondatachannel = channelCallback
 
+    rtcConnection.onconnectionstatechange = () => {
+      if (!rtcConnection) return
+
+      switch (rtcConnection.connectionState) {
+        case "new":
+        case "checking":
+          console.log("Connection Connecting…")
+          break
+        case "connected":
+          console.log("Connection Online")
+          break
+        case "disconnected":
+          console.log("Connection Disconnecting…")
+          createConnection()
+          break
+        case "closed":
+          console.log("Connection Offline")
+          break
+        case "failed":
+          console.log("Connection Error")
+          break
+        default:
+          console.log("Connection Unknown")
+          break
+      }
+    }
+
     rtcConnection.createOffer().then(gotLocalOfferWithCandidates, onCreateSessionDescriptionError)
   }
 
