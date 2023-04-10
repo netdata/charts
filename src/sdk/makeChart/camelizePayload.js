@@ -89,6 +89,8 @@ export default payload => {
       last_entry: lastEntry,
       tiers,
       per_tier: perTier,
+      dimensions: dbDimensions,
+      units: dbUnits,
     },
     view: {
       title,
@@ -147,6 +149,8 @@ export default payload => {
     labels: labels.reduce((h, l) => ({ ...h, [l.id]: l }), {}),
     alerts: alerts.reduce((h, a) => ({ ...h, [a.name]: a }), {}),
     viewDimensions,
+    dbDimensions,
+    dbUnits,
     details,
     functions,
     contextsTotals,

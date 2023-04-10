@@ -94,8 +94,7 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
       host: host,
       agent: true,
       chartLibrary: "groupBoxes",
-      groupBy: ["label"],
-      groupByLabel: ["k8s_namespace", "k8s_container_id"],
+      groupBy: ["dimension", "node"],
     },
   })
   sdk.appendChild(chart4)
@@ -105,7 +104,6 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
       selectedContexts: [contexts],
       nodesScope: [nodesScope],
       contextScope: [contextScope],
-      selectedDimensions: ["in"],
       host: host,
       agent: true,
       chartLibrary: "number",
@@ -131,6 +129,38 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
 
   sdk.appendChild(chart6)
 
+  const chart8 = sdk.makeChart({
+    attributes: {
+      selectedContexts: [contexts],
+      nodesScope: [nodesScope],
+      contextScope: [contextScope],
+      host: host,
+      aggregationMethod: "avg",
+      agent: true,
+      syncHover: true,
+      groupingMethod: "average",
+      chartLibrary: "d3pie",
+    },
+  })
+
+  sdk.appendChild(chart8)
+
+  const chart9 = sdk.makeChart({
+    attributes: {
+      selectedContexts: [contexts],
+      nodesScope: [nodesScope],
+      contextScope: [contextScope],
+      host: host,
+      aggregationMethod: "avg",
+      agent: true,
+      syncHover: true,
+      groupingMethod: "average",
+      chartLibrary: "d3pie",
+    },
+  })
+
+  sdk.appendChild(chart9)
+
   return (
     <ThemeProvider theme={theme === "default" ? DefaultTheme : DarkTheme}>
       <Flex background="mainBackground" column gap={2} padding={[3]}>
@@ -139,6 +169,10 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
           <GaugeComponent chart={chart3} />
           <NumberComponent chart={chart5} />
           <D3pieComponent chart={chart6} />
+        </Flex>
+        <Flex>
+          <D3pieComponent chart={chart8} />
+          <D3pieComponent chart={chart9} />
         </Flex>
         <Line chart={chart} height="315px" />
         <Line chart={chart7} height="315px" />
@@ -182,7 +216,7 @@ export const OneChart = Template.bind({})
 
 OneChart.args = {
   nodesScope: "*",
-  contextScope: "system.io",
+  contextScope: "apps.cpu",
   contexts: "*",
   singleDimension: "*",
   theme: "default",

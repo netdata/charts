@@ -189,9 +189,7 @@ export default (chart, sdk) => {
     return viewDimensions.priorities[dimensionsById[id]]
   }
 
-  chart.getRowDimensionValue = (id, pointData, { valueKey = "value", objKey, abs = true } = {}) => {
-    if (objKey) pointData = pointData[objKey]
-
+  chart.getRowDimensionValue = (id, pointData, { valueKey = "value", abs = true } = {}) => {
     let value = pointData?.[dimensionsById[id] + 1]
     if (typeof value === "undefined") return null
 

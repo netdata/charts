@@ -266,9 +266,9 @@ import * as d3 from "d3"
         // console.error("d3pie error: invalid config structure: missing data.content property.")
         return false
       }
-      if (options.data.content.length === 0) {
-        return false
-      }
+      // if (options.data.content.length === 0) {
+      //   return false
+      // }
 
       // clear out any invalid data. Each data row needs a valid positive number and a label
       var data = []
@@ -442,12 +442,12 @@ import * as d3 from "d3"
       var newData = []
       var groupedData = []
       var totalGroupedData = 0
-      var totalGrouped = 0;
+      var totalGrouped = 0
 
-      if(smallSegmentGrouping.valueType === "count") {
-        var data2 = [];
-        var i2 = 0;
-        for(var i = 0; i < data.length ;i++) {
+      if (smallSegmentGrouping.valueType === "count") {
+        var data2 = []
+        var i2 = 0
+        for (var i = 0; i < data.length; i++) {
           data2[i2++] = {
             idx: i,
             value: data[i].value,
@@ -456,11 +456,11 @@ import * as d3 from "d3"
         data2.sort(function (a, b) {
           return a.value < b.value ? 1 : -1
         })
-        for(i2 = 0; i2 < data2.length ;i2++) {
+        for (i2 = 0; i2 < data2.length; i2++) {
           data[data2[i2].idx].smallSegmentPriority = i2
         }
 
-        for(var i = 0; i < data.length ;i++) {
+        for (var i = 0; i < data.length; i++) {
           if (data[i].smallSegmentPriority >= smallSegmentGrouping.value) {
             groupedData.push(data[i])
             totalGroupedData += data[i].value
@@ -470,8 +470,7 @@ import * as d3 from "d3"
           data[i].isGrouped = false
           newData.push(data[i])
         }
-      }
-      else if (smallSegmentGrouping.valueType === "percentage") {
+      } else if (smallSegmentGrouping.valueType === "percentage") {
         var totalSize = math.getTotalPieSize(data)
         for (var i = 0; i < data.length; i++) {
           if (smallSegmentGrouping.valueType === "percentage") {
@@ -486,8 +485,7 @@ import * as d3 from "d3"
             newData.push(data[i])
           }
         }
-      }
-      else {
+      } else {
         // loop through each data item
         for (var i = 0; i < data.length; i++) {
           if (data[i].value <= smallSegmentGrouping.value) {

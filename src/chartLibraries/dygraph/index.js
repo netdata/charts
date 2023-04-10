@@ -102,7 +102,7 @@ export default (sdk, chart) => {
       maxNumberWidth: 8,
       highlightSeriesBackgroundAlpha: 1,
       drawGapEdgePoints: true,
-      ylabel: chart.getAttribute("hasYlabel") && chart.getUnitSign(true),
+      ylabel: chart.getAttribute("hasYlabel") && chart.getUnitSign({ long: true }),
       digitsAfterDecimal: chart.getAttribute("unitsConversionFractionDigits"),
       yLabelWidth: 12,
       yRangePad: 30,
@@ -157,13 +157,13 @@ export default (sdk, chart) => {
           ...makeVisibilityOptions(),
           ...makeColorOptions(),
           ...makeChartTypeOptions(),
-          ylabel: chart.getAttribute("hasYlabel") && chart.getUnitSign(true),
+          ylabel: chart.getAttribute("hasYlabel") && chart.getUnitSign({ long: true }),
           digitsAfterDecimal: chart.getAttribute("unitsConversionFractionDigits"),
         })
       ),
       chart.onAttributeChange("unitsConversion", () =>
         dygraph.updateOptions({
-          ylabel: chart.getAttribute("hasYlabel") && chart.getUnitSign(true),
+          ylabel: chart.getAttribute("hasYlabel") && chart.getUnitSign({ long: true }),
           digitsAfterDecimal: chart.getAttribute("unitsConversionFractionDigits"),
         })
       ),
@@ -444,7 +444,7 @@ export default (sdk, chart) => {
       ...makeDataOptions(),
       ...makeVisibilityOptions(),
       ...makeColorOptions(),
-      ylabel: chart.getAttribute("hasYlabel") && chart.getUnitSign(true),
+      ylabel: chart.getAttribute("hasYlabel") && chart.getUnitSign({ long: true }),
       digitsAfterDecimal: chart.getAttribute("unitsConversionFractionDigits"),
     })
   }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, forwardRef, Fragment } from "react"
+import React, { useEffect, useState, useRef, Fragment } from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { unregister } from "@/helpers/makeListeners"
 import { useChart } from "@/components/provider"
@@ -7,12 +7,6 @@ import DropContainer from "@netdata/netdata-ui/lib/components/drops/drop/contain
 import useMakeUpdatePosition from "@netdata/netdata-ui/lib/components/drops/drop/useMakeUpdatePosition"
 import useDropElement from "@netdata/netdata-ui/lib/hooks/use-drop-element"
 import Dimensions from "./dimensions"
-
-const DimensionsPopover = forwardRef((props, ref) => (
-  <Flex data-testid="chartPopover" ref={ref}>
-    <Dimensions />
-  </Flex>
-))
 
 const leftTopAlign = { right: "left", bottom: "top" }
 const leftBottomAlign = { right: "left", top: "bottom" }

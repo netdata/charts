@@ -5,7 +5,7 @@ import { useTitle, useUnitSign, useName, withChartProvider } from "@/components/
 
 export const Title = props => {
   const title = useTitle()
-  const units = useUnitSign(true)
+  const units = useUnitSign({ long: true })
   const name = useName()
 
   return (

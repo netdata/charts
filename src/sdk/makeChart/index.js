@@ -116,13 +116,14 @@ export default ({
 
   node.on("render", render)
 
-  node.getConvertedValue = (value, { fractionDigits } = {}) => {
+  node.getConvertedValue = (value, { fractionDigits, key = "units" } = {}) => {
     if (!node) return
 
     if (value === null) return "-"
 
-    const { unitsConversionMethod, unitsConversionDivider, unitsConversionFractionDigits } =
-      node.getAttributes()
+    const unitsConversionMethod = node.getAttribute(`${key}ConversionMethod`)
+    const unitsConversionDivider = node.getAttribute(`${key}ConversionDivider`)
+    const unitsConversionFractionDigits = node.getAttribute(`${key}ConversionFractionDigits`)
     const converted = convert(node, unitsConversionMethod, value, unitsConversionDivider)
 
     if (unitsConversionFractionDigits === -1) return converted

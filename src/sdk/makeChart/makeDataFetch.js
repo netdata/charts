@@ -38,41 +38,43 @@ export default chart => {
 
   chart.doneFetch = nextRawPayload => {
     chart.backoffMs = 0
-    const { result, chartType, versions, ...restPayload } = camelizePayload(nextRawPayload)
+    setTimeout(() => {
+      const { result, chartType, versions, ...restPayload } = camelizePayload(nextRawPayload)
 
-    const prevPayload = nextPayload
-    nextPayload = result
+      const prevPayload = nextPayload
+      nextPayload = result
 
-    const dataLength = getDataLength(nextPayload)
+      const dataLength = getDataLength(nextPayload)
 
-    chart.consumePayload()
-    chart.invalidateClosestRowCache()
+      chart.consumePayload()
+      chart.invalidateClosestRowCache()
 
-    if (!chart.getAttribute("loaded")) chart.getParent().trigger("chartLoaded", chart)
+      if (!chart.getAttribute("loaded")) chart.getParent().trigger("chartLoaded", chart)
 
-    const attributes = chart.getAttributes()
+      const attributes = chart.getAttributes()
 
-    chart.updateAttributes({
-      loaded: true,
-      loading: false,
-      updatedAt: Date.now(),
-      outOfLimits: !dataLength,
-      chartType: attributes.selectedChartType || attributes.chartType || chartType,
-      ...restPayload,
-      versions,
-      title: attributes.title || restPayload.title,
-      error: null,
+      chart.updateAttributes({
+        loaded: true,
+        loading: false,
+        updatedAt: Date.now(),
+        outOfLimits: !dataLength,
+        chartType: attributes.selectedChartType || attributes.chartType || chartType,
+        ...restPayload,
+        versions,
+        title: attributes.title || restPayload.title,
+        error: null,
+      })
+
+      chart.updateDimensions()
+
+      if (!chart.getAttribute("initializedFilters"))
+        chart.setAttributes(getInitialFilterAttributes(chart))
+
+      chart.trigger("successFetch", nextPayload, prevPayload)
+
+      updateVersions(versions)
+      finishFetch()
     })
-
-    chart.updateDimensions()
-
-    if (!chart.getAttribute("initializedFilters"))
-      chart.setAttributes(getInitialFilterAttributes(chart))
-
-    chart.trigger("successFetch", nextPayload, prevPayload)
-
-    updateVersions(versions)
-    finishFetch()
   }
 
   const updateVersions = ({

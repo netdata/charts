@@ -78,7 +78,9 @@ export default (sdk, chart) => {
     chartUI.render()
 
     pie.options.data.content = values
-    reMake()
+    window.requestAnimationFrame(() => {
+      reMake()
+    })
 
     chartUI.trigger("rendered")
   }

@@ -10,7 +10,7 @@ const useColumns = (period, options = {}) => {
 
   return useMemo(() => {
     const columnOptions = { period, ...options }
-    const dbOptions = { ...columnOptions, objKey: "sts" }
+    const dbOptions = { ...columnOptions, objKey: "dbDimensions", unitsKey: "dbUnits" }
 
     return [
       {

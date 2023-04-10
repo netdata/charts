@@ -218,29 +218,29 @@ export const useDimensionIds = () => {
   return chart.getDimensionIds()
 }
 
-export const useUnitSign = long => {
+export const useUnitSign = ({ long, key = "units" } = {}) => {
   const chart = useChart()
 
   const forceUpdate = useForceUpdate()
 
-  useImmediateListener(() => chart.onAttributeChange("unitsConversion", forceUpdate), [chart])
+  useImmediateListener(() => chart.onAttributeChange(`${key}Conversion`, forceUpdate), [chart, key])
 
-  return chart.getUnitSign(long)
+  return chart.getUnitSign({ long, key })
 }
 
-export const useUnits = () => {
+export const useUnits = (key = "units") => {
   const chart = useChart()
 
   const forceUpdate = useForceUpdate()
 
-  useImmediateListener(() => chart.onAttributeChange("unitsConversion", forceUpdate), [chart])
+  useImmediateListener(() => chart.onAttributeChange(`${key}Conversion`, forceUpdate), [chart, key])
 
-  return chart.getUnits()
+  return chart.getUnits(key)
 }
 
-export const useConverted = (value, { valueKey, fractionDigits } = {}) => {
+export const useConverted = (value, { valueKey, fractionDigits, unitsKey = "units" } = {}) => {
   const chart = useChart()
-  const unitsConversion = useAttributeValue("unitsConversion")
+  const unitsConversion = useAttributeValue(`${unitsKey}Conversion`)
 
   return useMemo(() => {
     if (value === null || value === "-") return "-"
@@ -253,7 +253,7 @@ export const useConverted = (value, { valueKey, fractionDigits } = {}) => {
     if (valueKey === "pa")
       return parts.reduce((h, a) => (check(value, enums[a]) ? { ...h, [a]: colors[a] } : h), {})
 
-    return chart.getConvertedValue(value, { fractionDigits })
+    return chart.getConvertedValue(value, { fractionDigits, key: unitsKey })
   }, [chart, value, valueKey, unitsConversion])
 }
 
@@ -309,14 +309,8 @@ const getValueByPeriod = {
     return dimValue
   },
   window: ({ chart, id, valueKey, objKey }) => {
-    let viewDimensions = chart.getAttribute("viewDimensions")
-
-    let values = null
-    if (objKey) {
-      viewDimensions = viewDimensions[objKey]
-    }
-
-    values = viewDimensions[valueKey]
+    const dimensions = chart.getAttribute(objKey).sts
+    const values = dimensions[valueKey]
 
     if (!values?.length) return null
 
@@ -336,7 +330,11 @@ const getValueByPeriod = {
   },
 }
 
-export const useValue = (id, period = "latest", { valueKey = "value", objKey, abs } = {}) => {
+export const useValue = (
+  id,
+  period = "latest",
+  { valueKey = "value", objKey = "viewDimensions", abs, unitsKey = "units" } = {}
+) => {
   const chart = useChart()
 
   const [value, setState] = useState(null)
@@ -350,10 +348,10 @@ export const useValue = (id, period = "latest", { valueKey = "value", objKey, ab
     return unregister(
       chart.onAttributeChange("hoverX", () => setState(getValue())),
       chart.on("dimensionChanged", () => setState(getValue())),
-      chart.onAttributeChange("unitsConversion", () => setState(getValue())),
+      chart.onAttributeChange(`${unitsKey}Conversion`, () => setState(getValue())),
       chart.on("render", () => setState(getValue()))
     )
-  }, [chart, id, valueKey, period, objKey])
+  }, [chart, id, valueKey, period, objKey, unitsKey])
 
   return value
 }

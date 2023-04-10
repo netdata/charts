@@ -61,8 +61,8 @@ const getFractionDigits = value => {
   return index === -1 ? decimals.length - 1 : index
 }
 
-const getConversionUnits = (chart, min, max, maxDecimals = 5) => {
-  const { units } = chart.getAttributes()
+const getConversionUnits = (chart, unitsKey, min, max, maxDecimals = 5) => {
+  const units = chart.getAttribute(unitsKey)
 
   const [method, divider, unitsConversion = units] = getMethod(chart, units, min, max)
 

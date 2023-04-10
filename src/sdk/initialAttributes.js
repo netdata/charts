@@ -66,6 +66,11 @@ export default {
   unitsConversionFractionDigits: 0,
   unitsConversion: "",
 
+  dbUnitsConversionMethod: "",
+  dbUnitsConversionDivider: -1,
+  dbUnitsConversionFractionDigits: 0,
+  dbUnitsConversion: "",
+
   temperature: "celsius",
   secondsAsTime: true,
   timezone: undefined,
