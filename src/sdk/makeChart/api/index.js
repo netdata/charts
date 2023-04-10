@@ -4,6 +4,7 @@ import fetchCloudData from "./fetchCloudData"
 import fetchCloudWeights from "./fetchCloudWeights"
 
 export * from "./helpers"
+export { default as getPathname } from "./getPathname"
 
 export const fetchChartData = (chart, options) => {
   const { agent } = chart.getAttributes()

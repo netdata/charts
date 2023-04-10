@@ -5,6 +5,7 @@ import { fetchChartData } from "./api"
 import makeDimensions from "./makeDimensions"
 import makeFilterControllers from "./filters/makeControllers"
 import makeDataFetch from "./makeDataFetch"
+import makeDataChannel from "./makeDataChannel"
 import makeGetUnitSign from "./makeGetUnitSign"
 import makeWeights from "./makeWeights"
 
@@ -203,6 +204,7 @@ export default ({
 
   makeDimensions(node, sdk)
   makeDataFetch(node, sdk)
+  makeDataChannel(node, sdk)
   makeWeights(node, sdk)
 
   node.type = "chart"

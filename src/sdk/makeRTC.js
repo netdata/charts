@@ -1,16 +1,15 @@
 export default sdk => {
-  let localConnection
-  let remoteConnection
+  let rtcConnection
   let baseChannel
   let receiveChannel
 
   const createConnection = () => {
     const servers = null
-    localConnection = new RTCPeerConnection(servers)
+    rtcConnection = new RTCPeerConnection(servers)
 
-    console.log("Created local peer connection object localConnection")
+    console.log("Created local peer connection object rtcConnection")
 
-    baseChannel = localConnection.createDataChannel("base")
+    baseChannel = rtcConnection.createDataChannel("base")
 
     baseChannel.onopen = onChannelOpen
     baseChannel.onclose = onChannelClose
@@ -18,19 +17,15 @@ export default sdk => {
       console.log(event.data)
     }
 
-    localConnection.onicegatheringstatechange = () => {
-      if (localConnection.iceGatheringState !== "complete") return
+    // rtcConnection.onicegatheringstatechange = () => {
+    //   if (rtcConnection.iceGatheringState !== "complete") return
 
-      localConnection
-        .createOffer()
-        .then(gotLocalOfferWithCandidates, onCreateSessionDescriptionError)
-    }
+    //   rtcConnection.createOffer().then(gotLocalOfferWithCandidates, onCreateSessionDescriptionError)
+    // }
 
-    localConnection.ondatachannel = channelCallback
+    rtcConnection.ondatachannel = channelCallback
 
-    localConnection
-      .createOffer()
-      .then(desc => localConnection.setLocalDescription(desc), onCreateSessionDescriptionError)
+    rtcConnection.createOffer().then(gotLocalOfferWithCandidates, onCreateSessionDescriptionError)
   }
 
   const onCreateSessionDescriptionError = error => {
@@ -48,15 +43,13 @@ export default sdk => {
     console.log("Closed data channel with label: " + baseChannel.label)
     receiveChannel.close()
     console.log("Closed data channel with label: " + receiveChannel.label)
-    localConnection.close()
-    remoteConnection.close()
-    localConnection = null
-    remoteConnection = null
+    rtcConnection.close()
+    rtcConnection = null
     console.log("Closed peer connections")
   }
 
   const gotLocalOfferWithCandidates = desc => {
-    localConnection.setLocalDescription(desc)
+    rtcConnection.setLocalDescription(desc)
 
     const url = `${sdk.getRoot().getAttribute("host")}/rtc_offer`
 
@@ -66,10 +59,10 @@ export default sdk => {
     })
       .then(response => response.json())
       .then(({ sdp, candidates }) => {
-        localConnection.setRemoteDescription(new RTCSessionDescription({ type: "answer", sdp }))
+        rtcConnection.setRemoteDescription(new RTCSessionDescription({ type: "answer", sdp }))
 
         candidates.forEach(candidate => {
-          localConnection
+          rtcConnection
             .addIceCandidate(new RTCIceCandidate({ candidate, sdpMid: null, sdpMLineIndex: 0 }))
             .then(onAddIceCandidateSuccess, onAddIceCandidateError)
         })
@@ -115,5 +108,5 @@ export default sdk => {
 
   createConnection()
 
-  return { rtcConnection: localConnection, rtcDestroy: closeDataChannels }
+  sdk.rtcConnection = rtcConnection
 }

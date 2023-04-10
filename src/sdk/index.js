@@ -5,39 +5,39 @@ import initialAttributes from "./initialAttributes"
 import makeRTC from "./makeRTC"
 
 export default ({ ui, plugins: defaultPlugins = {}, attributes: defaultAttributes, on = {} }) => {
-  const listeners = makeListeners()
+  const sdk = { ...makeListeners() }
   const attributes = { ui }
   const plugins = {}
   let root
 
-  const init = () => {
-    root = makeSDKContainer({
+  sdk.init = () => {
+    root = sdk.makeContainer({
       attributes: { id: "root", ...initialAttributes, ...defaultAttributes },
     })
-    Object.keys(on).forEach(name => listeners.on(name, on[name]))
-    Object.keys(defaultPlugins).forEach(name => register(name, defaultPlugins[name]))
+    Object.keys(on).forEach(name => sdk.on(name, on[name]))
+    Object.keys(defaultPlugins).forEach(name => sdk.register(name, defaultPlugins[name]))
   }
 
-  const getRoot = () => root
+  sdk.getRoot = () => root
 
-  const register = (name, plugin) => {
-    plugins[name] = plugin(instance)
+  sdk.register = (name, plugin) => {
+    plugins[name] = plugin(sdk)
   }
 
-  const unregister = name => {
+  sdk.unregister = name => {
     plugins[name]()
     delete plugins[name]
   }
 
-  const version = () => attributes._v
+  sdk.version = () => attributes._v
 
-  const addUI = (type, chartLibrary) => {
+  sdk.addUI = (type, chartLibrary) => {
     attributes.ui[type] = chartLibrary
   }
 
-  const makeChartCore = options => makeChart({ sdk: instance, ...options })
+  sdk.makeChartCore = options => makeChart({ sdk, ...options })
 
-  const makeChartUI = chart => {
+  sdk.makeChartUI = chart => {
     const chartLibrary = chart.getAttribute("chartLibrary") || defaultAttributes.chartLibrary
 
     if (!(chartLibrary in attributes.ui))
@@ -47,48 +47,30 @@ export default ({ ui, plugins: defaultPlugins = {}, attributes: defaultAttribute
 
     const makeChartLibrary = attributes.ui[chartLibrary]
 
-    return makeChartLibrary(instance, chart)
+    return makeChartLibrary(sdk, chart)
   }
 
-  const makeSDKChart = ({ ui, ...options }) => {
-    const chart = makeChartCore(options)
-    const chartUi = makeChartUI(chart)
+  sdk.makeChart = ({ ui, ...options }) => {
+    const chart = sdk.makeChartCore(options)
+    const chartUi = sdk.makeChartUI(chart)
     chart.setUI({ ...chartUi, ...ui }, "default")
 
     return chart
   }
 
-  const makeSDKContainer = options => makeContainer({ sdk: instance, ...options })
+  sdk.makeContainer = options => makeContainer({ sdk, ...options })
 
-  const getNode = (attributes, options) => root.getNode(attributes, options)
+  sdk.getNode = (attributes, options) => root.getNode(attributes, options)
 
-  const getNodes = (attributes, options) => root.getNodes(attributes, options)
+  sdk.getNodes = (attributes, options) => root.getNodes(attributes, options)
 
-  const appendChild = (node, { inherit = true } = {}) => root.appendChild(node, { inherit })
+  sdk.appendChild = (node, { inherit = true } = {}) => root.appendChild(node, { inherit })
 
-  const removeChild = id => root.removeChild(id)
+  sdk.removeChild = id => root.removeChild(id)
 
-  const instance = {
-    ...listeners,
-    getRoot,
-    register,
-    unregister,
-    addUI,
-    makeChartCore,
-    makeChartUI,
-    makeChart: makeSDKChart,
-    makeContainer: makeSDKContainer,
-    getNode,
-    getNodes,
-    appendChild,
-    removeChild,
-    version,
-    ui,
-  }
+  sdk.init()
 
-  init()
+  makeRTC(sdk)
 
-  makeRTC(instance)
-
-  return instance
+  return sdk
 }
