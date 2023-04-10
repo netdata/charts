@@ -1,7 +1,7 @@
 export default sdk => {
   let localConnection
   let remoteConnection
-  let sendChannel
+  let baseChannel
   let receiveChannel
 
   const createConnection = () => {
@@ -10,10 +10,13 @@ export default sdk => {
 
     console.log("Created local peer connection object localConnection")
 
-    sendChannel = localConnection.createDataChannel("base")
+    baseChannel = localConnection.createDataChannel("base")
 
-    sendChannel.onopen = onSendChannelStateChange
-    sendChannel.onclose = onSendChannelStateChange
+    baseChannel.onopen = onChannelOpen
+    baseChannel.onclose = onChannelClose
+    baseChannel.onmessage = event => {
+      console.log(event.data)
+    }
 
     localConnection.onicegatheringstatechange = () => {
       if (localConnection.iceGatheringState !== "complete") return
@@ -23,7 +26,7 @@ export default sdk => {
         .then(gotLocalOfferWithCandidates, onCreateSessionDescriptionError)
     }
 
-    localConnection.ondatachannel = receiveChannelCallback
+    localConnection.ondatachannel = channelCallback
 
     localConnection
       .createOffer()
@@ -35,14 +38,14 @@ export default sdk => {
   }
 
   const sendData = data => {
-    sendChannel.send(data)
+    baseChannel.send(data)
     console.log("Sent Data: " + data)
   }
 
   const closeDataChannels = () => {
     console.log("Closing data channels")
-    sendChannel.close()
-    console.log("Closed data channel with label: " + sendChannel.label)
+    baseChannel.close()
+    console.log("Closed data channel with label: " + baseChannel.label)
     receiveChannel.close()
     console.log("Closed data channel with label: " + receiveChannel.label)
     localConnection.close()
@@ -81,7 +84,8 @@ export default sdk => {
     console.warn(`Failed to add Ice Candidate: ${error.toString()}`)
   }
 
-  const receiveChannelCallback = event => {
+  const channelCallback = event => {
+    debugger
     receiveChannel = event.channel
     receiveChannel.onmessage = onReceiveMessageCallback
     receiveChannel.onopen = onReceiveChannelStateChange
@@ -92,9 +96,15 @@ export default sdk => {
     console.log("Received Message", event.data)
   }
 
-  const onSendChannelStateChange = () => {
-    const readyState = sendChannel.readyState
+  const onChannelOpen = () => {
+    const readyState = baseChannel.readyState
+    sdk.trigger("rtc:ready")
     sendData("hello")
+    console.log("Send channel state is: " + readyState)
+  }
+
+  const onChannelClose = () => {
+    const readyState = baseChannel.readyState
     console.log("Send channel state is: " + readyState)
   }
 
@@ -105,5 +115,5 @@ export default sdk => {
 
   createConnection()
 
-  return closeDataChannels
+  return { rtcConnection: localConnection, rtcDestroy: closeDataChannels }
 }
