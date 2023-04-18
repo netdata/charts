@@ -49,7 +49,8 @@ export default chart => {
       chart.consumePayload()
       chart.invalidateClosestRowCache()
 
-      if (!chart.getAttribute("loaded")) chart.getParent().trigger("chartLoaded", chart)
+      if (!chart.getAttribute("loaded") && chart.getParent())
+        chart.getParent().trigger("chartLoaded", chart)
 
       const attributes = chart.getAttributes()
 
