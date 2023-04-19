@@ -205,7 +205,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
 
     listeners.offAll()
     attributeListeners.offAll()
-    parent = null
+    setTimeout(() => (parent = null), 2000)
     destroyIntls()
   }
 

@@ -91,7 +91,7 @@ export default ({ sdk, parent, attributes } = {}) => {
     children.forEach(node => node.destroy())
     children = []
     colorsByGroupId = {}
-    node = null
+    setTimeout(() => (node = null), 2000)
   }
 
   node.type = "container"

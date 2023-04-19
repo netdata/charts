@@ -280,9 +280,12 @@ export default ({
 
     Object.keys(uiInstances).forEach(uiName => uiInstances[uiName].unmount())
 
-    uiInstances = null
+    setTimeout(() => {
+      uiInstances = null
+      node = null
+    }, 2000)
+
     node.destroy()
-    node = null
   }
 
   return {
