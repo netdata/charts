@@ -13,6 +13,8 @@ export default (sdk, chart) => {
   const executeLatest = makeExecuteLatest()
 
   const reMake = () => {
+    if (!pie) return
+
     pie.destroy()
     pie.recreate()
   }

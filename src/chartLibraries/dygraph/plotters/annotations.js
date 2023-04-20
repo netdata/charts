@@ -32,7 +32,7 @@ export default chartUI => plotter => {
 
       const row = chartUI.chart.getClosestRow(p.xval)
       const [, ...annotations] = all[row]
-      const valueSet = annotations.reduce((selected, { pa = 0 }, index) => {
+      const valueSet = annotations.reduce((selected, { pa }, index) => {
         if (selectedIdsSet.has(index) && !!pa)
           parts.forEach(a => check(pa, enums[a]) && selected.add(a))
 
