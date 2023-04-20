@@ -35,6 +35,7 @@ export default (sdk, chart) => {
 
     const reMake = () => {
       const canvas = easyPie.renderer.getCanvas()
+      easyPie.renderer.clear()
       element.removeChild(canvas)
       makeEasyPie()
     }
