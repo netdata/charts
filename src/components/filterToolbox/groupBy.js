@@ -83,9 +83,12 @@ const GroupBy = ({ labelProps, ...rest }) => {
       ...Object.keys(attributes.labels).map(id =>
         getStats(chart, attributes.labels[id], {
           key: "group-by",
-          getLabel: obj => `label: ${obj.nm || id || obj.id}`,
           childrenKey: "label",
-          props: { isLabel: true, selected: groupByLabel.includes(id) },
+          props: {
+            getLabel: obj => `label: ${obj.nm || id || obj.id}`,
+            isLabel: true,
+            selected: groupByLabel.includes(id),
+          },
           childProps: { unique: "-", disabled: "hidden" },
           children: attributes.labels[id].vl,
         })
