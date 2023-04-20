@@ -1,54 +1,63 @@
-import React from "react"
+import React, { useMemo } from "react"
 import { Flex, ProgressBar, TextSmall, TextMicro, MasterCard } from "@netdata/netdata-ui"
 import Color from "@/components/line/dimensions/color"
 import Units from "@/components/line/dimensions/units"
-import { useConverted } from "@/components/provider"
+import { useChart, useConverted } from "@/components/provider"
 import Label from "./label"
 
-const metricsByValue = {
-  dimension: "dimensions",
-  node: "nodes",
-  instance: "instances",
-  label: "labels",
-  value: "values",
-  default: "values",
-}
+const useMetricsByValue = chart =>
+  useMemo(
+    () => ({
+      dimension: "dimensions",
+      node: "nodes",
+      instance: chart.intl("instance", 2),
+      label: "labels",
+      value: "values",
+      default: "values",
+    }),
+    []
+  )
 
 export const labelColumn = fallbackExpandKey => ({
   id: "label",
   header: () => <TextSmall strong>Name</TextSmall>,
   size: 300,
   minSize: 60,
-  cell: ({ getValue, row }) => (
-    <Flex justifyContent="between" alignItems="center" padding={[0, 0, 0, row.depth * 3]}>
-      <Flex gap={1}>
-        <Color id={row.original.value} />
-        <TextSmall
-          strong
-          onClick={!row.original.disabled ? row.getToggleSelectedHandler() : undefined}
-          cursor={row.original.disabled ? "default" : "pointer"}
-          whiteSpace="normal"
-        >
-          {getValue()}
-        </TextSmall>
+  cell: ({ getValue, row }) => {
+    const chart = useChart()
+    const metricsByValue = useMetricsByValue(chart)
+
+    return (
+      <Flex justifyContent="between" alignItems="center" padding={[0, 0, 0, row.depth * 3]}>
+        <Flex gap={1}>
+          <Color id={row.original.value} />
+          <TextSmall
+            strong
+            onClick={!row.original.disabled ? row.getToggleSelectedHandler() : undefined}
+            cursor={row.original.disabled ? "default" : "pointer"}
+            whiteSpace="normal"
+          >
+            {getValue()}
+          </TextSmall>
+        </Flex>
+        {row.getCanExpand() && (
+          <Label
+            label={
+              metricsByValue[row.original.value] ||
+              metricsByValue[fallbackExpandKey] ||
+              metricsByValue.default
+            }
+            onClick={e => {
+              row.getToggleExpandedHandler()(e)
+              setTimeout(() => e.target.scrollIntoView({ behavior: "smooth", block: "nearest" }))
+            }}
+            iconRotate={row.getIsExpanded() ? 2 : null}
+            textProps={{ fontSize: "10px", color: "textLite" }}
+          />
+        )}
       </Flex>
-      {row.getCanExpand() && (
-        <Label
-          label={
-            metricsByValue[row.original.value] ||
-            metricsByValue[fallbackExpandKey] ||
-            metricsByValue.default
-          }
-          onClick={e => {
-            row.getToggleExpandedHandler()(e)
-            setTimeout(() => e.target.scrollIntoView({ behavior: "smooth", block: "nearest" }))
-          }}
-          iconRotate={row.getIsExpanded() ? 2 : null}
-          textProps={{ fontSize: "10px", color: "textLite" }}
-        />
-      )}
-    </Flex>
-  ),
+    )
+  },
 })
 
 export const uniqueColumn = () => ({

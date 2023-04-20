@@ -188,4 +188,11 @@ export default {
 
   renderedAt: null,
   fetchAt: null,
+
+  en: {
+    instance: {
+      one: "instance",
+      other: "instances",
+    },
+  },
 }

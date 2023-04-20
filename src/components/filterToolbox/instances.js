@@ -1,5 +1,6 @@
-import React, { memo, useCallback } from "react"
+import React, { memo, useCallback, useMemo } from "react"
 import { useChart, useAttribute, useAttributeValue } from "@/components/provider"
+import { uppercase } from "@/helpers/objectTransform"
 import DropdownTable from "./dropdownTable"
 import { getStats } from "./utils"
 import {
@@ -13,10 +14,21 @@ import {
   maxColumn,
 } from "./columns"
 
-const tooltipProps = {
-  heading: "Instances",
-  body: "View or filter the instances contributing time-series metrics to this chart. This menu also provides the contribution of each instance to the volume of the chart, and a break down of the anomaly rate of the queried data per instance.",
-}
+const useTooltipProps = chart =>
+  useMemo(
+    () => ({
+      heading: uppercase(chart.intl("instance", 2)),
+      body: `View or filter the ${chart.intl(
+        "instance",
+        2
+      )} contributing time-series metrics to this chart. This menu also provides the contribution of each ${chart.intl(
+        "instance"
+      )} to the volume of the chart, and a break down of the anomaly rate of the queried data per ${chart.intl(
+        "instance"
+      )}.`,
+    }),
+    []
+  )
 
 const columns = [
   labelColumn(),
@@ -48,10 +60,11 @@ const Instances = ({ labelProps, ...rest }) => {
   )
 
   const [sortBy, onSortByChange] = useAttribute("instancesSortBy")
+  const tooltipProps = useTooltipProps(chart)
 
   return (
     <DropdownTable
-      title="Instances"
+      title={uppercase(chart.intl("instance", 2))}
       resourceName="instance"
       data-track={chart.track("instances")}
       labelProps={labelProps}

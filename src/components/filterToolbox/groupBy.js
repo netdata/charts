@@ -14,11 +14,15 @@ import {
   maxColumn,
 } from "./columns"
 
-const defaultItems = [
-  { nm: "dimension", id: "dimension", key: "dimensions" },
-  { nm: "node", id: "node", key: "nodes" },
-  { nm: "instance", id: "instance", key: "instances" },
-]
+const useDefaultItems = chart =>
+  useMemo(
+    () => [
+      { nm: "dimension", id: "dimension", key: "dimensions" },
+      { nm: "node", id: "node", key: "nodes" },
+      { nm: chart.intl("instance"), id: "instance", key: "instances" },
+    ],
+    []
+  )
 
 const tooltipProps = {
   heading: "Group by",
@@ -42,6 +46,8 @@ const GroupBy = ({ labelProps, ...rest }) => {
   const groupByLabel = useAttributeValue("groupByLabel")
 
   let label = "everything"
+
+  const defaultItems = useDefaultItems(chart)
 
   const getOptions = useCallback(() => {
     const attributes = chart.getAttributes()

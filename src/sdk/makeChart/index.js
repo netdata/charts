@@ -288,6 +288,15 @@ export default ({
     node.destroy()
   }
 
+  node.intl = (key, count = 1) => {
+    if (!node) return key
+
+    const en = node.getAttribute("en")
+    if (!en?.[key]) return count === 1 ? key : `${key}s`
+
+    return count === 1 ? en[key]?.one || key : en[key]?.other || `${key}s`
+  }
+
   return {
     ...node,
     ...makeFilterControllers(node),

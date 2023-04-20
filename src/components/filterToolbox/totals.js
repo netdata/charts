@@ -3,6 +3,7 @@ import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
 import checkmark_s from "@netdata/netdata-ui/lib/components/icon/assets/checkmark_s.svg"
 import warning_triangle_hollow from "@netdata/netdata-ui/lib/components/icon/assets/warning_triangle_hollow.svg"
 import Icon from "@/components/icon"
+import { useChart } from "@/components/provider"
 
 const Totals = ({
   selected = [],
@@ -17,6 +18,9 @@ const Totals = ({
   const selectedCount = selected.length && selected.length < qr ? selected.length : qr
   const couldBeMore = fl > 0 || (teaser && qr < (selected.length || total))
   const possiblesCount = (teaser ? selected.length || total : selected.length) || sl
+
+  const chart = useChart()
+
   return (
     <TextMicro color="textLite">
       <TextMicro color={teaser ? "text" : "primary"}>{selectedCount}</TextMicro>
@@ -55,15 +59,7 @@ const Totals = ({
           out of <TextMicro>{total}</TextMicro> available
         </>
       )}
-      {resourceName
-        ? couldBeMore
-          ? possiblesCount === 1
-            ? ` ${resourceName}`
-            : ` ${resourceName}s`
-          : selectedCount === 1
-          ? ` ${resourceName}`
-          : ` ${resourceName}s`
-        : ""}
+      {resourceName ? chart.intl(resourceName, couldBeMore ? possiblesCount : selectedCount) : ""}
     </TextMicro>
   )
 }
