@@ -20,10 +20,10 @@ export const getStats = (
   obj,
   { id, key, childrenKey, children = [], childProps, props } = {}
 ) => {
-  const { getValue, getIsSelected, ...rest } = props
+  const { getValue, getLabel, getIsSelected, ...rest } = props
 
   return {
-    label: obj.nm || id || obj.id,
+    label: getLabel?.(obj) || obj.nm || id || obj.id,
     value: getValue?.(obj) || id || obj.id,
     "data-track": chart.track(`${key}-${id || obj.id || obj.nm}`),
     unique: children.length,

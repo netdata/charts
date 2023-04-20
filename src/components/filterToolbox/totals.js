@@ -51,7 +51,7 @@ const Totals = ({
       {couldBeMore && (
         <>
           of <TextMicro color={teaser ? "textLite" : "text"}>{possiblesCount}</TextMicro>
-          {!teaser ? " selected" : ""}
+          {!teaser ? " selected" : " "}
         </>
       )}
       {!teaser && qr !== total && (

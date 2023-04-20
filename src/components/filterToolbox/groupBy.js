@@ -19,7 +19,13 @@ const useDefaultItems = chart =>
     () => [
       { nm: "dimension", id: "dimension", key: "dimensions" },
       { nm: "node", id: "node", key: "nodes" },
-      { nm: chart.intl("instance"), id: "instance", key: "instances" },
+      {
+        nm: `${chart.intl("instance")} ${
+          chart.intl("instance") === "instance" ? "" : "(instance)"
+        }`,
+        id: "instance",
+        key: "instances",
+      },
     ],
     []
   )
@@ -77,6 +83,7 @@ const GroupBy = ({ labelProps, ...rest }) => {
       ...Object.keys(attributes.labels).map(id =>
         getStats(chart, attributes.labels[id], {
           key: "group-by",
+          getLabel: obj => `label: ${obj.nm || id || obj.id}`,
           childrenKey: "label",
           props: { isLabel: true, selected: groupByLabel.includes(id) },
           childProps: { unique: "-", disabled: "hidden" },
