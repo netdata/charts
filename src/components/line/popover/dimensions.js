@@ -1,6 +1,6 @@
 import React, { useMemo, memo } from "react"
 import styled from "styled-components"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import { Flex } from "@netdata/netdata-ui"
 import { useChart, useAttributeValue, useOnResize } from "@/components/provider"
 import { TextMicro, TextNano } from "@netdata/netdata-ui/lib/components/typography"
 import Units from "@/components/line/dimensions/units"
@@ -105,7 +105,9 @@ const Dimensions = ({ uiName }) => {
         {x && <Timestamp value={x} />}
         <UpdateEvery />
       </Flex>
-      {from > 0 && <TextNano color="textLite">↑{from} more values</TextNano>}
+      <Flex flex={false} height={3}>
+        {from > 0 && <TextNano color="textLite">↑{from} more values</TextNano>}
+      </Flex>
       <Grid gap={1} column>
         <GridHeader>
           <TextMicro strong>Dimension</TextMicro>
@@ -145,11 +147,13 @@ const Dimensions = ({ uiName }) => {
           />
         ))}
       </Grid>
-      {to < total && (
-        <TextNano color="textLite" margin={[2, 0, 0]}>
-          ↓{total - to} more values
-        </TextNano>
-      )}
+      <Flex flex={false} height={3}>
+        {to < total && (
+          <TextNano color="textLite" margin={[2, 0, 0]}>
+            ↓{total - to} more values
+          </TextNano>
+        )}
+      </Flex>
     </Container>
   )
 }
