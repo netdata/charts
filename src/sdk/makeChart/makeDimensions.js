@@ -180,11 +180,15 @@ export default (chart, sdk) => {
   chart.getDimensionName = id => {
     const viewDimensions = chart.getAttribute("viewDimensions")
 
+    if (!viewDimensions?.names) return ""
+
     return viewDimensions.names[dimensionsById[id]]
   }
 
   chart.getDimensionPriority = id => {
     const viewDimensions = chart.getAttribute("viewDimensions")
+
+    if (!viewDimensions?.priorities) return 0
 
     return viewDimensions.priorities[dimensionsById[id]]
   }
