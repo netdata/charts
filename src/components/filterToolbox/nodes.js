@@ -53,9 +53,8 @@ const Nodes = ({ labelProps, ...rest }) => {
           props: { selected },
           childProps: {
             isInstance: true,
-            getValue: instance => `${instance.nm || instance.id}@${id}`,
-            getIsSelected: instance =>
-              selectedInstances.includes(`${instance.nm || instance.id}@${id}`),
+            getValue: instance => `${instance.id}@${id}`,
+            getIsSelected: instance => selectedInstances.includes(`${instance.id}@${id}`),
           },
           children: Object.keys(instances).reduce(
             (h, instanceId) =>
