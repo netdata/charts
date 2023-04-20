@@ -25,7 +25,7 @@ export default (sdk, chart) => {
     const makeEasyPie = () => {
       easyPie = new EasyPie(element, {
         barColor: chart.selectDimensionColor(),
-        animate: { enabled: false },
+        animate: false,
         ...makeThemingOptions(),
         ...makeDimensionOptions(),
       })

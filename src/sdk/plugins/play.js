@@ -1,15 +1,21 @@
 export default sdk => {
-  let windowFocused = true
   let timeoutId
 
   const getNext = () => {
-    if (!sdk.getRoot().getAttribute("paused") && sdk.getRoot().getAttribute("after") < 0)
+    if (
+      (!sdk.getRoot().getAttribute("paused") ||
+        sdk.getRoot().getAttribute("autofetchOnWindowBlur")) &&
+      sdk.getRoot().getAttribute("after") < 0
+    )
       sdk.getRoot().setAttribute("fetchAt", Date.now())
 
     sdk
       .getNodes(
         (node, { loaded, active, autofetchOnWindowBlur }) =>
-          node.type === "chart" && loaded && active && (windowFocused || autofetchOnWindowBlur)
+          node.type === "chart" &&
+          loaded &&
+          active &&
+          (!sdk.getRoot().getAttribute("paused") || autofetchOnWindowBlur)
       )
       .forEach(node => node.trigger("render"))
 
@@ -47,9 +53,9 @@ export default sdk => {
   }
 
   const blur = () => {
-    windowFocused = false
+    sdk.getRoot().setAttribute("paused", false)
 
-    toggleRender(false)
+    toggleRender(sdk.getRoot().getAttribute("after") < 0 && !sdk.getRoot().getAttribute("paused"))
 
     sdk.getNodes({ autofetchOnWindowBlur: false }, { inherit: true }).forEach(node => {
       node.updateAttribute("paused", true)
@@ -58,9 +64,9 @@ export default sdk => {
   }
 
   const focus = () => {
-    windowFocused = true
+    sdk.getRoot().setAttribute("paused", true)
 
-    toggleRender(sdk.getRoot().getAttribute("after") < 0)
+    toggleRender(sdk.getRoot().getAttribute("after") < 0 && !sdk.getRoot().getAttribute("paused"))
 
     sdk.getNodes({ autofetchOnWindowBlur: false }, { inherit: true }).forEach(node => {
       node.updateAttribute("paused", false)
@@ -91,12 +97,12 @@ export default sdk => {
     .on("blurChart", chart => {
       if (chart.getAttribute("paused")) return
 
-      toggleRender(chart.getAttribute("after") < 0)
+      toggleRender(chart.getAttribute("after") < 0 && !chart.getAttribute("paused"))
 
       chart.getApplicableNodes({ syncHover: true }).forEach(node => autofetchIfActive(node))
     })
     .on("moveX", chart => {
-      toggleRender(chart.getAttribute("after") < 0)
+      toggleRender(chart.getAttribute("after") < 0 && !chart.getAttribute("paused"))
 
       chart.getApplicableNodes({ syncPanning: true }).forEach(node => autofetchIfActive(node))
     })

@@ -42,7 +42,9 @@ const getGroupBy = chart => {
 
   return [
     groupBy.length ? groupBy : ["dimension"],
-    groupByLabel.length
+    groupBy.length
+      ? []
+      : groupByLabel.length
       ? groupByLabel
       : groupByLabelByContext[contexts[0]]
       ? [groupByLabelByContext[contexts[0]]]
