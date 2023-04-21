@@ -38,6 +38,7 @@ export default (sdk, chart) => {
     gauge = new Gauge(element).setOptions(makeGaugeOptions())
 
     gauge.maxValue = 100
+    gauge.animationSpeed = Number.MAX_VALUE
     gauge.setMinValue(0)
 
     resizeObserver = makeResizeObserver(element.parentNode, () => {
@@ -49,22 +50,13 @@ export default (sdk, chart) => {
       element.style.width = `${width}px`
       gauge = gauge.configDisplayScale()
 
-      gauge.maxValue = 100
-      gauge.setMinValue(0)
-
       chartUI.trigger("resize")
     })
 
     const { loaded } = chart.getAttributes()
 
     listeners = unregister(
-      chart.onAttributeChange("hoverX", (hoverX, prevHoverX) => {
-        if (Boolean(hoverX) !== Boolean(prevHoverX)) {
-          const animationSpeed = hoverX ? Number.MAX_VALUE : 32
-          gauge.animationSpeed = animationSpeed
-        }
-        render()
-      }),
+      chart.onAttributeChange("hoverX", render),
       !loaded && chart.onceAttributeChange("loaded", render),
       chart.onAttributeChange("theme", () => {
         const { color, strokeColor } = makeThemingOptions()
@@ -90,14 +82,9 @@ export default (sdk, chart) => {
   const render = () => {
     chartUI.render()
 
-    const { hoverX, loaded, after } = chart.getAttributes()
+    const { hoverX, loaded } = chart.getAttributes()
 
     if (!gauge || !loaded) return
-
-    if (!hoverX && after > 0) {
-      gauge.set(0)
-      return chartUI.trigger("rendered")
-    }
 
     const { data } = chart.getPayload()
 

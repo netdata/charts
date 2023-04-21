@@ -87,14 +87,9 @@ export default (sdk, chart) => {
   const render = () => {
     chartUI.render()
 
-    const { hoverX, loaded, after } = chart.getAttributes()
+    const { hoverX, loaded } = chart.getAttributes()
 
     if (!easyPie || !loaded) return
-
-    if (!hoverX && after > 0) {
-      easyPie.update(0)
-      return chartUI.trigger("rendered")
-    }
 
     const { data } = chart.getPayload()
 

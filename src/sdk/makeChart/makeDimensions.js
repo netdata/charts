@@ -161,7 +161,7 @@ export default (chart, sdk) => {
     return contextScope.join("|") || id
   }
 
-  chart.selectDimensionColor = id => {
+  chart.selectDimensionColor = (id = "selected") => {
     const key = getMemKey()
     const colorsAttr = chart.getAttribute("colors")
     const sparkline = chart.getAttribute("sparkline")

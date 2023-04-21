@@ -31,11 +31,9 @@ export default (sdk, chart) => {
   const render = () => {
     chartUI.render()
 
-    const { hoverX, loaded, after } = chart.getAttributes()
+    const { hoverX, loaded } = chart.getAttributes()
 
     if (!loaded) return
-
-    if (!hoverX && after > 0) return chartUI.trigger("rendered")
 
     const { data } = chart.getPayload()
 
@@ -43,10 +41,6 @@ export default (sdk, chart) => {
 
     const rowData = data[row]
     if (!Array.isArray(rowData)) return
-
-    const [, ...rows] = rowData
-
-    const value = rows.reduce((acc, v) => acc + v, 0)
 
     chartUI.render()
     const [min, max] = getMinMax()
