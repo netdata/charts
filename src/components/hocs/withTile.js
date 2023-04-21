@@ -28,8 +28,8 @@ const ChartHeadWrapper = styled(Flex).attrs(({ size, ...rest }) => {
   }
 })`
   max-height: 190px;
-  max-width: ${props => props.size * 4 * props.flexSize}px;
-  font-size: ${props => props.fontSize}px;
+  max-width: ${props => props.size * 4 * props.flexSize * 2}px;
+  font-size: ${props => (props.fontSize > 12 ? 12 : props.fontSize)}px;
   flex: ${props => props.flexSize};
 `
 
