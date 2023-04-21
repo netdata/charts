@@ -29,6 +29,8 @@ export default ({
 
   let fetchTimeoutId = null
 
+  node.getRoot = () => sdk.getRoot()
+
   node.backoffMs = null
   node.backoff = ms => {
     if (!node) return
@@ -78,9 +80,11 @@ export default ({
   node.startAutofetch = () => {
     if (!node) return
 
-    const { fetchStartedAt, loading, autofetch, active, paused } = node.getAttributes()
+    const { fetchStartedAt, loading, autofetch, active } = node.getAttributes()
 
-    if (!autofetch || loading || !active || paused) return
+    if (!autofetch || loading || !active) return
+
+    if (node.getRoot().getAttribute("paused")) return
 
     if (fetchStartedAt === 0) {
       node.trigger("fetch")
@@ -223,6 +227,8 @@ export default ({
   })
 
   node.onAttributeChange("autofetch", autofetch => {
+    if (!node) return
+
     if (autofetch) {
       node.startAutofetch()
     } else {

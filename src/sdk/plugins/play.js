@@ -2,20 +2,13 @@ export default sdk => {
   let timeoutId
 
   const getNext = () => {
-    if (
-      (!sdk.getRoot().getAttribute("paused") ||
-        sdk.getRoot().getAttribute("autofetchOnWindowBlur")) &&
-      sdk.getRoot().getAttribute("after") < 0
-    )
+    if (!sdk.getRoot().getAttribute("paused") && sdk.getRoot().getAttribute("after") < 0)
       sdk.getRoot().setAttribute("fetchAt", Date.now())
 
     sdk
       .getNodes(
-        (node, { loaded, active, autofetchOnWindowBlur }) =>
-          node.type === "chart" &&
-          loaded &&
-          active &&
-          (!sdk.getRoot().getAttribute("paused") || autofetchOnWindowBlur)
+        (node, { loaded, active }) =>
+          node.type === "chart" && loaded && active && !sdk.getRoot().getAttribute("paused")
       )
       .forEach(node => node.trigger("render"))
 
@@ -29,9 +22,9 @@ export default sdk => {
   }
 
   const autofetchIfActive = (chart, force = false) => {
-    const { after, hovering, active, paused, loaded } = chart.getAttributes()
+    const { after, hovering, active, loaded } = chart.getAttributes()
 
-    let autofetch = after < 0 && !hovering && !paused
+    let autofetch = after < 0 && !hovering && !chart.getRoot().getAttribute("paused")
 
     if (chart.type === "container") return chart.updateAttribute("autofetch", autofetch)
 
@@ -53,23 +46,17 @@ export default sdk => {
   }
 
   const blur = () => {
-    sdk.getRoot().setAttribute("paused", true)
+    sdk.getRoot().updateAttribute("paused", !sdk.getRoot().getAttribute("autofetchOnWindowBlur"))
     toggleRender(sdk.getRoot().getAttribute("after") < 0 && !sdk.getRoot().getAttribute("paused"))
 
-    sdk.getNodes().forEach(node => {
-      node.updateAttribute("paused", true)
-      autofetchIfActive(node)
-    })
+    sdk.getNodes().forEach(node => autofetchIfActive(node))
   }
 
   const focus = () => {
-    sdk.getRoot().setAttribute("paused", false)
+    sdk.getRoot().updateAttribute("paused", false)
     toggleRender(sdk.getRoot().getAttribute("after") < 0 && !sdk.getRoot().getAttribute("paused"))
 
-    sdk.getNodes().forEach(node => {
-      node.updateAttribute("paused", false)
-      autofetchIfActive(node)
-    })
+    sdk.getNodes().forEach(node => autofetchIfActive(node))
   }
 
   window.addEventListener("blur", blur)
@@ -80,7 +67,7 @@ export default sdk => {
       toggleRender(
         chart.getAttribute("after") < 0 &&
           !chart.getAttribute("hovering") &&
-          !chart.getAttribute("paused")
+          !sdk.getRoot().getAttribute("paused")
       )
 
       autofetchIfActive(chart, !chart.getAttribute("loaded"))
@@ -88,22 +75,26 @@ export default sdk => {
     .on("hoverChart", chart => {
       toggleRender(false)
 
-      if (chart.getAttribute("paused")) return
+      if (sdk.getRoot().getAttribute("paused")) return
 
       chart.getApplicableNodes({ syncHover: true }).forEach(node => autofetchIfActive(node))
     })
     .on("blurChart", chart => {
       if (chart.getAttribute("paused")) return
 
-      toggleRender(chart.getAttribute("after") < 0 && !chart.getAttribute("paused"))
+      toggleRender(chart.getAttribute("after") < 0 && !sdk.getRoot().getAttribute("paused"))
 
       chart.getApplicableNodes({ syncHover: true }).forEach(node => autofetchIfActive(node))
     })
     .on("moveX", chart => {
-      toggleRender(chart.getAttribute("after") < 0 && !chart.getAttribute("paused"))
+      toggleRender(chart.getAttribute("after") < 0 && !sdk.getRoot().getAttribute("paused"))
 
       chart.getApplicableNodes({ syncPanning: true }).forEach(node => autofetchIfActive(node))
     })
+
+  sdk.getRoot().onAttributeChange("paused", () => {
+    sdk.getNodes().forEach(node => autofetchIfActive(node))
+  })
 
   return () => {
     offs()

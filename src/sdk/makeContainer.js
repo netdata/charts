@@ -106,6 +106,7 @@ export default ({ sdk, parent, attributes } = {}) => {
     getNodes,
     getChildren,
     getNextColor,
+    getRoot: () => sdk.getRoot(),
   }
 
   return instance
