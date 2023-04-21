@@ -270,9 +270,15 @@ export default ({
     return subChart
   }
 
-  node.getThemeIndex = () => themeIndex[node.getAttribute("theme")] || themeIndex.default
+  node.getThemeIndex = () => {
+    if (!node) return
+
+    return themeIndex[node.getAttribute("theme")] || themeIndex.default
+  }
 
   node.getThemeAttribute = name => {
+    if (!node) return
+
     const attributes = node.getAttributes()
     const index = node.getThemeIndex()
     return attributes[name]?.[index] || name
