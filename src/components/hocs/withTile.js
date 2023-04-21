@@ -23,22 +23,24 @@ const ChartHeadWrapper = styled(Flex).attrs(({ size, ...rest }) => {
     height: size,
     margin: [0, gutter, gutter, 0],
     fontSize: parseInt(size / 3, 10),
+    width: size,
     ...rest,
   }
 })`
   max-height: 190px;
-  max-width: ${props => props.size * 4 * 2}px;
-  font-size: ${props => (props.fontSize < 11 ? 11 : props.fontSize > 12 ? 12 : props.fontSize)}px;
+  max-width: ${props => props.size * 4 * props.flexSize}px;
+  font-size: ${props => props.fontSize}px;
+  flex: ${props => props.flexSize};
 `
 
 export const Title = () => {
   const title = useTitle()
   return (
-    <Flex alignItems="center" justifyContent="center" position="relative">
-      <Box position="absolute" left={0}>
+    <Flex alignItems="center" justifyContent="center" position="relative" padding={[0, 2.5]}>
+      <Box position="absolute" left="-4px" top="-2px">
         <Status plain />
       </Box>
-      <Label fontSize="1em" textAlign="center" color="sectionDescription" padding={[0, 2]}>
+      <Label fontSize="1em" textAlign="center" color="sectionDescription">
         {title}
       </Label>
     </Flex>
@@ -54,7 +56,7 @@ export const HeadWrapper = ({ children, uiName, ...rest }) => {
   size = size < 20 ? 20 : size > 50 ? 50 : size
 
   return (
-    <ChartHeadWrapper size={size} flex={flex} {...rest}>
+    <ChartHeadWrapper size={size} flexSize={flex} {...rest}>
       <Title />
       {children}
     </ChartHeadWrapper>

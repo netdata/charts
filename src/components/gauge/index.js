@@ -1,4 +1,4 @@
-import React, { forwardRef, useState } from "react"
+import React, { forwardRef } from "react"
 import styled, { keyframes } from "styled-components"
 import { Flex, Text } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
@@ -6,7 +6,6 @@ import {
   useChart,
   useUnitSign,
   useAttributeValue,
-  useImmediateListener,
   useOnResize,
   useLatestConvertedValue,
 } from "@/components/provider"
@@ -45,20 +44,6 @@ export const Unit = () => {
   )
 }
 
-const useEmptyValue = uiName => {
-  const chart = useChart()
-
-  const getValue = () => {
-    const { hoverX, after } = chart.getAttributes()
-    return !hoverX && after > 0
-  }
-  const [value, setValue] = useState(getValue)
-
-  useImmediateListener(() => chart.getUI(uiName).on("rendered", () => setValue(getValue())), [])
-
-  return value
-}
-
 export const Bound = ({ empty, index, uiName, ...rest }) => {
   const chart = useChart()
   const minMax = chart.getUI(uiName).getMinMax()
@@ -76,16 +61,12 @@ export const BoundsContainer = styled(Flex).attrs({
   flex: true,
 })``
 
-export const Bounds = ({ uiName }) => {
-  const empty = useEmptyValue(uiName)
-
-  return (
-    <BoundsContainer>
-      <Bound empty={empty} index={0} uiName={uiName} />
-      <Bound empty={empty} index={1} uiName={uiName} />
-    </BoundsContainer>
-  )
-}
+export const Bounds = ({ uiName }) => (
+  <BoundsContainer>
+    <Bound index={0} uiName={uiName} />
+    <Bound index={1} uiName={uiName} />
+  </BoundsContainer>
+)
 
 export const StatsContainer = styled(Flex).attrs({
   position: "absolute",

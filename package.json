@@ -24,7 +24,7 @@
     "start": "start-storybook -p 6006",
     "deploy-storybook": "storybook-to-ghpages",
     "cp-cloud": "cp -R ./dist ../cloud-frontend/node_modules/@netdata/charts/",
-    "to-cloud": "yarn build && yarn cp-cloud"
+    "to-cloud": "yarn build:cjs && yarn cp-cloud"
   },
   "keywords": [
     "netdata",
