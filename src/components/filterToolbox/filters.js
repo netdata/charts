@@ -19,8 +19,8 @@ const FilterToolbox = props => (
     <Aggregate />
     <Nodes />
     <Instances />
-    <Labels />
     <Dimensions />
+    <Labels />
     <TimeAggregation />
     <Reset />
   </Container>

@@ -75,7 +75,9 @@ export default {
   secondsAsTime: true,
   timezone: undefined,
   syncTimezone: true,
-  dimensionsSort: "default",
+
+  dimensionsSort: "default", // default | nameAsc | nameDesc | valueAsc | valueDesc
+
   autofetch: false,
   autofetchOnWindowBlur: false,
   paused: false,
@@ -188,6 +190,8 @@ export default {
 
   renderedAt: null,
   fetchAt: null,
+
+  dimensionsOnNonDimensionGrouping: null,
 
   en: {
     instance: {

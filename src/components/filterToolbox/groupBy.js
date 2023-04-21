@@ -17,7 +17,6 @@ import {
 const useDefaultItems = chart =>
   useMemo(
     () => [
-      { nm: "dimension", id: "dimension", key: "dimensions" },
       { nm: "node", id: "node", key: "nodes" },
       {
         nm: `${chart.intl("instance")} ${
@@ -26,6 +25,7 @@ const useDefaultItems = chart =>
         id: "instance",
         key: "instances",
       },
+      { nm: "dimension", id: "dimension", key: "dimensions" },
     ],
     []
   )
