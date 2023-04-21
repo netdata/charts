@@ -17,13 +17,23 @@ export default {
 
   pristineValueRange: undefined,
   valueRange: null,
-  getValueRange: ({ min = null, max = null, groupBy, valueRange, aggrMethod }) => {
-    const minMax = min === max ? [0, max * 2] : [min || null, null]
-    return groupBy.length === 1 && groupBy[0] === "dimension"
-      ? valueRange || null
-      : aggrMethod === "sum"
-      ? minMax
-      : valueRange || minMax
+  getValueRange: ({ min = null, max = null, valueRange }) => {
+    if (!valueRange) {
+      if (min === max) return [min - 1, max + 1]
+
+      return [min, max]
+    }
+
+    const [rangeMin, rangeMax] = valueRange
+
+    valueRange = [
+      rangeMin === null || rangeMin > min ? min : rangeMin,
+      rangeMax === null || rangeMax < max ? max : rangeMax,
+    ]
+
+    if (valueRange[0] === valueRange[1]) return [valueRange[0] - 1, valueRange[1] + 1]
+
+    return valueRange
   },
   loaded: false,
   loading: false,

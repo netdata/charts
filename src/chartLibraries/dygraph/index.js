@@ -180,9 +180,7 @@ export default (sdk, chart) => {
               : attributes.getValueRange({
                   min: attributes.min,
                   max: attributes.max,
-                  groupBy: attributes.groupBy,
                   valueRange,
-                  aggrMethod: attributes.aggregationMethod,
                 }),
         })
       }),
@@ -354,7 +352,6 @@ export default (sdk, chart) => {
       valueRange,
       outOfLimits,
       getValueRange,
-      aggregationMethod,
       chartType,
       selectedLegendDimensions,
       min,
@@ -363,8 +360,6 @@ export default (sdk, chart) => {
     const { data, labels } = chart.getPayload()
     const dateWindow = chart.getDateWindow()
     const isEmpty = outOfLimits || data.length === 0
-
-    const groupBy = chart.getAttribute("groupBy")
 
     return {
       file: isEmpty ? [[0]] : normalizeData(data),
@@ -376,9 +371,7 @@ export default (sdk, chart) => {
           : getValueRange({
               min,
               max,
-              groupBy,
               valueRange,
-              aggrMethod: aggregationMethod,
             }),
     }
   }

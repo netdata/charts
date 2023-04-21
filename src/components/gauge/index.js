@@ -59,10 +59,9 @@ const useEmptyValue = uiName => {
   return value
 }
 
-export const Bound = ({ bound, empty, index, uiName, ...rest }) => {
+export const Bound = ({ empty, index, uiName, ...rest }) => {
   const chart = useChart()
-  const attrValue = useAttributeValue(bound)
-  const minMax = chart.getUI(uiName).getMinMax(attrValue)
+  const minMax = chart.getUI(uiName).getMinMax()
 
   return (
     <Label color="border" fontSize="1.3em" {...rest}>
@@ -82,8 +81,8 @@ export const Bounds = ({ uiName }) => {
 
   return (
     <BoundsContainer>
-      <Bound bound="min" empty={empty} index={0} uiName={uiName} />
-      <Bound bound="max" empty={empty} index={1} uiName={uiName} />
+      <Bound empty={empty} index={0} uiName={uiName} />
+      <Bound empty={empty} index={1} uiName={uiName} />
     </BoundsContainer>
   )
 }

@@ -82,19 +82,9 @@ export default (sdk, chart) => {
     strokeColor: chartUI.chart.getThemeAttribute("themeGaugeStroke"),
   })
 
-  const getMinMax = (value = 0) => {
-    let { min, max } = chart.getAttributes()
-
-    const units = chart.getUnitSign()
-
-    if (/%/.test(units)) {
-      min = 0
-      max = 100
-    }
-
-    const minMax = [Math.min(min, value), Math.max(max, value)].sort((a, b) => a - b)
-
-    return minMax[0] === minMax[1] ? [minMax[0], minMax[1] + 1] : minMax
+  const getMinMax = () => {
+    let { getValueRange, min, max, valueRange } = chart.getAttributes()
+    return getValueRange({ min, max, valueRange })
   }
 
   const render = () => {
@@ -122,7 +112,7 @@ export default (sdk, chart) => {
 
     const value = rows.reduce((acc, v) => acc + v, 0)
 
-    let [min, max] = getMinMax(value)
+    let [min, max] = getMinMax()
 
     if (min !== prevMin || max !== prevMax) {
       chartUI.sdk.trigger("yAxisChange", chart, min, max)

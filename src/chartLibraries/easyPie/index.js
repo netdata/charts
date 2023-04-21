@@ -63,8 +63,8 @@ export default (sdk, chart) => {
   }
 
   const makeThemingOptions = () => ({
-    trackColor: chartUI.chart.getThemeAttribute("themeEasyPieTrackColor"),
-    scaleColor: chartUI.chart.getThemeAttribute("themeEasyPieScaleColor"),
+    trackColor: chart.getThemeAttribute("themeEasyPieTrackColor"),
+    scaleColor: chart.getThemeAttribute("themeEasyPieScaleColor"),
   })
 
   const makeDimensionOptions = () => {
@@ -79,22 +79,9 @@ export default (sdk, chart) => {
     }
   }
 
-  const getMinMax = value => {
-    let { min, max } = chart.getAttributes()
-    if (min < 0 && max === 0) {
-      max = -min
-      min = 0
-    }
-
-    const units = chart.getUnitSign()
-    if (/%/.test(units)) {
-      min = 0
-      max = 100
-    }
-
-    const minMax = [Math.min(min, value), Math.max(max, value)].sort((a, b) => a - b)
-
-    return minMax[0] === minMax[1] ? [minMax[0], minMax[1] + 1] : minMax
+  const getMinMax = () => {
+    let { getValueRange, min, max, valueRange } = chart.getAttributes()
+    return getValueRange({ min, max, valueRange })
   }
 
   const render = () => {
@@ -120,7 +107,7 @@ export default (sdk, chart) => {
 
     const [, ...rows] = rowData
     const value = rows.reduce((acc, v) => acc + v, 0)
-    let [min, max] = getMinMax(value)
+    let [min, max] = getMinMax()
 
     chartUI.render()
 
