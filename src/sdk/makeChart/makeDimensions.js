@@ -167,9 +167,13 @@ export default (chart, sdk) => {
     const sparkline = chart.getAttribute("sparkline")
     if (sparkline && colorsAttr && colorsAttr.length === 1) return colorsAttr[0]
 
-    id = !id || id === "selected" ? chart.getAttribute("selectedDimensions")[0] : id
+    const isSelected = id === "selected"
+    id = !id || isSelected ? chart.getAttribute("selectedDimensions")[0] : id
 
-    const color = sdk.getRoot().getNextColor(getNextColor, key, id)
+    const color =
+      isSelected && colorsAttr?.length
+        ? colorsAttr[0]
+        : sdk.getRoot().getNextColor(getNextColor, key, id)
 
     if (typeof color === "string") return color
 

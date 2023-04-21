@@ -10,7 +10,7 @@ const Label = styled(Text)`
   font-size: ${({ fontSize }) => fontSize};
 `
 
-const ChartHeadWrapper = styled(Flex).attrs(({ size, chartLibrary, ...rest }) => {
+const ChartHeadWrapper = styled(Flex).attrs(({ size, ...rest }) => {
   const gutter = parseInt(size / 20, 10)
 
   return {
@@ -22,9 +22,7 @@ const ChartHeadWrapper = styled(Flex).attrs(({ size, chartLibrary, ...rest }) =>
     round: true,
     height: size,
     margin: [0, gutter, gutter, 0],
-    flex: chartLibrary === "gauge" ? 2 : 1,
     fontSize: parseInt(size / 3, 10),
-    width: size,
     ...rest,
   }
 })`
@@ -40,7 +38,7 @@ export const Title = () => {
       <Box position="absolute" left={0}>
         <Status plain />
       </Box>
-      <Label fontSize="1em" textAlign="center" color="sectionDescription">
+      <Label fontSize="1em" textAlign="center" color="sectionDescription" padding={[0, 2]}>
         {title}
       </Label>
     </Flex>
@@ -48,7 +46,7 @@ export const Title = () => {
 }
 
 export const HeadWrapper = ({ children, uiName, ...rest }) => {
-  const chartLibrary = useAttributeValue("chartLibrary")
+  const flex = useAttributeValue("flex")
   const { parentWidth } = useOnResize()
 
   const { width: windowWidth } = useWindowSize(uiName)
@@ -56,7 +54,7 @@ export const HeadWrapper = ({ children, uiName, ...rest }) => {
   size = size < 20 ? 20 : size > 50 ? 50 : size
 
   return (
-    <ChartHeadWrapper size={size} {...rest} chartLibrary={chartLibrary}>
+    <ChartHeadWrapper size={size} flex={flex} {...rest}>
       <Title />
       {children}
     </ChartHeadWrapper>

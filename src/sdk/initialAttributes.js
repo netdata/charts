@@ -158,6 +158,7 @@ export default {
   themeGroupBoxesMin: ["#E4F1FF", "#000C18"],
   themeGroupBoxesMax: ["#0075F2", "#0075F2"],
 
+  flex: 1,
   legendScroll: 0,
 
   initializedFilters: false,
