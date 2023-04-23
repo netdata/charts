@@ -1,8 +1,6 @@
 import makeListeners from "@/helpers/makeListeners"
 import makeExecuteLatest from "@/helpers/makeExecuteLatest"
 
-const getPixelsPerPoint = () => 3
-
 export default (sdk, chart) => {
   const listeners = makeListeners()
   let element = null
@@ -46,6 +44,5 @@ export default (sdk, chart) => {
     getElement,
     getChartWidth,
     getChartHeight,
-    getPixelsPerPoint,
   }
 }

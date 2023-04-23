@@ -35,12 +35,18 @@ const getDefaultOptionsByLibrary = {
   default: () => {},
 }
 
+const pointMultiplierByChartType = {
+  multiBar: 0.1,
+  stackedBar: 0.1,
+  default: 2,
+}
+
 export const getChartPayload = chart => {
   const ui = chart.getUI()
 
   const width = chart.getAttribute("width") || ui.getChartWidth()
 
-  const pixelsPerPoint = ui.getPixelsPerPoint()
+  const pixelsPerPoint = chart.getPixelsPerPoint()
   const {
     after,
     before,
@@ -50,10 +56,12 @@ export const getChartPayload = chart => {
     renderedAt,
     hovering,
     fetchStartedAt,
+    chartType,
     ...restAttributes
   } = chart.getAttributes()
 
-  const pointsMultiplier = after < 0 ? 1.5 : 2
+  const pointsMultiplier =
+    pointMultiplierByChartType[chartType] || pointMultiplierByChartType.default
 
   const fetchOn =
     hovering && renderedAt ? Math.ceil(renderedAt / 1000) : Math.ceil(fetchStartedAt / 1000)

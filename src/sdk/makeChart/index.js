@@ -309,6 +309,8 @@ export default ({
     return count === 1 ? en[key]?.one || key : en[key]?.other || `${key}s`
   }
 
+  node.getPixelsPerPoint = () => 3
+
   return {
     ...node,
     ...makeFilterControllers(node),

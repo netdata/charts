@@ -203,7 +203,7 @@ export default (sdk, chart) => {
   const makePlotterByChartType = ({ sparkline }) => ({
     line: sparkline ? null : makeLinePlotter(chartUI),
     stackedBar: makeStackedBarPlotter(chartUI),
-    multibar: makeMultiColumnBarPlotter(chartUI),
+    multiBar: makeMultiColumnBarPlotter(chartUI),
     heatmap: makeHeatmapPlotter(chartUI),
     default: null,
   })
