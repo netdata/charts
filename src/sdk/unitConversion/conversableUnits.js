@@ -86,7 +86,42 @@ export default {
       convert: value => seconds2time(value, "DAYS"),
     },
   },
-
+  ms: {
+    microseconds: {
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max < 1,
+      convert: twoFixed(1_000),
+    },
+    milliseconds: {
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 1 && max < 1_000,
+      convert: twoFixed(),
+    },
+    seconds: {
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 1_000 && max < 60_000,
+      convert: twoFixed(0.001),
+    },
+    "duration (minutes, seconds)": {
+      check: (chart, max) =>
+        chart.getAttribute("secondsAsTime") && max >= 60_000 && max < 3_600_000,
+      convert: value => seconds2time(value / 1_000, "MINUTES"),
+    },
+    "duration (hours, minutes)": {
+      check: (chart, max) =>
+        chart.getAttribute("secondsAsTime") && max >= 3_600_000 && max < 86_400_000,
+      convert: value => seconds2time(value / 1_000, "HOURS"),
+    },
+    "duration (days, hours)": {
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400_000,
+      convert: value => seconds2time(value / 1_000, "DAYS"),
+    },
+    "duration (months, days)": {
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400_000 * 30,
+      convert: value => seconds2time(value, "DAYS"),
+    },
+    "duration (years, months)": {
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400_000 * 30 * 12,
+      convert: value => seconds2time(value, "DAYS"),
+    },
+  },
   seconds: {
     microseconds: {
       check: (chart, max) => chart.getAttribute("secondsAsTime") && max < 0.001,
@@ -125,7 +160,6 @@ export default {
       convert: value => seconds2time(value, "DAYS", "SECONDS"),
     },
   },
-  // todo as seconds and milliseconds
   nanoseconds: {
     nanoseconds: {
       check: (chart, max) => chart.getAttribute("secondsAsTime") && max < 1_000,
