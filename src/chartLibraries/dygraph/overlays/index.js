@@ -21,5 +21,5 @@ export default chartUI => {
     Object.keys(overlays).forEach(drawOverlay)
   }
 
-  return { drawOverlays }
+  return drawOverlays
 }
