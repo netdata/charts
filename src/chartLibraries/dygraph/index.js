@@ -188,6 +188,8 @@ export default (sdk, chart) => {
                   max: attributes.max,
                   valueRange,
                   stacked: stackedGraphs[attributes.chartType],
+                  onDimensions:
+                    attributes.groupBy.length === 1 && attributes.groupBy[0] === "dimension",
                 }),
         })
       }),
@@ -358,6 +360,7 @@ export default (sdk, chart) => {
       outOfLimits,
       getValueRange,
       chartType,
+      groupBy,
       selectedLegendDimensions,
       min,
       max,
@@ -378,6 +381,7 @@ export default (sdk, chart) => {
               max,
               valueRange,
               stacked: stackedGraphs[chartType],
+              onDimensions: groupBy.length === 1 && groupBy[0] === "dimension",
             }),
     }
   }

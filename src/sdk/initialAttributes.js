@@ -17,7 +17,7 @@ export default {
 
   pristineValueRange: undefined,
   valueRange: null,
-  getValueRange: ({ min = null, max = null, valueRange, stacked = false }) => {
+  getValueRange: ({ min = null, max = null, valueRange, stacked = false, onDimensions = true }) => {
     if (!valueRange) {
       if (stacked) return [min, null]
       if (min === max) return [min - 1, max + 1]
@@ -29,7 +29,7 @@ export default {
 
     valueRange = [
       rangeMin === null || rangeMin > min ? min : rangeMin,
-      stacked ? null : rangeMax === null || rangeMax < max ? max : rangeMax,
+      onDimensions ? (rangeMax === null || rangeMax < max ? max : rangeMax) : null,
     ]
 
     if (valueRange[0] === valueRange[1]) return [valueRange[0] - 1, valueRange[1] + 1]
