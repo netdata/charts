@@ -16,11 +16,6 @@ import makeHoverX from "./hoverX"
 import makeOverlays from "./overlays"
 import crosshair from "./crosshair"
 
-const stackedGraphs = {
-  stacked: true,
-  stackedBar: true,
-}
-
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
   let dygraph = null
@@ -187,7 +182,7 @@ export default (sdk, chart) => {
                   min: attributes.min,
                   max: attributes.max,
                   valueRange,
-                  stacked: stackedGraphs[attributes.chartType],
+                  dygraph: true,
                   onDimensions:
                     attributes.groupBy.length === 1 && attributes.groupBy[0] === "dimension",
                 }),
@@ -381,7 +376,7 @@ export default (sdk, chart) => {
               min,
               max,
               valueRange,
-              stacked: stackedGraphs[chartType],
+              dygraph: true,
               onDimensions: groupBy.length === 1 && groupBy[0] === "dimension",
             }),
     }

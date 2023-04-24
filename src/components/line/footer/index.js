@@ -17,8 +17,19 @@ export const Container = props => (
   />
 )
 
-const Footer = () => {
+const ResizeHandler = () => {
   const enabledHeightResize = useAttributeValue("enabledHeightResize")
+
+  if (!enabledHeightResize) return null
+
+  return (
+    <Box position="absolute" right={0} bottom="-4px">
+      <Resize />
+    </Box>
+  )
+}
+
+const Footer = () => {
   const showingInfo = useAttributeValue("showingInfo")
   const expanded = useAttributeValue("expanded")
   const expandable = useAttributeValue("expandable")
@@ -36,7 +47,7 @@ const Footer = () => {
           {expanded && <Drawer />}
         </>
       )}
-      {expandable && (
+      {expandable ? (
         <Flex
           flex
           position="relative"
@@ -45,12 +56,10 @@ const Footer = () => {
           border={{ side: "top", color: "borderSecondary" }}
         >
           <Expander />
-          {enabledHeightResize && (
-            <Box position="absolute" right={0} bottom="-4px">
-              <Resize />
-            </Box>
-          )}
+          <ResizeHandler />
         </Flex>
+      ) : (
+        <ResizeHandler />
       )}
     </Container>
   )

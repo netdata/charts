@@ -37,6 +37,7 @@ export const labelColumn = fallbackExpandKey => ({
             onClick={!row.original.disabled ? row.getToggleSelectedHandler() : undefined}
             cursor={row.original.disabled ? "default" : "pointer"}
             whiteSpace="normal"
+            wordBreak="break-word"
           >
             {getValue()}
           </TextSmall>
