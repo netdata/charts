@@ -1,10 +1,7 @@
 import types from "./types"
 
 export default chartUI => {
-  const render = () => {
-    const dygraph = chartUI.getDygraph()
-    if (dygraph) dygraph.renderGraph_(false)
-  }
+  let off = null
 
   const drawOverlay = id => {
     const overlays = chartUI.chart.getAttribute("overlays")
@@ -16,10 +13,31 @@ export default chartUI => {
 
   const drawOverlays = () => {
     const overlays = chartUI.chart.getAttribute("overlays")
-    render()
-
     Object.keys(overlays).forEach(drawOverlay)
   }
 
-  return drawOverlays
+  const render = () => {
+    const dygraph = chartUI.getDygraph()
+    if (dygraph) dygraph.renderGraph_(false)
+  }
+
+  const destroy = () => {
+    if (!off) return
+    render()
+    off()
+    off = null
+  }
+
+  const toggle = () => {
+    const overlays = chartUI.chart.getAttribute("overlays")
+    if (!Object.keys(overlays).length) return destroy()
+
+    if (!off) {
+      off = chartUI.on("underlayCallback", drawOverlays)
+    } else {
+      render()
+    }
+  }
+
+  return { toggle, destroy }
 }

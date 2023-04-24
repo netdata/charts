@@ -9,9 +9,9 @@ export default (chartUI, id) => {
   const firstEntry = chartUI.chart.getFirstEntry()
   const { outOfLimits, error } = chartUI.chart.getAttributes()
 
-  if (!outOfLimits && (!firstEntry || firstEntry > beforeSecs / 1000) && !error) return
+  if (!outOfLimits && (!firstEntry || firstEntry > beforeSecs) && !error) return
 
-  const range = outOfLimits || error ? [before / 1000, before / 1000] : [firstEntry, firstEntry]
+  const range = outOfLimits || error ? [before, before] : [firstEntry, firstEntry]
 
   const area = getArea(dygraph, range)
 

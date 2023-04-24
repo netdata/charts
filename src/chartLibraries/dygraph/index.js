@@ -29,6 +29,7 @@ export default (sdk, chart) => {
   let hoverX = null
   let resizeObserver = null
   let executeLatest
+  let overlays = null
 
   const makeNormalizeByChartType = {
     default: d => d,
@@ -127,7 +128,7 @@ export default (sdk, chart) => {
 
     hoverX.toggle(attributes.enabledHover)
     navigation.toggle(attributes.enabledNavigation, attributes.navigation)
-    makeOverlays(chartUI).drawOverlays()
+
     const latestRender = executeLatest.add(render)
 
     listeners = [
@@ -150,7 +151,7 @@ export default (sdk, chart) => {
       chart.onAttributeChange("enabledHover", hoverX.toggle),
       chart.onAttributeChange("enabledNavigation", navigation.toggle),
       chart.onAttributeChange("navigation", navigation.set),
-      chart.onAttributeChange("overlays", makeOverlays(chartUI).drawOverlays),
+      chart.onAttributeChange("overlays", overlays.toggle),
       chart.onAttributeChange("theme", (nextTheme, prevTheme) => {
         element.classList.remove(prevTheme)
         element.classList.add(nextTheme)
@@ -195,9 +196,10 @@ export default (sdk, chart) => {
       chart.onAttributeChange("timezone", () => dygraph.updateOptions({})),
     ].filter(Boolean)
 
+    overlays.toggle()
+
     chartUI.trigger("resize")
     chartUI.render()
-    chartUI.trigger("rendered")
   }
 
   const makePlotterByChartType = ({ sparkline }) => ({
@@ -432,6 +434,7 @@ export default (sdk, chart) => {
     navigation.destroy()
     dygraph.destroy()
     dygraph = null
+    overlays.destroy()
   }
 
   const getDygraph = () => dygraph
@@ -451,6 +454,8 @@ export default (sdk, chart) => {
       ylabel: chart.getAttribute("hasYlabel") && chart.getUnitSign({ long: true }),
       digitsAfterDecimal: chart.getAttribute("unitsConversionFractionDigits"),
     })
+
+    chartUI.trigger("rendered")
   }
 
   const getPreceded = () => {
@@ -484,6 +489,7 @@ export default (sdk, chart) => {
 
   navigation = makeNavigation(instance)
   hoverX = makeHoverX(instance)
+  overlays = makeOverlays(instance)
 
   return instance
 }
