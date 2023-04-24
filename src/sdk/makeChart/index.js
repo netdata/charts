@@ -1,7 +1,7 @@
 import makeKeyboardListener from "@/helpers/makeKeyboardListener"
 import makeNode from "../makeNode"
 import convert from "../unitConversion"
-import { fetchChartData } from "./api"
+import { fetchChartData, pointMultiplierByChartType } from "./api"
 import makeDimensions from "./makeDimensions"
 import makeFilterControllers from "./filters/makeControllers"
 import makeDataFetch from "./makeDataFetch"
@@ -248,6 +248,13 @@ export default ({
 
     focused ? initKeyboardListener() : clearKeyboardListener()
     node.invalidateClosestRowCache()
+  })
+
+  node.onAttributeChange("chartType", (chartType, prevChartType) => {
+    if (!node) return
+    if (pointMultiplierByChartType[chartType] === pointMultiplierByChartType[prevChartType]) return
+
+    node.trigger("fetch")
   })
 
   node.makeChartUI = (uiName, chartLibrary = node.getAttribute("chartLibrary")) => {

@@ -35,7 +35,7 @@ const getDefaultOptionsByLibrary = {
   default: () => {},
 }
 
-const pointMultiplierByChartType = {
+export const pointMultiplierByChartType = {
   multiBar: 0.1,
   stackedBar: 0.1,
   default: 2,
