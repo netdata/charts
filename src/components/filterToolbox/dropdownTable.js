@@ -95,6 +95,7 @@ const Dropdown = ({
       <NetdataTable
         title={title}
         background="dropdownTable"
+        enableResize
         enableSorting
         enableSelection
         dataColumns={columns}
@@ -108,7 +109,7 @@ const Dropdown = ({
         expanded={expanded}
         onExpandedChange={onExpandedChange}
         enableSubRowSelection={enableSubRowSelection}
-        width="850px"
+        width={{ base: 250, max: "80vw" }}
         // bulkActions={bulkActions}
         // rowActions={rowActions}
       />

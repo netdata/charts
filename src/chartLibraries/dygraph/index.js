@@ -128,6 +128,7 @@ export default (sdk, chart) => {
 
     hoverX.toggle(attributes.enabledHover)
     navigation.toggle(attributes.enabledNavigation, attributes.navigation)
+    overlays.drawOverlays()
     const latestRender = executeLatest.add(render)
 
     listeners = [
@@ -150,7 +151,7 @@ export default (sdk, chart) => {
       chart.onAttributeChange("enabledHover", hoverX.toggle),
       chart.onAttributeChange("enabledNavigation", navigation.toggle),
       chart.onAttributeChange("navigation", navigation.set),
-      chart.onAttributeChange("overlays", overlays.toggle),
+      chart.onAttributeChange("overlays", overlays.drawOverlays),
       chart.onAttributeChange("theme", (nextTheme, prevTheme) => {
         element.classList.remove(prevTheme)
         element.classList.add(nextTheme)
@@ -192,8 +193,6 @@ export default (sdk, chart) => {
       }),
       chart.onAttributeChange("timezone", () => dygraph.updateOptions({})),
     ].filter(Boolean)
-
-    overlays.toggle()
 
     chartUI.trigger("resize")
     chartUI.render()
@@ -430,7 +429,7 @@ export default (sdk, chart) => {
     navigation.destroy()
     dygraph.destroy()
     dygraph = null
-    overlays.destroy()
+    overlays = null
   }
 
   const getDygraph = () => dygraph

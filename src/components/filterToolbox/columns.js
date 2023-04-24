@@ -21,8 +21,9 @@ const useMetricsByValue = chart =>
 export const labelColumn = fallbackExpandKey => ({
   id: "label",
   header: () => <TextSmall strong>Name</TextSmall>,
-  size: 300,
+  size: 200,
   minSize: 60,
+  maxSize: 800,
   cell: ({ getValue, row }) => {
     const chart = useChart()
     const metricsByValue = useMetricsByValue(chart)
@@ -65,6 +66,7 @@ export const uniqueColumn = () => ({
   header: <TextMicro strong>Unique</TextMicro>,
   size: 45,
   minSize: 30,
+  maxSize: 90,
   cell: ({ getValue }) => <TextSmall color="textLite">{getValue()}</TextSmall>,
   sortingFn: "basic",
 })
@@ -78,6 +80,7 @@ export const minColumn = () => ({
   ),
   size: 60,
   minSize: 30,
+  maxSize: 90,
   cell: ({ getValue }) => {
     const value = useConverted(getValue())
     return <TextSmall color="textLite">{value}</TextSmall>
@@ -94,6 +97,7 @@ export const avgColumn = () => ({
   ),
   size: 60,
   minSize: 30,
+  maxSize: 90,
   cell: ({ getValue }) => {
     const value = useConverted(getValue())
     return <TextSmall color="textLite">{value}</TextSmall>
@@ -110,6 +114,7 @@ export const maxColumn = () => ({
   ),
   size: 60,
   minSize: 30,
+  maxSize: 90,
   cell: ({ getValue }) => {
     const value = useConverted(getValue())
     return <TextSmall color="textLite">{value}</TextSmall>
@@ -122,6 +127,7 @@ export const instancesColumn = () => ({
   header: <TextMicro strong>Instances</TextMicro>,
   size: 60,
   minSize: 30,
+  maxSize: 90,
   cell: ({ getValue, row }) => {
     if (!row.original.info?.is) return <TextSmall color="textLite">{getValue()}</TextSmall>
 
@@ -178,6 +184,7 @@ export const contributionColumn = () => ({
   header: <TextMicro strong>Vol %</TextMicro>,
   size: 60,
   minSize: 30,
+  maxSize: 90,
   cell: ({ row, getValue }) => {
     if (!row.original.info?.sts) return <TextSmall color="textLite">{getValue()}</TextSmall>
 
@@ -205,6 +212,7 @@ export const anomalyRateColumn = () => ({
   header: <TextMicro strong>AR %</TextMicro>,
   size: 60,
   minSize: 30,
+  maxSize: 90,
   cell: ({ row, getValue }) => {
     if (!row.original.info?.sts) return <TextSmall color="textLite">{getValue()}</TextSmall>
 
