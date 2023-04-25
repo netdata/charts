@@ -35,6 +35,7 @@ const HorizontalContainer = styled(Flex)`
   ${({ bottom }) => bottom && `bottom: ${bottom};`};
   ${({ left }) => left && `left: ${left};`};
   ${({ right }) => right && `right: ${right};`};
+  ${({ noEvents }) => noEvents && `pointer-events: none;`};
 
   overflow: hidden;
 `

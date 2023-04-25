@@ -1,4 +1,5 @@
 import React from "react"
+import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import correlationsIcon from "@netdata/netdata-ui/lib/components/icon/assets/correlations.svg"
 import Icon, { Button } from "@/components/icon"
@@ -6,6 +7,10 @@ import Tooltip from "@/components/tooltip"
 import { useChart, useAttributeValue } from "@/components/provider"
 import { getDateDiff } from "@/components/line/indicators"
 import { TextNano } from "@netdata/netdata-ui/lib/components/typography"
+
+const CorrelationButton = styled(Button)`
+  pointer-events: all;
+`
 
 const minTimeframe = 15
 
@@ -39,7 +44,7 @@ const Correlation = ({ id }) => {
       content={errorMessage ? `Metrics correlation: ${errorMessage}` : "Run metrics correlation"}
     >
       <Flex>
-        <Button
+        <CorrelationButton
           data-track={chart.track("metrics-correlation")}
           icon={<Icon svg={correlationsIcon} size="20px" />}
           onClick={() => chart.sdk.trigger("correlation", chart, range)}

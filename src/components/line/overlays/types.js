@@ -32,7 +32,7 @@ const HighlightOverlay = ({ id, ...rest }) => {
   if (sparkline) return null
 
   return (
-    <Container id={id} align={alignment.elementRight} bottom="25px" right={100} {...rest}>
+    <Container id={id} align={alignment.elementRight} bottom="25px" right={100} {...rest} noEvents>
       <Highlight id={id} />
     </Container>
   )
