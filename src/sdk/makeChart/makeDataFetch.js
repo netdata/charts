@@ -130,8 +130,11 @@ export default chart => {
     if (!chart) return false
 
     const { firstEntry, after, before } = chart.getAttributes()
+    if (!firstEntry) return
+
     const absoluteBefore = after >= 0 ? before : Date.now() / 1000
-    return !firstEntry || firstEntry <= absoluteBefore
+
+    return firstEntry <= absoluteBefore
   }
 
   chart.fetch = () => {
