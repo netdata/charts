@@ -18,7 +18,7 @@ export default {
   pristineValueRange: undefined,
   valueRange: null,
   getValueRange: ({ min = null, max = null, valueRange, onDimensions = true, dygraph = false }) => {
-    if (!valueRange) {
+    if (!valueRange || (valueRange[0] === null && valueRange[1] === null)) {
       if (dygraph) return [null, null]
       if (min === max) return [min - 1, max + 1]
 
