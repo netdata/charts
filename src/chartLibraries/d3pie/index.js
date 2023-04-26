@@ -79,7 +79,15 @@ export default (sdk, chart) => {
 
     chartUI.render()
 
-    pie.options.data.content = values
+    pie.options.data.content = values.length
+      ? values
+      : [
+          {
+            label: "No data",
+            value: 1,
+            color: chartUI.chart.getThemeAttribute("themeD3pieSmallColor"),
+          },
+        ]
     window.requestAnimationFrame(() => {
       reMake()
     })

@@ -294,6 +294,7 @@ export default ({
   const destroy = () => {
     if (!node) return
 
+    node.destroy()
     node.stopAutofetch()
     clearKeyboardListener()
 

@@ -964,6 +964,7 @@ import * as d3 from "d3"
             formatterContext.part = "value"
             formatterContext.value = d.value
             formatterContext.label = d.value
+            formatterContext.realLabel = d.label
             return settings.formatter ? settings.formatter(formatterContext, d.value) : d.value
           })
           .style("font-size", settings.value.fontSize)
