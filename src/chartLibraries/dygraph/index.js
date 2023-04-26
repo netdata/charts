@@ -103,7 +103,10 @@ export default (sdk, chart) => {
       highlightSeriesBackgroundAlpha: 1,
       drawGapEdgePoints: true,
       ylabel: chart.getAttribute("hasYlabel") && chart.getUnitSign({ long: true }),
-      digitsAfterDecimal: chart.getAttribute("unitsConversionFractionDigits"),
+      digitsAfterDecimal:
+        chart.getAttribute("unitsConversionFractionDigits") < 0
+          ? 0
+          : chart.getAttribute("unitsConversionFractionDigits"),
       yLabelWidth: 12,
       yRangePad: 30,
       labelsSeparateLines: true,
@@ -159,13 +162,19 @@ export default (sdk, chart) => {
           ...makeColorOptions(),
           ...makeChartTypeOptions(),
           ylabel: chart.getAttribute("hasYlabel") && chart.getUnitSign({ long: true }),
-          digitsAfterDecimal: chart.getAttribute("unitsConversionFractionDigits"),
+          digitsAfterDecimal:
+            chart.getAttribute("unitsConversionFractionDigits") < 0
+              ? 0
+              : chart.getAttribute("unitsConversionFractionDigits"),
         })
       ),
       chart.onAttributeChange("unitsConversion", () =>
         dygraph.updateOptions({
           ylabel: chart.getAttribute("hasYlabel") && chart.getUnitSign({ long: true }),
-          digitsAfterDecimal: chart.getAttribute("unitsConversionFractionDigits"),
+          digitsAfterDecimal:
+            chart.getAttribute("unitsConversionFractionDigits") < 0
+              ? 0
+              : chart.getAttribute("unitsConversionFractionDigits"),
         })
       ),
       chart.onAttributeChange("valueRange", valueRange => {
@@ -447,7 +456,10 @@ export default (sdk, chart) => {
       ...makeVisibilityOptions(),
       ...makeColorOptions(),
       ylabel: chart.getAttribute("hasYlabel") && chart.getUnitSign({ long: true }),
-      digitsAfterDecimal: chart.getAttribute("unitsConversionFractionDigits"),
+      digitsAfterDecimal:
+        chart.getAttribute("unitsConversionFractionDigits") < 0
+          ? 0
+          : chart.getAttribute("unitsConversionFractionDigits"),
     })
 
     chartUI.trigger("rendered")
