@@ -502,6 +502,7 @@ import * as d3 from "d3"
       // we're done! See if there's any small segment groups to add
       if (groupedData.length) {
         newData.push({
+          ...smallSegmentGrouping,
           color: smallSegmentGrouping.color,
           label: "[" + smallSegmentGrouping.label + " " + totalGrouped + "]",
           value: totalGroupedData,
@@ -2029,7 +2030,8 @@ import * as d3 from "d3"
       d3.selectAll("#" + pie.cssPrefix + "tooltip" + tt.currentTooltip).attr(
         "transform",
         function (d) {
-          var mouseCoords = d3.mouse(this.parentNode)
+          debugger
+          var mouseCoords = d3.pointer(this.parentNode)
           var x = mouseCoords[0] + pie.options.tooltips.styles.padding + 2
           var y = mouseCoords[1] - 2 * pie.options.tooltips.styles.padding - 2
           return "translate(" + x + "," + y + ")"

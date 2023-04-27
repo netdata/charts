@@ -2,6 +2,7 @@ import makeChartUI from "@/sdk/makeChartUI"
 import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
 import makeExecuteLatest from "@/helpers/makeExecuteLatest"
+import shorten from "@/helpers/shorten"
 import d3pie from "./library"
 import getInitialOptions from "./getInitialOptions"
 
@@ -10,6 +11,9 @@ export default (sdk, chart) => {
   let pie = null
   let listeners
   let resizeObserver
+  let prevMin
+  let prevMax
+
   const executeLatest = makeExecuteLatest()
 
   const reMake = () => {
@@ -53,6 +57,11 @@ export default (sdk, chart) => {
     render()
   }
 
+  const getMinMax = () => {
+    let { getValueRange, min, max, valueRange } = chart.getAttributes()
+    return getValueRange({ min, max, valueRange })
+  }
+
   const render = () => {
     chartUI.render()
 
@@ -62,8 +71,6 @@ export default (sdk, chart) => {
 
     const { data } = chart.getPayload()
 
-    if (data?.length === undefined) return
-
     let index = hoverX ? chart.getClosestRow(hoverX[0]) : -1
     index = index === -1 ? data.length - 1 : index
 
@@ -71,11 +78,21 @@ export default (sdk, chart) => {
 
     const values = dimensionIds
       .map(id => ({
-        label: id,
+        label: shorten(id, 30),
         value: chart.getDimensionValue(id, index),
         color: chart.selectDimensionColor(id),
+        caption: id,
       }))
       .filter(v => !!v.value)
+
+    let [min, max] = getMinMax()
+
+    if (min !== prevMin || max !== prevMax) {
+      chartUI.sdk.trigger("yAxisChange", chart, min, max)
+    }
+
+    prevMin = min
+    prevMax = max
 
     chartUI.render()
 
@@ -88,6 +105,8 @@ export default (sdk, chart) => {
             color: chartUI.chart.getThemeAttribute("themeD3pieSmallColor"),
           },
         ]
+    pie.options.labels = getInitialOptions(chartUI).labels
+
     window.requestAnimationFrame(() => {
       reMake()
     })
@@ -103,6 +122,9 @@ export default (sdk, chart) => {
       pie.destroy()
       pie = null
     }
+
+    prevMin = null
+    prevMax = null
 
     chartUI.unmount()
   }

@@ -6,6 +6,8 @@ export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
   let listeners
   let resizeObserver
+  let prevMin
+  let prevMax
 
   const mount = element => {
     chartUI.mount(element)
@@ -45,7 +47,13 @@ export default (sdk, chart) => {
     chartUI.render()
     const [min, max] = getMinMax()
 
-    chartUI.sdk.trigger("yAxisChange", chart, min, max)
+    if (min !== prevMin || max !== prevMax) {
+      chartUI.sdk.trigger("yAxisChange", chart, min, max)
+    }
+
+    prevMin = min
+    prevMax = max
+
     chartUI.trigger("rendered")
   }
 
@@ -55,6 +63,8 @@ export default (sdk, chart) => {
     if (resizeObserver) resizeObserver()
 
     chartUI.unmount()
+    prevMin = null
+    prevMax = null
   }
 
   const instance = {

@@ -33,6 +33,7 @@ export default (chartUI, dataOptions = {}) => {
         // percentage, value
         valueType: "count",
         label: "smaller",
+        caption: "rest of dimensions",
         color: chartUI.chart.getThemeAttribute("themeD3pieSmallColor"),
       },
       content: [],
@@ -105,7 +106,7 @@ export default (chartUI, dataOptions = {}) => {
     },
     tooltips: {
       enabled: false,
-      type: "placeholder", // caption|placeholder
+      type: "caption", // caption|placeholder
       string: "",
       placeholderParser: null, // function
       styles: {
@@ -114,7 +115,7 @@ export default (chartUI, dataOptions = {}) => {
         backgroundOpacity: 0.5,
         color: "#ffffff",
         borderRadius: 2,
-        fontSize: 12,
+        fontSize: "11px",
         padding: 4,
       },
     },

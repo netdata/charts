@@ -32,8 +32,6 @@ export default {
       onDimensions ? (rangeMax === null || rangeMax < max ? max : rangeMax) : null,
     ]
 
-    if (valueRange[0] === valueRange[1]) return [valueRange[0] - 1, valueRange[1] + 1]
-
     return valueRange
   },
   loaded: false,
