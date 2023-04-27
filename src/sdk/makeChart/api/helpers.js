@@ -32,7 +32,14 @@ const getDefaultOptionsByLibrary = {
   gauge: oneValueOptions,
   easypiechart: oneValueOptions,
   number: oneValueOptions,
-  default: restAttributes => restAttributes,
+  default: attrs => ({
+    ["group_by[0]"]: attrs["group_by[0]"],
+    ["group_by[1]"]: attrs["group_by[1]"],
+    ["group_by_label[0]"]: attrs["group_by_label[0]"],
+    ["group_by_label[1]"]: attrs["group_by_label[1]"],
+    ["aggregation[0]"]: attrs["aggregation[0]"],
+    ["aggregation[1]"]: attrs["aggregation[1]"],
+  }),
 }
 
 export const pointMultiplierByChartType = {
