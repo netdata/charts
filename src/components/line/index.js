@@ -14,6 +14,7 @@ export const Line = forwardRef(
   ({ hasHeader = true, hasFooter = true, hasFilters = true, height, uiName, ...rest }, ref) => {
     const chart = useChart()
     const showingInfo = useAttributeValue("showingInfo")
+    const sparkline = useAttributeValue("sparkline")
 
     const hoverRef = useHover(
       {
@@ -31,7 +32,7 @@ export const Line = forwardRef(
     })
 
     return (
-      <Container ref={setRef} {...rest} height={height}>
+      <Container ref={setRef} border={!sparkline} {...rest} height={height}>
         {hasHeader && <Header />}
         {hasFilters && <FilterToolbox />}
         <ContentWrapper>

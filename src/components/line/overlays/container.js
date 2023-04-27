@@ -1,6 +1,6 @@
 import React, { useRef, useState, useLayoutEffect, memo } from "react"
 import styled from "styled-components"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import { Flex } from "@netdata/netdata-ui"
 import { useChart } from "@/components/provider"
 
 export const alignment = {

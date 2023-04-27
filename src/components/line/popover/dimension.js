@@ -5,6 +5,7 @@ import Color, { ColorBar } from "@/components/line/dimensions/color"
 import Name from "@/components/line/dimensions/name"
 import Value, { Value as ValuePart } from "@/components/line/dimensions/value"
 import { useChart, useVisibleDimensionId } from "@/components/provider"
+import { labels as annotationLabels } from "@/helpers/annotations"
 import { rowFlavours } from "./dimensions"
 
 const GridRow = styled(Flex).attrs({
@@ -44,7 +45,7 @@ const ValueOnDot = ({ children, fractionDigits = 0, ...rest }) => {
   )
 }
 
-const AnnotationsValue = ({ children: annotations, ...rest }) => (
+const AnnotationsValue = ({ children: annotations, showFull, ...rest }) => (
   <Flex gap={1} justifyContent="end">
     {Object.keys(annotations).map(ann => (
       <Flex
@@ -55,7 +56,7 @@ const AnnotationsValue = ({ children: annotations, ...rest }) => (
         padding={[0, 0.5]}
       >
         <ValuePart {...rest} color={annotations[ann]}>
-          {ann}
+          {showFull ? annotationLabels[ann] || ann : ann}
         </ValuePart>
       </Flex>
     ))}
@@ -105,6 +106,7 @@ const Dimension = ({ id, strong, chars, rowFlavour }) => {
         valueKey="pa"
         Component={AnnotationsValue}
         color={rowFlavour === rowFlavours.ANNOTATIONS ? "text" : "textLite"}
+        showFull={rowFlavour === rowFlavours.ANNOTATIONS}
       />
     </GridRow>
   )

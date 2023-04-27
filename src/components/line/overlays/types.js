@@ -51,7 +51,7 @@ const NameOverlay = ({ containerProps, ...rest }) => (
 )
 
 const LatestValueOverlay = props => (
-  <NoEventsContainer isAbsolute position="bottom" margin={[0, 0, 2, 0]}>
+  <NoEventsContainer isAbsolute position="center">
     <LatestValue {...props} />
   </NoEventsContainer>
 )

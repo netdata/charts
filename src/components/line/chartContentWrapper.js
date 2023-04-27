@@ -1,7 +1,7 @@
 import React, { forwardRef } from "react"
 import styled, { css } from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { useInitialLoading, useEmpty, useAttributeValue, useChart } from "@/components/provider"
+import { useInitialLoading, useEmpty, useAttributeValue } from "@/components/provider"
 import { useHovered } from "@/components/useHover"
 import ChartContainer from "@/components/chartContainer"
 import Popover from "./popover"
@@ -35,7 +35,6 @@ export const Container = forwardRef((props, ref) => {
       ref={ref}
       chartLibrary={chartLibrary}
       position="relative"
-      padding={[0, 0, 2]}
       flex
       data-testid="chartContentWrapper"
       height="100%"
@@ -52,7 +51,7 @@ const ChartContentWrapper = ({ uiName }) => {
   })
   const initialLoading = useInitialLoading()
   const empty = useEmpty()
-  const { hasToolbox } = useChart().getAttributes()
+  const hasToolbox = useAttributeValue("hasToolbox")
 
   return (
     <Container ref={ref}>

@@ -4,7 +4,6 @@ import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui/lib/theme"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { Button } from "@netdata/netdata-ui/lib/components/button"
 import Line from "@/components/line"
-import NoInteractLine from "@/components/line/noInteract"
 import makeMockPayload from "@/helpers/makeMockPayload"
 import { useAttribute, useAttributeValue, useChart, withChartProvider } from "@/components/provider"
 import makeDefaultSDK from "./makeDefaultSDK"
@@ -288,18 +287,6 @@ export const InitialLoading = () => {
         </Flex>
       </ThemeProvider>
     </div>
-  )
-}
-
-export const NoInteractions = () => {
-  const sdk = makeDefaultSDK()
-  const chart = sdk.makeChart({ getChart, attributes: { enabledNavigation: false } })
-  sdk.appendChild(chart)
-
-  return (
-    <ThemeProvider theme={DefaultTheme}>
-      <NoInteractLine chart={chart} height="315px" />
-    </ThemeProvider>
   )
 }
 
