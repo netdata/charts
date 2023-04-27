@@ -32,7 +32,7 @@ export const Line = forwardRef(
     })
 
     return (
-      <Container ref={setRef} border={!sparkline} {...rest} height={height}>
+      <Container ref={setRef} {...(!sparkline && { border: false })} {...rest} height={height}>
         {hasHeader && <Header />}
         {hasFilters && <FilterToolbox />}
         <ContentWrapper>
