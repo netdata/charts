@@ -32,7 +32,7 @@ const getDefaultOptionsByLibrary = {
   gauge: oneValueOptions,
   easypiechart: oneValueOptions,
   number: oneValueOptions,
-  default: () => {},
+  default: restAttributes => restAttributes,
 }
 
 export const pointMultiplierByChartType = {
