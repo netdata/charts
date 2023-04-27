@@ -116,7 +116,7 @@ export default {
   axisLabelFontSize: 10,
 
   outOfLimits: false,
-  aggregationMethod: "avg",
+  aggregationMethod: "sum",
 
   groupBy: ["dimension"],
   groupByLabel: [],
