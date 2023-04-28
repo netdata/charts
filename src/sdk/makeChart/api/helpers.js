@@ -21,11 +21,8 @@ export const getChartURLOptions = chart => {
 
 const oneValueOptions = attrs => ({
   "group_by[0]": attrs["group_by[0]"] || ["instance"],
-  "group_by[1]": attrs["group_by[1]"] || ["selected"],
   "group_by_label[0]": attrs["group_by_label[0]"] || [],
-  "group_by_label[1]": attrs["group_by_label[1]"] || [],
   "aggregation[0]": attrs["aggregation[0]"] || "sum",
-  "aggregation[1]": attrs["aggregation[1]"] || "avg",
 })
 
 const getDefaultOptionsByLibrary = {
@@ -33,12 +30,9 @@ const getDefaultOptionsByLibrary = {
   easypiechart: oneValueOptions,
   number: oneValueOptions,
   default: attrs => ({
-    ["group_by[0]"]: attrs["group_by[0]"],
-    ["group_by[1]"]: attrs["group_by[1]"],
-    ["group_by_label[0]"]: attrs["group_by_label[0]"],
-    ["group_by_label[1]"]: attrs["group_by_label[1]"],
-    ["aggregation[0]"]: attrs["aggregation[0]"],
-    ["aggregation[1]"]: attrs["aggregation[1]"],
+    "group_by[0]": attrs["group_by[0]"],
+    "group_by_label[0]": attrs["group_by_label[0]"],
+    "aggregation[0]": attrs["aggregation[0]"],
   }),
 }
 
@@ -90,6 +84,11 @@ export const getChartPayload = chart => {
     ...(getDefaultOptionsByLibrary[chartLibrary] || getDefaultOptionsByLibrary.default)(
       restAttributes
     ),
+    ...(!!restAttributes["group_by[1]"] && {
+      "group_by[1]": restAttributes["group_by[1]"],
+      "group_by_label[1]": restAttributes["group_by_label[1]"],
+      "aggregation[1]": restAttributes["aggregation[1]"],
+    }),
   }
 }
 

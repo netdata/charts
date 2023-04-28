@@ -52,7 +52,7 @@ export const useLoadingColor = (defaultColor = "themeNeutralBackground") => {
     }
 
     const getColor = scaleLinear()
-      .domain([0, 500, 2000, 5000, 100000])
+      .domain([0, 1000, 2000, 5000, 100000])
       .range([
         chart.getThemeAttribute(defaultColor),
         chart.getThemeAttribute(defaultColor),
