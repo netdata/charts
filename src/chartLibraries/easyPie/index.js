@@ -79,10 +79,7 @@ export default (sdk, chart) => {
     }
   }
 
-  const getMinMax = () => {
-    let { getValueRange, min, max, valueRange } = chart.getAttributes()
-    return getValueRange({ min, max, valueRange })
-  }
+  const getMinMax = () => chart.getAttribute("getValueRange")(chart)
 
   const render = () => {
     chartUI.render()
@@ -101,7 +98,7 @@ export default (sdk, chart) => {
     if (!Array.isArray(rowData)) return
 
     const [, ...rows] = rowData
-    const value = rows.reduce((acc, v) => acc + v, 0)
+    const value = rows.reduce((acc, v = 0) => acc + v, 0)
     let [min, max] = getMinMax()
 
     chartUI.render()

@@ -23,7 +23,7 @@ export default sdk => {
       })
     })
     .on("moveY", (chart, min, max) => {
-      chart.updateValueRange([min, max])
+      chart.updateStaticValueRange([min, max])
       const after = chart.getAttribute("after")
 
       if (after < 0) {
@@ -35,7 +35,7 @@ export default sdk => {
       offAfter = chart.onAttributeChange("after", after => {
         if (after > 0) return
 
-        chart.resetValueRange()
+        chart.resetStaticValueRange()
         offAfter()
       })
     })

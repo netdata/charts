@@ -177,7 +177,7 @@ export default (sdk, chart) => {
               : chart.getAttribute("unitsConversionFractionDigits"),
         })
       ),
-      chart.onAttributeChange("valueRange", valueRange => {
+      chart.onAttributeChange("staticValueRange", () => {
         dygraph.updateOptions({
           valueRange:
             attributes.chartType === "heatmap"
@@ -187,14 +187,7 @@ export default (sdk, chart) => {
                     ? attributes.selectedLegendDimensions.length
                     : labels.length,
                 ]
-              : attributes.getValueRange({
-                  min: attributes.min,
-                  max: attributes.max,
-                  valueRange,
-                  dygraph: true,
-                  onDimensions:
-                    attributes.groupBy.length === 1 && attributes.groupBy[0] === "dimension",
-                }),
+              : attributes.getValueRange(chart, { dygraph: true }),
         })
       }),
       chart.onAttributeChange("timezone", () => dygraph.updateOptions({})),
@@ -360,16 +353,8 @@ export default (sdk, chart) => {
   }
 
   const makeDataOptions = () => {
-    const {
-      valueRange,
-      outOfLimits,
-      getValueRange,
-      chartType,
-      groupBy,
-      selectedLegendDimensions,
-      min,
-      max,
-    } = chart.getAttributes()
+    const { outOfLimits, getValueRange, chartType, groupBy, selectedLegendDimensions } =
+      chart.getAttributes()
     const { data, labels } = chart.getPayload()
     const dateWindow = chart.getDateWindow()
     const isEmpty = outOfLimits || data.length === 0
@@ -381,13 +366,7 @@ export default (sdk, chart) => {
       valueRange:
         chartType === "heatmap"
           ? [0, selectedLegendDimensions.length ? selectedLegendDimensions.length : labels.length]
-          : getValueRange({
-              min,
-              max,
-              valueRange,
-              dygraph: true,
-              onDimensions: groupBy.length === 1 && groupBy[0] === "dimension",
-            }),
+          : getValueRange(chart, { dygraph: true }),
     }
   }
 
@@ -468,7 +447,7 @@ export default (sdk, chart) => {
   const getPreceded = () => {
     if (!dygraph) return -1
 
-    const firstEntryMs = chartUI.chart.getFirstEntry() * 1000
+    const firstEntryMs = chart.getFirstEntry() * 1000
     const [after] = dygraph.xAxisRange()
 
     if (firstEntryMs < after) return -1

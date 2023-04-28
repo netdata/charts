@@ -15,24 +15,42 @@ export default {
   min: 0,
   max: 0,
 
-  pristineValueRange: undefined,
+  pristineStaticValueRange: undefined,
   valueRange: null,
-  getValueRange: ({ min = null, max = null, valueRange, onDimensions = true, dygraph = false }) => {
+  staticValueRange: null,
+  getValueRange: (chart, { dygraph = false } = {}) => {
+    if (!chart) return [null, null]
+
+    const {
+      min = null,
+      max = null,
+      valueRange = [null, null],
+      staticValueRange,
+    } = chart.getAttributes()
+
+    if (staticValueRange) return staticValueRange
+
     if (!valueRange || (valueRange[0] === null && valueRange[1] === null)) {
       if (dygraph) return [null, null]
-      if (min === max) return [min - 1, max + 1]
 
       return [min, max]
     }
 
     const [rangeMin, rangeMax] = valueRange
 
-    valueRange = [
+    if (dygraph) {
+      const { groupBy, aggregationMethod } = chart.getAttributes()
+
+      if (groupBy.length > 1 || groupBy[0] !== "dimension" || aggregationMethod !== "avg")
+        return [null, null]
+    }
+
+    const newValueRange = [
       rangeMin === null || rangeMin > min ? min : rangeMin,
-      onDimensions ? (rangeMax === null || rangeMax < max ? max : rangeMax) : null,
+      rangeMax === null || rangeMax < max ? max : rangeMax,
     ]
 
-    return valueRange
+    return newValueRange
   },
   loaded: false,
   loading: false,

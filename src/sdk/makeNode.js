@@ -154,26 +154,26 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   const zoomIn = () => zoomX(1)
   const zoomOut = () => zoomX(-1)
 
-  const updateValueRange = value => {
-    if (getAttribute("pristineValueRange") === undefined) {
-      const value = getAttribute("valueRange")
-      updateAttribute("pristineValueRange", value)
+  const updateStaticValueRange = value => {
+    if (getAttribute("pristineStaticValueRange") === undefined) {
+      const value = getAttribute("staticValueRange")
+      updateAttribute("pristineStaticValueRange", value)
     }
-    updateAttribute("valueRange", value)
+    updateAttribute("staticValueRange", value)
   }
 
-  const resetValueRange = () => {
-    const pristineValue = getAttribute("pristineValueRange")
+  const resetStaticValueRange = () => {
+    const pristineValue = getAttribute("pristineStaticValueRange")
     if (pristineValue === undefined) return
 
-    updateAttribute("pristineValueRange", undefined)
-    updateAttribute("valueRange", pristineValue)
+    updateAttribute("pristineStaticValueRange", undefined)
+    updateAttribute("staticValueRange", pristineValue)
   }
 
   const resetNavigation = () => {
-    const pristineValue = getAttribute("pristineValueRange")
+    const pristineValue = getAttribute("pristineStaticValueRange")
     if (!getAttribute("enabledResetRange")) return
-    if (pristineValue !== undefined) return resetValueRange()
+    if (pristineValue !== undefined) return resetStaticValueRange()
 
     moveX(-900)
   }
@@ -231,8 +231,8 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     getAncestor,
     inherit,
     updateHeight,
-    updateValueRange,
-    resetValueRange,
+    updateStaticValueRange,
+    resetStaticValueRange,
     toggleFullscreen,
     moveY,
     moveX,

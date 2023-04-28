@@ -74,10 +74,7 @@ export default (sdk, chart) => {
     strokeColor: chartUI.chart.getThemeAttribute("themeGaugeStroke"),
   })
 
-  const getMinMax = () => {
-    let { getValueRange, min, max, valueRange } = chart.getAttributes()
-    return getValueRange({ min, max, valueRange })
-  }
+  const getMinMax = () => chart.getAttribute("getValueRange")(chart)
 
   const render = () => {
     chartUI.render()
@@ -97,7 +94,7 @@ export default (sdk, chart) => {
 
     const [, ...rows] = rowData
 
-    const value = rows.reduce((acc, v) => acc + v, 0)
+    const value = rows.reduce((acc, v = 0) => acc + v, 0)
 
     let [min, max] = getMinMax()
 
