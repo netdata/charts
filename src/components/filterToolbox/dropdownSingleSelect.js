@@ -94,7 +94,7 @@ const DropdownSingleSelect = ({ labelProps, ...rest }) => (
     dropdownProps={{ padding: [0, 0, 2, 0], height: { max: "80vh" } }}
     {...rest}
   >
-    <Label {...labelProps} />
+    <Label {...labelProps} data-value={`${rest.value || "No selection"}`} />
   </Menu>
 )
 

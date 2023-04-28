@@ -241,6 +241,7 @@ const DropdownTable = ({
       {...rest}
     >
       <Label
+        data-value={value.join("|") || `${resourceName} all-selected`}
         secondaryLabel={secondaryLabel}
         label={label || <Totals selected={value} {...totals} resourceName={resourceName} teaser />}
         title={tooltipProps.heading}
