@@ -1,16 +1,9 @@
-import React, { useEffect, useState, useRef, forwardRef } from "react"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import React, { useEffect, useState, useRef } from "react"
 import ReactDOM from "react-dom"
 import DropContainer from "@netdata/netdata-ui/lib/components/drops/drop/container"
 import useMakeUpdatePosition from "@netdata/netdata-ui/lib/components/drops/drop/useMakeUpdatePosition"
 import useDropElement from "@netdata/netdata-ui/lib/hooks/use-drop-element"
 import Labels from "./labels"
-
-const LabelsPopover = forwardRef((props, ref) => (
-  <Flex data-testid="chartPopover" ref={ref}>
-    <Labels {...props} />
-  </Flex>
-))
 
 const leftTopAlign = { right: "left", bottom: "top" }
 const leftBottomAlign = { right: "left", top: "bottom" }
@@ -25,47 +18,48 @@ const getAlign = (left, top) => {
   return rightBottomAlign
 }
 
-const Popover = ({ target, label, groupIndex, index, groupLabel, data, id }) => {
+const Popover = ({ target, label, index, groupLabel, data, id }) => {
   const dropRef = useRef()
 
   const updatePositionRef = useRef()
 
-  const [align, setAlign] = useState(leftTopAlign)
+  const [align, setAlign] = useState(rightBottomAlign)
 
   updatePositionRef.current = useMakeUpdatePosition(target, dropRef, align, stretch)
 
   useEffect(() => {
     if (!target?.getBoundingClientRect) return
 
-    const { offsetX, offsetY } = target.getBoundingClientRect()
-
-    updatePositionRef.current()
+    const { right: targetRight, bottom: targetBottom } = target.getBoundingClientRect()
 
     const winHeight = window.innerHeight
     const winWidth = window.innerWidth
 
     const { width, height } = dropRef.current.getBoundingClientRect()
-    const left = offsetX + width > winWidth
-    const top = offsetY + height > winHeight
+    const left = targetRight + width > winWidth
+    const top = targetBottom + height > winHeight
 
     setAlign(getAlign(left, top))
   }, [target])
+
+  useEffect(() => {
+    updatePositionRef.current()
+  }, [align])
 
   const el = useDropElement()
 
   return ReactDOM.createPortal(
     <DropContainer
       data-toolbox
-      margin={[align.top ? 4 : -4, align.right ? -5 : 5]}
       ref={dropRef}
       width={{ max: "100%" }}
       column
       data-testid="drop"
       sx={{ pointerEvents: "none" }}
     >
-      <LabelsPopover
+      <Labels
+        data-testid="chartPopover"
         label={label}
-        groupIndex={groupIndex}
         index={index}
         groupLabel={groupLabel}
         data={data}

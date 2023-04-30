@@ -5,7 +5,7 @@ import drawBoxes from "./drawBoxes"
 import useGroupBoxRowData from "./useGroupBoxRowData"
 import Popover from "./popover"
 
-const GroupBox = ({ uiName, dimensions, groupIndex, groupLabel, ...options }) => {
+const GroupBox = ({ uiName, dimensions, groupLabel, ...options }) => {
   const chart = useChart()
 
   const dimensionsRef = useRef()
@@ -41,7 +41,6 @@ const GroupBox = ({ uiName, dimensions, groupIndex, groupLabel, ...options }) =>
             setHover({
               target: { getBoundingClientRect: () => rect },
               index,
-              rect,
             })
           }, 100)
         },
@@ -57,7 +56,6 @@ const GroupBox = ({ uiName, dimensions, groupIndex, groupLabel, ...options }) =>
             setHover({
               target: { getBoundingClientRect: () => rect },
               index,
-              rect,
             })
           }, 100)
         },
@@ -105,7 +103,6 @@ const GroupBox = ({ uiName, dimensions, groupIndex, groupLabel, ...options }) =>
         <Popover
           target={hover.target}
           label={label}
-          groupIndex={groupIndex}
           index={hover.index}
           groupLabel={groupLabel}
           data={pointData}

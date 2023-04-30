@@ -71,6 +71,16 @@ export const useLoadingColor = (defaultColor = "themeNeutralBackground") => {
   return color
 }
 
+export const useColor = name => {
+  const chart = useChart()
+
+  const forceUpdate = useForceUpdate()
+
+  useImmediateListener(() => chart.onAttributeChange("theme", forceUpdate), [chart])
+
+  return chart.getThemeAttribute(name)
+}
+
 export const useIsFetching = () => {
   const chart = useChart()
 

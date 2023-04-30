@@ -1,7 +1,7 @@
 import React from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import Legend from "@/components/groupBoxes/legend"
 import Indicators from "@/components/line/indicators"
+import Legend from "./legend"
 
 export const Container = props => (
   <Flex

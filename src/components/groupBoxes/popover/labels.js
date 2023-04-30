@@ -1,7 +1,7 @@
 import React, { memo } from "react"
 import styled from "styled-components"
-import { Flex, Text, TextMicro } from "@netdata/netdata-ui"
-import { useChart, useConvertedValue } from "@/components/provider"
+import { Flex, TextMicro } from "@netdata/netdata-ui"
+import { useChart, useConverted, useAttributeValue } from "@/components/provider"
 import { BaseColorBar } from "@/components/line/dimensions/color"
 import Label from "./label"
 
@@ -17,6 +17,14 @@ const Container = styled(Flex).attrs(props => ({
   box-shadow: 0px 8px 12px rgba(9, 30, 66, 0.15), 0px 0px 1px rgba(9, 30, 66, 0.31);
 `
 
+const ColorBackground = styled(BaseColorBar).attrs({
+  position: "absolute",
+  top: 1,
+  left: 0,
+  backgroundOpacity: 0.4,
+  round: 0.5,
+})``
+
 const Grid = styled.div`
   display: grid;
   width: 100%;
@@ -29,28 +37,35 @@ const Labels = ({ index, label, groupLabel, data, id }) => {
   const chart = useChart()
   const viewDimensions = chart.getAttribute("viewDimensions")
 
+  const min = useAttributeValue("min")
+  const max = useAttributeValue("max")
+
   const chartWidth = chart.getUI().getChartWidth() * 0.9
   const value = chart.getRowDimensionValue(id, data)
-  const convertedValue = useConvertedValue(value, "percent")
+  const convertedValue = useConverted(value, { valueKey: "percent" })
 
   return (
     <Container data-testid="chartPopover-labels" maxWidth={chartWidth} gap={2}>
-      <Flex column>
+      <Flex column gap={1}>
         <TextMicro>{groupLabel}</TextMicro>
-        <Text strong>{label}</Text>
-        <Flex gap={2} alignItems="center">
-          <BaseColorBar value={value} min={0} max={100} bg="rgba(43, 44, 170, 0.4)" height="18px" />
-          <TextMicro strong>{convertedValue}%</TextMicro>
+        <TextMicro strong>{label}</TextMicro>
+        <Flex alignItems="center" position="relative">
+          <ColorBackground
+            value={value}
+            min={min}
+            max={max}
+            bg={chart.getThemeAttribute("themeGroupBoxesMax")}
+            height="18px"
+          />
+          <TextMicro padding={[1, 2]} strong>
+            {convertedValue}
+            {convertedValue !== "-" && "%"}
+          </TextMicro>
         </Flex>
       </Flex>
       <Grid gap={1} column>
         {Object.keys(viewDimensions.labels).map(key => (
-          <Label
-            key={key}
-            label={key}
-            value={viewDimensions.labels[key]?.[index]}
-            chars={chartWidth ? chartWidth / 3 : 200}
-          />
+          <Label key={key} label={key} value={viewDimensions.labels[key]?.[index]} />
         ))}
       </Grid>
     </Container>

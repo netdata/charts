@@ -1,6 +1,5 @@
 import { unregister } from "@/helpers/makeListeners"
 import makeChartUI from "@/sdk/makeChartUI"
-import transform from "./transform"
 
 const initialValue = { labels: [], data: [], values: {}, tree: {} }
 
@@ -33,10 +32,11 @@ export default (sdk, chart) => {
   const updateGroupBox = ({ force = false } = {}) => {
     if (initialized && !force && !chart.consumePayload()) return
 
-    const { data } = chart.getPayload()
-    if (data.length === 0) return
+    const payload = chart.getPayload()
 
-    groupBoxData = transform(chart)
+    if (!payload.data.length) return
+
+    groupBoxData = payload
 
     updateGroupBoxRowData()
 

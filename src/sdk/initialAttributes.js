@@ -165,6 +165,7 @@ export default {
   themeInnerLabelColor: ["#F7F8F8", "#282827"],
 
   themeLabelColor: ["#35414a", "#ffffff"],
+  themeBackground: ["#ffffff", "#282C34"],
   themeNeutralBackground: ["#ECEEEF", "#383B40"],
   themeWarningBackground: ["#FFCC26", "#FFCC26"],
   themeErrorBackground: ["#F95251", "#F95251"],

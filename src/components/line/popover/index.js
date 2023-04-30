@@ -76,7 +76,7 @@ const Popover = ({ uiName }) => {
       {ReactDOM.createPortal(
         <DropContainer
           data-toolbox
-          margin={[align.top ? 4 : -4, align.right ? -5 : 5]}
+          margin={[align.top ? 2 : -2, align.right ? -2 : 2]}
           ref={dropRef}
           width={{ max: "100%" }}
           column

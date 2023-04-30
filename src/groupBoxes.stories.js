@@ -11,15 +11,6 @@ import kubernetesCpuLimit from "../fixtures/kubernetesCpuLimit"
 
 const getChart = makeMockPayload(kubernetesCpuLimit, { delay: 600 })
 
-const Popover = ({ children }) => (
-  <Flex background="elementBackground" padding={[4]} round border>
-    <Text>{children}</Text>
-  </Flex>
-)
-
-const renderBoxPopover = () => <Popover>Box Popover</Popover>
-const renderGroupPopover = () => <Popover>Group Popover</Popover>
-
 const makeChart = props => {
   const sdk = makeDefaultSDK()
   const chart = sdk.makeChart({
@@ -52,12 +43,7 @@ export const Simple = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <GroupBoxes
-        chart={chart}
-        height="315px"
-        renderBoxPopover={renderBoxPopover}
-        renderGroupPopover={renderGroupPopover}
-      />
+      <GroupBoxes chart={chart} height="315px" />
     </ThemeProvider>
   )
 }
@@ -68,12 +54,7 @@ export const SimpleDark = () => {
   return (
     <ThemeProvider theme={DarkTheme}>
       <Flex background="mainBackground">
-        <GroupBoxes
-          chart={chart}
-          height="315px"
-          renderBoxPopover={renderBoxPopover}
-          renderGroupPopover={renderGroupPopover}
-        />
+        <GroupBoxes chart={chart} height="315px" />
       </Flex>
     </ThemeProvider>
   )
