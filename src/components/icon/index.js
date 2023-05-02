@@ -29,7 +29,14 @@ const getElement = (svg, id) => {
     .replace(/^<symbol /i, "<svg ")
     .replace(/<\/symbol>$/i, "</svg>")
 
+  if (!svg) {
+    console.error(`Couldn't find SVG: ${id} - ${svg}`)
+    return ""
+  }
+
   container.innerHTML = svg
+
+  if (!container.firstChild) return ""
 
   const viewbox = container.firstChild.getAttribute("viewBox")
   const xmlns = container.firstChild.getAttribute("xmlns")
