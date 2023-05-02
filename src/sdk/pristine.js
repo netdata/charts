@@ -4,11 +4,15 @@ export const pristineKey = "pristine"
 
 const { updatePristine, resetPristine } = makePristine(pristineKey, [
   "aggregationMethod",
-  "selectedDimensions",
+
   "groupBy",
   "groupByLabel",
   "groupingMethod",
+  "groupingTime",
+
   "chartType",
+
+  "selectedDimensions",
   "selectedLabels",
   "selectedNodes",
   "selectedInstances",

@@ -10,15 +10,6 @@ import D3pieComponent from "@/components/d3pie"
 import GroupBoxes from "@/components/groupBoxes"
 import makeDefaultSDK from "./makeDefaultSDK"
 
-const Popover = ({ children }) => (
-  <Flex background="elementBackground" padding={[4]} round border>
-    <Text>{children}</Text>
-  </Flex>
-)
-
-const renderBoxPopover = () => <Popover>Box Popover</Popover>
-const renderGroupPopover = () => <Popover>Group Popover</Popover>
-
 const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimension }) => {
   const sdk = makeDefaultSDK({ attributes: { theme, width: 1000 } })
   const chart = sdk.makeChart({
@@ -176,11 +167,7 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
         </Flex>
         <Line chart={chart} height="315px" />
         <Line chart={chart7} height="315px" />
-        <GroupBoxes
-          chart={chart4}
-          renderBoxPopover={renderBoxPopover}
-          renderGroupPopover={renderGroupPopover}
-        />
+        <GroupBoxes chart={chart4} />
       </Flex>
     </ThemeProvider>
   )

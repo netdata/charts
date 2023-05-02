@@ -1,4 +1,4 @@
-import React, { Fragment } from "react"
+import React from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { useAttributeValue } from "@/components/provider"
 import Separator from "@/components/line/separator"
@@ -12,7 +12,6 @@ const Container = props => (
     justifyContent="end"
     alignItem="center"
     flex
-    basis="0"
     data-testid="chartHeaderToolbox"
     alignSelf="end"
     {...props}
@@ -25,11 +24,8 @@ const Toolbox = props => {
 
   return (
     <Container {...props}>
-      {toolboxElements.map((Element, index, arr) => (
-        <Fragment key={index}>
-          <Element disabled={disabled} />
-          {arr[index + 1] ? <Separator disabled={disabled} /> : null}
-        </Fragment>
+      {toolboxElements.map((Element, index) => (
+        <Element key={index} disabled={disabled} />
       ))}
     </Container>
   )

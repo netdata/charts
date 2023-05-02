@@ -2,6 +2,8 @@ import ChartType from "@/components/toolbox/chartType"
 import Fullscreen from "@/components/toolbox/fullscreen"
 import Information from "@/components/toolbox/information"
 
+import Status from "@/components/status"
+
 export default {
   id: "",
   name: "",
@@ -185,6 +187,7 @@ export default {
   agent: true,
 
   toolboxElements: [Information, ChartType, Fullscreen],
+  leftHeaderElements: [Status],
 
   expanded: false,
   expandedHeight: 300,
