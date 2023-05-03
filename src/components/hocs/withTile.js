@@ -3,33 +3,25 @@ import styled from "styled-components"
 import { useWindowSize } from "react-use"
 import { Box, Flex, Text } from "@netdata/netdata-ui"
 import Status from "@/components/status"
-import { useAttributeValue, useTitle, useOnResize } from "@/components/provider"
+import { useTitle, useOnResize } from "@/components/provider"
 
 const Label = styled(Text)`
   line-height: 1;
   font-size: ${({ fontSize }) => fontSize};
 `
 
-const ChartHeadWrapper = styled(Flex).attrs(({ size, ...rest }) => {
-  const gutter = parseInt(size / 20, 10)
-
-  return {
-    position: "relative",
-    column: true,
-    gap: 1,
-    padding: [2],
-    background: "elementBackground",
-    round: true,
-    height: size,
-    margin: [0, gutter, gutter, 0],
-    fontSize: parseInt(size / 3, 10),
-    width: size,
-    ...rest,
-  }
-})`
-  max-width: ${props => props.size * 4 * props.flexSize * 2}px;
+const ChartHeadWrapper = styled(Flex).attrs(({ size, ...rest }) => ({
+  position: "relative",
+  column: true,
+  gap: 1,
+  padding: [2],
+  background: "elementBackground",
+  round: true,
+  height: "100%",
+  fontSize: parseInt(size / 3, 10),
+  ...rest,
+}))`
   font-size: ${props => (props.fontSize > 12 ? 12 : props.fontSize)}px;
-  flex: ${props => props.flexSize};
 `
 
 export const Title = () => {
@@ -47,7 +39,6 @@ export const Title = () => {
 }
 
 export const HeadWrapper = ({ children, uiName, ...rest }) => {
-  const flex = useAttributeValue("flex")
   const { parentWidth } = useOnResize()
 
   const { width: windowWidth } = useWindowSize(uiName)
@@ -55,7 +46,7 @@ export const HeadWrapper = ({ children, uiName, ...rest }) => {
   size = size < 20 ? 20 : size > 50 ? 50 : size
 
   return (
-    <ChartHeadWrapper size={size} flexSize={flex} {...rest}>
+    <ChartHeadWrapper size={size} {...rest}>
       <Title />
       {children}
     </ChartHeadWrapper>
