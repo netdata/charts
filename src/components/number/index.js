@@ -39,7 +39,7 @@ export const Unit = props => {
   )
 }
 
-const StatesContainer = styled(Flex)`
+const StatsContainer = styled(Flex)`
   font-size: ${({ fontSize }) => fontSize};
 `
 
@@ -50,10 +50,10 @@ export const NumberChart = forwardRef(({ uiName, ...rest }, ref) => {
   return (
     <ChartWrapper ref={ref}>
       <ChartContainer uiName={uiName} column alignItems="center" justifyContent="center" {...rest}>
-        <StatesContainer column fontSize={`${size / 15}px`} position="relative">
+        <StatsContainer column fontSize={`${size / 15}px`} position="relative">
           <Value />
           <Unit />
-        </StatesContainer>
+        </StatsContainer>
       </ChartContainer>
     </ChartWrapper>
   )

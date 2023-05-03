@@ -134,7 +134,7 @@ const Dimensions = ({ uiName }) => {
             color={rowFlavour === rowFlavours.ANNOTATIONS ? "text" : "textLite"}
             textAlign="right"
           >
-            Annotations
+            Info
           </TextMicro>
         </GridHeader>
         {ids.map(id => (

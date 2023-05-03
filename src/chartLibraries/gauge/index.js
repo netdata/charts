@@ -42,13 +42,11 @@ export default (sdk, chart) => {
     gauge.setMinValue(0)
 
     resizeObserver = makeResizeObserver(element.parentNode, () => {
-      const height = element.parentNode.clientHeight * 0.9
-      element.G__height = height
-      element.style.height = `${height}px`
-      const width = element.parentNode.clientWidth
-      element.G__width = width
-      element.style.width = `${width}px`
-      gauge = gauge.configDisplayScale()
+      gauge = new Gauge(element).setOptions(makeGaugeOptions())
+
+      gauge.maxValue = 100
+      gauge.animationSpeed = Number.MAX_VALUE
+      gauge.setMinValue(0)
 
       chartUI.trigger("resize")
     })

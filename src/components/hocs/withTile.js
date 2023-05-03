@@ -17,7 +17,6 @@ const ChartHeadWrapper = styled(Flex).attrs(({ size, ...rest }) => ({
   padding: [2],
   background: "elementBackground",
   round: true,
-  height: "100%",
   fontSize: parseInt(size / 3, 10),
   ...rest,
 }))`

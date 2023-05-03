@@ -7,6 +7,7 @@ import GaugeComponent from "@/components/gauge"
 import EasyPieComponent from "@/components/easyPie"
 import NumberComponent from "@/components/number"
 import D3pieComponent from "@/components/d3pie"
+import BarsComponent from "@/components/bars"
 import GroupBoxes from "@/components/groupBoxes"
 import makeDefaultSDK from "./makeDefaultSDK"
 
@@ -152,18 +153,33 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
 
   sdk.appendChild(chart9)
 
+  const chart10 = sdk.makeChart({
+    attributes: {
+      selectedContexts: [contexts],
+      nodesScope: [nodesScope],
+      contextScope: [contextScope],
+      host: host,
+      agent: true,
+      chartLibrary: "bars",
+      syncHover: true,
+    },
+  })
+
+  sdk.appendChild(chart10)
+
   return (
     <ThemeProvider theme={theme === "default" ? DefaultTheme : DarkTheme}>
       <Flex background="mainBackground" column gap={2} padding={[3]}>
-        <Flex>
+        <Flex height={50} gap={2}>
           <EasyPieComponent chart={chart2} />
           <GaugeComponent chart={chart3} />
           <NumberComponent chart={chart5} />
           <D3pieComponent chart={chart6} />
         </Flex>
-        <Flex>
+        <Flex height={50} gap={2}>
           <D3pieComponent chart={chart8} />
           <D3pieComponent chart={chart9} />
+          <BarsComponent chart={chart10} />
         </Flex>
         <Line chart={chart} height="315px" />
         <Line chart={chart7} height="315px" />
