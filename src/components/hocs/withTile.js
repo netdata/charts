@@ -18,18 +18,22 @@ const ChartHeadWrapper = styled(Flex).attrs(({ size, ...rest }) => ({
   background: "elementBackground",
   round: true,
   fontSize: parseInt(size / 3, 10),
+  height: "100%",
+  width: "100%",
   ...rest,
 }))`
   font-size: ${props => (props.fontSize > 12 ? 12 : props.fontSize)}px;
 `
 
-export const Title = () => {
+export const Title = ({ size }) => {
   const title = useTitle()
   return (
     <Flex alignItems="center" justifyContent="center" position="relative" padding={[0, 2.5]}>
-      <Box position="absolute" left="-4px" top="-2px">
-        <Status plain />
-      </Box>
+      {size / 3 > 8 && (
+        <Box position="absolute" left="-4px" top="-2px">
+          <Status plain />
+        </Box>
+      )}
       <Label fontSize="1em" textAlign="center" color="sectionDescription">
         {title}
       </Label>
@@ -46,7 +50,7 @@ export const HeadWrapper = ({ children, uiName, ...rest }) => {
 
   return (
     <ChartHeadWrapper size={size} {...rest}>
-      <Title />
+      <Title size={size} />
       {children}
     </ChartHeadWrapper>
   )

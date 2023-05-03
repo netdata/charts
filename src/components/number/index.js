@@ -1,9 +1,8 @@
 import React, { forwardRef } from "react"
 import styled from "styled-components"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { Text } from "@netdata/netdata-ui/lib/components/typography"
 import ChartContainer from "@/components/chartContainer"
-import { useUnitSign, useOnResize, useLatestConvertedValue } from "@/components/provider"
+import { useUnitSign, useLatestConvertedValue } from "@/components/provider"
 import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
 import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
@@ -39,24 +38,20 @@ export const Unit = props => {
   )
 }
 
-const StatsContainer = styled(Flex)`
-  font-size: ${({ fontSize }) => fontSize};
-`
-
-export const NumberChart = forwardRef(({ uiName, ...rest }, ref) => {
-  const { width, height } = useOnResize(uiName)
-  const size = width < height ? width : height
-
-  return (
-    <ChartWrapper ref={ref}>
-      <ChartContainer uiName={uiName} column alignItems="center" justifyContent="center" {...rest}>
-        <StatsContainer column fontSize={`${size / 15}px`} position="relative">
-          <Value />
-          <Unit />
-        </StatsContainer>
-      </ChartContainer>
-    </ChartWrapper>
-  )
-})
+export const NumberChart = forwardRef(({ uiName, ...rest }, ref) => (
+  <ChartWrapper ref={ref}>
+    <ChartContainer
+      uiName={uiName}
+      column
+      alignItems="center"
+      justifyContent="center"
+      position="relative"
+      {...rest}
+    >
+      <Value />
+      <Unit />
+    </ChartContainer>
+  </ChartWrapper>
+))
 
 export default withChart(NumberChart, { tile: true })

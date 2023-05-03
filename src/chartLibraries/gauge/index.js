@@ -1,4 +1,4 @@
-import { Gauge } from "gaugeJS"
+import Gauge from "./library"
 import makeChartUI from "@/sdk/makeChartUI"
 import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
@@ -42,12 +42,14 @@ export default (sdk, chart) => {
     gauge.setMinValue(0)
 
     resizeObserver = makeResizeObserver(element.parentNode, () => {
-      gauge = new Gauge(element).setOptions(makeGaugeOptions())
+      const height = element.parentNode.clientHeight * 0.9
+      element.G__height = height
+      element.style.height = `${height}px`
+      const width = element.parentNode.clientWidth
+      element.G__width = width
+      element.style.width = `${width}px`
 
-      gauge.maxValue = 100
-      gauge.animationSpeed = Number.MAX_VALUE
-      gauge.setMinValue(0)
-
+      gauge.setOptions({})
       chartUI.trigger("resize")
     })
 
@@ -58,9 +60,7 @@ export default (sdk, chart) => {
       !loaded && chart.onceAttributeChange("loaded", render),
       chart.onAttributeChange("theme", () => {
         const { color, strokeColor } = makeThemingOptions()
-        gauge.options.strokeColor = strokeColor
-        gauge.options.pointer.color = color
-        gauge.render()
+        gauge.setOptions({ strokeColor, pointer: { color } })
       })
     )
 

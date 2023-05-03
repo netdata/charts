@@ -133,7 +133,7 @@ const Dimensions = ({ size, height }) => {
             strong={row === id}
             chars={size < 600 ? 200 : size / 3}
             rowFlavour={rowFlavour}
-            size={(height - 90) / ids.length || 10}
+            size={(size - 90) / ids.length || 10}
           />
         ))}
       </Grid>

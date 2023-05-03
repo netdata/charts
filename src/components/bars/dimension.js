@@ -78,11 +78,11 @@ const Dimension = ({ id, strong, chars, rowFlavour, size }) => {
         <ColorBackground
           id={id}
           valueKey={rowValueKeys[rowFlavour] || rowValueKeys.default}
-          height={`${size}px`}
+          height={`${size > 18 ? 18 : size}px`}
         >
           <Color id={id} />
         </ColorBackground>
-        <Name padding={[1, 2]} flex id={id} strong={strong} maxLength={chars} />
+        <Name padding={[1, 2]} flex id={id} strong={strong} maxLength={chars} fontSize="0.9em" />
       </Flex>
       <Value
         id={id}
