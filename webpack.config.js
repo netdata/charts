@@ -36,7 +36,7 @@ module.exports = {
         oneOf: [
           {
             use: ["raw-loader"],
-            include: [/src\/components\/line\/skeleton/],
+            include: [/src\//],
             exclude: [/node_modules\/@netdata\/netdata-ui/],
           },
           {

@@ -1,5 +1,5 @@
 import React, { memo, useMemo } from "react"
-import { TextSmall } from "@netdata/netdata-ui"
+import { TextMicro } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart } from "@/components/provider"
 import Dropdown from "./dropdownSingleSelect"
 
@@ -43,10 +43,10 @@ const useItems = chart =>
   )
 
 const dropTitle = (
-  <TextSmall padding={[0, 0, 2]}>
+  <TextMicro padding={[0, 0, 2]} color="textLite">
     When aggregating multiple multiple source time-series metrics to one visible dimension on the
     chart, use the following aggregation function
-  </TextSmall>
+  </TextMicro>
 )
 
 const tooltipProps = {

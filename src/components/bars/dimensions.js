@@ -1,25 +1,22 @@
 import React, { useMemo, memo } from "react"
 import styled from "styled-components"
-import { Flex } from "@netdata/netdata-ui"
 import { useChart, useAttributeValue, usePayload } from "@/components/provider"
 import { TextMicro, TextNano } from "@netdata/netdata-ui/lib/components/typography"
 import Units from "@/components/line/dimensions/units"
-import UpdateEvery from "./updateEvery"
-import Timestamp from "./timestamp"
 import Dimension from "./dimension"
 
 const Grid = styled.div`
   display: grid;
   width: 100%;
-  grid-template-columns: 3fr 1fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
   align-items: center;
 `
 
 const emptyArray = [null, null]
 
 const getMaxDimensions = height => {
-  const maxDimensions = Math.floor((height - 120) / 15) || 16
-  return maxDimensions < 4 ? 4 : maxDimensions
+  const maxDimensions = Math.floor((height - 90) / 15) || 16
+  return maxDimensions < 2 ? 2 : maxDimensions
 }
 const getHalf = height => getMaxDimensions(height) / 2
 
@@ -60,7 +57,7 @@ const Dimensions = ({ size, height }) => {
   const [x, row] = useAttributeValue("hoverX") || emptyArray
   const { data } = usePayload()
 
-  const [from, to, total, ids, timestamp] = useMemo(() => {
+  const [from, to, total, ids] = useMemo(() => {
     const index = chart.getClosestRow(x) || data.length - 1
 
     let dimensionIds =
@@ -78,16 +75,13 @@ const Dimensions = ({ size, height }) => {
     const to = Math.ceil(getTo(total, rowIndex, height))
     const ids = dimensionIds.slice(from, to)
 
-    return [from, to, total, ids, data[index]?.[0]]
+    return [from, to, total, ids]
   }, [chart, row, x, data, height])
 
   const rowFlavour = rowFlavours[row] || rowFlavours.default
 
   return (
     <>
-      {timestamp && <Timestamp value={timestamp} />}
-      <UpdateEvery />
-
       <TextNano fontSize="0.8em" color="textLite">
         {from > 0 ? `↑${from} more values` : <>&nbsp;</>}
       </TextNano>
@@ -131,9 +125,9 @@ const Dimensions = ({ size, height }) => {
             key={id}
             id={id}
             strong={row === id}
-            chars={size < 600 ? 200 : size / 3}
+            chars={parseInt(size / 8)}
             rowFlavour={rowFlavour}
-            size={(size - 90) / ids.length || 10}
+            size={(size - 60) / ids.length || 10}
           />
         ))}
       </Grid>

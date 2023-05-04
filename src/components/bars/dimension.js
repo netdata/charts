@@ -74,7 +74,7 @@ const Dimension = ({ id, strong, chars, rowFlavour, size }) => {
 
   return (
     <GridRow opacity={visible ? null : "weak"}>
-      <Flex alignItems="center" gap={1} position="relative">
+      <Flex alignItems="center" gap={1} position="relative" overflow="hidden">
         <ColorBackground
           id={id}
           valueKey={rowValueKeys[rowFlavour] || rowValueKeys.default}

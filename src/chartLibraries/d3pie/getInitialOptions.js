@@ -55,7 +55,7 @@ export default (chartUI, dataOptions = {}) => {
       },
       mainLabel: {
         color: "segment", // or 'segment' for dynamic color
-        fontSize: "1em",
+        fontSize: "0.9em",
         fontWeight: "normal",
         font: '-apple-system, BlinkMacSystemFont, "Segoe UI", Ubuntu, "Helvetica Neue", sans-serif',
       },
@@ -68,7 +68,7 @@ export default (chartUI, dataOptions = {}) => {
       },
       value: {
         color: chartUI.chart.getThemeAttribute("themeD3pieSmallColor"),
-        fontSize: "1.3em",
+        fontSize: "1.2em",
         fontWeight: "strong",
         font: '-apple-system, BlinkMacSystemFont, "Segoe UI", Ubuntu, "Helvetica Neue", sans-serif',
       },

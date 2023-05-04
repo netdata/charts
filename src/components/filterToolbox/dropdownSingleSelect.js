@@ -1,8 +1,10 @@
 import React, { memo } from "react"
 import styled from "styled-components"
-import { Menu, Text, TextSmall, Flex, getColor, getRgbColor } from "@netdata/netdata-ui"
+import { Menu, Text, TextMicro, Flex, getColor, getRgbColor } from "@netdata/netdata-ui"
 import checkmark_s from "@netdata/netdata-ui/lib/components/icon/assets/checkmark_s.svg"
+import information from "@netdata/netdata-ui/lib/components/icon/assets/information.svg"
 import Icon from "@/components/icon"
+import Tooltip from "@/components/tooltip"
 import Label from "./label"
 
 const getBackground = ({ theme }) => {
@@ -57,7 +59,13 @@ export const Item = ({ value: selectedValue, item, onItemClick, itemProps }) => 
       onClick={() => onItemClick(value)}
       justDesc={justDesc}
     >
-      <Flex column padding={[0, 1]} alignItems="start" width="100%">
+      <Flex
+        column={justDesc}
+        padding={[0, 1]}
+        alignItems="start"
+        width="100%"
+        justifyContent="between"
+      >
         {!!label && (
           <Text>
             {label}
@@ -72,11 +80,16 @@ export const Item = ({ value: selectedValue, item, onItemClick, itemProps }) => 
             )}
           </Text>
         )}
-        {!!description && (
-          <TextSmall strong={justDesc} color="textLite">
-            {description}
-          </TextSmall>
-        )}
+        {!!description &&
+          (justDesc ? (
+            <TextMicro color="textLite">{description}</TextMicro>
+          ) : (
+            <Tooltip content={description} zIndex={9999999}>
+              <div>
+                <Icon width="14px" height="14px" color="textLite" svg={information} />
+              </div>
+            </Tooltip>
+          ))}
       </Flex>
     </ItemContainer>
   )

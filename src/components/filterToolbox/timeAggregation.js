@@ -1,5 +1,5 @@
 import React, { memo, useMemo } from "react"
-import { TextSmall } from "@netdata/netdata-ui"
+import { TextMicro } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart } from "@/components/provider"
 import Dropdown from "./dropdownSingleSelect"
 
@@ -260,11 +260,11 @@ const methodTooltipProps = {
 }
 
 const dropTitle = (
-  <TextSmall padding={[0, 0, 2]}>
+  <TextMicro padding={[0, 0, 2]} color="textLite">
     When the screen resolution provides less points than the points available of the source
     time-series metrics, use the following aggregation function over time on each metric to reduce
     the number of points
-  </TextSmall>
+  </TextMicro>
 )
 
 const TimeAggregation = ({ labelProps, ...rest }) => {
