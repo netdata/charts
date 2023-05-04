@@ -53,7 +53,7 @@ export default (sdk, chart) => {
     const isEmpty = attributes.outOfLimits || data.length === 0
 
     dygraph = new Dygraph(element, isEmpty ? [[0]] : normalizeData(data), {
-      // timingName: "TEST",
+      // timingName: chart.getId(),
       legend: "never",
       showLabelsOnHighlight: false,
       labels: isEmpty ? ["X"] : labels,
@@ -127,8 +127,6 @@ export default (sdk, chart) => {
     hoverX.toggle(attributes.enabledHover)
     navigation.toggle(attributes.enabledNavigation, attributes.navigation)
 
-    const latestRender = executeLatest.add(render)
-
     listeners = [
       chartUI.on(
         "resize",
@@ -144,8 +142,6 @@ export default (sdk, chart) => {
           crosshair(instance, row)
         })
       ),
-      chart.onAttributeChange("after", latestRender),
-      chart.onAttributeChange("chartType", latestRender),
       chart.onAttributeChange("enabledHover", hoverX.toggle),
       chart.onAttributeChange("enabledNavigation", navigation.toggle),
       chart.onAttributeChange("navigation", navigation.set),
@@ -353,7 +349,7 @@ export default (sdk, chart) => {
   }
 
   const makeDataOptions = () => {
-    const { outOfLimits, getValueRange, chartType, groupBy, selectedLegendDimensions } =
+    const { outOfLimits, getValueRange, chartType, selectedLegendDimensions } =
       chart.getAttributes()
     const { data, labels } = chart.getPayload()
     const dateWindow = chart.getDateWindow()

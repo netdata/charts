@@ -47,7 +47,6 @@ export const getChartPayload = chart => {
 
   const width = chart.getAttribute("width") || ui.getChartWidth()
 
-  const pixelsPerPoint = chart.getPixelsPerPoint()
   const {
     after,
     before,
@@ -58,6 +57,7 @@ export const getChartPayload = chart => {
     hovering,
     fetchStartedAt,
     chartType,
+    pixelsPerPoint,
     ...restAttributes
   } = chart.getAttributes()
 

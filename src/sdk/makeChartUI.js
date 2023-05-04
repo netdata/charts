@@ -3,6 +3,8 @@ import makeExecuteLatest from "@/helpers/makeExecuteLatest"
 
 export default (sdk, chart) => {
   const listeners = makeListeners()
+  const executeLatest = makeExecuteLatest()
+
   let element = null
   let renderedAt = chart.getDateWindow()[1]
 
@@ -15,15 +17,12 @@ export default (sdk, chart) => {
     sdk.trigger("unmountChartUI", chart)
     listeners.offAll()
     element = null
+    if (executeLatest) executeLatest.clear()
   }
 
   const render = () => (renderedAt = chart.getDateWindow()[1])
 
-  const executeLatest = makeExecuteLatest()
-  const latestRender = executeLatest.add(render)
-
-  chart.on("finishFetch", latestRender)
-  chart.on("visibleDimensionsChanged", latestRender)
+  chart.on("visibleDimensionsChanged", executeLatest.add(render))
 
   const getRenderedAt = () => renderedAt
 

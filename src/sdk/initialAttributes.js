@@ -110,7 +110,7 @@ export default {
   autofetch: false,
   autofetchOnWindowBlur: false,
   paused: false,
-  pixelsPerPoint: 1,
+  pixelsPerPoint: 3,
   legend: true,
   groupingMethod: "average",
   groupingTime: 0,

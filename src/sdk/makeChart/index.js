@@ -1,4 +1,5 @@
 import makeKeyboardListener from "@/helpers/makeKeyboardListener"
+import makeExecuteLatest from "@/helpers/makeExecuteLatest"
 import makeNode from "../makeNode"
 import convert from "../unitConversion"
 import { fetchChartData, pointMultiplierByChartType } from "./api"
@@ -24,6 +25,8 @@ export default ({
   attributes,
   makeTrack = defaultMakeTrack,
 } = {}) => {
+  const executeLatest = makeExecuteLatest()
+
   let node = makeNode({ sdk, parent, attributes })
   node.getChart = getChart
 
@@ -116,7 +119,9 @@ export default ({
     uiInstances[uiName] = newUi
   }
 
-  const render = () => Object.keys(uiInstances).forEach(uiName => uiInstances[uiName].render())
+  const render = executeLatest.add(() =>
+    Object.keys(uiInstances).forEach(uiName => uiInstances[uiName].render())
+  )
 
   node.on("render", render)
 
@@ -294,6 +299,8 @@ export default ({
   const destroy = () => {
     if (!node) return
 
+    if (executeLatest) executeLatest.clear()
+
     node.destroy()
     node.stopAutofetch()
     clearKeyboardListener()
@@ -316,8 +323,6 @@ export default ({
 
     return count === 1 ? en[key]?.one || key : en[key]?.other || `${key}s`
   }
-
-  node.getPixelsPerPoint = () => 3
 
   return {
     ...node,
