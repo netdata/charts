@@ -110,8 +110,8 @@ export default payload => {
   let nodes = {}
   let nodesIndexes = {}
   nodesArray.forEach(n => {
-    nodes[n.mg] = n
-    nodesIndexes[n.ni] = n.mg
+    nodes[n.nd || n.mg] = n
+    nodesIndexes[n.ni] = n.nd || n.mg
   })
 
   let dimensionIds = []
@@ -123,7 +123,7 @@ export default payload => {
 
   let instanceId = null
   const instances = instancesArray.reduce((h, i) => {
-    instanceId = `${i.id}@${nodes[nodesIndexes[i.ni]].mg}`
+    instanceId = `${i.id}@${nodes[nodesIndexes[i.ni]].nd || nodes[nodesIndexes[i.ni]].mg}`
     h[instanceId] = i
     h[instanceId].nm = `${i.nm || i.id}@${nodes[nodesIndexes[i.ni]].nm}`
     return h
