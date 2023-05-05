@@ -8,14 +8,21 @@ import Dimension from "./dimension"
 const Grid = styled.div`
   display: grid;
   width: 100%;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
+  grid-template-columns: ${({ cols }) => {
+    switch (cols) {
+      case "full":
+        return "2fr 1fr 1fr 1fr"
+      default:
+        return "2fr 2fr"
+    }
+  }};
   align-items: center;
 `
 
 const emptyArray = [null, null]
 
 const getMaxDimensions = height => {
-  const maxDimensions = Math.floor((height - 90) / 15) || 16
+  const maxDimensions = Math.round((height - 60) / 18)
   return maxDimensions < 2 ? 2 : maxDimensions
 }
 const getHalf = height => getMaxDimensions(height) / 2
@@ -80,18 +87,20 @@ const Dimensions = ({ size, height }) => {
 
   const rowFlavour = rowFlavours[row] || rowFlavours.default
 
+  const cols = useAttributeValue("cols")
+
   return (
     <>
-      <TextNano fontSize="0.8em" color="textLite">
+      <TextNano fontSize="1em" color="textLite">
         {from > 0 ? `↑${from} more values` : <>&nbsp;</>}
       </TextNano>
 
-      <Grid gap={0.5} column>
-        <TextMicro fontSize="0.8em" strong>
+      <Grid gap={0.5} column cols={cols}>
+        <TextMicro fontSize="1em" strong>
           Dimension
         </TextMicro>
         <TextMicro
-          fontSize="0.8em"
+          fontSize="1em"
           color={rowFlavour === rowFlavours.default ? "text" : "textLite"}
           textAlign="right"
         >
@@ -100,25 +109,29 @@ const Dimensions = ({ size, height }) => {
             visible
             strong={rowFlavour === rowFlavours.default}
             color={rowFlavour === rowFlavours.default ? "text" : "textLite"}
-            fontSize="0.8em"
+            fontSize="1em"
           />
         </TextMicro>
-        <TextMicro
-          fontSize="0.8em"
-          strong={rowFlavour === rowFlavours.ANOMALY_RATE}
-          color={rowFlavour === rowFlavours.ANOMALY_RATE ? "text" : "textLite"}
-          textAlign="right"
-        >
-          AR %
-        </TextMicro>
-        <TextMicro
-          fontSize="0.8em"
-          strong={rowFlavour === rowFlavours.ANNOTATIONS}
-          color={rowFlavour === rowFlavours.ANNOTATIONS ? "text" : "textLite"}
-          textAlign="right"
-        >
-          Info
-        </TextMicro>
+        {cols === "full" && (
+          <>
+            <TextMicro
+              fontSize="1em"
+              strong={rowFlavour === rowFlavours.ANOMALY_RATE}
+              color={rowFlavour === rowFlavours.ANOMALY_RATE ? "text" : "textLite"}
+              textAlign="right"
+            >
+              AR %
+            </TextMicro>
+            <TextMicro
+              fontSize="1em"
+              strong={rowFlavour === rowFlavours.ANNOTATIONS}
+              color={rowFlavour === rowFlavours.ANNOTATIONS ? "text" : "textLite"}
+              textAlign="right"
+            >
+              Info
+            </TextMicro>
+          </>
+        )}
 
         {ids.map(id => (
           <Dimension
@@ -127,12 +140,13 @@ const Dimensions = ({ size, height }) => {
             strong={row === id}
             chars={parseInt(size / 8)}
             rowFlavour={rowFlavour}
-            size={(size - 60) / ids.length || 10}
+            size={(size - 80) / ids.length}
+            fullCols={cols === "full"}
           />
         ))}
       </Grid>
 
-      <TextNano color="textLite" fontSize="0.8em">
+      <TextNano color="textLite" fontSize="1em">
         {to < total ? `↓${total - to} more values` : <>&nbsp;</>}
       </TextNano>
     </>

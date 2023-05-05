@@ -22,7 +22,7 @@ const ChartHeadWrapper = styled(Flex).attrs(({ size, ...rest }) => ({
   width: "100%",
   ...rest,
 }))`
-  font-size: ${props => (props.fontSize > 12 ? 12 : props.fontSize)}px;
+  font-size: ${props => (props.fontSize > 12 ? 12 : props.fontSize < 9 ? 9 : props.fontSize)}px;
 `
 
 export const Title = ({ size }) => {

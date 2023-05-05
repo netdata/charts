@@ -34,7 +34,7 @@ const ValueOnDot = ({ children, fractionDigits = 0, ...rest }) => {
   const [first, last] = children.toString().split(".")
 
   return (
-    <Flex alignItems="center" justifyContent="end">
+    <Flex alignItems="center" justifyContent="end" padding={[0, 0.25]}>
       <ValuePart {...rest} textAlign="right">
         {first}
       </ValuePart>
@@ -66,7 +66,7 @@ const AnnotationsValue = ({ children: annotations, ...rest }) => (
   </Flex>
 )
 
-const Dimension = ({ id, strong, chars, rowFlavour, size }) => {
+const Dimension = ({ id, strong, chars, rowFlavour, size, fullCols }) => {
   const visible = useVisibleDimensionId(id)
 
   const chart = useChart()
@@ -78,11 +78,11 @@ const Dimension = ({ id, strong, chars, rowFlavour, size }) => {
         <ColorBackground
           id={id}
           valueKey={rowValueKeys[rowFlavour] || rowValueKeys.default}
-          height={`${size > 18 ? 18 : size}px`}
+          height={`${size > 18 ? 18 : size < 12 ? 12 : size}px`}
         >
           <Color id={id} />
         </ColorBackground>
-        <Name padding={[1, 2]} flex id={id} strong={strong} maxLength={chars} fontSize="0.9em" />
+        <Name padding={[1, 2]} flex id={id} strong={strong} maxLength={chars} fontSize="1.1em" />
       </Flex>
       <Value
         id={id}
@@ -91,28 +91,32 @@ const Dimension = ({ id, strong, chars, rowFlavour, size }) => {
         Component={ValueOnDot}
         fractionDigits={fractionDigits}
         color={rowFlavour === rowFlavours.default ? "text" : "textLite"}
-        fontSize="0.9em"
+        fontSize="1.1em"
       />
-      <Value
-        id={id}
-        strong={strong}
-        visible={visible}
-        valueKey="arp"
-        Component={ValueOnDot}
-        fractionDigits={2}
-        color={rowFlavour === rowFlavours.ANOMALY_RATE ? "anomalyTextFocus" : "anomalyText"}
-        fontSize="0.9em"
-      />
-      <Value
-        textAlign="right"
-        id={id}
-        strong={strong}
-        visible={visible}
-        valueKey="pa"
-        Component={AnnotationsValue}
-        color={rowFlavour === rowFlavours.ANNOTATIONS ? "text" : "textLite"}
-        fontSize="0.9em"
-      />
+      {fullCols && (
+        <>
+          <Value
+            id={id}
+            strong={strong}
+            visible={visible}
+            valueKey="arp"
+            Component={ValueOnDot}
+            fractionDigits={2}
+            color={rowFlavour === rowFlavours.ANOMALY_RATE ? "anomalyTextFocus" : "anomalyText"}
+            fontSize="1.1em"
+          />
+          <Value
+            textAlign="right"
+            id={id}
+            strong={strong}
+            visible={visible}
+            valueKey="pa"
+            Component={AnnotationsValue}
+            color={rowFlavour === rowFlavours.ANNOTATIONS ? "text" : "textLite"}
+            fontSize="1.1em"
+          />
+        </>
+      )}
     </GridRow>
   )
 }
