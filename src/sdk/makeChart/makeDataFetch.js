@@ -110,7 +110,8 @@ export default chart => {
     chart.backoff()
     chart.trigger("failFetch", error)
 
-    if (!chart.getAttribute("loaded")) chart.getParent().trigger("chartLoaded", chart)
+    if (!chart.getAttribute("loaded") && chart.getParent())
+      chart.getParent().trigger("chartLoaded", chart)
 
     chart.updateAttributes({
       loaded: true,
