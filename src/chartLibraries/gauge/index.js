@@ -35,19 +35,20 @@ export default (sdk, chart) => {
       highDpiSupport: true, // High resolution support
     })
 
-    gauge = new Gauge(element).setOptions(makeGaugeOptions())
+    gauge = new Gauge(element.firstChild).setOptions(makeGaugeOptions())
 
     gauge.maxValue = 100
     gauge.animationSpeed = Number.MAX_VALUE
     gauge.setMinValue(0)
 
-    resizeObserver = makeResizeObserver(element.parentNode, () => {
-      const height = element.parentNode.clientHeight * 0.9
-      element.G__height = height
-      element.style.height = `${height}px`
-      const width = element.parentNode.clientWidth
-      element.G__width = width
-      element.style.width = `${width}px`
+    resizeObserver = makeResizeObserver(element, () => {
+      const minWidth = element.clientWidth
+      const height = (element.clientHeight > minWidth ? minWidth : element.clientHeight) * 0.9
+      element.firstChild.G__height = height
+      element.firstChild.style.height = `${height}px`
+      const width = minWidth
+      element.firstChild.G__width = width
+      element.firstChild.style.width = `${width}px`
 
       gauge.setOptions({})
       chartUI.trigger("resize")
@@ -64,6 +65,15 @@ export default (sdk, chart) => {
       })
     )
 
+    const minWidth = element.clientWidth
+    const height = (element.clientHeight > minWidth ? minWidth : element.clientHeight) * 0.9
+    element.firstChild.G__height = height
+    element.firstChild.style.height = `${height}px`
+    const width = minWidth
+    element.firstChild.G__width = width
+    element.firstChild.style.width = `${width}px`
+
+    gauge.setOptions({})
     chartUI.trigger("resize")
     render()
   }

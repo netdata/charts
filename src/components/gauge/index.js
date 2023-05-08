@@ -123,8 +123,16 @@ export const Gauge = forwardRef(({ uiName, ...rest }, ref) => {
     <ChartWrapper alignItems="center" justifyContent="center" column ref={ref}>
       {loaded ? (
         <>
-          <ChartContainer uiName={uiName} as="canvas" {...rest} />
-          <Stats />
+          <ChartContainer
+            uiName={uiName}
+            position="relative"
+            justifyContent="center"
+            alignItems="center"
+            {...rest}
+          >
+            <canvas />
+          </ChartContainer>
+          <Stats uiName={uiName} />
         </>
       ) : (
         <Skeleton />
