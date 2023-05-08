@@ -24,29 +24,27 @@ export default chartUI => {
       return points[index].name
     }
 
-    const validPoints = points.filter(p => !isNaN(p.canvasy))
-
-    if (!Array.isArray(validPoints) || validPoints.length === 0) return
-
     if (offsetY > chartUI.getDygraph().getArea().h - 10) return "ANNOTATIONS"
     if (offsetY < 15) return "ANOMALY_RATE"
 
     const getY = index => {
       try {
-        return index < validPoints.length
-          ? validPoints[index].canvasy
+        return index < points.length
+          ? isNaN(points[index].canvasy)
+            ? chartUI.getDygraph().getArea().h
+            : points[index].canvasy
           : chartUI.getDygraph().getArea().h
       } catch (e) {
         return chartUI.getDygraph().getArea().h
       }
     }
 
-    if (offsetY < getY(0)) return getHighestPoint(validPoints).name
+    if (offsetY < getY(0)) return getHighestPoint(points).name
 
-    if (offsetY > getY(validPoints.length - 1)) return validPoints[validPoints.length - 1]?.name
+    if (offsetY > getY(points.length - 1)) return points[points.length - 1]?.name
 
-    const point = validPoints
-      .slice(0, validPoints.length - 1)
+    const point = points
+      .slice(0, points.length - 1)
       .find((p, index) => getY(index) < offsetY && getY(index + 1) > offsetY)
 
     return point?.name
@@ -58,12 +56,11 @@ export default chartUI => {
     if (offsetY > chartUI.getDygraph().getArea().h - 10) return "ANNOTATIONS"
     if (offsetY < 15) return "ANOMALY_RATE"
 
-    const distance = p => Math.pow(offsetY - p.canvasy, 2)
+    const distance = p =>
+      Math.pow(offsetY - (isNaN(p.canvasy) ? chartUI.getDygraph().getArea().h : p.canvasy), 2)
 
     let last = distance(points[0])
     const closest = points.reduce((h, p) => {
-      if (isNaN(p.canvasy)) return h
-
       const distancePoint = distance(p)
       if (last < distancePoint) return h
 
