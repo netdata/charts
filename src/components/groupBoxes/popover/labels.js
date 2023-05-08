@@ -35,7 +35,7 @@ const Grid = styled.div`
 
 const Labels = ({ index, label, groupLabel, data, id }) => {
   const chart = useChart()
-  const viewDimensions = chart.getAttribute("viewDimensions")
+  const viewDimensions = chart.getAttribute("viewDimensions") || {}
 
   const min = useAttributeValue("min")
   const max = useAttributeValue("max")
