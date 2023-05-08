@@ -1,4 +1,6 @@
 import { scaleLinear } from "d3-scale"
+import { unstable_shouldYield as shouldYield } from "scheduler"
+import { copyCanvas, createCanvas } from "@/helpers/canvas"
 import {
   getCellBoxSize,
   getRows,
@@ -10,14 +12,14 @@ import {
 } from "./utilities"
 import registerEvents from "./events"
 
-export const getWidth = (data, { aspectRatio, cellSize } = {}) => {
-  const rows = getRows(data, aspectRatio)
+export const getWidth = (dimensions, { aspectRatio, cellSize } = {}) => {
+  const rows = getRows(dimensions, aspectRatio)
   const columns = getColumns(rows, aspectRatio)
   return getFullWidth(columns, cellSize)
 }
 
-const getCanvasAttributes = (data, { aspectRatio, cellSize, padding } = {}) => {
-  const rows = getRows(data, aspectRatio)
+const getCanvasAttributes = (dimensions, { aspectRatio, cellSize, padding } = {}) => {
+  const rows = getRows(dimensions, aspectRatio)
   const columns = getColumns(rows, aspectRatio)
   const width = getFullWidth(columns, cellSize)
   const height = getFullHeight(rows, cellSize, padding)
@@ -25,24 +27,24 @@ const getCanvasAttributes = (data, { aspectRatio, cellSize, padding } = {}) => {
   return { width, height, columns: Math.ceil(columns) }
 }
 
-const defaultColorRange = ["rgba(198, 227, 246, 0.9)", "rgba(43, 44, 170, 1)"]
+export const makeGetColor = (min, max, colorRange) =>
+  scaleLinear().domain([min, max]).range(colorRange)
 
-export const makeGetColor = (values, colorRange = defaultColorRange) => {
-  const minMax = values.reduce(
-    (acc, value) => {
-      if (value < acc[0]) acc[0] = value
-      if (value > acc[1]) acc[1] = value
-      return acc
-    },
-    [values[0], values[0]]
-  )
-
-  return scaleLinear().domain(minMax).range(colorRange)
-}
-
-export default (el, { onMouseenter, onMouseout }, options = {}) => {
-  const { cellSize, cellPadding, cellStroke = 2, lineWidth = 1, colorRange } = options
+export default (chart, el, { onMouseenter, onMouseout }, options = {}) => {
+  const {
+    cellSize,
+    cellPadding,
+    cellStroke = 2,
+    lineWidth = 1,
+    colorRange = [
+      chart.getThemeAttribute("themeGroupBoxesMin"),
+      chart.getThemeAttribute("themeGroupBoxesMax"),
+    ],
+  } = options
   const canvas = el.getContext("2d")
+
+  const backgroundEl = createCanvas(canvas.width, canvas.height)
+  const backgroundCanvas = backgroundEl.getContext("2d")
 
   let activeBox = -1
   let deactivateBox = () => {}
@@ -53,25 +55,31 @@ export default (el, { onMouseenter, onMouseout }, options = {}) => {
     deactivateBox()
     clearEvents()
     canvas.clearRect(0, 0, el.width, el.height)
-    canvas.beginPath()
+    backgroundCanvas.clearRect(0, 0, backgroundEl.width, backgroundEl.height)
   }
 
-  const update = ({ data }, getColor) => {
-    const { width, height, columns } = getCanvasAttributes(data, options)
-    el.width = parseInt(width)
-    el.height = parseInt(height)
-    clear()
-    clearEvents()
-    getColor = getColor || makeGetColor(data, colorRange)
+  function* update(dimensions, pointData) {
+    const { width, height, columns } = getCanvasAttributes(dimensions, options)
 
-    const drawBox = (value, index) => {
-      canvas.fillStyle = getColor(value)
+    backgroundEl.width = parseInt(width)
+    backgroundEl.height = parseInt(height)
+
+    backgroundCanvas.clearRect(0, 0, backgroundEl.width, backgroundEl.height)
+
+    const min = chart.getAttribute("min")
+    const max = chart.getAttribute("max")
+
+    const getColor = makeGetColor(min, max, colorRange)
+
+    const drawBox = (ctx, id, index) => {
+      ctx.beginPath()
+      ctx.fillStyle = getColor(chart.getRowDimensionValue(id, pointData))
 
       const offsetX = getXPosition(columns, index, cellSize)
       const offsetY = getYPosition(columns, index, cellSize)
 
       if (lineWidth && cellStroke) {
-        canvas.clearRect(
+        ctx.clearRect(
           offsetX - lineWidth,
           offsetY - lineWidth,
           getCellBoxSize(cellSize, cellPadding) + cellStroke,
@@ -79,7 +87,7 @@ export default (el, { onMouseenter, onMouseout }, options = {}) => {
         )
       }
 
-      canvas.fillRect(
+      ctx.fillRect(
         offsetX,
         offsetY,
         getCellBoxSize(cellSize, cellPadding),
@@ -87,12 +95,21 @@ export default (el, { onMouseenter, onMouseout }, options = {}) => {
       )
     }
 
-    data.forEach(drawBox)
+    for (let index = 0; index < dimensions.length; ++index) {
+      drawBox(backgroundCanvas, dimensions[index], index)
+      if (shouldYield()) {
+        yield
+      }
+    }
+
+    deactivateBox()
+    clearEvents()
+    copyCanvas(backgroundEl, el)
 
     clearEvents = registerEvents(
       el,
       columns,
-      data.length,
+      dimensions.length,
       {
         onMouseenter,
         onMouseout,
@@ -100,9 +117,7 @@ export default (el, { onMouseenter, onMouseout }, options = {}) => {
       options
     )
 
-    deactivateBox = () => {
-      if (activeBox !== -1) drawBox(data[activeBox], activeBox)
-    }
+    deactivateBox = () => activeBox !== -1 && drawBox(canvas, dimensions[activeBox], activeBox)
 
     activateBox = index => {
       deactivateBox()

@@ -21,6 +21,6 @@ it("renders a chart", () => {
   })
 
   const element = document.createElement("div")
-  chart.getUI().mount(element)
+  chart.getUI("default").mount(element)
   expect(element.querySelectorAll("canvas")).toHaveLength(2)
 })

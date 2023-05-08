@@ -1,100 +1,100 @@
 export default sdk => {
-  let windowFocused = true
   let timeoutId
 
   const getNext = () => {
+    if (!sdk.getRoot().getAttribute("paused") && sdk.getRoot().getAttribute("after") < 0)
+      sdk.getRoot().setAttribute("fetchAt", Date.now())
+
     sdk
       .getNodes(
-        (node, { loaded, active, autofetchOnWindowBlur }) =>
-          node.type === "chart" && loaded && active && (windowFocused || autofetchOnWindowBlur)
+        (node, { loaded, active }) =>
+          node.type === "chart" && loaded && active && !sdk.getRoot().getAttribute("paused")
       )
-      .forEach(node => {
-        if (node.getAttribute("loading") || Date.now() - node.getUI().getRenderedAt() < 1000) return
+      .forEach(node => node.trigger("render"))
 
-        node.getUI().render()
-      })
-
-    timeoutId = setTimeout(() => {
-      getNext()
-    }, 1000)
+    timeoutId = setTimeout(getNext, 1000)
   }
 
   const toggleRender = enable => {
-    if (enable && !timeoutId) return getNext()
-    if (!enable) {
-      clearTimeout(timeoutId)
-      timeoutId = null
-    }
+    clearTimeout(timeoutId)
+    timeoutId = null
+    if (enable) getNext()
   }
 
-  const autofetchIfActive = (chart, force) => {
-    const { after, hovering, active, paused } = chart.getAttributes()
-    const autofetch = (chart.type === "container" || active) && after < 0 && !hovering && !paused
+  const autofetchIfActive = (chart, force = false) => {
+    const { after, hovering, active, loaded } = chart.getAttributes()
 
-    if (!autofetch && !force) return
+    let autofetch = after < 0 && !hovering && !chart.getRoot().getAttribute("paused")
 
-    if (chart.getAttribute("loaded")) {
-      chart.updateAttribute("autofetch", autofetch)
-      return chart.getUI().render()
-    }
+    if (chart.type === "container") return chart.updateAttribute("autofetch", autofetch)
 
-    if (active && !autofetch) chart.fetchAndRender()
+    autofetch = autofetch && active
 
-    if (autofetch) toggleRender(autofetch)
     chart.updateAttribute("autofetch", autofetch)
+
+    const [lastAfter, lastBefore] = chart.lastFetch
+    const [fetchAfter, fetchBefore] = chart.getDateWindow()
+
+    if (
+      active &&
+      !autofetch &&
+      (force || (loaded && (lastAfter !== fetchAfter || lastBefore !== fetchBefore)))
+    ) {
+      chart.lastFetch = [fetchAfter, fetchBefore]
+      chart.trigger("fetch")
+    }
   }
 
   const blur = () => {
-    windowFocused = false
-    sdk.getNodes({ autofetchOnWindowBlur: false }, { inherit: true }).forEach(node => {
-      node.updateAttribute("paused", true)
-      autofetchIfActive(node, true)
-    })
+    sdk.getRoot().updateAttribute("paused", !sdk.getRoot().getAttribute("autofetchOnWindowBlur"))
+    toggleRender(sdk.getRoot().getAttribute("after") < 0 && !sdk.getRoot().getAttribute("paused"))
+
+    sdk.getNodes().forEach(node => autofetchIfActive(node))
   }
 
   const focus = () => {
-    windowFocused = true
-    sdk.getNodes({ autofetchOnWindowBlur: false }, { inherit: true }).forEach(node => {
-      node.updateAttribute("paused", false)
-      autofetchIfActive(node, true)
-    })
+    sdk.getRoot().updateAttribute("paused", false)
+    toggleRender(sdk.getRoot().getAttribute("after") < 0 && !sdk.getRoot().getAttribute("paused"))
+
+    sdk.getNodes().forEach(node => autofetchIfActive(node))
   }
 
   window.addEventListener("blur", blur)
   window.addEventListener("focus", focus)
 
   const offs = sdk
-    .on("active", chart => autofetchIfActive(chart, true))
-    .on("hoverChart", chart => {
-      if (chart.getAttribute("paused") || !chart.getAttribute("autofetch")) return
-      const autofetch = false
+    .on("active", chart => {
+      toggleRender(
+        chart.getAttribute("after") < 0 &&
+          !chart.getAttribute("hovering") &&
+          !sdk.getRoot().getAttribute("paused")
+      )
 
-      toggleRender(autofetch)
-      chart.getApplicableNodes({ syncHover: true }).forEach(node => {
-        node.updateAttribute("autofetch", autofetch)
-      })
+      autofetchIfActive(chart, !chart.getAttribute("loaded"))
+    })
+    .on("hoverChart", chart => {
+      toggleRender(false)
+
+      if (sdk.getRoot().getAttribute("paused")) return
+
+      chart.getApplicableNodes({ syncHover: true }).forEach(node => autofetchIfActive(node))
     })
     .on("blurChart", chart => {
-      const autofetch = chart.getAttribute("after") < 0 && chart.getAttribute("active")
+      if (chart.getAttribute("paused")) return
 
-      if (chart.getAttribute("paused") || autofetch === chart.getAttribute("autofetch")) return
+      toggleRender(chart.getAttribute("after") < 0 && !sdk.getRoot().getAttribute("paused"))
 
-      toggleRender(autofetch)
-      chart.getApplicableNodes({ syncHover: true }).forEach(node => {
-        node.updateAttribute("autofetch", autofetch)
-      })
+      chart.getApplicableNodes({ syncHover: true }).forEach(node => autofetchIfActive(node))
     })
-    .on("moveX", (chart, after) => {
-      const autofetch = after < 0 && !chart.getAttribute("hovering")
+    .on("moveX", chart => {
+      toggleRender(chart.getAttribute("after") < 0 && !sdk.getRoot().getAttribute("paused"))
 
-      if (autofetch === chart.getAttribute("autofetch")) return
-
-      toggleRender(autofetch)
-
-      chart.getApplicableNodes({ syncPanning: true }).forEach(node => {
-        node.updateAttribute("autofetch", autofetch)
-      })
+      chart.getApplicableNodes({ syncPanning: true }).forEach(node => autofetchIfActive(node))
     })
+
+  sdk.getRoot().onAttributeChange("paused", () => {
+    sdk.getNodes().forEach(node => autofetchIfActive(node))
+  })
 
   return () => {
     offs()

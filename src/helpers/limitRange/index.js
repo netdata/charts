@@ -1,12 +1,13 @@
 const minDuration = 60
 
 const limitRange = ({ after, before = 0 }) => {
-  const wantedDuration = Math.round(before - after)
+  const wantedDuration = before - after
+
   if (wantedDuration <= minDuration) {
     const diff = minDuration - wantedDuration
-    const halfDiff = Math.floor(diff / 2)
-
+    const halfDiff = diff / 2
     const remainder = diff % 2
+
     return {
       fixedAfter: after - halfDiff - remainder,
       fixedBefore: before + halfDiff,

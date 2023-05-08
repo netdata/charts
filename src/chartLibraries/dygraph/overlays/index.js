@@ -30,10 +30,10 @@ export default chartUI => {
 
   const toggle = () => {
     const overlays = chartUI.chart.getAttribute("overlays")
-    if (Object.keys(overlays).length === 0) return destroy()
+    if (!Object.keys(overlays).length) return destroy()
 
     if (!off) {
-      off = chartUI.on("drawCallback", drawOverlays)
+      off = chartUI.on("underlayCallback", drawOverlays)
     } else {
       render()
     }

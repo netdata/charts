@@ -1,22 +1,17 @@
-import React, { useState } from "react"
-import styled from "styled-components"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { Text } from "@netdata/netdata-ui/lib/components/typography"
+import React, { forwardRef } from "react"
+import styled, { keyframes } from "styled-components"
+import { Flex, Text } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
 import {
   useChart,
-  useTitle,
   useUnitSign,
   useAttributeValue,
-  useImmediateListener,
   useOnResize,
+  useLatestConvertedValue,
 } from "@/components/provider"
-import { getSizeBy } from "@netdata/netdata-ui/lib/theme/utils"
 import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
-import { withChartProvider, useIsFetching } from "@/components/provider"
-import withChartTrack from "@/components/hocs/withChartTrack"
-import withIntersection from "./withIntersection"
-import withDifferedMount from "@/components/hocs/withDifferedMount"
+import withChart from "@/components/hocs/withChart"
+import { ChartWrapper } from "@/components/hocs/withTile"
 import textAnimation from "../helpers/textAnimation"
 
 const Label = styled(Text)`
@@ -26,35 +21,15 @@ const Label = styled(Text)`
   ${({ isFetching }) => isFetching && textAnimation};
 `
 
-export const Title = () => {
-  const title = useTitle()
-  const isFetching = useIsFetching()
-  return (
-    <Label flex="1" color="border" fontSize="1.2em" strong isFetching={isFetching}>
-      {title}
-    </Label>
-  )
-}
 const StrokeLabel = styled(Label)`
   text-shadow: 0.02em 0 ${getColor("borderSecondary")}, 0 0.02em ${getColor("borderSecondary")},
     -0.02em 0 ${getColor("borderSecondary")}, 0 -0.02em ${getColor("borderSecondary")};
 `
 export const Value = () => {
-  const chart = useChart()
-
-  const getValue = () => {
-    const { hoverX, after } = chart.getAttributes()
-    if (!hoverX && after > 0) return "-"
-
-    const v = chart.getUI().getValue()
-    return chart.getConvertedValue(v)
-  }
-  const [value, setValue] = useState(getValue)
-
-  useImmediateListener(() => chart.getUI().on("rendered", () => setValue(getValue())), [])
+  const value = useLatestConvertedValue("selected")
 
   return (
-    <StrokeLabel flex="2" color="main" fontSize="2.2em" strong>
+    <StrokeLabel flex="2" color="main" fontSize="2em" strong>
       {value}
     </StrokeLabel>
   )
@@ -63,108 +38,107 @@ export const Value = () => {
 export const Unit = () => {
   const unit = useUnitSign()
   return (
-    <Label color="border" fontSize="1em" alignSelf="start">
+    <Label color="border" fontSize="1em">
       {unit}
     </Label>
   )
 }
 
-const useEmptyValue = () => {
+export const Bound = ({ empty, index, uiName, ...rest }) => {
   const chart = useChart()
-
-  const getValue = () => {
-    const { hoverX, after } = chart.getAttributes()
-    return !hoverX && after > 0
-  }
-  const [value, setValue] = useState(getValue)
-
-  useImmediateListener(() => chart.getUI().on("rendered", () => setValue(getValue())), [])
-
-  return value
-}
-
-export const Bound = ({ bound, empty, ...rest }) => {
-  const chart = useChart()
-  const value = useAttributeValue(bound)
+  const minMax = chart.getUI(uiName).getMinMax()
 
   return (
-    <Label color="main" fontSize="1.7em" {...rest}>
-      {empty ? "-" : chart.getConvertedValue(value)}
+    <Label color="border" fontSize="1.3em" {...rest}>
+      {empty ? "-" : chart.getConvertedValue(minMax[index])}
     </Label>
   )
 }
 
-export const BoundsContainer = styled(Flex).attrs({ justifyContent: "between" })`
-  padding-left: 6%;
-`
+export const BoundsContainer = styled(Flex).attrs({
+  alignItems: "center",
+  justifyContent: "between",
+  flex: true,
+})``
 
-export const Bounds = () => {
-  const empty = useEmptyValue()
-
-  return (
-    <BoundsContainer>
-      <Bound bound="min" empty={empty} />
-      <Bound bound="max" empty={empty} />
-    </BoundsContainer>
-  )
-}
+export const Bounds = ({ uiName }) => (
+  <BoundsContainer>
+    <Bound index={0} uiName={uiName} />
+    <Bound index={1} uiName={uiName} />
+  </BoundsContainer>
+)
 
 export const StatsContainer = styled(Flex).attrs({
   position: "absolute",
   column: true,
-  justifyContent: "between",
   alignContent: "center",
+  justifyContent: "center",
 })`
   inset: ${({ inset }) => inset};
   text-align: center;
   font-size: ${({ fontSize }) => fontSize};
 `
 
-export const Stats = () => {
-  const { width } = useOnResize()
+export const Stats = ({ uiName }) => {
+  const { width, height } = useOnResize(uiName)
+  const size = width < height ? width : height
 
   return (
-    <StatsContainer inset="0 6%" fontSize={`${width / 20}px`}>
-      <Title />
-      <Value />
-      <Bounds />
-      <Unit />
-    </StatsContainer>
+    <>
+      <StatsContainer fontSize={`${size / 15}px`} inset="50% 15% 0%">
+        <Unit />
+      </StatsContainer>
+      <StatsContainer fontSize={`${size / 15}px`} inset="35% 15% 0%">
+        <Value />
+      </StatsContainer>
+      <StatsContainer
+        fontSize={`${size / 15}px`}
+        inset={`90% ${(100 - (size * 0.8 * 100) / width) / 2}% 0%`}
+      >
+        <Bounds uiName={uiName} />
+      </StatsContainer>
+    </>
   )
 }
 
-export const Skeleton = styled(Flex).attrs({
+const frames = keyframes`
+  from { opacity: 0.2; }
+  to { opacity: 0.6; }
+`
+
+export const Skeleton = styled(Flex).attrs(props => ({
   background: "borderSecondary",
-  position: "absolute",
-})`
-  inset: ${getSizeBy(1)} ${getSizeBy(3)} ${getSizeBy(3)};
-  border-top-left-radius: 100%;
-  border-top-right-radius: 100%;
+  round: "100%",
+  width: "100%",
+  height: "100%",
+  ...props,
+}))`
+  animation: ${frames} 1.6s ease-in infinite;
 `
 
-export const Container = styled(Flex).attrs({ position: "relative" })`
-  padding-bottom: 60%;
-`
-
-export const ChartWrapper = styled.div`
-  position: absolute;
-  inset: 0;
-`
-
-export const Gauge = props => {
+export const Gauge = forwardRef(({ uiName, ...rest }, ref) => {
   const loaded = useAttributeValue("loaded")
 
   return (
-    <Container {...props}>
-      {!loaded && <Skeleton />}
-      {loaded && (
-        <ChartWrapper>
-          <ChartContainer as="canvas" />
-          <Stats />
-        </ChartWrapper>
+    <ChartWrapper alignItems="center" justifyContent="center" column ref={ref}>
+      {loaded ? (
+        <>
+          <ChartContainer
+            uiName={uiName}
+            position="relative"
+            justifyContent="center"
+            alignItems="center"
+            {...rest}
+          >
+            <canvas />
+          </ChartContainer>
+          <Stats uiName={uiName} />
+        </>
+      ) : (
+        <Skeleton />
       )}
-    </Container>
+    </ChartWrapper>
   )
-}
+})
 
-export default withChartProvider(withIntersection(withChartTrack(withDifferedMount(Gauge))))
+export default withChart(Gauge, { tile: true })

@@ -1,13 +1,15 @@
 const getHighestPoint = points => {
   let highest = points[0] || {}
-  points.reduce((acc, point) => {
+  points.reduce((h, point) => {
+    if (isNaN(point.canvasy)) return h
+
     const { yval } = point
-    if (yval > acc) {
+    if (yval > h) {
       highest = point
       return yval
     }
 
-    return acc
+    return h
   }, 0)
 
   return highest
@@ -26,48 +28,65 @@ export default chartUI => {
 
     if (!Array.isArray(validPoints) || validPoints.length === 0) return
 
+    if (offsetY > chartUI.getDygraph().getArea().h - 10) return "ANNOTATIONS"
+    if (offsetY < 15) return "ANOMALY_RATE"
+
     const getY = index => {
-      if (index < validPoints.length) return validPoints[index].canvasy
-      return chartUI.getDygraph().getArea().h
+      try {
+        return index < validPoints.length
+          ? validPoints[index].canvasy
+          : chartUI.getDygraph().getArea().h
+      } catch (e) {
+        return chartUI.getDygraph().getArea().h
+      }
     }
 
-    if (offsetY < getY(0)) {
-      const { name } = getHighestPoint(validPoints)
-      return name
-    }
+    if (offsetY < getY(0)) return getHighestPoint(validPoints).name
 
     if (offsetY > getY(validPoints.length - 1)) return validPoints[validPoints.length - 1]?.name
 
-    const point = validPoints.find((p, index) => getY(index) < offsetY && getY(index + 1) > offsetY)
+    const point = validPoints
+      .slice(0, validPoints.length - 1)
+      .find((p, index) => getY(index) < offsetY && getY(index + 1) > offsetY)
 
     return point?.name
   }
 
   const getClosestPoint = (event, points) => {
     const { offsetY } = event
+
+    if (offsetY > chartUI.getDygraph().getArea().h - 10) return "ANNOTATIONS"
+    if (offsetY < 15) return "ANOMALY_RATE"
+
     const distance = p => Math.pow(offsetY - p.canvasy, 2)
 
     let last = distance(points[0])
-    const closest = points.reduce((a, b) => {
-      const distanceB = distance(b)
-      if (last < distanceB) return a
+    const closest = points.reduce((h, p) => {
+      if (isNaN(p.canvasy)) return h
 
-      last = distanceB
-      return b
+      const distancePoint = distance(p)
+      if (last < distancePoint) return h
+
+      last = distancePoint
+      return p
     })
 
     return closest.name
   }
 
+  const getClosestByChartType = {
+    stacked: getClosestArea,
+    area: getClosestArea,
+    default: getClosestPoint,
+  }
+
   const getClosestSeries = (event, points) => {
     if (!Array.isArray(points)) return
 
-    const chartType =
-      chartUI.chart.getAttribute("chartType") || chartUI.chart.getMetadata().chartType
+    const chartType = chartUI.chart.getAttribute("chartType")
+    const getClosest = getClosestByChartType[chartType] || getClosestByChartType.default
 
-    if (chartType === "stacked" || chartType === "area") return getClosestArea(event, points)
-
-    return getClosestPoint(event, points)
+    return getClosest(event, points)
   }
 
   let lastX
@@ -80,14 +99,14 @@ export default chartUI => {
 
     if (!seriesName) return
 
-    // const { offsetX, offsetY } = event
     const seriesProps = chartUI.getDygraph().getPropertiesForSeries(seriesName)
+
     if (!seriesProps) return
 
-    const { dimensionIds } = chartUI.chart.getPayload()
+    const dimensionIds = chartUI.chart.getPayloadDimensionIds()
 
     if (!dimensionIds) return
-    const dimensionId = dimensionIds[seriesProps.column - 1]
+    const dimensionId = dimensionIds[seriesProps.column - 1] || seriesProps.name
 
     chartUI.sdk.trigger("highlightHover", chartUI.chart, x, dimensionId)
     chartUI.chart.trigger("highlightHover", x, dimensionId)
@@ -99,6 +118,7 @@ export default chartUI => {
     lastPoints = points
     lastTimestamp = x
 
+    lastX = event.offsetX
     lastY = event.offsetY
 
     triggerHighlight(event, x, points)
@@ -113,6 +133,11 @@ export default chartUI => {
     triggerHighlight(event, lastTimestamp, lastPoints)
   }
 
+  const mouseout = () => {
+    chartUI.sdk.trigger("highlightBlur", chartUI.chart)
+    chartUI.chart.trigger("highlightBlur")
+  }
+
   const destroy = () => {
     lastY = null
     lastPoints = null
@@ -124,7 +149,10 @@ export default chartUI => {
 
   const toggle = enabled => {
     return enabled
-      ? chartUI.on("highlightCallback", highlight).on("mousemove", mousemove)
+      ? chartUI
+          .on("highlightCallback", highlight)
+          .on("mousemove", mousemove)
+          .on("mouseout", mouseout)
       : destroy()
   }
 

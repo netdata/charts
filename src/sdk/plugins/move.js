@@ -5,7 +5,7 @@ const getMoveX = (after, before = 0, autoPlay = true) => {
     return { after: Math.floor(after - before + 1), before: 0 }
   }
 
-  return { after: Math.floor(after), before: Math.floor(before) }
+  return { after: Math.floor(after), before: Math.ceil(before) }
 }
 
 export default sdk => {
@@ -17,21 +17,13 @@ export default sdk => {
       const move = getMoveX(after, before, autoPlay)
 
       chart.getApplicableNodes({ syncPanning: true }).forEach(node => {
-        const { after: prevAfter, before: prevBefore } = node.getAttributes()
-
         node.updateAttributes(move)
 
-        if (prevAfter === move.after && prevBefore === move.before) return
-
-        if (node.type === "chart" && node.getAttribute("active")) {
-          node.fetchAndRender()
-        } else {
-          node.updateAttribute("loaded", false)
-        }
+        if (!node.getAttribute("active")) node.updateAttribute("loaded", false)
       })
     })
     .on("moveY", (chart, min, max) => {
-      chart.updateValueRange([min, max])
+      chart.updateStaticValueRange([min, max])
       const after = chart.getAttribute("after")
 
       if (after < 0) {
@@ -43,7 +35,7 @@ export default sdk => {
       offAfter = chart.onAttributeChange("after", after => {
         if (after > 0) return
 
-        chart.resetValueRange()
+        chart.resetStaticValueRange()
         offAfter()
       })
     })

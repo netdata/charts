@@ -1,35 +1,30 @@
-import Dygraph from "@netdata/dygraphs"
-import "@netdata/dygraphs/src/extras/smooth-plotter"
+import Dygraph from "dygraphs"
 import makeChartUI from "@/sdk/makeChartUI"
 import makeExecuteLatest from "@/helpers/makeExecuteLatest"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
-import { stackedBarPlotter, multiColumnBarPlotter, makeHeatmapPlotter } from "./plotters"
+import {
+  makeLinePlotter,
+  makeStackedBarPlotter,
+  makeMultiColumnBarPlotter,
+  makeHeatmapPlotter,
+  makeAnomalyPlotter,
+  makeAnnotationsPlotter,
+} from "./plotters"
+import { numericTicker } from "./tickers"
 import makeNavigation from "./navigation"
-import makeHover from "./hover"
 import makeHoverX from "./hoverX"
 import makeOverlays from "./overlays"
 import crosshair from "./crosshair"
-
-const getDateWindow = chart => {
-  const { after, before, forceDateWindow } = chart.getAttributes()
-  if (forceDateWindow) return forceDateWindow
-
-  if (after > 0) return [after * 1000, before * 1000]
-
-  const now = Date.now()
-  return [now + after * 1000, now]
-}
 
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
   let dygraph = null
   let listeners = []
   let navigation = null
-  let hover = null
   let hoverX = null
-  let overlays = null
   let resizeObserver = null
   let executeLatest
+  let overlays = null
 
   const makeNormalizeByChartType = {
     default: d => d,
@@ -51,20 +46,19 @@ export default (sdk, chart) => {
     const theme = chart.getAttribute("theme")
     element.classList.add(theme)
 
-    chart.consumePayload()
-    chart.updateDimensions()
     const attributes = chart.getAttributes()
-    const { result, min, max } = chart.getPayload()
+    const { data, labels } = chart.getPayload()
 
     executeLatest = makeExecuteLatest()
-    const isEmpty = attributes.outOfLimits || result.data.length === 0
+    const isEmpty = attributes.outOfLimits || data.length === 0
 
-    dygraph = new Dygraph(element, isEmpty ? [[0]] : normalizeData(result.data), {
-      // timingName: "TEST",
+    dygraph = new Dygraph(element, isEmpty ? [[0]] : normalizeData(data), {
+      // timingName: chart.getId(),
+      legend: "never",
       showLabelsOnHighlight: false,
-      labels: isEmpty ? ["X"] : result.labels,
+      labels: isEmpty ? ["X"] : labels,
 
-      dateWindow: getDateWindow(chart),
+      dateWindow: chart.getDateWindow(),
       highlightCallback: executeLatest.add((event, x, points, row, seriesName) =>
         chartUI.trigger("highlightCallback", event, x, points, row, seriesName)
       ),
@@ -84,7 +78,21 @@ export default (sdk, chart) => {
         touchmove: executeLatest.add((...args) => chartUI.trigger("touchmove", ...args)),
         touchend: executeLatest.add((...args) => chartUI.trigger("touchend", ...args)),
         dblclick: executeLatest.add((...args) => chartUI.trigger("dblclick", ...args)),
-        wheel: (...args) => chartUI.trigger("wheel", ...args),
+        wheel: executeLatest.add((...args) => chartUI.trigger("wheel", ...args)),
+      },
+      series: {
+        ANOMALY_RATE: {
+          plotter: makeAnomalyPlotter(chartUI),
+          drawPoints: false,
+          pointSize: 0,
+          highlightCircleSize: 0,
+        },
+        ANNOTATIONS: {
+          plotter: makeAnnotationsPlotter(chartUI),
+          drawPoints: false,
+          pointSize: 0,
+          highlightCircleSize: 0,
+        },
       },
 
       strokeBorderWidth: 0,
@@ -94,11 +102,15 @@ export default (sdk, chart) => {
       maxNumberWidth: 8,
       highlightSeriesBackgroundAlpha: 1,
       drawGapEdgePoints: true,
-      // ylabel: attributes.unit,
+      ylabel: chart.getAttribute("hasYlabel") && chart.getUnitSign({ long: true }),
+      digitsAfterDecimal:
+        chart.getAttribute("unitsConversionFractionDigits") < 0
+          ? 0
+          : chart.getAttribute("unitsConversionFractionDigits"),
       yLabelWidth: 12,
-      yRangePad: 1,
+      yRangePad: 30,
       labelsSeparateLines: true,
-      rightGap: -6,
+      rightGap: -5,
 
       ...makeChartTypeOptions(),
       ...makeThemingOptions(),
@@ -106,27 +118,7 @@ export default (sdk, chart) => {
       ...makeDataOptions(),
       ...makeSparklineOptions(),
       ...makeColorOptions(),
-      // visibility return selected dimensions
-      // logscale
     })
-
-    // dygraph.mouseMoveHandler_
-    // removeEvent(dygraph.mouseEventElement_, "mousemove", dygraph.mouseMoveHandler_)
-    // dygraph.mouseMoveHandler_ = null
-
-    // const mousemove = event => {
-    //   const callback = dygraph.getFunctionOption("highlightCallback")
-
-    //   callback.call(
-    //     dygraph,
-    //     event,
-    //     dygraph.lastx_,
-    //     dygraph.selPoints_,
-    //     dygraph.lastRow_,
-    //     dygraph.highlightSet_
-    //   )
-    // }
-    // dygraph.addAndTrackEvent(dygraph.mouseEventElement_, "mousemove", mousemove)
 
     resizeObserver = makeResizeObserver(element, () => {
       chartUI.trigger("resize")
@@ -134,7 +126,6 @@ export default (sdk, chart) => {
 
     hoverX.toggle(attributes.enabledHover)
     navigation.toggle(attributes.enabledNavigation, attributes.navigation)
-    const latestRender = executeLatest.add(render)
 
     listeners = [
       chartUI.on(
@@ -144,17 +135,13 @@ export default (sdk, chart) => {
       chart.onAttributeChange(
         "hoverX",
         executeLatest.add(dimensions => {
-          const nextSelection = dimensions ? chart.getClosestRow(dimensions[0]) : -1
+          const row = dimensions ? chart.getClosestRow(dimensions[0]) : -1
 
-          if (nextSelection === -1) return dygraph.setSelection()
+          if (row === -1) return dygraph.setSelection()
 
-          dygraph.setSelection(nextSelection)
-
-          crosshair(instance, nextSelection)
+          crosshair(instance, row)
         })
       ),
-      chart.onAttributeChange("after", latestRender),
-      chart.onAttributeChange("chartType", latestRender),
       chart.onAttributeChange("enabledHover", hoverX.toggle),
       chart.onAttributeChange("enabledNavigation", navigation.toggle),
       chart.onAttributeChange("navigation", navigation.set),
@@ -165,48 +152,53 @@ export default (sdk, chart) => {
         dygraph.updateOptions(makeThemingOptions())
       }),
       chart.onAttributeChange("chartType", () => dygraph.updateOptions(makeChartTypeOptions())),
-      chart.onAttributeChange("selectedDimensions", () => {
+      chart.onAttributeChange("selectedLegendDimensions", () =>
         dygraph.updateOptions({
           ...makeVisibilityOptions(),
           ...makeColorOptions(),
           ...makeChartTypeOptions(),
+          ylabel: chart.getAttribute("hasYlabel") && chart.getUnitSign({ long: true }),
+          digitsAfterDecimal:
+            chart.getAttribute("unitsConversionFractionDigits") < 0
+              ? 0
+              : chart.getAttribute("unitsConversionFractionDigits"),
         })
-      }),
-      chart.onAttributeChange("valueRange", valueRange => {
+      ),
+      chart.onAttributeChange("unitsConversion", () =>
+        dygraph.updateOptions({
+          ylabel: chart.getAttribute("hasYlabel") && chart.getUnitSign({ long: true }),
+          digitsAfterDecimal:
+            chart.getAttribute("unitsConversionFractionDigits") < 0
+              ? 0
+              : chart.getAttribute("unitsConversionFractionDigits"),
+        })
+      ),
+      chart.onAttributeChange("staticValueRange", () => {
         dygraph.updateOptions({
           valueRange:
             attributes.chartType === "heatmap"
               ? [
                   0,
-                  attributes.selectedDimensions.length
-                    ? attributes.selectedDimensions.length
-                    : result.labels.length,
+                  attributes.selectedLegendDimensions.length
+                    ? attributes.selectedLegendDimensions.length
+                    : labels.length,
                 ]
-              : attributes.getValueRange({
-                  min,
-                  max,
-                  groupBy: attributes.groupBy,
-                  valueRange: [0, 4] || valueRange,
-                  aggrMethod: attributes.aggregationMethod,
-                }),
+              : attributes.getValueRange(chart, { dygraph: true }),
         })
       }),
-      chart.onAttributeChange("timezone", () => {
-        dygraph.updateOptions({})
-      }),
+      chart.onAttributeChange("timezone", () => dygraph.updateOptions({})),
     ].filter(Boolean)
 
-    hover = makeHover(instance)
     overlays.toggle()
 
+    chartUI.trigger("resize")
     chartUI.render()
-    chartUI.trigger("rendered")
   }
 
   const makePlotterByChartType = ({ sparkline }) => ({
-    line: sparkline ? null : window.smoothPlotter,
-    stackedBar: stackedBarPlotter,
-    multibar: multiColumnBarPlotter,
+    line: sparkline ? null : makeLinePlotter(chartUI),
+    stackedBar: makeStackedBarPlotter(chartUI),
+    multiBar: makeMultiColumnBarPlotter(chartUI),
     heatmap: makeHeatmapPlotter(chartUI),
     default: null,
   })
@@ -222,7 +214,10 @@ export default (sdk, chart) => {
     forceIncludeZero: false,
     errorBars: false,
     makeYAxisLabelFormatter: () => (y, granularity, opts, d) => {
-      const [min, max] = d.axes_[0].extremeRange
+      const extremes = d.axes_[0].extremeRange
+      let [min, max] = d.axes_[0].valueRange || [null, null]
+      min = min === null ? extremes[0] : min
+      max = max === null ? extremes[1] : max
 
       if (min !== prevMin || max !== prevMax) {
         prevMin = min
@@ -231,7 +226,7 @@ export default (sdk, chart) => {
       }
       return chart.getConvertedValue(y)
     },
-    yTicker: null,
+    yTicker: numericTicker,
   }
 
   const optionsByChartType = {
@@ -251,13 +246,15 @@ export default (sdk, chart) => {
     area: {
       ...defaultOptions,
       fillGraph: true,
+      forceIncludeZero: true,
     },
     stackedBar: {
       ...defaultOptions,
       stackedGraph: true,
+      forceIncludeZero: true,
     },
     heatmap: {
-      makeYAxisLabelFormatter: labels => y => (y === 0 ? null : chart.getDimensionName(labels[y])),
+      makeYAxisLabelFormatter: labels => y => y === 0 ? null : chart.getDimensionName(labels[y]),
       yTicker: (a, b, pixels, opts, dygraph) => {
         return dygraph.attributes_.user_.labels.reduce((h, label, i) => {
           if (i === 0) return h
@@ -275,15 +272,9 @@ export default (sdk, chart) => {
   }
 
   const makeChartTypeOptions = () => {
-    const { result } = chart.getPayload()
-    const {
-      chartType,
-      sparkline,
-      includeZero,
-      enabledXAxis,
-      enabledYAxis,
-      yAxisLabelWidth,
-    } = chart.getAttributes()
+    const { labels } = chart.getPayload()
+    const { chartType, sparkline, includeZero, enabledXAxis, enabledYAxis, yAxisLabelWidth } =
+      chart.getAttributes()
 
     const plotterByChartType = makePlotterByChartType({ sparkline })
     const plotter = plotterByChartType[chartType] || plotterByChartType.default
@@ -299,10 +290,10 @@ export default (sdk, chart) => {
       yTicker,
     } = optionsByChartType[chartType] || optionsByChartType.default
 
-    const { selectedDimensions } = chart.getAttributes()
-    const { dimensionIds } = chart.getPayload()
+    const yAxisLabelFormatter = makeYAxisLabelFormatter(labels)
 
-    const yAxisLabelFormatter = makeYAxisLabelFormatter(result.labels)
+    const { selectedLegendDimensions } = chart.getAttributes()
+    const dimensionIds = chart.getPayloadDimensionIds()
 
     return {
       stackedGraph,
@@ -312,7 +303,7 @@ export default (sdk, chart) => {
       strokeWidth: sparkline ? 0 : strokeWidth,
       includeZero:
         includeZero ||
-        (forceIncludeZero && dimensionIds?.length > 1 && selectedDimensions.length > 1),
+        (forceIncludeZero && dimensionIds.length > 1 && selectedLegendDimensions.length > 1),
       stackedGraphNaNFill: "none",
       plotter,
       errorBars,
@@ -337,52 +328,41 @@ export default (sdk, chart) => {
   }
 
   const makeThemingOptions = () => {
-    const themeGridColor = chartUI.getThemeAttribute("themeGridColor")
+    const themeGridColor = chartUI.chart.getThemeAttribute("themeGridColor")
     return { axisLineColor: themeGridColor, gridLineColor: themeGridColor }
   }
 
   const makeVisibilityOptions = () => {
-    const { dimensionIds } = chart.getPayload()
-    if (!dimensionIds?.length) return { visibility: false }
+    const dimensionIds = chart.getPayloadDimensionIds()
+    if (!dimensionIds.length) return { visibility: false }
 
-    const selectedDimensions = chart.getAttribute("selectedDimensions")
+    const selectedLegendDimensions = chart.getAttribute("selectedLegendDimensions")
 
-    const visibility = dimensionIds.map(
-      selectedDimensions.length ? chart.isDimensionVisible : () => true
-    )
+    const suffixLabels = Array(chart.getPayload().labels.length - dimensionIds.length).fill(true)
+
+    const visibility = [
+      ...dimensionIds.map(selectedLegendDimensions.length ? chart.isDimensionVisible : () => true),
+      ...suffixLabels,
+    ]
 
     return { visibility }
   }
 
   const makeDataOptions = () => {
-    const {
-      valueRange,
-      outOfLimits,
-      getValueRange,
-      aggregationMethod,
-      chartType,
-      selectedDimensions,
-    } = chart.getAttributes()
-    const { result, min, max } = chart.getPayload()
-    const dateWindow = getDateWindow(chart)
-    const isEmpty = outOfLimits || result.data.length === 0
-
-    const groupBy = chart.getAttribute("groupBy")
+    const { outOfLimits, getValueRange, chartType, selectedLegendDimensions } =
+      chart.getAttributes()
+    const { data, labels } = chart.getPayload()
+    const dateWindow = chart.getDateWindow()
+    const isEmpty = outOfLimits || data.length === 0
 
     return {
-      file: isEmpty ? [[0]] : normalizeData(result.data),
-      labels: isEmpty ? ["X"] : result.labels,
+      file: isEmpty ? [[0]] : normalizeData(data),
+      labels: isEmpty ? ["X"] : labels,
       dateWindow,
       valueRange:
         chartType === "heatmap"
-          ? [0, selectedDimensions.length ? selectedDimensions.length : result.labels.length]
-          : getValueRange({
-              min,
-              max,
-              groupBy,
-              valueRange,
-              aggrMethod: aggregationMethod,
-            }),
+          ? [0, selectedLegendDimensions.length ? selectedLegendDimensions.length : labels.length]
+          : getValueRange(chart, { dygraph: true }),
     }
   }
 
@@ -413,13 +393,10 @@ export default (sdk, chart) => {
   }
 
   const makeColorOptions = () => {
-    const sparkline = chart.getAttribute("sparkline")
-    if (sparkline) return { colors: chart.getColors() }
+    const dimensionIds = chart.getPayloadDimensionIds()
 
-    const { dimensionIds } = chart.getPayload()
-
-    if (!dimensionIds?.length) return {}
-    const colors = dimensionIds.map(id => chart.getDimensionColor(id))
+    if (!dimensionIds.length) return {}
+    const colors = dimensionIds.map(chart.selectDimensionColor)
 
     return { colors }
   }
@@ -432,7 +409,6 @@ export default (sdk, chart) => {
     listeners.forEach(listener => listener())
     listeners = []
     chartUI.unmount()
-    hover()
     hoverX.destroy()
     navigation.destroy()
     dygraph.destroy()
@@ -450,22 +426,24 @@ export default (sdk, chart) => {
 
     chartUI.render()
 
-    chart.consumePayload()
-
-    chart.updateDimensions()
-
     dygraph.updateOptions({
       ...makeDataOptions(),
       ...makeVisibilityOptions(),
       ...makeColorOptions(),
+      ylabel: chart.getAttribute("hasYlabel") && chart.getUnitSign({ long: true }),
+      digitsAfterDecimal:
+        chart.getAttribute("unitsConversionFractionDigits") < 0
+          ? 0
+          : chart.getAttribute("unitsConversionFractionDigits"),
     })
+
     chartUI.trigger("rendered")
   }
 
   const getPreceded = () => {
     if (!dygraph) return -1
 
-    const firstEntryMs = chartUI.chart.getFirstEntry() * 1000
+    const firstEntryMs = chart.getFirstEntry() * 1000
     const [after] = dygraph.xAxisRange()
 
     if (firstEntryMs < after) return -1
@@ -474,20 +452,13 @@ export default (sdk, chart) => {
     return dygraph.toDomXCoord(afterExtreme)
   }
 
-  const getEstimatedChartWidth = () => {
-    const width = chartUI.getEstimatedWidth()
-    const legendWidth = chart.getAttribute("legend") ? 140 : 0
-    return width - legendWidth
-  }
-
-  const getChartWidth = () => (dygraph ? dygraph.getArea().w : chartUI.getEstimatedChartWidth())
+  const getChartWidth = () => (dygraph ? dygraph.getArea().w : chartUI.getChartWidth())
   const getChartHeight = () => (dygraph ? dygraph.getArea().h : 100)
 
   const getXAxisRange = () => dygraph?.xAxisRange()
 
   const instance = {
     ...chartUI,
-    getEstimatedChartWidth,
     getChartWidth,
     getChartHeight,
     getPreceded,

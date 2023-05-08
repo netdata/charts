@@ -2,7 +2,7 @@ import React, { memo } from "react"
 import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
 import { useUnitSign } from "@/components/provider"
 
-const Value = props => (
+export const Value = props => (
   <TextMicro
     color="textDescription"
     whiteSpace="nowrap"
@@ -12,11 +12,12 @@ const Value = props => (
   />
 )
 
-const Units = ({ visible }) => {
+const Units = ({ visible, ...rest }) => {
   const units = useUnitSign()
 
   if (!visible) return null
-  return <Value>{units}</Value>
+
+  return <Value {...rest}>{units}</Value>
 }
 
 export default memo(Units)

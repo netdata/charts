@@ -1,23 +1,46 @@
-import React from "react"
-import styled from "styled-components"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import React, { forwardRef } from "react"
+import useForwardRef from "@netdata/netdata-ui/lib/hooks/use-forward-ref"
+import useHover from "@/components/useHover"
 import withChart from "@/components/hocs/withChart"
-import { useAttributeValue } from "@/components/provider"
+import { useChart, useAttributeValue } from "@/components/provider"
 import ChartContainer from "@/components/chartContainer"
-import Container from "./container"
+import Header from "@/components/header"
+import FilterToolbox from "@/components/filterToolbox"
+import Container from "@/components/container"
+import GroupBoxes from "./groupBoxes"
+import Footer from "./footer"
 
-const Skeleton = styled(Flex).attrs({
-  background: "borderSecondary",
-  flex: true,
-  height: 50,
-})``
+export const GroupBoxesContainer = forwardRef(({ uiName, ...rest }, ref) => {
+  const chart = useChart()
 
-export const GroupBoxesContainer = props => {
-  const loaded = useAttributeValue("loaded")
+  const hoverRef = useHover(
+    {
+      onHover: chart.focus,
+      onBlur: chart.blur,
+      isOut: node =>
+        !node || (!node.closest("[data-toolbox]") && !node.closest("[data-testid=chart]")),
+    },
+    [chart]
+  )
 
-  if (!loaded) return <Skeleton {...props} />
+  const [, setRef] = useForwardRef(node => {
+    hoverRef.current = node
+    ref.current = node
+  })
 
-  return <ChartContainer as={Container} {...props} />
-}
+  const showingInfo = useAttributeValue("showingInfo")
+
+  return (
+    <Container ref={setRef} {...rest}>
+      <Header />
+      <FilterToolbox />
+      <ChartContainer uiName={uiName} column gap={4} padding={[4, 2]}>
+        <GroupBoxes uiName={uiName} />
+      </ChartContainer>
+
+      {!showingInfo && <Footer />}
+    </Container>
+  )
+})
 
 export default withChart(GroupBoxesContainer)

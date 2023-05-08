@@ -9,6 +9,7 @@ const getMove = node => {
 
 const getOverlays = (node, range) => {
   const { overlays, after, before } = node.getAttributes()
+
   if (range) {
     return {
       ...overlays,

@@ -1,3 +1,4 @@
+export const uppercase = key => key.charAt(0).toUpperCase() + key.slice(1)
 export const camelToUnderscore = key => key.replace(/([A-Z])/g, "_$1").toLowerCase()
 export const underscoreToCamel = key => key.replace(/([_][a-z])/g, g => g[1].toUpperCase())
 

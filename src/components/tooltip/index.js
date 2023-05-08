@@ -1,15 +1,13 @@
 import React, { forwardRef } from "react"
-import BaseTooltip from "@netdata/netdata-ui/lib/components/drops/tooltip"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { TextSmall } from "@netdata/netdata-ui/lib/components/typography"
+import { Flex, TextSmall, Tooltip as BaseTooltip } from "@netdata/netdata-ui"
 
 export const tooltipStyleProps = {
-  padding: [1, 2, 2],
+  padding: [1, 2],
   margin: [2],
   round: 1,
-  width: { max: "300px" },
+  width: { max: "300px", base: "fit-content" },
   "data-toolbox": true,
-  background: ["neutral", "black"],
+  background: "tooltip",
 }
 
 const DefaultContent = ({ children, ...rest }) => (

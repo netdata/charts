@@ -1,30 +1,26 @@
-import React, { useRef, useLayoutEffect, Fragment, useState, useCallback } from "react"
-import Drop from "@netdata/netdata-ui/lib/components/drops/drop"
+import React, { useRef, useLayoutEffect, Fragment, useState, useMemo } from "react"
+import { useChart, useAttributeValue } from "@/components/provider"
+import useTransition from "@/components/helpers/useEffectWithTransition"
 import drawBoxes from "./drawBoxes"
-import getAlign from "./getAlign"
+import useGroupBoxRowData from "./useGroupBoxRowData"
+import Popover from "./popover"
 
-const aligns = {
-  top: { bottom: "top" },
-  bottom: { top: "bottom" },
-}
+const GroupBox = ({ uiName, dimensions, groupLabel, ...options }) => {
+  const chart = useChart()
 
-const GroupBox = ({ data, renderTooltip, getColor, ...options }) => {
-  const dataRef = useRef()
+  const dimensionsRef = useRef()
   const canvasRef = useRef()
   const boxesRef = useRef()
 
   const [hover, setHover] = useState(null)
-  const dropHoverRef = useRef(false)
+
   const boxHoverRef = useRef(-1)
   const timeoutId = useRef()
 
   const closeDrop = () =>
     requestAnimationFrame(() => {
       setHover(currentHover => {
-        if (
-          !dropHoverRef.current &&
-          (boxHoverRef.current === -1 || boxHoverRef.current !== currentHover?.index)
-        ) {
+        if (boxHoverRef.current === -1 || boxHoverRef.current !== currentHover?.index) {
           boxesRef.current.deactivateBox()
           boxHoverRef.current = -1
           return null
@@ -35,6 +31,7 @@ const GroupBox = ({ data, renderTooltip, getColor, ...options }) => {
 
   useLayoutEffect(() => {
     boxesRef.current = drawBoxes(
+      chart,
       canvasRef.current,
       {
         onMouseenter: ({ index, ...rect }) => {
@@ -44,14 +41,12 @@ const GroupBox = ({ data, renderTooltip, getColor, ...options }) => {
             setHover({
               target: { getBoundingClientRect: () => rect },
               index,
-              rect,
             })
           }, 100)
         },
         onMouseout: () => {
           boxHoverRef.current = -1
           clearTimeout(timeoutId.current)
-          dropHoverRef.current = false
           closeDrop()
         },
         onClick: ({ index, ...rect } = {}) => {
@@ -61,7 +56,6 @@ const GroupBox = ({ data, renderTooltip, getColor, ...options }) => {
             setHover({
               target: { getBoundingClientRect: () => rect },
               index,
-              rect,
             })
           }, 100)
         },
@@ -71,43 +65,49 @@ const GroupBox = ({ data, renderTooltip, getColor, ...options }) => {
     return () => boxesRef.current.clear()
   }, [])
 
+  const pointData = useGroupBoxRowData(uiName)
+
+  const [, startTransitionEffect, stopTransitionEffect] = useTransition()
+
+  const theme = useAttributeValue("theme")
+
   useLayoutEffect(() => {
-    if (
-      hover &&
-      dataRef.current &&
-      dataRef.current.labels[hover.index] !== data.labels[hover.index]
-    ) {
-      boxesRef.current.deactivateBox()
-      setHover(null)
-      boxHoverRef.current = -1
-    }
-    dataRef.current = data
-    boxesRef.current.update(data, getColor)
-  }, [data, getColor])
+    startTransitionEffect(function* () {
+      if (
+        hover &&
+        dimensionsRef.current &&
+        dimensionsRef.current[hover.index] !== dimensions[hover.index]
+      ) {
+        boxesRef.current.deactivateBox()
+        setHover(null)
+        boxHoverRef.current = -1
+      }
+      dimensionsRef.current = dimensions
+      yield* boxesRef.current.update(dimensions, pointData)
+    })
 
-  const onMouseEnter = useCallback(() => {
-    dropHoverRef.current = true
-  }, [])
+    return () => stopTransitionEffect()
+  }, [pointData, startTransitionEffect, stopTransitionEffect, theme])
 
-  const onMouseLeave = useCallback(() => {
-    dropHoverRef.current = false
-    closeDrop()
-  }, [])
+  const label = useMemo(() => {
+    if (!hover) return
 
-  const align = hover && getAlign(hover.target)
+    const labels = dimensions[hover.index].split(",")
+    return labels[labels.length - 1]
+  }, [dimensions[hover?.index]])
 
   return (
     <Fragment>
       <canvas data-testid="groupBox" ref={canvasRef} />
-      {hover && renderTooltip && (
-        <Drop
-          align={aligns[align]}
+      {hover && (
+        <Popover
           target={hover.target}
-          onMouseEnter={onMouseEnter}
-          onMouseLeave={onMouseLeave}
-        >
-          {renderTooltip(hover.index, align)}
-        </Drop>
+          label={label}
+          index={hover.index}
+          groupLabel={groupLabel}
+          data={pointData}
+          id={dimensions[hover.index]}
+        />
       )}
     </Fragment>
   )

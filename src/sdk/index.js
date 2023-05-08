@@ -1,17 +1,9 @@
 import makeListeners from "@/helpers/makeListeners"
 import makeContainer from "./makeContainer"
 import makeChart from "./makeChart"
-import makeChartsMetadata from "./makeChartsMetadata"
 import initialAttributes from "./initialAttributes"
 
-export default ({
-  ui,
-  plugins: defaultPlugins = {},
-  attributes: defaultAttributes,
-  on = {},
-  getChartMetadata,
-  chartsMetadata = makeChartsMetadata({ getChart: getChartMetadata }),
-}) => {
+export default ({ ui, plugins: defaultPlugins = {}, attributes: defaultAttributes, on = {} }) => {
   const listeners = makeListeners()
   const attributes = { ui }
   const plugins = {}
@@ -36,6 +28,8 @@ export default ({
     delete plugins[name]
   }
 
+  const version = () => attributes._v
+
   const addUI = (type, chartLibrary) => {
     attributes.ui[type] = chartLibrary
   }
@@ -58,7 +52,7 @@ export default ({
   const makeSDKChart = ({ ui, ...options }) => {
     const chart = makeChartCore(options)
     const chartUi = makeChartUI(chart)
-    chart.setUI({ ...chartUi, ...ui })
+    chart.setUI({ ...chartUi, ...ui }, "default")
 
     return chart
   }
@@ -75,7 +69,6 @@ export default ({
 
   const instance = {
     ...listeners,
-    chartsMetadata,
     getRoot,
     register,
     unregister,
@@ -88,6 +81,8 @@ export default ({
     getNodes,
     appendChild,
     removeChild,
+    version,
+    ui,
   }
 
   init()

@@ -18,9 +18,6 @@ const StyledHighlight = styled(Flex).attrs({
   border: { side: "all", color: "borderSecondary" },
 })`
   background-color: ${getColor("mainBackground")}80;
-  &:hover {
-    background-color: ${getColor("mainBackground")};
-  }
 `
 
 export const Divider = styled(Flex)`
@@ -45,6 +42,7 @@ const Highlight = ({ id, correlationProps }) => {
   const focused = useAttributeValue("focused")
 
   if (!focused) return null
+
   return (
     <StyledHighlight>
       <HighlightPeriod id={id} />

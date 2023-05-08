@@ -1,26 +1,114 @@
 import React from "react"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import Color from "@/components/line/dimensions/color"
+import styled from "styled-components"
+import { Flex } from "@netdata/netdata-ui"
+import Color, { ColorBar } from "@/components/line/dimensions/color"
 import Name from "@/components/line/dimensions/name"
-import Value from "@/components/line/dimensions/value"
-import Units from "@/components/line/dimensions/units"
-import { useVisibleDimensionId } from "@/components/provider"
+import Value, { Value as ValuePart } from "@/components/line/dimensions/value"
+import { useChart, useVisibleDimensionId } from "@/components/provider"
+import { labels as annotationLabels } from "@/helpers/annotations"
+import { rowFlavours } from "./dimensions"
 
-const Dimension = ({ id, strong, chars }) => {
-  const visible = useVisibleDimensionId(id)
+const GridRow = styled(Flex).attrs({
+  position: "relative",
+  "data-testid": "chartPopover-dimension",
+  padding: [1, 0],
+})`
+  display: contents;
+`
+
+const ColorBackground = styled(ColorBar).attrs({
+  position: "absolute",
+  top: 1,
+  left: 2,
+  backgroundOpacity: 0.4,
+  round: 0.5,
+})``
+
+const rowValueKeys = {
+  ANOMALY_RATE: "arp",
+  default: "value",
+}
+
+const ValueOnDot = ({ children, fractionDigits = 0, ...rest }) => {
+  const [first, last] = children.toString().split(".")
 
   return (
-    <Flex
-      gap={1}
-      data-testid="chartPopover-dimension"
-      alignItems="center"
-      opacity={visible ? null : "weak"}
-    >
-      <Color id={id} height="12px" />
-      <Flex as={Name} flex id={id} strong={strong} maxLength={chars} />
-      <Value id={id} strong={strong} visible={visible} />
-      <Units visible={visible} />
+    <Flex alignItems="center" justifyContent="end">
+      <ValuePart {...rest} textAlign="right">
+        {first}
+      </ValuePart>
+      {typeof last !== "undefined" && <ValuePart {...rest}>.</ValuePart>}
+      <ValuePart as={Flex} flex={false} width={fractionDigits * 1.6} {...rest} textAlign="left">
+        {last}
+      </ValuePart>
     </Flex>
+  )
+}
+
+const AnnotationsValue = ({ children: annotations, showFull, ...rest }) => (
+  <Flex gap={1} justifyContent="end">
+    {Object.keys(annotations).map(ann => (
+      <Flex
+        key={ann}
+        border={{ size: "1px", side: "all", color: annotations[ann] }}
+        round
+        flex={false}
+        padding={[0, 0.5]}
+      >
+        <ValuePart {...rest} color={annotations[ann]}>
+          {showFull ? annotationLabels[ann] || ann : ann}
+        </ValuePart>
+      </Flex>
+    ))}
+  </Flex>
+)
+
+const Dimension = ({ id, strong, chars, rowFlavour }) => {
+  const visible = useVisibleDimensionId(id)
+
+  const chart = useChart()
+  const fractionDigits = chart.getAttribute("unitsConversionFractionDigits")
+
+  return (
+    <GridRow opacity={visible ? null : "weak"}>
+      <Flex alignItems="center" gap={1} position="relative">
+        <ColorBackground
+          id={id}
+          valueKey={rowValueKeys[rowFlavour] || rowValueKeys.default}
+          height="18px"
+        >
+          <Color id={id} />
+        </ColorBackground>
+        <Name padding={[1, 2]} flex id={id} strong={strong} maxLength={chars} />
+      </Flex>
+      <Value
+        id={id}
+        strong={strong}
+        visible={visible}
+        Component={ValueOnDot}
+        fractionDigits={fractionDigits}
+        color={rowFlavour === rowFlavours.default ? "text" : "textLite"}
+      />
+      <Value
+        id={id}
+        strong={strong}
+        visible={visible}
+        valueKey="arp"
+        Component={ValueOnDot}
+        fractionDigits={2}
+        color={rowFlavour === rowFlavours.ANOMALY_RATE ? "anomalyTextFocus" : "anomalyText"}
+      />
+      <Value
+        textAlign="right"
+        id={id}
+        strong={strong}
+        visible={visible}
+        valueKey="pa"
+        Component={AnnotationsValue}
+        color={rowFlavour === rowFlavours.ANNOTATIONS ? "text" : "textLite"}
+        showFull={rowFlavour === rowFlavours.ANNOTATIONS}
+      />
+    </GridRow>
   )
 }
 

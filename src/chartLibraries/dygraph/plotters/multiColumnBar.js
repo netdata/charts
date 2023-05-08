@@ -1,7 +1,6 @@
 import { darkenColor } from "./helpers"
 
-export default plotter => {
-  // We need to handle all the series simultaneously.
+export default () => plotter => {
   if (plotter.seriesIndex !== 0) return
 
   const g = plotter.dygraph

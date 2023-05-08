@@ -14,7 +14,7 @@ const types = {
 
 export const getColors = type => types[type] ?? types.error
 
-const Badge = ({ type, children, noBorder, ...rest }) => {
+const Badge = ({ type, children, noBorder, title, ...rest }) => {
   const { background, color } = getColors(type)
 
   return (

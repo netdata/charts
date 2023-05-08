@@ -9,6 +9,7 @@ const Drag = styled(Icon).attrs({
   hoverColor: "textDescription",
   svg: resizeHandler,
   size: "16px",
+  alignSelf: "end",
 })`
   cursor: ns-resize;
 `

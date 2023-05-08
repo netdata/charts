@@ -1,61 +1,35 @@
-import React, { useRef, useMemo } from "react"
-import styled from "styled-components"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
-import Popover from "@netdata/netdata-ui/lib/components/drops/popover"
-import { useChart, useUnitSign } from "@/components/provider"
+import React, { memo } from "react"
+import styled, { keyframes } from "styled-components"
+import { Box, Flex, TextMicro } from "@netdata/netdata-ui"
+import { useLoadingColor, useAttributeValue, useColor } from "@/components/provider"
+import Details from "@/components/details"
 import GroupBox from "./groupBox"
-import { getWidth, makeGetColor } from "./drawBoxes"
-import getAlign from "./getAlign"
-import Legend from "./legend"
+import useGroupBox from "./useGroupBox"
 
-const Title = styled.span`
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow-x: hidden;
+const frames = keyframes`
+  from { opacity: 0.2; }
+  to { opacity: 0.6; }
 `
 
-const Label = styled(Flex).attrs({
-  as: TextMicro,
-  gap: 1,
-})`
-  cursor: default;
-  &:hover {
-    font-weight: bold;
-  }
+const Skeleton = styled(Flex).attrs(props => ({
+  background: "borderSecondary",
+  flex: true,
+  height: 50,
+  ...props,
+}))`
+  animation: ${frames} 1.6s ease-in infinite;
 `
 
-const GroupBoxWrapper = ({
-  data,
-  label,
-  groupIndex,
-  renderGroupPopover,
-  renderBoxPopover,
-  getColor,
-}) => {
-  const ref = useRef()
-  const align = ref.current && getAlign(ref.current)
+export const SkeletonIcon = () => {
+  const color = useLoadingColor()
+  return <Skeleton background={color} />
+}
 
-  const style = useMemo(() => ({ maxWidth: `${getWidth(data.data)}px` }), [data])
+const GroupBoxWrapper = ({ uiName, subTree, data, label, groupedBy, hasMore }) => {
+  const dimensions = Object.values(subTree)
 
-  const boxPopover =
-    renderBoxPopover &&
-    ((index, boxAlign) => renderBoxPopover({ group: label, groupIndex, align: boxAlign, index }))
-
-  const groupPopover =
-    renderGroupPopover && (() => renderGroupPopover({ group: label, groupIndex, align }))
-
-  const chart = useChart()
-
-  const mouseout = event => {
-    chart.getUI().sdk.trigger("blurChart", chart, event)
-    chart.getUI().chart.trigger("blurChart", event)
-  }
-
-  const mouseover = event => {
-    chart.getUI().sdk.trigger("hoverChart", chart, event)
-    chart.getUI().chart.trigger("hoverChart", event)
-  }
+  const [first, ...rest] = groupedBy
+  const bg = useColor("themeBackground")
 
   return (
     <Flex
@@ -63,70 +37,84 @@ const GroupBoxWrapper = ({
       column
       alignItems="start"
       gap={1}
-      margin={[0, 4, 0, 0]}
-      onMouseOut={mouseout}
-      onMouseOver={mouseover}
+      margin={[0, 3, 3, 0]}
+      border={hasMore ? { color: "borderSecondary", side: "all" } : false}
+      round={hasMore}
+      padding={hasMore ? [2] : [0]}
+      position="relative"
     >
-      <Popover content={groupPopover} align={align} plain>
-        {({ isOpen, ref: popoverRef, ...rest }) => (
-          <Label
-            data-testid="groupBoxWrapper-title"
-            ref={el => {
-              ref.current = el
-              popoverRef(el)
-            }}
-            strong={isOpen}
-            style={style}
-            {...rest}
-          >
-            <Title>{label}</Title>
-            {data.data.length > 3 && <span>({data.data.length})</span>}
-          </Label>
-        )}
-      </Popover>
-      <GroupBox data={data} renderTooltip={boxPopover} getColor={getColor} />
+      <Box
+        {...(hasMore && {
+          position: "absolute",
+          top: "-12px",
+          left: 1,
+          background: bg,
+          padding: [0, 1],
+        })}
+      >
+        <TextMicro strong={hasMore} data-testid="groupBoxWrapper-title" whiteSpace="nowrap">
+          {label}
+          {data.length > 3 && <span>({dimensions.length})</span>}
+        </TextMicro>
+      </Box>
+      {rest.length ? (
+        Object.keys(subTree).map(key => (
+          <GroupBoxWrapper
+            key={key}
+            label={key}
+            subTree={subTree[key]}
+            data={data}
+            uiName={uiName}
+            groupedBy={rest}
+            hasMore={rest.length > 1}
+          />
+        ))
+      ) : (
+        <GroupBox dimensions={dimensions} groupLabel={label} uiName={uiName} groupKey={first} />
+      )}
     </Flex>
   )
 }
 
-const GroupBoxes = ({ data, labels, renderBoxPopover, renderGroupPopover, context }) => {
-  const units = useUnitSign()
-  const chart = useChart()
+const GroupBoxes = ({ uiName }) => {
+  const { data, tree } = useGroupBox(uiName)
 
-  const allValues = useMemo(
-    () => data.reduce((h, d) => [...h, ...d.data], []).sort((a, b) => a - b),
-    [data]
-  )
+  const loaded = useAttributeValue("loaded")
+  const showingInfo = useAttributeValue("showingInfo")
 
-  const getColor = makeGetColor(allValues)
+  const viewDimensions = useAttributeValue("viewDimensions")
+  const [first, ...rest] = viewDimensions.grouped_by || []
+
+  if (!loaded) return <SkeletonIcon />
+
   return (
-    <>
-      <Flex data-testid="groupBoxes" flexWrap overflow={{ vertical: "auto" }} flex>
-        {labels.map((label, index) => {
-          return data[index].data.length ? (
-            <GroupBoxWrapper
-              key={label}
-              label={label}
-              groupIndex={index}
-              data={data[index]}
-              renderGroupPopover={renderGroupPopover}
-              renderBoxPopover={renderBoxPopover}
-              getColor={allValues.length ? getColor : undefined}
-            />
-          ) : null
-        })}
-      </Flex>
-      <Flex data-testid="legend-container" justifyContent="between">
-        <Legend
-          min={chart.getConvertedValue(allValues[0])}
-          max={chart.getConvertedValue(allValues[allValues.length - 1])}
-          units={units}
-        >
-          {context}
-        </Legend>
-      </Flex>
-    </>
+    <Flex data-testid="groupBoxes" flexWrap flex position="relative" height={{ min: "150px" }}>
+      {showingInfo ? (
+        <Details />
+      ) : rest.length ? (
+        Object.keys(tree).map(key => (
+          <GroupBoxWrapper
+            key={key}
+            label={key}
+            subTree={tree[key]}
+            data={data}
+            uiName={uiName}
+            groupedBy={rest}
+            hasMore={rest.length > 1}
+          />
+        ))
+      ) : (
+        <GroupBoxWrapper
+          key={first}
+          label={first}
+          subTree={tree}
+          data={data}
+          uiName={uiName}
+          groupedBy={rest}
+        />
+      )}
+    </Flex>
   )
 }
 
-export default GroupBoxes
+export default memo(GroupBoxes)

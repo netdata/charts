@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid"
 import makeListeners from "@/helpers/makeListeners"
 import makePristine from "@/helpers/makePristine"
 import limitRange from "@/helpers/limitRange"
-import pristineComposite, { pristineCompositeKey } from "./pristineComposite"
+import pristine, { pristineKey } from "./pristine"
 import makeIntls from "./makeIntls"
 
 export default ({ sdk, parent = null, attributes: initialAttributes }) => {
@@ -31,13 +31,13 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     const prevValue = attributes[name]
     if (prevValue === value) return
 
-    const prevPristine = pristineComposite.update(attributes, name, value)
+    const prevPristine = pristine.update(attributes, name, value)
     setAttribute(name, value)
     trigger(name, value, prevValue)
 
     if (prevPristine) {
-      trigger(pristineCompositeKey, attributes[pristineCompositeKey], prevPristine)
-      sdk.trigger("pristineChanged", pristineCompositeKey, instance, value, prevValue)
+      trigger(pristineKey, attributes[pristineKey], prevPristine)
+      sdk.trigger("pristineChanged", pristineKey, instance, value, prevValue)
     }
   }
 
@@ -54,7 +54,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
       const prevValue = attributes[name]
       if (prevValue === value) return acc
 
-      const prev = pristineComposite.update(attributes, name, value)
+      const prev = pristine.update(attributes, name, value)
       if (prev && !prevPristine) prevPristine = prev
 
       setAttribute(name, value)
@@ -66,14 +66,8 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     Object.keys(prevValues).forEach(name => trigger(name, values[name], prevValues[name]))
 
     if (prevPristine) {
-      trigger(pristineCompositeKey, attributes[pristineCompositeKey], prevPristine)
-      sdk.trigger(
-        "pristineChanged",
-        pristineCompositeKey,
-        instance,
-        attributes[pristineCompositeKey],
-        prevPristine
-      )
+      trigger(pristineKey, attributes[pristineKey], prevPristine)
+      sdk.trigger("pristineChanged", pristineKey, instance, attributes[pristineKey], prevPristine)
     }
   }
 
@@ -160,46 +154,46 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   const zoomIn = () => zoomX(1)
   const zoomOut = () => zoomX(-1)
 
-  const updateValueRange = value => {
-    if (getAttribute("pristineValueRange") === undefined) {
-      const pristine = getAttribute("valueRange")
-      updateAttribute("pristineValueRange", pristine)
+  const updateStaticValueRange = value => {
+    if (getAttribute("pristineStaticValueRange") === undefined) {
+      const value = getAttribute("staticValueRange")
+      updateAttribute("pristineStaticValueRange", value)
     }
-    updateAttribute("valueRange", value)
+    updateAttribute("staticValueRange", value)
   }
 
-  const resetValueRange = () => {
-    const pristine = getAttribute("pristineValueRange")
-    if (pristine === undefined) return
+  const resetStaticValueRange = () => {
+    const pristineValue = getAttribute("pristineStaticValueRange")
+    if (pristineValue === undefined) return
 
-    updateAttribute("pristineValueRange", undefined)
-    updateAttribute("valueRange", pristine)
+    updateAttribute("pristineStaticValueRange", undefined)
+    updateAttribute("staticValueRange", pristineValue)
   }
 
-  const pristine = makePristine(
+  const resetNavigation = () => {
+    const pristineValue = getAttribute("pristineStaticValueRange")
+    if (!getAttribute("enabledResetRange")) return
+    if (pristineValue !== undefined) return resetStaticValueRange()
+
+    moveX(-900)
+  }
+
+  const pristineHeight = makePristine(
     "pristineEnabledHeightResize",
     ["enabledHeightResize"],
     updateAttributes
   )
 
-  const resetNavigation = () => {
-    const pristine = getAttribute("pristineValueRange")
-    if (!getAttribute("enabledResetRange")) return
-    if (pristine !== undefined) return resetValueRange()
-
-    moveX(-900)
-  }
-
   const toggleFullscreen = () => {
     const fullscreen = getAttribute("fullscreen")
     if (!fullscreen) {
-      pristine.updatePristine(attributes, "enabledHeightResize", false)
+      pristineHeight.updatePristine(attributes, "enabledHeightResize", false)
       updateAttribute("enabledHeightResize", false)
       updateAttribute("fullscreen", !fullscreen)
       return
     }
 
-    pristine.resetPristine(attributes)
+    pristineHeight.resetPristine(attributes)
     updateAttribute("fullscreen", !fullscreen)
   }
 
@@ -211,7 +205,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
 
     listeners.offAll()
     attributeListeners.offAll()
-    parent = null
+    setTimeout(() => (parent = null), 2000)
     destroyIntls()
   }
 
@@ -237,8 +231,8 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     getAncestor,
     inherit,
     updateHeight,
-    updateValueRange,
-    resetValueRange,
+    updateStaticValueRange,
+    resetStaticValueRange,
     toggleFullscreen,
     moveY,
     moveX,

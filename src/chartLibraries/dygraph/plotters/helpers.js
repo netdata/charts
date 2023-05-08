@@ -1,4 +1,4 @@
-import Dygraph from "@netdata/dygraphs"
+import Dygraph from "dygraphs"
 
 export const darkenColor = colorStr => {
   // Defined in dygraph-utils.js

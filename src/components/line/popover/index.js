@@ -1,6 +1,5 @@
-import React, { useEffect, useState, useRef, forwardRef, Fragment } from "react"
+import React, { useEffect, useState, useRef, Fragment } from "react"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import makeExecuteLatest from "@/helpers/makeExecuteLatest"
 import { unregister } from "@/helpers/makeListeners"
 import { useChart } from "@/components/provider"
 import ReactDOM from "react-dom"
@@ -8,12 +7,6 @@ import DropContainer from "@netdata/netdata-ui/lib/components/drops/drop/contain
 import useMakeUpdatePosition from "@netdata/netdata-ui/lib/components/drops/drop/useMakeUpdatePosition"
 import useDropElement from "@netdata/netdata-ui/lib/hooks/use-drop-element"
 import Dimensions from "./dimensions"
-
-const Popover = forwardRef((props, ref) => (
-  <Flex data-testid="chartPopover" ref={ref}>
-    <Dimensions />
-  </Flex>
-))
 
 const leftTopAlign = { right: "left", bottom: "top" }
 const leftBottomAlign = { right: "left", top: "bottom" }
@@ -28,7 +21,7 @@ const getAlign = (left, top) => {
   return rightBottomAlign
 }
 
-const Container = () => {
+const Popover = ({ uiName }) => {
   const chart = useChart()
   const dropRef = useRef()
   const [target, setTarget] = useState()
@@ -42,43 +35,34 @@ const Container = () => {
   updatePositionRef.current = useMakeUpdatePosition(target, dropRef, align, stretch)
 
   useEffect(() => {
-    const executeLatest = makeExecuteLatest()
     return unregister(
-      chart.getUI().on(
-        "mousemove",
-        executeLatest.add(event => {
-          if (chart.getAttribute("panning") || chart.getAttribute("highlighting")) return
+      chart.getUI(uiName).on("mousemove", event => {
+        if (chart.getAttribute("panning") || chart.getAttribute("highlighting")) return
 
-          const offsetX = event.offsetX || event.layerX
-          const offsetY = event.offsetY || event.layerY
+        const offsetX = event.offsetX || event.layerX
+        const offsetY = event.offsetY || event.layerY
 
-          setOpen(true)
+        setOpen(true)
 
-          if (!targetRef.current) return
+        if (!targetRef.current) return
 
-          targetRef.current.style.left = `${offsetX}px`
-          targetRef.current.style.top = `${offsetY}px`
+        targetRef.current.style.left = `${offsetX}px`
+        targetRef.current.style.top = `${offsetY}px`
 
-          updatePositionRef.current()
+        updatePositionRef.current()
 
-          const winHeight = window.innerHeight
-          const winWidth = window.innerWidth
+        const winHeight = window.innerHeight
+        const winWidth = window.innerWidth
 
-          const { width, height } = dropRef.current.getBoundingClientRect()
-          const left = offsetX + width > winWidth
-          const top = offsetY + height > winHeight
+        const { width, height } = dropRef.current.getBoundingClientRect()
+        const left = offsetX + width > winWidth
+        const top = offsetY + height > winHeight
 
-          setAlign(getAlign(left, top))
-        })
-      ),
-      chart.on("blurChart", () => setOpen(false)),
-      chart.onAttributeChange("panning", panning => {
-        if (panning) setOpen(false)
+        setAlign(getAlign(left, top))
       }),
-      chart.onAttributeChange("highlighting", panning => {
-        if (panning) setOpen(false)
-      }),
-      () => executeLatest && executeLatest.clear()
+      chart.getUI(uiName).on("mouseout", () => setOpen(false)),
+      chart.onAttributeChange("panning", panning => panning && setOpen(false)),
+      chart.onAttributeChange("highlighting", panning => panning && setOpen(false))
     )
   }, [chart])
 
@@ -92,13 +76,14 @@ const Container = () => {
       {ReactDOM.createPortal(
         <DropContainer
           data-toolbox
-          margin={[align.top ? 4 : -4, align.right ? -5 : 5]}
+          margin={[align.top ? 2 : -2, align.right ? -2 : 2]}
           ref={dropRef}
           width={{ max: "100%" }}
           column
           data-testid="drop"
+          sx={{ pointerEvents: "none" }}
         >
-          <Popover />
+          <Dimensions uiName={uiName} data-testid="chartPopover" />
         </DropContainer>,
         el
       )}
@@ -106,4 +91,4 @@ const Container = () => {
   )
 }
 
-export default Container
+export default Popover

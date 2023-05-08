@@ -2,9 +2,9 @@ import React from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { Text } from "@netdata/netdata-ui/lib/components/typography"
-import { useChart, useAttributeValue } from "@/components/provider"
+import { useChart, useChartError } from "@/components/provider"
 
-const NoDataContainer = styled(Flex).attrs({
+const ProceededContainer = styled(Flex).attrs({
   column: true,
   round: true,
   border: { side: "all", color: "borderSecondary" },
@@ -15,20 +15,22 @@ const NoDataContainer = styled(Flex).attrs({
   direction: initial;
 `
 
-const NoData = props => {
+const Proceeded = ({ defaultValue, uiName, ...rest }) => {
   const chart = useChart()
 
-  const chartWidth = chart.getUI().getChartWidth()
-  const error = useAttributeValue("error")
+  const chartWidth = chart.getUI(uiName).getChartWidth()
+  const error = useChartError()
 
   if (chartWidth < 240) return null
 
+  if (!error || !defaultValue) return null
+
   return (
-    <NoDataContainer {...props}>
+    <ProceededContainer {...rest}>
       <Text textAlign="center" textTransform="firstLetter">
-        {error || "No data"}
+        {error || defaultValue}
       </Text>
-    </NoDataContainer>
+    </ProceededContainer>
   )
 }
 
@@ -41,8 +43,8 @@ const CenterContainer = styled(Flex)`
 
 export const CenterNoData = () => (
   <CenterContainer>
-    <NoData />
+    <Proceeded defaultValue="No data" />
   </CenterContainer>
 )
 
-export default NoData
+export default Proceeded

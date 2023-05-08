@@ -1,3 +1,9 @@
+import ChartType from "@/components/toolbox/chartType"
+import Fullscreen from "@/components/toolbox/fullscreen"
+import Information from "@/components/toolbox/information"
+
+import Status from "@/components/status"
+
 export default {
   id: "",
   name: "",
@@ -10,16 +16,43 @@ export default {
   title: "",
   min: 0,
   max: 0,
-  updateEvery: 0,
-  pristineValueRange: undefined,
+
+  pristineStaticValueRange: undefined,
   valueRange: null,
-  getValueRange: ({ min, max, groupBy, valueRange, aggrMethod }) => {
-    const minMax = min === max ? [0, max * 2] : [min || null, null]
-    return groupBy !== "dimension"
-      ? valueRange || null
-      : aggrMethod === "sum"
-      ? minMax
-      : valueRange || minMax
+  staticValueRange: null,
+  getValueRange: (chart, { dygraph = false } = {}) => {
+    if (!chart) return [null, null]
+
+    const {
+      min = null,
+      max = null,
+      valueRange = [null, null],
+      staticValueRange,
+    } = chart.getAttributes()
+
+    if (staticValueRange) return staticValueRange
+
+    if (!valueRange || (valueRange[0] === null && valueRange[1] === null)) {
+      if (dygraph) return [null, null]
+
+      return [min, max]
+    }
+
+    const [rangeMin, rangeMax] = valueRange
+
+    if (dygraph) {
+      const { groupBy, aggregationMethod } = chart.getAttributes()
+
+      if (groupBy.length > 1 || groupBy[0] !== "dimension" || aggregationMethod !== "avg")
+        return [null, null]
+    }
+
+    const newValueRange = [
+      rangeMin === null || rangeMin > min ? min : rangeMin,
+      rangeMax === null || rangeMax < max ? max : rangeMax,
+    ]
+
+    return newValueRange
   },
   loaded: false,
   loading: false,
@@ -29,8 +62,19 @@ export default {
   active: false,
   sparkline: false,
   chartType: "",
+  selectedLegendDimensions: [],
+
+  contextItems: [],
+  contextScope: [],
+  nodesScope: [],
+  selectedContexts: [],
   selectedDimensions: [],
-  contextsHardHash: null,
+  selectedLabels: [],
+  selectedNodes: [],
+  selectedInstances: [],
+
+  versions: {},
+
   enabledHover: true,
   syncHover: true,
   hoverX: null,
@@ -42,71 +86,148 @@ export default {
   hovering: false,
   syncHighlight: true,
   highlighting: false,
+
   desiredUnits: "auto",
   syncUnits: false,
+
   unitsConversionMethod: "",
   unitsConversionDivider: -1,
   unitsConversionFractionDigits: 0,
   unitsConversion: "",
-  units: "",
+
+  dbUnitsConversionMethod: "",
+  dbUnitsConversionDivider: -1,
+  dbUnitsConversionFractionDigits: 0,
+  dbUnitsConversion: "",
+
   temperature: "celsius",
   secondsAsTime: true,
   timezone: undefined,
   syncTimezone: true,
-  dimensionsSort: "default",
+
+  dimensionsSort: "default", // default | nameAsc | nameDesc | valueAsc | valueDesc
+
   autofetch: false,
   autofetchOnWindowBlur: false,
   paused: false,
-  pixelsPerPoint: 1,
+  pixelsPerPoint: 3,
   legend: true,
   groupingMethod: "average",
   groupingTime: 0,
-  chartUrlOptions: null,
   urlOptions: [],
   eliminateZeroDimensions: true,
   fullscreen: false,
   overlays: {},
   themeGridColor: ["#F7F8F8", "#282827"],
   themeCrosshair: ["#536775", "#536775"],
-  detailed: false,
+  showingInfo: false,
   colors: [],
   height: "",
   enabledHeightResize: true,
   pristineEnabledHeightResize: {},
   enabledXAxis: true,
   enabledYAxis: true,
+
   hasToolbox: true,
+  expandable: true,
+
+  hasYlabel: true,
   yAxisLabelWidth: null, // default is most probably 50
   axisLabelFontSize: 10,
 
   outOfLimits: false,
-  composite: false,
-  aggregationMethod: "",
-  dimensions: [],
-  dimensionsAggregationMethod: "",
-  groupBy: "",
-  selectedInstances: [],
-  selectedNodeIds: [],
-  selectedChartId: "",
+  aggregationMethod: "sum",
 
-  aggregationGroups: [],
-  postAggregationMethod: "",
-  postGroupBy: "",
-  selectedChart: "",
-  filteredLabels: {},
+  groupBy: ["dimension"],
+  groupByLabel: [],
 
-  pristineComposite: {},
+  dimensionsSortBy: [{ id: "contribution", desc: true }],
+  instancesSortBy: [{ id: "contribution", desc: true }],
+  nodesSortBy: [{ id: "contribution", desc: true }],
+  groupBySortBy: [],
+  labelsSortBy: [{ id: "contribution", desc: true }],
+
+  nodesExpanded: {},
+  groupByExpanded: {},
+  labelsExpanded: {},
+
+  pristine: {},
 
   themeTrackColor: ["#ECEEEF", "#383B40"],
   themeScaleColor: ["#F7F8F8", "#2B3136"],
 
+  themeEasyPieTrackColor: ["#ECEEEF", "#383B40"],
+  themeEasyPieScaleColor: ["#CFD5DA", "#536775"],
+
   themeGaugePointer: ["#8F9EAA", "#536775"],
   themeGaugeStroke: ["#ECEEEF", "#383B40"],
 
+  themeD3pieSmallColor: ["#536775", "#CFD5DA"],
+  themeD3pieStroke: ["#ECEEEF", "#383B40"],
+  themeInnerLabelColor: ["#F7F8F8", "#282827"],
+
   themeLabelColor: ["#35414a", "#ffffff"],
+  themeBackground: ["#ffffff", "#282C34"],
+  themeNeutralBackground: ["#ECEEEF", "#383B40"],
+  themeWarningBackground: ["#FFCC26", "#FFCC26"],
+  themeErrorBackground: ["#F95251", "#F95251"],
+
+  themeAnomalyScaleColor: ["#9F75F9", "#9F75F9"],
+  themeAnomalyLiteScaleColor: ["#F0EAF6", "#504576"],
+
+  themeGroupBoxesMin: ["#E4F1FF", "#000C18"],
+  themeGroupBoxesMax: ["#0075F2", "#0075F2"],
+
   legendScroll: 0,
 
   initializedFilters: false,
-  renderDimensionChildren: null,
   error: null,
+
+  agent: true,
+
+  toolboxElements: [Information, ChartType, Fullscreen],
+  leftHeaderElements: [Status],
+
+  expanded: false,
+  expandedHeight: 300,
+
+  viewDimensions: {
+    ids: [],
+    names: [],
+    count: 0,
+    priorities: [],
+    grouped: [],
+    algorithm: "absolute", // absolute|incremental
+  },
+
+  // view
+  units: "",
+  viewUpdateEvery: 0, // view.update_every
+
+  // db
+  updateEvery: 0,
+  firstEntry: 0,
+  lastEntry: 0,
+
+  // summary
+  dimensions: [],
+  labels: [],
+  nodes: [],
+  instances: [],
+  alerts: [],
+
+  weightsAction: "values",
+  weightsTab: "window",
+
+  renderedAt: null,
+  fetchAt: null,
+
+  dimensionsOnNonDimensionGrouping: null,
+
+  en: {
+    instance: {
+      one: "instance",
+      other: "instances",
+    },
+  },
 }

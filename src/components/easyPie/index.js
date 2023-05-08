@@ -1,20 +1,16 @@
-import React, { useState } from "react"
+import React, { forwardRef } from "react"
 import ChartContainer from "@/components/chartContainer"
 import {
-  useChart,
-  useTitle,
   useUnitSign,
   useAttributeValue,
-  useImmediateListener,
+  useLatestConvertedValue,
   useOnResize,
 } from "@/components/provider"
-import styled from "styled-components"
+import styled, { keyframes } from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { Text } from "@netdata/netdata-ui/lib/components/typography"
-import { withChartProvider, useIsFetching } from "@/components/provider"
-import withChartTrack from "@/components/hocs/withChartTrack"
-import withIntersection from "./withIntersection"
-import withDifferedMount from "@/components/hocs/withDifferedMount"
+import withChart from "@/components/hocs/withChart"
+import { ChartWrapper } from "@/components/hocs/withTile"
 import textAnimation from "../helpers/textAnimation"
 
 export const Label = styled(Text)`
@@ -24,32 +20,11 @@ export const Label = styled(Text)`
 `
 
 export const Value = () => {
-  const chart = useChart()
-
-  const getValue = () => {
-    const { hoverX, after } = chart.getAttributes()
-    if (!hoverX && after > 0) return "-"
-
-    const v = chart.getUI().getValue()
-    return chart.getConvertedValue(v)
-  }
-  const [value, setValue] = useState(getValue)
-
-  useImmediateListener(() => chart.getUI().on("rendered", () => setValue(getValue())), [])
+  const value = useLatestConvertedValue("selected")
 
   return (
-    <Label color="main" fontSize="2em">
+    <Label color="main" fontSize="2em" strong>
       {value}
-    </Label>
-  )
-}
-
-export const Title = () => {
-  const title = useTitle()
-  const isFetching = useIsFetching()
-  return (
-    <Label color="border" fontSize="1.2em" strong isFetching={isFetching}>
-      {title}
     </Label>
   )
 }
@@ -63,59 +38,63 @@ export const Unit = () => {
   )
 }
 
-export const ChartWrapper = styled(ChartContainer)`
-  position: absolute;
-  inset: 0;
-`
-
 export const StatsContainer = styled(Flex).attrs({
   position: "absolute",
   column: true,
-  justifyContent: "between",
   alignContent: "center",
+  justifyContent: "center",
+  gap: 2,
 })`
-  inset: ${({ inset }) => inset};
+  inset: 0;
   text-align: center;
   font-size: ${({ fontSize }) => fontSize};
 `
 
-export const Stats = () => {
-  const { width } = useOnResize()
+export const Stats = ({ size }) => (
+  <StatsContainer fontSize={`${size / 15}px`}>
+    <Value />
+    <Unit />
+  </StatsContainer>
+)
 
-  return (
-    <StatsContainer inset={`${width * 0.3}px 0`} fontSize={`${width / 15}px`}>
-      <Title />
-      <Value />
-      <Unit />
-    </StatsContainer>
-  )
-}
+const frames = keyframes`
+  from { opacity: 0.2; }
+  to { opacity: 0.6; }
+`
 
-export const Skeleton = styled(Flex).attrs({
+export const Skeleton = styled(Flex).attrs(props => ({
   background: "borderSecondary",
-  position: "absolute",
   round: "100%",
-})`
-  inset: 0;
+  width: "100%",
+  height: "100%",
+  ...props,
+}))`
+  animation: ${frames} 1.6s ease-in infinite;
 `
 
-export const Container = styled(Flex).attrs({ position: "relative" })`
-  padding-bottom: 100%;
-`
-
-export const EasyPie = props => {
+export const EasyPie = forwardRef(({ uiName, ...rest }, ref) => {
   const loaded = useAttributeValue("loaded")
 
-  return (
-    <Container {...props}>
-      {!loaded && <Skeleton />}
-      {loaded && (
-        <ChartWrapper>
-          <Stats />
-        </ChartWrapper>
-      )}
-    </Container>
-  )
-}
+  const { width, height } = useOnResize(uiName)
+  const size = width < height ? width : height
 
-export default withChartProvider(withIntersection(withChartTrack(withDifferedMount(EasyPie))))
+  return (
+    <ChartWrapper alignItems="center" ref={ref}>
+      {loaded ? (
+        <ChartContainer
+          uiName={uiName}
+          position="relative"
+          justifyContent="center"
+          alignItems="center"
+          {...rest}
+        >
+          <Stats size={size} />
+        </ChartContainer>
+      ) : (
+        <Skeleton size={size} />
+      )}
+    </ChartWrapper>
+  )
+})
+
+export default withChart(EasyPie, { tile: true })

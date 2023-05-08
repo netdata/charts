@@ -1,17 +1,23 @@
-import React from "react"
-import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
-import { useLatestValue } from "@/components/provider"
+import React, { forwardRef } from "react"
+import { TextMicro } from "@netdata/netdata-ui"
+import { useConvertedValue } from "@/components/provider"
 
-export const Value = props => (
-  <TextMicro color="textDescription" data-testid="chartDimensions-value" {...props} />
+export const Value = forwardRef((props, ref) => (
+  <TextMicro color="textDescription" data-testid="chartDimensions-value" {...props} ref={ref} />
+))
+
+const ValueComponent = forwardRef(
+  ({ id, visible, valueKey, period = "latest", objKey, Component = Value, ...rest }, ref) => {
+    const value = useConvertedValue(id, period, { valueKey, objKey })
+
+    if (!visible) return null
+
+    return (
+      <Component {...rest} ref={ref}>
+        {value}
+      </Component>
+    )
+  }
 )
 
-const Container = ({ id, visible, ...rest }) => {
-  const value = useLatestValue(id)
-
-  if (!visible) return null
-
-  return <Value {...rest}>{value}</Value>
-}
-
-export default Container
+export default ValueComponent

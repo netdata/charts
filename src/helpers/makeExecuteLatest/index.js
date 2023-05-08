@@ -8,7 +8,7 @@ export default () => {
         ids.delete(id)
         clearTimeout(id)
 
-        id = setTimeout(() => callback(...args), 0)
+        id = setTimeout(() => callback(...args))
         ids.add(id)
       }
     },

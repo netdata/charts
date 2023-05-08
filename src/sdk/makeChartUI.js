@@ -1,79 +1,36 @@
 import makeListeners from "@/helpers/makeListeners"
 import makeExecuteLatest from "@/helpers/makeExecuteLatest"
 
-const themeIndex = {
-  default: 0,
-  dark: 1,
-}
-
-const getUrlOptions = () => []
-
-const getPixelsPerPoint = () => 3
-
 export default (sdk, chart) => {
   const listeners = makeListeners()
+  const executeLatest = makeExecuteLatest()
+
   let element = null
-  let renderedAt = 0
-  let estimatedWidth = 0
-  let estimatedHeight = 0
-  let parentWidth = null
+  let renderedAt = chart.getDateWindow()[1]
 
   const mount = el => {
     element = el
     sdk.trigger("mountChartUI", chart)
   }
 
-  const executeLatest = makeExecuteLatest()
-  const latestRender = executeLatest.add(() => chart && chart.getUI() && chart.getUI().render())
-
-  chart.on("finishFetch", latestRender)
-  chart.on("visibleDimensionsChanged", latestRender)
-
   const unmount = () => {
     sdk.trigger("unmountChartUI", chart)
     listeners.offAll()
     element = null
+    if (executeLatest) executeLatest.clear()
   }
 
-  const render = () => {
-    renderedAt = Date.now()
-  }
+  const render = () => (renderedAt = chart.getDateWindow()[1])
+
+  chart.on("visibleDimensionsChanged", executeLatest.add(render))
 
   const getRenderedAt = () => renderedAt
 
   const getElement = () => element
 
-  const setEstimatedWidth = width => (estimatedWidth = width)
+  const getChartWidth = () => (element ? element.offsetWidth : 800)
 
-  const getEstimatedWidth = () => estimatedWidth
-
-  const setEstimatedHeight = height => (estimatedHeight = height)
-
-  const getEstimatedHeight = () => estimatedHeight
-
-  const setParentWidth = width => (parentWidth = width)
-
-  const getParentWidth = () => parentWidth
-
-  const getEstimatedChartWidth = () => (element ? element.offsetWidth : estimatedWidth || 300)
-
-  const getEstimatedChartHeight = () => (element ? element.offsetHeight : estimatedHeight || 300)
-
-  const getThemeIndex = () => themeIndex[chart.getAttribute("theme")] || themeIndex.default
-
-  const getThemeAttribute = name => {
-    const attributes = chart.getAttributes()
-    const index = getThemeIndex()
-    return attributes[name][index]
-  }
-
-  const getChartWidth = () => {
-    return element ? element.offsetWidth : getEstimatedChartWidth()
-  }
-
-  const getChartHeight = () => {
-    return element ? element.offsetHeight : getEstimatedChartHeight()
-  }
+  const getChartHeight = () => (element ? element.offsetHeight : 300)
 
   return {
     ...listeners,
@@ -84,20 +41,7 @@ export default (sdk, chart) => {
     render,
     getRenderedAt,
     getElement,
-    setEstimatedWidth,
-    getEstimatedWidth,
-    setParentWidth,
-    getParentWidth,
-    getEstimatedChartWidth,
     getChartWidth,
     getChartHeight,
-    setEstimatedHeight,
-    getEstimatedHeight,
-    getEstimatedChartHeight,
-    getPixelsPerPoint,
-    getThemeIndex,
-    getThemeAttribute,
-    getUrlOptions,
-    format: "json",
   }
 }

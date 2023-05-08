@@ -4,13 +4,15 @@ export default (chartUI, row) => {
   const { h } = dygraph.getArea()
   const { canvas_ctx_: ctx } = dygraph
 
-  const rowData = chartUI.chart.getPayload().result.data[row]
+  const rowData = chartUI.chart.getPayload().data[row]
 
   if (!Array.isArray(rowData)) return
 
   const x = dygraph.toDomXCoord(rowData[0])
 
-  const themeCrosshair = chartUI.getThemeAttribute("themeCrosshair")
+  const themeCrosshair = chartUI.chart.getThemeAttribute("themeCrosshair")
+
+  dygraph.setSelection(row)
 
   ctx.save()
   ctx.beginPath()

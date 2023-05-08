@@ -2,7 +2,7 @@ import React from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { Text, TextMicro } from "@netdata/netdata-ui/lib/components/typography"
-import { useLatestValue, useUnitSign } from "@/components/provider"
+import { useLatestConvertedValue, useUnitSign } from "@/components/provider"
 
 const StyledText = styled(Text)`
   pointer-events: none;
@@ -25,7 +25,7 @@ const defaultTextProps = {
 
 const LatestValue = ({ dimensionId, textProps, ...rest }) => {
   const unit = useUnitSign()
-  const value = useLatestValue(dimensionId)
+  const value = useLatestConvertedValue(dimensionId)
 
   if (!value)
     return (

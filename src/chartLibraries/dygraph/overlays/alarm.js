@@ -26,8 +26,6 @@ export default (chartUI, id) => {
 
   ctx.save()
   ctx.beginPath()
-
-  ctx.beginPath()
   ctx.moveTo(from - lineWidth / 2, 0)
   ctx.lineTo(from - lineWidth / 2, h)
   ctx.globalAlpha = 1

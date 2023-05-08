@@ -1,6 +1,6 @@
 import { darkenColor } from "./helpers"
 
-export default plotter => {
+export default () => plotter => {
   const ctx = plotter.drawingContext
   const points = plotter.points
   const y_bottom = plotter.dygraph.toDomYCoord(0)

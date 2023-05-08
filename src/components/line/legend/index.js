@@ -26,7 +26,7 @@ const Container = styled(Flex).attrs({
 })`
   overflow-x: auto; // fallback
   overflow-x: overlay;
-  height: 40px;
+  height: 45px;
   ::-webkit-scrollbar {
     height: 6px;
   }

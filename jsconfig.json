@@ -1,5 +1,5 @@
 {
-  "exclude": ["node_modules", "./src/fixtures/*"],
+  "exclude": ["node_modules", "./fixtures/*"],
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {

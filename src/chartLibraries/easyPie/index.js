@@ -3,12 +3,9 @@ import makeChartUI from "@/sdk/makeChartUI"
 import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
 
-const getUrlOptions = () => ["absolute"]
-
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
   let easyPie = null
-  let renderedValue = 0
   let listeners
   let resizeObserver
 
@@ -26,12 +23,9 @@ export default (sdk, chart) => {
     const { loaded } = chart.getAttributes()
 
     const makeEasyPie = () => {
-      chart.consumePayload()
-      chart.updateDimensions()
-
       easyPie = new EasyPie(element, {
-        barColor: chart.getColors()[0],
-        animate: { duration: 500, enabled: true },
+        barColor: chart.selectDimensionColor(),
+        animate: false,
         ...makeThemingOptions(),
         ...makeDimensionOptions(),
       })
@@ -41,6 +35,7 @@ export default (sdk, chart) => {
 
     const reMake = () => {
       const canvas = easyPie.renderer.getCanvas()
+      easyPie.renderer.clear()
       element.removeChild(canvas)
       makeEasyPie()
     }
@@ -63,12 +58,13 @@ export default (sdk, chart) => {
       chart.onAttributeChange("theme", reMake)
     )
 
+    chartUI.trigger("resize")
     render()
   }
 
   const makeThemingOptions = () => ({
-    trackColor: chartUI.getThemeAttribute("themeTrackColor"),
-    scaleColor: chartUI.getThemeAttribute("themeScaleColor"),
+    trackColor: chart.getThemeAttribute("themeEasyPieTrackColor"),
+    scaleColor: chart.getThemeAttribute("themeEasyPieScaleColor"),
   })
 
   const makeDimensionOptions = () => {
@@ -79,73 +75,47 @@ export default (sdk, chart) => {
     return {
       lineWidth: multiplier < 4 ? 2 : Math.floor(multiplier),
       size: size < 20 ? 20 : size,
+      scaleLength: multiplier < 4 ? 2 : Math.floor(multiplier),
     }
   }
 
-  const getMinMax = value => {
-    let { min, max } = chart.getPayload()
-    if (min < 0 && max === 0) {
-      max = -min
-      min = 0
-    }
-
-    const units = chart.getUnits()
-    if (units === "percentage") {
-      min = 0
-      max = 100
-    }
-
-    const minMax = [Math.min(min, value), Math.max(max, value)].sort((a, b) => a - b)
-
-    return minMax[0] === minMax[1] ? [minMax[0], minMax[1] + 1] : minMax
-  }
+  const getMinMax = () => chart.getAttribute("getValueRange")(chart)
 
   const render = () => {
     chartUI.render()
 
-    const { hoverX, loaded, after } = chart.getAttributes()
+    const { hoverX, loaded } = chart.getAttributes()
 
     if (!easyPie || !loaded) return
 
-    chart.consumePayload()
+    const { data } = chart.getPayload()
 
-    if (!hoverX && after > 0) {
-      renderedValue = 0
-      easyPie.update(0)
-      return chartUI.trigger("rendered")
-    }
+    if (data?.length === undefined) return
 
-    const { result } = chart.getPayload()
+    const row = hoverX ? chart.getClosestRow(hoverX[0]) : data.length - 1
 
-    if (result.data?.length === undefined) return
-
-    const row = hoverX ? chart.getClosestRow(hoverX[0]) : result.data.length - 1
-
-    const rowData = result.data[row]
+    const rowData = data[row]
     if (!Array.isArray(rowData)) return
 
     const [, ...rows] = rowData
-    const value = rows.reduce((acc, v) => acc + v, 0)
-    let [min, max] = getMinMax(value)
-
-    if (renderedValue === value && min === prevMin && max === prevMax) return
+    const value = rows.reduce((acc, v = 0) => acc + v, 0)
+    let [min, max] = getMinMax()
 
     chartUI.render()
 
-    renderedValue = value
     const percentage = ((value - min) / (max - min)) * 100
+
     easyPie.update(percentage)
 
     if (min !== prevMin || max !== prevMax) {
-      prevMin = min
-      prevMax = max
       chartUI.sdk.trigger("yAxisChange", chart, min, max)
     }
 
+    prevMin = min
+    prevMax = max
+
     chartUI.trigger("rendered")
   }
-
-  const getValue = () => renderedValue
 
   const unmount = () => {
     if (listeners) listeners()
@@ -156,7 +126,6 @@ export default (sdk, chart) => {
       easyPie = null
     }
 
-    renderedValue = 0
     prevMin = null
     prevMax = null
 
@@ -165,12 +134,9 @@ export default (sdk, chart) => {
 
   const instance = {
     ...chartUI,
-    format: "array",
     mount,
     unmount,
     render,
-    getValue,
-    getUrlOptions,
   }
 
   return instance

@@ -29,7 +29,14 @@ const getElement = (svg, id) => {
     .replace(/^<symbol /i, "<svg ")
     .replace(/<\/symbol>$/i, "</svg>")
 
+  if (!svg) {
+    console.error(`Couldn't find SVG: ${id} - ${svg}`)
+    return ""
+  }
+
   container.innerHTML = svg
+
+  if (!container.firstChild) return ""
 
   const viewbox = container.firstChild.getAttribute("viewBox")
   const xmlns = container.firstChild.getAttribute("xmlns")
@@ -41,8 +48,8 @@ const getElement = (svg, id) => {
 }
 
 const Icon = ({ svg, size = "24px", width = size, height = size, ...rest }) => {
-  const rowSvg = svg.content || svg
-  const id = useMemo(() => md5(rowSvg), [rowSvg])
+  const rawSvg = svg?.content || svg
+  const id = useMemo(() => md5(rawSvg), [rawSvg])
 
   useEffect(() => {
     if (document.getElementById(id)) return
@@ -51,10 +58,10 @@ const Icon = ({ svg, size = "24px", width = size, height = size, ...rest }) => {
 
     const defs = document.querySelector(`#${iconsContainerId} defs`)
 
-    const element = getElement(rowSvg, id)
+    const element = getElement(rawSvg, id)
 
     defs.appendChild(element)
-  }, [rowSvg])
+  }, [rawSvg])
 
   return (
     <StyledIcon width={width} height={height} {...rest}>

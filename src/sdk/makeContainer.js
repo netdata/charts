@@ -71,9 +71,7 @@ export default ({ sdk, parent, attributes } = {}) => {
   let colorsByGroupId = {}
 
   const getNextColor = (getNext, groupId, id) => {
-    if (!(groupId in colorsByGroupId)) {
-      colorsByGroupId[groupId] = {}
-    }
+    if (!(groupId in colorsByGroupId)) colorsByGroupId[groupId] = {}
 
     const byId = colorsByGroupId[groupId]
 
@@ -93,7 +91,7 @@ export default ({ sdk, parent, attributes } = {}) => {
     children.forEach(node => node.destroy())
     children = []
     colorsByGroupId = {}
-    node = null
+    setTimeout(() => (node = null), 2000)
   }
 
   node.type = "container"
@@ -108,6 +106,7 @@ export default ({ sdk, parent, attributes } = {}) => {
     getNodes,
     getChildren,
     getNextColor,
+    getRoot: () => sdk.getRoot(),
   }
 
   return instance
