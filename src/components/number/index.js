@@ -6,16 +6,8 @@ import { useUnitSign, useLatestConvertedValue } from "@/components/provider"
 import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
 import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
-import textAnimation from "../helpers/textAnimation"
 
-const Label = styled(Text)`
-  line-height: 1;
-  font-size: ${({ fontSize }) => fontSize};
-  flex: ${({ flex = 0 }) => flex};
-  ${({ isFetching }) => isFetching && textAnimation};
-`
-
-const StrokeLabel = styled(Label)`
+const StrokeLabel = styled(Text)`
   text-shadow: 0.02em 0 ${getColor("borderSecondary")}, 0 0.02em ${getColor("borderSecondary")},
     -0.02em 0 ${getColor("borderSecondary")}, 0 -0.02em ${getColor("borderSecondary")};
 `
@@ -23,7 +15,7 @@ export const Value = props => {
   const value = useLatestConvertedValue("selected")
 
   return (
-    <StrokeLabel flex="2" color="main" fontSize="2em" strong {...props}>
+    <StrokeLabel color="main" fontSize="2em" strong {...props}>
       {value}
     </StrokeLabel>
   )
@@ -32,9 +24,9 @@ export const Value = props => {
 export const Unit = props => {
   const unit = useUnitSign()
   return (
-    <Label color="border" fontSize="1em" {...props}>
+    <Text color="border" fontSize="1em" {...props}>
       {unit}
-    </Label>
+    </Text>
   )
 }
 
