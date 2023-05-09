@@ -12,7 +12,7 @@ export const NumberChart = forwardRef(({ uiName, ...rest }, ref) => {
   return (
     <ChartWrapper ref={ref}>
       <ChartContainer uiName={uiName} column gap={0.5} position="relative" {...rest}>
-        <Dimensions size={size} height={height} />
+        <Dimensions size={size} height={height} width={width} />
       </ChartContainer>
     </ChartWrapper>
   )

@@ -21,13 +21,14 @@ const getPayload = chart => {
   return {
     ...extraPayload,
     options: options.join("|"),
-    contexts: selectedContexts.join("|") || context || wildcard,
-    scope_contexts: contextScope.join("|") || wildcard,
-    scope_nodes: nodesScope.join("|") || wildcard,
-    nodes: selectedNodes.join("|") || wildcard,
-    instances: selectedInstances.join("|") || wildcard,
-    dimensions: selectedDimensions.join("|") || wildcard,
-    labels: selectedLabels.join("|") || wildcard,
+    contexts:
+      (Array.isArray(selectedContexts) ? selectedContexts.join("|") : "") || context || wildcard,
+    scope_contexts: (Array.isArray(contextScope) ? contextScope.join("|") : "") || wildcard,
+    scope_nodes: (Array.isArray(nodesScope) ? nodesScope.join("|") : "") || wildcard,
+    nodes: (Array.isArray(selectedNodes) ? selectedNodes.join("|") : "") || wildcard,
+    instances: (Array.isArray(selectedInstances) ? selectedInstances.join("|") : "") || wildcard,
+    dimensions: (Array.isArray(selectedDimensions) ? selectedDimensions.join("|") : "") || wildcard,
+    labels: (Array.isArray(selectedLabels) ? selectedLabels.join("|") : "") || wildcard,
     "group_by[0]": (extraPayload["group_by[0]"] || chart.getAttribute("groupBy")).join("|"),
     "group_by_label[0]": (
       extraPayload["group_by_label[0]"] || chart.getAttribute("groupByLabel")

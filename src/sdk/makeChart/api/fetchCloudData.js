@@ -24,15 +24,27 @@ const getPayload = chart => {
     format,
     options,
     scope: {
-      contexts: contextScope.length ? contextScope : wildcardArray,
-      nodes: nodesScope.length ? nodesScope : [],
+      contexts: Array.isArray(contextScope) && contextScope.length ? contextScope : wildcardArray,
+      nodes: Array.isArray(nodesScope) && nodesScope.length ? nodesScope : [],
     },
     selectors: {
-      contexts: selectedContexts.length ? selectedContexts : context ? [context] : wildcardArray,
-      nodes: selectedNodes.length ? selectedNodes : wildcardArray,
-      instances: selectedInstances.length ? selectedInstances : wildcardArray,
-      dimensions: selectedDimensions.length ? selectedDimensions : wildcardArray,
-      labels: selectedLabels.length ? selectedLabels : wildcardArray,
+      contexts:
+        Array.isArray(selectedContexts) && selectedContexts.length
+          ? selectedContexts
+          : context
+          ? [context]
+          : wildcardArray,
+      nodes: Array.isArray(selectedNodes) && selectedNodes.length ? selectedNodes : wildcardArray,
+      instances:
+        Array.isArray(selectedInstances) && selectedInstances.length
+          ? selectedInstances
+          : wildcardArray,
+      dimensions:
+        Array.isArray(selectedDimensions) && selectedDimensions.length
+          ? selectedDimensions
+          : wildcardArray,
+      labels:
+        Array.isArray(selectedLabels) && selectedLabels.length ? selectedLabels : wildcardArray,
     },
     aggregations: {
       metrics: [

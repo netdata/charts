@@ -59,7 +59,7 @@ const rowSorting = {
   default: "valueDesc",
 }
 
-const Dimensions = ({ size, height }) => {
+const Dimensions = ({ size, height, width }) => {
   const chart = useChart()
   const [x, row] = useAttributeValue("hoverX") || emptyArray
   const { data } = usePayload()
@@ -138,7 +138,7 @@ const Dimensions = ({ size, height }) => {
             key={id}
             id={id}
             strong={row === id}
-            chars={parseInt(size / 8)}
+            chars={parseInt(width / cols === "full" ? 3 : 2)}
             rowFlavour={rowFlavour}
             size={(size - 80) / ids.length}
             fullCols={cols === "full"}

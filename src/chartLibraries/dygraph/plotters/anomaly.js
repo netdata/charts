@@ -9,6 +9,9 @@ export default chartUI => plotter => {
     const ctx = plotter.drawingContext
     const points = plotter.points
 
+    if (!points.length) return
+    if (!points[1] && !points[0]) return
+
     let min_sep = points[1].canvasx - points[0].canvasx + 1
 
     const bar_width = Math.floor(min_sep)

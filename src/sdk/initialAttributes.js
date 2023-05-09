@@ -73,6 +73,7 @@ export default {
   selectedNodes: [],
   selectedInstances: [],
 
+  dimensionIds: [],
   versions: {},
 
   enabledHover: true,
