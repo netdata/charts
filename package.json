@@ -1,6 +1,6 @@
 {
   "name": "@netdata/charts",
-  "version": "3.0.40",
+  "version": "3.0.41",
   "description": "Netdata frontend SDK and chart utilities",
   "main": "index.js",
   "module": "es6/index.js",
