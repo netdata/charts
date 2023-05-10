@@ -151,8 +151,14 @@ export default (sdk, chart) => {
         element.classList.add(nextTheme)
         dygraph.updateOptions(makeThemingOptions())
       }),
-      chart.onAttributeChange("chartType", () => dygraph.updateOptions(makeChartTypeOptions())),
-      chart.onAttributeChange("selectedLegendDimensions", () =>
+      chart.onAttributeChange("chartType", () => {
+        if (chart.getAttribute("processing")) return
+
+        dygraph.updateOptions(makeChartTypeOptions())
+      }),
+      chart.onAttributeChange("selectedLegendDimensions", () => {
+        if (chart.getAttribute("processing")) return
+
         dygraph.updateOptions({
           ...makeVisibilityOptions(),
           ...makeColorOptions(),
@@ -163,7 +169,7 @@ export default (sdk, chart) => {
               ? 0
               : chart.getAttribute("unitsConversionFractionDigits"),
         })
-      ),
+      }),
       chart.onAttributeChange("unitsConversion", () =>
         dygraph.updateOptions({
           ylabel: chart.getAttribute("hasYlabel") && chart.getUnitSign({ long: true }),
@@ -421,8 +427,8 @@ export default (sdk, chart) => {
   const render = () => {
     if (!dygraph) return
 
-    const { highlighting, panning } = chart.getAttributes()
-    if (highlighting || panning) return
+    const { highlighting, panning, processing } = chart.getAttributes()
+    if (highlighting || panning || processing) return
 
     chartUI.render()
 
@@ -430,6 +436,7 @@ export default (sdk, chart) => {
       ...makeDataOptions(),
       ...makeVisibilityOptions(),
       ...makeColorOptions(),
+      ...makeChartTypeOptions(),
       ylabel: chart.getAttribute("hasYlabel") && chart.getUnitSign({ long: true }),
       digitsAfterDecimal:
         chart.getAttribute("unitsConversionFractionDigits") < 0

@@ -5,7 +5,7 @@ import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
 import Dimensions from "./dimensions"
 
-export const NumberChart = forwardRef(({ uiName, ...rest }, ref) => {
+export const BarsChart = forwardRef(({ uiName, ...rest }, ref) => {
   const { width, height } = useOnResize(uiName)
   const size = width < height ? width : height
 
@@ -18,4 +18,4 @@ export const NumberChart = forwardRef(({ uiName, ...rest }, ref) => {
   )
 })
 
-export default withChart(NumberChart, { tile: true })
+export default withChart(BarsChart, { tile: true })

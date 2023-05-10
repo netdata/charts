@@ -57,6 +57,7 @@ export default chart => {
       chart.updateAttributes({
         loaded: true,
         loading: false,
+        processing: false,
         updatedAt: Date.now(),
         outOfLimits: !dataLength,
         chartType: attributes.selectedChartType || attributes.chartType || chartType,
@@ -116,6 +117,7 @@ export default chart => {
     chart.updateAttributes({
       loaded: true,
       loading: false,
+      processing: false,
       updatedAt: Date.now(),
       error:
         errorCodesToMessage[error?.errorMessage] ||
@@ -138,15 +140,17 @@ export default chart => {
     return firstEntry <= absoluteBefore
   }
 
-  chart.fetch = () => {
+  chart.fetch = ({ processing = false } = {}) => {
     if (!chart) return
 
     chart.cancelFetch()
-    chart.trigger("startFetch")
     chart.updateAttributes({
+      processing,
       loading: true,
       fetchStartedAt: Date.now(),
     })
+
+    chart.trigger("startFetch")
 
     if (!isNewerThanRetention())
       return Promise.resolve().then(() =>

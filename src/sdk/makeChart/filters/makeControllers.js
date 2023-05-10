@@ -17,7 +17,7 @@ export default chart => {
         stackedAggregations[aggregationMethod] ? "stacked" : chartType
       )
     } else {
-      chart.updateAttribute("chartType", prevChartType)
+      chart.updateAttributes({ chartType: prevChartType, processing: true })
     }
     prevChartType = chartType
   }
@@ -51,10 +51,25 @@ export default chart => {
     chart.updateAttributes({
       groupByLabel: groupByLabel,
       groupBy: groupBy,
+      processing: true,
     })
 
     chart.updateAttributes(getInitialFilterAttributes(chart))
-    chart.fetch().then(() => onGroupChange(chart.getAttribute("groupBy")))
+    chart.fetch({ processing: true }).then(() => onGroupChange(chart.getAttribute("groupBy")))
+  }
+
+  const updateChartTypeAttribute = selected => {
+    chart.updateAttributes({
+      selectedChartType: selected,
+      chartType: selected,
+      processing: true,
+    })
+
+    if (selected === "heatmap") {
+      updateGroupByAttribute(["dimension"])
+    } else {
+      chart.trigger("fetch", { processing: true })
+    }
   }
 
   const updateNodesAttribute = selected => {
@@ -71,15 +86,16 @@ export default chart => {
     )
 
     const nodesHaveChanges = !deepEqual(selectedNodes, chart.getAttribute("selectedNodes"))
-    if (nodesHaveChanges) chart.updateAttribute("selectedNodes", selectedNodes)
+    if (nodesHaveChanges) chart.updateAttributes({ selectedNodes: selectedNodes, processing: true })
 
     const instancesHaveChanges = !deepEqual(
       selectedInstances,
       chart.getAttribute("selectedInstances")
     )
-    if (instancesHaveChanges) chart.updateAttribute("selectedInstances", selectedInstances)
+    if (instancesHaveChanges)
+      chart.updateAttributes({ selectedInstances: selectedInstances, processing: true })
 
-    if (instancesHaveChanges || nodesHaveChanges) chart.trigger("fetch")
+    if (instancesHaveChanges || nodesHaveChanges) chart.trigger("fetch", { processing: true })
   }
 
   const updateInstancesAttribute = selected => {
@@ -87,9 +103,9 @@ export default chart => {
 
     if (deepEqual(selectedInstances, chart.getAttribute("selectedInstances"))) return
 
-    chart.updateAttribute("selectedInstances", selectedInstances)
+    chart.updateAttributes({ selectedInstances: selectedInstances, processing: true })
 
-    chart.trigger("fetch")
+    chart.trigger("fetch", { processing: true })
   }
 
   const updateDimensionsAttribute = selected => {
@@ -97,9 +113,9 @@ export default chart => {
 
     if (deepEqual(selectedDimensions, chart.getAttribute("selectedDimensions"))) return
 
-    chart.updateAttribute("selectedDimensions", selectedDimensions)
+    chart.updateAttributes({ selectedDimensions: selectedDimensions, processing: true })
 
-    chart.trigger("fetch")
+    chart.trigger("fetch", { processing: true })
   }
 
   const updateLabelsAttribute = selected => {
@@ -107,26 +123,26 @@ export default chart => {
 
     if (deepEqual(selectedLabels, chart.getAttribute("selectedLabels"))) return
 
-    chart.updateAttribute("selectedLabels", selectedLabels)
+    chart.updateAttributes({ selectedLabels: selectedLabels, processing: true })
 
-    chart.trigger("fetch")
+    chart.trigger("fetch", { processing: true })
   }
 
   const updateAggregationMethodAttribute = value => {
     if (chart.getAttribute("aggregationMethod") === value) return
 
-    chart.updateAttribute("aggregationMethod", value)
+    chart.updateAttributes({ aggregationMethod: value, processing: true })
 
-    chart.trigger("fetch")
+    chart.trigger("fetch", { processing: true })
   }
 
   const updateContextScopeAttribute = value => {
     if (chart.getAttribute("contextScope")[0] === value) return
 
-    chart.updateAttribute("contextScope", [value])
+    chart.updateAttributes({ contextScope: [value], processing: true })
     chart.updateAttributes(getInitialFilterAttributes(chart))
 
-    chart.trigger("fetch")
+    chart.trigger("fetch", { processing: true })
   }
 
   const updateTimeAggregationMethodAttribute = ({ alias, method }) => {
@@ -134,8 +150,8 @@ export default chart => {
 
     if (chart.getAttribute("groupingMethod") === value) return
 
-    chart.updateAttribute("groupingMethod", value)
-    chart.trigger("fetch")
+    chart.updateAttributes({ groupingMethod: value, processing: true })
+    chart.trigger("fetch", { processing: true })
   }
 
   const resetPristine = () => {
@@ -147,7 +163,7 @@ export default chart => {
     Object.keys(prev).forEach(key =>
       chart.attributeListeners.trigger(key, attributes[key], prev[key])
     )
-    chart.trigger("fetch")
+    chart.trigger("fetch", { processing: true })
   }
 
   const removePristine = () => {
@@ -159,6 +175,7 @@ export default chart => {
 
   return {
     updateGroupByAttribute,
+    updateChartTypeAttribute,
     updateNodesAttribute,
     updateInstancesAttribute,
     updateDimensionsAttribute,

@@ -1,4 +1,4 @@
-import React, { memo, useMemo, useCallback } from "react"
+import React, { memo, useMemo } from "react"
 import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
 import lineChart from "@netdata/netdata-ui/lib/components/icon/assets/line_chart2.svg"
 import stackedChart from "@netdata/netdata-ui/lib/components/icon/assets/stacked_chart.svg"
@@ -7,7 +7,7 @@ import barChart from "@netdata/netdata-ui/lib/components/icon/assets/bar_chart.s
 import stackedBarChart from "@netdata/netdata-ui/lib/components/icon/assets/stacked_bar_chart.svg"
 import heatmapChart from "@netdata/netdata-ui/lib/components/icon/assets/heatmap_chart.svg"
 import Icon, { Button } from "@/components/icon"
-import { useChart, useAttribute } from "@/components/provider"
+import { useChart, useAttributeValue } from "@/components/provider"
 
 const iconProps = { color: "border", margin: [0, 2, 0, 0], size: "16px" }
 
@@ -62,14 +62,7 @@ const useItems = chart =>
 
 const ChartType = ({ disabled }) => {
   const chart = useChart()
-  const [, setSelectedChartType] = useAttribute("selectedChartType")
-  const [chartTypeAttribute, setChartType] = useAttribute("chartType")
-  const chartType = chartTypeAttribute || "line"
-
-  const onChange = useCallback(value => {
-    setSelectedChartType(value)
-    setChartType(value)
-  }, [])
+  const chartType = useAttributeValue("chartType") || "line"
 
   const items = useItems(chart)
   const { label, svg } = items.find(({ value }) => value === chartType)
@@ -80,7 +73,7 @@ const ChartType = ({ disabled }) => {
       items={items}
       dropProps={{ align: { top: "bottom", right: "right" }, "data-toolbox": true }}
       dropdownProps={{ width: "100px" }}
-      onChange={onChange}
+      onChange={chart.updateChartTypeAttribute}
       data-track={chart.track("chartType")}
     >
       <Button

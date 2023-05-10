@@ -2030,7 +2030,6 @@ import * as d3 from "d3"
       d3.selectAll("#" + pie.cssPrefix + "tooltip" + tt.currentTooltip).attr(
         "transform",
         function (d) {
-          debugger
           var mouseCoords = d3.pointer(this.parentNode)
           var x = mouseCoords[0] + pie.options.tooltips.styles.padding + 2
           var y = mouseCoords[1] - 2 * pie.options.tooltips.styles.padding - 2

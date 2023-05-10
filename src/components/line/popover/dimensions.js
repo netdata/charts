@@ -142,7 +142,7 @@ const Dimensions = ({ uiName }) => {
             key={id}
             id={id}
             strong={row === id}
-            chars={chartWidth < 600 ? 200 : chartWidth / 3}
+            chars={chartWidth < 600 ? 50 : 100}
             rowFlavour={rowFlavour}
           />
         ))}

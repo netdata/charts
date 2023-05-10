@@ -56,6 +56,7 @@ export default {
   },
   loaded: false,
   loading: false,
+  processing: false,
   updatedAt: 0,
   fetchStartedAt: 0,
   focused: false,

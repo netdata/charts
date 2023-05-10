@@ -8,6 +8,7 @@ import Popover from "./popover"
 import Toolbox from "./toolbox"
 import Skeleton from "./skeleton"
 import Overlays from "./overlays"
+import { Processing } from "./overlays/proceeded"
 import dygraphStyle from "@/chartLibraries/dygraph/style.css"
 import cursorStyle from "@/components/helpers/cursorStyle"
 
@@ -52,6 +53,7 @@ const ChartContentWrapper = ({ uiName }) => {
   const initialLoading = useInitialLoading()
   const empty = useEmpty()
   const hasToolbox = useAttributeValue("hasToolbox")
+  const processing = useAttributeValue("processing")
 
   return (
     <Container ref={ref}>
@@ -59,6 +61,7 @@ const ChartContentWrapper = ({ uiName }) => {
       {!initialLoading && <Overlays uiName={uiName} />}
       {initialLoading && <Skeleton />}
       {hasToolbox && hovered && !empty && <Toolbox />}
+      {processing && <Processing />}
       <Popover uiName={uiName} />
     </Container>
   )

@@ -35,15 +35,16 @@ const Proceeded = ({ defaultValue, uiName, ...rest }) => {
 }
 
 const CenterContainer = styled(Flex)`
+  z-index: 60000;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
 `
 
-export const CenterNoData = () => (
+export const Processing = () => (
   <CenterContainer>
-    <Proceeded defaultValue="No data" />
+    <Proceeded defaultValue="Processing" />
   </CenterContainer>
 )
 

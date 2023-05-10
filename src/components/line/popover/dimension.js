@@ -79,7 +79,7 @@ const Dimension = ({ id, strong, chars, rowFlavour }) => {
         >
           <Color id={id} />
         </ColorBackground>
-        <Name padding={[1, 2]} flex id={id} strong={strong} maxLength={chars} />
+        <Name padding={[1, 2]} flex id={id} strong={strong} maxLength={chars} noTooltip />
       </Flex>
       <Value
         id={id}

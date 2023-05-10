@@ -1,5 +1,6 @@
 import React from "react"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import { Flex } from "@netdata/netdata-ui"
+import { useAttributeValue } from "@/components/provider"
 import Aggregate from "./aggregate"
 import Dimensions from "./dimensions"
 import Instances from "./instances"
@@ -12,18 +13,25 @@ import Reset from "./reset"
 
 export const Container = ({ children, ...rest }) => <Flex {...rest}>{children}</Flex>
 
-const FilterToolbox = props => (
-  <Container {...props}>
-    <ContextScope />
-    <GroupBy labelProps={{ secondaryLabel: "Group by" }} />
-    <Aggregate />
-    <Nodes />
-    <Instances />
-    <Dimensions />
-    <Labels />
-    <TimeAggregation />
-    <Reset />
-  </Container>
-)
+const uppercasedAggrLabel = { secondaryLabel: "The" }
+const emptyObject = {}
+
+const FilterToolbox = props => {
+  const isHeatmap = useAttributeValue("chartType") === "heatmap"
+
+  return (
+    <Container {...props}>
+      <ContextScope />
+      {!isHeatmap && <GroupBy labelProps={{ secondaryLabel: "Group by" }} />}
+      <Aggregate labelProps={isHeatmap ? uppercasedAggrLabel : emptyObject} />
+      <Nodes />
+      <Instances />
+      <Dimensions />
+      <Labels />
+      <TimeAggregation />
+      <Reset />
+    </Container>
+  )
+}
 
 export default FilterToolbox

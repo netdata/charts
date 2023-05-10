@@ -255,13 +255,6 @@ export default ({
     node.invalidateClosestRowCache()
   })
 
-  node.onAttributeChange("chartType", (chartType, prevChartType) => {
-    if (!node) return
-    if (pointMultiplierByChartType[chartType] === pointMultiplierByChartType[prevChartType]) return
-
-    node.trigger("fetch")
-  })
-
   node.makeChartUI = (uiName, chartLibrary = node.getAttribute("chartLibrary")) => {
     if (!(chartLibrary in sdk.ui))
       console.error(
