@@ -19,7 +19,7 @@ const GridRow = styled(Flex).attrs({
 const ColorBackground = styled(ColorBar).attrs({
   position: "absolute",
   top: 1,
-  left: 2,
+  left: 0,
   backgroundOpacity: 0.4,
   round: 0.5,
 })``
