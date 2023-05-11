@@ -153,12 +153,13 @@ export default (chart, sdk) => {
 
   chart.isDimensionVisible = id => visibleDimensionSet.has(id)
 
+  let memKey = null
   const getMemKey = () => {
+    if (memKey) return memKey
     const { colors, contextScope, id } = chart.getAttributes()
 
-    if (colors.length) return chart.getAttribute("id")
-
-    return contextScope.join("|") || id
+    memKey = colors.length ? chart.getAttribute("id") : (contextScope[0] || id).split(".")[0]
+    return memKey
   }
 
   chart.selectDimensionColor = (id = "selected") => {
@@ -175,10 +176,8 @@ export default (chart, sdk) => {
         ? colorsAttr[0]
         : sdk.getRoot().getNextColor(getNextColor, key, id)
 
-    if (typeof color === "string") return color
-
     const index = chart.getThemeIndex()
-    return color[index]
+    return typeof color === "string" ? color : color[index]
   }
 
   chart.getDimensionName = id => {

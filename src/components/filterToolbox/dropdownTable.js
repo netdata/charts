@@ -52,6 +52,7 @@ const noop = () => {}
 const defaultSortBy = [{ id: "contribution", desc: true }]
 
 const defaultExpanded = {}
+const defaultFilterSelectedCount = () => true
 
 const Dropdown = ({
   getOptions,
@@ -69,6 +70,7 @@ const Dropdown = ({
   totals,
   emptyMessage,
   title,
+  filterSelectedCount = defaultFilterSelectedCount,
   ...rest
 }) => {
   const items = useMemo(getOptions, [])
@@ -80,6 +82,10 @@ const Dropdown = ({
   }, [])
 
   const hasChanges = useMemo(() => !!newValues && deepEqual(value, newValues), [newValues])
+  const newValuesCount = useMemo(
+    () => (!newValues?.length ? 0 : filterSelectedCount(newValues)),
+    [newValues]
+  )
 
   return (
     <Container
@@ -121,7 +127,7 @@ const Dropdown = ({
       >
         <Flex gap={1} alignItems="center">
           <TextSmall color="textLite">
-            Selected <TextSmall strong>{newValues?.length || 0}</TextSmall> out of{" "}
+            Selected <TextSmall strong>{newValuesCount}</TextSmall> out of{" "}
             <TextSmall strong>{(totals?.sl || 0) + (totals?.ex || 0) || items.length}</TextSmall>
           </TextSmall>
           <Button
@@ -194,6 +200,7 @@ const DropdownTable = ({
   emptyMessage,
   resourceName,
   title,
+  filterSelectedCount,
   ...rest
 }) => {
   const [isOpen, setIsOpen] = useState(false)
@@ -234,6 +241,7 @@ const DropdownTable = ({
         newValues,
         emptyMessage,
         title,
+        filterSelectedCount,
       }}
       value={value}
       onOpen={() => setIsOpen(true)}

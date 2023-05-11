@@ -58,6 +58,8 @@ const Labels = ({ labelProps, ...rest }) => {
   const [sortBy, onSortByChange] = useAttribute("labelsSortBy")
   const [expanded, onExpandedChange] = useAttribute("labelsExpanded")
 
+  const filterSelectedCount = useCallback(values => values.filter(label => !!label.parentId), [])
+
   return (
     <DropdownTable
       title="Labels"
@@ -75,6 +77,7 @@ const Labels = ({ labelProps, ...rest }) => {
       expanded={expanded}
       onExpandedChange={onExpandedChange}
       totals={labelsTotals}
+      filterSelectedCount={filterSelectedCount}
       {...rest}
     />
   )

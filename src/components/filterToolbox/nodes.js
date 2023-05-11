@@ -69,6 +69,8 @@ const Nodes = ({ labelProps, ...rest }) => {
   const [sortBy, onSortByChange] = useAttribute("nodesSortBy")
   const [expanded, onExpandedChange] = useAttribute("nodesExpanded")
 
+  const filterSelectedCount = useCallback(values => values.filter(val => !val.isInstance), [])
+
   return (
     <DropdownTable
       title="Nodes"
@@ -86,6 +88,7 @@ const Nodes = ({ labelProps, ...rest }) => {
       onExpandedChange={onExpandedChange}
       enableSubRowSelection={false}
       totals={nodesTotals}
+      filterSelectedCount={filterSelectedCount}
       {...rest}
     />
   )
