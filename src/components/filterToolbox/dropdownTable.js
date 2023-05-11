@@ -83,7 +83,7 @@ const Dropdown = ({
 
   const hasChanges = useMemo(() => !!newValues && deepEqual(value, newValues), [newValues])
   const newValuesCount = useMemo(
-    () => (!newValues?.length ? 0 : filterSelectedCount(newValues)),
+    () => (!newValues?.length ? 0 : filterSelectedCount(newValues).length),
     [newValues]
   )
 
