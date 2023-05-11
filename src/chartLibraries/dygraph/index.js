@@ -202,7 +202,7 @@ export default (sdk, chart) => {
   }
 
   const makePlotterByChartType = ({ sparkline }) => ({
-    line: sparkline ? null : makeLinePlotter(chartUI),
+    line: makeLinePlotter(chartUI),
     stackedBar: makeStackedBarPlotter(chartUI),
     multiBar: makeMultiColumnBarPlotter(chartUI),
     heatmap: makeHeatmapPlotter(chartUI),
@@ -380,21 +380,8 @@ export default (sdk, chart) => {
     return {
       drawGrid: false,
       drawAxis: false,
-      title: undefined,
       ylabel: undefined,
       yLabelWidth: 0,
-      labelsSeparateLines: true,
-      yRangePad: 1,
-      axis: {
-        x: {
-          drawGrid: false,
-          drawAxis: false,
-        },
-        y: {
-          drawGrid: false,
-          drawAxis: false,
-        },
-      },
     }
   }
 
@@ -442,6 +429,7 @@ export default (sdk, chart) => {
         chart.getAttribute("unitsConversionFractionDigits") < 0
           ? 0
           : chart.getAttribute("unitsConversionFractionDigits"),
+      ...makeSparklineOptions(),
     })
 
     chartUI.trigger("rendered")
