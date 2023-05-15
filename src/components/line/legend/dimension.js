@@ -62,11 +62,8 @@ export const EmptyDimension = () => {
 
 const AnomalyProgressBar = ({ id }) => {
   const value = useLatestValue(id, { valueKey: "arp" })
-  const maxArp = useAttributeValue("maxArp")
 
-  return (
-    <ProgressBar height={0.5} color="anomalyText" width={`${(Math.abs(value) * 100) / maxArp}%`} />
-  )
+  return <ProgressBar height={0.5} color="anomalyText" width={`${Math.abs(value)}%`} />
 }
 
 const TooltipContent = props => <Flex {...tooltipStyleProps} {...props} column gap={1} />

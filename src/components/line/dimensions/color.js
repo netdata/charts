@@ -35,7 +35,7 @@ export const ColorBar = ({ id, valueKey, ...rest }) => {
   const bg = valueKey === "arp" ? "anomalyTextLite" : chart.selectDimensionColor(id)
 
   const min = valueKey === "arp" ? 0 : chart.getAttribute("min")
-  const max = valueKey === "arp" ? chart.getAttribute("maxArp") : chart.getAttribute("max")
+  const max = valueKey === "arp" ? 100 : chart.getAttribute("max")
 
   const minAbs = Math.abs(min)
   const maxAbs = Math.abs(max)
