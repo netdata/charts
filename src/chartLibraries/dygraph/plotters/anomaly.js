@@ -16,10 +16,9 @@ export default chartUI => plotter => {
     const bar_width = Math.floor(min_sep)
 
     const getColor = scaleLinear()
-      .domain([0, 0.00001, 100])
+      .domain([0, 100])
       .range([
         chartUI.chart.getThemeAttribute("themeScaleColor"),
-        chartUI.chart.getThemeAttribute("themeAnomalyLiteScaleColor"),
         chartUI.chart.getThemeAttribute("themeAnomalyScaleColor"),
       ])
 
