@@ -59,6 +59,8 @@ export default chart => {
   }
 
   const updateChartTypeAttribute = selected => {
+    const prevGroupBy = chart.getAttribute("groupBy")
+
     chart.updateAttributes({
       selectedChartType: selected,
       chartType: selected,
@@ -67,9 +69,10 @@ export default chart => {
 
     if (selected === "heatmap") {
       updateGroupByAttribute(["dimension"])
-    } else {
-      chart.trigger("fetch", { processing: true })
+      if (!deepEqual(prevGroupBy, chart.getAttribute("groupBy"))) return
     }
+
+    chart.trigger("fetch", { processing: true })
   }
 
   const updateNodesAttribute = selected => {

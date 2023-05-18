@@ -104,9 +104,11 @@ export const unitMap = {
 
 const numRegex = /num\s\(([fpnμmcAhkMGTPE])\)?\s(.+)?/
 
-export default node =>
-  (node.getUnitSign = ({ long = false, key = "units" } = {}) => {
-    let units = node.getAttribute(`${key}Conversion`) || node.getAttribute(key)
+export default chart =>
+  (chart.getUnitSign = ({ long = false, key = "units", real = false } = {}) => {
+    if (real) return chart.getAttribute("units")
+
+    let units = chart.getAttribute(`${key}Conversion`) || chart.getAttribute(key)
 
     let prefix = ""
 
@@ -117,7 +119,7 @@ export default node =>
       units = customMatch[2]
     }
 
-    if (!units || units === "undefined") return ""
+    if (!units || units === "undefined" || units === "null") return ""
 
     return `${prefix}${long ? units : unitMap[units] || units}`
   })

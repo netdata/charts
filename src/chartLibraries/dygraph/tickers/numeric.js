@@ -14,7 +14,7 @@ export default (a, b, pixels, opts, dygraph, vals) => {
 
       // Get the maximum number of permitted ticks based on the
       // graph's pixel size and pixelsPerTick setting.
-      var maxTicks = Math.ceil(pixels / pixelsPerTick)
+      const maxTicks = Math.ceil(pixels / pixelsPerTick)
 
       // Now calculate the data unit equivalent of this tick spacing.
       // Use abs() since graphs may have a reversed Y axis.
@@ -51,12 +51,12 @@ export default (a, b, pixels, opts, dygraph, vals) => {
     }
   }
 
-  const formatter = opts("axisLabelFormatter")
+  const formatLabel = opts("axisLabelFormatter")
 
   // Add labels to the ticks.
   for (i = 0; i < ticks.length; i++) {
     if (ticks[i].label !== undefined) continue // Use current label.
-    ticks[i].label = formatter.call(dygraph, ticks[i].v, 0, opts, dygraph)
+    ticks[i].label = formatLabel(ticks[i].v, 0, opts, dygraph)
   }
   const [min, max] = dygraph.yAxisRange(0)
   const pointHeight = (max - min) / 15 / dygraph.getArea().h

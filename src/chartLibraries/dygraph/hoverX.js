@@ -1,20 +1,3 @@
-const getHighestPoint = points => {
-  let highest = points[0] || {}
-  points.reduce((h, point) => {
-    if (isNaN(point.canvasy)) return h
-
-    const { yval } = point
-    if (yval > h) {
-      highest = point
-      return yval
-    }
-
-    return h
-  }, 0)
-
-  return highest
-}
-
 export default chartUI => {
   const getClosestArea = (event, points) => {
     const { offsetY } = event
@@ -27,25 +10,20 @@ export default chartUI => {
     if (offsetY > chartUI.getDygraph().getArea().h - 10) return "ANNOTATIONS"
     if (offsetY < 15) return "ANOMALY_RATE"
 
-    const getY = index => {
+    const getY = point => {
       try {
-        return index < points.length
-          ? isNaN(points[index].canvasy)
-            ? chartUI.getDygraph().getArea().h
-            : points[index].canvasy
-          : chartUI.getDygraph().getArea().h
+        return isNaN(point.canvasy) ? chartUI.getDygraph().getArea().h : point.canvasy
       } catch (e) {
         return chartUI.getDygraph().getArea().h
       }
     }
 
-    if (offsetY < getY(0)) return getHighestPoint(points).name
+    const point = points.slice(0, points.length - 2).reduce((h, p) => {
+      const pointY = getY(p)
+      if (pointY > offsetY) return h
 
-    if (offsetY > getY(points.length - 1)) return points[points.length - 1]?.name
-
-    const point = points
-      .slice(0, points.length - 1)
-      .find((p, index) => getY(index) < offsetY && getY(index + 1) > offsetY)
+      return !h || getY(h) < pointY ? p : h
+    }, null)
 
     return point?.name
   }
@@ -71,10 +49,29 @@ export default chartUI => {
     return closest.name
   }
 
+  const getClosestRow = (event, points) => {
+    const { offsetY } = event
+
+    if (offsetY > chartUI.getDygraph().getArea().h - 10) return "ANNOTATIONS"
+    if (offsetY < 15) return "ANOMALY_RATE"
+
+    const dimensionIds = chartUI.chart.getVisibleDimensionIds()
+
+    let selectedOffset = null
+    return points.slice(0, points.length - 2).reduce((h, p) => {
+      const index = dimensionIds.findIndex(id => id === p.name)
+      const canvasy = chartUI.getDygraph().toDomYCoord(index)
+      if (canvasy > offsetY) return h
+      if (selectedOffset && canvasy < selectedOffset) return h
+
+      selectedOffset = canvasy
+      return p.name
+    }, null)
+  }
+
   const getClosestByChartType = {
-    stacked: getClosestArea,
-    area: getClosestArea,
-    default: getClosestPoint,
+    heatmap: getClosestRow,
+    default: getClosestArea,
   }
 
   const getClosestSeries = (event, points) => {

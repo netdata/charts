@@ -133,7 +133,9 @@ export default payload => {
     firstEntry,
     lastEntry,
     units,
-    chartType,
+    chartType: viewDimensions.ids.every(id => id.match(/(.+)_(\d+?\.?(\d+)?|\+[Ii]nf)$/))
+      ? "heatmap"
+      : chartType,
     title,
     tiers,
     perTier,

@@ -10,7 +10,7 @@ import {
   makeAnomalyPlotter,
   makeAnnotationsPlotter,
 } from "./plotters"
-import { numericTicker } from "./tickers"
+import { numericTicker, heatmapTicker } from "./tickers"
 import makeNavigation from "./navigation"
 import makeHoverX from "./hoverX"
 import makeOverlays from "./overlays"
@@ -26,18 +26,6 @@ export default (sdk, chart) => {
   let executeLatest
   let overlays = null
 
-  const makeNormalizeByChartType = {
-    default: d => d,
-    heatmap: matrix => matrix.map(r => r.map((c, i) => (i === 0 ? c : [c, i, c]))),
-  }
-
-  const normalizeData = data => {
-    const chartType = chart.getAttribute("chartType")
-    const normalize = makeNormalizeByChartType[chartType] || makeNormalizeByChartType.default
-
-    return normalize(data)
-  }
-
   const mount = element => {
     if (dygraph) return
 
@@ -52,7 +40,7 @@ export default (sdk, chart) => {
     executeLatest = makeExecuteLatest()
     const isEmpty = attributes.outOfLimits || data.length === 0
 
-    dygraph = new Dygraph(element, isEmpty ? [[0]] : normalizeData(data), {
+    dygraph = new Dygraph(element, isEmpty ? [[0]] : data, {
       // timingName: chart.getId(),
       legend: "never",
       showLabelsOnHighlight: false,
@@ -163,7 +151,6 @@ export default (sdk, chart) => {
           ...makeVisibilityOptions(),
           ...makeColorOptions(),
           ...makeChartTypeOptions(),
-          ylabel: chart.getAttribute("hasYlabel") && chart.getUnitSign({ long: true }),
           digitsAfterDecimal:
             chart.getAttribute("unitsConversionFractionDigits") < 0
               ? 0
@@ -172,23 +159,18 @@ export default (sdk, chart) => {
       }),
       chart.onAttributeChange("unitsConversion", () =>
         dygraph.updateOptions({
-          ylabel: chart.getAttribute("hasYlabel") && chart.getUnitSign({ long: true }),
+          ...makeChartTypeOptions(),
           digitsAfterDecimal:
             chart.getAttribute("unitsConversionFractionDigits") < 0
               ? 0
               : chart.getAttribute("unitsConversionFractionDigits"),
         })
       ),
-      chart.onAttributeChange("staticValueRange", () => {
+      chart.onAttributeChange("staticValueRange", ([min, max]) => {
         dygraph.updateOptions({
           valueRange:
             attributes.chartType === "heatmap"
-              ? [
-                  0,
-                  attributes.selectedLegendDimensions.length
-                    ? attributes.selectedLegendDimensions.length
-                    : labels.length,
-                ]
+              ? [Math.ceil(min), Math.ceil(max)]
               : attributes.getValueRange(chart, { dygraph: true }),
         })
       }),
@@ -201,18 +183,19 @@ export default (sdk, chart) => {
     chartUI.render()
   }
 
-  const makePlotterByChartType = ({ sparkline }) => ({
+  const plotterByChartType = {
     line: makeLinePlotter(chartUI),
     stackedBar: makeStackedBarPlotter(chartUI),
     multiBar: makeMultiColumnBarPlotter(chartUI),
     heatmap: makeHeatmapPlotter(chartUI),
     default: null,
-  })
+  }
 
   let prevMin
   let prevMax
 
   const defaultOptions = {
+    yRangePad: 30,
     strokeWidth: 0.7,
     fillAlpha: 0.2,
     fillGraph: false,
@@ -232,7 +215,8 @@ export default (sdk, chart) => {
       }
       return chart.getConvertedValue(y)
     },
-    yTicker: numericTicker,
+    makeYTicker: () => numericTicker,
+    highlightCircleSize: 4,
   }
 
   const optionsByChartType = {
@@ -260,17 +244,10 @@ export default (sdk, chart) => {
       forceIncludeZero: true,
     },
     heatmap: {
-      makeYAxisLabelFormatter: labels => y => y === 0 ? null : chart.getDimensionName(labels[y]),
-      yTicker: (a, b, pixels, opts, dygraph) => {
-        return dygraph.attributes_.user_.labels.reduce((h, label, i) => {
-          if (i === 0) return h
-          if (!dygraph.attributes_.user_.visibility[i]) return h
-          const l = opts("axisLabelFormatter")(i, 0, opts, dygraph)
-          h.push({ label_v: i, label: l })
-          return h
-        }, [])
-      },
-      errorBars: true,
+      makeYAxisLabelFormatter: () => y => y,
+      makeYTicker: labels => (a, b, pixels, opts, dygraph) =>
+        heatmapTicker(a, b, pixels, opts, dygraph, labels),
+      yRangePad: 30,
     },
     default: {
       ...defaultOptions,
@@ -279,10 +256,9 @@ export default (sdk, chart) => {
 
   const makeChartTypeOptions = () => {
     const { labels } = chart.getPayload()
-    const { chartType, sparkline, includeZero, enabledXAxis, enabledYAxis, yAxisLabelWidth } =
+    const { chartType, includeZero, enabledXAxis, enabledYAxis, yAxisLabelWidth } =
       chart.getAttributes()
 
-    const plotterByChartType = makePlotterByChartType({ sparkline })
     const plotter = plotterByChartType[chartType] || plotterByChartType.default
 
     const {
@@ -293,20 +269,24 @@ export default (sdk, chart) => {
       forceIncludeZero,
       makeYAxisLabelFormatter,
       errorBars,
-      yTicker,
+      makeYTicker,
+      highlightCircleSize,
+      yRangePad,
     } = optionsByChartType[chartType] || optionsByChartType.default
 
     const yAxisLabelFormatter = makeYAxisLabelFormatter(labels)
+    const yTicker = makeYTicker ? makeYTicker(chart.getVisibleDimensionIds()) : null
 
     const { selectedLegendDimensions } = chart.getAttributes()
     const dimensionIds = chart.getPayloadDimensionIds()
 
     return {
+      yRangePad,
       stackedGraph,
       fillGraph,
-      fillAlpha: sparkline ? 1 : fillAlpha,
-      highlightCircleSize: sparkline ? 3 : 4,
-      strokeWidth: sparkline ? 0 : strokeWidth,
+      fillAlpha,
+      highlightCircleSize,
+      strokeWidth,
       includeZero:
         includeZero ||
         (forceIncludeZero && dimensionIds.length > 1 && selectedLegendDimensions.length > 1),
@@ -330,6 +310,9 @@ export default (sdk, chart) => {
             }
           : { drawAxis: false },
       },
+      ylabel:
+        chart.getAttribute("hasYlabel") &&
+        chart.getUnitSign({ long: true, real: chartType === "heatmap" }),
     }
   }
 
@@ -355,33 +338,34 @@ export default (sdk, chart) => {
   }
 
   const makeDataOptions = () => {
-    const { outOfLimits, getValueRange, chartType, selectedLegendDimensions } =
-      chart.getAttributes()
+    const { outOfLimits, getValueRange, staticValueRange, chartType } = chart.getAttributes()
     const { data, labels } = chart.getPayload()
     const dateWindow = chart.getDateWindow()
     const isEmpty = outOfLimits || data.length === 0
 
     return {
-      file: isEmpty ? [[0]] : normalizeData(data),
+      file: isEmpty ? [[0]] : data,
       labels: isEmpty ? ["X"] : labels,
       dateWindow,
-      valueRange:
-        chartType === "heatmap"
-          ? [0, selectedLegendDimensions.length ? selectedLegendDimensions.length : labels.length]
-          : getValueRange(chart, { dygraph: true }),
+      valueRange: staticValueRange
+        ? staticValueRange
+        : chartType === "heatmap"
+        ? [0, chart.getVisibleDimensionIds().length]
+        : getValueRange(chart, { dygraph: true }),
     }
   }
 
   const makeSparklineOptions = () => {
-    const sparkline = chart.getAttribute("sparkline")
-
-    if (!sparkline) return null
+    if (!chart.isSparkline()) return null
 
     return {
       drawGrid: false,
       drawAxis: false,
       ylabel: undefined,
       yLabelWidth: 0,
+      highlightCircleSize: 3,
+      fillAlpha: 1,
+      strokeWidth: 0,
     }
   }
 
@@ -414,7 +398,7 @@ export default (sdk, chart) => {
   const render = () => {
     if (!dygraph) return
 
-    const { highlighting, panning, processing } = chart.getAttributes()
+    const { highlighting, panning, processing, chartType } = chart.getAttributes()
     if (highlighting || panning || processing) return
 
     chartUI.render()
@@ -424,7 +408,6 @@ export default (sdk, chart) => {
       ...makeVisibilityOptions(),
       ...makeColorOptions(),
       ...makeChartTypeOptions(),
-      ylabel: chart.getAttribute("hasYlabel") && chart.getUnitSign({ long: true }),
       digitsAfterDecimal:
         chart.getAttribute("unitsConversionFractionDigits") < 0
           ? 0

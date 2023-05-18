@@ -17,10 +17,7 @@ export default chartUI => plotter => {
 
     const getColor = scaleLinear()
       .domain([0, 100])
-      .range([
-        chartUI.chart.getThemeAttribute("themeScaleColor"),
-        chartUI.chart.getThemeAttribute("themeAnomalyScaleColor"),
-      ])
+      .range(["transparent", chartUI.chart.getThemeAttribute("themeAnomalyScaleColor")])
 
     const dimensionIds = chartUI.chart.getPayloadDimensionIds()
     const selectedLegendDimensions = chartUI.chart.getAttribute("selectedLegendDimensions")
@@ -47,10 +44,8 @@ export default chartUI => plotter => {
         0
       )
 
-      ctx.fillStyle = getColor(value)
+      ctx.strokeStyle = ctx.fillStyle = getColor(value)
       ctx.fillRect(center_x - bar_width / 2, 0, bar_width, 15)
-
-      ctx.strokeStyle = getColor(value)
       ctx.strokeRect(center_x - bar_width / 2, 0, bar_width, 15)
     })
   }

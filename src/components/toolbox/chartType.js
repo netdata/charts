@@ -49,15 +49,16 @@ const useItems = chart =>
         svg: barChart,
         "data-track": chart.track("chartType-multiBar"),
       },
-      // {
-      //   value: "heatmap",
-      //   label: "Heatmap",
-      //   icon: <Icon svg={heatmapChart} {...iconProps} />,
-      //   svg: heatmapChart,
-      //   "data-track": chart.track("chartType-heatmap"),
-      // },
+      {
+        value: "heatmap",
+        label: "Heatmap",
+        icon: <Icon svg={heatmapChart} {...iconProps} />,
+        svg: heatmapChart,
+        "data-track": chart.track("chartType-heatmap"),
+        disabled: chart.getHeatmapType() === "disabled",
+      },
     ],
-    [chart]
+    [chart, chart.getHeatmapType()]
   )
 
 const ChartType = ({ disabled }) => {
@@ -72,7 +73,7 @@ const ChartType = ({ disabled }) => {
       value={chartType}
       items={items}
       dropProps={{ align: { top: "bottom", right: "right" }, "data-toolbox": true }}
-      dropdownProps={{ width: "100px" }}
+      dropdownProps={{ width: "130px" }}
       onChange={chart.updateChartTypeAttribute}
       data-track={chart.track("chartType")}
     >

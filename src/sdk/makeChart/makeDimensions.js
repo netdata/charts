@@ -1,6 +1,13 @@
 import dimensionColors from "./theme/dimensionColors"
 import deepEqual, { setsAreEqual } from "@//helpers/deepEqual"
 
+const heatmapTypes = {
+  default: "default",
+  disabled: "disabled",
+  bucket: "incremental",
+  quantile: "incremental",
+}
+
 export default (chart, sdk) => {
   let prevDimensionIds = []
   let dimensionsById = {}
@@ -11,10 +18,11 @@ export default (chart, sdk) => {
 
   const sparklineDimensions = ["sum"]
 
-  chart.hasSparklineDimension = () => chart.getAttribute("sparkline")
+  chart.isSparkline = () => chart.getAttribute("sparkline")
+  chart.getHeatmapType = () => chart.getAttribute("heatmapType")
 
   chart.getPayloadDimensionIds = () => {
-    if (chart.hasSparklineDimension()) return sparklineDimensions
+    if (chart.isSparkline()) return sparklineDimensions
 
     const viewDimensions = chart.getAttribute("viewDimensions")
 
@@ -113,7 +121,7 @@ export default (chart, sdk) => {
 
   chart.onHoverSortDimensions = (x, dimensionsSort = chart.getAttribute("dimensionsSort")) => {
     const sort = bySortMethod[dimensionsSort] || bySortMethod.default
-    return sort(chart.getVisibleDimensionIds, x)
+    return sort(() => [...chart.getVisibleDimensionIds()], x)
   }
 
   const getNextColor = () => {
@@ -136,8 +144,30 @@ export default (chart, sdk) => {
     if (deepEqual(prevDimensionIds, dimensionIds)) return
 
     prevDimensionIds = dimensionIds
+
+    const groupedByDimension =
+      chart.getAttribute("groupBy").length === 1 && chart.getAttribute("groupBy")[0] === "dimension"
+
+    if (!groupedByDimension) chart.setAttribute("heatmapType", null)
+
+    let prefix = null
+
     dimensionsById = dimensionIds.reduce((acc, id, index) => {
+      if (groupedByDimension && !chart.getHeatmapType()) {
+        const newPrefix = id.match(/(.+)_(\d+?\.?(\d+)?|\+[Ii]nf)$/)?.[1]
+        chart.setAttribute(
+          "heatmapType",
+          (prefix && newPrefix !== prefix) || !newPrefix ? heatmapTypes.disabled : null
+        )
+
+        if (prefix === newPrefix)
+          chart.setAttribute("heatmapType", heatmapTypes[prefix] || heatmapTypes.default)
+
+        prefix = newPrefix
+      }
+
       acc[id] = index
+
       return acc
     }, {})
 
@@ -165,7 +195,7 @@ export default (chart, sdk) => {
   chart.selectDimensionColor = (id = "selected") => {
     const key = getMemKey()
     const colorsAttr = chart.getAttribute("colors")
-    const sparkline = chart.getAttribute("sparkline")
+    const sparkline = chart.isSparkline()
     if (sparkline && colorsAttr && colorsAttr.length === 1) return colorsAttr[0]
 
     const isSelected = id === "selected"
@@ -243,7 +273,7 @@ export default (chart, sdk) => {
     let dimensionIds = chart.getAttribute("dimensionIds")
     if (!dimensionIds.length) return
 
-    const keys = chart.hasSparklineDimension() ? sparklineDimensions : dimensionIds
+    const keys = chart.isSparkline() ? sparklineDimensions : dimensionIds
 
     keys.forEach(chart.selectDimensionColor)
   }

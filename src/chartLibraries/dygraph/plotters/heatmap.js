@@ -1,37 +1,67 @@
 import { scaleLinear } from "d3-scale"
 
+const colors = [
+  "transparent",
+  "rgb(94, 79, 162)",
+  "rgb(68, 121, 179)",
+  "rgb(119, 198, 167)",
+  "rgb(211, 237, 158)",
+  "rgb(252, 246, 173)",
+  "rgb(253, 190, 112)",
+  "rgb(237, 104, 73)",
+  "rgb(178, 23, 71)",
+]
+
 export default chartUI => plotter => {
   if (!chartUI) return
 
   // We need to handle all the series simultaneously.
   if (plotter.seriesIndex !== 0) return
 
+  const dimensionIds = chartUI.chart.getVisibleDimensionIds()
+
   const g = plotter.dygraph
   const ctx = plotter.drawingContext
   const sets = plotter.allSeriesPoints
+  const series = g.layout_.setNames
 
-  let min_sep = Infinity
+  let minWidthSep = Infinity
   sets.forEach(points => {
-    const sep = points[1].canvasx - points[0].canvasx
-    if (sep < min_sep) min_sep = sep
+    const widthSep = points[1].canvasx - points[0].canvasx
+    if (widthSep < minWidthSep) minWidthSep = widthSep
   })
 
-  const bar_width = Math.floor(min_sep)
+  const barWidth = Math.floor(minWidthSep)
 
   const { min, max } = chartUI.chart.getAttributes()
+  const step = (max - min) / (colors.length - 1)
+
   const getColor = scaleLinear()
-    .domain([min, (min * max) / 0.5, max])
-    .range([chartUI.chart.getThemeAttribute("themeScaleColor"), "#00BAE2", "#FF4136"])
+    .domain(Array.from({ length: colors.length - 1 }, (_, i) => min + i * step))
+    .range(colors)
 
-  sets.forEach((points, j) => {
-    points.forEach(p => {
-      const center_x = p.canvasx
+  series.forEach((seriesName, j) => {
+    const index = dimensionIds.findIndex(id => id === seriesName)
 
-      ctx.fillStyle = getColor(p.yval)
-      ctx.fillRect(center_x - bar_width / 2, g.toDomYCoord(j), bar_width, -g.toDomYCoord(j))
+    if (index === -1) return
 
-      ctx.strokeStyle = getColor(p.yval)
-      ctx.strokeRect(center_x - bar_width / 2, g.toDomYCoord(j), bar_width, -g.toDomYCoord(j))
+    const height = Math.abs(
+      index === 0
+        ? g.toDomYCoord(index + 1) - g.toDomYCoord(index)
+        : g.toDomYCoord(index) - g.toDomYCoord(index - 1)
+    )
+
+    sets[j].forEach((p, i) => {
+      const prevSeriesValue = chartUI.chart.getDimensionValue(dimensionIds[index - 1], i) || 0
+      const value = chartUI.chart.getDimensionValue(dimensionIds[index], i) || 0
+
+      ctx.fillStyle = getColor(
+        chartUI.chart.getHeatmapType() === "incremental" ? value - prevSeriesValue : value
+      )
+      ctx.fillRect(p.canvasx - barWidth / 2, g.toDomYCoord(index) - height / 2, barWidth, height)
+
+      ctx.strokeStyle = "transparent"
+      ctx.strokeRect(p.canvasx - barWidth / 2, g.toDomYCoord(index) - height / 2, barWidth, height)
     })
   })
 }

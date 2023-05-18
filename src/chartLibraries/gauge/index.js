@@ -17,6 +17,7 @@ export default (sdk, chart) => {
     chartUI.mount(element)
 
     const { color, strokeColor } = makeThemingOptions()
+    const { staticZones } = chart.getAttributes()
 
     const makeGaugeOptions = () => ({
       angle: -0.2, // The span of the gauge arc
@@ -33,6 +34,9 @@ export default (sdk, chart) => {
       colorStart: chart.selectDimensionColor(), // Colors
       generateGradient: true,
       highDpiSupport: true, // High resolution support
+      ...(staticZones && {
+        staticZones: [{ strokeStyle: strokeColor, min: 0, max: 100, height: 1 }, ...staticZones],
+      }),
     })
 
     gauge = new Gauge(element.firstChild).setOptions(makeGaugeOptions())
@@ -51,6 +55,7 @@ export default (sdk, chart) => {
       element.firstChild.style.width = `${width}px`
 
       gauge.setOptions({})
+      gauge.update(true)
       chartUI.trigger("resize")
     })
 

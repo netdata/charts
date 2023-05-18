@@ -115,12 +115,17 @@ const Dimensions = ({ uiName }) => {
             color={rowFlavour === rowFlavours.default ? "text" : "textLite"}
             textAlign="right"
           >
-            Value{" "}
-            <Units
-              visible
-              strong={rowFlavour === rowFlavours.default}
-              color={rowFlavour === rowFlavours.default ? "text" : "textLite"}
-            />
+            Value
+            {chart.getAttribute("chartType") !== "heatmap" && (
+              <>
+                {" "}
+                <Units
+                  visible
+                  strong={rowFlavour === rowFlavours.default}
+                  color={rowFlavour === rowFlavours.default ? "text" : "textLite"}
+                />
+              </>
+            )}
           </TextMicro>
           <TextMicro
             strong={rowFlavour === rowFlavours.ANOMALY_RATE}

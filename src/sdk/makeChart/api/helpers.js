@@ -39,6 +39,7 @@ const getDefaultOptionsByLibrary = {
 export const pointMultiplierByChartType = {
   multiBar: 0.1,
   stackedBar: 0.1,
+  heatmap: 0.7,
   default: 2,
 }
 
