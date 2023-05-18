@@ -34,12 +34,12 @@ const ValueOnDot = ({ children, fractionDigits = 0, ...rest }) => {
   const [first, last] = children.toString().split(".")
 
   return (
-    <Flex alignItems="center" justifyContent="end" padding={[0, 0.25]}>
+    <Flex alignItems="center" justifyContent="end" padding={[0, 0.5]}>
       <ValuePart {...rest} textAlign="right">
         {first}
       </ValuePart>
       {typeof last !== "undefined" && <ValuePart {...rest}>.</ValuePart>}
-      <ValuePart as={Flex} flex={false} width={fractionDigits * 1.6} {...rest} textAlign="left">
+      <ValuePart as={Flex} flex={false} width={fractionDigits * 1.8} {...rest} textAlign="left">
         {last}
       </ValuePart>
     </Flex>

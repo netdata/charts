@@ -120,7 +120,7 @@ export const Gauge = forwardRef(({ uiName, ...rest }, ref) => {
   const loaded = useAttributeValue("loaded")
 
   return (
-    <ChartWrapper alignItems="center" justifyContent="center" column ref={ref}>
+    <ChartWrapper alignItems="center" justifyContent="center" column ref={ref} gap={0}>
       {loaded ? (
         <>
           <ChartContainer

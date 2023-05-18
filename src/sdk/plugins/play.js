@@ -70,7 +70,7 @@ export default sdk => {
           !sdk.getRoot().getAttribute("paused")
       )
 
-      autofetchIfActive(chart, !chart.getAttribute("loaded"))
+      autofetchIfActive(chart, true)
     })
     .on("hoverChart", chart => {
       toggleRender(false)

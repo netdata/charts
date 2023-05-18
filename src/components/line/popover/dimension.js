@@ -79,7 +79,15 @@ const Dimension = ({ id, strong, chars, rowFlavour }) => {
         >
           <Color id={id} />
         </ColorBackground>
-        <Name padding={[1, 2]} flex id={id} strong={strong} maxLength={chars} noTooltip />
+        <Name
+          padding={[1, 2]}
+          flex
+          id={id}
+          strong={strong}
+          maxLength={chars}
+          noTooltip
+          color={strong ? "textFocus" : "text"}
+        />
       </Flex>
       <Value
         id={id}
@@ -87,7 +95,7 @@ const Dimension = ({ id, strong, chars, rowFlavour }) => {
         visible={visible}
         Component={ValueOnDot}
         fractionDigits={fractionDigits}
-        color={rowFlavour === rowFlavours.default ? "text" : "textLite"}
+        color={rowFlavour === rowFlavours.default ? (strong ? "textFocus" : "text") : "textLite"}
       />
       <Value
         id={id}
@@ -105,7 +113,9 @@ const Dimension = ({ id, strong, chars, rowFlavour }) => {
         visible={visible}
         valueKey="pa"
         Component={AnnotationsValue}
-        color={rowFlavour === rowFlavours.ANNOTATIONS ? "text" : "textLite"}
+        color={
+          rowFlavour === rowFlavours.ANNOTATIONS ? (strong ? "textFocus" : "text") : "textLite"
+        }
         showFull={rowFlavour === rowFlavours.ANNOTATIONS}
       />
     </GridRow>
