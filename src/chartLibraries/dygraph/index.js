@@ -2,6 +2,7 @@ import Dygraph from "dygraphs"
 import makeChartUI from "@/sdk/makeChartUI"
 import makeExecuteLatest from "@/helpers/makeExecuteLatest"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
+import { isHeatmap } from "@/helpers/heatmap"
 import {
   makeLinePlotter,
   makeStackedBarPlotter,
@@ -168,10 +169,9 @@ export default (sdk, chart) => {
       ),
       chart.onAttributeChange("staticValueRange", ([min, max]) => {
         dygraph.updateOptions({
-          valueRange:
-            attributes.chartType === "heatmap"
-              ? [Math.ceil(min), Math.ceil(max)]
-              : attributes.getValueRange(chart, { dygraph: true }),
+          valueRange: isHeatmap(attributes.chartType)
+            ? [Math.ceil(min), Math.ceil(max)]
+            : attributes.getValueRange(chart, { dygraph: true }),
         })
       }),
       chart.onAttributeChange("timezone", () => dygraph.updateOptions({})),
@@ -244,10 +244,21 @@ export default (sdk, chart) => {
       forceIncludeZero: true,
     },
     heatmap: {
-      makeYAxisLabelFormatter: () => y => y,
+      ...defaultOptions,
+      makeYAxisLabelFormatter: () => y => {
+        const min = chart.getAttribute("min")
+        const max = chart.getAttribute("max")
+
+        if (min !== prevMin || max !== prevMax) {
+          prevMin = min
+          prevMax = max
+          chartUI.sdk.trigger("yAxisChange", chart, min, max)
+        }
+        return y
+      },
       makeYTicker: labels => (a, b, pixels, opts, dygraph) =>
         heatmapTicker(a, b, pixels, opts, dygraph, labels),
-      yRangePad: 30,
+      highlightCircleSize: 0,
     },
     default: {
       ...defaultOptions,
@@ -312,7 +323,7 @@ export default (sdk, chart) => {
       },
       ylabel:
         chart.getAttribute("hasYlabel") &&
-        chart.getUnitSign({ long: true, real: chartType === "heatmap" }),
+        chart.getUnitSign({ long: true, real: isHeatmap(chartType) }),
     }
   }
 
@@ -349,7 +360,7 @@ export default (sdk, chart) => {
       dateWindow,
       valueRange: staticValueRange
         ? staticValueRange
-        : chartType === "heatmap"
+        : isHeatmap(chartType)
         ? [0, chart.getVisibleDimensionIds().length]
         : getValueRange(chart, { dygraph: true }),
     }

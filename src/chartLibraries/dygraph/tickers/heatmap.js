@@ -1,7 +1,7 @@
+import { withoutPrefix } from "@/helpers/heatmap"
+
 export default (a, b, pixels, opts, dygraph, vals) => {
-  const labels = vals
-    .map(v => v.replace(/.+_(\d+?\.?(\d+)?|\+[Ii]nf)$/, "$1"))
-    .sort((la, lb) => la - lb)
+  const labels = vals.map(withoutPrefix)
 
   const pixelsPerTick = opts("pixelsPerLabel")
   const maxTicks = Math.floor(pixels / pixelsPerTick)

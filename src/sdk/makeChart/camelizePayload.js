@@ -1,3 +1,5 @@
+import { heatmapOrChartType } from "@/helpers/heatmap"
+
 const transformDataRow = (row, point) =>
   row.reduce(
     (h, dim, i) => {
@@ -133,9 +135,7 @@ export default payload => {
     firstEntry,
     lastEntry,
     units,
-    chartType: viewDimensions.ids.every(id => id.match(/(.+)_(\d+?\.?(\d+)?|\+[Ii]nf)$/))
-      ? "heatmap"
-      : chartType,
+    chartType: heatmapOrChartType(viewDimensions.ids, chartType),
     title,
     tiers,
     perTier,

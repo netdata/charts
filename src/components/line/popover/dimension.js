@@ -6,6 +6,7 @@ import Name from "@/components/line/dimensions/name"
 import Value, { Value as ValuePart } from "@/components/line/dimensions/value"
 import { useChart, useVisibleDimensionId } from "@/components/provider"
 import { labels as annotationLabels } from "@/helpers/annotations"
+import { useIsHeatmap } from "@/helpers/heatmap"
 import { rowFlavours } from "./dimensions"
 
 const GridRow = styled(Flex).attrs({
@@ -68,6 +69,7 @@ const Dimension = ({ id, strong, chars, rowFlavour }) => {
 
   const chart = useChart()
   const fractionDigits = chart.getAttribute("unitsConversionFractionDigits")
+  const isHeatmap = useIsHeatmap()
 
   return (
     <GridRow opacity={visible ? null : "weak"}>
@@ -77,7 +79,7 @@ const Dimension = ({ id, strong, chars, rowFlavour }) => {
           valueKey={rowValueKeys[rowFlavour] || rowValueKeys.default}
           height="18px"
         >
-          <Color id={id} />
+          {!isHeatmap && <Color id={id} />}
         </ColorBackground>
         <Name
           padding={[1, 2]}

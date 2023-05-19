@@ -6,14 +6,9 @@ import Name, { Name as NameContainer } from "@/components/line/dimensions/name"
 import Value, { Value as ValueContainer } from "@/components/line/dimensions/value"
 import { tooltipStyleProps } from "@/components/tooltip"
 import Units from "@/components/line/dimensions/units"
-import {
-  useVisibleDimensionId,
-  useChart,
-  useLatestValue,
-  useUnits,
-  useAttributeValue,
-} from "@/components/provider"
+import { useVisibleDimensionId, useChart, useLatestValue, useUnits } from "@/components/provider"
 import Tooltip from "@/components/tooltip"
+import { useIsHeatmap } from "@/helpers/heatmap"
 
 const DimensionContainer = forwardRef((props, ref) => (
   <Flex
@@ -95,6 +90,8 @@ const Dimension = forwardRef(({ id }, ref) => {
     chart.toggleDimensionId(id, { merge })
   }
 
+  const isHeatmap = useIsHeatmap()
+
   return (
     <DimensionContainer
       ref={ref}
@@ -103,7 +100,7 @@ const Dimension = forwardRef(({ id }, ref) => {
       onClick={onClick}
       data-track={chart.track(`dimension-${name}`)}
     >
-      <Color id={id} />
+      {!isHeatmap && <Color id={id} />}
       <Tooltip
         Content={TooltipContent}
         content={visible ? <TooltipValue id={id} name={name} /> : null}

@@ -1,5 +1,5 @@
 import dimensionColors from "./theme/dimensionColors"
-import deepEqual, { setsAreEqual } from "@//helpers/deepEqual"
+import deepEqual, { setsAreEqual } from "@/helpers/deepEqual"
 import { fetchChartWeights } from "./api"
 
 const transformRow = (row, point) =>

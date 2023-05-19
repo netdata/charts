@@ -54,7 +54,7 @@ const getMethod = (chart, units, min, max) => {
   return scalable("num", min, max, units)
 }
 
-const decimals = [100, 10, 1, 0.1, 0.01, 0.001]
+const decimals = [1000, 100, 10, 1, 0.1, 0.01, 0.001]
 
 const getFractionDigits = value => {
   const index = decimals.findIndex(d => value > d)

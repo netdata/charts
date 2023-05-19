@@ -1,16 +1,4 @@
-import { scaleLinear } from "d3-scale"
-
-const colors = [
-  "transparent",
-  "rgb(94, 79, 162)",
-  "rgb(68, 121, 179)",
-  "rgb(119, 198, 167)",
-  "rgb(211, 237, 158)",
-  "rgb(252, 246, 173)",
-  "rgb(253, 190, 112)",
-  "rgb(237, 104, 73)",
-  "rgb(178, 23, 71)",
-]
+import { makeGetColor } from "@/helpers/heatmap"
 
 export default chartUI => plotter => {
   if (!chartUI) return
@@ -19,6 +7,7 @@ export default chartUI => plotter => {
   if (plotter.seriesIndex !== 0) return
 
   const dimensionIds = chartUI.chart.getVisibleDimensionIds()
+  const dimensionIndexesById = chartUI.chart.getVisibleDimensionIndexesById()
 
   const g = plotter.dygraph
   const ctx = plotter.drawingContext
@@ -33,15 +22,10 @@ export default chartUI => plotter => {
 
   const barWidth = Math.floor(minWidthSep)
 
-  const { min, max } = chartUI.chart.getAttributes()
-  const step = (max - min) / (colors.length - 1)
-
-  const getColor = scaleLinear()
-    .domain(Array.from({ length: colors.length - 1 }, (_, i) => min + i * step))
-    .range(colors)
+  const getColor = makeGetColor(chartUI.chart)
 
   series.forEach((seriesName, j) => {
-    const index = dimensionIds.findIndex(id => id === seriesName)
+    const index = dimensionIndexesById[seriesName]
 
     if (index === -1) return
 
@@ -52,12 +36,9 @@ export default chartUI => plotter => {
     )
 
     sets[j].forEach((p, i) => {
-      const prevSeriesValue = chartUI.chart.getDimensionValue(dimensionIds[index - 1], i) || 0
       const value = chartUI.chart.getDimensionValue(dimensionIds[index], i) || 0
 
-      ctx.fillStyle = getColor(
-        chartUI.chart.getHeatmapType() === "incremental" ? value - prevSeriesValue : value
-      )
+      ctx.fillStyle = getColor(value)
       ctx.fillRect(p.canvasx - barWidth / 2, g.toDomYCoord(index) - height / 2, barWidth, height)
 
       ctx.strokeStyle = "transparent"

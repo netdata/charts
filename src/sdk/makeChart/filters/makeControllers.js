@@ -1,6 +1,7 @@
 import deepEqual from "@/helpers/deepEqual"
 import pristine, { pristineKey } from "@/sdk/pristine"
 import getInitialFilterAttributes, { stackedAggregations } from "./getInitialAttributes"
+import { isHeatmap } from "@/helpers/heatmap"
 
 export default chart => {
   const chartType = chart.getAttribute("chartType")
@@ -67,7 +68,7 @@ export default chart => {
       processing: true,
     })
 
-    if (selected === "heatmap") {
+    if (isHeatmap(selected)) {
       updateGroupByAttribute(["dimension"])
       if (!deepEqual(prevGroupBy, chart.getAttribute("groupBy"))) return
     }

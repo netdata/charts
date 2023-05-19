@@ -23,7 +23,7 @@ export default chartUI => {
       if (pointY > offsetY) return h
 
       return !h || getY(h) < pointY ? p : h
-    }, null)
+    }, points[0])
 
     return point?.name
   }
@@ -44,7 +44,7 @@ export default chartUI => {
 
       last = distancePoint
       return p
-    })
+    }, points[0])
 
     return closest.name
   }
@@ -66,7 +66,7 @@ export default chartUI => {
 
       selectedOffset = canvasy
       return p.name
-    }, null)
+    }, points[0])
   }
 
   const getClosestByChartType = {
@@ -99,7 +99,7 @@ export default chartUI => {
 
     const dimensionIds = chartUI.chart.getPayloadDimensionIds()
 
-    if (!dimensionIds) return
+    if (!dimensionIds?.length) return
     const dimensionId = dimensionIds[seriesProps.column - 1] || seriesProps.name
 
     chartUI.sdk.trigger("highlightHover", chartUI.chart, x, dimensionId)

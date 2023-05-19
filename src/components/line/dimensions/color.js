@@ -2,6 +2,7 @@ import React, { useLayoutEffect, useRef } from "react"
 import styled from "styled-components"
 import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import { useChart, useLatestValue } from "@/components/provider"
+import { useIsHeatmap, useGetColor } from "@/helpers/heatmap"
 
 export const Color = styled(Flex).attrs(({ bg, ...rest }) => ({
   width: "4px",
@@ -25,9 +26,20 @@ export const BaseColorBar = ({ value, min, max, valueKey, bg, ...rest }) => {
     requestAnimationFrame(animateWidth)
   }, [value, valueKey, min, max])
 
+  const isHeatmap = useIsHeatmap()
+  const getHeatmapColor = useGetColor(0.4)
+
   if (!bg) return null
 
-  return <Color ref={ref} bg={bg} width={{ min: 1 }} {...rest} />
+  return (
+    <Color
+      ref={ref}
+      width={{ min: 1 }}
+      bg={bg}
+      sx={{ background: isHeatmap ? getHeatmapColor(value) : undefined }}
+      {...rest}
+    />
+  )
 }
 
 export const ColorBar = ({ id, valueKey, ...rest }) => {

@@ -1,18 +1,13 @@
 import dimensionColors from "./theme/dimensionColors"
-import deepEqual, { setsAreEqual } from "@//helpers/deepEqual"
-
-const heatmapTypes = {
-  default: "default",
-  disabled: "disabled",
-  bucket: "incremental",
-  quantile: "incremental",
-}
+import deepEqual, { setsAreEqual } from "@/helpers/deepEqual"
+import { heatmapTypes, isHeatmap, isIncremental, withoutPrefix } from "@/helpers/heatmap"
 
 export default (chart, sdk) => {
   let prevDimensionIds = []
   let dimensionsById = {}
   let sortedDimensionIds = []
   let visibleDimensionIds = []
+  let visibleDimensionIndexesById = {}
   let visibleDimensionSet = new Set()
   let colorCursor = 0
 
@@ -101,6 +96,11 @@ export default (chart, sdk) => {
         )
       : sortedDimensionIds
 
+    visibleDimensionIndexesById = visibleDimensionIds.reduce((h, id, i) => {
+      h[id] = i
+      return h
+    }, {})
+
     const prevDimensionSet = visibleDimensionSet
     visibleDimensionSet = new Set(visibleDimensionIds)
 
@@ -120,7 +120,9 @@ export default (chart, sdk) => {
   }
 
   chart.onHoverSortDimensions = (x, dimensionsSort = chart.getAttribute("dimensionsSort")) => {
-    const sort = bySortMethod[dimensionsSort] || bySortMethod.default
+    const sort = isHeatmap(chart)
+      ? bySortMethod.default
+      : bySortMethod[dimensionsSort] || bySortMethod.default
     return sort(() => [...chart.getVisibleDimensionIds()], x)
   }
 
@@ -161,7 +163,7 @@ export default (chart, sdk) => {
         )
 
         if (prefix === newPrefix)
-          chart.setAttribute("heatmapType", heatmapTypes[prefix] || heatmapTypes.default)
+          chart.setAttribute("heatmapType", heatmapTypes[prefix] || heatmapTypes.incremental)
 
         prefix = newPrefix
       }
@@ -180,6 +182,8 @@ export default (chart, sdk) => {
   chart.getDimensionIds = () => sortedDimensionIds
 
   chart.getVisibleDimensionIds = () => visibleDimensionIds
+
+  chart.getVisibleDimensionIndexesById = () => visibleDimensionIndexesById
 
   chart.isDimensionVisible = id => visibleDimensionSet.has(id)
 
@@ -215,6 +219,8 @@ export default (chart, sdk) => {
 
     if (!viewDimensions?.names) return ""
 
+    if (isHeatmap(chart)) return withoutPrefix(viewDimensions.names[dimensionsById[id]])
+
     return viewDimensions.names[dimensionsById[id]]
   }
 
@@ -226,13 +232,31 @@ export default (chart, sdk) => {
     return viewDimensions.priorities[dimensionsById[id]]
   }
 
-  chart.getRowDimensionValue = (id, pointData, { valueKey = "value", abs = true } = {}) => {
+  chart.getRowDimensionValue = (
+    id,
+    pointData,
+    { valueKey = "value", abs = true, incrementable = true } = {}
+  ) => {
     let value = pointData?.[dimensionsById[id] + 1]
     if (typeof value === "undefined") return null
 
     value = value !== null && typeof value === "object" ? value[valueKey] : value
+    value = abs ? Math.abs(value) : value
 
-    return abs ? Math.abs(value) : value
+    if (incrementable && isIncremental(chart)) {
+      const index = chart.getVisibleDimensionIndexesById()[id]
+      const prevId = chart.getVisibleDimensionIds()[index - 1]
+
+      value =
+        value -
+        (chart.getRowDimensionValue(prevId, pointData, {
+          valueKey,
+          abs,
+          incrementable: false,
+        }) || 0)
+    }
+
+    return value
   }
 
   chart.getDimensionValue = (id, index, options = {}) => {

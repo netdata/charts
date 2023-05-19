@@ -1,6 +1,6 @@
 import React from "react"
 import { Flex } from "@netdata/netdata-ui"
-import { useAttributeValue } from "@/components/provider"
+import { useIsHeatmap } from "@/helpers/heatmap"
 import Aggregate from "./aggregate"
 import Dimensions from "./dimensions"
 import Instances from "./instances"
@@ -17,7 +17,7 @@ const uppercasedAggrLabel = { secondaryLabel: "The" }
 const emptyObject = {}
 
 const FilterToolbox = props => {
-  const isHeatmap = useAttributeValue("chartType") === "heatmap"
+  const isHeatmap = useIsHeatmap()
 
   return (
     <Container {...props}>
