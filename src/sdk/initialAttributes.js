@@ -134,7 +134,7 @@ export default {
   expandable: true,
 
   hasYlabel: true,
-  yAxisLabelWidth: 70, // default is most probably 50
+  yAxisLabelWidth: 60,
   axisLabelFontSize: 10,
 
   outOfLimits: false,

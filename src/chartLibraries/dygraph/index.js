@@ -254,7 +254,8 @@ export default (sdk, chart) => {
           prevMax = max
           chartUI.sdk.trigger("yAxisChange", chart, min, max)
         }
-        return y
+        const value = parseFloat(parseFloat(y).toFixed(5))
+        return isNaN(value) ? y : value
       },
       makeYTicker: labels => (a, b, pixels, opts, dygraph) =>
         heatmapTicker(a, b, pixels, opts, dygraph, labels),

@@ -144,8 +144,14 @@ export default payload => {
     instances,
     dimensions,
     dimensionIds,
-    labels: labels.reduce((h, l) => ({ ...h, [l.id]: l }), {}),
-    alerts: alerts.reduce((h, a) => ({ ...h, [a.name]: a }), {}),
+    labels: labels.reduce((h, l) => {
+      h[l.id] = l
+      return h
+    }, {}),
+    alerts: alerts.reduce((h, a) => {
+      h[a.name] = a
+      return h
+    }, {}),
     viewDimensions,
     dbDimensions,
     dbUnits,

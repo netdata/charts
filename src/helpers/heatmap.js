@@ -19,7 +19,7 @@ export const isIncremental = chart =>
 const regex = /(.+)_(\d+?\.?(\d+)?|\+[Ii]nf)$/
 
 export const heatmapOrChartType = (ids, chartType) =>
-  ids.every(id => id.match(regex)) ? "heatmap" : chartType
+  Array.isArray(ids) && ids.every(id => id.match(regex)) ? "heatmap" : chartType
 
 const getColors = opacity => [
   `rgba(62, 73, 137, ${opacity})`,
