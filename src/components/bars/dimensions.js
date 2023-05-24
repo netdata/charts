@@ -13,7 +13,7 @@ const Grid = styled.div`
       case "full":
         return "2fr 1fr 1fr 1fr"
       default:
-        return "2fr 2fr"
+        return "3fr 1fr"
     }
   }};
   align-items: center;

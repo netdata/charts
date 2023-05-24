@@ -23,14 +23,14 @@ const LatestValue = ({ dimensionId, textProps, ...rest }) => {
 
   if (!value)
     return (
-      <StrokeLabel fontSize="3em" strong {...defaultTextProps} {...textProps} {...rest}>
+      <StrokeLabel fontSize="2.5em" strong {...defaultTextProps} {...textProps} {...rest}>
         {typeof value !== "string" ? "Loading..." : "No data"}
       </StrokeLabel>
     )
 
   return (
     <StyledFlex alignItems="baseline" gap={1} {...rest}>
-      <StrokeLabel fontSize="3em" strong {...defaultTextProps} {...textProps}>
+      <StrokeLabel fontSize="2.5em" strong {...defaultTextProps} {...textProps}>
         {value}
       </StrokeLabel>
       <StrokeLabel fontSize="1.3em" {...defaultTextProps} {...textProps}>
