@@ -1,86 +1,24 @@
 export default chartUI => {
-  const getClosestArea = (event, points) => {
-    const { offsetY } = event
+  const findClosest = (event, points) => {
+    if (!Array.isArray(points)) return
 
-    if (points.length === 2 && points[0].yval > 0 && points[1].yval < 0) {
-      const index = chartUI.getDygraph().toDomYCoord(0) < offsetY ? 1 : 0
-      return points[index].name
-    }
+    const { offsetY } = event
 
     if (offsetY > chartUI.getDygraph().getArea().h - 10) return "ANNOTATIONS"
     if (offsetY < 15) return "ANOMALY_RATE"
 
-    const getY = point => {
-      try {
-        return isNaN(point.canvasy) ? chartUI.getDygraph().getArea().h : point.canvasy
-      } catch (e) {
-        return chartUI.getDygraph().getArea().h
+    let closestPoint = points[0]
+    let closestDistance = Math.abs(points[0].canvasy - offsetY)
+
+    for (let i = 1; i < points.length; i++) {
+      const distance = Math.abs(points[i].canvasy - offsetY)
+      if (distance < closestDistance) {
+        closestDistance = distance
+        closestPoint = points[i]
       }
     }
 
-    const point = points.slice(0, points.length - 2).reduce((h, p) => {
-      const pointY = getY(p)
-      if (pointY > offsetY) return h
-
-      return !h || getY(h) < pointY ? p : h
-    }, points[0])
-
-    return point?.name
-  }
-
-  const getClosestPoint = (event, points) => {
-    const { offsetY } = event
-
-    if (offsetY > chartUI.getDygraph().getArea().h - 10) return "ANNOTATIONS"
-    if (offsetY < 15) return "ANOMALY_RATE"
-
-    const distance = p =>
-      Math.pow(offsetY - (isNaN(p.canvasy) ? chartUI.getDygraph().getArea().h : p.canvasy), 2)
-
-    let last = distance(points[0])
-    const closest = points.reduce((h, p) => {
-      const distancePoint = distance(p)
-      if (last < distancePoint) return h
-
-      last = distancePoint
-      return p
-    }, points[0])
-
-    return closest.name
-  }
-
-  const getClosestRow = (event, points) => {
-    const { offsetY } = event
-
-    if (offsetY > chartUI.getDygraph().getArea().h - 10) return "ANNOTATIONS"
-    if (offsetY < 15) return "ANOMALY_RATE"
-
-    const dimensionIds = chartUI.chart.getVisibleDimensionIds()
-
-    let selectedOffset = null
-    return points.slice(0, points.length - 2).reduce((h, p) => {
-      const index = dimensionIds.findIndex(id => id === p.name)
-      const canvasy = chartUI.getDygraph().toDomYCoord(index)
-      if (canvasy > offsetY) return h
-      if (selectedOffset && canvasy < selectedOffset) return h
-
-      selectedOffset = canvasy
-      return p.name
-    }, points[0])
-  }
-
-  const getClosestByChartType = {
-    heatmap: getClosestRow,
-    default: getClosestArea,
-  }
-
-  const getClosestSeries = (event, points) => {
-    if (!Array.isArray(points)) return
-
-    const chartType = chartUI.chart.getAttribute("chartType")
-    const getClosest = getClosestByChartType[chartType] || getClosestByChartType.default
-
-    return getClosest(event, points)
+    return closestPoint.name
   }
 
   let lastX
@@ -89,7 +27,7 @@ export default chartUI => {
   let lastTimestamp
 
   const triggerHighlight = (event, x, points) => {
-    const seriesName = points && getClosestSeries(event, points)
+    const seriesName = points && findClosest(event, points)
 
     if (!seriesName) return
 
