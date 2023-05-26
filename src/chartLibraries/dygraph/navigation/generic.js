@@ -85,8 +85,8 @@ export default chartUI => {
     const normal = event.detail ? event.detail * -1 : normalDef
     const percentage = normal / 50
 
-    if (!event.offsetX) event.offsetX = event.layerX - event.target.offsetLeft
-    const xPct = offsetToPercentage(dygraph, event.offsetX)
+    const offsetX = event.offsetX || event.layerX - event.target.offsetLeft
+    const xPct = offsetToPercentage(dygraph, offsetX)
 
     zoom(dygraph, percentage, xPct)
   }
