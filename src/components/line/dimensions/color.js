@@ -11,7 +11,9 @@ export const Color = styled(Flex).attrs(({ bg, ...rest }) => ({
   flex: false,
   background: bg,
   ...rest,
-}))``
+}))`
+  pointer-events: none;
+`
 
 export const BaseColorBar = ({ value, min, max, valueKey, bg, ...rest }) => {
   const ref = useRef()
