@@ -90,13 +90,16 @@ export const HeadWrapper = ({ children, uiName, ...rest }) => {
         <Title />
         {children}
       </Flex>
-      <Flex column width="16px" alignItems="center" padding={[1]}>
+      <Flex column width="16px" alignItems="center" padding={[4, 1]} gap={2}>
         {firstDim === "selected" && (
           <>
-            <Tooltip content="Anomaly rate for this metric">
-              <Icon svg={anomalyBadge} color="anomalyTextLite" size="14px" />
-            </Tooltip>
-            <Flex column height="100%" width="2px" background="nodeBadgeBackground">
+            <Flex
+              column
+              height="100%"
+              width="2px"
+              background="nodeBadgeBackground"
+              justifyContent="end"
+            >
               <ColorBar
                 id="selected"
                 valueKey="arp"
@@ -105,6 +108,9 @@ export const HeadWrapper = ({ children, uiName, ...rest }) => {
                 round={0.5}
               />
             </Flex>
+            <Tooltip content="Anomaly rate for this metric">
+              <Icon svg={anomalyBadge} color="anomalyTextLite" size="14px" />
+            </Tooltip>
           </>
         )}
       </Flex>
