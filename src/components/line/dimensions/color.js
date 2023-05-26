@@ -15,17 +15,27 @@ export const Color = styled(Flex).attrs(({ bg, ...rest }) => ({
   pointer-events: none;
 `
 
-export const BaseColorBar = ({ value, min, max, valueKey, bg, ...rest }) => {
+export const BaseColorBar = ({
+  value,
+  min,
+  max,
+  valueKey,
+  bg,
+  styleDimension = "width",
+  ...rest
+}) => {
   const ref = useRef()
 
   useLayoutEffect(() => {
     if (!ref.current) return
 
-    const animateWidth = () =>
+    const animateStyle = () =>
       ref.current &&
-      (ref.current.style.width = value ? `${((Math.abs(value) - min) * 100) / (max - min)}%` : 0)
+      (ref.current.style[styleDimension] = value
+        ? `${((Math.abs(value) - min) * 100) / (max - min)}%`
+        : 0)
 
-    requestAnimationFrame(animateWidth)
+    requestAnimationFrame(animateStyle)
   }, [value, valueKey, min, max])
 
   const isHeatmap = useIsHeatmap()

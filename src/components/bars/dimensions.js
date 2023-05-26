@@ -22,7 +22,7 @@ const Grid = styled.div`
 const emptyArray = [null, null]
 
 const getMaxDimensions = height => {
-  const maxDimensions = Math.round((height - 60) / 18)
+  const maxDimensions = Math.round((height - 70) / 18)
   return maxDimensions < 2 ? 2 : maxDimensions
 }
 const getHalf = height => getMaxDimensions(height) / 2
@@ -138,7 +138,7 @@ const Dimensions = ({ size, height, width }) => {
             key={id}
             id={id}
             strong={row === id}
-            chars={parseInt(width / (cols === "full" ? 15 : 9))}
+            chars={parseInt(width / (cols === "full" ? 15 : 8))}
             rowFlavour={rowFlavour}
             size={(size - 80) / ids.length}
             fullCols={cols === "full"}

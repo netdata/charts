@@ -3,9 +3,9 @@ import FiltersContainer from "./filtersContainer"
 import Filters from "./filters"
 import withLoader from "./withLoader"
 
-const FilterToolbox = props => (
-  <FiltersContainer {...props}>
-    <Filters />
+const FilterToolbox = ({ plain, ...rest }) => (
+  <FiltersContainer {...rest}>
+    <Filters plain={plain} />
   </FiltersContainer>
 )
 

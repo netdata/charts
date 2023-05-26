@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react"
+import React, { forwardRef, useEffect, useMemo } from "react"
 import md5 from "md5"
 import { StyledIcon } from "@netdata/netdata-ui/lib/components/icon/styled"
 
@@ -47,7 +47,7 @@ const getElement = (svg, id) => {
   return container.firstChild
 }
 
-const Icon = ({ svg, size = "24px", width = size, height = size, ...rest }) => {
+const Icon = forwardRef(({ svg, size = "24px", width = size, height = size, ...rest }, ref) => {
   const rawSvg = svg?.content || svg
   const id = useMemo(() => md5(rawSvg), [rawSvg])
 
@@ -64,10 +64,10 @@ const Icon = ({ svg, size = "24px", width = size, height = size, ...rest }) => {
   }, [rawSvg])
 
   return (
-    <StyledIcon width={width} height={height} {...rest}>
+    <StyledIcon ref={ref} width={width} height={height} {...rest}>
       <use xlinkHref={`#${id}`} />
     </StyledIcon>
   )
-}
+})
 
 export default Icon
