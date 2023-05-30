@@ -34,10 +34,23 @@ const ChartHeadWrapper = styled(Flex).attrs(({ size, ...rest }) => ({
 `
 
 export const Title = () => {
+  const chart = useChart()
   const title = useTitle()
 
+  const onClick = event => {
+    event.preventDefault()
+    chart.sdk.trigger("goToLink", chart)
+  }
+
   return (
-    <Label fontSize="1em" textAlign="center" color="sectionDescription" width="80%">
+    <Label
+      fontSize="1em"
+      textAlign="center"
+      color="sectionDescription"
+      width="80%"
+      onClick={onClick}
+      cursor="pointer"
+    >
       {title}
     </Label>
   )
