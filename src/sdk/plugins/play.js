@@ -21,8 +21,8 @@ export default sdk => {
     if (enable) getNext()
   }
 
-  const autofetchIfActive = (chart, force = false) => {
-    const { after, hovering, active, loaded } = chart.getAttributes()
+  const autofetchIfActive = (chart, { now = new Date(), force = false } = {}) => {
+    const { after, hovering, active, loaded, fetchStartedAt } = chart.getAttributes()
 
     let autofetch = after < 0 && !hovering && !chart.getRoot().getAttribute("paused")
 
@@ -40,6 +40,8 @@ export default sdk => {
       !autofetch &&
       (force || (loaded && (lastAfter !== fetchAfter || lastBefore !== fetchBefore)))
     ) {
+      if (fetchStartedAt && now - chart.getUpdateEvery() <= fetchStartedAt) return
+
       chart.lastFetch = [fetchAfter, fetchBefore]
       chart.trigger("fetch")
     }
@@ -70,17 +72,19 @@ export default sdk => {
           !sdk.getRoot().getAttribute("paused")
       )
 
-      autofetchIfActive(chart, true)
+      autofetchIfActive(chart, { force: true })
     })
-    .on("hoverChart", chart => {
+    .on("play:hoverChart", chart => {
       toggleRender(false)
 
       if (sdk.getRoot().getAttribute("paused")) return
 
-      chart.getApplicableNodes({ syncHover: true }).forEach(node => autofetchIfActive(node))
+      chart
+        .getApplicableNodes({ syncHover: true })
+        .forEach(node => autofetchIfActive(node, { now: chart.getAttribute("renderedAt") }))
     })
-    .on("blurChart", chart => {
-      if (chart.getAttribute("paused")) return
+    .on("play:blurChart", chart => {
+      if (chart.getRoot().getAttribute("paused")) return
 
       toggleRender(chart.getAttribute("after") < 0 && !sdk.getRoot().getAttribute("paused"))
 
@@ -89,12 +93,15 @@ export default sdk => {
     .on("moveX", chart => {
       toggleRender(chart.getAttribute("after") < 0 && !sdk.getRoot().getAttribute("paused"))
 
-      chart.getApplicableNodes({ syncPanning: true }).forEach(node => autofetchIfActive(node))
+      chart.getApplicableNodes({ syncPanning: true }).forEach(node => {
+        node.setAttributes({ viewUpdateEvery: 0, updateEvery: 0 })
+        autofetchIfActive(node)
+      })
     })
 
-  sdk.getRoot().onAttributeChange("paused", () => {
-    sdk.getNodes().forEach(node => autofetchIfActive(node))
-  })
+  sdk
+    .getRoot()
+    .onAttributeChange("paused", () => sdk.getNodes().forEach(node => autofetchIfActive(node)))
 
   return () => {
     offs()

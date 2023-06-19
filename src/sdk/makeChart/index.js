@@ -42,13 +42,13 @@ export default ({
       node.backoffMs = ms
       return
     }
-    const tmpBackoffMs = node.backoffMs ? node.backoffMs * 2 : getUpdateEvery()
+    const tmpBackoffMs = node.backoffMs ? node.backoffMs * 2 : node.getUpdateEvery()
     node.backoffMs = tmpBackoffMs > maxBackoffMs ? maxBackoffMs : tmpBackoffMs
   }
 
   let uiInstances = {}
 
-  const getUpdateEvery = () => {
+  node.getUpdateEvery = () => {
     if (!node) return
 
     const { loaded, viewUpdateEvery, updateEvery } = node.getAttributes()
@@ -95,7 +95,7 @@ export default ({
     }
 
     const fetchingPeriod = Date.now() - fetchStartedAt
-    const updateEveryMs = getUpdateEvery()
+    const updateEveryMs = node.getUpdateEvery()
     const div = fetchingPeriod / updateEveryMs
     const updateEveryMultiples = Math.floor(div)
 
@@ -149,7 +149,7 @@ export default ({
 
     if (node.getAttribute("focused") && node.getAttribute("hovering")) return
 
-    node.updateAttributes({ focused: true, hovering: true })
+    node.updateAttributes({ focused: true })
     sdk.trigger("hoverChart", node, event)
     node.trigger("hoverChart", event)
   }
@@ -159,7 +159,7 @@ export default ({
 
     if (!node.getAttribute("focused") && !node.getAttribute("hovering")) return
 
-    node.updateAttributes({ focused: false, hovering: false })
+    node.updateAttributes({ focused: false })
     sdk.trigger("blurChart", node, event)
     node.trigger("blurChart", event)
   }

@@ -52,13 +52,13 @@ export const useLoadingColor = (defaultColor = "themeNeutralBackground") => {
     }
 
     const getColor = scaleLinear()
-      .domain([0, 1000, 2000, 5000, 100000])
+      .domain([0, 1000, 2000, 3000, 100000])
       .range([
         chart.getThemeAttribute(defaultColor),
         chart.getThemeAttribute(defaultColor),
-        chart.getThemeAttribute("themeWarningBackground"),
-        chart.getThemeAttribute("themeErrorBackground"),
-        chart.getThemeAttribute("themeErrorBackground"),
+        chart.getThemeAttribute("themeLoadingStart"),
+        chart.getThemeAttribute("themeNetdata"),
+        chart.getThemeAttribute("themeNetdata"),
       ])
 
     const id = setInterval(() => {

@@ -14,21 +14,22 @@ export default sdk => {
       chart.getApplicableNodes({ syncHover: true }).forEach(node => {
         if (node.getAttribute("hovering") || chart.getRoot().getAttribute("paused")) return
 
-        node.updateAttribute("hovering", true)
-        node.setAttribute(
-          "renderedAt",
-          chart.getAttribute("after") < 0
-            ? chart.getUI().getRenderedAt()
-            : chart.getAttribute("before")
-        )
+        node.updateAttributes({
+          hovering: true,
+          renderedAt:
+            chart.getAttribute("after") < 0
+              ? chart.getUI().getRenderedAt()
+              : chart.getAttribute("before"),
+        })
       })
+      sdk.trigger("play:hoverChart", chart)
     })
     .on("blurChart", chart => {
       chart.getApplicableNodes({ syncHover: true }).forEach(node => {
         if (chart.getRoot().getAttribute("paused")) return
 
-        node.updateAttribute("hovering", false)
-        node.setAttribute("renderedAt", null)
+        node.updateAttributes({ hovering: false, renderedAt: null })
       })
+      sdk.trigger("play:blurChart", chart)
     })
 }

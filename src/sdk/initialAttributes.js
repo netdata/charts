@@ -179,6 +179,9 @@ export default {
   themeGroupBoxesMin: ["#E4F1FF", "#000C18"],
   themeGroupBoxesMax: ["#0075F2", "#0075F2"],
 
+  themeLoadingStart: ["#BFE5C6", "#2f5446"],
+  themeNetdata: ["#00AB44", "#00AB44"],
+
   legendScroll: 0,
 
   initializedFilters: false,
