@@ -264,6 +264,22 @@
       "is_special": false,
       "is_additive": true
     },
+    "ms/{request}": {
+      "symbol": "ms/{request}",
+      "name": "millisecond per request",
+      "print_symbol": "ms/request",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "ms/{run}": {
+      "symbol": "ms/{run}",
+      "name": "millisecond per run",
+      "print_symbol": "ms/run",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
     "ns": {
       "symbol": "ns",
       "name": "nanosecond",
@@ -456,6 +472,14 @@
       "is_special": false,
       "is_additive": true
     },
+    "{callback}/s": {
+      "symbol": "{callback}/s",
+      "name": "callbacks per second",
+      "print_symbol": "callbacks/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
     "{call}": {
       "symbol": "{call}",
       "name": "calls",
@@ -508,6 +532,14 @@
       "symbol": "{character}",
       "name": "characters",
       "print_symbol": "characters",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{chart}": {
+      "symbol": "{chart}",
+      "name": "charts",
+      "print_symbol": "charts",
       "is_metric": false,
       "is_special": false,
       "is_additive": true
@@ -840,6 +872,14 @@
       "is_special": false,
       "is_additive": true
     },
+    "{dictionary}": {
+      "symbol": "{dictionary}",
+      "name": "dictionaries",
+      "print_symbol": "dictionaries",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
     "{difficulty}": {
       "symbol": "{difficulty}",
       "name": "difficulty",
@@ -847,6 +887,14 @@
       "is_metric": false,
       "is_special": false,
       "is_additive": false
+    },
+    "{dimension}": {
+      "symbol": "{dimension}",
+      "name": "dimensions",
+      "print_symbol": "dimensions",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
     },
     "{directory}": {
       "symbol": "{directory}",
@@ -1624,6 +1672,14 @@
       "is_special": false,
       "is_additive": true
     },
+    "{metric}": {
+      "symbol": "{metric}",
+      "name": "metrics",
+      "print_symbol": "metrics",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
     "{migration}": {
       "symbol": "{migration}",
       "name": "migrations",
@@ -1637,6 +1693,14 @@
       "name": "misses per second",
       "print_symbol": "misses/s",
       "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{model}": {
+      "symbol": "{model}",
+      "name": "models",
+      "print_symbol": "models",
+      "is_metric": false,
       "is_special": false,
       "is_additive": true
     },
@@ -1716,6 +1780,14 @@
       "symbol": "{octet}",
       "name": "octets",
       "print_symbol": "octets",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{opcode}": {
+      "symbol": "{opcode}",
+      "name": "opcodes",
+      "print_symbol": "opcodes",
       "is_metric": false,
       "is_special": false,
       "is_additive": true
@@ -1829,6 +1901,14 @@
       "name": "pods",
       "print_symbol": "pods",
       "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{point}/s": {
+      "symbol": "{point}/s",
+      "name": "points per second",
+      "print_symbol": "points/s",
+      "is_metric": true,
       "is_special": false,
       "is_additive": true
     },
@@ -2036,6 +2116,14 @@
       "symbol": "{reduction}",
       "name": "reductions",
       "print_symbol": "reductions",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{reference}": {
+      "symbol": "{reference}",
+      "name": "references",
+      "print_symbol": "references",
       "is_metric": false,
       "is_special": false,
       "is_additive": true
@@ -2316,6 +2404,14 @@
       "symbol": "{semaphore}",
       "name": "semaphores",
       "print_symbol": "semaphores",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{sender}": {
+      "symbol": "{sender}",
+      "name": "senders",
+      "print_symbol": "senders",
       "is_metric": false,
       "is_special": false,
       "is_additive": true
@@ -2736,6 +2832,14 @@
       "is_special": false,
       "is_additive": true
     },
+    "{work}": {
+      "symbol": "{work}",
+      "name": "works",
+      "print_symbol": "works",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
     "{writeset}": {
       "symbol": "{writeset}",
       "name": "writesets",
@@ -2845,6 +2949,7 @@
     "buffers": "{buffer}",
     "bytes": "By",
     "bytes/s": "By/s",
+    "callbacks/s": "{callback}/s",
     "calls": "{call}",
     "calls/s": "{call}/s",
     "ccw/s": "{ccw}/s",
@@ -2853,6 +2958,7 @@
     "changes/s": "{change}/s",
     "channels/s": "{channel}/s",
     "characters": "{character}",
+    "charts": "{chart}",
     "checkpoints/s": "{checkpoint}/s",
     "checks / sec": "{check}/s",
     "checks/s": "{check}/s",
@@ -2863,6 +2969,7 @@
     "clients": "{client}",
     "clusters": "{cluster}",
     "clusters/s": "{cluster}/s",
+    "cmd/s": "{command}/s",
     "code": "{code}",
     "collections": "{collection}",
     "columns": "{column}",
@@ -2872,6 +2979,8 @@
     "commits/s": "{commit}/s",
     "compilations/s": "{compilation}/s",
     "components": "{component}",
+    "connected": "{status}",
+    "connected clients": "{client}",
     "connections": "{connection}",
     "connections/s": "{connection}/s",
     "conns": "{connection}",
@@ -2901,8 +3010,10 @@
     "devices": "{device}",
     "dialogs": "{dialog}",
     "dialogs/s": "{dialog}/s",
+    "dictionaries": "{dictionary}",
     "difference": "{process}",
     "difficulty": "{difficulty}",
+    "dimensions": "{dimension}",
     "directories": "{directory}",
     "discards/s": "{discard}/s",
     "disks": "{disk}",
@@ -3018,6 +3129,7 @@
     "messages/s": "{message}/s",
     "methods": "{method}",
     "methods/s": "{method}/s",
+    "metrics": "{metric}",
     "microseconds": "us",
     "microseconds lost/s": "us/s",
     "microseconds/s": "us/s",
@@ -3027,10 +3139,14 @@
     "millicpu": "m[CPU]",
     "milliseconds": "ms",
     "milliseconds/operation": "ms/{operation}",
+    "milliseconds/request": "ms/{request}",
+    "milliseconds/run": "ms/{run}",
     "milliseconds/s": "ms/s",
     "misses": "{thread}",
     "misses/s": "{miss}/s",
+    "models": "{model}",
     "modifications/s": "{modification}/s",
+    "msg/s": "{message}/s",
     "netsplits": "{netsplit}",
     "netsplits/s": "{netsplit}/s",
     "nodes": "{node}",
@@ -3043,6 +3159,7 @@
     "observations": "{observation}",
     "observes/s": "{observe}/s",
     "octets": "{octet}",
+    "opcodes": "{opcode}",
     "open files": "{file}",
     "open pipes": "{pipe}",
     "open sockets": "{open socket}",
@@ -3064,6 +3181,7 @@
     "pipes": "{pipe}",
     "pmode": "{ntp mode}",
     "pods": "{pod}",
+    "points/s": "{point}/s",
     "pools": "{pool}",
     "ppm": "[ppm]",
     "pps": "{packet}/s",
@@ -3095,6 +3213,7 @@
     "records/s": "{record}/s",
     "redirects/s": "{redirect}/s",
     "reductions": "{reduction}",
+    "references": "{reference}",
     "referrals/s": "{referral}/s",
     "registrations/s": "{registration}/s",
     "rejections/s": "{rejection}/s",
@@ -3105,6 +3224,7 @@
     "replies": "{reply}",
     "replies/s": "{reply}/s",
     "reports/s": "{report}/s",
+    "req/s": "{request}/s",
     "requests": "{request}",
     "requests/s": "{request}/s",
     "resets/s": "{reset}/s",
@@ -3133,6 +3253,7 @@
     "segments": "{segment}",
     "segments/s": "{segment}/s",
     "semaphores": "{semaphore}",
+    "senders": "{sender}",
     "sensors": "{sensor}",
     "servers": "{server}",
     "sessions": "{session}",
@@ -3183,6 +3304,7 @@
     "tubes": "{tube}",
     "unsynchronized blocks": "{unsynchronized block}",
     "updates/s": "{update}/s",
+    "usec/s": "us/s",
     "users": "{user}",
     "value": "1",
     "views": "{view}",
@@ -3193,6 +3315,7 @@
     "weight": "1",
     "workers": "{worker}",
     "workers/s": "{worker}/s",
+    "works": "{work}",
     "writes": "{write}",
     "writes/s": "{write}/s",
     "writesets": "{writeset}",
