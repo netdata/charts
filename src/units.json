@@ -1,0 +1,3204 @@
+{
+  "units": {
+    "%": {
+      "symbol": "%",
+      "name": "percent",
+      "print_symbol": "%",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "1": {
+      "symbol": "1",
+      "name": "",
+      "print_symbol": "",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "A": {
+      "symbol": "A",
+      "name": "amp\u00e8re",
+      "print_symbol": "A",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "A.h": {
+      "symbol": "A.h",
+      "name": "amp\u00e8re-hour",
+      "print_symbol": "Ah",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "By": {
+      "symbol": "By",
+      "name": "byte",
+      "print_symbol": "B",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "By/s": {
+      "symbol": "By/s",
+      "name": "byte per second",
+      "print_symbol": "B/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "Cel": {
+      "symbol": "Cel",
+      "name": "degree Celsius",
+      "print_symbol": "\u00b0C",
+      "is_metric": true,
+      "is_special": true,
+      "is_additive": false
+    },
+    "GiBy": {
+      "symbol": "GiBy",
+      "name": "gibibyte",
+      "print_symbol": "GiB",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "Hz": {
+      "symbol": "Hz",
+      "name": "hertz",
+      "print_symbol": "Hz",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "J": {
+      "symbol": "J",
+      "name": "joule",
+      "print_symbol": "J",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "KiBy": {
+      "symbol": "KiBy",
+      "name": "kibibyte",
+      "print_symbol": "KiB",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "KiBy/s": {
+      "symbol": "KiBy/s",
+      "name": "kibibyte per second",
+      "print_symbol": "KiB/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "KiBy/{operation}": {
+      "symbol": "KiBy/{operation}",
+      "name": "kibibyte per operation",
+      "print_symbol": "KiB/operation",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "Kibit": {
+      "symbol": "Kibit",
+      "name": "kibibit",
+      "print_symbol": "Kibit",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "Kibit/s": {
+      "symbol": "Kibit/s",
+      "name": "kibibit per second",
+      "print_symbol": "Kibit/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "MHz": {
+      "symbol": "MHz",
+      "name": "megahertz",
+      "print_symbol": "MHz",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "MiBy": {
+      "symbol": "MiBy",
+      "name": "mebibyte",
+      "print_symbol": "MiB",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "MiBy/s": {
+      "symbol": "MiBy/s",
+      "name": "mebibyte per second",
+      "print_symbol": "MiB/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "Mibit/s": {
+      "symbol": "Mibit/s",
+      "name": "mebibit per second",
+      "print_symbol": "Mibit/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "V": {
+      "symbol": "V",
+      "name": "volt",
+      "print_symbol": "V",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "W": {
+      "symbol": "W",
+      "name": "watt",
+      "print_symbol": "W",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "W.h": {
+      "symbol": "W.h",
+      "name": "watt-hour",
+      "print_symbol": "Wh",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "[CPU]": {
+      "symbol": "[CPU]",
+      "name": "CPU",
+      "print_symbol": "CPU",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "[degF]": {
+      "symbol": "[degF]",
+      "name": "degree Fahrenheit",
+      "print_symbol": "\u00b0F",
+      "is_metric": false,
+      "is_special": true,
+      "is_additive": false
+    },
+    "[ppm]": {
+      "symbol": "[ppm]",
+      "name": "parts per million",
+      "print_symbol": "ppm",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "c[CPU]": {
+      "symbol": "c[CPU]",
+      "name": "centiCPU",
+      "print_symbol": "cCPU",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "dB[mW]": {
+      "symbol": "dB[mW]",
+      "name": "decibel milliwatt",
+      "print_symbol": "dB(mW)",
+      "is_metric": true,
+      "is_special": true,
+      "is_additive": false
+    },
+    "h": {
+      "symbol": "h",
+      "name": "hour",
+      "print_symbol": "h",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "m[CPU]": {
+      "symbol": "m[CPU]",
+      "name": "milliCPU",
+      "print_symbol": "mCPU",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "min": {
+      "symbol": "min",
+      "name": "minute",
+      "print_symbol": "min",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "ms": {
+      "symbol": "ms",
+      "name": "millisecond",
+      "print_symbol": "ms",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "ms/s": {
+      "symbol": "ms/s",
+      "name": "millisecond per second",
+      "print_symbol": "ms/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "ms/{operation}": {
+      "symbol": "ms/{operation}",
+      "name": "millisecond per operation",
+      "print_symbol": "ms/operation",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "ns": {
+      "symbol": "ns",
+      "name": "nanosecond",
+      "print_symbol": "ns",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "s": {
+      "symbol": "s",
+      "name": "second",
+      "print_symbol": "s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "s/s": {
+      "symbol": "s/s",
+      "name": "second per second",
+      "print_symbol": "s/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "us": {
+      "symbol": "us",
+      "name": "microsecond",
+      "print_symbol": "\u03bcs",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "us/s": {
+      "symbol": "us/s",
+      "name": "microsecond per second",
+      "print_symbol": "\u03bcs/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{acquisition}/s": {
+      "symbol": "{acquisition}/s",
+      "name": "acquisitions per second",
+      "print_symbol": "acquisitions/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{action}/s": {
+      "symbol": "{action}/s",
+      "name": "actions per second",
+      "print_symbol": "actions/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{address space}": {
+      "symbol": "{address space}",
+      "name": "address spaces",
+      "print_symbol": "address spaces",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{answer}/s": {
+      "symbol": "{answer}/s",
+      "name": "answers per second",
+      "print_symbol": "answers/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{array}": {
+      "symbol": "{array}",
+      "name": "arrays",
+      "print_symbol": "arrays",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{assembly}/s": {
+      "symbol": "{assembly}/s",
+      "name": "assemblies per second",
+      "print_symbol": "assemblies/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{assert}/s": {
+      "symbol": "{assert}/s",
+      "name": "asserts per second",
+      "print_symbol": "asserts/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{association}": {
+      "symbol": "{association}",
+      "name": "associations",
+      "print_symbol": "associations",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{attempt}": {
+      "symbol": "{attempt}",
+      "name": "attempts",
+      "print_symbol": "attempts",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{attempt}/s": {
+      "symbol": "{attempt}/s",
+      "name": "attempts per second",
+      "print_symbol": "attempts/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{authentication}/s": {
+      "symbol": "{authentication}/s",
+      "name": "authentications per second",
+      "print_symbol": "authentications/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{ban}/s": {
+      "symbol": "{ban}/s",
+      "name": "bans per second",
+      "print_symbol": "bans/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{batch}": {
+      "symbol": "{batch}",
+      "name": "batches",
+      "print_symbol": "batches",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{batch}/s": {
+      "symbol": "{batch}/s",
+      "name": "batches per second",
+      "print_symbol": "batches/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{bind}/s": {
+      "symbol": "{bind}/s",
+      "name": "binds per second",
+      "print_symbol": "binds/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{blocked subscription}": {
+      "symbol": "{blocked subscription}",
+      "name": "blocked subscriptions",
+      "print_symbol": "blocked subscriptions",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{block}": {
+      "symbol": "{block}",
+      "name": "blocks",
+      "print_symbol": "blocks",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{boolean}": {
+      "symbol": "{boolean}",
+      "name": "boolean",
+      "print_symbol": "",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{buffer}": {
+      "symbol": "{buffer}",
+      "name": "buffers",
+      "print_symbol": "buffers",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{call}": {
+      "symbol": "{call}",
+      "name": "calls",
+      "print_symbol": "calls",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{call}/s": {
+      "symbol": "{call}/s",
+      "name": "calls per second",
+      "print_symbol": "calls/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{ccw}/s": {
+      "symbol": "{ccw}/s",
+      "name": "ccws per second",
+      "print_symbol": "ccws/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{chain}": {
+      "symbol": "{chain}",
+      "name": "chains",
+      "print_symbol": "chains",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{change}/s": {
+      "symbol": "{change}/s",
+      "name": "changes per second",
+      "print_symbol": "changes/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{channel}/s": {
+      "symbol": "{channel}/s",
+      "name": "channels per second",
+      "print_symbol": "channels/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{character}": {
+      "symbol": "{character}",
+      "name": "characters",
+      "print_symbol": "characters",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{checkpoint}/s": {
+      "symbol": "{checkpoint}/s",
+      "name": "checkpoints per second",
+      "print_symbol": "checkpoints/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{check}/s": {
+      "symbol": "{check}/s",
+      "name": "checks per second",
+      "print_symbol": "checks/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{child}": {
+      "symbol": "{child}",
+      "name": "children",
+      "print_symbol": "children",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{chunk}": {
+      "symbol": "{chunk}",
+      "name": "chunks",
+      "print_symbol": "chunks",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{class}": {
+      "symbol": "{class}",
+      "name": "classes",
+      "print_symbol": "classes",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{class}/s": {
+      "symbol": "{class}/s",
+      "name": "classes per second",
+      "print_symbol": "classes/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{client}": {
+      "symbol": "{client}",
+      "name": "clients",
+      "print_symbol": "clients",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{cluster}": {
+      "symbol": "{cluster}",
+      "name": "clusters",
+      "print_symbol": "clusters",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{cluster}/s": {
+      "symbol": "{cluster}/s",
+      "name": "clusters per second",
+      "print_symbol": "clusters/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{code}": {
+      "symbol": "{code}",
+      "name": "codes",
+      "print_symbol": "codes",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{collection}": {
+      "symbol": "{collection}",
+      "name": "collections",
+      "print_symbol": "collections",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{column}": {
+      "symbol": "{column}",
+      "name": "columns",
+      "print_symbol": "columns",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{command}": {
+      "symbol": "{command}",
+      "name": "commands",
+      "print_symbol": "commands",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{command}/s": {
+      "symbol": "{command}/s",
+      "name": "commands per second",
+      "print_symbol": "commands/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{commit}": {
+      "symbol": "{commit}",
+      "name": "commits",
+      "print_symbol": "commits",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{commit}/s": {
+      "symbol": "{commit}/s",
+      "name": "commits per second",
+      "print_symbol": "commits/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{compilation}/s": {
+      "symbol": "{compilation}/s",
+      "name": "compilations per second",
+      "print_symbol": "compilations/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{component}": {
+      "symbol": "{component}",
+      "name": "components",
+      "print_symbol": "components",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{concurrent file accesses}": {
+      "symbol": "{concurrent file accesses}",
+      "name": "concurrent file accesseses",
+      "print_symbol": "concurrent file accesseses",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{connection}": {
+      "symbol": "{connection}",
+      "name": "connections",
+      "print_symbol": "connections",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{connection}/s": {
+      "symbol": "{connection}/s",
+      "name": "connections per second",
+      "print_symbol": "connections/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{consumer}": {
+      "symbol": "{consumer}",
+      "name": "consumers",
+      "print_symbol": "consumers",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{container}": {
+      "symbol": "{container}",
+      "name": "containers",
+      "print_symbol": "containers",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{contention}/s": {
+      "symbol": "{contention}/s",
+      "name": "contentions per second",
+      "print_symbol": "contentions/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{context switch}/s": {
+      "symbol": "{context switch}/s",
+      "name": "context switches per second",
+      "print_symbol": "context switches/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{context}": {
+      "symbol": "{context}",
+      "name": "contexts",
+      "print_symbol": "contexts",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{cookie}/s": {
+      "symbol": "{cookie}/s",
+      "name": "cookies per second",
+      "print_symbol": "cookies/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{count}/s": {
+      "symbol": "{count}/s",
+      "name": "counts per second",
+      "print_symbol": "counts/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{ctoken}": {
+      "symbol": "{ctoken}",
+      "name": "ctokens",
+      "print_symbol": "ctokens",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{cursor}": {
+      "symbol": "{cursor}",
+      "name": "cursors",
+      "print_symbol": "cursors",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{cursor}/s": {
+      "symbol": "{cursor}/s",
+      "name": "cursors per second",
+      "print_symbol": "cursors/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{cycle}": {
+      "symbol": "{cycle}",
+      "name": "cycles",
+      "print_symbol": "cycles",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{cycle}/s": {
+      "symbol": "{cycle}/s",
+      "name": "cycles per second",
+      "print_symbol": "cycles/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{database}": {
+      "symbol": "{database}",
+      "name": "databases",
+      "print_symbol": "databases",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{deadlock}/s": {
+      "symbol": "{deadlock}/s",
+      "name": "deadlocks per second",
+      "print_symbol": "deadlocks/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{depth}": {
+      "symbol": "{depth}",
+      "name": "depths",
+      "print_symbol": "depths",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{descriptor}": {
+      "symbol": "{descriptor}",
+      "name": "descriptors",
+      "print_symbol": "descriptors",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{destination}": {
+      "symbol": "{destination}",
+      "name": "destinations",
+      "print_symbol": "destinations",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{device}": {
+      "symbol": "{device}",
+      "name": "devices",
+      "print_symbol": "devices",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{dialog}": {
+      "symbol": "{dialog}",
+      "name": "dialogs",
+      "print_symbol": "dialogs",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{dialog}/s": {
+      "symbol": "{dialog}/s",
+      "name": "dialogs per second",
+      "print_symbol": "dialogs/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{difficulty}": {
+      "symbol": "{difficulty}",
+      "name": "difficulty",
+      "print_symbol": "",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": false
+    },
+    "{directory}": {
+      "symbol": "{directory}",
+      "name": "directories",
+      "print_symbol": "directories",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{discard}/s": {
+      "symbol": "{discard}/s",
+      "name": "discards per second",
+      "print_symbol": "discards/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{disk}": {
+      "symbol": "{disk}",
+      "name": "disks",
+      "print_symbol": "disks",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{dispatch}/s": {
+      "symbol": "{dispatch}/s",
+      "name": "dispatches per second",
+      "print_symbol": "dispatches/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{document}": {
+      "symbol": "{document}",
+      "name": "documents",
+      "print_symbol": "documents",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{document}/s": {
+      "symbol": "{document}/s",
+      "name": "documents per second",
+      "print_symbol": "documents/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{doc}": {
+      "symbol": "{doc}",
+      "name": "docs",
+      "print_symbol": "docs",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{domain}": {
+      "symbol": "{domain}",
+      "name": "domains",
+      "print_symbol": "domains",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{domain}/s": {
+      "symbol": "{domain}/s",
+      "name": "domains per second",
+      "print_symbol": "domains/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{dpc}/s": {
+      "symbol": "{dpc}/s",
+      "name": "dpcs per second",
+      "print_symbol": "dpcs/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{drop}/s": {
+      "symbol": "{drop}/s",
+      "name": "drops per second",
+      "print_symbol": "drops/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{election}/s": {
+      "symbol": "{election}/s",
+      "name": "elections per second",
+      "print_symbol": "elections/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{element}": {
+      "symbol": "{element}",
+      "name": "elements",
+      "print_symbol": "elements",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{email}": {
+      "symbol": "{email}",
+      "name": "emails",
+      "print_symbol": "emails",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{endpoint}": {
+      "symbol": "{endpoint}",
+      "name": "endpoints",
+      "print_symbol": "endpoints",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{entropy}": {
+      "symbol": "{entropy}",
+      "name": "entropies",
+      "print_symbol": "entropies",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{entry}": {
+      "symbol": "{entry}",
+      "name": "entries",
+      "print_symbol": "entries",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{entry}/s": {
+      "symbol": "{entry}/s",
+      "name": "entries per second",
+      "print_symbol": "entries/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{erase}": {
+      "symbol": "{erase}",
+      "name": "erases",
+      "print_symbol": "erases",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{error}": {
+      "symbol": "{error}",
+      "name": "errors",
+      "print_symbol": "errors",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{error}/s": {
+      "symbol": "{error}/s",
+      "name": "errors per second",
+      "print_symbol": "errors/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{event}": {
+      "symbol": "{event}",
+      "name": "events",
+      "print_symbol": "events",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{event}/s": {
+      "symbol": "{event}/s",
+      "name": "events per second",
+      "print_symbol": "events/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{exception}": {
+      "symbol": "{exception}",
+      "name": "exceptions",
+      "print_symbol": "exceptions",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{exception}/s": {
+      "symbol": "{exception}/s",
+      "name": "exceptions per second",
+      "print_symbol": "exceptions/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{expectation}/s": {
+      "symbol": "{expectation}/s",
+      "name": "expectations per second",
+      "print_symbol": "expectations/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{failure}": {
+      "symbol": "{failure}",
+      "name": "failures",
+      "print_symbol": "failures",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{failure}/s": {
+      "symbol": "{failure}/s",
+      "name": "failures per second",
+      "print_symbol": "failures/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{fail}/s": {
+      "symbol": "{fail}/s",
+      "name": "fails per second",
+      "print_symbol": "fails/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{fault}": {
+      "symbol": "{fault}",
+      "name": "faults",
+      "print_symbol": "faults",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{fd}": {
+      "symbol": "{fd}",
+      "name": "fds",
+      "print_symbol": "fds",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{fetch}": {
+      "symbol": "{fetch}",
+      "name": "fetches",
+      "print_symbol": "fetches",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{file descriptor}": {
+      "symbol": "{file descriptor}",
+      "name": "file descriptors",
+      "print_symbol": "file descriptors",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{filesystem}": {
+      "symbol": "{filesystem}",
+      "name": "filesystems",
+      "print_symbol": "filesystems",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{file}": {
+      "symbol": "{file}",
+      "name": "files",
+      "print_symbol": "files",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{file}/s": {
+      "symbol": "{file}/s",
+      "name": "files per second",
+      "print_symbol": "files/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{filter}/s": {
+      "symbol": "{filter}/s",
+      "name": "filters per second",
+      "print_symbol": "filters/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{finally}/s": {
+      "symbol": "{finally}/s",
+      "name": "finallies per second",
+      "print_symbol": "finallies/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{flag}": {
+      "symbol": "{flag}",
+      "name": "flags",
+      "print_symbol": "flags",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{flow}": {
+      "symbol": "{flow}",
+      "name": "flows",
+      "print_symbol": "flows",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{flush}": {
+      "symbol": "{flush}",
+      "name": "flushes",
+      "print_symbol": "flushes",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{flush}/s": {
+      "symbol": "{flush}/s",
+      "name": "flushes per second",
+      "print_symbol": "flushes/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{fragment}": {
+      "symbol": "{fragment}",
+      "name": "fragments",
+      "print_symbol": "fragments",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{frame}/s": {
+      "symbol": "{frame}/s",
+      "name": "frames per second",
+      "print_symbol": "frames/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{fsm}": {
+      "symbol": "{fsm}",
+      "name": "fsms",
+      "print_symbol": "fsms",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{gc}/s": {
+      "symbol": "{gc}/s",
+      "name": "gcs per second",
+      "print_symbol": "gcs/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{goroutine}": {
+      "symbol": "{goroutine}",
+      "name": "goroutines",
+      "print_symbol": "goroutines",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{handler}/s": {
+      "symbol": "{handler}/s",
+      "name": "handlers per second",
+      "print_symbol": "handlers/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{handle}": {
+      "symbol": "{handle}",
+      "name": "handles",
+      "print_symbol": "handles",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{handle}/s": {
+      "symbol": "{handle}/s",
+      "name": "handles per second",
+      "print_symbol": "handles/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{handshake}/s": {
+      "symbol": "{handshake}/s",
+      "name": "handshakes per second",
+      "print_symbol": "handshakes/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{harakiri}": {
+      "symbol": "{harakiri}",
+      "name": "harakiris",
+      "print_symbol": "harakiris",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{hash table}": {
+      "symbol": "{hash table}",
+      "name": "hash tables",
+      "print_symbol": "hash tables",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{heartbeat}": {
+      "symbol": "{heartbeat}",
+      "name": "heartbeats",
+      "print_symbol": "heartbeats",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{hit}/s": {
+      "symbol": "{hit}/s",
+      "name": "hits per second",
+      "print_symbol": "hits/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{host}": {
+      "symbol": "{host}",
+      "name": "hosts",
+      "print_symbol": "hosts",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{image}": {
+      "symbol": "{image}",
+      "name": "images",
+      "print_symbol": "images",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{index}": {
+      "symbol": "{index}",
+      "name": "indices",
+      "print_symbol": "indices",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{index}/s": {
+      "symbol": "{index}/s",
+      "name": "indices per second",
+      "print_symbol": "indices/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{indice}": {
+      "symbol": "{indice}",
+      "name": "indices",
+      "print_symbol": "indices",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{inode}": {
+      "symbol": "{inode}",
+      "name": "inodes",
+      "print_symbol": "inodes",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{instruction}/s": {
+      "symbol": "{instruction}/s",
+      "name": "instructions per second",
+      "print_symbol": "instructions/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{instruction}/{cycle}": {
+      "symbol": "{instruction}/{cycle}",
+      "name": "instructions per cycle",
+      "print_symbol": "instructions/cycle",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{interface}": {
+      "symbol": "{interface}",
+      "name": "interfaces",
+      "print_symbol": "interfaces",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{interrupt}": {
+      "symbol": "{interrupt}",
+      "name": "interrupts",
+      "print_symbol": "interrupts",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{interrupt}/s": {
+      "symbol": "{interrupt}/s",
+      "name": "interrupts per second",
+      "print_symbol": "interrupts/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{invoke}": {
+      "symbol": "{invoke}",
+      "name": "invokes",
+      "print_symbol": "invokes",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{iop}": {
+      "symbol": "{iop}",
+      "name": "iops",
+      "print_symbol": "iops",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{iop}/s": {
+      "symbol": "{iop}/s",
+      "name": "iops per second",
+      "print_symbol": "iops/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{ip}": {
+      "symbol": "{ip}",
+      "name": "ips",
+      "print_symbol": "ips",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{issue}/s": {
+      "symbol": "{issue}/s",
+      "name": "issues per second",
+      "print_symbol": "issues/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{item}": {
+      "symbol": "{item}",
+      "name": "items",
+      "print_symbol": "items",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{job}": {
+      "symbol": "{job}",
+      "name": "jobs",
+      "print_symbol": "jobs",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{job}/s": {
+      "symbol": "{job}/s",
+      "name": "jobs per second",
+      "print_symbol": "jobs/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{join}/s": {
+      "symbol": "{join}/s",
+      "name": "joins per second",
+      "print_symbol": "joins/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{key}": {
+      "symbol": "{key}",
+      "name": "keys",
+      "print_symbol": "keys",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{key}/s": {
+      "symbol": "{key}/s",
+      "name": "keys per second",
+      "print_symbol": "keys/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{kill}": {
+      "symbol": "{kill}",
+      "name": "kills",
+      "print_symbol": "kills",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{kill}/s": {
+      "symbol": "{kill}/s",
+      "name": "kills per second",
+      "print_symbol": "kills/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{leaseholder}": {
+      "symbol": "{leaseholder}",
+      "name": "leaseholders",
+      "print_symbol": "leaseholders",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{lease}": {
+      "symbol": "{lease}",
+      "name": "leases",
+      "print_symbol": "leases",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{listener}": {
+      "symbol": "{listener}",
+      "name": "listeners",
+      "print_symbol": "listeners",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{listener}/s": {
+      "symbol": "{listener}/s",
+      "name": "listeners per second",
+      "print_symbol": "listeners/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{list}/s": {
+      "symbol": "{list}/s",
+      "name": "lists per second",
+      "print_symbol": "lists/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{load}": {
+      "symbol": "{load}",
+      "name": "loads",
+      "print_symbol": "loads",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{lock}": {
+      "symbol": "{lock}",
+      "name": "locks",
+      "print_symbol": "locks",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{lock}/s": {
+      "symbol": "{lock}/s",
+      "name": "locks per second",
+      "print_symbol": "locks/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{log2}": {
+      "symbol": "{log2}",
+      "name": "base 2 log",
+      "print_symbol": "",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": false
+    },
+    "{login}": {
+      "symbol": "{login}",
+      "name": "logins",
+      "print_symbol": "logins",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{log}/s": {
+      "symbol": "{log}/s",
+      "name": "logs per second",
+      "print_symbol": "logs/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{lookup}/s": {
+      "symbol": "{lookup}/s",
+      "name": "lookups per second",
+      "print_symbol": "lookups/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{mac address}/s": {
+      "symbol": "{mac address}/s",
+      "name": "mac addresses per second",
+      "print_symbol": "mac addresses/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{marshalling}/s": {
+      "symbol": "{marshalling}/s",
+      "name": "marshallings per second",
+      "print_symbol": "marshallings/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{message}": {
+      "symbol": "{message}",
+      "name": "messages",
+      "print_symbol": "messages",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{message}/s": {
+      "symbol": "{message}/s",
+      "name": "messages per second",
+      "print_symbol": "messages/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{method}": {
+      "symbol": "{method}",
+      "name": "methods",
+      "print_symbol": "methods",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{method}/s": {
+      "symbol": "{method}/s",
+      "name": "methods per second",
+      "print_symbol": "methods/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{migration}": {
+      "symbol": "{migration}",
+      "name": "migrations",
+      "print_symbol": "migrations",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{miss}/s": {
+      "symbol": "{miss}/s",
+      "name": "misses per second",
+      "print_symbol": "misses/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{modification}/s": {
+      "symbol": "{modification}/s",
+      "name": "modifications per second",
+      "print_symbol": "modifications/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{netsplit}": {
+      "symbol": "{netsplit}",
+      "name": "netsplits",
+      "print_symbol": "netsplits",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{netsplit}/s": {
+      "symbol": "{netsplit}/s",
+      "name": "netsplits per second",
+      "print_symbol": "netsplits/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{node}": {
+      "symbol": "{node}",
+      "name": "nodes",
+      "print_symbol": "nodes",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{ntp mode}": {
+      "symbol": "{ntp mode}",
+      "name": "mode",
+      "print_symbol": "",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": false
+    },
+    "{object}": {
+      "symbol": "{object}",
+      "name": "objects",
+      "print_symbol": "objects",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{object}/s": {
+      "symbol": "{object}/s",
+      "name": "objects per second",
+      "print_symbol": "objects/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{observation}": {
+      "symbol": "{observation}",
+      "name": "observations",
+      "print_symbol": "observations",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{observe}/s": {
+      "symbol": "{observe}/s",
+      "name": "observes per second",
+      "print_symbol": "observes/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{octet}": {
+      "symbol": "{octet}",
+      "name": "octets",
+      "print_symbol": "octets",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{open socket}": {
+      "symbol": "{open socket}",
+      "name": "open sockets",
+      "print_symbol": "open sockets",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{operation}": {
+      "symbol": "{operation}",
+      "name": "operations",
+      "print_symbol": "operations",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{operation}/s": {
+      "symbol": "{operation}/s",
+      "name": "operations per second",
+      "print_symbol": "operations/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{overflow}/s": {
+      "symbol": "{overflow}/s",
+      "name": "overflows per second",
+      "print_symbol": "overflows/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{packet}": {
+      "symbol": "{packet}",
+      "name": "packets",
+      "print_symbol": "packets",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{packet}/s": {
+      "symbol": "{packet}/s",
+      "name": "packets per second",
+      "print_symbol": "packets/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{page fault}": {
+      "symbol": "{page fault}",
+      "name": "page faults",
+      "print_symbol": "page faults",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{page fault}/s": {
+      "symbol": "{page fault}/s",
+      "name": "page faults per second",
+      "print_symbol": "page faults/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{page}": {
+      "symbol": "{page}",
+      "name": "pages",
+      "print_symbol": "pages",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{page}/s": {
+      "symbol": "{page}/s",
+      "name": "pages per second",
+      "print_symbol": "pages/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{panic}/s": {
+      "symbol": "{panic}/s",
+      "name": "panics per second",
+      "print_symbol": "panics/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{peer}": {
+      "symbol": "{peer}",
+      "name": "peers",
+      "print_symbol": "peers",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{pipe}": {
+      "symbol": "{pipe}",
+      "name": "pipes",
+      "print_symbol": "pipes",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{pod}": {
+      "symbol": "{pod}",
+      "name": "pods",
+      "print_symbol": "pods",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{pool}": {
+      "symbol": "{pool}",
+      "name": "pools",
+      "print_symbol": "pools",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{prefetch}": {
+      "symbol": "{prefetch}",
+      "name": "prefetches",
+      "print_symbol": "prefetches",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{prefetch}/s": {
+      "symbol": "{prefetch}/s",
+      "name": "prefetches per second",
+      "print_symbol": "prefetches/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{probability}": {
+      "symbol": "{probability}",
+      "name": "probabilities",
+      "print_symbol": "probabilities",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{problem}/s": {
+      "symbol": "{problem}/s",
+      "name": "problems per second",
+      "print_symbol": "problems/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{process}": {
+      "symbol": "{process}",
+      "name": "processes",
+      "print_symbol": "processes",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{process}/s": {
+      "symbol": "{process}/s",
+      "name": "processes per second",
+      "print_symbol": "processes/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{producer}": {
+      "symbol": "{producer}",
+      "name": "producers",
+      "print_symbol": "producers",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{program}": {
+      "symbol": "{program}",
+      "name": "programs",
+      "print_symbol": "programs",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{propertie}/s": {
+      "symbol": "{propertie}/s",
+      "name": "properties per second",
+      "print_symbol": "properties/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{publish}/s": {
+      "symbol": "{publish}/s",
+      "name": "publishes per second",
+      "print_symbol": "publishes/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{pull}": {
+      "symbol": "{pull}",
+      "name": "pulls",
+      "print_symbol": "pulls",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{pull}/s": {
+      "symbol": "{pull}/s",
+      "name": "pulls per second",
+      "print_symbol": "pulls/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{query}": {
+      "symbol": "{query}",
+      "name": "queries",
+      "print_symbol": "queries",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{query}/s": {
+      "symbol": "{query}/s",
+      "name": "queries per second",
+      "print_symbol": "queries/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{question}/s": {
+      "symbol": "{question}/s",
+      "name": "questions per second",
+      "print_symbol": "questions/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{queue processe}": {
+      "symbol": "{queue processe}",
+      "name": "queue processes",
+      "print_symbol": "queue processes",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{queue processe}/s": {
+      "symbol": "{queue processe}/s",
+      "name": "queue processes per second",
+      "print_symbol": "queue processes/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{queue}": {
+      "symbol": "{queue}",
+      "name": "queues",
+      "print_symbol": "queues",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{range}": {
+      "symbol": "{range}",
+      "name": "ranges",
+      "print_symbol": "ranges",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{read}/s": {
+      "symbol": "{read}/s",
+      "name": "reads per second",
+      "print_symbol": "reads/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{read}/{query}": {
+      "symbol": "{read}/{query}",
+      "name": "reads per query",
+      "print_symbol": "reads/query",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{recompile}/s": {
+      "symbol": "{recompile}/s",
+      "name": "recompiles per second",
+      "print_symbol": "recompiles/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{record}/s": {
+      "symbol": "{record}/s",
+      "name": "records per second",
+      "print_symbol": "records/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{redirect}/s": {
+      "symbol": "{redirect}/s",
+      "name": "redirects per second",
+      "print_symbol": "redirects/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{reduction}": {
+      "symbol": "{reduction}",
+      "name": "reductions",
+      "print_symbol": "reductions",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{referral}/s": {
+      "symbol": "{referral}/s",
+      "name": "referrals per second",
+      "print_symbol": "referrals/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{registration}/s": {
+      "symbol": "{registration}/s",
+      "name": "registrations per second",
+      "print_symbol": "registrations/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{rejection}/s": {
+      "symbol": "{rejection}/s",
+      "name": "rejections per second",
+      "print_symbol": "rejections/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{relation}": {
+      "symbol": "{relation}",
+      "name": "relations",
+      "print_symbol": "relations",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{reorg}": {
+      "symbol": "{reorg}",
+      "name": "reorgs",
+      "print_symbol": "reorgs",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{repair}": {
+      "symbol": "{repair}",
+      "name": "repairs",
+      "print_symbol": "repairs",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{replica}": {
+      "symbol": "{replica}",
+      "name": "replicas",
+      "print_symbol": "replicas",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{reply}": {
+      "symbol": "{reply}",
+      "name": "replies",
+      "print_symbol": "replies",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{reply}/s": {
+      "symbol": "{reply}/s",
+      "name": "replies per second",
+      "print_symbol": "replies/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{report}/s": {
+      "symbol": "{report}/s",
+      "name": "reports per second",
+      "print_symbol": "reports/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{request}": {
+      "symbol": "{request}",
+      "name": "requests",
+      "print_symbol": "requests",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{request}/s": {
+      "symbol": "{request}/s",
+      "name": "requests per second",
+      "print_symbol": "requests/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{reset}/s": {
+      "symbol": "{reset}/s",
+      "name": "resets per second",
+      "print_symbol": "resets/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{resolution}/s": {
+      "symbol": "{resolution}/s",
+      "name": "resolutions per second",
+      "print_symbol": "resolutions/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{respawn}": {
+      "symbol": "{respawn}",
+      "name": "respawns",
+      "print_symbol": "respawns",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{response}": {
+      "symbol": "{response}",
+      "name": "responses",
+      "print_symbol": "responses",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{response}/s": {
+      "symbol": "{response}/s",
+      "name": "responses per second",
+      "print_symbol": "responses/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{restart}": {
+      "symbol": "{restart}",
+      "name": "restarts",
+      "print_symbol": "restarts",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{retrieval}/s": {
+      "symbol": "{retrieval}/s",
+      "name": "retrievals per second",
+      "print_symbol": "retrievals/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{retry}": {
+      "symbol": "{retry}",
+      "name": "retries",
+      "print_symbol": "retries",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{retry}/s": {
+      "symbol": "{retry}/s",
+      "name": "retries per second",
+      "print_symbol": "retries/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{reuse}/s": {
+      "symbol": "{reuse}/s",
+      "name": "reuses per second",
+      "print_symbol": "reuses/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{rotation}/min": {
+      "symbol": "{rotation}/min",
+      "name": "rotations per minute",
+      "print_symbol": "rotations/min",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{row}": {
+      "symbol": "{row}",
+      "name": "rows",
+      "print_symbol": "rows",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{row}/s": {
+      "symbol": "{row}/s",
+      "name": "rows per second",
+      "print_symbol": "rows/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{rule}": {
+      "symbol": "{rule}",
+      "name": "rules",
+      "print_symbol": "rules",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{sample}": {
+      "symbol": "{sample}",
+      "name": "samples",
+      "print_symbol": "samples",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{scan}/s": {
+      "symbol": "{scan}/s",
+      "name": "scans per second",
+      "print_symbol": "scans/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{score}": {
+      "symbol": "{score}",
+      "name": "scores",
+      "print_symbol": "scores",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{search}/s": {
+      "symbol": "{search}/s",
+      "name": "searches per second",
+      "print_symbol": "searches/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{sector}": {
+      "symbol": "{sector}",
+      "name": "sectors",
+      "print_symbol": "sectors",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{sector}/s": {
+      "symbol": "{sector}/s",
+      "name": "sectors per second",
+      "print_symbol": "sectors/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{segment}": {
+      "symbol": "{segment}",
+      "name": "segments",
+      "print_symbol": "segments",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{segment}/s": {
+      "symbol": "{segment}/s",
+      "name": "segments per second",
+      "print_symbol": "segments/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{semaphore}": {
+      "symbol": "{semaphore}",
+      "name": "semaphores",
+      "print_symbol": "semaphores",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{sensor}": {
+      "symbol": "{sensor}",
+      "name": "sensors",
+      "print_symbol": "sensors",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{server}": {
+      "symbol": "{server}",
+      "name": "servers",
+      "print_symbol": "servers",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{session}": {
+      "symbol": "{session}",
+      "name": "sessions",
+      "print_symbol": "sessions",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{session}/s": {
+      "symbol": "{session}/s",
+      "name": "sessions per second",
+      "print_symbol": "sessions/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{shard}": {
+      "symbol": "{shard}",
+      "name": "shards",
+      "print_symbol": "shards",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{share}": {
+      "symbol": "{share}",
+      "name": "shares",
+      "print_symbol": "shares",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{shutdown}": {
+      "symbol": "{shutdown}",
+      "name": "shutdowns",
+      "print_symbol": "shutdowns",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{sibling}": {
+      "symbol": "{sibling}",
+      "name": "siblings",
+      "print_symbol": "siblings",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{socket}": {
+      "symbol": "{socket}",
+      "name": "sockets",
+      "print_symbol": "sockets",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{socket}/s": {
+      "symbol": "{socket}/s",
+      "name": "sockets per second",
+      "print_symbol": "sockets/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{softirq}/s": {
+      "symbol": "{softirq}/s",
+      "name": "softirqs per second",
+      "print_symbol": "softirqs/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{source}": {
+      "symbol": "{source}",
+      "name": "sources",
+      "print_symbol": "sources",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{split}/s": {
+      "symbol": "{split}/s",
+      "name": "splits per second",
+      "print_symbol": "splits/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{sstable}": {
+      "symbol": "{sstable}",
+      "name": "sstables",
+      "print_symbol": "sstables",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{stack_frame}/s": {
+      "symbol": "{stack_frame}/s",
+      "name": "stack_frames per second",
+      "print_symbol": "stack_frames/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{star}": {
+      "symbol": "{star}",
+      "name": "stars",
+      "print_symbol": "stars",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{statement}": {
+      "symbol": "{statement}",
+      "name": "statements",
+      "print_symbol": "statements",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{statement}/s": {
+      "symbol": "{statement}/s",
+      "name": "statements per second",
+      "print_symbol": "statements/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{status}": {
+      "symbol": "{status}",
+      "name": "status",
+      "print_symbol": "",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{stat}": {
+      "symbol": "{stat}",
+      "name": "stats",
+      "print_symbol": "stats",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{stratum}": {
+      "symbol": "{stratum}",
+      "name": "stratum",
+      "print_symbol": "",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": false
+    },
+    "{stub}/s": {
+      "symbol": "{stub}/s",
+      "name": "stubs per second",
+      "print_symbol": "stubs/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{subscription}": {
+      "symbol": "{subscription}",
+      "name": "subscriptions",
+      "print_symbol": "subscriptions",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{subscription}/s": {
+      "symbol": "{subscription}/s",
+      "name": "subscriptions per second",
+      "print_symbol": "subscriptions/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{switch}": {
+      "symbol": "{switch}",
+      "name": "switches",
+      "print_symbol": "switches",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{sync}": {
+      "symbol": "{sync}",
+      "name": "syncs",
+      "print_symbol": "syncs",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{syscall}/s": {
+      "symbol": "{syscall}/s",
+      "name": "syscalls per second",
+      "print_symbol": "syscalls/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{table}": {
+      "symbol": "{table}",
+      "name": "tables",
+      "print_symbol": "tables",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{table}/s": {
+      "symbol": "{table}/s",
+      "name": "tables per second",
+      "print_symbol": "tables/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{task}": {
+      "symbol": "{task}",
+      "name": "tasks",
+      "print_symbol": "tasks",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{task}/s": {
+      "symbol": "{task}/s",
+      "name": "tasks per second",
+      "print_symbol": "tasks/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{thread}": {
+      "symbol": "{thread}",
+      "name": "threads",
+      "print_symbol": "threads",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{thread}/s": {
+      "symbol": "{thread}/s",
+      "name": "threads per second",
+      "print_symbol": "threads/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{tick}": {
+      "symbol": "{tick}",
+      "name": "ticks",
+      "print_symbol": "ticks",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{timeout}/s": {
+      "symbol": "{timeout}/s",
+      "name": "timeouts per second",
+      "print_symbol": "timeouts/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{token}": {
+      "symbol": "{token}",
+      "name": "tokens",
+      "print_symbol": "tokens",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{trace}/s": {
+      "symbol": "{trace}/s",
+      "name": "traces per second",
+      "print_symbol": "traces/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{transaction}": {
+      "symbol": "{transaction}",
+      "name": "transactions",
+      "print_symbol": "transactions",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{transaction}/s": {
+      "symbol": "{transaction}/s",
+      "name": "transactions per second",
+      "print_symbol": "transactions/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{transition}/s": {
+      "symbol": "{transition}/s",
+      "name": "transitions per second",
+      "print_symbol": "transitions/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{trip}/s": {
+      "symbol": "{trip}/s",
+      "name": "trips per second",
+      "print_symbol": "trips/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{tube}": {
+      "symbol": "{tube}",
+      "name": "tubes",
+      "print_symbol": "tubes",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{unsynchronized block}": {
+      "symbol": "{unsynchronized block}",
+      "name": "unsynchronized blocks",
+      "print_symbol": "unsynchronized blocks",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{update}/s": {
+      "symbol": "{update}/s",
+      "name": "updates per second",
+      "print_symbol": "updates/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{user}": {
+      "symbol": "{user}",
+      "name": "users",
+      "print_symbol": "users",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{view}": {
+      "symbol": "{view}",
+      "name": "views",
+      "print_symbol": "views",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{vm}": {
+      "symbol": "{vm}",
+      "name": "vms",
+      "print_symbol": "vms",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{volume}": {
+      "symbol": "{volume}",
+      "name": "volumes",
+      "print_symbol": "volumes",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{waiter}/s": {
+      "symbol": "{waiter}/s",
+      "name": "waiters per second",
+      "print_symbol": "waiters/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{watch}": {
+      "symbol": "{watch}",
+      "name": "watches",
+      "print_symbol": "watches",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{worker}": {
+      "symbol": "{worker}",
+      "name": "workers",
+      "print_symbol": "workers",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{worker}/s": {
+      "symbol": "{worker}/s",
+      "name": "workers per second",
+      "print_symbol": "workers/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{writeset}": {
+      "symbol": "{writeset}",
+      "name": "writesets",
+      "print_symbol": "writesets",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{writeset}/s": {
+      "symbol": "{writeset}/s",
+      "name": "writesets per second",
+      "print_symbol": "writesets/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{write}": {
+      "symbol": "{write}",
+      "name": "writes",
+      "print_symbol": "writes",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{write}/s": {
+      "symbol": "{write}/s",
+      "name": "writes per second",
+      "print_symbol": "writes/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{xid}": {
+      "symbol": "{xid}",
+      "name": "transaction ID",
+      "print_symbol": "",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": false
+    },
+    "{zone}": {
+      "symbol": "{zone}",
+      "name": "zones",
+      "print_symbol": "zones",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": true
+    },
+    "{z}": {
+      "symbol": "{z}",
+      "name": "z-score",
+      "print_symbol": "",
+      "is_metric": false,
+      "is_special": false,
+      "is_additive": false
+    }
+  },
+  "aliases": {
+    "% of time working": "%",
+    "Ah": "A.h",
+    "Ampere": "A",
+    "Amps": "A",
+    "B": "By",
+    "B/s": "By/s",
+    "Celsius": "Cel",
+    "Fahrenheit": "[degF]",
+    "GiB": "GiBy",
+    "Jobs": "{job}",
+    "Joule": "J",
+    "KB": "KiBy",
+    "KiB": "KiBy",
+    "KiB/operation": "KiBy/{operation}",
+    "KiB/s": "KiBy/s",
+    "MB": "MiBy",
+    "Mbps": "Mibit/s",
+    "MiB": "MiBy",
+    "MiB/s": "MiBy/s",
+    "Minutes": "min",
+    "Percent": "%",
+    "RPM": "{rotation}/min",
+    "Rotations / Minute": "{rotation}/min",
+    "Rotations/min": "{rotation}/min",
+    "Status": "{status}",
+    "Volts": "V",
+    "Watt": "W",
+    "Watts": "W",
+    "Wh": "W.h",
+    "acquisitions/s": "{acquisition}/s",
+    "actions/s": "{action}/s",
+    "active connections": "{connection}",
+    "address spaces": "{address space}",
+    "answers/s": "{answer}/s",
+    "arrays": "{array}",
+    "assemblies/s": "{assembly}/s",
+    "asserts/s": "{assert}/s",
+    "associations": "{association}",
+    "attempts": "{attempt}",
+    "attempts/s": "{attempt}/s",
+    "authentications/s": "{authentication}/s",
+    "bans/s": "{ban}/s",
+    "binds/s": "{bind}/s",
+    "block": "{block}",
+    "blocked subscriptions": "{blocked subscription}",
+    "blocks": "{block}",
+    "bool": "{boolean}",
+    "boolean": "{boolean}",
+    "buffers": "{buffer}",
+    "bytes": "By",
+    "bytes/s": "By/s",
+    "calls": "{call}",
+    "calls/s": "{call}/s",
+    "ccw/s": "{ccw}/s",
+    "celsius": "Cel",
+    "chains": "{chain}",
+    "changes/s": "{change}/s",
+    "channels/s": "{channel}/s",
+    "characters": "{character}",
+    "checkpoints/s": "{checkpoint}/s",
+    "checks / sec": "{check}/s",
+    "checks/s": "{check}/s",
+    "children": "{child}",
+    "chunks": "{chunk}",
+    "classes": "{class}",
+    "classes/s": "{class}/s",
+    "clients": "{client}",
+    "clusters": "{cluster}",
+    "clusters/s": "{cluster}/s",
+    "code": "{code}",
+    "collections": "{collection}",
+    "columns": "{column}",
+    "commands": "{command}",
+    "commands/s": "{command}/s",
+    "commits": "{commit}",
+    "commits/s": "{commit}/s",
+    "compilations/s": "{compilation}/s",
+    "components": "{component}",
+    "connections": "{connection}",
+    "connections/s": "{connection}/s",
+    "conns": "{connection}",
+    "consumers": "{consumer}",
+    "containers": "{container}",
+    "contentions/s": "{contention}/s",
+    "context switches/s": "{context switch}/s",
+    "contexts": "{context}",
+    "cookies/s": "{cookie}/s",
+    "count": "1",
+    "counts/s": "{count}/s",
+    "cpu time": "1",
+    "cpus": "[CPU]",
+    "ctokens": "{ctoken}",
+    "current threads": "{thread}",
+    "cursors": "{cursor}",
+    "cursors/s": "{cursor}/s",
+    "cycle count": "{cycle}",
+    "cycles": "{cycle}",
+    "cycles/s": "{cycle}/s",
+    "dBm": "dB[mW]",
+    "databases": "{database}",
+    "deadlocks/s": "{deadlock}/s",
+    "depth": "{depth}",
+    "descriptors": "{descriptor}",
+    "dests": "{destination}",
+    "devices": "{device}",
+    "dialogs": "{dialog}",
+    "dialogs/s": "{dialog}/s",
+    "difference": "{process}",
+    "difficulty": "{difficulty}",
+    "directories": "{directory}",
+    "discards/s": "{discard}/s",
+    "disks": "{disk}",
+    "dispatches/s": "{dispatch}/s",
+    "docs": "{doc}",
+    "documents": "{document}",
+    "documents/s": "{document}/s",
+    "domain/s": "{domain}/s",
+    "domains": "{domain}",
+    "dpcs/s": "{dpc}/s",
+    "drops/s": "{drop}/s",
+    "elections/s": "{election}/s",
+    "elements": "{element}",
+    "emails": "{email}",
+    "endpoints": "{endpoint}",
+    "entries": "{entry}",
+    "entries/s": "{entry}/s",
+    "entropy": "{entropy}",
+    "erases": "{erase}",
+    "errors": "{error}",
+    "errors/s": "{error}/s",
+    "events": "{event}",
+    "events/s": "{event}/s",
+    "exceptions": "{exception}",
+    "exceptions/s": "{exception}/s",
+    "exit status": "{status}",
+    "expectations/s": "{expectation}/s",
+    "expired/s": "{object}/s",
+    "failed disks": "{disk}",
+    "failed servers": "{server}",
+    "fails/s": "{fail}/s",
+    "failures": "{failure}",
+    "failures/s": "{failure}/s",
+    "faults": "{fault}",
+    "faults/s": "{page fault}/s",
+    "fd": "{fd}",
+    "fetches": "{fetch}",
+    "file descriptors": "{file descriptor}",
+    "files": "{file}",
+    "files/s": "{file}/s",
+    "filesystems": "{filesystem}",
+    "filters/s": "{filter}/s",
+    "finallys/s": "{finally}/s",
+    "flag": "{flag}",
+    "flows": "{flow}",
+    "flushes": "{flush}",
+    "flushes/s": "{flush}/s",
+    "fragments": "{fragment}",
+    "frames/s": "{frame}/s",
+    "fsms": "{fsm}",
+    "gc/s": "{gc}/s",
+    "goroutines": "{goroutine}",
+    "handlers/s": "{handler}/s",
+    "handles": "{handle}",
+    "handles/s": "{handle}/s",
+    "handshakes/s": "{handshake}/s",
+    "harakiris": "{harakiri}",
+    "hash tables": "{hash table}",
+    "health servers": "{server}",
+    "heartbeats": "{heartbeat}",
+    "hits/s": "{hit}/s",
+    "hmode": "{ntp mode}",
+    "hosts": "{host}",
+    "hours": "h",
+    "images": "{image}",
+    "index": "{index}",
+    "indexes": "{index}",
+    "indexes/s": "{index}/s",
+    "indices": "{indice}",
+    "inodes": "{inode}",
+    "instructions/cycle": "{instruction}/{cycle}",
+    "instructions/s": "{instruction}/s",
+    "interfaces": "{interface}",
+    "interrupts": "{interrupt}",
+    "interrupts/s": "{interrupt}/s",
+    "invokes": "{invoke}",
+    "iops": "{iop}",
+    "iops/s": "{iop}/s",
+    "ips": "{ip}",
+    "is degraded": "{boolean}",
+    "issues/s": "{issue}/s",
+    "items": "{item}",
+    "jobs": "{job}",
+    "jobs/s": "{job}/s",
+    "joins/s": "{join}/s",
+    "keys": "{key}",
+    "keys/s": "{key}/s",
+    "kills": "{kill}",
+    "kills/s": "{kill}/s",
+    "kilobit/s": "Kibit/s",
+    "kilobits": "Kibit",
+    "kilobits/s": "Kibit/s",
+    "kilobytes": "KiBy",
+    "kilobytes/s": "KiBy/s",
+    "leaseholders": "{leaseholder}",
+    "leases": "{lease}",
+    "level": "{stratum}",
+    "listeners": "{listener}",
+    "listeners/s": "{listener}/s",
+    "lists/s": "{list}/s",
+    "load": "{load}",
+    "locks": "{lock}",
+    "locks/s": "{lock}/s",
+    "log2": "{log2}",
+    "logs/s": "{log}/s",
+    "lookups/s": "{lookup}/s",
+    "mac addresses/s": "{mac address}/s",
+    "marshallings/s": "{marshalling}/s",
+    "merged operations/s": "{operation}/s",
+    "message batches": "{batch}",
+    "message batches/s": "{batch}/s",
+    "messages": "{message}",
+    "messages/s": "{message}/s",
+    "methods": "{method}",
+    "methods/s": "{method}/s",
+    "microseconds": "us",
+    "microseconds lost/s": "us/s",
+    "microseconds/s": "us/s",
+    "migrations": "{migration}",
+    "milisecondds": "ms",
+    "miliseconds": "ms",
+    "millicpu": "m[CPU]",
+    "milliseconds": "ms",
+    "milliseconds/operation": "ms/{operation}",
+    "milliseconds/s": "ms/s",
+    "misses": "{thread}",
+    "misses/s": "{miss}/s",
+    "modifications/s": "{modification}/s",
+    "netsplits": "{netsplit}",
+    "netsplits/s": "{netsplit}/s",
+    "nodes": "{node}",
+    "nuked/s": "{object}/s",
+    "num": "1",
+    "number": "{thread}",
+    "number/s": "{lookup}/s",
+    "objects": "{object}",
+    "objects/s": "{object}/s",
+    "observations": "{observation}",
+    "observes/s": "{observe}/s",
+    "octets": "{octet}",
+    "open files": "{file}",
+    "open pipes": "{pipe}",
+    "open sockets": "{open socket}",
+    "operations": "{operation}",
+    "operations/s": "{operation}/s",
+    "ops/s": "{operation}/s",
+    "overflows/s": "{overflow}/s",
+    "packets": "{packet}",
+    "packets/s": "{packet}/s",
+    "page faults/s": "{page fault}/s",
+    "page/s": "{page}/s",
+    "pages": "{page}",
+    "pages/s": "{page}/s",
+    "panics/s": "{panic}/s",
+    "peers": "{peer}",
+    "percent": "%",
+    "percentage": "c[CPU]",
+    "pgfaults/s": "{page fault}/s",
+    "pipes": "{pipe}",
+    "pmode": "{ntp mode}",
+    "pods": "{pod}",
+    "pools": "{pool}",
+    "ppm": "[ppm]",
+    "pps": "{packet}/s",
+    "prefetches": "{prefetch}",
+    "prefetches/s": "{prefetch}/s",
+    "probability": "{probability}",
+    "problems/s": "{problem}/s",
+    "processes": "{process}",
+    "processes/s": "{process}/s",
+    "producers": "{producer}",
+    "programs": "{program}",
+    "properties/s": "{propertie}/s",
+    "publishes/s": "{publish}/s",
+    "pulls": "{pull}",
+    "pulls/s": "{pull}/s",
+    "queries": "{query}",
+    "queries/s": "{query}/s",
+    "questions/s": "{question}/s",
+    "queue processes": "{queue processe}",
+    "queue processes/s": "{queue processe}/s",
+    "queue_length": "1",
+    "queued_size": "1",
+    "queues": "{queue}",
+    "ranges": "{range}",
+    "ratio": "1",
+    "reads/query": "{read}/{query}",
+    "reads/s": "{read}/s",
+    "recompiles/s": "{recompile}/s",
+    "records/s": "{record}/s",
+    "redirects/s": "{redirect}/s",
+    "reductions": "{reduction}",
+    "referrals/s": "{referral}/s",
+    "registrations/s": "{registration}/s",
+    "rejections/s": "{rejection}/s",
+    "relations": "{relation}",
+    "reorgs": "{reorg}",
+    "repairs": "{repair}",
+    "replicas": "{replica}",
+    "replies": "{reply}",
+    "replies/s": "{reply}/s",
+    "reports/s": "{report}/s",
+    "requests": "{request}",
+    "requests/s": "{request}/s",
+    "resets/s": "{reset}/s",
+    "resolutions/s": "{resolution}/s",
+    "respawns": "{respawn}",
+    "responses": "{response}",
+    "responses/s": "{response}/s",
+    "restarts": "{restart}",
+    "retries": "{retry}",
+    "retries/s": "{retry}/s",
+    "retrievals/s": "{retrieval}/s",
+    "reuses/s": "{reuse}/s",
+    "rows": "{row}",
+    "rows/s": "{row}/s",
+    "rules": "{rule}",
+    "running_containers": "{container}",
+    "running_pods": "{pod}",
+    "samples": "{sample}",
+    "scans/s": "{scan}/s",
+    "score": "{score}",
+    "searches/s": "{search}/s",
+    "seconds": "s",
+    "seconds/s": "s/s",
+    "sectors": "{sector}",
+    "sectors/s": "{sector}/s",
+    "segments": "{segment}",
+    "segments/s": "{segment}/s",
+    "semaphores": "{semaphore}",
+    "sensors": "{sensor}",
+    "servers": "{server}",
+    "sessions": "{session}",
+    "sessions/s": "{session}/s",
+    "shards": "{shard}",
+    "shares": "{share}",
+    "shutdowns": "{shutdown}",
+    "siblings": "{sibling}",
+    "size": "By",
+    "sockets": "{socket}",
+    "sockets/s": "{socket}/s",
+    "softirqs/s": "{softirq}/s",
+    "sources": "{source}",
+    "splits/s": "{split}/s",
+    "sstables": "{sstable}",
+    "stack_frames/s": "{stack_frame}/s",
+    "stars": "{star}",
+    "state": "{status}",
+    "statements": "{statement}",
+    "statements/s": "{statement}/s",
+    "stats": "{stat}",
+    "status": "{status}",
+    "stratum": "{stratum}",
+    "stubs/s": "{stub}/s",
+    "subscriptions": "{subscription}",
+    "subscriptions/s": "{subscription}/s",
+    "switches": "{switch}",
+    "syncs": "{sync}",
+    "syscalls/s": "{syscall}/s",
+    "tables": "{table}",
+    "tables/s": "{table}/s",
+    "tasks": "{task}",
+    "tasks/s": "{task}/s",
+    "temperature": "Cel",
+    "threads": "{thread}",
+    "threads/s": "{thread}/s",
+    "ticks": "{tick}",
+    "timeout/s": "{timeout}/s",
+    "timeouts/s": "{timeout}/s",
+    "token_requests/s": "{request}/s",
+    "tokens": "{token}",
+    "total": "1",
+    "traces / sec": "{trace}/s",
+    "transactions": "{transaction}",
+    "transactions/s": "{transaction}/s",
+    "transitions/s": "{transition}/s",
+    "trips/s": "{trip}/s",
+    "tubes": "{tube}",
+    "unsynchronized blocks": "{unsynchronized block}",
+    "updates/s": "{update}/s",
+    "users": "{user}",
+    "value": "1",
+    "views": "{view}",
+    "vms": "{vm}",
+    "volumes": "{volume}",
+    "waiters/s": "{waiter}/s",
+    "watches": "{watch}",
+    "weight": "1",
+    "workers": "{worker}",
+    "workers/s": "{worker}/s",
+    "writes": "{write}",
+    "writes/s": "{write}/s",
+    "writesets": "{writeset}",
+    "writesets/s": "{writeset}/s",
+    "xid": "{xid}",
+    "z": "{z}",
+    "zones": "{zone}"
+  }
+}
