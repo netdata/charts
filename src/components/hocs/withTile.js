@@ -23,7 +23,7 @@ const Label = styled(Text)`
 `
 
 const ChartHeadWrapper = styled(Flex).attrs(({ size, ...rest }) => ({
-  background: "elementBackground",
+  background: "panelBg",
   round: true,
   fontSize: parseInt(size / 3, 10),
   height: "100%",
@@ -50,6 +50,7 @@ export const Title = () => {
       width="80%"
       onClick={onClick}
       cursor="pointer"
+      padding={[2, 0, 0]}
     >
       {title}
     </Label>
@@ -94,7 +95,7 @@ export const HeadWrapper = ({ children, uiName, ...rest }) => {
         column
         alignItems="center"
         justifyContent="center"
-        padding={[1, 0, 0]}
+        padding={[1, 0, 2]}
         height="100%"
         width="100%"
         position="relative"

@@ -5,8 +5,8 @@ const Container = styled(Flex).attrs(props => ({
   "data-testid": "chart",
   column: true,
   position: "relative",
-  border: { color: "borderSecondary", side: "all" },
   round: true,
+  background: "panelBg",
   ...props,
 }))`
   ::selection {
