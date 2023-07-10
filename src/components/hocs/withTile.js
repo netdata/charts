@@ -79,7 +79,7 @@ export const HeadWrapper = ({ children, uiName, ...rest }) => {
 
   return (
     <ChartHeadWrapper size={size} {...rest} ref={hoverRef}>
-      <Flex column width="16px" padding={[1, 0]}>
+      <Flex column width="24px" padding={[2, 1]}>
         <Status plain />
         <Collapsible open={focused} column>
           <FilterToolbox
@@ -104,7 +104,7 @@ export const HeadWrapper = ({ children, uiName, ...rest }) => {
         <Title />
         {children}
       </Flex>
-      <Flex column width="16px" alignItems="center" padding={[4, 1]} gap={2}>
+      <Flex column width="24px" alignItems="center" padding={[4, 1]} gap={2}>
         {firstDim === "selected" && (
           <>
             <Flex
