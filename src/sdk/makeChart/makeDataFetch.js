@@ -158,7 +158,14 @@ export default chart => {
       )
 
     abortController = new AbortController()
-    const options = { signal: abortController.signal }
+    const options = {
+      signal: abortController.signal,
+      ...(chart.getAttribute("bearer") && {
+        headers: {
+          Authorization: "Bearer " + chart.getAttribute("bearer"),
+        },
+      }),
+    }
 
     return chart
       .getChart(chart, options)

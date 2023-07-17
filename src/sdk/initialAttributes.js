@@ -234,4 +234,6 @@ export default {
       other: "instances",
     },
   },
+
+  bearer: null,
 }

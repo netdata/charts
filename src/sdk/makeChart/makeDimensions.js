@@ -150,8 +150,6 @@ export default (chart, sdk) => {
     const groupedByDimension =
       chart.getAttribute("groupBy").length === 1 && chart.getAttribute("groupBy")[0] === "dimension"
 
-    if (!groupedByDimension) chart.setAttribute("heatmapType", null)
-
     let prefix = null
 
     dimensionsById = dimensionIds.reduce((acc, id, index) => {
@@ -172,6 +170,10 @@ export default (chart, sdk) => {
 
       return acc
     }, {})
+
+    if (!groupedByDimension) chart.setAttribute("heatmapType", null)
+    else if (/latency/.test(chart.getAttribute("context")))
+      chart.setAttribute("heatmapType", heatmapTypes.default)
 
     chart.sortDimensions()
     chart.updateColors()
