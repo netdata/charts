@@ -49,4 +49,5 @@ export const useGetColor = (opacity = 1) => {
   return useMemo(() => makeGetColor(chart, opacity), [opacity])
 }
 
-export const withoutPrefix = label => label.replace(/.+_(\d+?\.?(\d+)?|\+[Ii]nf)$/, "$1")
+export const withoutPrefix = label =>
+  label ? label.replace(/.+_(\d+?\.?(\d+)?|\+[Ii]nf)$/, "$1") : label
