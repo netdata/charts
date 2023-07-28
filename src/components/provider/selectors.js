@@ -343,7 +343,7 @@ const getValueByPeriod = {
 export const useValue = (
   id,
   period = "latest",
-  { valueKey = "value", objKey = "viewDimensions", abs, unitsKey = "units" } = {}
+  { valueKey = "value", objKey = "viewDimensions", abs, unitsKey = "units", allowNull } = {}
 ) => {
   const chart = useChart()
 
@@ -351,7 +351,14 @@ export const useValue = (
 
   useLayoutEffect(() => {
     const getValue = () =>
-      (getValueByPeriod[period] || getValueByPeriod.latest)({ chart, id, valueKey, objKey, abs })
+      (getValueByPeriod[period] || getValueByPeriod.latest)({
+        chart,
+        id,
+        valueKey,
+        objKey,
+        abs,
+        allowNull,
+      })
 
     setState(getValue())
 
@@ -374,4 +381,5 @@ export const useConvertedValue = (id, period = "latest", options = {}) => {
   return useConverted(value, options)
 }
 
-export const useLatestConvertedValue = (id, options) => useConvertedValue(id, "latest", options)
+export const useLatestConvertedValue = (id, options = {}) =>
+  useConvertedValue(id, "latest", { allowNull: true, ...options })

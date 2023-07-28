@@ -237,13 +237,13 @@ export default (chart, sdk) => {
   chart.getRowDimensionValue = (
     id,
     pointData,
-    { valueKey = "value", abs = true, incrementable = true } = {}
+    { valueKey = "value", abs = true, incrementable = true, allowNull = false } = {}
   ) => {
     let value = pointData?.[dimensionsById[id] + 1]
     if (typeof value === "undefined") return null
 
     value = value !== null && typeof value === "object" ? value[valueKey] : value
-    value = abs ? Math.abs(value) : value
+    value = allowNull && value === null ? value : abs ? Math.abs(value) : value
 
     if (incrementable && isIncremental(chart)) {
       const index = chart.getVisibleDimensionIndexesById()[id]
@@ -255,6 +255,7 @@ export default (chart, sdk) => {
           valueKey,
           abs,
           incrementable: false,
+          allowNull,
         }) || 0)
     }
 

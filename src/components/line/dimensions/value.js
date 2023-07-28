@@ -8,7 +8,7 @@ export const Value = forwardRef((props, ref) => (
 
 const ValueComponent = forwardRef(
   ({ id, visible, valueKey, period = "latest", objKey, Component = Value, ...rest }, ref) => {
-    const value = useConvertedValue(id, period, { valueKey, objKey })
+    const value = useConvertedValue(id, period, { valueKey, objKey, allowNull: true })
 
     if (!visible) return null
 
