@@ -1,6 +1,10 @@
 import conversableUnits, { makeConversableKey } from "@/sdk/unitConversion/conversableUnits"
 import scalableUnits from "@/sdk/unitConversion/scalableUnits"
 import convert from "@/sdk/unitConversion"
+import unitsJson from "@/units.json"
+
+const isAdditive = u =>
+  typeof unitsJson.units[u] !== "undefined" ? unitsJson.units[u].is_additive : true
 
 const scalable = (units, min, max, desiredUnits) => {
   const scales = scalableUnits[units]
@@ -48,10 +52,7 @@ const getMethod = (chart, units, min, max) => {
 
   if (scalableUnits[units]) return scalable(units, min, max, desiredUnits)
 
-  if (units === "percentage" || units === "percent" || units === "pcent" || /%/.test(units || ""))
-    return ["original"]
-
-  return scalable("num", min, max, units)
+  return isAdditive(units) ? scalable("num", min, max, units) : ["original"]
 }
 
 const decimals = [1000, 100, 10, 1, 0.1, 0.01, 0.001]

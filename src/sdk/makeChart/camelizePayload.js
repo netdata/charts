@@ -1,4 +1,8 @@
 import { heatmapOrChartType } from "@/helpers/heatmap"
+import unitsJson from "@/units.json"
+
+const getAlias = u =>
+  unitsJson.aliases[u] || unitsJson.units[u] ? u : unitsJson.units[`{${u}}`] ? `{${u}}` : u
 
 const transformDataRow = (row, point) =>
   row.reduce(
@@ -134,7 +138,7 @@ export default payload => {
     viewUpdateEvery,
     firstEntry,
     lastEntry,
-    units,
+    units: getAlias(units),
     chartType: heatmapOrChartType(viewDimensions.ids, chartType),
     title,
     tiers,
@@ -154,7 +158,7 @@ export default payload => {
     }, {}),
     viewDimensions,
     dbDimensions,
-    dbUnits,
+    dbUnits: getAlias(dbUnits),
     details,
     functions,
     contextsTotals,

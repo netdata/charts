@@ -55,6 +55,7 @@ export const labelColumn = fallbackExpandKey => ({
             }}
             iconRotate={row.getIsExpanded() ? 2 : null}
             textProps={{ fontSize: "10px", color: "textLite" }}
+            alignItems="center"
           />
         )}
       </Flex>

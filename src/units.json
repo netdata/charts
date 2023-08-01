@@ -32,6 +32,22 @@
       "is_special": false,
       "is_additive": true
     },
+    "Bit": {
+      "symbol": "Bit",
+      "name": "Bit",
+      "print_symbol": "Bit",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "Bit/s": {
+      "symbol": "Bit/s",
+      "name": "Bit per second",
+      "print_symbol": "Bit/s",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
     "By": {
       "symbol": "By",
       "name": "byte",
@@ -60,6 +76,14 @@
       "symbol": "GiBy",
       "name": "gibibyte",
       "print_symbol": "GiB",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "GiBy/s": {
+      "symbol": "GiBy/s",
+      "name": "gibibyte per second",
+      "print_symbol": "GiB/s",
       "is_metric": true,
       "is_special": false,
       "is_additive": true
@@ -124,6 +148,14 @@
       "symbol": "MHz",
       "name": "megahertz",
       "print_symbol": "MHz",
+      "is_metric": true,
+      "is_special": false,
+      "is_additive": true
+    },
+    "GHz": {
+      "symbol": "GHz",
+      "name": "gigahertz",
+      "print_symbol": "GHz",
       "is_metric": true,
       "is_special": false,
       "is_additive": true
@@ -2813,9 +2845,10 @@
     "Mbps": "Mibit/s",
     "MiB": "MiBy",
     "MiB/s": "MiBy/s",
-    "Minutes": "min",
-    "Percent": "%",
+    "minutes": "min",
+    "percent": "%",
     "RPM": "{rotation}/min",
+    "rpm": "{rotation}/min",
     "Rotations / Minute": "{rotation}/min",
     "Rotations/min": "{rotation}/min",
     "Status": "{status}",
@@ -3058,7 +3091,6 @@
     "pages/s": "{page}/s",
     "panics/s": "{panic}/s",
     "peers": "{peer}",
-    "percent": "%",
     "percentage": "c[CPU]",
     "pgfaults/s": "{page fault}/s",
     "pipes": "{pipe}",
