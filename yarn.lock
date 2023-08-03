@@ -3512,10 +3512,10 @@
     pump "^3.0.0"
     tar-fs "^2.1.1"
 
-"@netdata/netdata-ui@^2.19.0":
-  version "2.19.0"
-  resolved "https://registry.yarnpkg.com/@netdata/netdata-ui/-/netdata-ui-2.19.0.tgz#12045f4c7de749104a2db73f320c95ba6208c473"
-  integrity sha512-Mby2v5MrS0xqBl/P6ToNCGRGDUqGRjbGMcWG49YWQdXJgvLGKAvnY4al2L7CSuJNMvYRwezVM92ZLhbx6a1+8A==
+"@netdata/netdata-ui@^2.19.2":
+  version "2.19.2"
+  resolved "https://registry.yarnpkg.com/@netdata/netdata-ui/-/netdata-ui-2.19.2.tgz#c5aa2a72f23b0373fc17de5801143bc67692345e"
+  integrity sha512-ppZw2MTBm5+xasQRC3ArKpualQ3rINKNQ63/ZYTxccrvPPJ7WOZHwE7f8x1FYDwmiBN7l1Ze7ZNq29i8GDQomg==
   dependencies:
     "@elastic/react-search-ui" "^1.20.2"
     "@elastic/search-ui-site-search-connector" "^1.20.2"
@@ -13623,10 +13623,10 @@ prettier@^2.8.0:
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.8.8.tgz#e8c5d7e98a4305ffe3de2e1fc4aca1a71c28b1da"
   integrity sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==
 
-prettier@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.0.0.tgz#e7b19f691245a21d618c68bc54dc06122f6105ae"
-  integrity sha512-zBf5eHpwHOGPC47h0zrPyNn+eAEIdEzfywMoYn2XPi0P44Zp0tSq64rq0xAREh4auw2cJZHo9QUob+NqCQky4g==
+prettier@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.0.1.tgz#65271fc9320ce4913c57747a70ce635b30beaa40"
+  integrity sha512-fcOWSnnpCrovBsmFZIGIy9UqK2FaI7Hqax+DIO0A9UxeVoY4iweyaFjS5TavZN97Hfehph0nhsZnjlVKzEQSrQ==
 
 pretty-error@^4.0.0:
   version "4.0.0"
@@ -16454,6 +16454,11 @@ utils-merge@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/utils-merge/-/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
   integrity sha1-n5VxD1CiZ5R7LMwSR0HBAoQn5xM=
+
+uuid@^9.0.0:
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.0.tgz#592f550650024a38ceb0c562f2f6aa435761efb5"
+  integrity sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==
 
 v8-to-istanbul@^9.0.1:
   version "9.0.1"
