@@ -120,7 +120,7 @@ export default {
   eliminateZeroDimensions: true,
   fullscreen: false,
   overlays: {},
-  themeGridColor: ["#F7F8F8", "#282827"],
+  themeGridColor: ["#E4E8E8", "#212727"],
   themeCrosshair: ["#536775", "#536775"],
   showingInfo: false,
   colors: [],
@@ -155,22 +155,22 @@ export default {
 
   pristine: {},
 
-  themeTrackColor: ["#ECEEEF", "#383B40"],
+  themeTrackColor: ["#DBE1E1", "#353F3F"],
   themeScaleColor: ["#F7F8F8", "#2B3136"],
 
-  themeEasyPieTrackColor: ["#ECEEEF", "#383B40"],
-  themeEasyPieScaleColor: ["#CFD5DA", "#536775"],
+  themeEasyPieTrackColor: ["#DBE1E1", "#353F3F"],
+  themeEasyPieScaleColor: ["#B7C2C2", "#424E4E"],
 
   themeGaugePointer: ["#8F9EAA", "#536775"],
-  themeGaugeStroke: ["#ECEEEF", "#383B40"],
+  themeGaugeStroke: ["#DBE1E1", "#353F3F"],
 
   themeD3pieSmallColor: ["#536775", "#CFD5DA"],
-  themeD3pieStroke: ["#ECEEEF", "#383B40"],
+  themeD3pieStroke: ["#DBE1E1", "#353F3F"],
   themeInnerLabelColor: ["#F7F8F8", "#282827"],
 
   themeLabelColor: ["#35414a", "#ffffff"],
   themeBackground: ["#ffffff", "#282C34"],
-  themeNeutralBackground: ["#ECEEEF", "#383B40"],
+  themeNeutralBackground: ["#DBE1E1", "#353F3F"],
   themeWarningBackground: ["#FFCC26", "#FFCC26"],
   themeErrorBackground: ["#F95251", "#F95251"],
 

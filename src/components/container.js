@@ -6,7 +6,8 @@ const Container = styled(Flex).attrs(props => ({
   column: true,
   position: "relative",
   round: true,
-  background: "panelBg",
+  border: { color: "mainChartBorder", side: "all" },
+  background: "mainChartBg",
   ...props,
 }))`
   ::selection {

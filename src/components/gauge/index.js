@@ -22,8 +22,8 @@ const Label = styled(Text)`
 `
 
 const StrokeLabel = styled(Label)`
-  text-shadow: 0.02em 0 ${getColor("borderSecondary")}, 0 0.02em ${getColor("borderSecondary")},
-    -0.02em 0 ${getColor("borderSecondary")}, 0 -0.02em ${getColor("borderSecondary")};
+  text-shadow: 0.02em 0 ${getColor("border")}, 0 0.02em ${getColor("border")},
+    -0.02em 0 ${getColor("border")}, 0 -0.02em ${getColor("border")};
 `
 export const Value = () => {
   const value = useLatestConvertedValue("selected")
@@ -38,7 +38,7 @@ export const Value = () => {
 export const Unit = () => {
   const unit = useUnitSign()
   return (
-    <Label color="border" fontSize="1em">
+    <Label color="textLite" fontSize="1em">
       {unit}
     </Label>
   )
@@ -49,7 +49,7 @@ export const Bound = ({ empty, index, uiName, ...rest }) => {
   const minMax = chart.getUI(uiName).getMinMax()
 
   return (
-    <Label color="border" fontSize="1.3em" {...rest}>
+    <Label color="textLite" fontSize="1.3em" {...rest}>
       {empty ? "-" : chart.getConvertedValue(minMax[index])}
     </Label>
   )
