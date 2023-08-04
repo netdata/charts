@@ -2,7 +2,7 @@ import { heatmapOrChartType } from "@/helpers/heatmap"
 import unitsJson from "@/units.json"
 
 const getAlias = u =>
-  unitsJson.aliases[u] || unitsJson.units[u] ? u : unitsJson.units[`{${u}}`] ? `{${u}}` : u
+  unitsJson.aliases[u] || (unitsJson.units[u] ? u : unitsJson.units[`{${u}}`] ? `{${u}}` : u)
 
 const transformDataRow = (row, point) =>
   row.reduce(
