@@ -338,7 +338,9 @@ export default (sdk, chart) => {
     const payloadDimensions = chart.getPayload().labels
     if (!dimensionIds?.length || !payloadDimensions?.length) return { visibility: false }
 
-    const suffixLabels = Array(payloadDimensions.length - dimensionIds.length).fill(true)
+    const arrayLength = payloadDimensions.length - dimensionIds.length
+
+    const suffixLabels = Array(arrayLength > 0 ? arrayLength : 0).fill(true)
     const selectedLegendDimensions = chart.getAttribute("selectedLegendDimensions")
 
     const visibility = [
