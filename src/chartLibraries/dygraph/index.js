@@ -335,11 +335,11 @@ export default (sdk, chart) => {
 
   const makeVisibilityOptions = () => {
     const dimensionIds = chart.getPayloadDimensionIds()
-    if (!dimensionIds.length) return { visibility: false }
+    const payloadDimensions = chart.getPayload().labels
+    if (!dimensionIds?.length || !payloadDimensions?.length) return { visibility: false }
 
+    const suffixLabels = Array(payloadDimensions.length - dimensionIds.length).fill(true)
     const selectedLegendDimensions = chart.getAttribute("selectedLegendDimensions")
-
-    const suffixLabels = Array(chart.getPayload().labels.length - dimensionIds.length).fill(true)
 
     const visibility = [
       ...dimensionIds.map(selectedLegendDimensions.length ? chart.isDimensionVisible : () => true),
