@@ -324,7 +324,7 @@ export default (sdk, chart) => {
       },
       ylabel:
         chart.getAttribute("hasYlabel") &&
-        chart.getUnitSign({ long: true, real: isHeatmap(chartType) }),
+        chart.getUnitSign({ long: true, withoutConversion: isHeatmap(chartType) }),
     }
   }
 

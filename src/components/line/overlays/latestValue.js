@@ -4,8 +4,11 @@ import { Flex, Text, getColor } from "@netdata/netdata-ui"
 import { useLatestConvertedValue, useUnitSign } from "@/components/provider"
 
 const StrokeLabel = styled(Text)`
-  text-shadow: 0.02em 0 ${getColor("borderSecondary")}, 0 0.02em ${getColor("borderSecondary")},
-    -0.02em 0 ${getColor("borderSecondary")}, 0 -0.02em ${getColor("borderSecondary")};
+  text-shadow:
+    0.02em 0 ${getColor("borderSecondary")},
+    0 0.02em ${getColor("borderSecondary")},
+    -0.02em 0 ${getColor("borderSecondary")},
+    0 -0.02em ${getColor("borderSecondary")};
 `
 
 const StyledFlex = styled(Flex)`
@@ -29,11 +32,11 @@ const LatestValue = ({ dimensionId, textProps, ...rest }) => {
     )
 
   return (
-    <StyledFlex alignItems="baseline" gap={1} {...rest}>
-      <StrokeLabel fontSize="2.5em" strong {...defaultTextProps} {...textProps}>
+    <StyledFlex column {...rest}>
+      <StrokeLabel fontSize="2.1em" lineHeight="1.1em" strong {...defaultTextProps} {...textProps}>
         {value}
       </StrokeLabel>
-      <StrokeLabel fontSize="1.3em" {...defaultTextProps} {...textProps}>
+      <StrokeLabel fontSize="1.1em" strong {...defaultTextProps} color="border" {...textProps}>
         {unit}
       </StrokeLabel>
     </StyledFlex>

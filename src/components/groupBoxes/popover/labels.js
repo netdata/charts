@@ -14,7 +14,9 @@ const Container = styled(Flex).attrs(props => ({
   padding: [4],
   gap: 1,
 }))`
-  box-shadow: 0px 8px 12px rgba(9, 30, 66, 0.15), 0px 0px 1px rgba(9, 30, 66, 0.31);
+  box-shadow:
+    0px 8px 12px rgba(9, 30, 66, 0.15),
+    0px 0px 1px rgba(9, 30, 66, 0.31);
 `
 
 const ColorBackground = styled(BaseColorBar).attrs({
@@ -35,7 +37,7 @@ const Grid = styled.div`
 
 const Labels = ({ index, label, groupLabel, data, id }) => {
   const chart = useChart()
-  const viewDimensions = chart.getAttribute("viewDimensions") || {}
+  const viewDimensions = chart.getAttribute("viewDimensions")
 
   const min = useAttributeValue("min")
   const max = useAttributeValue("max")
@@ -63,11 +65,13 @@ const Labels = ({ index, label, groupLabel, data, id }) => {
           </TextMicro>
         </Flex>
       </Flex>
-      <Grid gap={1} column>
-        {Object.keys(viewDimensions.labels).map(key => (
-          <Label key={key} label={key} value={viewDimensions.labels[key]?.[index]} />
-        ))}
-      </Grid>
+      {!!viewDimensions?.labels && (
+        <Grid gap={1} column>
+          {Object.keys(viewDimensions.labels).map(key => (
+            <Label key={key} label={key} value={viewDimensions.labels[key]?.[index]} />
+          ))}
+        </Grid>
+      )}
     </Container>
   )
 }
