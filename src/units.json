@@ -3091,7 +3091,7 @@
     "pages/s": "{page}/s",
     "panics/s": "{panic}/s",
     "peers": "{peer}",
-    "percentage": "c[CPU]",
+    "percentage": "%",
     "pgfaults/s": "{page fault}/s",
     "pipes": "{pipe}",
     "pmode": "{ntp mode}",
