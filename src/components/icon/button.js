@@ -2,8 +2,8 @@ import styled from "styled-components"
 import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
 import { withTooltip } from "@/components/tooltip"
 
-const color = ({ active, disabled, defaultColor = "border" }) => {
-  if (active) return "textDescription"
+const color = ({ active, disabled, defaultColor = "textLite" }) => {
+  if (active) return "text"
   if (disabled) return "disabled"
 
   return defaultColor
@@ -39,17 +39,13 @@ const Button = styled.button.attrs(({ icon, hoverIndicator = true, padding = 0, 
 
   &:hover {
     ${({ theme, hoverIndicator, disabled }) =>
-      hoverIndicator && !disabled && `background: ${getColor("borderSecondary")({ theme })};`};
+      hoverIndicator && !disabled && `background: ${getColor("mainChartTboxHover")({ theme })};`};
 
     svg {
       fill: ${({ theme, stroked, disabled }) =>
-        stroked
-          ? "none"
-          : getColor(color({ defaultColor: "textDescription", disabled }))({ theme })};
+        stroked ? "none" : getColor(color({ defaultColor: "text", disabled }))({ theme })};
       stroke: ${({ theme, stroked, disabled }) =>
-        stroked
-          ? getColor(color({ defaultColor: "textDescription", disabled }))({ theme })
-          : "none"};
+        stroked ? getColor(color({ defaultColor: "text", disabled }))({ theme }) : "none"};
     }
   }
 `

@@ -16,7 +16,7 @@ const frames = keyframes`
 `
 
 export const Skeleton = styled(Flex).attrs(props => ({
-  background: "borderSecondary",
+  background: "panelBg",
   round: "100%",
   width: "100%",
   height: "100%",

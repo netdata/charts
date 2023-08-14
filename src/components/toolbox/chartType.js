@@ -9,7 +9,7 @@ import heatmapChart from "@netdata/netdata-ui/lib/components/icon/assets/heatmap
 import Icon, { Button } from "@/components/icon"
 import { useChart, useAttributeValue } from "@/components/provider"
 
-const iconProps = { color: "border", margin: [0, 2, 0, 0], size: "16px" }
+const iconProps = { color: "text", margin: [0, 2, 0, 0], size: "16px" }
 
 const useItems = chart =>
   useMemo(

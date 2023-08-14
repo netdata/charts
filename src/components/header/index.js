@@ -14,6 +14,7 @@ export const Container = props => (
     border={{ side: "bottom", color: "borderSecondary" }}
     data-testid="chartHeader"
     height="25px"
+    background="mainChartHeaderBg"
     {...props}
   />
 )

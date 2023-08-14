@@ -33,7 +33,7 @@ const StyledIcon = styled(Icon)`
 
 const Logo = props => {
   const isFetching = useIsFetching()
-  const color = useLoadingColor("tabsBorder")
+  const color = useLoadingColor("border")
 
   return (
     <StyledIcon
