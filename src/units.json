@@ -6,7 +6,7 @@
       "print_symbol": "%",
       "is_metric": false,
       "is_special": false,
-      "is_additive": true
+      "is_additive": false
     },
     "1": {
       "symbol": "1",
