@@ -160,9 +160,15 @@ export default chart => {
     abortController = new AbortController()
     const options = {
       signal: abortController.signal,
-      ...(chart.getAttribute("bearer") && {
+      ...((chart.getAttribute("bearer") || chart.getAttribute("xNetdataBearer")) && {
         headers: {
-          Authorization: "Bearer " + chart.getAttribute("bearer"),
+          ...(chart.getAttribute("bearer")
+            ? {
+                Authorization: `Bearer ${chart.getAttribute("bearer")}`,
+              }
+            : {
+                "X-Netdata-Auth": `Bearer ${chart.getAttribute("xNetdataBearer")}`,
+              }),
         },
       }),
     }

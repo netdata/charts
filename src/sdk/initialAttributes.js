@@ -236,4 +236,5 @@ export default {
   },
 
   bearer: null,
+  xNetdataBearer: null,
 }
