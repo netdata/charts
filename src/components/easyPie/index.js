@@ -23,7 +23,7 @@ export const Value = () => {
   const value = useLatestConvertedValue("selected")
 
   return (
-    <Label color="main" fontSize="2em" strong>
+    <Label color="text" fontSize="2em" strong>
       {value}
     </Label>
   )
@@ -32,7 +32,7 @@ export const Value = () => {
 export const Unit = () => {
   const unit = useUnitSign()
   return (
-    <Label color="border" fontSize="1em">
+    <Label color="textLite" fontSize="1em">
       {unit}
     </Label>
   )
