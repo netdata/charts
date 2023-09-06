@@ -1,24 +1,16 @@
 export default chartUI => {
   const findClosest = (event, points) => {
-    if (!Array.isArray(points)) return
+    if (!Array.isArray(points)) return {}
 
     const { offsetY } = event
 
-    if (offsetY > chartUI.getDygraph().getArea().h - 10) return "ANNOTATIONS"
-    if (offsetY < 15) return "ANOMALY_RATE"
+    if (offsetY > chartUI.getDygraph().getArea().h - 10) return { seriesName: "ANNOTATIONS" }
+    if (offsetY < 15) return { seriesName: "ANOMALY_RATE" }
 
-    let closestPoint = points[0]
-    let closestDistance = Math.abs(points[0].canvasy - offsetY)
+    if (chartUI.chart.getAttribute("chartType"))
+      return chartUI.getDygraph().findStackedPoint(event.offsetX, event.offsetY)
 
-    for (let i = 1; i < points.length; i++) {
-      const distance = Math.abs(points[i].canvasy - offsetY)
-      if (distance < closestDistance) {
-        closestDistance = distance
-        closestPoint = points[i]
-      }
-    }
-
-    return closestPoint.name
+    return chartUI.getDygraph().findClosestPoint(event.offsetX, event.offsetY)
   }
 
   let lastX
@@ -27,7 +19,7 @@ export default chartUI => {
   let lastTimestamp
 
   const triggerHighlight = (event, x, points) => {
-    const seriesName = points && findClosest(event, points)
+    const { seriesName } = findClosest(event, points)
 
     if (!seriesName) return
 
