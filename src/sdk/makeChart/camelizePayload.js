@@ -124,9 +124,9 @@ export default payload => {
   })
 
   let instanceId = null
-  const instances = instancesArray.reduce((h, i) => {
+  const instances = instancesArray.reduce((h, i = {}) => {
     instanceId = `${i.id}@${nodes[nodesIndexes[i.ni]].nd || nodes[nodesIndexes[i.ni]].mg}`
-    h[instanceId] = i
+    h[instanceId] = { ...i }
     h[instanceId].nm = `${i.nm || i.id}@${nodes[nodesIndexes[i.ni]].nm}`
     return h
   }, {})

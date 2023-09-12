@@ -412,7 +412,7 @@ export default (sdk, chart) => {
   const render = () => {
     if (!dygraph) return
 
-    const { highlighting, panning, processing, chartType } = chart.getAttributes()
+    const { highlighting, panning, processing } = chart.getAttributes()
     if (highlighting || panning || processing) return
 
     chartUI.render()

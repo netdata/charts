@@ -79,17 +79,19 @@ export default chart => {
     })
   }
 
-  const updateVersions = ({
-    alerts_hard_hash: alertsHardHash,
-    alerts_soft_hash: alertsSoftHash,
-    contexts_hard_hash: contextsHardHash,
-    contexts_soft_hash: contextsSoftHash,
-    nodes_hard_hash: nodesHardHash,
-  }) => {
-    if (!chart) return
+  const updateVersions = hashes => {
+    if (!hashes || typeof hashes !== "object" || !chart) return
 
     const container = chart.getParent()
     if (!container) return
+
+    const {
+      alerts_hard_hash: alertsHardHash,
+      alerts_soft_hash: alertsSoftHash,
+      contexts_hard_hash: contextsHardHash,
+      contexts_soft_hash: contextsSoftHash,
+      nodes_hard_hash: nodesHardHash,
+    } = hashes
 
     container.updateAttribute("versions", {
       alertsHardHash,
