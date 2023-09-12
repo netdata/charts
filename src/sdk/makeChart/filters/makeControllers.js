@@ -2,10 +2,14 @@ import deepEqual from "@/helpers/deepEqual"
 import pristine, { pristineKey } from "@/sdk/pristine"
 import getInitialFilterAttributes, { stackedAggregations } from "./getInitialAttributes"
 import { isHeatmap } from "@/helpers/heatmap"
+import makeLog from "@/sdk/makeLog"
 
 export default chart => {
   const chartType = chart.getAttribute("chartType")
   let prevChartType = chartType
+
+  const log = makeLog(chart)
+
   const onGroupChange = groupBy => {
     chart.updateAttribute("selectedLegendDimensions", [])
     if (chart.getAttribute("selectedChartType")) return
@@ -57,6 +61,11 @@ export default chart => {
 
     chart.updateAttributes(getInitialFilterAttributes(chart))
     chart.fetch({ processing: true }).then(() => onGroupChange(chart.getAttribute("groupBy")))
+
+    log({
+      action: "chart-groupby-change",
+      data: { value: selected },
+    })
   }
 
   const updateChartTypeAttribute = selected => {
@@ -74,6 +83,11 @@ export default chart => {
     }
 
     chart.trigger("fetch", { processing: true })
+
+    log({
+      action: "chart-type-change",
+      data: { value: selected },
+    })
   }
 
   const updateNodesAttribute = selected => {
@@ -100,6 +114,11 @@ export default chart => {
       chart.updateAttributes({ selectedInstances: selectedInstances, processing: true })
 
     if (instancesHaveChanges || nodesHaveChanges) chart.trigger("fetch", { processing: true })
+
+    log({
+      action: "chart-node-change",
+      data: { value: selected },
+    })
   }
 
   const updateInstancesAttribute = selected => {
@@ -110,6 +129,11 @@ export default chart => {
     chart.updateAttributes({ selectedInstances: selectedInstances, processing: true })
 
     chart.trigger("fetch", { processing: true })
+
+    log({
+      action: "chart-instance-change",
+      data: { value: selected },
+    })
   }
 
   const updateDimensionsAttribute = selected => {
@@ -120,6 +144,11 @@ export default chart => {
     chart.updateAttributes({ selectedDimensions: selectedDimensions, processing: true })
 
     chart.trigger("fetch", { processing: true })
+
+    log({
+      action: "chart-dimensions-change",
+      data: { value: selected },
+    })
   }
 
   const updateLabelsAttribute = selected => {
@@ -130,6 +159,11 @@ export default chart => {
     chart.updateAttributes({ selectedLabels: selectedLabels, processing: true })
 
     chart.trigger("fetch", { processing: true })
+
+    log({
+      action: "chart-labels-change",
+      data: { value: selected },
+    })
   }
 
   const updateAggregationMethodAttribute = value => {
@@ -138,6 +172,11 @@ export default chart => {
     chart.updateAttributes({ aggregationMethod: value, processing: true })
 
     chart.trigger("fetch", { processing: true })
+
+    log({
+      action: "chart-aggregation-method-change",
+      data: { value },
+    })
   }
 
   const updateContextScopeAttribute = value => {
@@ -147,6 +186,11 @@ export default chart => {
     chart.updateAttributes(getInitialFilterAttributes(chart))
 
     chart.trigger("fetch", { processing: true })
+
+    log({
+      action: "chart-context-scope-change",
+      data: { value },
+    })
   }
 
   const updateTimeAggregationMethodAttribute = ({ alias, method }) => {
@@ -156,6 +200,11 @@ export default chart => {
 
     chart.updateAttributes({ groupingMethod: value, processing: true })
     chart.trigger("fetch", { processing: true })
+
+    log({
+      action: "chart-time-aggregation-method-change",
+      data: { value },
+    })
   }
 
   const resetPristine = () => {

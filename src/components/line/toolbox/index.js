@@ -10,6 +10,7 @@ import zoomResetIcon from "@netdata/netdata-ui/lib/components/icon/assets/zoom_r
 import Icon, { Button } from "@/components/icon"
 import { useAttribute, useAttributeValue, useChart } from "@/components/provider"
 import Select from "./select"
+import makeLog from "@/sdk/makeLog"
 
 const Container = styled(Flex).attrs({
   padding: [0.5],
@@ -27,16 +28,22 @@ const Container = styled(Flex).attrs({
   }
 `
 
-const ZoomReset = () => {
+const ZoomReset = ({ log = () => {} }) => {
   const chart = useChart()
-
   const after = useAttributeValue("after")
+
+  const onResetZoom = () => {
+    chart.resetNavigation
+    log({
+      action: "chart-toolbox-reset-zoom",
+    })
+  }
 
   return (
     <Button
       icon={<Icon svg={zoomResetIcon} size="16px" />}
       title="Reset zoom"
-      onClick={chart.resetNavigation}
+      onClick={onResetZoom}
       data-testid="chartToolbox-zoomReset"
       data-track={chart.track("zoomReset")}
       disabled={after === -900}
@@ -54,6 +61,36 @@ const Toolbox = forwardRef((props, ref) => {
   const panning = useAttributeValue("panning")
   if (highlighting || panning) return null
 
+  const log = makeLog(chart)
+
+  const onPan = () => {
+    setNavigation("pan")
+    log({
+      action: "chart-toolbox-pan",
+    })
+  }
+
+  const onHighlight = () => {
+    setNavigation("highlight")
+    log({
+      action: "chart-toolbox-highlight",
+    })
+  }
+
+  const onZoomIn = () => {
+    chart.zoomIn
+    log({
+      action: "chart-toolbox-zoom-in",
+    })
+  }
+
+  const onZoomOut = () => {
+    chart.zoomOut
+    log({
+      action: "chart-toolbox-zoom-out",
+    })
+  }
+
   return (
     <Container
       data-testid="chartToolbox"
@@ -65,7 +102,7 @@ const Toolbox = forwardRef((props, ref) => {
       <Button
         icon={<Icon svg={panTool} size="16px" />}
         title="Pan"
-        onClick={() => setNavigation("pan")}
+        onClick={onPan}
         active={navigation === "pan"}
         data-testid="chartToolbox-pan"
         stroked
@@ -76,7 +113,7 @@ const Toolbox = forwardRef((props, ref) => {
       <Button
         icon={<Icon svg={selectedArea} size="16px" />}
         title="Highlight"
-        onClick={() => setNavigation("highlight")}
+        onClick={onHighlight}
         active={navigation === "highlight"}
         data-testid="chartToolbox-highlight"
         data-track={chart.track("highlight")}
@@ -87,7 +124,7 @@ const Toolbox = forwardRef((props, ref) => {
       <Button
         icon={<Icon svg={zoomInIcon} size="16px" />}
         title="Zoom in"
-        onClick={chart.zoomIn}
+        onClick={onZoomIn}
         data-testid="chartToolbox-zoomIn"
         data-track={chart.track("zoomIn")}
         padding="2px"
@@ -96,13 +133,13 @@ const Toolbox = forwardRef((props, ref) => {
       <Button
         icon={<Icon svg={zoomOutIcon} size="16px" />}
         title="Zoom out"
-        onClick={chart.zoomOut}
+        onClick={onZoomOut}
         data-testid="chartToolbox-zoomOut"
         data-track={chart.track("zoomOut")}
         padding="2px"
         small
       />
-      <ZoomReset />
+      <ZoomReset log={log} />
     </Container>
   )
 })
