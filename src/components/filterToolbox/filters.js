@@ -1,5 +1,6 @@
 import React from "react"
 import { useIsHeatmap } from "@/helpers/heatmap"
+import { useAttributeValue } from "@/components/provider"
 import Aggregate from "./aggregate"
 import Dimensions from "./dimensions"
 import Instances from "./instances"
@@ -28,6 +29,10 @@ const plainLabelProps = {
 
 const FilterToolbox = ({ plain }) => {
   const isHeatmap = useIsHeatmap()
+
+  const filterElements = useAttributeValue("filterElements")
+
+  if (filterElements) return filterElements.map((Element, index) => <Element key={index} />)
 
   if (plain)
     return (

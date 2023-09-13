@@ -61,6 +61,13 @@ export default (chart, el, { onMouseenter, onMouseout }, options = {}) => {
   function* update(dimensions, pointData) {
     const { width, height, columns } = getCanvasAttributes(dimensions, options)
 
+    if (!width || !height) {
+      if (shouldYield()) {
+        yield
+      }
+      return
+    }
+
     backgroundEl.width = parseInt(width)
     backgroundEl.height = parseInt(height)
 

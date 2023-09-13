@@ -5,8 +5,8 @@ export const defaultAspectRatio = Math.round(16 / 9)
 export const getCellBoxSize = (cellSize = defaultCellSize, padding = defaultPadding) =>
   cellSize - padding
 export const getRows = (data, aspectRatio = defaultAspectRatio) =>
-  Math.sqrt(data.length / aspectRatio)
-export const getColumns = (rows, aspectRatio = defaultAspectRatio) => rows * aspectRatio
+  Math.sqrt(data.length / aspectRatio) || 1
+export const getColumns = (rows, aspectRatio = defaultAspectRatio) => rows * aspectRatio || 1
 
 export const getXPosition = (columns, index, cellSize = defaultCellSize) =>
   Math.floor(index % columns) * cellSize
