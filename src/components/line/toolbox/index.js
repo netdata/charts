@@ -33,7 +33,7 @@ const ZoomReset = ({ log = () => {} }) => {
   const after = useAttributeValue("after")
 
   const onResetZoom = () => {
-    chart.resetNavigation
+    chart.resetNavigation()
     log({
       action: "chart-toolbox-reset-zoom",
     })
@@ -78,14 +78,14 @@ const Toolbox = forwardRef((props, ref) => {
   }
 
   const onZoomIn = () => {
-    chart.zoomIn
+    chart.zoomIn()
     log({
       action: "chart-toolbox-zoom-in",
     })
   }
 
   const onZoomOut = () => {
-    chart.zoomOut
+    chart.zoomOut()
     log({
       action: "chart-toolbox-zoom-out",
     })
