@@ -1,11 +1,9 @@
-import { darkenColor } from "./helpers"
-
 export default () => plotter => {
   const ctx = plotter.drawingContext
   const points = plotter.points
   const y_bottom = plotter.dygraph.toDomYCoord(0)
 
-  ctx.fillStyle = darkenColor(plotter.color)
+  ctx.fillStyle = plotter.color
 
   const min_sep = points[1].canvasx - points[0].canvasx
 

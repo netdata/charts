@@ -11,18 +11,19 @@ const color = ({ active, disabled, defaultColor = "textLite" }) => {
 
 const Button = styled.button.attrs(({ icon, hoverIndicator = true, padding = 0, ...rest }) => ({
   ...rest,
-  children: icon,
+  children: icon || rest.children,
   active: rest.active || rest["aria-expanded"],
   hoverIndicator,
   padding,
 }))`
   border: initial;
   padding: ${({ padding }) => padding};
-  height: fit-content;
+  height: auto;
   line-height: 0;
   background: ${({ theme, active }) =>
     active ? getColor("borderSecondary")({ theme }) : "initial"};
   cursor: pointer;
+  color: ${({ active, disabled, theme }) => getColor(color({ active, disabled }))({ theme })};
 
   svg {
     fill: ${({ active, disabled, theme, stroked }) =>
@@ -41,6 +42,7 @@ const Button = styled.button.attrs(({ icon, hoverIndicator = true, padding = 0, 
     ${({ theme, hoverIndicator, disabled }) =>
       hoverIndicator && !disabled && `background: ${getColor("mainChartTboxHover")({ theme })};`};
 
+    color: ${({ active, disabled, theme }) => getColor(color({ active, disabled }))({ theme })};
     svg {
       fill: ${({ theme, stroked, disabled }) =>
         stroked ? "none" : getColor(color({ defaultColor: "text", disabled }))({ theme })};

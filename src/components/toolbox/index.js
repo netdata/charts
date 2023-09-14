@@ -13,7 +13,6 @@ const Container = props => (
     alignItem="center"
     flex
     data-testid="chartHeaderToolbox"
-    alignSelf="end"
     {...props}
   />
 )
