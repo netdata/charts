@@ -155,9 +155,7 @@ export default chart => {
     chart.trigger("startFetch")
 
     if (!isNewerThanRetention())
-      return Promise.resolve().then(() =>
-        failFetch({ message: "Exceeds agent data retention settings" })
-      )
+      return Promise.resolve().then(() => failFetch({ message: "Exceeds data retention" }))
 
     abortController = new AbortController()
     const options = {
