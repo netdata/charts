@@ -120,11 +120,11 @@ export default chart =>
     if (numRegex.test(units)) {
       const customMatch = units.match(numRegex)
 
-      prefix = customMatch[1] && customMatch[1] !== "A" ? `${customMatch[1]} ` : ""
+      prefix = customMatch[1] && customMatch[1] !== "A" ? customMatch[1] : ""
       units = customMatch[2]
     }
 
-    if (!units || units === "undefined" || units === "null") return ""
+    if (!units || units === "undefined" || units === "null") return prefix
 
-    return `${prefix}${long ? units : unitMap[units] || units}`
+    return `${prefix}${prefix ? " " : ""}${long ? units : unitMap[units] || units}`
   })
