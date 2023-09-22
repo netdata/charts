@@ -35,7 +35,7 @@ const ZoomReset = ({ log = () => {} }) => {
   const onResetZoom = () => {
     chart.resetNavigation()
     log({
-      chartchartAction: "chart-toolbox-reset-zoom",
+      chartAction: "chart-toolbox-reset-zoom",
     })
   }
 
