@@ -18,10 +18,8 @@ const makeLog =
       sendLog({
         ...payload,
         ...logPayload,
-        data: {
-          ...mergedData,
-          chartId: chart.getAttribute("id"),
-        },
+        ...mergedData,
+        chartId: chart.getAttribute("id"),
       })
     }
   }

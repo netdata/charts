@@ -8,7 +8,11 @@ export default chart => {
   const chartType = chart.getAttribute("chartType")
   let prevChartType = chartType
 
-  const log = makeLog(chart)
+  const log = ({ value, ...rest }) =>
+    makeLog(chart)({
+      ...rest,
+      value: value && typeof value !== "string" ? JSON.stringify(value) : value,
+    })
 
   const onGroupChange = groupBy => {
     chart.updateAttribute("selectedLegendDimensions", [])
@@ -63,8 +67,8 @@ export default chart => {
     chart.fetch({ processing: true }).then(() => onGroupChange(chart.getAttribute("groupBy")))
 
     log({
-      action: "chart-groupby-change",
-      data: { value: selected },
+      chartAction: "chart-groupby-change",
+      value: selected,
     })
   }
 
@@ -85,8 +89,8 @@ export default chart => {
     chart.trigger("fetch", { processing: true })
 
     log({
-      action: "chart-type-change",
-      data: { value: selected },
+      chartAction: "chart-type-change",
+      value: selected,
     })
   }
 
@@ -116,8 +120,8 @@ export default chart => {
     if (instancesHaveChanges || nodesHaveChanges) chart.trigger("fetch", { processing: true })
 
     log({
-      action: "chart-node-change",
-      data: { value: selected },
+      chartAction: "chart-node-change",
+      value: selected,
     })
   }
 
@@ -131,8 +135,8 @@ export default chart => {
     chart.trigger("fetch", { processing: true })
 
     log({
-      action: "chart-instance-change",
-      data: { value: selected },
+      chartAction: "chart-instance-change",
+      value: selected,
     })
   }
 
@@ -146,8 +150,8 @@ export default chart => {
     chart.trigger("fetch", { processing: true })
 
     log({
-      action: "chart-dimensions-change",
-      data: { value: selected },
+      chartAction: "chart-dimensions-change",
+      value: selected,
     })
   }
 
@@ -161,8 +165,8 @@ export default chart => {
     chart.trigger("fetch", { processing: true })
 
     log({
-      action: "chart-labels-change",
-      data: { value: selected },
+      chartAction: "chart-labels-change",
+      value: selected,
     })
   }
 
@@ -174,8 +178,8 @@ export default chart => {
     chart.trigger("fetch", { processing: true })
 
     log({
-      action: "chart-aggregation-method-change",
-      data: { value },
+      chartAction: "chart-aggregation-method-change",
+      value,
     })
   }
 
@@ -188,8 +192,8 @@ export default chart => {
     chart.trigger("fetch", { processing: true })
 
     log({
-      action: "chart-context-scope-change",
-      data: { value },
+      chartAction: "chart-context-scope-change",
+      value,
     })
   }
 
@@ -202,8 +206,8 @@ export default chart => {
     chart.trigger("fetch", { processing: true })
 
     log({
-      action: "chart-time-aggregation-method-change",
-      data: { value },
+      chartAction: "chart-time-aggregation-method-change",
+      value,
     })
   }
 

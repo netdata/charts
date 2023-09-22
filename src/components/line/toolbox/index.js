@@ -35,7 +35,7 @@ const ZoomReset = ({ log = () => {} }) => {
   const onResetZoom = () => {
     chart.resetNavigation()
     log({
-      action: "chart-toolbox-reset-zoom",
+      chartAction: "chart-toolbox-reset-zoom",
     })
   }
 
@@ -66,28 +66,28 @@ const Toolbox = forwardRef((props, ref) => {
   const onPan = () => {
     setNavigation("pan")
     log({
-      action: "chart-toolbox-pan",
+      chartAction: "chart-toolbox-pan",
     })
   }
 
   const onHighlight = () => {
     setNavigation("highlight")
     log({
-      action: "chart-toolbox-highlight",
+      chartAction: "chart-toolbox-highlight",
     })
   }
 
   const onZoomIn = () => {
     chart.zoomIn()
     log({
-      action: "chart-toolbox-zoom-in",
+      chartAction: "chart-toolbox-zoom-in",
     })
   }
 
   const onZoomOut = () => {
     chart.zoomOut()
     log({
-      action: "chart-toolbox-zoom-out",
+      chartAction: "chart-toolbox-zoom-out",
     })
   }
 
