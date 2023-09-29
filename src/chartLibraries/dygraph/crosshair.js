@@ -1,4 +1,16 @@
-export default (chartUI, row) => {
+const themeAttrByFlavour = {
+  hover: "themeCrosshair",
+  click: "themeNetdata",
+  default: "themeCrosshair",
+}
+
+const lineDashByFlavour = {
+  hover: [5, 5],
+  click: [2, 2],
+  default: [5, 5],
+}
+
+export default (chartUI, row, flavour = "hover") => {
   const dygraph = chartUI.getDygraph()
 
   const { h } = dygraph.getArea()
@@ -10,14 +22,12 @@ export default (chartUI, row) => {
 
   const x = dygraph.toDomXCoord(rowData[0])
 
-  const themeCrosshair = chartUI.chart.getThemeAttribute("themeCrosshair")
-
-  dygraph.setSelection(row)
+  if (flavour === "hover") dygraph.setSelection(row)
 
   ctx.save()
   ctx.beginPath()
-  ctx.setLineDash([5, 5])
-  ctx.strokeStyle = themeCrosshair
+  ctx.setLineDash(lineDashByFlavour[flavour])
+  ctx.strokeStyle = chartUI.chart.getThemeAttribute(themeAttrByFlavour[flavour])
   ctx.moveTo(x, 0)
   ctx.lineTo(x, h)
 

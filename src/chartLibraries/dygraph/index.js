@@ -48,8 +48,9 @@ export default (sdk, chart) => {
       labels: isEmpty ? ["X"] : labels,
 
       dateWindow: chart.getDateWindow(),
-      highlightCallback: executeLatest.add((event, x, points, row, seriesName) =>
-        chartUI.trigger("highlightCallback", event, x, points, row, seriesName)
+      clickCallback: executeLatest.add((...args) => chartUI.trigger("click", ...args)),
+      highlightCallback: executeLatest.add((...args) =>
+        chartUI.trigger("highlightCallback", ...args)
       ),
       unhighlightCallback: executeLatest.add(() => chartUI.trigger("unhighlightCallback")),
       drawCallback: (...args) => chartUI.trigger("drawCallback", ...args),
@@ -124,11 +125,21 @@ export default (sdk, chart) => {
       chart.onAttributeChange(
         "hoverX",
         executeLatest.add(dimensions => {
-          const row = dimensions ? chart.getClosestRow(dimensions[0]) : -1
+          const row = Array.isArray(dimensions) ? chart.getClosestRow(dimensions[0]) : -1
 
           if (row === -1) return dygraph.setSelection()
 
           crosshair(instance, row)
+        })
+      ),
+      chart.onAttributeChange(
+        "clickX",
+        executeLatest.add(dimensions => {
+          const row = Array.isArray(dimensions) ? chart.getClosestRow(dimensions[0]) : -1
+
+          if (row === -1) return
+
+          crosshair(instance, row, "click")
         })
       ),
       chart.onAttributeChange("enabledHover", hoverX.toggle),

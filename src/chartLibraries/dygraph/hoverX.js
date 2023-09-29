@@ -18,7 +18,7 @@ export default chartUI => {
   let lastPoints
   let lastTimestamp
 
-  const triggerHighlight = (event, x, points) => {
+  const getDimension = (event, points) => {
     const { seriesName } = findClosest(event, points)
 
     if (!seriesName) return
@@ -30,10 +30,7 @@ export default chartUI => {
     const dimensionIds = chartUI.chart.getPayloadDimensionIds()
 
     if (!dimensionIds?.length) return
-    const dimensionId = dimensionIds[seriesProps.column - 1] || seriesProps.name
-
-    chartUI.sdk.trigger("highlightHover", chartUI.chart, x, dimensionId)
-    chartUI.chart.trigger("highlightHover", x, dimensionId)
+    return dimensionIds[seriesProps.column - 1] || seriesProps.name
   }
 
   const highlight = (event, x, points) => {
@@ -45,7 +42,27 @@ export default chartUI => {
     lastX = event.offsetX
     lastY = event.offsetY
 
-    triggerHighlight(event, x, points)
+    const dimensionId = getDimension(event, points)
+
+    if (!dimensionId) return
+
+    chartUI.sdk.trigger("highlightHover", chartUI.chart, x, dimensionId)
+    chartUI.chart.trigger("highlightHover", x, dimensionId)
+  }
+
+  const persistedHighlight = (event, x, points) => {
+    if (lastTimestamp === x) return
+
+    lastPoints = points
+    lastTimestamp = x
+
+    lastX = event.offsetX
+    lastY = event.offsetY
+
+    const dimensionId = getDimension(event, points)
+
+    chartUI.sdk.trigger("highlightClick", chartUI.chart, x, dimensionId)
+    chartUI.chart.trigger("highlightClick", x, dimensionId)
   }
 
   const mousemove = event => {
@@ -54,7 +71,12 @@ export default chartUI => {
     lastX = event.offsetX
     lastY = event.offsetY
 
-    triggerHighlight(event, lastTimestamp, lastPoints)
+    const dimensionId = getDimension(event, lastPoints)
+
+    if (!dimensionId) return
+
+    chartUI.sdk.trigger("highlightHover", chartUI.chart, lastTimestamp, dimensionId)
+    chartUI.chart.trigger("highlightHover", lastTimestamp, dimensionId)
   }
 
   const mouseout = () => {
@@ -69,6 +91,8 @@ export default chartUI => {
 
     chartUI.off("highlightCallback", highlight)
     chartUI.off("mousemove", mousemove)
+    chartUI.off("mouseout", mouseout)
+    chartUI.off("click", persistedHighlight)
   }
 
   const toggle = enabled => {
@@ -77,6 +101,7 @@ export default chartUI => {
           .on("highlightCallback", highlight)
           .on("mousemove", mousemove)
           .on("mouseout", mouseout)
+          .on("click", persistedHighlight)
       : destroy()
   }
 
