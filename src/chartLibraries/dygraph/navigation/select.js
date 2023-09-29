@@ -60,6 +60,7 @@ export default chartUI => {
       const range = getRange(g)
 
       chartUI.sdk.trigger("highlightEnd", chartUI.chart, range)
+      chartUI.chart.trigger("highlightEnd", range)
     }
 
     chartUI.off("mousemove", mousemove)
