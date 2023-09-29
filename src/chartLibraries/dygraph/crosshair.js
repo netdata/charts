@@ -22,7 +22,7 @@ export default (chartUI, row, flavour = "hover") => {
 
   const x = dygraph.toDomXCoord(rowData[0])
 
-  if (flavour === "hover") dygraph.setSelection(row)
+  dygraph.setSelection(row)
 
   ctx.save()
   ctx.beginPath()

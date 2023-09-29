@@ -137,7 +137,7 @@ export default (sdk, chart) => {
         executeLatest.add(dimensions => {
           const row = Array.isArray(dimensions) ? chart.getClosestRow(dimensions[0]) : -1
 
-          if (row === -1) return
+          if (row === -1) return dygraph.setSelection()
 
           crosshair(instance, row, "click")
         })
