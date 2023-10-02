@@ -20,14 +20,12 @@ export default chart => {
     let end = data.length - 1
     let closest = 0
 
-    while (start < end) {
+    while (start <= end) {
       const mid = Math.floor((start + end) / 2)
 
-      if (data[mid][0] === timestamp) return mid
+      if (Math.abs(data[mid][0] - timestamp) < Math.abs(data[closest][0] - timestamp)) closest = mid
 
-      if (Math.abs(data[mid][0] - timestamp) < Math.abs(data[closest][0] - timestamp)) {
-        closest = mid
-      }
+      if (data[mid][0] === timestamp) return mid
 
       if (data[mid][0] < timestamp) start = mid + 1
       else end = mid - 1
