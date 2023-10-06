@@ -145,9 +145,13 @@ export const ChartWrapper = styled(Flex).attrs(props => ({
 }))``
 
 export default Component =>
-  ({ count, ...rest }) =>
-    (
+  ({ count, tile = true, ...rest }) =>
+    tile ? (
       <HeadWrapper count={count} uiName={rest.uiName}>
         <Component {...rest} />
       </HeadWrapper>
+    ) : (
+      <ChartHeadWrapper size={20}>
+        <Component {...rest} />
+      </ChartHeadWrapper>
     )

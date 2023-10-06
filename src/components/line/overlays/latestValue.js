@@ -36,7 +36,7 @@ const LatestValue = ({ dimensionId, textProps, ...rest }) => {
       <StrokeLabel fontSize="2.1em" lineHeight="1.1em" strong {...defaultTextProps} {...textProps}>
         {value}
       </StrokeLabel>
-      <StrokeLabel fontSize="1.1em" strong {...defaultTextProps} color="border" {...textProps}>
+      <StrokeLabel fontSize="1.1em" strong {...defaultTextProps} color="textLite" {...textProps}>
         {unit}
       </StrokeLabel>
     </StyledFlex>

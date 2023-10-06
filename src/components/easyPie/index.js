@@ -32,7 +32,7 @@ export const Value = () => {
 export const Unit = () => {
   const unit = useUnitSign()
   return (
-    <Label color="border" fontSize="1em">
+    <Label color="textLite" fontSize="1em">
       {unit}
     </Label>
   )

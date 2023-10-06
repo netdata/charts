@@ -10,15 +10,16 @@ import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
 export const Container = styled(Flex).attrs(({ width = { max: 100 }, open, ...rest }) => ({
   cursor: "pointer",
   role: "button",
-  padding: [1],
+  padding: [0.5],
   round: true,
-  gap: 1,
+  gap: 0.5,
   width,
-  ...(open && { background: "borderSecondary" }),
+  alignItems: "center",
+  ...(open && { background: "selected" }),
   ...rest,
 }))`
   &:hover {
-    background: ${getColor("borderSecondary")};
+    background: ${getColor("selected")};
   }
 `
 
@@ -51,7 +52,7 @@ const Label = forwardRef(
             {tertiaryLabel}
           </TextSmall>
         )}
-        {chevron && <Icon svg={chevronDown} size="16px" color="selected" rotate={iconRotate} />}
+        {chevron && <Icon svg={chevronDown} size="12px" color="textNoFocus" rotate={iconRotate} />}
       </Container>
     )
 )

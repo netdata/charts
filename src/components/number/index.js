@@ -8,8 +8,11 @@ import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
 
 const StrokeLabel = styled(Text)`
-  text-shadow: 0.02em 0 ${getColor("borderSecondary")}, 0 0.02em ${getColor("borderSecondary")},
-    -0.02em 0 ${getColor("borderSecondary")}, 0 -0.02em ${getColor("borderSecondary")};
+  text-shadow:
+    0.02em 0 ${getColor("borderSecondary")},
+    0 0.02em ${getColor("borderSecondary")},
+    -0.02em 0 ${getColor("borderSecondary")},
+    0 -0.02em ${getColor("borderSecondary")};
 `
 export const Value = props => {
   const value = useLatestConvertedValue("selected")
@@ -24,7 +27,7 @@ export const Value = props => {
 export const Unit = props => {
   const unit = useUnitSign()
   return (
-    <Text color="border" fontSize="1em" {...props}>
+    <Text color="textLite" fontSize="1em" {...props}>
       {unit}
     </Text>
   )
