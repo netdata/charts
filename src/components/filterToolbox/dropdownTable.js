@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useRef } from "react"
 import styled from "styled-components"
-import { Flex, TextSmall, Menu, NetdataTable, Button, getColor } from "@netdata/netdata-ui"
+import { Flex, TextSmall, Menu, Table, Button, getColor } from "@netdata/netdata-ui"
 import deepEqual from "@/helpers/deepEqual"
 import Label from "./label"
 import Totals from "./totals"
@@ -25,9 +25,9 @@ export const meta = (row, cell, index) => ({
   headStyles: {
     height: "32px",
   },
-  styles: { verticalAlign: "middle" },
+  styles: { alignItems: "center" },
   bulkActionsStyles: {
-    padding: [2, 0],
+    padding: [2, 1],
   },
   searchContainerStyles: {
     width: "100%",
@@ -98,7 +98,7 @@ const Dropdown = ({
       flex
       {...rest}
     >
-      <NetdataTable
+      <Table
         title={title}
         background="dropdownTable"
         enableResize
@@ -107,7 +107,7 @@ const Dropdown = ({
         dataColumns={columns}
         data={items}
         onRowSelected={onItemClick}
-        onGlobalSearchChange={noop}
+        onSearch={noop}
         meta={tableMeta}
         sortBy={sortBy}
         rowSelection={rowSelection}
@@ -119,6 +119,7 @@ const Dropdown = ({
         // bulkActions={bulkActions}
         // rowActions={rowActions}
       />
+
       <Flex
         padding={[2]}
         justifyContent="between"

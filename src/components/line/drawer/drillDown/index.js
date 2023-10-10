@@ -1,5 +1,5 @@
 import React, { useMemo } from "react"
-import { Flex, NetdataTable, TextSmall } from "@netdata/netdata-ui"
+import { Flex, Table, TextSmall } from "@netdata/netdata-ui"
 import { uppercase } from "@/helpers/objectTransform"
 import { useDimensionIds, useAttributeValue } from "@/components/provider/selectors"
 import { labelColumn, valueColumn, anomalyColumn, minColumn, avgColumn, maxColumn } from "./columns"
@@ -51,7 +51,6 @@ const meta = (row, cell, index) => ({
   headStyles: {
     height: "32px",
   },
-  styles: { verticalAlign: "middle" },
   bulkActionsStyles: {
     padding: [2, 0],
   },
@@ -81,13 +80,13 @@ const DrillDown = () => {
 
   return (
     <Flex>
-      <NetdataTable
+      <Table
         enableSorting
         // enableSelection
         dataColumns={columns}
         data={dimensionIds}
         // onRowSelected={onItemClick}
-        // onGlobalSearchChange={noop}
+        // onSearch={noop}
         meta={meta}
         // sortBy={sortBy}
         // rowSelection={rowSelection}

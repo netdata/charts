@@ -1,5 +1,5 @@
 import React, { useMemo } from "react"
-import { Flex, NetdataTable, TextSmall } from "@netdata/netdata-ui"
+import { Flex, Table, TextSmall } from "@netdata/netdata-ui"
 import { uppercase } from "@/helpers/objectTransform"
 import { useChart, useDimensionIds, useAttributeValue } from "@/components/provider/selectors"
 import D3pieComponent from "@/components/d3pie"
@@ -85,13 +85,13 @@ const Dimensions = () => {
 
   return (
     <Flex gap={2}>
-      <NetdataTable
+      <Table
         enableSorting
         // enableSelection
         dataColumns={columns}
         data={dimensionIds}
         // onRowSelected={onItemClick}
-        // onGlobalSearchChange={noop}
+        // onSearch={noop}
         meta={meta}
         // sortBy={sortBy}
         // rowSelection={rowSelection}
