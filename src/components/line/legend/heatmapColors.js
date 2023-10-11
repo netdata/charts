@@ -1,7 +1,6 @@
 import React from "react"
 import styled from "styled-components"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { TextNano } from "@netdata/netdata-ui/lib/components/typography"
+import { TextNano, Flex } from "@netdata/netdata-ui"
 import { useChart, useAttributeValue, useUnitSign } from "@/components/provider"
 
 const LinearColorScaleBar = styled(Flex).attrs({ width: "320px", height: "12px", round: true })`

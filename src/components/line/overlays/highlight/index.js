@@ -1,8 +1,6 @@
 import React, { memo } from "react"
 import styled from "styled-components"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { TextNano } from "@netdata/netdata-ui/lib/components/typography"
-import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
+import { Flex, TextNano, getColor } from "@netdata/netdata-ui"
 import Correlation, { Period } from "./correlation"
 import { useAttributeValue } from "@/components/provider"
 

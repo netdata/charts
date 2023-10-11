@@ -1,5 +1,5 @@
 import React from "react"
-import information from "@netdata/netdata-ui/lib/components/icon/assets/information.svg"
+import information from "@netdata/netdata-ui/dist/components/icon/assets/information.svg"
 import Icon, { Button } from "@/components/icon"
 import { useChart, useAttribute } from "@/components/provider"
 

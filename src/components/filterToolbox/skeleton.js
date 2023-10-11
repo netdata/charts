@@ -1,5 +1,5 @@
 import React from "react"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import { Flex } from "@netdata/netdata-ui"
 import FiltersContainer from "./filtersContainer"
 import Label from "./label"
 

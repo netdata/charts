@@ -1,8 +1,7 @@
 import React, { useMemo, memo } from "react"
 import styled from "styled-components"
-import { Flex } from "@netdata/netdata-ui"
+import { Flex, TextMicro, TextNano } from "@netdata/netdata-ui"
 import { useChart, useAttributeValue, useOnResize } from "@/components/provider"
-import { TextMicro, TextNano } from "@netdata/netdata-ui/lib/components/typography"
 import Units from "@/components/line/dimensions/units"
 import UpdateEvery from "./updateEvery"
 import Timestamp from "./timestamp"
@@ -17,7 +16,9 @@ const Container = styled(Flex).attrs({
   padding: [4],
   gap: 1,
 })`
-  box-shadow: 0px 8px 12px rgba(9, 30, 66, 0.15), 0px 0px 1px rgba(9, 30, 66, 0.31);
+  box-shadow:
+    0px 8px 12px rgba(9, 30, 66, 0.15),
+    0px 0px 1px rgba(9, 30, 66, 0.31);
 `
 
 const Grid = styled.div`

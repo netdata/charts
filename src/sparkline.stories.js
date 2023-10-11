@@ -1,7 +1,6 @@
 import React from "react"
 import { ThemeProvider } from "styled-components"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui/lib/theme"
+import { Flex, DefaultTheme, DarkTheme } from "@netdata/netdata-ui"
 import makeMockPayload from "@/helpers/makeMockPayload"
 import makeDefaultSDK from "./makeDefaultSDK"
 

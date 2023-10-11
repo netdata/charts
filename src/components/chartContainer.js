@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useRef } from "react"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import { Flex } from "@netdata/netdata-ui"
 import { useChart } from "@/components/provider"
 
 const ChartContainer = ({ uiName, ...rest }) => {

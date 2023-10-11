@@ -1,12 +1,11 @@
 import React, { forwardRef, memo, useMemo } from "react"
-import dragHorizontalIcon from "@netdata/netdata-ui/lib/components/icon/assets/drag_horizontal.svg"
-import dragVerticalIcon from "@netdata/netdata-ui/lib/components/icon/assets/drag_vertical.svg"
-import chevronUpIcon from "@netdata/netdata-ui/lib/components/icon/assets/chevron_up_thin.svg"
-import chevronDownIcon from "@netdata/netdata-ui/lib/components/icon/assets/chevron_down_thin.svg"
-import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
+import { Flex, Menu } from "@netdata/netdata-ui"
+import dragHorizontalIcon from "@netdata/netdata-ui/dist/components/icon/assets/drag_horizontal.svg"
+import dragVerticalIcon from "@netdata/netdata-ui/dist/components/icon/assets/drag_vertical.svg"
+import chevronUpIcon from "@netdata/netdata-ui/dist/components/icon/assets/chevron_up_thin.svg"
+import chevronDownIcon from "@netdata/netdata-ui/dist/components/icon/assets/chevron_down_thin.svg"
 import { useChart, useAttribute } from "@/components/provider"
 import Icon, { Button } from "@/components/icon"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 
 const useItems = chart =>
   useMemo(

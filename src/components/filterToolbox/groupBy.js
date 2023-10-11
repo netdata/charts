@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, memo } from "react"
 import { useChart, useAttribute, useAttributeValue } from "@/components/provider"
-import { TextBig } from "@netdata/netdata-ui/lib/components/typography"
+import { TextBig } from "@netdata/netdata-ui"
 import DropdownTable from "./dropdownTable"
 import { getStats } from "./utils"
 import {

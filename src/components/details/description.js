@@ -1,6 +1,6 @@
 import React from "react"
-import information from "@netdata/netdata-ui/lib/components/icon/assets/information.svg"
-import { TextSmall } from "@netdata/netdata-ui/lib/components/typography"
+import information from "@netdata/netdata-ui/dist/components/icon/assets/information.svg"
+import { TextSmall } from "@netdata/netdata-ui"
 import Icon from "@/components/icon"
 import { useChart, useAttributeValue, useTitle } from "@/components/provider"
 import Row from "./row"

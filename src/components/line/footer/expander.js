@@ -1,7 +1,7 @@
 import React from "react"
 import styled from "styled-components"
 import { Flex, TextSmall, getColor } from "@netdata/netdata-ui"
-import chevronExpand from "@netdata/netdata-ui/lib/components/icon/assets/chevron_expand.svg"
+import chevronExpand from "@netdata/netdata-ui/dist/components/icon/assets/chevron_expand.svg"
 import { useChart, useAttributeValue } from "@/components/provider"
 import Icon from "@/components/icon"
 

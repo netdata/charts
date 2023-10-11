@@ -1,7 +1,7 @@
 import React from "react"
 import styled, { keyframes, css } from "styled-components"
-import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
-import loading from "@netdata/netdata-ui/lib/components/icon/assets/loading.svg"
+import { getColor } from "@netdata/netdata-ui"
+import loading from "@netdata/netdata-ui/dist/components/icon/assets/loading.svg"
 import { useIsFetching, useLoadingColor } from "@/components/provider"
 import Icon from "@/components/icon"
 

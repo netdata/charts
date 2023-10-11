@@ -1,7 +1,7 @@
 import React from "react"
 import { createRoot } from "react-dom/client"
 import { ThemeProvider } from "styled-components"
-import { DefaultTheme } from "@netdata/netdata-ui/lib/theme/default"
+import { DefaultTheme } from "@netdata/netdata-ui"
 import Line from "./components/line"
 
 export default (chart, element) => {

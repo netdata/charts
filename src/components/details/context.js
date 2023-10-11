@@ -1,8 +1,6 @@
 import React from "react"
-import plugins from "@netdata/netdata-ui/lib/components/icon/assets/plugins.svg"
-import { TextSmall } from "@netdata/netdata-ui/lib/components/typography"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import Icon from "@/components/icon"
+import plugins from "@netdata/netdata-ui/dist/components/icon/assets/plugins.svg"
+import { TextSmall, Flex, Icon } from "@netdata/netdata-ui"
 import { useAttributeValue } from "@/components/provider"
 import Row from "./row"
 

@@ -1,7 +1,7 @@
 import React, { useMemo, memo } from "react"
 import styled from "styled-components"
 import { useChart, useAttributeValue, usePayload } from "@/components/provider"
-import { TextMicro, TextNano } from "@netdata/netdata-ui/lib/components/typography"
+import { TextMicro, TextNano } from "@netdata/netdata-ui"
 import Units from "@/components/line/dimensions/units"
 import Dimension from "./dimension"
 

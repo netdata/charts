@@ -1,12 +1,8 @@
 import React, { useEffect, useState, useMemo } from "react"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import Menu from "@netdata/netdata-ui/lib/components/drops/menu"
-import RadioButton from "@netdata/netdata-ui/lib/components/radio-button"
-import dot from "@netdata/netdata-ui/lib/components/icon/assets/dot.svg"
-import { ItemContainer } from "@netdata/netdata-ui/lib/components/drops/menu/dropdownItem"
-import { TextSmall } from "@netdata/netdata-ui/lib/components/typography"
-import sortAscending from "@netdata/netdata-ui/lib/components/icon/assets/sort_ascending.svg"
-import sortDescending from "@netdata/netdata-ui/lib/components/icon/assets/sort_descending.svg"
+import { Flex, Menu, MenuItemContainer, RadioButton, TextSmall } from "@netdata/netdata-ui"
+import dot from "@netdata/netdata-ui/dist/components/icon/assets/dot.svg"
+import sortAscending from "@netdata/netdata-ui/dist/components/icon/assets/sort_ascending.svg"
+import sortDescending from "@netdata/netdata-ui/dist/components/icon/assets/sort_descending.svg"
 import Icon, { Button } from "@/components/icon"
 import { useChart } from "@/components/provider"
 
@@ -15,7 +11,7 @@ const RadioButtonIcon = props => <Icon svg={dot} {...props} />
 const iconProps = { as: RadioButtonIcon, size: "16px" }
 
 const Item = ({ item: { value, label }, value: selectedValue, onItemClick }) => (
-  <ItemContainer data-testid={`chartDimensionFilter-${value}`}>
+  <MenuItemContainer data-testid={`chartDimensionFilter-${value}`}>
     <RadioButton
       label={<TextSmall data-testid="chartDimensionFilter-label">{label}</TextSmall>}
       checked={value === selectedValue}
@@ -25,7 +21,7 @@ const Item = ({ item: { value, label }, value: selectedValue, onItemClick }) => 
       name="dimensionsSort"
       iconProps={iconProps}
     />
-  </ItemContainer>
+  </MenuItemContainer>
 )
 
 const iconBySort = {

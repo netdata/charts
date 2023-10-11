@@ -1,5 +1,5 @@
 import React, { useMemo } from "react"
-import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
+import { TextMicro } from "@netdata/netdata-ui"
 import { useChart } from "@/components/provider"
 
 const Timestamp = ({ value }) => {

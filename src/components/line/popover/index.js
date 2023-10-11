@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useRef, Fragment } from "react"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import { Flex } from "@netdata/netdata-ui"
+import ReactDOM from "react-dom"
+import DropContainer from "@netdata/netdata-ui/dist/components/drops/drop/container"
+import useMakeUpdatePosition from "@netdata/netdata-ui/dist/components/drops/drop/useMakeUpdatePosition"
+import useDropElement from "@netdata/netdata-ui/dist/hooks/use-drop-element"
 import { unregister } from "@/helpers/makeListeners"
 import { useChart } from "@/components/provider"
-import ReactDOM from "react-dom"
-import DropContainer from "@netdata/netdata-ui/lib/components/drops/drop/container"
-import useMakeUpdatePosition from "@netdata/netdata-ui/lib/components/drops/drop/useMakeUpdatePosition"
-import useDropElement from "@netdata/netdata-ui/lib/hooks/use-drop-element"
 import Dimensions from "./dimensions"
 
 const leftTopAlign = { right: "left", bottom: "top" }

@@ -1,6 +1,6 @@
 import React, { forwardRef, useEffect, useMemo } from "react"
 import md5 from "md5"
-import { StyledIcon } from "@netdata/netdata-ui/lib/components/icon/styled"
+import { StyledIcon } from "@netdata/netdata-ui/dist/components/icon/styled"
 
 export { default as Button } from "./button"
 

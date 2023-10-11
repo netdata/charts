@@ -1,6 +1,6 @@
 import React, { memo } from "react"
 import styled from "styled-components"
-import resizeHandler from "@netdata/netdata-ui/lib/components/icon/assets/resize_handler.svg"
+import resizeHandler from "@netdata/netdata-ui/dist/components/icon/assets/resize_handler.svg"
 import { useChart } from "@/components/provider"
 import Icon from "@/components/icon"
 

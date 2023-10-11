@@ -1,5 +1,5 @@
 import React, { useMemo } from "react"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import { Flex } from "@netdata/netdata-ui"
 import { useInitialLoading, useEmpty, useChartError } from "@/components/provider"
 import Badge from "@/components/line/badge"
 import { useHovered } from "@/components/useHover"

@@ -1,8 +1,8 @@
 import React, { forwardRef } from "react"
+import styled, { keyframes } from "styled-components"
+import { Flex } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
 import { useAttributeValue, useOnResize } from "@/components/provider"
-import styled, { keyframes } from "styled-components"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
 import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
 

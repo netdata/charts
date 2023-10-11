@@ -1,10 +1,9 @@
 import React, { memo, useRef, useEffect, useCallback } from "react"
 import styled from "styled-components"
 import { debounce } from "throttle-debounce"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import navLeft from "@netdata/netdata-ui/lib/components/icon/assets/nav_left.svg"
-import navRight from "@netdata/netdata-ui/lib/components/icon/assets/nav_right.svg"
-import useNavigationArrows from "@netdata/netdata-ui/lib/organisms/navigation/hooks/useNavigationArrows"
+import { Flex, useNavigationArrows } from "@netdata/netdata-ui"
+import navLeft from "@netdata/netdata-ui/dist/components/icon/assets/nav_left.svg"
+import navRight from "@netdata/netdata-ui/dist/components/icon/assets/nav_right.svg"
 import {
   useInitialLoading,
   useEmpty,
