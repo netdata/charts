@@ -7,12 +7,11 @@ import Dimensions from "./dimensions"
 
 export const BarsChart = forwardRef(({ uiName, ...rest }, ref) => {
   const { width, height } = useOnResize(uiName)
-  const size = width < height ? width : height
 
   return (
     <ChartWrapper ref={ref}>
       <ChartContainer uiName={uiName} column gap={0.5} position="relative" {...rest}>
-        <Dimensions size={size} height={height} width={width} />
+        <Dimensions height={height} width={width} />
       </ChartContainer>
     </ChartWrapper>
   )

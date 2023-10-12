@@ -29,7 +29,12 @@ export const labelColumn = fallbackExpandKey => ({
     const metricsByValue = useMetricsByValue(chart)
 
     return (
-      <Flex justifyContent="between" alignItems="center" padding={[0, 0, 0, row.depth * 3]}>
+      <Flex
+        justifyContent="between"
+        alignItems="center"
+        padding={[0, 0, 0, row.depth * 3]}
+        width="100%"
+      >
         <Flex gap={1}>
           <Color id={row.original.value} />
           <TextSmall

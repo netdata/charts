@@ -16,6 +16,7 @@ const Grid = styled.div`
         return "3fr 1fr"
     }
   }};
+  gap: ${props => props.gap || 0};
   align-items: center;
 `
 
@@ -59,7 +60,7 @@ const rowSorting = {
   default: "valueDesc",
 }
 
-const Dimensions = ({ size, height, width }) => {
+const Dimensions = ({ height, width }) => {
   const chart = useChart()
   const [x, row] = useAttributeValue("hoverX") || emptyArray
   const { data } = usePayload()
@@ -98,7 +99,7 @@ const Dimensions = ({ size, height, width }) => {
         {from > 0 ? `↑${from} more values` : <>&nbsp;</>}
       </TextNano>
 
-      <Grid gap={0.5} column cols={cols}>
+      <Grid gap="2px" column cols={cols}>
         <TextMicro fontSize="1em" strong>
           Dimension
         </TextMicro>
@@ -143,7 +144,6 @@ const Dimensions = ({ size, height, width }) => {
             strong={row === id}
             chars={parseInt(width / (cols === "full" ? 15 : 8))}
             rowFlavour={rowFlavour}
-            size={(size - 80) / ids.length}
             fullCols={cols === "full"}
           />
         ))}

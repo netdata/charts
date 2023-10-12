@@ -27,11 +27,11 @@ export const meta = (row, cell, index) => ({
   },
   styles: { alignItems: "center" },
   bulkActionsStyles: {
-    padding: [2, 1],
+    padding: [1, 1],
   },
   searchContainerStyles: {
     width: "100%",
-    padding: [0, 2, 0, 2],
+    padding: [0, 1],
   },
   searchStyles: {
     inputContainerStyles: {
@@ -39,7 +39,7 @@ export const meta = (row, cell, index) => ({
       border: { side: "all", size: "1px", color: "inputBg" },
       background: "inputBg",
       round: true,
-      padding: [1, 2],
+      padding: [1, 1],
       _hover: {
         border: { side: "all", size: "1px", color: "borderSecondary" },
       },

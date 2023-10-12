@@ -19,7 +19,7 @@ const GridRow = styled(Flex).attrs({
 
 const ColorBackground = styled(ColorBar).attrs({
   position: "absolute",
-  top: 1,
+  top: 0,
   left: 0,
   backgroundOpacity: 0.4,
   round: 0.5,
@@ -66,7 +66,7 @@ const AnnotationsValue = ({ children: annotations, ...rest }) => (
   </Flex>
 )
 
-const Dimension = ({ id, strong, chars, rowFlavour, size, fullCols }) => {
+const Dimension = ({ id, strong, chars, rowFlavour, fullCols }) => {
   const visible = useVisibleDimensionId(id)
 
   const chart = useChart()
@@ -78,11 +78,11 @@ const Dimension = ({ id, strong, chars, rowFlavour, size, fullCols }) => {
         <ColorBackground
           id={id}
           valueKey={rowValueKeys[rowFlavour] || rowValueKeys.default}
-          height={`${size > 18 ? 18 : size < 12 ? 12 : size}px`}
+          height="100%"
         >
           <Color id={id} />
         </ColorBackground>
-        <Name padding={[1, 2]} flex id={id} strong={strong} maxLength={chars} fontSize="1.1em" />
+        <Name padding={[0.5, 1]} flex id={id} strong={strong} maxLength={chars} fontSize="1.1em" />
       </Flex>
       <Value
         id={id}
