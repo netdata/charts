@@ -110,7 +110,7 @@ const Dimension = forwardRef(({ id }, ref) => {
 
           <AnomalyProgressBar id={id} />
 
-          <Flex gap={1} alignItems="end" data-testid="chartLegendDimension-valueContainer" flex>
+          <Flex gap={1} alignItems="center" data-testid="chartLegendDimension-valueContainer" flex>
             <Value id={id} strong visible={visible} Component={TextBig} />
             <Units visible={visible} />
           </Flex>
