@@ -22,7 +22,7 @@ export const Value = () => {
   const value = useLatestConvertedValue("selected")
 
   return (
-    <Label color="main" fontSize="2em" strong>
+    <Label color="text" fontSize="2em" strong>
       {value}
     </Label>
   )

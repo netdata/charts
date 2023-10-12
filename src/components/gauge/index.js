@@ -31,7 +31,7 @@ export const Value = () => {
   const value = useLatestConvertedValue("selected")
 
   return (
-    <StrokeLabel flex="2" color="main" fontSize="2em" strong>
+    <StrokeLabel flex="2" color="text" fontSize="2em" strong>
       {value}
     </StrokeLabel>
   )

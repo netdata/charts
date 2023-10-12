@@ -17,7 +17,7 @@ export const Value = props => {
   const value = useLatestConvertedValue("selected")
 
   return (
-    <StrokeLabel color="main" fontSize="2em" strong {...props}>
+    <StrokeLabel color="text" fontSize="2em" strong {...props}>
       {value}
     </StrokeLabel>
   )
