@@ -2,7 +2,7 @@ import React from "react"
 import styled from "styled-components"
 import { useWindowSize } from "react-use"
 import { Collapsible, Flex, Text } from "@netdata/netdata-ui"
-import anomalyBadge from "@netdata/netdata-ui/lib/components/icon/assets/anomaly_badge.svg"
+import anomalyBadge from "@netdata/netdata-ui/dist/components/icon/assets/anomaly_badge.svg"
 import Icon from "@/components/icon"
 import Status from "@/components/status"
 import useHover from "@/components/useHover"
@@ -30,7 +30,7 @@ const ChartHeadWrapper = styled(Flex).attrs(({ size, ...rest }) => ({
   width: "100%",
   ...rest,
 }))`
-  font-size: ${props => (props.fontSize > 12 ? 12 : props.fontSize < 9 ? 9 : props.fontSize)}px;
+  font-size: ${props => (props.fontSize > 11 ? 11 : props.fontSize < 8 ? 8 : props.fontSize)}px;
 `
 
 export const Title = () => {

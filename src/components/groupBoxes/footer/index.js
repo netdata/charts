@@ -1,5 +1,5 @@
 import React from "react"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import { Flex } from "@netdata/netdata-ui"
 import Indicators from "@/components/line/indicators"
 import Legend from "./legend"
 

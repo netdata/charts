@@ -1,6 +1,6 @@
 import React from "react"
-import database from "@netdata/netdata-ui/lib/components/icon/assets/database.svg"
-import { TextSmall } from "@netdata/netdata-ui/lib/components/typography"
+import database from "@netdata/netdata-ui/dist/components/icon/assets/database.svg"
+import { TextSmall } from "@netdata/netdata-ui"
 import Icon from "@/components/icon"
 import { useAttributeValue } from "@/components/provider"
 import Row from "./row"

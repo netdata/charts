@@ -1,6 +1,5 @@
 import React, { forwardRef } from "react"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import Layer from "@netdata/netdata-ui/lib/components/templates/layer"
+import { Flex, Layer } from "@netdata/netdata-ui"
 import { useAttributeValue } from "@/components/provider"
 
 export default Component => {

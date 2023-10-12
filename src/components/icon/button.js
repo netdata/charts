@@ -1,5 +1,5 @@
 import styled from "styled-components"
-import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
+import { getColor } from "@netdata/netdata-ui"
 import { withTooltip } from "@/components/tooltip"
 
 const color = ({ active, disabled, defaultColor = "textLite" }) => {

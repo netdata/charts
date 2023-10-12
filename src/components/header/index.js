@@ -1,5 +1,5 @@
 import React, { Fragment } from "react"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import { Flex } from "@netdata/netdata-ui"
 import { useAttributeValue } from "@/components/provider"
 import Toolbox from "@/components/toolbox"
 import Separator from "@/components/line/separator"

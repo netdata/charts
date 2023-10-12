@@ -1,7 +1,7 @@
 import React, { memo } from "react"
+import { TextSmall } from "@netdata/netdata-ui"
 import { useAttributeValue } from "@/components/provider"
 import Badge, { getColors } from "@/components/line/badge"
-import { TextSmall } from "@netdata/netdata-ui/lib/components/typography"
 
 const badgeByStatus = {
   critical: "error",

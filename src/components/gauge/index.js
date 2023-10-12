@@ -1,6 +1,6 @@
 import React, { forwardRef } from "react"
 import styled, { keyframes } from "styled-components"
-import { Flex, Text } from "@netdata/netdata-ui"
+import { Flex, Text, getColor } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
 import {
   useChart,
@@ -9,7 +9,6 @@ import {
   useOnResize,
   useLatestConvertedValue,
 } from "@/components/provider"
-import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
 import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
 import textAnimation from "../helpers/textAnimation"
@@ -22,8 +21,11 @@ const Label = styled(Text)`
 `
 
 const StrokeLabel = styled(Label)`
-  text-shadow: 0.02em 0 ${getColor("border")}, 0 0.02em ${getColor("border")},
-    -0.02em 0 ${getColor("border")}, 0 -0.02em ${getColor("border")};
+  text-shadow:
+    0.02em 0 ${getColor("border")},
+    0 0.02em ${getColor("border")},
+    -0.02em 0 ${getColor("border")},
+    0 -0.02em ${getColor("border")};
 `
 export const Value = () => {
   const value = useLatestConvertedValue("selected")

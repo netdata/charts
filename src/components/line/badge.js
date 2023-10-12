@@ -1,6 +1,5 @@
 import React from "react"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
+import { TextMicro, Flex } from "@netdata/netdata-ui"
 
 const types = {
   error: { background: "errorBackground", color: "errorText" },

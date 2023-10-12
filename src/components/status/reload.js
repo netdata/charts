@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import styled, { keyframes, css } from "styled-components"
-import reload2 from "@netdata/netdata-ui/lib/components/icon/assets/reload2.svg"
+import reload2 from "@netdata/netdata-ui/dist/components/icon/assets/reload2.svg"
 import Icon, { Button } from "@/components/icon"
 import { useChart } from "@/components/provider"
 

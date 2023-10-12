@@ -1,7 +1,6 @@
 import React from "react"
 import styled from "styled-components"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { Text } from "@netdata/netdata-ui/lib/components/typography"
+import { Flex, Text } from "@netdata/netdata-ui"
 import { useChart, useChartError } from "@/components/provider"
 
 const ProceededContainer = styled(Flex).attrs({

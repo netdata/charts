@@ -29,7 +29,12 @@ export const labelColumn = fallbackExpandKey => ({
     const metricsByValue = useMetricsByValue(chart)
 
     return (
-      <Flex justifyContent="between" alignItems="center" padding={[0, 0, 0, row.depth * 3]}>
+      <Flex
+        justifyContent="between"
+        alignItems="center"
+        padding={[0, 0, 0, row.depth * 3]}
+        width="100%"
+      >
         <Flex gap={1}>
           <Color id={row.original.value} />
           <TextSmall
@@ -135,7 +140,7 @@ export const instancesColumn = () => ({
 
     const { qr = 0, sl = 0, ex = 0 } = row.original.info.is
     return (
-      <>
+      <Flex flex column>
         <TextSmall color="textLite">
           <TextSmall color="primary">{qr}</TextSmall> out of {sl + ex}
         </TextSmall>
@@ -147,7 +152,7 @@ export const instancesColumn = () => ({
           containerWidth="100%"
           border="none"
         />
-      </>
+      </Flex>
     )
   },
   sortingFn: "basic",
@@ -163,7 +168,7 @@ export const metricsColumn = () => ({
 
     const { qr = 0, sl = 0, ex = 0 } = row.original.info.ds
     return (
-      <>
+      <Flex flex column>
         <TextSmall color="textLite">
           <TextSmall color="primary">{qr}</TextSmall> out of {sl + ex}
         </TextSmall>
@@ -175,7 +180,7 @@ export const metricsColumn = () => ({
           containerWidth="100%"
           border="none"
         />
-      </>
+      </Flex>
     )
   },
   sortingFn: "basic",
@@ -191,7 +196,7 @@ export const contributionColumn = () => ({
     if (!row.original.info?.sts) return <TextSmall color="textLite">{getValue()}</TextSmall>
 
     return (
-      <>
+      <Flex flex column>
         <TextSmall color="primary">
           {Math.round((getValue() + Number.EPSILON) * 100) / 100}%
         </TextSmall>
@@ -203,7 +208,7 @@ export const contributionColumn = () => ({
           containerWidth="100%"
           border="none"
         />
-      </>
+      </Flex>
     )
   },
   sortingFn: "basic",
@@ -219,7 +224,7 @@ export const anomalyRateColumn = () => ({
     if (!row.original.info?.sts) return <TextSmall color="textLite">{getValue()}</TextSmall>
 
     return (
-      <>
+      <Flex flex column>
         <TextSmall color="textLite">
           {Math.round((getValue() + Number.EPSILON) * 100) / 100}%
         </TextSmall>
@@ -231,7 +236,7 @@ export const anomalyRateColumn = () => ({
           containerWidth="100%"
           border="none"
         />
-      </>
+      </Flex>
     )
   },
   sortingFn: "basic",
@@ -240,8 +245,9 @@ export const anomalyRateColumn = () => ({
 export const alertsColumn = () => ({
   id: "alerts",
   header: <TextMicro strong>Alerts</TextMicro>,
-  size: 70,
+  size: 75,
   minSize: 60,
+  maxSize: 90,
   cell: ({ row, getValue }) => {
     if (!row.original.info?.al) return <TextSmall color="textLite">{getValue()}</TextSmall>
 
@@ -252,11 +258,9 @@ export const alertsColumn = () => ({
     const pillEnd = { text: cl, flavour: cl ? "clear" : "disabledClear" }
 
     return (
-      <div>
-        <Flex flex={false}>
-          <MasterCard pillLeft={pillLeft} pillRight={pillRight} pillEnd={pillEnd} />
-        </Flex>
-      </div>
+      <Flex>
+        <MasterCard pillLeft={pillLeft} pillRight={pillRight} pillEnd={pillEnd} />
+      </Flex>
     )
   },
   sortingFn: "basic",

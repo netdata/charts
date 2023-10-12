@@ -1,5 +1,5 @@
 import React, { forwardRef } from "react"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import { Flex } from "@netdata/netdata-ui"
 import GroupBoxes from "./groupBoxes"
 
 const Container = forwardRef((props, ref) => (

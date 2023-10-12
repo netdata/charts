@@ -1,6 +1,6 @@
 import React, { forwardRef } from "react"
 import styled, { css } from "styled-components"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import { Flex } from "@netdata/netdata-ui"
 import { useInitialLoading, useEmpty, useAttributeValue } from "@/components/provider"
 import { useHovered } from "@/components/useHover"
 import ChartContainer from "@/components/chartContainer"

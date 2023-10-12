@@ -1,7 +1,7 @@
 import React from "react"
-import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
-import checkmark_s from "@netdata/netdata-ui/lib/components/icon/assets/checkmark_s.svg"
-import warning_triangle_hollow from "@netdata/netdata-ui/lib/components/icon/assets/warning_triangle_hollow.svg"
+import { TextMicro } from "@netdata/netdata-ui"
+import checkmark_s from "@netdata/netdata-ui/dist/components/icon/assets/checkmark_s.svg"
+import warning_triangle_hollow from "@netdata/netdata-ui/dist/components/icon/assets/warning_triangle_hollow.svg"
 import Icon from "@/components/icon"
 import { useChart } from "@/components/provider"
 

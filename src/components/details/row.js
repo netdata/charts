@@ -1,6 +1,5 @@
 import React from "react"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { Text } from "@netdata/netdata-ui/lib/components/typography"
+import { Text, Flex } from "@netdata/netdata-ui"
 
 const Row = ({ icon, title, children, ...rest }) => {
   return (

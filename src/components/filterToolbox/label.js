@@ -1,11 +1,9 @@
 import React, { forwardRef } from "react"
 import styled from "styled-components"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
-import { TextSmall } from "@netdata/netdata-ui/lib/components/typography"
-import chevronDown from "@netdata/netdata-ui/lib/components/icon/assets/chevron_down.svg"
+import { Flex, TextSmall, getColor } from "@netdata/netdata-ui"
+import chevronDown from "@netdata/netdata-ui/dist/components/icon/assets/chevron_down.svg"
 import Icon from "@/components/icon"
 import { withTooltip, tooltipStyleProps } from "@/components/tooltip"
-import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
 
 export const Container = styled(Flex).attrs(({ width = { max: 100 }, open, ...rest }) => ({
   cursor: "pointer",

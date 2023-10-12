@@ -5,7 +5,7 @@ const isProduction = process.env.NODE_ENV === "production"
 
 module.exports = {
   mode: process.env.NODE_ENV || "development",
-  devtool: "hidden-source-map",
+  devtool: !isProduction ? "eval-cheap-source-map" : "hidden-source-map",
   entry: "./src/index.js",
   output: {
     path: path.resolve(__dirname, "dist"),

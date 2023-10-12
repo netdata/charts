@@ -1,6 +1,5 @@
 import React, { Fragment } from "react"
-import { TextMicro } from "@netdata/netdata-ui/lib/components/typography"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import { Flex, TextMicro } from "@netdata/netdata-ui"
 import { useAttributeValue } from "@/components/provider"
 
 const UpdateEvery = () => {

@@ -1,9 +1,8 @@
 import React, { forwardRef } from "react"
 import styled from "styled-components"
-import { Text } from "@netdata/netdata-ui/lib/components/typography"
+import { Text, getColor } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
 import { useUnitSign, useLatestConvertedValue } from "@/components/provider"
-import { getColor } from "@netdata/netdata-ui/lib/theme/utils"
 import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
 

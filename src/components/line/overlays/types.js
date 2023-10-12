@@ -1,5 +1,6 @@
 import React from "react"
 import styled from "styled-components"
+import LayerContainer from "@netdata/netdata-ui/dist/components/templates/layer/container"
 import Container, { alignment } from "./container"
 import Alarm from "./alarm"
 import AlarmRange from "./alarmRange"
@@ -7,7 +8,6 @@ import Highlight from "./highlight"
 import Proceeded from "./proceeded"
 import ChartName from "./chartName"
 import LatestValue from "./latestValue"
-import LayerContainer from "@netdata/netdata-ui/lib/components/templates/layer/container"
 import { useAttributeValue } from "@/components/provider"
 
 const NoEventsContainer = styled(LayerContainer)`

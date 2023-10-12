@@ -1,5 +1,5 @@
 import React, { forwardRef } from "react"
-import useForwardRef from "@netdata/netdata-ui/lib/hooks/use-forward-ref"
+import useForwardRef from "@netdata/netdata-ui/dist/hooks/use-forward-ref"
 import useHover from "@/components/useHover"
 import withChart from "@/components/hocs/withChart"
 import { useChart, useAttributeValue } from "@/components/provider"

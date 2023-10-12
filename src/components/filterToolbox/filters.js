@@ -10,11 +10,10 @@ import GroupBy from "./groupBy"
 import TimeAggregation from "./timeAggregation"
 import Labels from "./labels"
 import Reset from "./reset"
-
-import N from "@netdata/netdata-ui/lib/components/icon/assets/N.svg"
-import I from "@netdata/netdata-ui/lib/components/icon/assets/I.svg"
-import D from "@netdata/netdata-ui/lib/components/icon/assets/D.svg"
-import L from "@netdata/netdata-ui/lib/components/icon/assets/L.svg"
+import N from "@netdata/netdata-ui/dist/components/icon/assets/N.svg"
+import I from "@netdata/netdata-ui/dist/components/icon/assets/I.svg"
+import D from "@netdata/netdata-ui/dist/components/icon/assets/D.svg"
+import L from "@netdata/netdata-ui/dist/components/icon/assets/L.svg"
 import Icon from "@/components/icon"
 
 const uppercasedAggrLabel = { secondaryLabel: "The" }

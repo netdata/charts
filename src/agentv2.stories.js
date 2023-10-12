@@ -1,7 +1,6 @@
 import React from "react"
 import { ThemeProvider } from "styled-components"
-import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui/lib/theme"
-import { Flex, Text } from "@netdata/netdata-ui"
+import { Flex, DefaultTheme, DarkTheme } from "@netdata/netdata-ui"
 import Line from "@/components/line"
 import GaugeComponent from "@/components/gauge"
 import EasyPieComponent from "@/components/easyPie"

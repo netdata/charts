@@ -1,5 +1,5 @@
 import React from "react"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import { Flex, TextNano } from "@netdata/netdata-ui"
 import {
   useAttributeValue,
   usePayload,
@@ -7,7 +7,6 @@ import {
   useFormatDate,
   useChart,
 } from "@/components/provider"
-import { TextNano } from "@netdata/netdata-ui/lib/components/typography"
 
 const Timestamp = ({ timestamp }) => {
   const time = useFormatTime(timestamp)

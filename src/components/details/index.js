@@ -1,6 +1,6 @@
 import React from "react"
 import styled from "styled-components"
-import Flex from "@netdata/netdata-ui/lib/components/templates/flex"
+import { Flex } from "@netdata/netdata-ui"
 import { useAttributeValue } from "@/components/provider"
 import Context from "./context"
 import Source from "./source"
