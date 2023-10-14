@@ -48,14 +48,17 @@ export default sdk => {
   }
 
   const blur = () => {
-    sdk.getRoot().updateAttribute("paused", !sdk.getRoot().getAttribute("autofetchOnWindowBlur"))
+    sdk.getRoot().updateAttributes({
+      paused: !sdk.getRoot().getAttribute("autofetchOnWindowBlur"),
+      blurred: true,
+    })
     toggleRender(sdk.getRoot().getAttribute("after") < 0 && !sdk.getRoot().getAttribute("paused"))
 
     sdk.getNodes().forEach(node => autofetchIfActive(node))
   }
 
   const focus = () => {
-    sdk.getRoot().updateAttribute("paused", false)
+    sdk.getRoot().updateAttributes({ paused: false, blurred: false })
     toggleRender(sdk.getRoot().getAttribute("after") < 0 && !sdk.getRoot().getAttribute("paused"))
 
     sdk.getNodes().forEach(node => autofetchIfActive(node))
