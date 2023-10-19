@@ -1,6 +1,6 @@
 import React from "react"
 import styled from "styled-components"
-import { useWindowSize } from "react-use"
+import useWindowSize from "@/components/useWindowSize"
 import { Collapsible, Flex, Text } from "@netdata/netdata-ui"
 import anomalyBadge from "@netdata/netdata-ui/dist/components/icon/assets/anomaly_badge.svg"
 import Icon from "@/components/icon"

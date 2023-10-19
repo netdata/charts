@@ -1,6 +1,6 @@
 {
   "name": "@netdata/charts",
-  "version": "4.0.4",
+  "version": "4.0.5-dev.0",
   "description": "Netdata frontend SDK and chart utilities",
   "main": "index.js",
   "module": "es6/index.js",
@@ -36,7 +36,6 @@
     "@netdata/netdata-ui": "^3.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-use": "^17.4.0",
     "styled-components": "^5.3.9"
   },
   "devDependencies": {
@@ -68,7 +67,6 @@
     "raw-loader": "^4.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-use": "^17.4.0",
     "rimraf": "^5.0.5",
     "sass-loader": "^13.3.2",
     "storybook": "^7.4.6",

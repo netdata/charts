@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react"
 import ReactDOM from "react-dom"
 import { DropContainer } from "@netdata/netdata-ui"
 import useMakeUpdatePosition from "@netdata/netdata-ui/dist/components/drops/drop/useMakeUpdatePosition"
-import useDropElement from "@netdata/netdata-ui/dist/hooks/use-drop-element"
+import useDropElement from "@netdata/netdata-ui/dist/hooks/useDropElement"
 import Labels from "./labels"
 
 const leftTopAlign = { right: "left", bottom: "top" }
