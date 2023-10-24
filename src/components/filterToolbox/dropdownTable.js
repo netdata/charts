@@ -17,33 +17,9 @@ const Container = styled(Flex)`
 
 export const meta = (row, cell, index) => ({
   cellStyles: {
-    height: "40px",
     ...(row?.getIsExpanded?.() && { background: "columnHighlight", backgroundOpacity: 0.7 }),
     ...(row.depth > 0 && { backgroundOpacity: 0.4 }),
     ...(row.depth > 0 && index === 0 && { border: { side: "left", size: "4px" } }),
-  },
-  headStyles: {
-    height: "32px",
-  },
-  styles: { alignItems: "center" },
-  bulkActionsStyles: {
-    padding: [1, 1],
-  },
-  searchContainerStyles: {
-    width: "100%",
-    padding: [0, 1],
-  },
-  searchStyles: {
-    inputContainerStyles: {
-      height: "32px",
-      border: { side: "all", size: "1px", color: "inputBg" },
-      background: "inputBg",
-      round: true,
-      padding: [1, 1],
-      _hover: {
-        border: { side: "all", size: "1px", color: "borderSecondary" },
-      },
-    },
   },
 })
 
@@ -101,7 +77,7 @@ const Dropdown = ({
       <Table
         title={title}
         background="dropdownTable"
-        enableResize
+        enableResizing
         enableSorting
         enableSelection
         dataColumns={columns}
