@@ -13,7 +13,7 @@ const Source = () => {
       icon={<Icon svg={database} color="key" />}
       title="Source"
       color="key"
-      data-testid="cartDetails-source"
+      data-testid="chartDetails-source"
     >
       <TextSmall color="textDescription">{nodeName}</TextSmall>
     </Row>

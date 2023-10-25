@@ -21,7 +21,7 @@ const Context = () => {
       icon={<Icon svg={plugins} color="key" />}
       title="Plugin and chart context"
       color="key"
-      data-testid="cartDetails-context"
+      data-testid="chartDetails-context"
     >
       <Info title="Context">{contextScope.join(", ")}</Info>
     </Row>

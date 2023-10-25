@@ -11,7 +11,6 @@ const Container = styled(Flex).attrs({
   column: true,
   padding: [4, 3],
   gap: 5,
-  background: "mainBackground",
   overflow: { vertical: "auto" },
 })`
   inset: 0;
@@ -21,7 +20,7 @@ const Details = () => {
   const nodeName = useAttributeValue("nodeName")
 
   return (
-    <Container data-testid="cartDetails">
+    <Container data-testid="chartDetails">
       <Description />
       {nodeName && <Source />}
       <Context />

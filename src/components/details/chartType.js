@@ -13,7 +13,7 @@ const ChartType = () => {
       icon={<Icon svg={metrics} color="key" />}
       title="Chart type"
       color="key"
-      data-testid="cartDetails-chartType"
+      data-testid="chartDetails-chartType"
     >
       <TextSmall color="textDescription">{chartType}</TextSmall>
     </Row>
