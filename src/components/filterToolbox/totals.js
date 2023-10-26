@@ -56,7 +56,7 @@ const Totals = ({
       )}
       {!teaser && qr !== total && (
         <>
-          out of <TextMicro>{total}</TextMicro> available
+          of <TextMicro>{total}</TextMicro> available
         </>
       )}
       {resourceName ? chart.intl(resourceName, couldBeMore ? possiblesCount : selectedCount) : ""}

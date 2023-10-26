@@ -104,7 +104,7 @@ const Dropdown = ({
       >
         <Flex gap={1} alignItems="center">
           <TextSmall color="textLite">
-            Selected <TextSmall strong>{newValuesCount}</TextSmall> out of{" "}
+            Selected <TextSmall strong>{newValuesCount}</TextSmall> of{" "}
             <TextSmall strong>{(totals?.sl || 0) + (totals?.ex || 0) || items.length}</TextSmall>
           </TextSmall>
           <Button

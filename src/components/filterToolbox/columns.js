@@ -140,9 +140,9 @@ export const instancesColumn = () => ({
 
     const { qr = 0, sl = 0, ex = 0 } = row.original.info.is
     return (
-      <Flex flex column>
+      <Flex flex column gap={0.5}>
         <TextSmall color="textLite">
-          <TextSmall color="primary">{qr}</TextSmall> out of {sl + ex}
+          <TextSmall color="primary">{qr}</TextSmall> of {sl + ex}
         </TextSmall>
         <ProgressBar
           background="progressBg"
@@ -168,9 +168,9 @@ export const metricsColumn = () => ({
 
     const { qr = 0, sl = 0, ex = 0 } = row.original.info.ds
     return (
-      <Flex flex column>
+      <Flex flex column gap={0.5}>
         <TextSmall color="textLite">
-          <TextSmall color="primary">{qr}</TextSmall> out of {sl + ex}
+          <TextSmall color="primary">{qr}</TextSmall> of {sl + ex}
         </TextSmall>
         <ProgressBar
           background="progressBg"
@@ -196,7 +196,7 @@ export const contributionColumn = () => ({
     if (!row.original.info?.sts) return <TextSmall color="textLite">{getValue()}</TextSmall>
 
     return (
-      <Flex flex column>
+      <Flex flex column gap={0.5}>
         <TextSmall color="primary">
           {Math.round((getValue() + Number.EPSILON) * 100) / 100}%
         </TextSmall>
@@ -224,7 +224,7 @@ export const anomalyRateColumn = () => ({
     if (!row.original.info?.sts) return <TextSmall color="textLite">{getValue()}</TextSmall>
 
     return (
-      <Flex flex column>
+      <Flex flex column gap={0.5}>
         <TextSmall color="textLite">
           {Math.round((getValue() + Number.EPSILON) * 100) / 100}%
         </TextSmall>
