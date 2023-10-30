@@ -45,8 +45,7 @@ export const pointMultiplierByChartType = {
 
 export const getChartPayload = chart => {
   const ui = chart.getUI()
-
-  const width = chart.getAttribute("width") || ui.getChartWidth()
+  const width = ui.getChartWidth()
 
   const {
     after,

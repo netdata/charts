@@ -28,9 +28,19 @@ export default (sdk, chart) => {
 
   const getElement = () => element
 
-  const getChartWidth = () => (element ? element.offsetWidth : 800)
+  const getChartWidth = () =>
+    !chart.getAttribute("width") || chart.getAttribute("width") === "100%"
+      ? element
+        ? element.offsetWidth
+        : 800
+      : chart.getAttribute("width")
 
-  const getChartHeight = () => (element ? element.offsetHeight : 300)
+  const getChartHeight = () =>
+    !chart.getAttribute("height") || chart.getAttribute("height") === "100%"
+      ? element
+        ? element.offsetHeight
+        : 300
+      : chart.getAttribute("height")
 
   return {
     ...listeners,

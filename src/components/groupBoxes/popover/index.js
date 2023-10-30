@@ -28,7 +28,7 @@ const Popover = ({ target, label, index, groupLabel, data, id }) => {
   updatePositionRef.current = useMakeUpdatePosition(target, dropRef, align, stretch)
 
   useEffect(() => {
-    if (!target?.getBoundingClientRect) return
+    if (!target?.getBoundingClientRect || !dropRef.current) return
 
     const { right: targetRight, bottom: targetBottom } = target.getBoundingClientRect()
 

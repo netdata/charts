@@ -19,14 +19,22 @@ export const Container = props => (
   />
 )
 
+const getCursor = (enabledHeightResize, enabledWidthResize) =>
+  enabledHeightResize && enabledWidthResize
+    ? "nwse-resize"
+    : enabledHeightResize
+    ? "ns-resize"
+    : "ew-resize"
+
 const ResizeHandler = () => {
   const enabledHeightResize = useAttributeValue("enabledHeightResize")
+  const enabledWidthResize = useAttributeValue("enabledWidthResize")
 
-  if (!enabledHeightResize) return null
+  if (!enabledHeightResize && !enabledWidthResize) return null
 
   return (
     <Box position="absolute" right={0} bottom="-4px">
-      <Resize />
+      <Resize cursor={getCursor(enabledHeightResize, enabledWidthResize)} />
     </Box>
   )
 }

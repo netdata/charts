@@ -1,4 +1,4 @@
-import React, { memo, useRef, useEffect, useCallback } from "react"
+import React, { memo, useRef, useEffect } from "react"
 import styled from "styled-components"
 import { debounce } from "throttle-debounce"
 import { Flex, useNavigationArrows } from "@netdata/netdata-ui"
@@ -25,7 +25,8 @@ const Container = styled(Flex).attrs({
 })`
   overflow-x: auto; // fallback
   overflow-x: overlay;
-  height: 45px;
+  overflow-y: hidden;
+  height: 50px;
   ::-webkit-scrollbar {
     height: 6px;
   }
@@ -48,15 +49,19 @@ const SkeletonDimensions = () => (
   </Fragment>
 )
 
-const Dimensions = memo(({ setRef }) => {
+const Dimensions = memo(({ lastItemRef }) => {
   const dimensionIds = useDimensionIds()
 
   if (!dimensionIds) return null
 
   return (
     <Fragment>
-      {dimensionIds.map(id => (
-        <Dimension ref={setRef} key={id} id={id} />
+      {dimensionIds.map((id, index) => (
+        <Dimension
+          {...(index === dimensionIds.length - 1 && { ref: lastItemRef })}
+          key={id}
+          id={id}
+        />
       ))}
     </Fragment>
   )
@@ -70,12 +75,12 @@ const Legend = props => {
   const active = useAttributeValue("active")
 
   const legendRef = useRef(null)
-  const dimensionItemsRef = useRef([])
+  const lastItemRef = useRef()
 
   const [arrowLeft, arrowRight, onScroll] = useNavigationArrows(
     legendRef,
-    dimensionItemsRef,
-    [],
+    lastItemRef,
+    dimensionIds.length,
     true
   )
 
@@ -110,22 +115,6 @@ const Legend = props => {
     }
   }, [legendRef.current])
 
-  const setDimensionRef = useCallback(
-    dimensionItem => {
-      if (!dimensionItem) return
-
-      if (!dimensionItemsRef.current.includes(dimensionItem))
-        dimensionItemsRef.current = [...dimensionItemsRef.current, dimensionItem]
-
-      if (dimensionIds.length < dimensionItemsRef.current.length) {
-        dimensionItemsRef.current = dimensionItemsRef.current.filter(
-          node => node.getAttribute("id") === dimensionItem.getAttribute("id")
-        )
-      }
-    },
-    [dimensionIds.length]
-  )
-
   const scrollLeft = e => {
     e.preventDefault()
     const container = legendRef.current
@@ -145,19 +134,24 @@ const Legend = props => {
   }
 
   return (
-    <>
+    <Flex overflow="hidden" position="relative">
       {arrowLeft && (
         <Flex
           data-testid="filterTray-arrowLeft"
           cursor="pointer"
           onClick={scrollLeft}
-          padding={[2]}
+          padding={[0, 2]}
+          height="100%"
+          position="absolute"
+          left={0}
+          background="mainChartBg"
+          alignItems="center"
         >
           <Icon svg={navLeft} color="key" size="8px" />
         </Flex>
       )}
       <Container ref={legendRef} {...props} data-track={chart.track("legend")}>
-        {!initialLoading && !empty && <Dimensions setRef={setDimensionRef} />}
+        {!initialLoading && !empty && <Dimensions lastItemRef={lastItemRef} />}
         {initialLoading && <SkeletonDimensions />}
         {!initialLoading && empty && <EmptyDimension />}
       </Container>
@@ -166,12 +160,17 @@ const Legend = props => {
           data-testid="filterTray-arrowRight"
           cursor="pointer"
           onClick={scrollRight}
-          padding={[2]}
+          padding={[0, 2]}
+          height="100%"
+          position="absolute"
+          right={0}
+          background="mainChartBg"
+          alignItems="center"
         >
           <Icon svg={navRight} color="key" size="8px" />
         </Flex>
       )}
-    </>
+    </Flex>
   )
 }
 

@@ -124,11 +124,16 @@ export default {
   themeCrosshair: ["#536775", "#536775"],
   showingInfo: false,
   colors: [],
+
   height: "",
   enabledHeightResize: true,
   pristineEnabledHeightResize: {},
-  enabledXAxis: true,
   enabledYAxis: true,
+
+  width: "",
+  enabledWidthResize: false,
+  pristineEnabledWidthResize: {},
+  enabledXAxis: true,
 
   hasToolbox: true,
   expandable: true,

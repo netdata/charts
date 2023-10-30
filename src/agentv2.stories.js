@@ -11,7 +11,7 @@ import GroupBoxes from "@/components/groupBoxes"
 import makeDefaultSDK from "./makeDefaultSDK"
 
 const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimension }) => {
-  const sdk = makeDefaultSDK({ attributes: { theme, width: 1000 } })
+  const sdk = makeDefaultSDK({ attributes: { theme, containerWidth: 1000 } })
   const chart = sdk.makeChart({
     attributes: {
       id: "control",

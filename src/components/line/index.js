@@ -11,7 +11,7 @@ import Container from "@/components/container"
 import Footer from "./footer"
 
 export const Line = forwardRef(
-  ({ hasHeader = true, hasFooter = true, hasFilters = true, height, uiName, ...rest }, ref) => {
+  ({ hasHeader = true, hasFooter = true, hasFilters = true, uiName, ...rest }, ref) => {
     const chart = useChart()
     const showingInfo = useAttributeValue("showingInfo")
     const sparkline = useAttributeValue("sparkline")
@@ -32,7 +32,7 @@ export const Line = forwardRef(
     })
 
     return (
-      <Container ref={setRef} {...(sparkline && { border: false })} {...rest} height={height}>
+      <Container ref={setRef} {...(sparkline && { border: false })} {...rest}>
         {hasHeader && <Header />}
         {hasFilters && <FilterToolbox />}
         <ContentWrapper>

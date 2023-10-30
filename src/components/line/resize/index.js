@@ -11,7 +11,7 @@ const Drag = styled(Icon).attrs({
   size: "16px",
   alignSelf: "end",
 })`
-  cursor: ns-resize;
+  cursor: ${props => props.cursor};
 `
 
 const onDoubleClick = event => {
@@ -24,27 +24,30 @@ const Resize = props => {
 
   const onDragStart = event => {
     event.preventDefault()
-    chart.trigger("resizeYStart")
+    chart.trigger("resizeStart")
     const eventStartHeight = event.type === "touchstart" ? event.touches[0].clientY : event.clientY
+    const eventStartWidth = event.type === "touchstart" ? event.touches[0].clientX : event.clientX
 
-    const setHeight = currentHeight => {
-      const diff = currentHeight - eventStartHeight
-      chart.trigger("resizeYMove", diff)
+    const setResize = (currentHeight, currentWidth) => {
+      const diffY = currentHeight - eventStartHeight
+      const diffX = currentWidth - eventStartWidth
+
+      chart.trigger("resizeMove", diffY, diffX)
     }
 
-    const onMouseMove = e => setHeight(e.clientY)
-    const onTouchMove = e => setHeight(e.touches[0].clientY)
+    const onMouseMove = e => setResize(e.clientY, e.clientX)
+    const onTouchMove = e => setResize(e.touches[0].clientY, e.touches[0].clientX)
 
     const onMouseEnd = () => {
       document.removeEventListener("mousemove", onMouseMove)
       document.removeEventListener("mouseup", onMouseEnd)
-      chart.trigger("resizeYEnd")
+      chart.trigger("resizeEnd")
     }
 
     const onTouchEnd = () => {
       document.removeEventListener("touchmove", onTouchMove)
       document.removeEventListener("touchend", onTouchEnd)
-      chart.trigger("resizeYEnd")
+      chart.trigger("resizeEnd")
     }
 
     if (event.type === "touchstart") {
@@ -62,7 +65,6 @@ const Resize = props => {
       onMouseDown={onDragStart}
       onTouchStart={onDragStart}
       alignSelf="end"
-      margin={[0, 0, 0, 1]}
       {...props}
     />
   )
