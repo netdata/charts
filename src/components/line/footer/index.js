@@ -33,7 +33,7 @@ const ResizeHandler = () => {
   if (!enabledHeightResize && !enabledWidthResize) return null
 
   return (
-    <Box position="absolute" right={0} bottom="-4px">
+    <Box position="absolute" right={0} bottom="-4px" className="chart-handle">
       <Resize cursor={getCursor(enabledHeightResize, enabledWidthResize)} />
     </Box>
   )

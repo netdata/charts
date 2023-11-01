@@ -7,7 +7,7 @@ import withResize from "./withResize"
 import withTile from "./withTile"
 
 export default (Component, options = {}) => {
-  let ComponentWithChart = withFullscreen(withResize(withChartTrack(withDeferredMount(Component))))
+  let ComponentWithChart = withFullscreen(withChartTrack(withDeferredMount(Component)))
 
   if (options.tile) ComponentWithChart = withTile(ComponentWithChart)
 

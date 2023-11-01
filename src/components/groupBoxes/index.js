@@ -25,7 +25,7 @@ export const GroupBoxesContainer = forwardRef(({ uiName, ...rest }, ref) => {
 
   const [, setRef] = useForwardRef(node => {
     hoverRef.current = node
-    ref.current = node
+    if (ref) ref.current = node
   })
 
   const showingInfo = useAttributeValue("showingInfo")

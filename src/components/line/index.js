@@ -28,7 +28,7 @@ export const Line = forwardRef(
 
     const [, setRef] = useForwardRef(node => {
       hoverRef.current = node
-      ref.current = node
+      if (ref) ref.current = node
     })
 
     return (

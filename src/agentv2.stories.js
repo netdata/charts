@@ -10,7 +10,7 @@ import BarsComponent from "@/components/bars"
 import GroupBoxes from "@/components/groupBoxes"
 import makeDefaultSDK from "./makeDefaultSDK"
 
-const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimension }) => {
+export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleDimension }) => {
   const sdk = makeDefaultSDK({ attributes: { theme, containerWidth: 1000 } })
   const chart = sdk.makeChart({
     attributes: {
@@ -180,8 +180,8 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
           <D3pieComponent chart={chart9} />
           <BarsComponent chart={chart10} />
         </Flex>
-        <Line chart={chart} height="315px" />
-        <Line chart={chart7} height="315px" />
+        <Line chart={chart} height="315px" width="100%" />
+        <Line chart={chart7} height="315px" width="100%" />
         <GroupBoxes chart={chart4} />
       </Flex>
     </ThemeProvider>
@@ -190,7 +190,16 @@ const Template = ({ nodesScope, contextScope, contexts, host, theme, singleDimen
 
 export default {
   title: "Agent V2",
-  component: OneChart,
+  component: Chart,
+  tags: ["autodocs"],
+  args: {
+    nodesScope: "*",
+    contextScope: "apps.cpu",
+    contexts: "*",
+    singleDimension: "*",
+    theme: "default",
+    host: "http://10.10.11.2:19999/api/v2",
+  },
   argTypes: {
     host: {
       control: { type: "text" },
@@ -212,15 +221,4 @@ export default {
       options: ["default", "dark"],
     },
   },
-}
-
-export const OneChart = Template.bind({})
-
-OneChart.args = {
-  nodesScope: "*",
-  contextScope: "apps.cpu",
-  contexts: "*",
-  singleDimension: "*",
-  theme: "default",
-  host: "http://10.10.11.2:19999/api/v2", // "http://192.168.1.205:19999/api/v2/data",
 }
