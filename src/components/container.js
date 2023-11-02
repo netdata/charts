@@ -1,7 +1,7 @@
 import styled from "styled-components"
 import { Flex } from "@netdata/netdata-ui"
 
-const Container = styled(Flex).attrs(({ height, width, ...rest }) => ({
+const Container = styled(Flex).attrs(({ height = "100%", width = "100%", ...rest }) => ({
   "data-testid": "chart",
   column: true,
   position: "relative",

@@ -142,7 +142,6 @@ const Dimensions = ({ height, width }) => {
             key={id}
             id={id}
             strong={row === id}
-            chars={parseInt(width / (cols === "full" ? 15 : 8))}
             rowFlavour={rowFlavour}
             fullCols={cols === "full"}
           />

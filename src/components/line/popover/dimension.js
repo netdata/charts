@@ -64,7 +64,7 @@ const AnnotationsValue = ({ children: annotations, showFull, ...rest }) => (
   </Flex>
 )
 
-const Dimension = ({ id, strong, chars, rowFlavour }) => {
+const Dimension = ({ id, strong, rowFlavour }) => {
   const visible = useVisibleDimensionId(id)
 
   const chart = useChart()
@@ -86,7 +86,6 @@ const Dimension = ({ id, strong, chars, rowFlavour }) => {
           flex
           id={id}
           strong={strong}
-          maxLength={chars}
           noTooltip
           color={strong ? "textFocus" : "text"}
         />

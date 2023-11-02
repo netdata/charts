@@ -1,18 +1,35 @@
-import React, { useMemo } from "react"
+import React, { useState, useEffect } from "react"
 import shorten from "@/helpers/shorten"
 import Tooltip from "@/components/tooltip"
 
-const Shortener = ({ text, maxLength = 15, Component = "div", noTooltip, ...rest }) => {
-  const truncated = useMemo(() => (text ? shorten(text, maxLength) : null), [text, maxLength])
+const Shortener = ({ text, Component = "div", noTooltip, ...rest }) => {
+  const [shortenText, setShortenText] = useState("")
 
-  if (!noTooltip && truncated !== text)
-    return (
-      <Tooltip content={text}>
-        <Component {...rest}>{truncated}</Component>
-      </Tooltip>
-    )
+  const [ref, setRef] = useState()
 
-  return <Component {...rest}>{truncated}</Component>
+  useEffect(() => {
+    if (!ref) return
+
+    const containerWidth = ref.offsetWidth
+    let round = 0
+
+    while (ref.scrollWidth > containerWidth) {
+      ref.textContent = shorten(ref.textContent, round)
+      round = round + 1
+    }
+
+    if (ref.textContent !== text) {
+      setShortenText(text)
+    }
+  }, [text, ref])
+
+  return (
+    <Tooltip content={!noTooltip && shortenText ? text : ""} align="bottom" isBasic>
+      <Component truncate ref={setRef} {...rest}>
+        {text}
+      </Component>
+    </Tooltip>
+  )
 }
 
 export default Shortener

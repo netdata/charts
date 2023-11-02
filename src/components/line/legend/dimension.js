@@ -106,7 +106,7 @@ const Dimension = forwardRef(({ id }, ref) => {
         content={visible ? <TooltipValue id={id} name={name} /> : null}
       >
         <Flex flex column overflow="hidden" data-testid="chartLegendDimension-details">
-          <Name id={id} maxLength={32} noTooltip />
+          <Name id={id} noTooltip />
 
           <AnomalyProgressBar id={id} />
 

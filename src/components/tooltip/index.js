@@ -18,15 +18,19 @@ const DefaultContent = ({ children, ...rest }) => (
   </Flex>
 )
 
-const Tooltip = forwardRef(({ content, Content = DefaultContent, ...rest }, ref) => (
-  <BaseTooltip
-    ref={ref}
-    plain
-    content={<Content {...rest}>{content}</Content>}
-    {...rest}
-    dropProps={{ "data-toolbox": true }}
-  />
-))
+const Tooltip = forwardRef(({ content, Content = DefaultContent, ...rest }, ref) =>
+  content ? (
+    <BaseTooltip
+      ref={ref}
+      plain
+      content={<Content {...rest}>{content}</Content>}
+      {...rest}
+      dropProps={{ "data-toolbox": true }}
+    />
+  ) : (
+    rest.children
+  )
+)
 
 Tooltip.defaultProps = {
   align: "bottom",

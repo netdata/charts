@@ -66,7 +66,7 @@ const AnnotationsValue = ({ children: annotations, ...rest }) => (
   </Flex>
 )
 
-const Dimension = ({ id, strong, chars, rowFlavour, fullCols }) => {
+const Dimension = ({ id, strong, rowFlavour, fullCols }) => {
   const visible = useVisibleDimensionId(id)
 
   const chart = useChart()
@@ -82,7 +82,7 @@ const Dimension = ({ id, strong, chars, rowFlavour, fullCols }) => {
         >
           <Color id={id} />
         </ColorBackground>
-        <Name padding={[0.5, 1]} flex id={id} strong={strong} maxLength={chars} fontSize="1.1em" />
+        <Name padding={[0.5, 1]} flex id={id} strong={strong} fontSize="1.1em" />
       </Flex>
       <Value
         id={id}

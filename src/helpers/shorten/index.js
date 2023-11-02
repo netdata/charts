@@ -1,61 +1,54 @@
 const removeMiddleVowels = word => {
-  if (/\d/.test(word)) return word
+  if (/\d/.test(word) || word.length < 4) return word
+
   const middle = word.substring(1, word.length - 1)
   return [word.charAt(0), middle.replace(/([aeiou])/gi, ""), word.charAt(word.length - 1)].join("")
 }
 
 const removeDuplicateLetters = word => word.replace(/(\w)\1+/g, "$1")
 
-const ellipsisInMiddle = (text, maxLength) => {
-  const partLength = Math.floor((maxLength - 3) / 2)
+const ellipsisInMiddle = (text, length) => {
+  const partLength = Math.floor((text.length - length) / 2)
   const prefix = text.substring(0, partLength)
   const suffix = text.substring(text.length - partLength)
 
   return `${prefix}...${suffix}`
 }
 
-const replaceIfNeeded = (text, func, maxLength) => {
-  if (text.length <= maxLength) return text
-  return text.replace(/(\w.+?|\d.+)([\s-_.@]+?)/g, (_, word, sep) => {
-    word = func(word, maxLength)
+const replaceIfNeeded = (text, func, ...args) => {
+  if (!text) return ""
 
-    return `${word}${sep}`
+  return text.replace(/([\w\d].+?)([\s-_@])([\w\d].+)+?/, (_, word, sep, word2) => {
+    return `${func(word, ...args)}${sep}${replaceIfNeeded(word2, func, ...args)}`
   })
 }
 
-const shortenSingleString = (string, maxLength) => {
-  string = removeDuplicateLetters(removeMiddleVowels(string))
+const shorten = (string, round = 0) => {
+  if (!string || typeof string !== "string") return string
 
-  if (string.length <= maxLength) return string
-
-  return ellipsisInMiddle(string, maxLength)
+  switch (round) {
+    case 0:
+      return string.trim()
+    case 1:
+      return replaceIfNeeded(string, removeDuplicateLetters)
+    case 2:
+      return replaceIfNeeded(string, removeMiddleVowels)
+    default:
+      return ellipsisInMiddle(string, round)
+  }
 }
 
-export default (string, maxLength = 60) => {
-  if (!string) return string
-  if (string.length <= maxLength) return string
+export const shortForLength = (string, maxLength = 30) => {
+  if (!string || typeof string !== "string") return string
 
-  const match = string.trim().match(/(.+[\s-_.@])(.+)$/)
+  let round = 0
 
-  if (!match) return shortenSingleString(string, maxLength)
-
-  let [, text, lastText] = match
-
-  const hasSeparators = text.match(/[\s-_.@]/)
-
-  if (hasSeparators) {
-    text = replaceIfNeeded(text, removeMiddleVowels, maxLength - lastText.length)
-    text = replaceIfNeeded(text, removeDuplicateLetters, maxLength - lastText.length)
-  } else {
-    text = removeDuplicateLetters(removeMiddleVowels(lastText))
+  while (string.length > maxLength) {
+    string = shorten(string, round)
+    round = round + 1
   }
 
-  if ((text + lastText).length <= maxLength) return text + lastText
-
-  lastText = removeDuplicateLetters(removeMiddleVowels(lastText))
-
-  if ((text + lastText).length <= maxLength) return text + lastText
-
-  text = text + lastText
-  return ellipsisInMiddle(text, maxLength)
+  return string
 }
+
+export default shorten

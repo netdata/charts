@@ -4,10 +4,9 @@ import { useChart } from "@/components/provider"
 import Shortener from "@/components/helpers/shortener"
 
 export const Name = memo(
-  forwardRef(({ children, maxLength = 32, ...rest }, ref) => (
+  forwardRef(({ children, ...rest }, ref) => (
     <Shortener
       text={children}
-      maxLength={maxLength}
       Component={TextMicro}
       color="textDescription"
       whiteSpace="nowrap"

@@ -2,7 +2,7 @@ import makeChartUI from "@/sdk/makeChartUI"
 import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
 import makeExecuteLatest from "@/helpers/makeExecuteLatest"
-import shorten from "@/helpers/shorten"
+import { shortForLength } from "@/helpers/shorten"
 import d3pie from "./library"
 import getInitialOptions from "./getInitialOptions"
 
@@ -75,7 +75,7 @@ export default (sdk, chart) => {
 
     const values = dimensionIds
       .map(id => ({
-        label: shorten(id, 30),
+        label: shortForLength(id, 30),
         value: chart.getDimensionValue(id, index),
         color: chart.selectDimensionColor(id),
         caption: id,

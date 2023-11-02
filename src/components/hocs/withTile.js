@@ -79,9 +79,9 @@ export const HeadWrapper = ({ children, uiName, ...rest }) => {
 
   return (
     <ChartHeadWrapper size={size} {...rest} ref={hoverRef}>
-      <Flex column width="24px" padding={[2, 1]}>
+      <Flex column width={5} padding={[2, 0]}>
         <Status plain />
-        <Collapsible open={focused} column>
+        <Collapsible open={focused} column width={5}>
           <FilterToolbox
             column
             background="elementBackground"
@@ -104,7 +104,7 @@ export const HeadWrapper = ({ children, uiName, ...rest }) => {
         <Title />
         {children}
       </Flex>
-      <Flex column width="24px" alignItems="center" padding={[4, 1]} gap={2}>
+      <Flex column width={5} alignItems="center" padding={[4, 0]} gap={2}>
         {firstDim === "selected" && (
           <>
             <Flex
@@ -145,13 +145,13 @@ export const ChartWrapper = styled(Flex).attrs(props => ({
 }))``
 
 export default Component =>
-  ({ count, tile = true, ...rest }) =>
+  ({ count, tile = true, height = "100%", width = "100%", ...rest }) =>
     tile ? (
-      <HeadWrapper count={count} uiName={rest.uiName}>
+      <HeadWrapper count={count} uiName={rest.uiName} height={height} width={width}>
         <Component {...rest} />
       </HeadWrapper>
     ) : (
-      <ChartHeadWrapper size={20}>
+      <ChartHeadWrapper size={20} height={height} width={width}>
         <Component {...rest} />
       </ChartHeadWrapper>
     )

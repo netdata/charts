@@ -144,13 +144,7 @@ const Dimensions = ({ uiName }) => {
           </TextMicro>
         </GridHeader>
         {ids.map(id => (
-          <Dimension
-            key={id}
-            id={id}
-            strong={row === id}
-            chars={chartWidth < 600 ? 50 : 100}
-            rowFlavour={rowFlavour}
-          />
+          <Dimension key={id} id={id} strong={row === id} rowFlavour={rowFlavour} />
         ))}
       </Grid>
       <Flex flex={false} height={3}>
