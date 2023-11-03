@@ -1,4 +1,4 @@
-import React, { memo } from "react"
+import React, { forwardRef, memo } from "react"
 import styled from "styled-components"
 import { Flex, TextMicro } from "@netdata/netdata-ui"
 import { useChart, useConverted, useAttributeValue } from "@/components/provider"
@@ -35,7 +35,7 @@ const Grid = styled.div`
   align-items: center;
 `
 
-const Labels = ({ index, label, groupLabel, data, id }) => {
+const Labels = forwardRef(({ index, label, groupLabel, data, id }, ref) => {
   const chart = useChart()
   const viewDimensions = chart.getAttribute("viewDimensions")
 
@@ -47,7 +47,7 @@ const Labels = ({ index, label, groupLabel, data, id }) => {
   const convertedValue = useConverted(value, { valueKey: "percent" })
 
   return (
-    <Container data-testid="chartPopover-labels" maxWidth={chartWidth} gap={2}>
+    <Container data-testid="chartPopover-labels" maxWidth={chartWidth} gap={2} ref={ref}>
       <Flex column gap={1}>
         <TextMicro>{groupLabel}</TextMicro>
         <TextMicro strong>{label}</TextMicro>
@@ -59,7 +59,7 @@ const Labels = ({ index, label, groupLabel, data, id }) => {
             bg={chart.getThemeAttribute("themeGroupBoxesMax")}
             height="18px"
           />
-          <TextMicro padding={[1, 2]} strong>
+          <TextMicro padding={[1.5, 2]} strong>
             {convertedValue}
             {convertedValue !== "-" && "%"}
           </TextMicro>
@@ -74,6 +74,6 @@ const Labels = ({ index, label, groupLabel, data, id }) => {
       )}
     </Container>
   )
-}
+})
 
 export default memo(Labels)
