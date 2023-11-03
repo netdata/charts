@@ -1,5 +1,5 @@
 import styled from "styled-components"
-import { getColor } from "@netdata/netdata-ui"
+import { getColor, cursor } from "@netdata/netdata-ui"
 import { withTooltip } from "@/components/tooltip"
 
 const color = ({ active, disabled, defaultColor = "textLite" }) => {
@@ -10,6 +10,7 @@ const color = ({ active, disabled, defaultColor = "textLite" }) => {
 }
 
 const Button = styled.button.attrs(({ icon, hoverIndicator = true, padding = 0, ...rest }) => ({
+  cursor: "pointer",
   ...rest,
   children: icon || rest.children,
   active: rest.active || rest["aria-expanded"],
@@ -22,7 +23,7 @@ const Button = styled.button.attrs(({ icon, hoverIndicator = true, padding = 0, 
   line-height: 0;
   background: ${({ theme, active }) =>
     active ? getColor("borderSecondary")({ theme }) : "initial"};
-  cursor: pointer;
+  ${cursor}
   color: ${({ active, disabled, theme }) => getColor(color({ active, disabled }))({ theme })};
 
   svg {

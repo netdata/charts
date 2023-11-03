@@ -1,6 +1,5 @@
 import React from "react"
-import { ThemeProvider } from "styled-components"
-import { Flex, DefaultTheme, DarkTheme } from "@netdata/netdata-ui"
+import { Flex } from "@netdata/netdata-ui"
 import Line from "@/components/line"
 import GaugeComponent from "@/components/gauge"
 import EasyPieComponent from "@/components/easyPie"
@@ -167,24 +166,22 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
   sdk.appendChild(chart10)
 
   return (
-    <ThemeProvider theme={theme === "default" ? DefaultTheme : DarkTheme}>
-      <Flex background="mainBackground" column gap={2} padding={[3]}>
-        <Flex height={50} gap={2}>
-          <EasyPieComponent chart={chart2} />
-          <GaugeComponent chart={chart3} />
-          <NumberComponent chart={chart5} />
-          <D3pieComponent chart={chart6} />
-        </Flex>
-        <Flex height={50} gap={2}>
-          <D3pieComponent chart={chart8} />
-          <D3pieComponent chart={chart9} />
-          <BarsComponent chart={chart10} />
-        </Flex>
-        <Line chart={chart} height="315px" width="100%" />
-        <Line chart={chart7} height="315px" width="100%" />
-        <GroupBoxes chart={chart4} />
+    <Flex background="mainBackground" column gap={2} padding={[3]} overflow="auto">
+      <Flex height={50} width="100%" gap={2}>
+        <EasyPieComponent chart={chart2} height="100px" />
+        <GaugeComponent chart={chart3} height="100px" />
+        <NumberComponent chart={chart5} height="100px" />
+        <D3pieComponent chart={chart6} height="100px" />
       </Flex>
-    </ThemeProvider>
+      <Flex height={50} width="100%" gap={2}>
+        <D3pieComponent chart={chart8} height="100px" />
+        <D3pieComponent chart={chart9} height="100px" />
+        <BarsComponent chart={chart10} height="100px" />
+      </Flex>
+      <Line chart={chart} height="315px" width="100%" />
+      <Line chart={chart7} height="315px" width="100%" />
+      <GroupBoxes chart={chart4} />
+    </Flex>
   )
 }
 

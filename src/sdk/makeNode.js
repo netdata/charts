@@ -123,11 +123,6 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     updateIntls(attributes.timezone)
   }
 
-  const updateSize = (height, width) => {
-    updateAttributes({ height, width })
-    sdk.trigger("sizeChanged", instance, height, width)
-  }
-
   const moveY = (min, max) => {
     sdk.trigger("moveY", instance, min, max)
   }
@@ -178,32 +173,14 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     moveX(-900)
   }
 
-  const pristineHeight = makePristine(
-    "pristineEnabledHeightResize",
-    ["enabledHeightResize"],
-    updateAttributes
-  )
-
-  const pristineWidth = makePristine(
-    "pristineEnabledWidthResize",
-    ["enabledWidthResize"],
-    updateAttributes
-  )
-
   const toggleFullscreen = () => {
     const fullscreen = getAttribute("fullscreen")
 
     if (!fullscreen) {
-      pristineHeight.updatePristine(attributes, "enabledHeightResize", false)
-      updateAttribute("enabledHeightResize", false)
-      pristineWidth.updatePristine(attributes, "enabledWidthResize", false)
-      updateAttribute("enabledWidthResize", false)
       updateAttribute("fullscreen", !fullscreen)
       return
     }
 
-    pristineHeight.resetPristine(attributes)
-    pristineWidth.resetPristine(attributes)
     updateAttribute("fullscreen", !fullscreen)
   }
 
@@ -240,7 +217,6 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     getId,
     getAncestor,
     inherit,
-    updateSize,
     updateStaticValueRange,
     resetStaticValueRange,
     toggleFullscreen,

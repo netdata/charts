@@ -22,16 +22,8 @@ const preview = {
       return (
         <ThemeProvider theme={theme}>
           <GlobalStyles />
-          <Flex
-            width="100vw"
-            height="100vh"
-            background="mainBackground"
-            alignItems="center"
-            justifyContent="center"
-          >
-            <Flex>
-              <Story />
-            </Flex>
+          <Flex width="100vw" height="100vh" background="mainBackground" overflow="auto">
+            <Story />
           </Flex>
         </ThemeProvider>
       )

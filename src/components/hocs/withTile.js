@@ -111,7 +111,7 @@ export const HeadWrapper = ({ children, uiName, ...rest }) => {
               column
               height="100%"
               width="2px"
-              background="nodeBadgeBackground"
+              background="neutralHighlight"
               justifyContent="end"
             >
               <ColorBar

@@ -3,7 +3,6 @@ import { withChartProvider } from "@/components/provider"
 import withChartTrack from "./withChartTrack"
 import withFullscreen from "./withFullscreen"
 import withDeferredMount from "./withDeferredMount"
-import withResize from "./withResize"
 import withTile from "./withTile"
 
 export default (Component, options = {}) => {

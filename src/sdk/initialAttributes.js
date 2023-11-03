@@ -126,13 +126,9 @@ export default {
   colors: [],
 
   height: "",
-  enabledHeightResize: true,
-  pristineEnabledHeightResize: {},
   enabledYAxis: true,
 
   width: "",
-  enabledWidthResize: false,
-  pristineEnabledWidthResize: {},
   enabledXAxis: true,
 
   hasToolbox: true,
@@ -195,6 +191,7 @@ export default {
   agent: true,
 
   toolboxElements: [Information, ChartType, Fullscreen],
+  toolboxProps: {},
   leftHeaderElements: [Status],
 
   expanded: false,

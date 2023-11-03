@@ -1,9 +1,8 @@
 import React from "react"
-import { Box, Flex } from "@netdata/netdata-ui"
+import { Flex } from "@netdata/netdata-ui"
 import Legend from "@/components/line/legend"
 import HeatmapColors from "@/components/line/legend/heatmapColors"
 import DimensionSort from "@/components/line/dimensionSort"
-import Resize from "@/components/line/resize"
 import { useAttributeValue } from "@/components/provider/selectors"
 import Indicators from "@/components/line/indicators"
 import Drawer from "../drawer"
@@ -18,26 +17,6 @@ export const Container = props => (
     {...props}
   />
 )
-
-const getCursor = (enabledHeightResize, enabledWidthResize) =>
-  enabledHeightResize && enabledWidthResize
-    ? "nwse-resize"
-    : enabledHeightResize
-    ? "ns-resize"
-    : "ew-resize"
-
-const ResizeHandler = () => {
-  const enabledHeightResize = useAttributeValue("enabledHeightResize")
-  const enabledWidthResize = useAttributeValue("enabledWidthResize")
-
-  if (!enabledHeightResize && !enabledWidthResize) return null
-
-  return (
-    <Box position="absolute" right={0} bottom="-4px" className="chart-handle">
-      <Resize cursor={getCursor(enabledHeightResize, enabledWidthResize)} />
-    </Box>
-  )
-}
 
 const Footer = () => {
   const showingInfo = useAttributeValue("showingInfo")
@@ -59,7 +38,7 @@ const Footer = () => {
           {expanded && <Drawer />}
         </>
       )}
-      {expandable ? (
+      {expandable && (
         <Flex
           flex
           position="relative"
@@ -68,10 +47,7 @@ const Footer = () => {
           border={{ side: "top", color: "borderSecondary" }}
         >
           <Expander />
-          <ResizeHandler />
         </Flex>
-      ) : (
-        <ResizeHandler />
       )}
     </Container>
   )
