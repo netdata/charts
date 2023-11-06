@@ -45,7 +45,7 @@ export const pointMultiplierByChartType = {
 
 export const getChartPayload = chart => {
   const ui = chart.getUI()
-  const width = ui.getChartWidth()
+  const width = chart.getAttribute("containerWidth") || ui.getChartWidth()
 
   const {
     after,
@@ -75,8 +75,9 @@ export const getChartPayload = chart => {
           before: fetchOn,
         }
 
+  const points = Math.round((width / pixelsPerPoint) * pointsMultiplier)
   return {
-    points: Math.round((width / pixelsPerPoint) * pointsMultiplier),
+    points: isNaN(points) ? 300 : points,
     format: "json2",
     time_group: groupingMethod,
     time_resampling: groupingTime,
