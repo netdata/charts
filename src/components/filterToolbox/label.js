@@ -9,7 +9,6 @@ export const Container = styled(Flex).attrs(({ width = { max: 100 }, open, ...re
   cursor: "pointer",
   role: "button",
   padding: [0.5],
-  round: true,
   gap: 0.5,
   width,
   alignItems: "center",

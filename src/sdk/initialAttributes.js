@@ -120,8 +120,7 @@ export default {
   eliminateZeroDimensions: true,
   fullscreen: false,
   overlays: {},
-  themeGridColor: ["#E4E8E8", "#212727"],
-  themeCrosshair: ["#536775", "#536775"],
+
   showingInfo: false,
   colors: [],
 
@@ -155,6 +154,9 @@ export default {
   labelsExpanded: {},
 
   pristine: {},
+
+  themeGridColor: ["#E4E8E8", "#212727"],
+  themeCrosshair: ["#536775", "#536775"],
 
   themeTrackColor: ["#DBE1E1", "#353F3F"],
   themeScaleColor: ["#F7F8F8", "#2B3136"],

@@ -11,9 +11,9 @@ const Grid = styled.div`
   grid-template-columns: ${({ cols }) => {
     switch (cols) {
       case "full":
-        return "2fr 1fr 1fr 1fr"
+        return "3fr 1fr 1fr 1fr"
       default:
-        return "3fr 1fr"
+        return "5fr 2fr"
     }
   }};
   gap: ${props => props.gap || 0};
