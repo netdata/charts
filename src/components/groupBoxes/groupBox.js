@@ -103,7 +103,6 @@ const GroupBox = ({ uiName, dimensions, groupLabel, ...options }) => {
         <Popover
           target={hover.target}
           label={label}
-          index={hover.index}
           groupLabel={groupLabel}
           data={pointData}
           id={dimensions[hover.index]}

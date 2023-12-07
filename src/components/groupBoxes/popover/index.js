@@ -18,7 +18,7 @@ const getAlign = (left, top) => {
   return rightBottomAlign
 }
 
-const Popover = ({ target, label, index, groupLabel, data, id }) => {
+const Popover = ({ target, label, groupLabel, data, id }) => {
   const dropRef = useRef()
 
   const updatePositionRef = useRef()
@@ -60,7 +60,6 @@ const Popover = ({ target, label, index, groupLabel, data, id }) => {
       <Labels
         data-testid="chartPopover"
         label={label}
-        index={index}
         groupLabel={groupLabel}
         data={data}
         id={id}

@@ -35,9 +35,10 @@ const Grid = styled.div`
   align-items: center;
 `
 
-const Labels = forwardRef(({ index, label, groupLabel, data, id }, ref) => {
+const Labels = forwardRef(({ label, groupLabel, data, id }, ref) => {
   const chart = useChart()
   const viewDimensions = chart.getAttribute("viewDimensions")
+  const index = chart.getVisibleDimensionIndexesById()?.[id]
 
   const min = useAttributeValue("min")
   const max = useAttributeValue("max")
