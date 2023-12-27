@@ -38,7 +38,7 @@ const Grid = styled.div`
 const Labels = forwardRef(({ label, groupLabel, data, id }, ref) => {
   const chart = useChart()
   const viewDimensions = chart.getAttribute("viewDimensions")
-  const index = chart.getVisibleDimensionIndexesById()?.[id]
+  const index = chart.getDimensionIndex(id)
 
   const min = useAttributeValue("min")
   const max = useAttributeValue("max")

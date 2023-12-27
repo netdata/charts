@@ -9,7 +9,6 @@ export default (chart, sdk) => {
   let dimensionsById = {}
   let sortedDimensionIds = []
   let visibleDimensionIds = []
-  let visibleDimensionIndexesById = {}
   let visibleDimensionSet = new Set()
   let colorCursor = 0
 
@@ -126,11 +125,6 @@ export default (chart, sdk) => {
         )
       : sortedDimensionIds
 
-    visibleDimensionIndexesById = visibleDimensionIds.reduce((h, id, i) => {
-      h[id] = i
-      return h
-    }, {})
-
     const prevDimensionSet = visibleDimensionSet
     visibleDimensionSet = new Set(visibleDimensionIds)
 
@@ -215,8 +209,6 @@ export default (chart, sdk) => {
 
   chart.getVisibleDimensionIds = () => visibleDimensionIds
 
-  chart.getVisibleDimensionIndexesById = () => visibleDimensionIndexesById
-
   chart.isDimensionVisible = id => visibleDimensionSet.has(id)
 
   let memKey = null
@@ -276,7 +268,7 @@ export default (chart, sdk) => {
     value = allowNull && value === null ? value : abs ? Math.abs(value) : value
 
     if (incrementable && isIncremental(chart)) {
-      const index = chart.getVisibleDimensionIndexesById()[id]
+      const index = chart.getDimensionIndex(id)
       const prevId = chart.getVisibleDimensionIds()[index - 1]
 
       value =

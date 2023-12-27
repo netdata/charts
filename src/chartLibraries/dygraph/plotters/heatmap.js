@@ -7,7 +7,6 @@ export default chartUI => plotter => {
   if (plotter.seriesIndex !== 0) return
 
   const dimensionIds = chartUI.chart.getVisibleDimensionIds()
-  const dimensionIndexesById = chartUI.chart.getVisibleDimensionIndexesById()
 
   const g = plotter.dygraph
   const ctx = plotter.drawingContext
@@ -25,7 +24,7 @@ export default chartUI => plotter => {
   const getColor = makeGetColor(chartUI.chart)
 
   series.forEach((seriesName, j) => {
-    const index = dimensionIndexesById[seriesName]
+    const index = chartUI.chart.getDimensionIndex(seriesName)
 
     if (index === -1) return
 
