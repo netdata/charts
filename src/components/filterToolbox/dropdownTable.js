@@ -28,7 +28,7 @@ const noop = () => {}
 const defaultSortBy = [{ id: "contribution", desc: true }]
 
 const defaultExpanded = {}
-const defaultFilterSelectedCount = () => true
+const defaultFilterSelectedCount = arr => arr
 
 const Dropdown = ({
   getOptions,
