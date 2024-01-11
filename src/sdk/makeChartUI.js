@@ -10,11 +10,14 @@ export default (sdk, chart) => {
 
   const mount = el => {
     element = el
+
     sdk.trigger("mountChartUI", chart)
+    chart.trigger("mountChartUI")
   }
 
   const unmount = () => {
     sdk.trigger("unmountChartUI", chart)
+    chart.trigger("unmountChartUI")
     listeners.offAll()
     element = null
     if (executeLatest) executeLatest.clear()
@@ -28,19 +31,9 @@ export default (sdk, chart) => {
 
   const getElement = () => element
 
-  const getChartWidth = () =>
-    !chart.getAttribute("width") || chart.getAttribute("width") === "100%"
-      ? element
-        ? element.offsetWidth
-        : 800
-      : chart.getAttribute("width")
+  const getChartWidth = () => (element ? element.offsetWidth : 300)
 
-  const getChartHeight = () =>
-    !chart.getAttribute("height") || chart.getAttribute("height") === "100%"
-      ? element
-        ? element.offsetHeight
-        : 300
-      : chart.getAttribute("height")
+  const getChartHeight = () => (element ? element.offsetHeight : 300)
 
   return {
     ...listeners,

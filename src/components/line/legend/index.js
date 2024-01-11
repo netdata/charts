@@ -16,17 +16,16 @@ import { Fragment } from "react"
 import Icon from "@/components/icon"
 
 const Container = styled(Flex).attrs({
-  gap: 1,
-  padding: [0, 0, 2],
+  gap: 0.5,
+  padding: [0, 0, 1],
   alignItems: "center",
   flex: true,
-  basis: "40px",
   "data-testid": "chartLegend",
 })`
   overflow-x: auto; // fallback
   overflow-x: overlay;
   overflow-y: hidden;
-  height: 50px;
+
   ::-webkit-scrollbar {
     height: 6px;
   }
@@ -140,11 +139,11 @@ const Legend = props => {
           data-testid="filterTray-arrowLeft"
           cursor="pointer"
           onClick={scrollLeft}
-          padding={[0, 2]}
+          padding={[0, 1]}
           height="100%"
           position="absolute"
           left={0}
-          background="panelBg"
+          background="mainChartBg"
           alignItems="center"
         >
           <Icon svg={navLeft} color="key" size="8px" />
@@ -160,11 +159,11 @@ const Legend = props => {
           data-testid="filterTray-arrowRight"
           cursor="pointer"
           onClick={scrollRight}
-          padding={[0, 2]}
+          padding={[0, 1]}
           height="100%"
           position="absolute"
           right={0}
-          background="panelBg"
+          background="mainChartBg"
           alignItems="center"
         >
           <Icon svg={navRight} color="key" size="8px" />

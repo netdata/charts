@@ -12,7 +12,11 @@ export default (sdk, chart) => {
   const mount = element => {
     chartUI.mount(element)
 
-    resizeObserver = makeResizeObserver(element, () => chartUI.trigger("resize"))
+    resizeObserver = makeResizeObserver(
+      element,
+      () => chartUI.trigger("resize"),
+      () => chartUI.trigger("resize")
+    )
 
     const { loaded } = chart.getAttributes()
 
@@ -21,7 +25,6 @@ export default (sdk, chart) => {
       !loaded && chart.onceAttributeChange("loaded", render)
     )
 
-    chartUI.trigger("resize")
     render()
   }
 

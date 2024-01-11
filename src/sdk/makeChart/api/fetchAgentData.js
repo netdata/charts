@@ -13,6 +13,12 @@ const getPayload = chart => {
     selectedDimensions,
     selectedLabels,
     aggregationMethod,
+    groupBy,
+    groupByLabel,
+    postGroupBy,
+    postGroupByLabel,
+    postAggregationMethod,
+    showPostAggregations,
   } = chart.getAttributes()
 
   const options = getChartURLOptions(chart)
@@ -29,16 +35,15 @@ const getPayload = chart => {
     instances: (Array.isArray(selectedInstances) ? selectedInstances.join("|") : "") || wildcard,
     dimensions: (Array.isArray(selectedDimensions) ? selectedDimensions.join("|") : "") || wildcard,
     labels: (Array.isArray(selectedLabels) ? selectedLabels.join("|") : "") || wildcard,
-    "group_by[0]": (extraPayload["group_by[0]"] || chart.getAttribute("groupBy")).join("|"),
-    "group_by_label[0]": (
-      extraPayload["group_by_label[0]"] || chart.getAttribute("groupByLabel")
-    ).join("|"),
-    "aggregation[0]": extraPayload["aggregation[0]"] || aggregationMethod,
-    ...(!!extraPayload["group_by[1]"] && {
-      "group_by[1]": extraPayload["group_by[1]"].join("|"),
-      "group_by_label[1]": (extraPayload["group_by_label[1]"] || []).join("|"),
-      "aggregation[1]": extraPayload["aggregation[1]"],
-    }),
+    "group_by[0]": groupBy.join("|"),
+    "group_by_label[0]": groupByLabel.join("|"),
+    "aggregation[0]": aggregationMethod,
+    ...(showPostAggregations &&
+      !!postGroupBy.length && {
+        "group_by[1]": postGroupBy.join("|"),
+        "group_by_label[1]": postGroupByLabel.join("|"),
+        "aggregation[1]": postAggregationMethod,
+      }),
   }
 }
 

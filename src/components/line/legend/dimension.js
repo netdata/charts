@@ -15,7 +15,7 @@ const DimensionContainer = forwardRef((props, ref) => (
     ref={ref}
     width={{ min: 22, max: 50 }}
     flex={false}
-    gap={1}
+    gap={0.5}
     data-testid="chartLegendDimension"
     {...props}
   />
@@ -47,7 +47,7 @@ export const EmptyDimension = () => {
   return (
     <DimensionContainer>
       <ColorContainer bg={getColor("placeholder")({ theme })} />
-      <Flex flex gap={1} column overflow="hidden" data-testid="chartLegendDimension-details">
+      <Flex flex gap={0.5} column overflow="hidden" data-testid="chartLegendDimension-details">
         <NameContainer>No data</NameContainer>
         <ValueContainer>-</ValueContainer>
       </Flex>

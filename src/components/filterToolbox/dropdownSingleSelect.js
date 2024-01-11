@@ -1,5 +1,6 @@
 import React, { memo } from "react"
 import styled from "styled-components"
+import { useAttributeValue } from "@/components/provider"
 import { Menu, Text, TextMicro, Flex, getColor, getRgbColor } from "@netdata/netdata-ui"
 import checkmark_s from "@netdata/netdata-ui/dist/components/icon/assets/checkmark_s.svg"
 import information from "@netdata/netdata-ui/dist/components/icon/assets/information.svg"
@@ -95,20 +96,24 @@ export const Item = ({ value: selectedValue, item, onItemClick, itemProps }) => 
   )
 }
 
-const DropdownSingleSelect = ({ labelProps, ...rest }) => (
-  <Menu
-    {...rest}
-    Item={Item}
-    dropProps={{
-      align: { top: "bottom", left: "left" },
-      "data-toolbox": true,
-      width: "460px",
-    }}
-    dropdownProps={{ padding: [0, 0, 2, 0], height: { max: "80vh" } }}
-    {...rest}
-  >
-    <Label {...labelProps} data-value={`${rest.value || "No selection"}`} />
-  </Menu>
-)
+const DropdownSingleSelect = ({ labelProps, ...rest }) => {
+  const id = useAttributeValue("id")
+
+  return (
+    <Menu
+      {...rest}
+      Item={Item}
+      dropProps={{
+        align: { top: "bottom", left: "left" },
+        "data-toolbox": id,
+        width: "460px",
+      }}
+      dropdownProps={{ padding: [0, 0, 2, 0], height: { max: "80vh" } }}
+      {...rest}
+    >
+      <Label {...labelProps} data-value={`${rest.value || "No selection"}`} />
+    </Menu>
+  )
+}
 
 export default memo(DropdownSingleSelect)

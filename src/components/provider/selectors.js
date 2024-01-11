@@ -207,9 +207,16 @@ export const useFormatDate = value => {
 export const useOnResize = uiName => {
   const chart = useChart()
 
+  const [invalidated, invalidate] = useState(1)
   const forceUpdate = useForceUpdate()
 
-  useImmediateListener(() => chart.getUI(uiName).on("resize", forceUpdate), [uiName, chart])
+  useImmediateListener(() => {
+    chart.on("mountChartUI", () => {
+      invalidate(prev => prev + 1)
+      forceUpdate()
+    })
+    chart.getUI(uiName).on("resize", forceUpdate)
+  }, [uiName, chart, invalidated])
 
   return {
     width: chart.getUI(uiName).getChartWidth(),
@@ -311,9 +318,10 @@ const getValueByPeriod = {
     let index = hover ? chart.getClosestRow(hover[0]) : -1
     index = index === -1 ? all.length - 1 : index
 
-    const dimensionIds = chart.getPayloadDimensionIds()
+    id = chart.isDimensionVisible(id) ? id : chart.getVisibleDimensionIds()[0]
 
-    id = id || dimensionIds[0]
+    if (!id) return null
+
     const dimValue = chart.getDimensionValue(id, index, options)
 
     return dimValue
@@ -324,9 +332,10 @@ const getValueByPeriod = {
 
     if (!values?.length) return null
 
-    const dimensionIds = chart.getPayloadDimensionIds()
+    id = chart.isDimensionVisible(id) ? id : chart.getVisibleDimensionIds()[0]
 
-    id = id || dimensionIds[0]
+    if (!id) return null
+
     return values[chart.getDimensionIndex(id)]
   },
   highlight: ({ chart, id, valueKey, objKey }) => {

@@ -75,7 +75,7 @@ const Popover = ({ uiName }) => {
       <Flex ref={r => setTarget(r)} position="absolute" />
       {ReactDOM.createPortal(
         <DropContainer
-          data-toolbox
+          data-toolbox={chart.getId()}
           margin={[align.top ? 2 : -2, align.right ? -2 : 2]}
           ref={dropRef}
           width={{ max: "100%" }}

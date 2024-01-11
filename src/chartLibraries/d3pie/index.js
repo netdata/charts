@@ -35,14 +35,18 @@ export default (sdk, chart) => {
 
     pie = new d3pie(element, getInitialOptions(chartUI))
 
-    resizeObserver = makeResizeObserver(element.parentNode, () => {
-      pie.options = {
-        ...pie.options,
-        size: getInitialOptions(chartUI).size,
-      }
-      reMake()
-      chartUI.trigger("resize")
-    })
+    resizeObserver = makeResizeObserver(
+      element.parentNode,
+      () => {
+        pie.options = {
+          ...pie.options,
+          size: getInitialOptions(chartUI).size,
+        }
+        reMake()
+        chartUI.trigger("resize")
+      },
+      () => chartUI.trigger("resize")
+    )
 
     const latestRender = executeLatest.add(render)
 
@@ -53,7 +57,6 @@ export default (sdk, chart) => {
       chart.on("visibleDimensionsChanged", latestRender)
     )
 
-    chartUI.trigger("resize")
     render()
   }
 

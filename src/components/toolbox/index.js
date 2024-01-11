@@ -10,9 +10,10 @@ const Container = props => (
   <Flex
     gap={1}
     justifyContent="end"
-    alignItem="center"
+    alignItems="center"
     flex
     data-testid="chartHeaderToolbox"
+    zIndex={5}
     {...props}
   />
 )

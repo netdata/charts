@@ -1,7 +1,5 @@
 import React from "react"
-import information from "@netdata/netdata-ui/dist/components/icon/assets/information.svg"
 import { TextSmall } from "@netdata/netdata-ui"
-import Icon from "@/components/icon"
 import { useChart, useAttributeValue, useTitle } from "@/components/provider"
 import Row from "./row"
 
@@ -22,12 +20,7 @@ const ChartDescription = () => {
   }
 
   return (
-    <Row
-      icon={<Icon svg={information} color="key" />}
-      title={title}
-      color="key"
-      data-testid="cartDetails-description"
-    >
+    <Row title={title} color="key" data-testid="cartDetails-description">
       <TextSmall
         color="textDescription"
         dangerouslySetInnerHTML={{ __html: sectionInfo }}

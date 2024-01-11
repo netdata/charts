@@ -10,10 +10,10 @@ export default {
   chartLibrary: "",
   theme: "default",
   host: "",
-  description: "",
+  description: null,
   before: 0,
   after: 0,
-  title: "",
+  title: null,
   min: 0,
   max: 0,
 
@@ -139,9 +139,12 @@ export default {
 
   outOfLimits: false,
   aggregationMethod: "sum",
+  postAggregationMethod: "avg",
 
   groupBy: ["dimension"],
   groupByLabel: [],
+  postGroupBy: ["selected"],
+  postGroupByLabel: [],
 
   dimensionsSortBy: [{ id: "contribution", desc: true }],
   instancesSortBy: [{ id: "contribution", desc: true }],
@@ -184,6 +187,8 @@ export default {
 
   themeLoadingStart: ["#BFE5C6", "#2f5446"],
   themeNetdata: ["#00AB44", "#00AB44"],
+
+  themeShadow: ["rgba(9, 30, 66, 0.15)", "rgba(0, 0, 0, 0.4)"],
 
   legendScroll: 0,
 
@@ -241,4 +246,6 @@ export default {
 
   bearer: null,
   xNetdataBearer: null,
+
+  showPostAggregations: false,
 }

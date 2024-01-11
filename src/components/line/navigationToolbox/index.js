@@ -52,7 +52,7 @@ const ZoomReset = ({ log = () => {} }) => {
   )
 }
 
-const Toolbox = forwardRef((props, ref) => {
+const NavigationToolbox = forwardRef((props, ref) => {
   const chart = useChart()
   const [navigation, setNavigation] = useAttribute("navigation")
 
@@ -93,7 +93,7 @@ const Toolbox = forwardRef((props, ref) => {
   return (
     <Container
       data-testid="chartToolbox"
-      data-toolbox="true"
+      data-toolbox={chart.getId()}
       {...props}
       ref={ref}
       data-track={chart.track("toolbox")}
@@ -143,4 +143,4 @@ const Toolbox = forwardRef((props, ref) => {
   )
 })
 
-export default Toolbox
+export default NavigationToolbox

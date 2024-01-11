@@ -35,6 +35,8 @@ export default chart => {
     node: true,
     instance: true,
     dimension: true,
+    "percentage-of-instance": true,
+    selected: true,
   }
 
   const updateGroupByAttribute = selected => {
@@ -72,14 +74,73 @@ export default chart => {
     })
   }
 
-  const updateChartTypeAttribute = selected => {
-    const prevGroupBy = chart.getAttribute("groupBy")
+  const updatePostGroupByAttribute = selected => {
+    const selectedLabels = selected.filter(sel => sel.isLabel)
+    const groupByLabel = selectedLabels.map(sel => sel.value)
+
+    let groupBy = selected.reduce((h, sel) => {
+      if (!allowedGroupByValues[sel.value]) return h
+      h.push(sel.value)
+      return h
+    }, [])
+
+    if (selectedLabels.length) groupBy.push("label")
+
+    if (
+      deepEqual(groupBy, chart.getAttribute("postGroupBy")) &&
+      deepEqual(groupByLabel, chart.getAttribute("postGroupByLabel"))
+    )
+      return
 
     chart.updateAttributes({
-      selectedChartType: selected,
-      chartType: selected,
+      postGroupByLabel: groupByLabel,
+      postGroupBy: groupBy,
       processing: true,
     })
+
+    chart.updateAttributes(getInitialFilterAttributes(chart))
+    chart.fetch({ processing: true })
+
+    log({
+      chartAction: "chart-postgroupby-change",
+      value: selected,
+    })
+  }
+
+  const chartLibraries = {
+    dygraph: true,
+    easypiechart: true,
+    gauge: true,
+    number: true,
+    d3pie: true,
+    bars: true,
+    groupBoxes: true,
+  }
+
+  const updateChartTypeAttribute = selected => {
+    const prevChartLibrary = chart.getAttribute("chartLibrary")
+    const prevGroupBy = chart.getAttribute("groupBy")
+
+    if (!chartLibraries[selected]) {
+      chart.updateAttributes({
+        chartLibrary: "dygraph",
+        selectedChartType: selected,
+        chartType: selected,
+        processing: true,
+      })
+      if (prevChartLibrary !== "dygraph") {
+        chart.getUI().unmount()
+        chart.setUI({ ...chart.sdk.makeChartUI(chart), ...(chart.ui || {}) }, "default")
+      }
+    } else {
+      chart.updateAttributes({
+        chartLibrary: selected,
+        processing: true,
+      })
+      chart.getUI().unmount()
+      chart.setUI({ ...chart.sdk.makeChartUI(chart), ...(chart.ui || {}) }, "default")
+    }
+    chartLibraries[selected]
 
     if (isHeatmap(selected)) {
       updateGroupByAttribute(["dimension"])
@@ -183,6 +244,19 @@ export default chart => {
     })
   }
 
+  const updatePostAggregationMethodAttribute = value => {
+    if (chart.getAttribute("postAggregationMethod") === value) return
+
+    chart.updateAttributes({ postAggregationMethod: value, processing: true })
+
+    chart.trigger("fetch", { processing: true })
+
+    log({
+      chartAction: "chart-aggregation-method-change",
+      value,
+    })
+  }
+
   const updateContextScopeAttribute = value => {
     if (chart.getAttribute("contextScope")[0] === value) return
 
@@ -230,17 +304,26 @@ export default chart => {
     chart.sdk.trigger("pristineChanged", chart, pristineKey, next, prev)
   }
 
+  const toggleFullscreen = () => {
+    const fullscreen = chart.getAttribute("fullscreen")
+
+    chart.updateAttribute("fullscreen", !fullscreen)
+  }
+
   return {
     updateGroupByAttribute,
+    updatePostGroupByAttribute,
     updateChartTypeAttribute,
     updateNodesAttribute,
     updateInstancesAttribute,
     updateDimensionsAttribute,
     updateLabelsAttribute,
     updateAggregationMethodAttribute,
+    updatePostAggregationMethodAttribute,
     updateTimeAggregationMethodAttribute,
     updateContextScopeAttribute,
     resetPristine,
     removePristine,
+    toggleFullscreen,
   }
 }

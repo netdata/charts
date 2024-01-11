@@ -19,23 +19,6 @@ export const getChartURLOptions = chart => {
   ].filter(Boolean)
 }
 
-const oneValueOptions = attrs => ({
-  "group_by[0]": attrs["group_by[0]"] || ["instance"],
-  "group_by_label[0]": attrs["group_by_label[0]"] || [],
-  "aggregation[0]": attrs["aggregation[0]"] || "sum",
-})
-
-const getDefaultOptionsByLibrary = {
-  gauge: oneValueOptions,
-  easypiechart: oneValueOptions,
-  number: oneValueOptions,
-  default: attrs => ({
-    "group_by[0]": attrs["group_by[0]"],
-    "group_by_label[0]": attrs["group_by_label[0]"],
-    "aggregation[0]": attrs["aggregation[0]"],
-  }),
-}
-
 export const pointMultiplierByChartType = {
   multiBar: 0.1,
   stackedBar: 0.1,
@@ -52,13 +35,11 @@ export const getChartPayload = chart => {
     before,
     groupingMethod,
     groupingTime,
-    chartLibrary,
     renderedAt,
     hovering,
     fetchStartedAt,
     chartType,
     pixelsPerPoint,
-    ...restAttributes
   } = chart.getAttributes()
 
   const pointsMultiplier =
@@ -82,14 +63,6 @@ export const getChartPayload = chart => {
     time_group: groupingMethod,
     time_resampling: groupingTime,
     ...afterBefore,
-    ...(getDefaultOptionsByLibrary[chartLibrary] || getDefaultOptionsByLibrary.default)(
-      restAttributes
-    ),
-    ...(!!restAttributes["group_by[1]"] && {
-      "group_by[1]": restAttributes["group_by[1]"],
-      "group_by_label[1]": restAttributes["group_by_label[1]"],
-      "aggregation[1]": restAttributes["aggregation[1]"],
-    }),
   }
 }
 

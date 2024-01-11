@@ -8,6 +8,7 @@ export const Container = props => (
     border={{ side: "top", color: "borderSecondary" }}
     data-testid="chartLegend"
     column
+    position="relative"
     {...props}
   />
 )

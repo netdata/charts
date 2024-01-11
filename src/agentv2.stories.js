@@ -22,6 +22,7 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
       agent: true,
       syncHover: true,
       groupingMethod: "average",
+      width: "50%",
     },
   })
 
@@ -38,6 +39,7 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
       agent: true,
       syncHover: true,
       groupingMethod: "average",
+      width: "50%",
     },
   })
 
@@ -53,8 +55,9 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
       agent: true,
       chartLibrary: "easypiechart",
       urlOptions: ["percentage"],
-      "group_by[0]": ["percentage-of-instance"],
+      groupBy: ["percentage-of-instance"],
       syncHover: true,
+      width: "50%",
     },
   })
 
@@ -71,6 +74,7 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
       chartLibrary: "gauge",
       syncHover: true,
       urlOptions: ["percentage"],
+      width: "50%",
     },
   })
 
@@ -85,6 +89,7 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
       agent: true,
       chartLibrary: "groupBoxes",
       groupBy: ["dimension", "node"],
+      width: "50%",
     },
   })
   sdk.appendChild(chart4)
@@ -98,6 +103,7 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
       agent: true,
       chartLibrary: "number",
       syncHover: true,
+      width: "50%",
     },
   })
 
@@ -114,6 +120,7 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
       syncHover: true,
       groupingMethod: "average",
       chartLibrary: "d3pie",
+      width: "50%",
     },
   })
 
@@ -130,6 +137,7 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
       syncHover: true,
       groupingMethod: "average",
       chartLibrary: "d3pie",
+      width: "50%",
     },
   })
 
@@ -146,6 +154,7 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
       syncHover: true,
       groupingMethod: "average",
       chartLibrary: "d3pie",
+      width: "50%",
     },
   })
 
@@ -160,6 +169,7 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
       agent: true,
       chartLibrary: "bars",
       syncHover: true,
+      width: "50%",
     },
   })
 
@@ -168,15 +178,15 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
   return (
     <Flex background="mainBackground" column gap={2} padding={[3]} overflow="auto">
       <Flex height={50} width="100%" gap={2}>
-        <EasyPieComponent chart={chart2} height="100px" />
-        <GaugeComponent chart={chart3} height="100px" />
-        <NumberComponent chart={chart5} height="100px" />
-        <D3pieComponent chart={chart6} height="100px" />
+        <EasyPieComponent chart={chart2} height="100px" width="100px" />
+        <GaugeComponent chart={chart3} height="100px" width="100px" />
+        <NumberComponent chart={chart5} height="100px" width="100px" />
+        <D3pieComponent chart={chart6} height="100px" width="100px" />
       </Flex>
       <Flex height={50} width="100%" gap={2}>
-        <D3pieComponent chart={chart8} height="100px" />
-        <D3pieComponent chart={chart9} height="100px" />
-        <BarsComponent chart={chart10} height="100px" />
+        <D3pieComponent chart={chart8} height="100px" width="100px" />
+        <D3pieComponent chart={chart9} height="100px" width="100px" />
+        <BarsComponent chart={chart10} height="100px" width="100px" />
       </Flex>
       <Line chart={chart} height="315px" width="100%" />
       <Line chart={chart7} height="315px" width="100%" />

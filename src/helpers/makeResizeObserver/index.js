@@ -1,10 +1,11 @@
-export default (element, action) => {
+export default (element, action, initialAction) => {
   let id
   let firstTime = true
 
   let resizeObserver = new ResizeObserver(() => {
     if (firstTime) {
       firstTime = false
+      id = setTimeout(() => initialAction?.(), 200)
       return
     }
     clearTimeout(id)

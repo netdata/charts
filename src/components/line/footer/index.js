@@ -5,7 +5,6 @@ import HeatmapColors from "@/components/line/legend/heatmapColors"
 import DimensionSort from "@/components/line/dimensionSort"
 import { useAttributeValue } from "@/components/provider/selectors"
 import Indicators from "@/components/line/indicators"
-import Drawer from "../drawer"
 import Expander from "./expander"
 import { useIsHeatmap } from "@/helpers/heatmap"
 
@@ -14,13 +13,13 @@ export const Container = props => (
     border={{ side: "top", color: "borderSecondary" }}
     data-testid="chartLegend"
     column
+    position="relative"
     {...props}
   />
 )
 
 const Footer = () => {
   const showingInfo = useAttributeValue("showingInfo")
-  const expanded = useAttributeValue("expanded")
   const expandable = useAttributeValue("expandable")
   const isHeatmap = useIsHeatmap()
 
@@ -34,8 +33,6 @@ const Footer = () => {
             <DimensionSort />
             <Legend />
           </Flex>
-
-          {expanded && <Drawer />}
         </>
       )}
       {expandable && (

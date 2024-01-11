@@ -27,6 +27,7 @@ const StrokeLabel = styled(Label)`
     -0.02em 0 ${getColor("border")},
     0 -0.02em ${getColor("border")};
 `
+
 export const Value = () => {
   const value = useLatestConvertedValue("selected")
 
@@ -130,6 +131,7 @@ export const Gauge = forwardRef(({ uiName, ...rest }, ref) => {
             position="relative"
             justifyContent="center"
             alignItems="center"
+            overflow="hidden"
             {...rest}
           >
             <canvas />

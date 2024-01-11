@@ -11,7 +11,16 @@ const ChartContainer = ({ uiName, ...rest }) => {
     return () => chart.getUI(uiName) && chart.getUI(uiName).unmount()
   }, [])
 
-  return <Flex data-testid="chartContent" ref={ref} height="100%" width="100%" {...rest} />
+  return (
+    <Flex
+      data-testid="chartContent"
+      ref={ref}
+      height="100%"
+      width="100%"
+      overflow="hidden"
+      {...rest}
+    />
+  )
 }
 
 export default ChartContainer

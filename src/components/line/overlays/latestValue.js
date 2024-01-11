@@ -1,7 +1,8 @@
 import React from "react"
 import styled from "styled-components"
 import { Flex, Text, getColor } from "@netdata/netdata-ui"
-import { useLatestConvertedValue, useUnitSign } from "@/components/provider"
+import { useLatestConvertedValue, useUnitSign, useOnResize } from "@/components/provider"
+import FontSizer from "@/components/helpers/fontSizer"
 
 const StrokeLabel = styled(Text)`
   text-shadow:
@@ -23,22 +24,50 @@ const defaultTextProps = {
 const LatestValue = ({ dimensionId, textProps, ...rest }) => {
   const unit = useUnitSign()
   const value = useLatestConvertedValue(dimensionId)
+  const { width, height } = useOnResize()
 
-  if (!value)
+  if (!value || value === "-")
     return (
-      <StrokeLabel fontSize="2.5em" strong {...defaultTextProps} {...textProps} {...rest}>
+      <FontSizer
+        Component={StrokeLabel}
+        maxHeight={(height - 20) * 0.9}
+        maxWidth={width - 20}
+        fontSize="2.5em"
+        strong
+        {...defaultTextProps}
+        {...textProps}
+        {...rest}
+      >
         {typeof value !== "string" ? "Loading..." : "No data"}
-      </StrokeLabel>
+      </FontSizer>
     )
 
   return (
     <StyledFlex column {...rest}>
-      <StrokeLabel fontSize="2.1em" lineHeight="1.1em" strong {...defaultTextProps} {...textProps}>
+      <FontSizer
+        Component={StrokeLabel}
+        maxHeight={(height - 20) * 0.7}
+        maxWidth={width - 20}
+        fontSize="2.1em"
+        lineHeight="1.1em"
+        strong
+        {...defaultTextProps}
+        {...textProps}
+      >
         {value}
-      </StrokeLabel>
-      <StrokeLabel fontSize="1.1em" strong {...defaultTextProps} color="textLite" {...textProps}>
+      </FontSizer>
+      <FontSizer
+        Component={StrokeLabel}
+        maxHeight={(height - 20) * 0.3}
+        maxWidth={width - 20}
+        fontSize="1.1em"
+        strong
+        {...defaultTextProps}
+        color="textLite"
+        {...textProps}
+      >
         {unit}
-      </StrokeLabel>
+      </FontSizer>
     </StyledFlex>
   )
 }

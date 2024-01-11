@@ -124,6 +124,8 @@ export default ({
   )
 
   node.on("render", render)
+  node.on("hoverChart", render)
+  node.on("blurChart", render)
 
   node.getConvertedValue = (value, { fractionDigits, key = "units" } = {}) => {
     if (!node) return
@@ -322,5 +324,6 @@ export default ({
     ...makeFilterControllers(node),
     destroy,
     onKeyChange,
+    sdk,
   }
 }

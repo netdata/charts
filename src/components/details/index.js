@@ -5,16 +5,15 @@ import { useAttributeValue } from "@/components/provider"
 import Context from "./context"
 import Source from "./source"
 import Description from "./description"
-import ChartType from "./chartType"
 
 const Container = styled(Flex).attrs({
   column: true,
-  padding: [4, 3],
-  gap: 5,
+  padding: [3, 2],
+  gap: 3,
   overflow: { vertical: "auto" },
-})`
-  inset: 0;
-`
+  width: "100%",
+  height: "100%",
+})``
 
 const Details = () => {
   const nodeName = useAttributeValue("nodeName")
@@ -24,7 +23,6 @@ const Details = () => {
       <Description />
       {nodeName && <Source />}
       <Context />
-      <ChartType />
     </Container>
   )
 }

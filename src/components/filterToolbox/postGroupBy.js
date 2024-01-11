@@ -31,13 +31,16 @@ const useDefaultItems = chart =>
         id: "percentage-of-instance",
         key: "instances",
       },
+      {
+        nm: "as single value",
+        id: "selected",
+      },
     ],
     []
   )
 
 const tooltipProps = {
-  heading: "Group by",
-  body: "Slice and dice the source time-series metrics in multiple ways, to get different viewing angles on them. Multiple groupings can be selected at the same time to fine tune the segmentation.",
+  heading: "Post group by",
 }
 
 const columns = [
@@ -53,8 +56,8 @@ const columns = [
 
 const GroupBy = ({ labelProps, ...rest }) => {
   const chart = useChart()
-  const groupBy = useAttributeValue("groupBy")
-  const groupByLabel = useAttributeValue("groupByLabel")
+  const groupBy = useAttributeValue("postGroupBy")
+  const groupByLabel = useAttributeValue("postGroupByLabel")
 
   let label = "everything"
 
@@ -79,7 +82,7 @@ const GroupBy = ({ labelProps, ...rest }) => {
           selected,
         },
         childProps: { unique: "-", disabled: "hidden" },
-        ...(item.key && { children: Object.values(attributes[item.key]) }),
+        children: attributes[item.key] ? Object.values(attributes[item.key]) : [],
       })
     })
 
@@ -112,7 +115,7 @@ const GroupBy = ({ labelProps, ...rest }) => {
     })
     if (withoutNodes.length < groupBy.length) groups.push("node")
 
-    return groups.join(", ")
+    return groups.join(", ") || "-"
   }, [groupBy, groupByLabel])
 
   const value = useMemo(() => [...groupBy, ...groupByLabel], [groupBy, groupByLabel])
@@ -124,15 +127,15 @@ const GroupBy = ({ labelProps, ...rest }) => {
     <DropdownTable
       title={
         <TextBig strong whiteSpace="nowrap">
-          Group by
+          Post group by
         </TextBig>
       }
       label={label}
-      data-track={chart.track("group-by")}
+      data-track={chart.track("post-group-by")}
       labelProps={labelProps}
-      onChange={chart.updateGroupByAttribute}
+      onChange={chart.updatePostGroupByAttribute}
       getOptions={getOptions}
-      secondaryLabel="Group by"
+      secondaryLabel="Post group by"
       tooltipProps={tooltipProps}
       value={value}
       columns={columns}
@@ -141,7 +144,6 @@ const GroupBy = ({ labelProps, ...rest }) => {
       onSortByChange={onSortByChange}
       expanded={expanded}
       onExpandedChange={onExpandedChange}
-      emptyMessage="Deselecting everything will use GROUP BY DIMENSION by default"
       {...rest}
     />
   )

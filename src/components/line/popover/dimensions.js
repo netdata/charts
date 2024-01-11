@@ -1,7 +1,7 @@
 import React, { useMemo, memo } from "react"
 import styled from "styled-components"
 import { Flex, TextMicro, TextNano } from "@netdata/netdata-ui"
-import { useChart, useAttributeValue, useOnResize } from "@/components/provider"
+import { useChart, useAttributeValue } from "@/components/provider"
 import Units from "@/components/line/dimensions/units"
 import UpdateEvery from "./updateEvery"
 import Timestamp from "./timestamp"
@@ -71,7 +71,7 @@ const rowSorting = {
   default: "valueDesc",
 }
 
-const Dimensions = ({ uiName }) => {
+const Dimensions = () => {
   const chart = useChart()
   const [x, row] = useAttributeValue("hoverX") || emptyArray
 
@@ -95,8 +95,6 @@ const Dimensions = ({ uiName }) => {
     return [from, to, total, ids]
   }, [chart, row, x])
 
-  const { parentWidth, width } = useOnResize(uiName)
-  const chartWidth = (parentWidth > width ? parentWidth : width) * 0.9
   const rowFlavour = rowFlavours[row] || rowFlavours.default
 
   return (
