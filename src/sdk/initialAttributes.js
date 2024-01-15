@@ -131,7 +131,7 @@ export default {
   enabledXAxis: true,
 
   hasToolbox: true,
-  expandable: true,
+  expandable: false,
 
   hasYlabel: true,
   yAxisLabelWidth: 60,

@@ -28,11 +28,13 @@ export const Unit = props => {
   const { width, height } = useOnResize()
   const unit = useUnitSign()
 
+  if (!unit) return null
+
   return (
     <FontSizer
       Component={Text}
-      maxHeight={(height - 20) * 0.3}
-      maxWidth={width - 20}
+      maxHeight={(height - 20) * 0.25}
+      maxWidth={(width - 20) * 0.7}
       fontSize="1.1em"
       strong
       color="textLite"

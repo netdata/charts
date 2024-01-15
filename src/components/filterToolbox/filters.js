@@ -53,19 +53,19 @@ const FilterToolbox = ({ plain }) => {
   if (plain)
     return (
       <>
+        {/*<Config labelProps={plainLabelProps.config} />*/}
         <Nodes labelProps={plainLabelProps.nodes} />
         <Instances labelProps={plainLabelProps.instances} />
         <Dimensions labelProps={plainLabelProps.dimensions} />
         <Labels labelProps={plainLabelProps.labels} />
-        <Config labelProps={plainLabelProps.config} />
       </>
     )
 
   if (showPostAggregations) {
     return (
       <>
-        <Flex padding={[0.5]} column>
-          <Flex>
+        <Flex padding={[0.5]} flexWrap gap={2}>
+          <Flex alignItems="center">
             <ShowPostAggregations labelProps={plainLabelProps.showPostAggregations} />
             {!isHeatmap && <ContextScope />}
             {!isHeatmap && <PostGroupBy labelProps={{ secondaryLabel: "Group by" }} />}
@@ -78,12 +78,10 @@ const FilterToolbox = ({ plain }) => {
               of the:{" "}
             </TextSmall>
           </Flex>
-
           <Flex
             round
             border={{ side: "all", size: "2px", type: "dashed", color: "border" }}
             alignItems="center"
-            margin={[0, 0, 0, 4]}
           >
             {!isHeatmap && <GroupBy labelProps={{ secondaryLabel: "Group by" }} />}
             <Aggregate labelProps={isHeatmap ? uppercasedAggrLabel : emptyObject} />
@@ -101,7 +99,7 @@ const FilterToolbox = ({ plain }) => {
 
   return (
     <>
-      <Flex>
+      <Flex flexWrap>
         <ShowPostAggregations labelProps={plainLabelProps.showPostAggregations} />
         {!isHeatmap && <ContextScope />}
         {!isHeatmap && <GroupBy labelProps={{ secondaryLabel: "Group by" }} />}

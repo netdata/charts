@@ -2,6 +2,7 @@ import React from "react"
 import styled from "styled-components"
 import { Flex, Text } from "@netdata/netdata-ui"
 import anomalyBadge from "@netdata/netdata-ui/dist/components/icon/assets/anomaly_badge.svg"
+import useDebouncedValue from "@netdata/netdata-ui/dist/hooks/useDebouncedValue"
 import Icon from "@/components/icon"
 import useHover from "@/components/useHover"
 import Toolbox from "@/components/toolbox"
@@ -82,10 +83,11 @@ export const HeadWrapper = ({ children, customChildren, ...rest }) => {
   )
 
   const shadowColor = useColor("themeShadow")
+  const debouncedFocused = useDebouncedValue(focused, 400)
 
   return (
     <ChartHeadWrapper size={size} {...rest} ref={hoverRef}>
-      {focused && (
+      {focused && debouncedFocused && (
         <Toolbox
           position="absolute"
           top="-16px"
@@ -96,22 +98,31 @@ export const HeadWrapper = ({ children, customChildren, ...rest }) => {
           sx={{
             boxShadow: `0px 1px 5px 0px ${shadowColor};`,
           }}
-        />
+          overflow="hidden"
+        >
+          {width > 400 && (
+            <div>
+              <FilterToolbox border="none" opacity={focused ? 1 : 0.1} focused={focused} />
+            </div>
+          )}
+        </Toolbox>
       )}
       <Flex column width={5} padding={[1, 0]}>
         {leftHeaderElements.map((Element, index) => (
           <Element key={index} plain />
         ))}
-        <Flex column width={5}>
-          <FilterToolbox
-            column
-            border="none"
-            justifyContent="start"
-            plain
-            opacity={focused ? 1 : 0.1}
-            focused={focused}
-          />
-        </Flex>
+        {width < 400 && (
+          <Flex column width={5}>
+            <FilterToolbox
+              column
+              border="none"
+              justifyContent="start"
+              plain
+              opacity={focused ? 1 : 0.1}
+              focused={focused}
+            />
+          </Flex>
+        )}
       </Flex>
       <Flex
         column

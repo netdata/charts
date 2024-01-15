@@ -212,10 +212,12 @@ export const useOnResize = uiName => {
 
   useImmediateListener(() => {
     chart.on("mountChartUI", () => {
-      invalidate(prev => prev + 1)
-      forceUpdate()
+      setTimeout(() => {
+        invalidate(prev => prev + 1)
+        forceUpdate()
+      }, 300)
     })
-    chart.getUI(uiName).on("resize", forceUpdate)
+    chart.getUI(uiName).on("rendered", forceUpdate).on("resize", forceUpdate)
   }, [uiName, chart, invalidated])
 
   return {

@@ -46,7 +46,7 @@ const LatestValue = ({ dimensionId, textProps, ...rest }) => {
     <StyledFlex column {...rest}>
       <FontSizer
         Component={StrokeLabel}
-        maxHeight={(height - 20) * 0.7}
+        maxHeight={(height - 20) * 0.8}
         maxWidth={width - 20}
         fontSize="2.1em"
         lineHeight="1.1em"
@@ -58,8 +58,8 @@ const LatestValue = ({ dimensionId, textProps, ...rest }) => {
       </FontSizer>
       <FontSizer
         Component={StrokeLabel}
-        maxHeight={(height - 20) * 0.3}
-        maxWidth={width - 20}
+        maxHeight={(height - 20) * 0.25}
+        maxWidth={(width - 20) * 0.7}
         fontSize="1.1em"
         strong
         {...defaultTextProps}

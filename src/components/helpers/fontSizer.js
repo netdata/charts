@@ -1,16 +1,24 @@
-import React, { useState, useLayoutEffect } from "react"
+import React, { useState, useEffect } from "react"
 
-const FontSizer = ({ children, Component = "div", maxHeight = 100, maxWidth = 100, ...rest }) => {
+const FontSizer = ({
+  children,
+  Component = "div",
+  maxHeight = 100,
+  maxWidth = 100,
+  maxFontSize = 500,
+  minFontSize = 10,
+  ...rest
+}) => {
   const [ref, setRef] = useState()
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (!ref) return
 
-    let fontSize = 500
+    let fontSize = maxFontSize
 
     ref.style.fontSize = fontSize + "px"
 
-    while (fontSize > 10 && (ref.offsetWidth > maxWidth || ref.offsetHeight > maxHeight)) {
+    while (fontSize > minFontSize && (ref.offsetWidth > maxWidth || ref.offsetHeight > maxHeight)) {
       const delta = Math.ceil(fontSize / 100)
       fontSize = fontSize - delta
       ref.style.fontSize = fontSize + "px"

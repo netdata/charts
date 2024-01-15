@@ -18,12 +18,13 @@ const Container = props => (
   />
 )
 
-const Toolbox = props => {
+const Toolbox = ({ children, ...rest }) => {
   const disabled = !useAttributeValue("focused")
   const toolboxElements = useAttributeValue("toolboxElements")
 
   return (
-    <Container {...props}>
+    <Container {...rest}>
+      {children}
       {toolboxElements.map((Element, index) => (
         <Element key={index} disabled={disabled} />
       ))}

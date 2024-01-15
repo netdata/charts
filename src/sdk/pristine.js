@@ -42,6 +42,8 @@ const { updatePristine, resetPristine } = makePristine(pristineKey, [
 
   "title",
   "description",
+
+  "showPostAggregations",
 ])
 
 export default { update: updatePristine, reset: resetPristine }

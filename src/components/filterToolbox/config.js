@@ -29,7 +29,7 @@ const ShowPostAggregations = ({ labelProps }) => {
         ref={ref}
         {...labelProps}
         onClick={() => setOpen(prev => !prev)}
-        data-track={chart.track("showPostAggregations")}
+        data-track={chart.track("showConfig")}
         tooltipProps={tooltipProps}
         title={tooltipProps.heading}
       />
@@ -46,7 +46,7 @@ const ShowPostAggregations = ({ labelProps }) => {
               </Flex>
             </ModalBody>
             <ModalFooter>
-              <Button neutral label="Close" />
+              <Button neutral label="Close" onClick={onClose} />
             </ModalFooter>
           </ModalContent>
         </Modal>
