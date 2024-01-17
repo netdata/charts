@@ -92,7 +92,7 @@ export const HeadWrapper = ({ children, customChildren, ...rest }) => {
           position="absolute"
           top="-16px"
           right="0"
-          background="panelBg"
+          background="mainChartHeaderBg"
           width={{ min: "100%" }}
           padding={[1]}
           sx={{

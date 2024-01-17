@@ -288,12 +288,20 @@ export default chart => {
   const resetPristine = () => {
     const attributes = chart.getAttributes()
     const prev = { ...attributes[pristineKey] }
+
+    const hasChangedLibrary = attributes.chartLibrary !== prev.chartLibrary
+
     pristine.reset(attributes)
     chart.attributeListeners.trigger(pristineKey, attributes[pristineKey], prev)
     chart.sdk.trigger("pristineChanged", chart, pristineKey, attributes[pristineKey], prev)
     Object.keys(prev).forEach(key =>
       chart.attributeListeners.trigger(key, attributes[key], prev[key])
     )
+
+    if (hasChangedLibrary) {
+      chart.getUI().unmount()
+      chart.setUI({ ...chart.sdk.makeChartUI(chart), ...(chart.ui || {}) }, "default")
+    }
     chart.trigger("fetch", { processing: true })
   }
 
