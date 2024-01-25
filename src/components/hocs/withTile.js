@@ -1,6 +1,6 @@
 import React from "react"
 import styled from "styled-components"
-import { Flex, Text } from "@netdata/netdata-ui"
+import { Box, Flex, Text } from "@netdata/netdata-ui"
 import anomalyBadge from "@netdata/netdata-ui/dist/components/icon/assets/anomaly_badge.svg"
 import useDebouncedValue from "@netdata/netdata-ui/dist/hooks/useDebouncedValue"
 import Icon from "@/components/icon"
@@ -101,9 +101,9 @@ export const HeadWrapper = ({ children, customChildren, ...rest }) => {
           overflow="hidden"
         >
           {width > 400 && (
-            <div>
+            <Box width="100%">
               <FilterToolbox border="none" opacity={focused ? 1 : 0.1} focused={focused} />
-            </div>
+            </Box>
           )}
         </Toolbox>
       )}
