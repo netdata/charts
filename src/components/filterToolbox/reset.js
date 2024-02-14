@@ -19,16 +19,16 @@ const StyledButton = styled(Button).attrs({
   }
 `
 
-const Reset = ({ attribute = "pristine", resetFunction }) => {
+const Reset = () => {
   const chart = useChart()
-  const attributeValue = useAttributeValue(attribute)
+  const pristineValues = useAttributeValue("pristine")
 
-  const disabled = Object.keys(attributeValue)?.length === 0
+  const isPristine = !Object.keys(pristineValues).length
 
   return (
     <StyledButton
-      disabled={disabled}
-      onClick={resetFunction ?? chart.resetPristine}
+      disabled={isPristine}
+      onClick={chart.resetPristine}
       data-track={chart.track("reset")}
     />
   )

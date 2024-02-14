@@ -13,12 +13,17 @@ const getPayload = chart => {
     selectedDimensions,
     selectedLabels,
     aggregationMethod,
+    groupBy,
+    groupByLabel,
+    postGroupBy,
+    postGroupByLabel,
+    postAggregationMethod,
+    showPostAggregations,
   } = chart.getAttributes()
 
   const options = getChartURLOptions(chart)
 
-  const { after, before, points, time_group, time_resampling, format, ...restPayload } =
-    getChartPayload(chart)
+  const { after, before, points, time_group, time_resampling, format } = getChartPayload(chart)
 
   return {
     format,
@@ -49,15 +54,16 @@ const getPayload = chart => {
     aggregations: {
       metrics: [
         {
-          group_by: restPayload["group_by[0]"] || chart.getAttribute("groupBy"),
-          group_by_label: restPayload["group_by_label[0]"] || chart.getAttribute("groupByLabel"),
-          aggregation: restPayload["aggregation[0]"] || aggregationMethod,
+          group_by: groupBy,
+          group_by_label: groupByLabel,
+          aggregation: aggregationMethod,
         },
-        !!restPayload["group_by[1]"] && {
-          group_by: restPayload["group_by[1]"],
-          group_by_label: restPayload["group_by_label[1]"] || [],
-          aggregation: restPayload["aggregation[1]"] || "avg",
-        },
+        showPostAggregations &&
+          !!postGroupBy.length && {
+            group_by: postGroupBy,
+            group_by_label: postGroupByLabel,
+            aggregation: postAggregationMethod,
+          },
       ].filter(Boolean),
       time: {
         time_group,

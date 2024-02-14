@@ -10,19 +10,21 @@ const Container = props => (
   <Flex
     gap={1}
     justifyContent="end"
-    alignItem="center"
+    alignItems="center"
     flex
     data-testid="chartHeaderToolbox"
+    zIndex={5}
     {...props}
   />
 )
 
-const Toolbox = props => {
+const Toolbox = ({ children, ...rest }) => {
   const disabled = !useAttributeValue("focused")
   const toolboxElements = useAttributeValue("toolboxElements")
 
   return (
-    <Container {...props}>
+    <Container {...rest}>
+      {children}
       {toolboxElements.map((Element, index) => (
         <Element key={index} disabled={disabled} />
       ))}

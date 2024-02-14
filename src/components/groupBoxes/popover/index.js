@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react"
 import ReactDOM from "react-dom"
+import { useAttributeValue } from "@/components/provider"
 import DropContainer from "@netdata/netdata-ui/dist/components/drops/drop/container"
 import useMakeUpdatePosition from "@netdata/netdata-ui/dist/components/drops/drop/useMakeUpdatePosition"
 import useDropElement from "@netdata/netdata-ui/dist/hooks/useDropElement"
@@ -47,10 +48,11 @@ const Popover = ({ target, label, groupLabel, data, id }) => {
   }, [align])
 
   const el = useDropElement()
+  const chartId = useAttributeValue("id")
 
   return ReactDOM.createPortal(
     <DropContainer
-      data-toolbox
+      data-toolbox={chartId}
       ref={dropRef}
       width={{ max: "100%" }}
       column

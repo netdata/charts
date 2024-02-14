@@ -18,7 +18,9 @@ export const GroupBoxesContainer = forwardRef(({ uiName, ...rest }, ref) => {
       onHover: chart.focus,
       onBlur: chart.blur,
       isOut: node =>
-        !node || (!node.closest("[data-toolbox]") && !node.closest("[data-testid=chart]")),
+        !node ||
+        (!node.closest(`[data-toolbox="${chart.getId()}"]`) &&
+          !node.closest(`[data-chartid="${chart.getId()}"]`)),
     },
     [chart]
   )
@@ -29,11 +31,12 @@ export const GroupBoxesContainer = forwardRef(({ uiName, ...rest }, ref) => {
   })
 
   const showingInfo = useAttributeValue("showingInfo")
+  const focused = useAttributeValue("focused")
 
   return (
     <Container ref={setRef} {...rest}>
       <Header />
-      <FilterToolbox />
+      <FilterToolbox opacity={focused ? 1 : 0.7} />
       <ChartContainer uiName={uiName} column gap={4} padding={[4, 2]}>
         <GroupBoxes uiName={uiName} />
       </ChartContainer>

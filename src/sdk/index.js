@@ -49,10 +49,10 @@ export default ({ ui, plugins: defaultPlugins = {}, attributes: defaultAttribute
     return makeChartLibrary(instance, chart)
   }
 
-  const makeSDKChart = ({ ui, ...options }) => {
+  const makeSDKChart = (options = {}) => {
     const chart = makeChartCore(options)
     const chartUi = makeChartUI(chart)
-    chart.setUI({ ...chartUi, ...ui }, "default")
+    chart.setUI({ ...chartUi, ...options.ui }, "default")
 
     return chart
   }

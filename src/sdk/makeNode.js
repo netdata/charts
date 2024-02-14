@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from "uuid"
 import makeListeners from "@/helpers/makeListeners"
-import makePristine from "@/helpers/makePristine"
 import limitRange from "@/helpers/limitRange"
 import pristine, { pristineKey } from "./pristine"
 import makeIntls from "./makeIntls"
@@ -173,17 +172,6 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     moveX(-900)
   }
 
-  const toggleFullscreen = () => {
-    const fullscreen = getAttribute("fullscreen")
-
-    if (!fullscreen) {
-      updateAttribute("fullscreen", !fullscreen)
-      return
-    }
-
-    updateAttribute("fullscreen", !fullscreen)
-  }
-
   updateIntls(getAttribute("timezone"))
   onAttributeChange("timezone", updateIntls)
 
@@ -219,7 +207,6 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     inherit,
     updateStaticValueRange,
     resetStaticValueRange,
-    toggleFullscreen,
     moveY,
     moveX,
     zoomIn,

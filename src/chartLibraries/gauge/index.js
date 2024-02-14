@@ -45,19 +45,23 @@ export default (sdk, chart) => {
     gauge.animationSpeed = Number.MAX_VALUE
     gauge.setMinValue(0)
 
-    resizeObserver = makeResizeObserver(element, () => {
-      const minWidth = element.clientWidth
-      const height = (element.clientHeight > minWidth ? minWidth : element.clientHeight) * 0.9
-      element.firstChild.G__height = height
-      element.firstChild.style.height = `${height}px`
-      const width = minWidth
-      element.firstChild.G__width = width
-      element.firstChild.style.width = `${width}px`
+    resizeObserver = makeResizeObserver(
+      element,
+      () => {
+        const minWidth = element.clientWidth
+        const height = (element.clientHeight > minWidth ? minWidth : element.clientHeight) * 0.9
+        element.firstChild.G__height = height
+        element.firstChild.style.height = `${height}px`
+        const width = minWidth
+        element.firstChild.G__width = width
+        element.firstChild.style.width = `${width}px`
 
-      gauge.setOptions({})
-      gauge.update(true)
-      chartUI.trigger("resize")
-    })
+        gauge.setOptions({})
+        gauge.update(true)
+        chartUI.trigger("resize")
+      },
+      () => chartUI.trigger("resize")
+    )
 
     const { loaded } = chart.getAttributes()
 
@@ -79,7 +83,6 @@ export default (sdk, chart) => {
     element.firstChild.style.width = `${width}px`
 
     gauge.setOptions({})
-    chartUI.trigger("resize")
     render()
   }
   const makeThemingOptions = () => ({

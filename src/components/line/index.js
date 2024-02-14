@@ -21,7 +21,9 @@ export const Line = forwardRef(
         onHover: chart.focus,
         onBlur: chart.blur,
         isOut: node =>
-          !node || (!node.closest("[data-toolbox]") && !node.closest("[data-testid=chart]")),
+          !node ||
+          (!node.closest(`[data-toolbox="${chart.getId()}"]`) &&
+            !node.closest(`[data-chartid="${chart.getId()}"]`)),
       },
       [chart]
     )
@@ -31,10 +33,16 @@ export const Line = forwardRef(
       if (ref) ref.current = node
     })
 
+    const focused = useAttributeValue("focused")
+
     return (
-      <Container ref={setRef} {...(sparkline && { border: false })} {...rest}>
+      <Container
+        ref={setRef}
+        {...(sparkline && { border: false, background: "transparent" })}
+        {...rest}
+      >
         {hasHeader && <Header />}
-        {hasFilters && <FilterToolbox />}
+        {hasFilters && <FilterToolbox opacity={focused ? 1 : 0.7} />}
         <ContentWrapper>
           {showingInfo ? <Details /> : <ChartContentWrapper uiName={uiName} />}
         </ContentWrapper>

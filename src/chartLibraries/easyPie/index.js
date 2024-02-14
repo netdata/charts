@@ -40,10 +40,14 @@ export default (sdk, chart) => {
       makeEasyPie()
     }
 
-    resizeObserver = makeResizeObserver(element, () => {
-      reMake()
-      chartUI.trigger("resize")
-    })
+    resizeObserver = makeResizeObserver(
+      element,
+      () => {
+        reMake()
+        chartUI.trigger("resize")
+      },
+      () => chartUI.trigger("resize")
+    )
 
     listeners = unregister(
       chart.onAttributeChange("hoverX", (hoverX, prevHoverX) => {
@@ -58,7 +62,6 @@ export default (sdk, chart) => {
       chart.onAttributeChange("theme", reMake)
     )
 
-    chartUI.trigger("resize")
     render()
   }
 

@@ -75,7 +75,7 @@ const DimensionSort = props => {
       <Menu
         value={value}
         items={sortings}
-        dropProps={{ align: { bottom: "top", left: "left" }, "data-toolbox": true }}
+        dropProps={{ align: { bottom: "top", left: "left" }, "data-toolbox": chart.getId() }}
         dropdownProps={{ width: "200px", padding: [2, 0] }}
         Item={Item}
         onChange={onChange}

@@ -36,7 +36,7 @@ export default () => {
 
   const trigger = (eventName, ...args) => {
     const listeners = listenersByEvent[eventName]
-    listeners?.forEach(handler => handler(...args))
+    listeners?.forEach(handler => handler(...args, eventName))
 
     const onceListeners = onceListenersByEvent[eventName]
     if (!onceListeners?.size) return

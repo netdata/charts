@@ -7,7 +7,7 @@ import Units from "@/components/line/dimensions/units"
 import Value, { Value as ValuePart } from "@/components/line/dimensions/value"
 import { useChart, useAttributeValue, useVisibleDimensionId } from "@/components/provider"
 import Label from "@/components/filterToolbox/label"
-import { rowFlavours } from "../../popover/dimensions"
+import { rowFlavours } from "@/components/line/popover/dimensions"
 
 const ColorBackground = styled(ColorBar).attrs({
   position: "absolute",

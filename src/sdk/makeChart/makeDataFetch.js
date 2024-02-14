@@ -63,7 +63,7 @@ export default chart => {
         chartType: attributes.selectedChartType || attributes.chartType || chartType,
         ...restPayload,
         versions,
-        title: attributes.title || restPayload.title,
+        title: attributes.title === null ? restPayload.title : attributes.title,
         error: null,
       })
 

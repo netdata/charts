@@ -5,7 +5,7 @@ import { useInitialLoading, useEmpty, useAttributeValue } from "@/components/pro
 import { useHovered } from "@/components/useHover"
 import ChartContainer from "@/components/chartContainer"
 import Popover from "./popover"
-import Toolbox from "./toolbox"
+import NavigationToolbox from "./navigationToolbox"
 import Skeleton from "./skeleton"
 import Overlays from "./overlays"
 import { Processing } from "./overlays/proceeded"
@@ -48,8 +48,11 @@ export const Container = forwardRef((props, ref) => {
 })
 
 const ChartContentWrapper = ({ uiName }) => {
+  const id = useAttributeValue("id")
+
   const [ref, hovered] = useHovered({
-    isOut: node => !node || !node.closest("[data-toolbox]"),
+    isOut: node =>
+      !node || (!node.closest(`[data-toolbox="${id}"]`) && !node.closest(`[data-chartid="${id}"]`)),
   })
   const initialLoading = useInitialLoading()
   const empty = useEmpty()
@@ -61,7 +64,7 @@ const ChartContentWrapper = ({ uiName }) => {
       {!initialLoading && <ChartContainer />}
       {!initialLoading && <Overlays uiName={uiName} />}
       {initialLoading && <Skeleton />}
-      {hasToolbox && hovered && !empty && <Toolbox />}
+      {hasToolbox && hovered && !empty && <NavigationToolbox />}
       {processing && <Processing />}
       <Popover uiName={uiName} />
     </Container>

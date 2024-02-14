@@ -1,6 +1,5 @@
 import React from "react"
-import plugins from "@netdata/netdata-ui/dist/components/icon/assets/plugins.svg"
-import { TextSmall, Flex, Icon } from "@netdata/netdata-ui"
+import { TextSmall, Flex } from "@netdata/netdata-ui"
 import { useAttributeValue } from "@/components/provider"
 import Row from "./row"
 
@@ -17,12 +16,7 @@ const Context = () => {
   const contextScope = useAttributeValue("contextScope")
 
   return (
-    <Row
-      icon={<Icon svg={plugins} color="key" />}
-      title="Plugin and chart context"
-      color="key"
-      data-testid="chartDetails-context"
-    >
+    <Row title="Plugin and chart context" color="key" data-testid="chartDetails-context">
       <Info title="Context">{contextScope.join(", ")}</Info>
     </Row>
   )

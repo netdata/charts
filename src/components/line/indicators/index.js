@@ -148,7 +148,7 @@ const Indicators = props => {
   }
 
   return (
-    <Flex padding={[1]} gap={1} justifyContent="between" flex {...props}>
+    <Flex gap={1} justifyContent="between" flex {...props}>
       {range ? (
         <Flex onClick={onClick} cursor="pointer" gap={1} padding={[0, 11, 0]}>
           <TextNano color="textLite">Highlight:</TextNano>

@@ -3,7 +3,11 @@ import styled from "styled-components"
 import { Flex, TextNano } from "@netdata/netdata-ui"
 import { useChart, useAttributeValue, useUnitSign } from "@/components/provider"
 
-const LinearColorScaleBar = styled(Flex).attrs({ width: "320px", height: "12px", round: true })`
+const LinearColorScaleBar = styled(Flex).attrs({
+  width: { max: "320px", base: "100%" },
+  height: "12px",
+  round: true,
+})`
   background: linear-gradient(
     to right,
     ${({ minColor }) => minColor},

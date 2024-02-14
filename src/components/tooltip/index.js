@@ -1,12 +1,12 @@
 import React, { forwardRef } from "react"
 import { Flex, TextSmall, Tooltip as BaseTooltip } from "@netdata/netdata-ui"
+import { useAttributeValue } from "@/components/provider"
 
 export const tooltipStyleProps = {
   padding: [1, 2],
   margin: [2],
   round: 1,
   width: { max: "300px", base: "fit-content" },
-  "data-toolbox": true,
   background: "tooltip",
 }
 
@@ -25,7 +25,7 @@ const Tooltip = forwardRef(({ content, Content = DefaultContent, ...rest }, ref)
       plain
       content={<Content {...rest}>{content}</Content>}
       {...rest}
-      dropProps={{ "data-toolbox": true }}
+      dropProps={{ "data-toolbox": rest["data-toolbox"] }}
     />
   ) : (
     rest.children
@@ -38,10 +38,18 @@ Tooltip.defaultProps = {
 
 export const withTooltip = (Component, tooltipDefaultProps = {}) =>
   forwardRef(({ title, ...rest }, ref) => {
+    const id = useAttributeValue("id")
+
     if (!title) return <Component ref={ref} {...rest} />
 
     return (
-      <Tooltip content={title} disabled={rest.open} {...tooltipDefaultProps} {...rest.tooltipProps}>
+      <Tooltip
+        content={title}
+        disabled={rest.open}
+        data-toolbox={id}
+        {...tooltipDefaultProps}
+        {...rest.tooltipProps}
+      >
         <Component ref={ref} {...rest} />
       </Tooltip>
     )

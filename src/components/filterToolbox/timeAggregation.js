@@ -1,5 +1,5 @@
 import React, { memo, useMemo } from "react"
-import { TextMicro } from "@netdata/netdata-ui"
+import { Flex, TextMicro } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart } from "@/components/provider"
 import Dropdown from "./dropdownSingleSelect"
 
@@ -287,7 +287,7 @@ const TimeAggregation = ({ labelProps, ...rest }) => {
     chart.updateTimeAggregationMethodAttribute({ alias: defaultAliases[value], method: value })
 
   return (
-    <>
+    <Flex>
       {alias && (
         <Dropdown
           value={alias}
@@ -320,7 +320,7 @@ const TimeAggregation = ({ labelProps, ...rest }) => {
           ...labelProps,
         }}
       />
-    </>
+    </Flex>
   )
 }
 

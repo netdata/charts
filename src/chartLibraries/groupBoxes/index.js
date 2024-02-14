@@ -1,7 +1,7 @@
 import { unregister } from "@/helpers/makeListeners"
 import makeChartUI from "@/sdk/makeChartUI"
 
-const initialValue = { labels: [], data: [], values: {}, tree: {} }
+export const initialValue = { labels: [], data: [], values: {}, tree: {} }
 
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo, useRef } from "react"
 import styled from "styled-components"
 import { Flex, TextSmall, Menu, Table, Button, getColor } from "@netdata/netdata-ui"
+import { useAttributeValue } from "@/components/provider"
 import deepEqual from "@/helpers/deepEqual"
 import Label from "./label"
 import Totals from "./totals"
@@ -195,6 +196,8 @@ const DropdownTable = ({
     return () => newValuesRef.current && onChange(newValuesRef.current)
   }, [])
 
+  const id = useAttributeValue("id")
+
   return (
     <Menu
       onChange={values => {
@@ -206,7 +209,7 @@ const DropdownTable = ({
       Dropdown={Dropdown}
       dropProps={{
         align: { top: "bottom", left: "left" },
-        "data-toolbox": true,
+        "data-toolbox": id,
         keepHorizontal: true,
         stretch: null,
       }}

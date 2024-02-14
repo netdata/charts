@@ -110,9 +110,11 @@ export default (sdk, chart) => {
       ...makeColorOptions(),
     })
 
-    resizeObserver = makeResizeObserver(element, () => {
-      chartUI.trigger("resize")
-    })
+    resizeObserver = makeResizeObserver(
+      element,
+      () => chartUI.trigger("resize"),
+      () => chartUI.trigger("resize")
+    )
 
     hoverX.toggle(attributes.enabledHover)
     navigation.toggle(attributes.enabledNavigation, attributes.navigation)
@@ -190,7 +192,6 @@ export default (sdk, chart) => {
 
     overlays.toggle()
 
-    chartUI.trigger("resize")
     chartUI.render()
   }
 

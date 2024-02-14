@@ -1,34 +1,47 @@
 import React, { forwardRef } from "react"
-import styled from "styled-components"
-import { Text, getColor } from "@netdata/netdata-ui"
+import { Text } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
-import { useUnitSign, useLatestConvertedValue } from "@/components/provider"
+import { useUnitSign, useLatestConvertedValue, useOnResize } from "@/components/provider"
 import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
+import FontSizer from "@/components/helpers/fontSizer"
 
-const StrokeLabel = styled(Text)`
-  text-shadow:
-    0.02em 0 ${getColor("borderSecondary")},
-    0 0.02em ${getColor("borderSecondary")},
-    -0.02em 0 ${getColor("borderSecondary")},
-    0 -0.02em ${getColor("borderSecondary")};
-`
 export const Value = props => {
+  const { width, height } = useOnResize()
   const value = useLatestConvertedValue("selected")
 
   return (
-    <StrokeLabel color="text" fontSize="2em" strong {...props}>
+    <FontSizer
+      Component={Text}
+      maxHeight={(height - 20) * 0.7}
+      maxWidth={width - 20}
+      lineHeight="1.1em"
+      strong
+      {...props}
+    >
       {value}
-    </StrokeLabel>
+    </FontSizer>
   )
 }
 
 export const Unit = props => {
+  const { width, height } = useOnResize()
   const unit = useUnitSign()
+
+  if (!unit) return null
+
   return (
-    <Text color="textLite" fontSize="1em" {...props}>
+    <FontSizer
+      Component={Text}
+      maxHeight={(height - 20) * 0.25}
+      maxWidth={(width - 20) * 0.7}
+      fontSize="1.1em"
+      strong
+      color="textLite"
+      {...props}
+    >
       {unit}
-    </Text>
+    </FontSizer>
   )
 }
 

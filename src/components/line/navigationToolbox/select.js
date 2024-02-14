@@ -4,7 +4,7 @@ import dragHorizontalIcon from "@netdata/netdata-ui/dist/components/icon/assets/
 import dragVerticalIcon from "@netdata/netdata-ui/dist/components/icon/assets/drag_vertical.svg"
 import chevronUpIcon from "@netdata/netdata-ui/dist/components/icon/assets/chevron_up_thin.svg"
 import chevronDownIcon from "@netdata/netdata-ui/dist/components/icon/assets/chevron_down_thin.svg"
-import { useChart, useAttribute } from "@/components/provider"
+import { useChart, useAttribute, useAttributeValue } from "@/components/provider"
 import Icon, { Button } from "@/components/icon"
 
 const useItems = chart =>
@@ -54,6 +54,7 @@ const Label = forwardRef(
 
 const Dropdown = ({ onItemClick, items }) => {
   const [{ icon, value, title }] = items
+  const id = useAttributeValue("id")
 
   return (
     <Flex
@@ -61,7 +62,7 @@ const Dropdown = ({ onItemClick, items }) => {
       round={{ side: "bottom" }}
       border={{ side: "bottom", color: "borderSecondary" }}
       padding={[1, 0]}
-      data-toolbox
+      data-toolbox={id}
     >
       <Button title={title} icon={icon} onClick={() => onItemClick(value)} padding="2px" small />
     </Flex>
