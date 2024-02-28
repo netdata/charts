@@ -39,7 +39,7 @@ export default chart => {
   chart.doneFetch = nextRawPayload => {
     chart.backoffMs = 0
     setTimeout(() => {
-      const { result, chartType, versions, ...restPayload } = camelizePayload(nextRawPayload)
+      const { result, chartType, versions, title, ...restPayload } = camelizePayload(nextRawPayload)
 
       const prevPayload = nextPayload
       nextPayload = result
@@ -54,16 +54,19 @@ export default chart => {
 
       const attributes = chart.getAttributes()
 
+      chart.setAttributes({
+        chartType: attributes.selectedChartType || attributes.chartType || chartType,
+        title: attributes.title === null ? title : attributes.title,
+      })
+
       chart.updateAttributes({
         loaded: true,
         loading: false,
         processing: false,
         updatedAt: Date.now(),
         outOfLimits: !dataLength,
-        chartType: attributes.selectedChartType || attributes.chartType || chartType,
         ...restPayload,
         versions,
-        title: attributes.title === null ? restPayload.title : attributes.title,
         error: null,
       })
 

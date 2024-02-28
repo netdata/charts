@@ -289,7 +289,8 @@ export default chart => {
     const attributes = chart.getAttributes()
     const prev = { ...attributes[pristineKey] }
 
-    const hasChangedLibrary = attributes.chartLibrary !== prev.chartLibrary
+    const hasChangedLibrary =
+      "chartLibrary" in prev && attributes.chartLibrary !== prev.chartLibrary
 
     pristine.reset(attributes)
     chart.attributeListeners.trigger(pristineKey, attributes[pristineKey], prev)
