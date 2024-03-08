@@ -12,7 +12,7 @@ export const tooltipStyleProps = {
 
 const DefaultContent = ({ children, ...rest }) => (
   <Flex {...tooltipStyleProps} {...rest}>
-    <TextSmall color="bright" wordBreak="break-word">
+    <TextSmall color="tooltipText" wordBreak="break-word">
       {children}
     </TextSmall>
   </Flex>
