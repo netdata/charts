@@ -40,9 +40,6 @@ const { updatePristine, resetPristine } = makePristine(pristineKey, [
   "expanded",
   "staticZones",
 
-  "title",
-  "description",
-
   "showPostAggregations",
 ])
 
