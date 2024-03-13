@@ -9,7 +9,7 @@ export default chartUI => plotter => {
     const ctx = plotter.drawingContext
     const points = plotter.points
 
-    if (!points.length) return
+    if (!points.length || !points[1]) return
 
     let min_sep = points[1].canvasx - points[0].canvasx + 1
 

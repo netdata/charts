@@ -69,10 +69,10 @@ const TooltipValue = ({ id, name }) => {
 
   return (
     <>
-      <TextSmall color="bright" strong wordBreak="break-word">
+      <TextSmall strong wordBreak="break-word">
         {name}
       </TextSmall>
-      <TextSmall color="bright" whiteSpace="nowrap">
+      <TextSmall whiteSpace="nowrap">
         {value} {units}
       </TextSmall>
     </>

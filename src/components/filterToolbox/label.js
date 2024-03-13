@@ -56,12 +56,8 @@ const Label = forwardRef(
 
 const TooltipContent = ({ heading, body }) => (
   <Flex column gap={1} {...tooltipStyleProps}>
-    {heading && (
-      <TextSmall color="bright" strong>
-        {heading}
-      </TextSmall>
-    )}
-    {body && <TextSmall color="bright">{body}</TextSmall>}
+    {heading && <TextSmall strong>{heading}</TextSmall>}
+    {body && <TextSmall>{body}</TextSmall>}
   </Flex>
 )
 
