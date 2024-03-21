@@ -22,28 +22,10 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
       agent: true,
       syncHover: true,
       groupingMethod: "average",
-      width: "50%",
     },
   })
 
   sdk.appendChild(chart)
-
-  const chart7 = sdk.makeChart({
-    attributes: {
-      id: "test",
-      selectedContexts: [contexts],
-      nodesScope: [nodesScope],
-      contextScope: [contextScope],
-      host: host,
-      aggregationMethod: "avg",
-      agent: true,
-      syncHover: true,
-      groupingMethod: "average",
-      width: "50%",
-    },
-  })
-
-  sdk.appendChild(chart7)
 
   const chart2 = sdk.makeChart({
     attributes: {
@@ -176,7 +158,7 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
   sdk.appendChild(chart10)
 
   return (
-    <Flex background="mainBackground" column gap={2} padding={[3]} overflow="auto">
+    <Flex background="mainBackground" column gap={2} padding={[3]} overflow="auto" height="100%">
       <Flex height={50} width="100%" gap={2}>
         <EasyPieComponent chart={chart2} height="100px" width="100px" />
         <GaugeComponent chart={chart3} height="100px" width="100px" />
@@ -189,7 +171,6 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
         <BarsComponent chart={chart10} height="100px" width="100px" />
       </Flex>
       <Line chart={chart} height="315px" width="100%" />
-      <Line chart={chart7} height="315px" width="100%" />
       <GroupBoxes chart={chart4} />
     </Flex>
   )
@@ -201,11 +182,11 @@ export default {
   tags: ["autodocs"],
   args: {
     nodesScope: "*",
-    contextScope: "apps.cpu",
+    contextScope: "system.cpu",
     contexts: "*",
     singleDimension: "*",
     theme: "default",
-    host: "http://10.10.11.2:19999/api/v2",
+    host: "http://10.10.10.20:19999/api/v2",
   },
   argTypes: {
     host: {

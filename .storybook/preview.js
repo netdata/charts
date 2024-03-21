@@ -4,7 +4,6 @@ import { Flex, DefaultTheme, DarkTheme, GlobalStyles } from "@netdata/netdata-ui
 
 const preview = {
   parameters: {
-    actions: { argTypesRegex: "^on[A-Z].*" },
     controls: {
       matchers: {
         color: /(background|color)$/i,
@@ -22,7 +21,13 @@ const preview = {
       return (
         <ThemeProvider theme={theme}>
           <GlobalStyles />
-          <Flex width="100vw" height="100vh" background="mainBackground" overflow="auto">
+          <Flex
+            width="100vw"
+            height="100vh"
+            background="mainBackground"
+            alignItems="center"
+            justifyContent="center"
+          >
             <Story />
           </Flex>
         </ThemeProvider>

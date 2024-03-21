@@ -21,6 +21,7 @@ export const Container = props => (
 const Footer = () => {
   const showingInfo = useAttributeValue("showingInfo")
   const expandable = useAttributeValue("expandable")
+
   const isHeatmap = useIsHeatmap()
 
   return (
