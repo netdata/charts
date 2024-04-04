@@ -7,6 +7,7 @@ import NumberComponent from "@/components/number"
 import D3pieComponent from "@/components/d3pie"
 import BarsComponent from "@/components/bars"
 import GroupBoxes from "@/components/groupBoxes"
+import Table from "@/components/table"
 import makeDefaultSDK from "./makeDefaultSDK"
 
 export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleDimension }) => {
@@ -26,6 +27,25 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
   })
 
   sdk.appendChild(chart)
+
+  const chart7 = sdk.makeChart({
+    attributes: {
+      id: "control",
+      selectedContexts: [contexts],
+      nodesScope: [nodesScope],
+      contextScope: ["disk.io", "disk.ops", "disk.await", "disk.util"],
+      host: host,
+      aggregationMethod: "avg",
+      agent: true,
+      syncHover: true,
+      groupingMethod: "average",
+      chartLibrary: "table",
+      groupBy: ["label", "dimension", "context", "node"],
+      groupByLabel: ["device"],
+    },
+  })
+
+  sdk.appendChild(chart7)
 
   const chart2 = sdk.makeChart({
     attributes: {
@@ -171,6 +191,7 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
         <BarsComponent chart={chart10} height="100px" width="100px" />
       </Flex>
       <Line chart={chart} height="315px" width="100%" />
+      <Table chart={chart7} height="315px" width="100%" />
       <GroupBoxes chart={chart4} />
     </Flex>
   )
@@ -186,7 +207,7 @@ export default {
     contexts: "*",
     singleDimension: "*",
     theme: "default",
-    host: "http://10.10.10.20:19999/api/v2",
+    host: "http://10.20.4.200:19999/api/v2",
   },
   argTypes: {
     host: {

@@ -37,8 +37,8 @@ const getPayload = chart => {
         Array.isArray(selectedContexts) && selectedContexts.length
           ? selectedContexts
           : context
-          ? [context]
-          : wildcardArray,
+            ? [context]
+            : wildcardArray,
       nodes: Array.isArray(selectedNodes) && selectedNodes.length ? selectedNodes : wildcardArray,
       instances:
         Array.isArray(selectedInstances) && selectedInstances.length

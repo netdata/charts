@@ -5,6 +5,7 @@ import number from "./chartLibraries/number"
 import d3pie from "./chartLibraries/d3pie"
 import bars from "./chartLibraries/bars"
 import groupBoxes from "./chartLibraries/groupBoxes"
+import table from "./chartLibraries/table"
 import makeSDK from "./sdk"
 import unitConversion from "./sdk/plugins/unitConversion"
 import hover from "./sdk/plugins/hover"
@@ -19,7 +20,7 @@ const minutes15 = 15 * 60
 
 export default ({ attributes, ...options } = {}) =>
   makeSDK({
-    ui: { dygraph, easypiechart, gauge, groupBoxes, number, d3pie, bars },
+    ui: { dygraph, easypiechart, gauge, groupBoxes, number, d3pie, bars, table },
     plugins: {
       // order matters
       move,

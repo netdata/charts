@@ -115,6 +115,7 @@ export default chart => {
     d3pie: true,
     bars: true,
     groupBoxes: true,
+    table: true,
   }
 
   const updateChartTypeAttribute = selected => {

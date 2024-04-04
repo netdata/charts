@@ -54,9 +54,9 @@ export const BaseColorBar = ({
   )
 }
 
-export const ColorBar = ({ id, valueKey, ...rest }) => {
+export const ColorBar = ({ id, partIndex, valueKey, ...rest }) => {
   const chart = useChart()
-  const bg = valueKey === "arp" ? "anomalyTextLite" : chart.selectDimensionColor(id)
+  const bg = valueKey === "arp" ? "anomalyTextLite" : chart.selectDimensionColor(id, partIndex)
 
   const min = valueKey === "arp" ? 0 : chart.getAttribute("min")
   const max = valueKey === "arp" ? 100 : chart.getAttribute("max")
@@ -80,9 +80,9 @@ export const ColorBar = ({ id, valueKey, ...rest }) => {
   )
 }
 
-const ColorValue = ({ id, ...rest }) => {
+const ColorValue = ({ id, partIndex, ...rest }) => {
   const chart = useChart()
-  const bg = chart.selectDimensionColor(id)
+  const bg = chart.selectDimensionColor(id, partIndex)
 
   if (!bg) return null
 

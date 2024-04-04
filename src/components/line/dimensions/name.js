@@ -17,9 +17,9 @@ export const Name = memo(
   ))
 )
 
-const Container = ({ id, ...rest }) => {
+const Container = ({ id, partIndex, ...rest }) => {
   const chart = useChart()
-  const name = chart.getDimensionName(id)
+  const name = chart.getDimensionName(id, partIndex)
 
   return <Name {...rest}>{name}</Name>
 }

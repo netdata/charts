@@ -220,7 +220,7 @@ export default (chart, sdk) => {
     return memKey
   }
 
-  chart.selectDimensionColor = (id = "selected") => {
+  chart.selectDimensionColor = (id = "selected", partIndex) => {
     const key = getMemKey()
     const colorsAttr = chart.getAttribute("colors")
     const sparkline = chart.isSparkline()
@@ -228,6 +228,8 @@ export default (chart, sdk) => {
 
     const isSelected = id === "selected"
     id = !id || isSelected ? chart.getAttribute("selectedDimensions")[0] : id
+
+    if (!isNaN(partIndex)) id = id.split(",")?.[partIndex] || id
 
     const color =
       isSelected && colorsAttr?.length
@@ -238,14 +240,18 @@ export default (chart, sdk) => {
     return typeof color === "string" ? color : color[index]
   }
 
-  chart.getDimensionName = id => {
+  chart.getDimensionName = (id, partIndex) => {
     const viewDimensions = chart.getAttribute("viewDimensions")
 
     if (!viewDimensions?.names) return ""
 
-    if (isHeatmap(chart)) return withoutPrefix(viewDimensions.names[dimensionsById[id]])
+    let dimName = viewDimensions.names[dimensionsById[id]]
 
-    return viewDimensions.names[dimensionsById[id]]
+    if (!isNaN(partIndex)) dimName = dimName.split(",")?.[partIndex] || dimName
+
+    if (isHeatmap(chart)) return withoutPrefix(dimName)
+
+    return dimName
   }
 
   chart.getDimensionPriority = id => {
@@ -254,6 +260,14 @@ export default (chart, sdk) => {
     if (!viewDimensions?.priorities) return 0
 
     return viewDimensions.priorities[dimensionsById[id]]
+  }
+
+  chart.getDimensionGroups = () => {
+    const viewDimensions = chart.getAttribute("viewDimensions")
+
+    if (!viewDimensions?.grouped_by?.length) return chart.getAttribute("groupBy")
+
+    return viewDimensions.grouped_by
   }
 
   chart.getRowDimensionValue = (

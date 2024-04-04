@@ -11,6 +11,7 @@ import easypieChart from "@netdata/netdata-ui/dist/components/icon/assets/chart_
 import gaugeChart from "@netdata/netdata-ui/dist/components/icon/assets/chart_gauge.svg"
 import d3pieChart from "@netdata/netdata-ui/dist/components/icon/assets/chart_pie.svg"
 import valueChart from "@netdata/netdata-ui/dist/components/icon/assets/value.svg"
+import tableChart from "@netdata/netdata-ui/dist/components/icon/assets/chart_bars.svg"
 import groupBoxesChart from "@netdata/netdata-ui/dist/components/icon/assets/container.svg"
 import Icon, { Button } from "@/components/icon"
 import { useChart, useAttributeValue } from "@/components/provider"
@@ -59,6 +60,13 @@ const useItems = chart =>
           icon: <Icon svg={barChart} {...iconProps} />,
           svg: barChart,
           "data-track": chart.track("chartType-multiBar"),
+        },
+        {
+          value: "table",
+          label: "Table",
+          icon: <Icon svg={tableChart} {...iconProps} />,
+          svg: tableChart,
+          "data-track": chart.track("chartType-tableBar"),
         },
         {
           value: "heatmap",
