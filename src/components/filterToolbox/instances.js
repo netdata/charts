@@ -17,11 +17,10 @@ import {
 const useTooltipProps = chart =>
   useMemo(
     () => ({
-      heading: uppercase(chart.intl("instance", 2)),
-      body: `View or filter the ${chart.intl(
-        "instance",
-        2
-      )} contributing time-series metrics to this chart. This menu also provides the contribution of each ${chart.intl(
+      heading: uppercase(chart.intl("instance", { count: 2 })),
+      body: `View or filter the ${chart.intl("instance", {
+        count: 2,
+      })} contributing time-series metrics to this chart. This menu also provides the contribution of each ${chart.intl(
         "instance"
       )} to the volume of the chart, and a break down of the anomaly rate of the queried data per ${chart.intl(
         "instance"
@@ -64,7 +63,7 @@ const Instances = ({ labelProps, ...rest }) => {
 
   return (
     <DropdownTable
-      title={uppercase(chart.intl("instance", 2))}
+      title={uppercase(chart.intl("instance", { count: 2 }))}
       resourceName="instance"
       data-track={chart.track("instances")}
       labelProps={labelProps}

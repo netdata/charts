@@ -59,7 +59,9 @@ const Totals = ({
           of <TextMicro>{total}</TextMicro> available
         </>
       )}
-      {resourceName ? chart.intl(resourceName, couldBeMore ? possiblesCount : selectedCount) : ""}
+      {resourceName
+        ? chart.intl(resourceName, { count: couldBeMore ? possiblesCount : selectedCount })
+        : ""}
     </TextMicro>
   )
 }

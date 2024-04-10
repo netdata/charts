@@ -310,13 +310,13 @@ export default ({
     node.destroy()
   }
 
-  node.intl = (key, count = 1) => {
+  node.intl = (key, { count = 1, pluralize = true } = {}) => {
     if (!node) return key
 
     const en = node.getAttribute("en")
-    if (!en?.[key]) return count === 1 ? key : `${key}s`
+    if (!en?.[key]) return count === 1 ? key : pluralize ? `${key}s` : key
 
-    return count === 1 ? en[key]?.one || key : en[key]?.other || `${key}s`
+    return count === 1 ? en[key]?.one || key : en[key]?.other || (pluralize ? `${key}s` : key)
   }
 
   return {

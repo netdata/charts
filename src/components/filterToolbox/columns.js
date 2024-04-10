@@ -10,7 +10,7 @@ const useMetricsByValue = chart =>
     () => ({
       dimension: "dimensions",
       node: "nodes",
-      instance: chart.intl("instance", 2),
+      instance: chart.intl("instance", { count: 2 }),
       label: "labels",
       value: "values",
       default: "values",
