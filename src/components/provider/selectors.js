@@ -310,7 +310,7 @@ export const useLatestRowValue = (options = {}) => {
   return value
 }
 
-const getValueByPeriod = {
+export const getValueByPeriod = {
   latest: ({ chart, id, ...options }) => {
     const hover = chart.getAttribute("hoverX")
     const { all } = chart.getPayload()

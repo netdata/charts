@@ -60,7 +60,7 @@ export const Title = () => {
   )
 }
 
-export const HeadWrapper = ({ children, customChildren, ...rest }) => {
+export const HeadWrapper = ({ children, customChildren, hasFilters = true, ...rest }) => {
   const { width } = useOnResize()
   const focused = useAttributeValue("focused")
   const firstDim = useDimensionIds()?.[0]
@@ -100,7 +100,7 @@ export const HeadWrapper = ({ children, customChildren, ...rest }) => {
           }}
           overflow="hidden"
         >
-          {width > 400 && (
+          {hasFilters && width > 400 && (
             <Box width="100%">
               <FilterToolbox border="none" opacity={focused ? 1 : 0.1} focused={focused} />
             </Box>
@@ -179,7 +179,15 @@ export const ChartWrapper = styled(Flex).attrs(props => ({
 }))``
 
 export default Component =>
-  ({ count, tile = true, height = "100%", width = "100%", children, ...rest }) => {
+  ({
+    count,
+    tile = true,
+    height = "100%",
+    width = "100%",
+    children,
+    hasFilters = true,
+    ...rest
+  }) => {
     const showingInfo = useAttributeValue("showingInfo")
     const focused = useAttributeValue("focused")
 
@@ -193,6 +201,7 @@ export default Component =>
         height={height}
         width={width}
         customChildren={children}
+        hasFilters={hasFilters}
         {...styles}
       >
         {showingInfo ? <Details /> : <Component {...rest} />}

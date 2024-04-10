@@ -5,7 +5,12 @@ import Color, { ColorBar } from "@/components/line/dimensions/color"
 import Name from "@/components/line/dimensions/name"
 import Units from "@/components/line/dimensions/units"
 import Value, { Value as ValuePart } from "@/components/line/dimensions/value"
-import { useChart, useAttributeValue, useVisibleDimensionId } from "@/components/provider"
+import {
+  getValueByPeriod,
+  useChart,
+  useAttributeValue,
+  useVisibleDimensionId,
+} from "@/components/provider"
 import Label from "@/components/filterToolbox/label"
 import { rowFlavours } from "@/components/line/popover/dimensions"
 
@@ -33,11 +38,21 @@ const metricsByValue = {
 
 const emptyArray = []
 
-export const labelColumn = ({ fallbackExpandKey, partIndex, header = "Name" } = {}) => ({
+export const labelColumn = (chart, { fallbackExpandKey, partIndex, header = "Name" } = {}) => ({
   id: `label${header || ""}${partIndex || ""}`,
   header: () => <TextSmall strong>{header}</TextSmall>,
   size: 100,
   minSize: 45,
+  sortingFn: (rowA, rowB) => {
+    return (chart.getDimensionName(rowA.original.ids?.[0], partIndex) || "").localeCompare(
+      chart.getDimensionName((rowB.original.ids?.[0], partIndex) || ""),
+      undefined,
+      {
+        sensitivity: "accent",
+        ignorePunctuation: true,
+      }
+    )
+  },
   cell: ({
     row: {
       original: { ids },
@@ -95,6 +110,8 @@ export const labelColumn = ({ fallbackExpandKey, partIndex, header = "Name" } = 
   },
 })
 
+const compareBasic = (a, b) => (a === b ? 0 : a > b ? 1 : -1)
+
 const ValueOnDot = ({ children, fractionDigits = 0, ...rest }) => {
   const [first, last] = children.toString().split(".")
 
@@ -111,7 +128,7 @@ const ValueOnDot = ({ children, fractionDigits = 0, ...rest }) => {
   )
 }
 
-export const valueColumn = ({ context = "Dimensions", dimension = "Value" }) => ({
+export const valueColumn = (chart, { context = "Dimensions", dimension = "Value" }) => ({
   id: `value${context}${dimension}`,
   header: () => {
     return (
@@ -122,6 +139,22 @@ export const valueColumn = ({ context = "Dimensions", dimension = "Value" }) => 
   },
   size: 80,
   minSize: 45,
+  sortingFn: (rowA, rowB) => {
+    return compareBasic(
+      getValueByPeriod.latest({
+        chart,
+        id: (rowA.original.contextGroups?.[context]?.[dimension] || rowA.original.ids).find(id =>
+          id.includes(rowA.original.key)
+        ),
+      }),
+      getValueByPeriod.latest({
+        chart,
+        id: (rowB.original.contextGroups?.[context]?.[dimension] || rowB.original.ids).find(id =>
+          id.includes(rowB.original.key)
+        ),
+      })
+    )
+  },
   cell: ({
     row: {
       original: { key, ids, contextGroups },

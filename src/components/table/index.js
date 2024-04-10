@@ -13,7 +13,7 @@ import { labelColumn, valueColumn, anomalyColumn, minColumn, avgColumn, maxColum
 const keepoutRegex = ".*"
 const keepRegex = "(" + keepoutRegex + ")"
 
-const useColumns = (options = {}) => {
+const useColumns = (chart, options = {}) => {
   const { period, dimensionIds, groups, labels, rowGroups, contextGroups } = options
 
   const hover = useAttributeValue("hoverX")
@@ -22,23 +22,20 @@ const useColumns = (options = {}) => {
     return [
       {
         id: "Instance",
-        header: () => {
-          console.log(1)
-          return "Instance"
-        },
+        header: () => "Instance",
         columns: labels.map(label =>
-          labelColumn({ header: uppercase(label), partIndex: groups.findIndex(gi => gi === label) })
+          labelColumn(chart, {
+            header: uppercase(label),
+            partIndex: groups.findIndex(gi => gi === label),
+          })
         ),
       },
       ...Object.keys(contextGroups).map(context => {
         return {
           id: `Context-${context}`,
-          header: () => {
-            console.log(2, context)
-            return context
-          },
+          header: () => context,
           columns: Object.keys(contextGroups[context]).map(dimension =>
-            valueColumn({ context, dimension, ...options })
+            valueColumn(chart, { context, dimension, ...options })
           ),
         }
       }),
@@ -120,7 +117,7 @@ const Dimensions = () => {
     return [baseGroup, contextAndDimensionsGroup, forRows]
   }, [dimensionIds])
 
-  const columns = useColumns({
+  const columns = useColumns(chart, {
     period: tab,
     groups,
     dimensionIds,
@@ -166,4 +163,4 @@ export const TableChart = forwardRef(({ uiName, ...rest }, ref) => (
   </ChartWrapper>
 ))
 
-export default withChart(TableChart, { tile: true })
+export default withChart(TableChart)

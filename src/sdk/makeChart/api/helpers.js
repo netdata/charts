@@ -10,7 +10,7 @@ export const getChartURLOptions = chart => {
   return [
     ...urlOptions,
     "jsonwrap",
-    eliminateZeroDimensions && "nonzero",
+    chartLibrary !== "table" && eliminateZeroDimensions && "nonzero",
     "flip",
     "ms",
     "jw-anomaly-rates",
