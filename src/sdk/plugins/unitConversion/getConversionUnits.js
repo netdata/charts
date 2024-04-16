@@ -44,9 +44,9 @@ const conversable = (chart, units, max, desiredUnits) => {
 }
 
 const getMethod = (chart, units, min, max) => {
-  const { desiredUnits } = chart.getAttributes()
+  if (!isAdditive(units)) return ["original"]
 
-  if (desiredUnits === "original") return ["original"]
+  const { desiredUnits } = chart.getAttributes()
 
   if (conversableUnits[units]) return conversable(chart, units, max, desiredUnits)
 

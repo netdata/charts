@@ -1,22 +1,22 @@
 import React, { forwardRef, useMemo } from "react"
 import groupBy from "lodash/groupBy"
 import isEmpty from "lodash/isEmpty"
-import { Table, TextSmall } from "@netdata/netdata-ui"
+import { Table } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
 import { useChart, useDimensionIds, useAttributeValue } from "@/components/provider"
 import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
 import { uppercase } from "@/helpers/objectTransform"
-import FontSizer from "@/components/helpers/fontSizer"
-import { labelColumn, valueColumn, anomalyColumn, minColumn, avgColumn, maxColumn } from "./columns"
+import { labelColumn, valueColumn } from "./columns"
 
 const keepoutRegex = ".*"
 const keepRegex = "(" + keepoutRegex + ")"
 
 const useColumns = (chart, options = {}) => {
-  const { period, dimensionIds, groups, labels, rowGroups, contextGroups } = options
+  const { period, dimensionIds, groups, labels, contextGroups } = options
 
   const hover = useAttributeValue("hoverX")
+  const tableColumns = chart.getAttribute("tableColumns")
 
   return useMemo(() => {
     return [
@@ -29,23 +29,27 @@ const useColumns = (chart, options = {}) => {
             partIndex: groups.findIndex(gi => gi === label),
           })
         ),
+        notFlex: true,
+        fullWidth: true,
+        enableResizing: true,
       },
       ...Object.keys(contextGroups).map(context => {
         return {
           id: `Context-${context}`,
-          header: () => context,
+          header: () => chart.intl(context),
           columns: Object.keys(contextGroups[context]).map(dimension =>
             valueColumn(chart, { context, dimension, ...options })
           ),
+          notFlex: true,
+          fullWidth: true,
+          enableResizing: true,
         }
       }),
     ]
   }, [period, !!hover, dimensionIds])
 }
 
-const columnAttrs = ["context", "dimension"]
-
-const groupByColumn = (result, ids, groups, attrs = columnAttrs) => {
+const groupByColumn = (result, ids, groups, attrs) => {
   const [attr, ...restAttrs] = attrs
   const groupByRegex = new RegExp(
     groups.reduce((s, g) => {
@@ -129,9 +133,12 @@ const Dimensions = () => {
   return (
     <Table
       enableSorting
-      // enableSelection
+      enableColumnVisibility
       dataColumns={columns}
       data={Object.keys(rowGroups).map(g => ({ key: g, ids: rowGroups[g], contextGroups }))}
+      globalFilterFn={(...args) => {
+        debugger
+      }}
       // onRowSelected={onItemClick}
       // onSearch={noop}
       // meta={meta}

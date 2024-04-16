@@ -244,6 +244,8 @@ export default {
     },
   },
 
+  tableColumns: ["context", "dimension"],
+
   bearer: null,
   xNetdataBearer: null,
 

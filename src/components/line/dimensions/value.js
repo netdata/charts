@@ -1,9 +1,9 @@
 import React, { forwardRef } from "react"
-import { TextMicro } from "@netdata/netdata-ui"
+import { TextSmall } from "@netdata/netdata-ui"
 import { useConvertedValue } from "@/components/provider"
 
 export const Value = forwardRef((props, ref) => (
-  <TextMicro color="textDescription" data-testid="chartDimensions-value" {...props} ref={ref} />
+  <TextSmall color="textDescription" data-testid="chartDimensions-value" {...props} ref={ref} />
 ))
 
 const ValueComponent = forwardRef(

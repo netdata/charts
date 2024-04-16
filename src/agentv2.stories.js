@@ -42,6 +42,11 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
       chartLibrary: "table",
       groupBy: ["label", "dimension", "context", "node"],
       groupByLabel: ["device"],
+      en: {
+        "disk.io": {
+          one: "DISK IO",
+        },
+      },
     },
   })
 
@@ -179,7 +184,7 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
 
   return (
     <Flex background="mainBackground" column gap={2} padding={[3]} overflow="auto" height="100%">
-      <Flex height={50} width="100%" gap={2}>
+      {/*<Flex height={50} width="100%" gap={2}>
         <EasyPieComponent chart={chart2} height="100px" width="100px" />
         <GaugeComponent chart={chart3} height="100px" width="100px" />
         <NumberComponent chart={chart5} height="100px" width="100px" />
@@ -189,10 +194,10 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
         <D3pieComponent chart={chart8} height="100px" width="100px" />
         <D3pieComponent chart={chart9} height="100px" width="100px" />
         <BarsComponent chart={chart10} height="100px" width="100px" />
-      </Flex>
-      <Line chart={chart} height="315px" width="100%" />
+      </Flex>*/}
+      {/*<Line chart={chart} height="315px" width="100%" />*/}
       <Table chart={chart7} height="315px" width="100%" />
-      <GroupBoxes chart={chart4} />
+      {/*<GroupBoxes chart={chart4} />*/}
     </Flex>
   )
 }

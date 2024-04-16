@@ -1,5 +1,5 @@
 import React from "react"
-import { Flex, TextSmall, TextMicro } from "@netdata/netdata-ui"
+import { Flex, TextSmall } from "@netdata/netdata-ui"
 import styled from "styled-components"
 import Color, { ColorBar } from "@/components/line/dimensions/color"
 import Name from "@/components/line/dimensions/name"
@@ -41,8 +41,6 @@ const emptyArray = []
 export const labelColumn = (chart, { fallbackExpandKey, partIndex, header = "Name" } = {}) => ({
   id: `label${header || ""}${partIndex || ""}`,
   header: () => <TextSmall strong>{header}</TextSmall>,
-  size: 100,
-  minSize: 45,
   sortingFn: (rowA, rowB) => {
     return (chart.getDimensionName(rowA.original.ids?.[0], partIndex) || "").localeCompare(
       chart.getDimensionName((rowB.original.ids?.[0], partIndex) || ""),
@@ -53,6 +51,9 @@ export const labelColumn = (chart, { fallbackExpandKey, partIndex, header = "Nam
       }
     )
   },
+  fullWidth: true,
+  size: 50,
+  minSize: 30,
   cell: ({
     row: {
       original: { ids },
@@ -132,13 +133,12 @@ export const valueColumn = (chart, { context = "Dimensions", dimension = "Value"
   id: `value${context}${dimension}`,
   header: () => {
     return (
-      <TextMicro>
-        {dimension} <Units visible />
-      </TextMicro>
+      <Flex column>
+        <TextSmall>{dimension}</TextSmall>
+        <Units visible />
+      </Flex>
     )
   },
-  size: 80,
-  minSize: 45,
   sortingFn: (rowA, rowB) => {
     return compareBasic(
       getValueByPeriod.latest({
@@ -155,6 +155,9 @@ export const valueColumn = (chart, { context = "Dimensions", dimension = "Value"
       })
     )
   },
+  fullWidth: true,
+  size: 50,
+  minSize: 30,
   cell: ({
     row: {
       original: { key, ids, contextGroups },
@@ -180,122 +183,4 @@ export const valueColumn = (chart, { context = "Dimensions", dimension = "Value"
       />
     )
   },
-  sortingFn: "basic",
 })
-
-// export const anomalyColumn = ({ period, objKey }) => ({
-//   id: objKey ? `${objKey}-arp` : "arp",
-//   header: <TextMicro>AR %</TextMicro>,
-//   size: 45,
-//   minSize: 45,
-//   cell: ({
-//     row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
-//   }) => {
-//     const visible = useVisibleDimensionId(id)
-
-//     return (
-//       <Value
-//         period={period}
-//         objKey={objKey}
-//         textAlign="right"
-//         id={id}
-//         visible={visible}
-//         valueKey="arp"
-//         Component={ValueOnDot}
-//         fractionDigits={2}
-//         color="anomalyTextFocus"
-//       />
-//     )
-//   },
-//   sortingFn: "basic",
-// })
-
-// export const minColumn = ({ period, objKey }) => ({
-//   id: objKey ? `${objKey}-min` : "min",
-//   header: (
-//     <TextMicro>
-//       Min <Units visible />
-//     </TextMicro>
-//   ),
-//   size: 45,
-//   minSize: 45,
-//   cell: ({
-//     row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
-//   }) => {
-//     const visible = useVisibleDimensionId(id)
-
-//     return (
-//       <Value
-//         period={period}
-//         objKey={objKey}
-//         textAlign="right"
-//         id={id}
-//         visible={visible}
-//         valueKey="min"
-//         Component={ValueOnDot}
-//         fractionDigits={2}
-//       />
-//     )
-//   },
-//   sortingFn: "basic",
-// })
-
-// export const avgColumn = ({ period, objKey }) => ({
-//   id: objKey ? `${objKey}-avg` : "avg",
-//   header: (
-//     <TextMicro>
-//       Avg <Units visible />
-//     </TextMicro>
-//   ),
-//   size: 45,
-//   minSize: 45,
-//   cell: ({
-//     row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
-//   }) => {
-//     const visible = useVisibleDimensionId(id)
-
-//     return (
-//       <Value
-//         period={period}
-//         objKey={objKey}
-//         textAlign="right"
-//         id={id}
-//         visible={visible}
-//         valueKey="avg"
-//         Component={ValueOnDot}
-//         fractionDigits={2}
-//       />
-//     )
-//   },
-//   sortingFn: "basic",
-// })
-
-// export const maxColumn = ({ period, objKey }) => ({
-//   id: objKey ? `${objKey}-max` : "max",
-//   header: (
-//     <TextMicro>
-//       Max <Units visible />
-//     </TextMicro>
-//   ),
-//   size: 45,
-//   minSize: 45,
-//   cell: ({
-//     row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
-//   }) => {
-//     const visible = useVisibleDimensionId(id)
-
-//     return (
-//       <Value
-//         period={period}
-//         objKey={objKey}
-//         textAlign="right"
-//         id={id}
-//         visible={visible}
-//         valueKey="max"
-//         Component={ValueOnDot}
-//         fractionDigits={2}
-//       />
-//     )
-//   },
-//   sortingFn: "basic",
-// })
