@@ -1,7 +1,6 @@
 import React from "react"
 import { Flex, TextSmall } from "@netdata/netdata-ui"
-import styled from "styled-components"
-import Color, { ColorBar } from "@/components/line/dimensions/color"
+import Color from "@/components/line/dimensions/color"
 import Name from "@/components/line/dimensions/name"
 import Units from "@/components/line/dimensions/units"
 import Value, { Value as ValuePart } from "@/components/line/dimensions/value"
@@ -12,20 +11,6 @@ import {
   useVisibleDimensionId,
 } from "@/components/provider"
 import Label from "@/components/filterToolbox/label"
-import { rowFlavours } from "@/components/line/popover/dimensions"
-
-const ColorBackground = styled(ColorBar).attrs({
-  position: "absolute",
-  top: 1,
-  left: 2,
-  backgroundOpacity: 0.4,
-  round: 0.5,
-})``
-
-const rowValueKeys = {
-  ANOMALY_RATE: "arp",
-  default: "value",
-}
 
 const metricsByValue = {
   dimension: "dimensions",
@@ -64,7 +49,6 @@ export const labelColumn = (chart, { fallbackExpandKey, partIndex, header = "Nam
     },
   }) => {
     const [, row] = useAttributeValue("hoverX") || emptyArray
-    const rowFlavour = rowFlavours[row] || rowFlavours.default
 
     const chart = useChart()
     const visible = ids.some(chart.isDimensionVisible)
@@ -79,17 +63,8 @@ export const labelColumn = (chart, { fallbackExpandKey, partIndex, header = "Nam
         opacity={visible ? null : "weak"}
       >
         <Flex alignItems="center" gap={1} position="relative" width="100%">
-          {visible && (
-            <ColorBackground
-              id={firstId}
-              partIndex={partIndex}
-              valueKey={rowValueKeys[rowFlavour] || rowValueKeys.default}
-              height="18px"
-            >
-              <Color id={firstId} partIndex={partIndex} />
-            </ColorBackground>
-          )}
-          <Name padding={[1, 3.5]} flex id={firstId} partIndex={partIndex} />
+          {visible && <Color id={firstId} partIndex={partIndex} />}
+          <Name padding={[0.5, 1.5]} flex id={firstId} partIndex={partIndex} />
         </Flex>
         {getCanExpand() && (
           <Label
@@ -161,10 +136,6 @@ export const valueColumn = (chart, { context = "Dimensions", dimension = "Value"
   cell: ({
     row: {
       original: { key, ids, contextGroups },
-      depth = 0,
-      getCanExpand,
-      getToggleExpandedHandler,
-      getIsExpanded,
     },
   }) => {
     const id = (contextGroups?.[context]?.[dimension] || ids).find(id => id.includes(key))

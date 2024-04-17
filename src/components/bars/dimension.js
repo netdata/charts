@@ -82,7 +82,7 @@ const Dimension = ({ id, strong, rowFlavour, fullCols }) => {
         >
           <Color id={id} />
         </ColorBackground>
-        <Name padding={[0.5, 1]} flex id={id} strong={strong} fontSize="1.1em" />
+        <Name padding={[0.5, 1.5]} flex id={id} strong={strong} fontSize="1.1em" />
       </Flex>
       <Value
         id={id}

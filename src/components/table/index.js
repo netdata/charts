@@ -2,6 +2,7 @@ import React, { forwardRef, useMemo } from "react"
 import groupBy from "lodash/groupBy"
 import isEmpty from "lodash/isEmpty"
 import { Table } from "@netdata/netdata-ui"
+import useHover from "@/components/useHover"
 import ChartContainer from "@/components/chartContainer"
 import { useChart, useDimensionIds, useAttributeValue } from "@/components/provider"
 import withChart from "@/components/hocs/withChart"
@@ -40,6 +41,7 @@ const useColumns = (chart, options = {}) => {
           columns: Object.keys(contextGroups[context]).map(dimension =>
             valueColumn(chart, { context, dimension, ...options })
           ),
+          labelProps: { textAlign: "center" },
           notFlex: true,
           fullWidth: true,
           enableResizing: true,
@@ -88,6 +90,7 @@ const Dimensions = () => {
   const dimensionIds = useDimensionIds()
 
   const tab = useAttributeValue("weightsTab")
+  const searchQuery = useAttributeValue("searchQuery")
 
   const chart = useChart()
   const groups = chart.getDimensionGroups()
@@ -130,15 +133,37 @@ const Dimensions = () => {
     contextGroups,
   })
 
+  const hoverRef = useHover(
+    {
+      onHover: chart.focus,
+      onBlur: chart.blur,
+      isOut: node =>
+        !node ||
+        (!node.closest(`[data-toolbox="${chart.getId()}"]`) &&
+          !node.closest(`[data-chartid="${chart.getId()}"]`)),
+    },
+    [chart]
+  )
+
   return (
     <Table
+      ref={hoverRef}
       enableSorting
       enableColumnVisibility
       dataColumns={columns}
-      data={Object.keys(rowGroups).map(g => ({ key: g, ids: rowGroups[g], contextGroups }))}
-      globalFilterFn={(...args) => {
-        debugger
-      }}
+      data={Object.keys(rowGroups).reduce((h, g) => {
+        if (!!searchQuery && !new RegExp(searchQuery).test(g)) return h
+
+        h.push({
+          key: g,
+          ids: searchQuery
+            ? rowGroups[g].filter(rg => new RegExp(searchQuery).test(rg))
+            : rowGroups[g],
+          contextGroups,
+        })
+        return h
+      }, [])}
+      enableCustomSearch
       // onRowSelected={onItemClick}
       // onSearch={noop}
       // meta={meta}
@@ -149,6 +174,7 @@ const Dimensions = () => {
       // onExpandedChange={onExpandedChange}
       // enableSubRowSelection={enableSubRowSelection}
       width="100%"
+      onSearch={q => chart.updateAttribute("searchQuery", q)}
       // bulkActions={bulkActions}
       // rowActions={rowActions}
     />
