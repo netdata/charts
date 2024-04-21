@@ -153,7 +153,7 @@ export default payload => {
       return h
     }, {}),
     alerts: alerts.reduce((h, a) => {
-      h[a.name] = a
+      h[a.nm] = a
       return h
     }, {}),
     viewDimensions,
