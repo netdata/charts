@@ -1,6 +1,6 @@
 {
   "name": "@netdata/charts",
-  "version": "5.0.0-dev.0",
+  "version": "5.0.0-dev.1",
   "description": "Netdata frontend SDK and chart utilities",
   "main": "dist/index.js",
   "module": "dist/es6/index.js",
@@ -48,7 +48,7 @@
     "@babel/plugin-transform-runtime": "^7.24.3",
     "@babel/preset-env": "^7.24.4",
     "@babel/preset-react": "^7.24.1",
-    "@netdata/netdata-ui": "^4.4.5",
+    "@netdata/netdata-ui": "^4.5.0",
     "@storybook/addon-essentials": "^8.0.9",
     "@storybook/addon-interactions": "^8.0.9",
     "@storybook/addon-links": "^8.0.9",
