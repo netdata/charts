@@ -237,14 +237,14 @@ export const useDimensionIds = () => {
   return chart.getDimensionIds()
 }
 
-export const useUnitSign = ({ long, key = "units" } = {}) => {
+export const useUnitSign = ({ key = "units", ...options } = {}) => {
   const chart = useChart()
 
   const forceUpdate = useForceUpdate()
 
   useImmediateListener(() => chart.onAttributeChange(`${key}Conversion`, forceUpdate), [chart, key])
 
-  return chart.getUnitSign({ long, key })
+  return chart.getUnitSign({ key, ...options })
 }
 
 export const useUnits = (key = "units") => {
@@ -257,7 +257,10 @@ export const useUnits = (key = "units") => {
   return chart.getUnits(key)
 }
 
-export const useConverted = (value, { valueKey, fractionDigits, unitsKey = "units" } = {}) => {
+export const useConverted = (
+  value,
+  { valueKey, fractionDigits, dimensionId, unitsKey = "units" } = {}
+) => {
   const chart = useChart()
   const unitsConversion = useAttributeValue(`${unitsKey}Conversion`)
 
@@ -272,7 +275,7 @@ export const useConverted = (value, { valueKey, fractionDigits, unitsKey = "unit
     if (valueKey === "pa")
       return parts.reduce((h, a) => (check(value, enums[a]) ? { ...h, [a]: colors[a] } : h), {})
 
-    return chart.getConvertedValue(value, { fractionDigits, key: unitsKey })
+    return chart.getConvertedValue(value, { fractionDigits, key: unitsKey, dimensionId })
   }, [chart, value, valueKey, unitsConversion])
 }
 
@@ -389,8 +392,8 @@ export const useLatestValue = (id, options = {}) => useValue(id, "latest", optio
 export const useConvertedValue = (id, period = "latest", options = {}) => {
   const value = useValue(id, period, options)
 
-  return useConverted(value, options)
+  return useConverted(value, { ...options, dimensionId: id })
 }
 
 export const useLatestConvertedValue = (id, options = {}) =>
-  useConvertedValue(id, "latest", { allowNull: true, ...options })
+  useConvertedValue(id, "latest", { allowNull: true, dimensionId: id, ...options })

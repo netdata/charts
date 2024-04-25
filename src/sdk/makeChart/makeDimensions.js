@@ -262,6 +262,14 @@ export default (chart, sdk) => {
     return viewDimensions.priorities[dimensionsById[id]]
   }
 
+  chart.getDimensionUnit = id => {
+    const viewDimensions = chart.getAttribute("viewDimensions")
+
+    if (!viewDimensions?.units) return ""
+
+    return viewDimensions.units[dimensionsById[id]] || viewDimensions.units[0]
+  }
+
   chart.getDimensionGroups = () => {
     const viewDimensions = chart.getAttribute("viewDimensions")
 

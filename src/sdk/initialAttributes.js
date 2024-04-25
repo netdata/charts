@@ -90,17 +90,20 @@ export default {
   highlighting: false,
 
   desiredUnits: "auto",
-  syncUnits: false,
 
-  unitsConversionMethod: "",
-  unitsConversionDivider: -1,
-  unitsConversionFractionDigits: 0,
-  unitsConversion: "",
+  unitsConversionMethod: [""],
+  unitsConversionDivider: [-1],
+  unitsConversionFractionDigits: [0],
+  unitsConversion: [""],
+  unitsConversionPrefix: [""],
+  unitsConversionBase: [""],
 
-  dbUnitsConversionMethod: "",
-  dbUnitsConversionDivider: -1,
-  dbUnitsConversionFractionDigits: 0,
-  dbUnitsConversion: "",
+  dbUnitsConversionMethod: [""],
+  dbUnitsConversionDivider: [-1],
+  dbUnitsConversionFractionDigits: [0],
+  dbUnitsConversion: [""],
+  dbUnitsConversionPrefix: [""],
+  dbUnitsConversionBase: [""],
 
   temperature: "celsius",
   secondsAsTime: true,
@@ -214,10 +217,13 @@ export default {
   },
 
   // view
-  units: "",
+  units: [""],
+  unitsByKey: {},
   viewUpdateEvery: 0, // view.update_every
 
   // db
+  dbUnits: [""],
+  dbUnitsByKey: {},
   updateEvery: 0,
   firstEntry: 0,
   lastEntry: 0,

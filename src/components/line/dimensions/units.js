@@ -12,8 +12,8 @@ export const Value = props => (
   />
 )
 
-const Units = ({ visible, ...rest }) => {
-  const units = useUnitSign()
+const Units = ({ visible, dimensionId, ...rest }) => {
+  const units = useUnitSign({ dimensionId })
 
   if (!visible) return null
 

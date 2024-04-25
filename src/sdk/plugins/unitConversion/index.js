@@ -1,42 +1,23 @@
 import getConversionUnits from "./getConversionUnits"
 
 const convert = (chart, unitsKey = "units", min, max) => {
-  const { method, divider, units, fractionDigits } = getConversionUnits(chart, unitsKey, min, max)
-  const ancestor = chart.getAncestor({ syncUnits: true })
+  const {
+    method,
+    divider,
+    units,
+    fractionDigits,
+    prefix = "",
+    base = "",
+  } = getConversionUnits(chart, unitsKey, min, max)
 
-  if (!ancestor || method === "original") {
-    return chart.updateAttributes({
-      [`${unitsKey}ConversionMethod`]: method,
-      [`${unitsKey}ConversionDivider`]: divider,
-      [`${unitsKey}Conversion`]: units,
-      [`${unitsKey}ConversionFractionDigits`]: fractionDigits,
-    })
-  }
-
-  const unitsConversionDivider = ancestor.getAttribute(`${unitsKey}ConversionDivider`)
-
-  const updateChart = () => {
-    chart.updateAttributes({
-      [`${unitsKey}ConversionMethod`]: method,
-      [`${unitsKey}ConversionDivider`]: divider,
-      [`${unitsKey}Conversion`]: units,
-      [`${unitsKey}ConversionFractionDigits`]: fractionDigits,
-    })
-  }
-
-  if (divider > unitsConversionDivider) {
-    return chart.getApplicableNodes({ syncUnits: true }).forEach(node => {
-      if (node === chart) return updateChart()
-
-      node.updateAttributes({
-        [`${unitsKey}ConversionMethod`]: method,
-        [`${unitsKey}ConversionDivider`]: divider,
-        [`${unitsKey}Conversion`]: units,
-      })
-    })
-  }
-
-  updateChart()
+  chart.updateAttributes({
+    [`${unitsKey}ConversionMethod`]: method,
+    [`${unitsKey}ConversionDivider`]: divider,
+    [`${unitsKey}Conversion`]: units,
+    [`${unitsKey}ConversionPrefix`]: prefix,
+    [`${unitsKey}ConversionBase`]: base,
+    [`${unitsKey}ConversionFractionDigits`]: fractionDigits,
+  })
 }
 
 export default sdk => {

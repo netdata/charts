@@ -82,6 +82,7 @@ export default (sdk, chart) => {
         value: chart.getDimensionValue(id, index),
         color: chart.selectDimensionColor(id),
         caption: id,
+        id,
       }))
       .filter(v => !!v.value)
 

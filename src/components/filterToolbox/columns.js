@@ -87,7 +87,8 @@ export const minColumn = () => ({
   ),
   size: 60,
   minSize: 30,
-  maxSize: 90,
+  maxSize: 300,
+  fullWidth: true,
   cell: ({ getValue }) => {
     const value = useConverted(getValue())
     return <TextSmall color="textLite">{value}</TextSmall>
@@ -104,7 +105,8 @@ export const avgColumn = () => ({
   ),
   size: 60,
   minSize: 30,
-  maxSize: 90,
+  maxSize: 300,
+  fullWidth: true,
   cell: ({ getValue }) => {
     const value = useConverted(getValue())
     return <TextSmall color="textLite">{value}</TextSmall>
@@ -121,7 +123,8 @@ export const maxColumn = () => ({
   ),
   size: 60,
   minSize: 30,
-  maxSize: 90,
+  maxSize: 300,
+  fullWidth: true,
   cell: ({ getValue }) => {
     const value = useConverted(getValue())
     return <TextSmall color="textLite">{value}</TextSmall>
@@ -134,7 +137,8 @@ export const instancesColumn = () => ({
   header: <TextMicro strong>Instances</TextMicro>,
   size: 60,
   minSize: 30,
-  maxSize: 90,
+  maxSize: 300,
+  fullWidth: true,
   cell: ({ getValue, row }) => {
     if (!row.original.info?.is) return <TextSmall color="textLite">{getValue()}</TextSmall>
 
@@ -161,8 +165,10 @@ export const instancesColumn = () => ({
 export const metricsColumn = () => ({
   id: "metrics",
   header: <TextMicro strong>Metrics</TextMicro>,
-  size: 80,
-  minSize: 60,
+  size: 60,
+  minSize: 30,
+  maxSize: 300,
+  fullWidth: true,
   cell: ({ row, getValue }) => {
     if (!row.original.info?.ds) return <TextSmall color="textLite">{getValue()}</TextSmall>
 
@@ -191,7 +197,8 @@ export const contributionColumn = () => ({
   header: <TextMicro strong>Vol %</TextMicro>,
   size: 60,
   minSize: 30,
-  maxSize: 90,
+  maxSize: 300,
+  fullWidth: true,
   cell: ({ row, getValue }) => {
     if (!row.original.info?.sts) return <TextSmall color="textLite">{getValue()}</TextSmall>
 
@@ -219,7 +226,8 @@ export const anomalyRateColumn = () => ({
   header: <TextMicro strong>AR %</TextMicro>,
   size: 60,
   minSize: 30,
-  maxSize: 90,
+  maxSize: 300,
+  fullWidth: true,
   cell: ({ row, getValue }) => {
     if (!row.original.info?.sts) return <TextSmall color="textLite">{getValue()}</TextSmall>
 
@@ -245,9 +253,10 @@ export const anomalyRateColumn = () => ({
 export const alertsColumn = () => ({
   id: "alerts",
   header: <TextMicro strong>Alerts</TextMicro>,
-  size: 75,
-  minSize: 60,
-  maxSize: 90,
+  size: 60,
+  minSize: 30,
+  maxSize: 300,
+  fullWidth: true,
   cell: ({ row, getValue }) => {
     if (!row.original.info?.al) return <TextSmall color="textLite">{getValue()}</TextSmall>
 

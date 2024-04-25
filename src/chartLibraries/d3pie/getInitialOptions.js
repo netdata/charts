@@ -84,8 +84,10 @@ export default (chartUI, dataOptions = {}) => {
       formatter(context) {
         if (context.part === "value")
           return `${
-            context.realLabel === "No data" ? "-" : chartUI.chart.getConvertedValue(context.value)
-          } ${chartUI.chart.getUnitSign()}`
+            context.realLabel === "No data"
+              ? "-"
+              : chartUI.chart.getConvertedValue(context.value, { dimensionId: context.id })
+          } ${chartUI.chart.getUnitSign({ dimensionId: context.id })}`
         if (context.part === "percentage") return `${context.label}%`
 
         return context.label

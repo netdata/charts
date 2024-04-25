@@ -39,7 +39,12 @@ const useColumns = (chart, options = {}) => {
           id: `Context-${context}`,
           header: () => chart.intl(context),
           columns: Object.keys(contextGroups[context]).map(dimension =>
-            valueColumn(chart, { context, dimension, ...options })
+            valueColumn(chart, {
+              context,
+              dimension,
+              dimensionId: contextGroups[context]?.[dimension]?.[0],
+              ...options,
+            })
           ),
           labelProps: { textAlign: "center" },
           notFlex: true,
