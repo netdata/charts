@@ -6,15 +6,11 @@ import unitsJson from "@/units.json"
 const isAdditive = u =>
   typeof unitsJson.units[u] !== "undefined" ? unitsJson.units[u].is_additive : true
 
-const scalable = (units, min, max, desiredUnits) => {
+const scalable = (units, delta, desiredUnits) => {
   const scales = scalableUnits[units]
 
   if (desiredUnits !== "auto" && desiredUnits in scales)
     return ["divide", scales[desiredUnits], desiredUnits]
-
-  const absMin = Math.abs(min)
-  const absMax = Math.abs(max)
-  const delta = absMin > absMax ? absMin : absMax
 
   const scale = Object.keys(scales)
     .reverse()
@@ -25,7 +21,7 @@ const scalable = (units, min, max, desiredUnits) => {
     : ["original"]
 }
 
-const conversable = (chart, units, max, desiredUnits) => {
+const conversable = (chart, units, delta, desiredUnits) => {
   const scales = conversableUnits[units]
 
   if (desiredUnits !== "auto") {
@@ -35,7 +31,7 @@ const conversable = (chart, units, max, desiredUnits) => {
   }
 
   const scaleKeys = Object.keys(scales)
-  const scaleIndex = scaleKeys.findIndex(scale => scales[scale].check(chart, max))
+  const scaleIndex = scaleKeys.findIndex(scale => scales[scale].check(chart, delta))
 
   if (scaleIndex === -1) return ["original"]
 
@@ -48,14 +44,18 @@ const getMethod = (chart, units, min, max) => {
 
   const { desiredUnits } = chart.getAttributes()
 
-  if (conversableUnits[units]) return conversable(chart, units, max, desiredUnits)
+  const absMin = Math.abs(min)
+  const absMax = Math.abs(max)
+  const delta = absMin > absMax ? absMin : absMax
 
-  if (scalableUnits[units]) return scalable(units, min, max, desiredUnits)
+  if (conversableUnits[units]) return conversable(chart, units, delta, desiredUnits)
+
+  if (scalableUnits[units]) return scalable(units, delta, desiredUnits)
 
   if (units === "percentage" || units === "percent" || units === "pcent" || /%/.test(units || ""))
     return ["original"]
 
-  return scalable("num", min, max, units)
+  return scalable("num", delta, units)
 }
 
 const decimals = [1000, 100, 10, 1, 0.1, 0.01, 0.001]
