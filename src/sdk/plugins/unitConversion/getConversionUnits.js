@@ -1,11 +1,5 @@
 import conversableUnits, { makeConversableKey } from "@/helpers/units/conversableUnits"
-import convert, {
-  getScales,
-  getUnitConfig,
-  getUnitsString,
-  unitsMissing,
-  isAdditive,
-} from "@/helpers/units"
+import convert, { getScales, getUnitConfig, unitsMissing, isAdditive } from "@/helpers/units"
 
 const scalable = (units, delta, desiredUnits) => {
   const [scaleKeys, scaleByKey] = getScales(units)
@@ -22,20 +16,18 @@ const scalable = (units, delta, desiredUnits) => {
       return [
         "adjust",
         value => (value / (scaleByKey[prefix] || 1)) * (scaleByKey[desiredPrefix] || 1),
-        getUnitsString(units, desiredPrefix, desiredBase),
         desiredPrefix,
         desiredBase,
       ]
     }
   }
 
-  const scale = scaleKeys.reverse().find(scale => delta >= (scaleByKey[scale] || 1))
+  const scale = [...scaleKeys].reverse().find(scale => delta >= (scaleByKey[scale] || 1))
 
   return scale
     ? [
         "adjust",
         value => (value / (scaleByKey[prefix] || 1)) * (scaleByKey[scale] || 1),
-        getUnitsString(units, scale, base),
         scale,
         base,
       ]
@@ -57,7 +49,7 @@ const conversable = (chart, units, delta, desiredUnits) => {
   if (scaleIndex === -1) return ["original"]
 
   const key = scaleKeys[scaleIndex]
-  return [makeConversableKey(units, key), undefined, key]
+  return [makeConversableKey(units, key)]
 }
 
 const getMethod = (chart, units, min, max) => {
@@ -82,38 +74,49 @@ const getFractionDigits = value => {
   return digits === 3 ? 2 : digits
 }
 
-const getConversionUnits = (chart, unitsKey, min, max, maxDecimals = 5) => {
+export const getConversionAttributes = (chart, unit, { min, max, maxDecimals = 5 }) => {
+  const [method, divider, prefix = "", base = ""] = getMethod(chart, unit, min, max)
+
+  const cMin = convert(chart, method, min, divider)
+  const cMax = convert(chart, method, max, divider)
+
+  const delta = Math.abs(cMin === cMax ? cMin : cMax - cMin)
+
+  const fractionDigits =
+    method === "original" || method === "divide" || method === "adjust"
+      ? getFractionDigits(delta)
+      : -1
+
+  return {
+    method,
+    divider,
+    fractionDigits: fractionDigits > maxDecimals ? maxDecimals : fractionDigits,
+    prefix,
+    base,
+    unit,
+  }
+}
+
+const getConversionUnits = (chart, unitsKey, options = {}) => {
   const units = chart.getAttribute(unitsKey)
 
   return units.reduce(
     (h, unit) => {
-      const [method, divider, unitsConversion = units, prefix = "", base = ""] = getMethod(
+      const { method, divider, fractionDigits, prefix, base } = getConversionAttributes(
         chart,
         unit,
-        min,
-        max
+        options
       )
-
-      const cMin = convert(chart, method, min, divider)
-      const cMax = convert(chart, method, max, divider)
-
-      const delta = Math.abs(cMin === cMax ? cMin : cMax - cMin)
-
-      const fractionDigits =
-        method === "original" || method === "divide" || method === "adjust"
-          ? getFractionDigits(delta)
-          : -1
 
       h.method.push(method)
       h.divider.push(divider)
-      h.units.push(unitsConversion)
-      h.fractionDigits.push(fractionDigits > maxDecimals ? maxDecimals : fractionDigits)
+      h.fractionDigits.push(fractionDigits)
       h.prefix.push(prefix)
       h.base.push(base)
 
       return h
     },
-    { method: [], divider: [], units: [], fractionDigits: [], prefix: [], base: [] }
+    { method: [], fractionDigits: [], prefix: [], base: [], divider: [] }
   )
 }
 

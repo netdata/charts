@@ -94,14 +94,12 @@ export default {
   unitsConversionMethod: [""],
   unitsConversionDivider: [-1],
   unitsConversionFractionDigits: [0],
-  unitsConversion: [""],
   unitsConversionPrefix: [""],
   unitsConversionBase: [""],
 
   dbUnitsConversionMethod: [""],
   dbUnitsConversionDivider: [-1],
   dbUnitsConversionFractionDigits: [0],
-  dbUnitsConversion: [""],
   dbUnitsConversionPrefix: [""],
   dbUnitsConversionBase: [""],
 
@@ -218,12 +216,14 @@ export default {
 
   // view
   units: [""],
-  unitsByKey: {},
+  unitsStsByContext: {},
+  unitsByContext: {},
   viewUpdateEvery: 0, // view.update_every
 
   // db
   dbUnits: [""],
-  dbUnitsByKey: {},
+  dbUnitsStsByContext: {},
+  dbUnitsByContext: {},
   updateEvery: 0,
   firstEntry: 0,
   lastEntry: 0,

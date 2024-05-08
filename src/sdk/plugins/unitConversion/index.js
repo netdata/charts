@@ -1,29 +1,42 @@
-import getConversionUnits from "./getConversionUnits"
+import getConversionUnits, { getConversionAttributes } from "./getConversionUnits"
 
-const convert = (chart, unitsKey = "units", min, max) => {
+const baseConvert = (chart, unitsKey = "units", min, max) => {
   const {
     method,
-    divider,
-    units,
     fractionDigits,
     prefix = "",
     base = "",
-  } = getConversionUnits(chart, unitsKey, min, max)
+    divider,
+  } = getConversionUnits(chart, unitsKey, { min, max })
 
   chart.updateAttributes({
     [`${unitsKey}ConversionMethod`]: method,
-    [`${unitsKey}ConversionDivider`]: divider,
-    [`${unitsKey}Conversion`]: units,
     [`${unitsKey}ConversionPrefix`]: prefix,
     [`${unitsKey}ConversionBase`]: base,
     [`${unitsKey}ConversionFractionDigits`]: fractionDigits,
+    [`${unitsKey}ConversionDivider`]: divider,
   })
+
+  const unitsStsByContext = chart.getAttribute(`${unitsKey}StsByContext`)
+
+  console.log(unitsStsByContext)
+
+  chart.updateAttribute(
+    `${unitsKey}ByContext`,
+    Object.keys(unitsStsByContext).reduce((h, ctx) => {
+      h[ctx] = getConversionAttributes(chart, unitsStsByContext[ctx].units, {
+        min: unitsStsByContext[ctx].min,
+        max: unitsStsByContext[ctx].max,
+      })
+      return h
+    }, {})
+  )
 }
 
 export default sdk => {
   return sdk.on("yAxisChange", (chart, min, max) => {
-    convert(chart, "units", min, max)
-    convert(chart, "dbUnits", min, max)
+    baseConvert(chart, "units", min, max)
+    baseConvert(chart, "dbUnits", min, max)
 
     chart.updateAttributes({
       min,

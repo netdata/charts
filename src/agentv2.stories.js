@@ -19,7 +19,7 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
       nodesScope: [nodesScope],
       contextScope: ["disk.await"],
       host: host,
-      aggregationMethod: "avg",
+      aggregationMethod: "sum",
       agent: true,
       syncHover: true,
       groupingMethod: "average",
@@ -196,7 +196,7 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
         <BarsComponent chart={chart10} height="100px" width="100px" />
       </Flex>*/}
       <Line chart={chart} height="315px" width="100%" />
-      <Table chart={chart7} height="315px" width="100%" />
+      {/*<Table chart={chart7} height="315px" width="100%" />*/}
       {/*<GroupBoxes chart={chart4} />*/}
     </Flex>
   )

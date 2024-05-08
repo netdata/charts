@@ -83,7 +83,7 @@ const GroupBoxes = ({ uiName }) => {
   const showingInfo = useAttributeValue("showingInfo")
 
   const viewDimensions = useAttributeValue("viewDimensions")
-  const [first, ...rest] = viewDimensions.grouped_by || []
+  const [first, ...rest] = viewDimensions.grouped || []
 
   if (!loaded) return <SkeletonIcon />
 

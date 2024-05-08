@@ -242,7 +242,10 @@ export const useUnitSign = ({ key = "units", ...options } = {}) => {
 
   const forceUpdate = useForceUpdate()
 
-  useImmediateListener(() => chart.onAttributeChange(`${key}Conversion`, forceUpdate), [chart, key])
+  useImmediateListener(
+    () => chart.onAttributeChange(`${key}ConversionPrefix`, forceUpdate),
+    [chart, key]
+  )
 
   return chart.getUnitSign({ key, ...options })
 }
@@ -252,7 +255,10 @@ export const useUnits = (key = "units") => {
 
   const forceUpdate = useForceUpdate()
 
-  useImmediateListener(() => chart.onAttributeChange(`${key}Conversion`, forceUpdate), [chart, key])
+  useImmediateListener(
+    () => chart.onAttributeChange(`${key}ConversionPrefix`, forceUpdate),
+    [chart, key]
+  )
 
   return chart.getUnits(key)
 }
@@ -262,7 +268,7 @@ export const useConverted = (
   { valueKey, fractionDigits, dimensionId, unitsKey = "units" } = {}
 ) => {
   const chart = useChart()
-  const unitsConversion = useAttributeValue(`${unitsKey}Conversion`)
+  const unitsConversionPrefix = useAttributeValue(`${unitsKey}ConversionPrefix`)
 
   return useMemo(() => {
     if (value === null || value === "-") return "-"
@@ -276,7 +282,7 @@ export const useConverted = (
       return parts.reduce((h, a) => (check(value, enums[a]) ? { ...h, [a]: colors[a] } : h), {})
 
     return chart.getConvertedValue(value, { fractionDigits, key: unitsKey, dimensionId })
-  }, [chart, value, valueKey, unitsConversion])
+  }, [chart, value, valueKey, unitsConversionPrefix])
 }
 
 export const useLatestRowValue = (options = {}) => {

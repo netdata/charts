@@ -25,16 +25,17 @@ const findCurly = u => {
 
 export const getAlias = u => allUnits.aliases[u] || (allUnits.units[u] ? u : findCurly(u))
 
-export const isAdditive = u => getUnitConfig(u).is_additive
-export const isMetric = u => getUnitConfig(u).is_metric
-export const isBinary = u => getUnitConfig(u).is_binary
+export const isAdditive = u =>
+  typeof u === "string" ? getUnitConfig(u).is_additive : u.is_additive
+export const isMetric = u => (typeof u === "string" ? getUnitConfig(u).is_metric : u.is_metric)
+export const isBinary = u => (typeof u === "string" ? getUnitConfig(u).is_binary : u.is_binary)
 
 export const getScales = u => {
   if (!isAdditive(u)) return [[], {}]
-  if (isBinary(u)) return [keys.binary, scalableUnits.binary]
-  if (!isMetric(u)) return [keys.decimal, scalableUnits.decimal]
+  if (isBinary(u)) return [[...keys.binary], scalableUnits.binary]
+  if (!isMetric(u)) return [[...keys.decimal], scalableUnits.decimal]
 
-  return [keys.num, scalableUnits.num]
+  return [[...keys.num], scalableUnits.num]
 }
 
 const labelify = (base, config, long) => {
@@ -46,10 +47,10 @@ const labelify = (base, config, long) => {
 export const getUnitsString = (u, prefix = "", base = "", long) => {
   if (!isAdditive(u)) return base
 
-  if (!isMetric(u))
-    return `${labelify(prefix, allUnits.decimal_prefixes[prefix], long)} ${labelify(base, u, long)}`
+  if (isMetric(u) || isBinary(u))
+    return `${labelify(prefix, allUnits.prefixes[prefix], long)}${isBinary(u) ? "" : " "}${labelify(base, u, long)}`.trim()
 
-  return `${labelify(prefix, allUnits.prefixes[prefix], long)}${long || !allUnits.prefixes[prefix]?.is_binary ? " " : ""}${labelify(base, u, long)}`
+  return `${labelify(prefix, allUnits.decimal_prefixes[prefix], long)} ${labelify(base, u, long)}`.trim()
 }
 
 const converts = Object.keys(conversableUnits).reduce((acc, unit) => {

@@ -166,20 +166,11 @@ export default (sdk, chart) => {
           ...makeColorOptions(),
           ...makeChartTypeOptions(),
           digitsAfterDecimal:
-            chart.getAttribute("unitsConversionFractionDigits") < 0
+            chart.getAttribute("unitsConversionFractionDigits")[0] < 0
               ? 0
-              : chart.getAttribute("unitsConversionFractionDigits"),
+              : chart.getAttribute("unitsConversionFractionDigits")[0],
         })
       }),
-      chart.onAttributeChange("unitsConversion", () =>
-        dygraph.updateOptions({
-          ...makeChartTypeOptions(),
-          digitsAfterDecimal:
-            chart.getAttribute("unitsConversionFractionDigits") < 0
-              ? 0
-              : chart.getAttribute("unitsConversionFractionDigits"),
-        })
-      ),
       chart.onAttributeChange("staticValueRange", ([min, max]) => {
         dygraph.updateOptions({
           valueRange: isHeatmap(attributes.chartType)

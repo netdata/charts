@@ -46,6 +46,10 @@ export default {
     },
   },
   s: {
+    nanoseconds: {
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max < 0.000001,
+      convert: twoFixed(1000_000_000),
+    },
     microseconds: {
       check: (chart, max) => chart.getAttribute("secondsAsTime") && max < 0.001,
       convert: twoFixed(1000_000),
@@ -77,6 +81,10 @@ export default {
     "duration (years, months)": {
       check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400 * 30 * 12,
       convert: value => seconds2time(value, "DAYS"),
+    },
+    "dHH:MM:ss": {
+      check: () => false, // only accepting desiredUnits
+      convert: value => seconds2time(value, "DAYS", "SECONDS"),
     },
   },
 }

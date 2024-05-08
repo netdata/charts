@@ -7,14 +7,9 @@ export default chart =>
     key = "units",
     withoutConversion = false,
   } = {}) => {
-    const baseUnit = chart.getDimensionUnit(dimensionId)
-    const unitIndex = chart.getAttribute(`${key}ByKey`)[baseUnit] || 0
+    const { base, prefix, unit } = chart.getUnitAttributes(dimensionId, key)
 
-    const units = chart.getAttribute(`${key}Conversion`)[unitIndex]
-    const base = chart.getAttribute(`${key}ConversionBase`)[unitIndex]
-    const prefix = chart.getAttribute(`${key}ConversionPrefix`)[unitIndex]
+    if (withoutConversion) return getUnitConfig(base || unit).name
 
-    if (withoutConversion) return getUnitConfig(base).name
-
-    return getUnitsString(getUnitConfig(base), prefix, units, long)
+    return getUnitsString(getUnitConfig(base || unit), prefix, base || unit, long)
   })

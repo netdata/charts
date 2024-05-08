@@ -264,18 +264,49 @@ export default (chart, sdk) => {
 
   chart.getDimensionUnit = id => {
     const viewDimensions = chart.getAttribute("viewDimensions")
-
     if (!viewDimensions?.units) return ""
 
+    if (!id) return viewDimensions.units[0]
+
     return viewDimensions.units[dimensionsById[id]] || viewDimensions.units[0]
+  }
+
+  chart.getDimensionContext = id => {
+    const viewDimensions = chart.getAttribute("viewDimensions")
+
+    if (!viewDimensions?.contexts) return ""
+
+    return viewDimensions.contexts[dimensionsById[id]] || viewDimensions.contexts[0]
+  }
+
+  chart.getUnitAttributes = (id, key = "units") => {
+    const context = chart.getDimensionContext(id)
+
+    if (context) {
+      if (chart.getAttribute(`${key}ByContext`)[context]) {
+        return chart.getAttribute(`${key}ByContext`)[context]
+      }
+    }
+
+    const baseUnit = chart.getDimensionUnit(id)
+    let unitIndex = chart.getAttribute(key).findIndex(u => u === baseUnit)
+    unitIndex = unitIndex === -1 ? 0 : unitIndex
+
+    const base = chart.getAttribute(`${key}ConversionBase`)[unitIndex]
+    const prefix = chart.getAttribute(`${key}ConversionPrefix`)[unitIndex]
+    const method = chart.getAttribute(`${key}ConversionMethod`)[unitIndex]
+    const fractionDigits = chart.getAttribute(`${key}ConversionFractionDigits`)[unitIndex]
+    const divider = chart.getAttribute(`${key}ConversionDivider`)[unitIndex]
+
+    return { method, fractionDigits, base, prefix, divider }
   }
 
   chart.getDimensionGroups = () => {
     const viewDimensions = chart.getAttribute("viewDimensions")
 
-    if (!viewDimensions?.grouped_by?.length) return chart.getAttribute("groupBy")
+    if (!viewDimensions?.grouped?.length) return []
 
-    return viewDimensions.grouped_by
+    return viewDimensions.grouped
   }
 
   chart.getRowDimensionValue = (

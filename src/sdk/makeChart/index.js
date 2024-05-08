@@ -132,15 +132,13 @@ export default ({
 
     if (value === null) return "-"
 
-    const baseUnit = node.getDimensionUnit(dimensionId)
-    const unitIndex = node.getAttribute(`${key}ByKey`)[baseUnit] || 0
+    const {
+      method,
+      fractionDigits: unitsConversionFractionDigits,
+      divider,
+    } = node.getUnitAttributes(dimensionId, key)
 
-    const unitsConversionMethod = node.getAttribute(`${key}ConversionMethod`)[unitIndex]
-    const unitsConversionDivider = node.getAttribute(`${key}ConversionDivider`)[unitIndex]
-    const unitsConversionFractionDigits = node.getAttribute(`${key}ConversionFractionDigits`)[
-      unitIndex
-    ]
-    const converted = convert(node, unitsConversionMethod, value, unitsConversionDivider)
+    const converted = convert(node, method, value, divider)
 
     if (unitsConversionFractionDigits === -1) return converted
 

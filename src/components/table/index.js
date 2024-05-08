@@ -17,7 +17,6 @@ const useColumns = (chart, options = {}) => {
   const { period, dimensionIds, groups, labels, contextGroups } = options
 
   const hover = useAttributeValue("hoverX")
-  const tableColumns = chart.getAttribute("tableColumns")
 
   return useMemo(() => {
     return [

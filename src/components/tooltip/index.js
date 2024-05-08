@@ -32,10 +32,6 @@ const Tooltip = forwardRef(({ content, Content = DefaultContent, ...rest }, ref)
   )
 )
 
-Tooltip.defaultProps = {
-  align: "bottom",
-}
-
 export const withTooltip = (Component, tooltipDefaultProps = {}) =>
   forwardRef(({ title, ...rest }, ref) => {
     const id = useAttributeValue("id")
@@ -47,6 +43,7 @@ export const withTooltip = (Component, tooltipDefaultProps = {}) =>
         content={title}
         disabled={rest.open}
         data-toolbox={id}
+        align="bottom"
         {...tooltipDefaultProps}
         {...rest.tooltipProps}
       >
