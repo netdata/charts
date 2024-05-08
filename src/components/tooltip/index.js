@@ -18,8 +18,10 @@ const DefaultContent = ({ children, ...rest }) => (
   </Flex>
 )
 
-const Tooltip = forwardRef(({ content, Content = DefaultContent, ...rest }, ref) =>
-  content ? (
+const Tooltip = forwardRef((props, ref) => {
+  const { content, Content = DefaultContent, ...rest } = { align: "bottom", ...props }
+
+  return content ? (
     <BaseTooltip
       ref={ref}
       plain
@@ -30,11 +32,7 @@ const Tooltip = forwardRef(({ content, Content = DefaultContent, ...rest }, ref)
   ) : (
     rest.children
   )
-)
-
-Tooltip.defaultProps = {
-  align: "bottom",
-}
+})
 
 export const withTooltip = (Component, tooltipDefaultProps = {}) =>
   forwardRef(({ title, ...rest }, ref) => {
