@@ -38,8 +38,12 @@ export default chart => {
 
   chart.doneFetch = nextRawPayload => {
     chart.backoffMs = 0
+
     setTimeout(() => {
-      const { result, chartType, versions, title, ...restPayload } = camelizePayload(nextRawPayload)
+      const { result, chartType, versions, title, ...restPayload } = camelizePayload(
+        nextRawPayload,
+        chart
+      )
 
       const prevPayload = nextPayload
       nextPayload = result

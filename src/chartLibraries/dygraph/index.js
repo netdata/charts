@@ -166,20 +166,11 @@ export default (sdk, chart) => {
           ...makeColorOptions(),
           ...makeChartTypeOptions(),
           digitsAfterDecimal:
-            chart.getAttribute("unitsConversionFractionDigits") < 0
+            chart.getAttribute("unitsConversionFractionDigits")[0] < 0
               ? 0
-              : chart.getAttribute("unitsConversionFractionDigits"),
+              : chart.getAttribute("unitsConversionFractionDigits")[0],
         })
       }),
-      chart.onAttributeChange("unitsConversion", () =>
-        dygraph.updateOptions({
-          ...makeChartTypeOptions(),
-          digitsAfterDecimal:
-            chart.getAttribute("unitsConversionFractionDigits") < 0
-              ? 0
-              : chart.getAttribute("unitsConversionFractionDigits"),
-        })
-      ),
       chart.onAttributeChange("staticValueRange", ([min, max]) => {
         dygraph.updateOptions({
           valueRange: isHeatmap(attributes.chartType)
@@ -225,7 +216,7 @@ export default (sdk, chart) => {
         prevMax = max
         chartUI.sdk.trigger("yAxisChange", chart, min, max)
       }
-      return chart.getConvertedValue(y)
+      return chart.getConvertedValue(y) // TODO Pass { dimensionId: context.id } when multiple contexts with different units
     },
     makeYTicker: () => numericTicker,
     highlightCircleSize: 4,
@@ -376,8 +367,8 @@ export default (sdk, chart) => {
       valueRange: staticValueRange
         ? staticValueRange
         : isHeatmap(chartType)
-        ? [0, chart.getVisibleDimensionIds().length]
-        : getValueRange(chart, { dygraph: true }),
+          ? [0, chart.getVisibleDimensionIds().length]
+          : getValueRange(chart, { dygraph: true }),
     }
   }
 

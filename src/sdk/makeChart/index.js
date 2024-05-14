@@ -1,7 +1,7 @@
 import makeKeyboardListener from "@/helpers/makeKeyboardListener"
 import makeExecuteLatest from "@/helpers/makeExecuteLatest"
+import convert from "@/helpers/units"
 import makeNode from "../makeNode"
-import convert from "../unitConversion"
 import { fetchChartData } from "./api"
 import makeDimensions from "./makeDimensions"
 import makeFilterControllers from "./filters/makeControllers"
@@ -127,15 +127,18 @@ export default ({
   node.on("hoverChart", render)
   node.on("blurChart", render)
 
-  node.getConvertedValue = (value, { fractionDigits, key = "units" } = {}) => {
+  node.getConvertedValue = (value, { fractionDigits, key = "units", dimensionId } = {}) => {
     if (!node) return
 
     if (value === null) return "-"
 
-    const unitsConversionMethod = node.getAttribute(`${key}ConversionMethod`)
-    const unitsConversionDivider = node.getAttribute(`${key}ConversionDivider`)
-    const unitsConversionFractionDigits = node.getAttribute(`${key}ConversionFractionDigits`)
-    const converted = convert(node, unitsConversionMethod, value, unitsConversionDivider)
+    const {
+      method,
+      fractionDigits: unitsConversionFractionDigits,
+      divider,
+    } = node.getUnitAttributes(dimensionId, key)
+
+    const converted = convert(node, method, value, divider)
 
     if (unitsConversionFractionDigits === -1) return converted
 

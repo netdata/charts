@@ -1,48 +1,42 @@
-import getConversionUnits from "./getConversionUnits"
+import getConversionUnits, { getConversionAttributes } from "./getConversionUnits"
 
-const convert = (chart, unitsKey = "units", min, max) => {
-  const { method, divider, units, fractionDigits } = getConversionUnits(chart, unitsKey, min, max)
-  const ancestor = chart.getAncestor({ syncUnits: true })
+const baseConvert = (chart, unitsKey = "units", min, max) => {
+  const {
+    method,
+    fractionDigits,
+    prefix = "",
+    base = "",
+    divider,
+  } = getConversionUnits(chart, unitsKey, { min, max })
 
-  if (!ancestor || method === "original") {
-    return chart.updateAttributes({
-      [`${unitsKey}ConversionMethod`]: method,
-      [`${unitsKey}ConversionDivider`]: divider,
-      [`${unitsKey}Conversion`]: units,
-      [`${unitsKey}ConversionFractionDigits`]: fractionDigits,
-    })
-  }
+  chart.updateAttributes({
+    [`${unitsKey}ConversionMethod`]: method,
+    [`${unitsKey}ConversionPrefix`]: prefix,
+    [`${unitsKey}ConversionBase`]: base,
+    [`${unitsKey}ConversionFractionDigits`]: fractionDigits,
+    [`${unitsKey}ConversionDivider`]: divider,
+  })
 
-  const unitsConversionDivider = ancestor.getAttribute(`${unitsKey}ConversionDivider`)
+  const unitsStsByContext = chart.getAttribute(`${unitsKey}StsByContext`)
 
-  const updateChart = () => {
-    chart.updateAttributes({
-      [`${unitsKey}ConversionMethod`]: method,
-      [`${unitsKey}ConversionDivider`]: divider,
-      [`${unitsKey}Conversion`]: units,
-      [`${unitsKey}ConversionFractionDigits`]: fractionDigits,
-    })
-  }
+  console.log(unitsStsByContext)
 
-  if (divider > unitsConversionDivider) {
-    return chart.getApplicableNodes({ syncUnits: true }).forEach(node => {
-      if (node === chart) return updateChart()
-
-      node.updateAttributes({
-        [`${unitsKey}ConversionMethod`]: method,
-        [`${unitsKey}ConversionDivider`]: divider,
-        [`${unitsKey}Conversion`]: units,
+  chart.updateAttribute(
+    `${unitsKey}ByContext`,
+    Object.keys(unitsStsByContext).reduce((h, ctx) => {
+      h[ctx] = getConversionAttributes(chart, unitsStsByContext[ctx].units, {
+        min: unitsStsByContext[ctx].min,
+        max: unitsStsByContext[ctx].max,
       })
-    })
-  }
-
-  updateChart()
+      return h
+    }, {})
+  )
 }
 
 export default sdk => {
   return sdk.on("yAxisChange", (chart, min, max) => {
-    convert(chart, "units", min, max)
-    convert(chart, "dbUnits", min, max)
+    baseConvert(chart, "units", min, max)
+    baseConvert(chart, "dbUnits", min, max)
 
     chart.updateAttributes({
       min,

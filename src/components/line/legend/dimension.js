@@ -6,7 +6,7 @@ import Name, { Name as NameContainer } from "@/components/line/dimensions/name"
 import Value, { Value as ValueContainer } from "@/components/line/dimensions/value"
 import { tooltipStyleProps } from "@/components/tooltip"
 import Units from "@/components/line/dimensions/units"
-import { useVisibleDimensionId, useChart, useLatestValue, useUnits } from "@/components/provider"
+import { useVisibleDimensionId, useChart, useLatestValue, useUnitSign } from "@/components/provider"
 import Tooltip from "@/components/tooltip"
 import { useIsHeatmap } from "@/helpers/heatmap"
 
@@ -64,7 +64,7 @@ const AnomalyProgressBar = ({ id }) => {
 const TooltipContent = props => <Flex {...tooltipStyleProps} {...props} column gap={1} />
 
 const TooltipValue = ({ id, name }) => {
-  const units = useUnits()
+  const units = useUnitSign({ long: true, dimensionId: id, withoutConversion: true })
   const value = useLatestValue(id)
 
   return (
@@ -112,7 +112,7 @@ const Dimension = forwardRef(({ id }, ref) => {
 
           <Flex gap={1} alignItems="center" data-testid="chartLegendDimension-valueContainer" flex>
             <Value id={id} strong visible={visible} Component={TextBig} />
-            <Units visible={visible} />
+            <Units visible={visible} dimensionId={id} />
           </Flex>
         </Flex>
       </Tooltip>

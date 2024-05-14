@@ -104,13 +104,16 @@ const ValueOnDot = ({ children, fractionDigits = 0, ...rest }) => {
   )
 }
 
-export const valueColumn = (chart, { context = "Dimensions", dimension = "Value" }) => ({
+export const valueColumn = (
+  chart,
+  { context = "Dimensions", dimension = "Value", dimensionId }
+) => ({
   id: `value${context}${dimension}`,
   header: () => {
     return (
       <Flex column>
         <TextSmall>{dimension}</TextSmall>
-        <Units visible />
+        <Units visible dimensionId={dimensionId} />
       </Flex>
     )
   },
