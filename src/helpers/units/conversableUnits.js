@@ -7,22 +7,34 @@ const seconds2time = (seconds, maxTimeUnit, minTimeUnit = "MS") => {
   // annotate units in this case (not to show "HH:MM:SS.ms")
   let secondsReturn = Math.abs(seconds)
 
+  const years = Math.floor(secondsReturn / (86_400 * 365))
+  const yearsString = maxTimeUnit === "YEARS" ? `${years}yr` : ""
+
+  secondsReturn -= years * (86_400 * 365)
+
+  const months = Math.floor(secondsReturn / (86_400 * 30))
+  const monthsString = maxTimeUnit === "MONTHS" ? `${months}mo` : ""
+
+  secondsReturn -= months * (86_400 * 30)
+
   const days = Math.floor(secondsReturn / 86_400)
   const daysString = maxTimeUnit === "DAYS" ? `${days}d` : ""
+
+  if (maxTimeUnit === "YEARS") return `${yearsString}:${monthsString}:${daysString}`
 
   secondsReturn -= days * 86_400
 
   const hours = Math.floor(secondsReturn / 3_600)
   const hoursString = zeropad(hours)
 
-  if (maxTimeUnit === "DAYS") return `${daysString}:${hoursString}`
+  if (maxTimeUnit === "MONTHS") return `${monthsString}:${daysString} ${hoursString}`
 
   secondsReturn -= hours * 3_600
 
   const minutes = Math.floor(secondsReturn / 60)
   const minutesString = zeropad(minutes)
 
-  if (maxTimeUnit === "HOURS") return `${hoursString}:${minutesString}`
+  if (maxTimeUnit === "DAYS") return `${daysString} ${hoursString}:${minutesString}`
 
   secondsReturn -= minutes * 60
 
@@ -30,7 +42,11 @@ const seconds2time = (seconds, maxTimeUnit, minTimeUnit = "MS") => {
     minTimeUnit === "MS" ? secondsReturn.toFixed(2) : Math.round(secondsReturn)
   )
 
-  return `${minutesString}:${secondsString}`
+  if (maxTimeUnit === "HOURS") return `${hoursString}:${minutesString}:${secondsString}`
+
+  if (maxTimeUnit === "MINUTES") return `${minutesString}:${secondsString}`
+
+  return `${secondsString}s`
 }
 
 const twoFixed =
@@ -128,11 +144,11 @@ export default {
     },
     mo: {
       check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400_000 * 30,
-      convert: value => seconds2time(value, "DAYS"),
+      convert: value => seconds2time(value / 1_000, "MONTHS"),
     },
     a: {
-      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400_000 * 30 * 12,
-      convert: value => seconds2time(value, "DAYS"),
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400_000 * 365,
+      convert: value => seconds2time(value / 1_000, "YEARS"),
     },
   },
   s: {
@@ -162,11 +178,11 @@ export default {
     },
     mo: {
       check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400 * 30,
-      convert: value => seconds2time(value, "DAYS"),
+      convert: value => seconds2time(value, "MONTHS"),
     },
     a: {
-      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400 * 30 * 12,
-      convert: value => seconds2time(value, "DAYS"),
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400 * 365,
+      convert: value => seconds2time(value, "YEARS"),
     },
     "dHH:MM:ss": {
       check: () => false, // only accepting desiredUnits

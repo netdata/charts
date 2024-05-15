@@ -11,5 +11,5 @@ export default chart =>
 
     if (withoutConversion) return getUnitConfig(base || unit).name
 
-    return getUnitsString(getUnitConfig(base || unit), prefix, base || unit, long)
+    return getUnitsString(getUnitConfig(base || unit), prefix, base, long)
   })
