@@ -15,7 +15,7 @@ const scalable = (units, delta, desiredUnits) => {
     if (desiredScales) {
       return [
         "adjust",
-        value => (value / (scaleByKey[prefix] || 1)) * (scaleByKey[desiredPrefix] || 1),
+        value => (value * (scaleByKey[prefix] || 1)) / (scaleByKey[desiredPrefix] || 1),
         desiredPrefix,
         desiredBase,
       ]
@@ -27,7 +27,7 @@ const scalable = (units, delta, desiredUnits) => {
   return scale
     ? [
         "adjust",
-        value => (value / (scaleByKey[prefix] || 1)) * (scaleByKey[scale] || 1),
+        value => (value * (scaleByKey[prefix] || 1)) / (scaleByKey[scale] || 1),
         scale,
         base,
       ]

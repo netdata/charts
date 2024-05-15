@@ -1,6 +1,7 @@
 export const keys = {
   binary: ["Ki", "Mi", "Gi", "Ti"],
   decimal: ["K", "M", "B", "T"],
+  bit: ["k", "M", "G", "T", "P", "E", "Z", "Y"],
   num: [
     "y",
     "z",
