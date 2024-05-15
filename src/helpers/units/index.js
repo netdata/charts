@@ -5,7 +5,6 @@ import scalableUnits, { keys } from "./scalableUnits"
 export const unitsMissing = u => typeof allUnits.units[u] === "undefined"
 export const getUnitConfig = u =>
   allUnits.units[u] || {
-    name: u,
     is_additive: true,
     is_metric: true,
     is_binary: false,
@@ -42,13 +41,13 @@ export const getScales = u => {
 }
 
 const labelify = (base, config, long) => {
-  if (!config || !base) return base
+  if (!config) return base
   if (long) return typeof config.name === "undefined" ? base : config.name
   return typeof config.print_symbol === "undefined" ? base : config.print_symbol
 }
 
 export const getUnitsString = (u, prefix = "", base = "", long) => {
-  if (!isAdditive(u)) return base
+  if (!isAdditive(u)) return labelify(base, u, long).trim()
 
   if (isMetric(u) || isBinary(u) || isBit(u))
     return `${labelify(prefix, allUnits.prefixes[prefix], long)}${isBinary(u) || isBit(u) ? "" : " "}${labelify(base, u, long)}`.trim()

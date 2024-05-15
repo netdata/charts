@@ -1,7 +1,12 @@
 import React, { forwardRef } from "react"
 import { Text } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
-import { useUnitSign, useLatestConvertedValue, useOnResize } from "@/components/provider"
+import {
+  useUnitSign,
+  useLatestConvertedValue,
+  useOnResize,
+  useDimensionIds,
+} from "@/components/provider"
 import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
 import FontSizer from "@/components/helpers/fontSizer"
@@ -26,7 +31,8 @@ export const Value = props => {
 
 export const Unit = props => {
   const { width, height } = useOnResize()
-  const unit = useUnitSign()
+  const [firstDimId] = useDimensionIds()
+  const unit = useUnitSign({ dimensionId: firstDimId })
 
   if (!unit) return null
 

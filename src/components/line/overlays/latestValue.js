@@ -22,7 +22,7 @@ const defaultTextProps = {
 }
 
 const LatestValue = ({ dimensionId, textProps, ...rest }) => {
-  const unit = useUnitSign()
+  const unit = useUnitSign({ dimensionId })
   const value = useLatestConvertedValue(dimensionId)
   const { width, height } = useOnResize()
 

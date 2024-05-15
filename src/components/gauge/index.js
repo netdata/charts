@@ -8,6 +8,7 @@ import {
   useAttributeValue,
   useOnResize,
   useLatestConvertedValue,
+  useDimensionIds,
 } from "@/components/provider"
 import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
@@ -39,7 +40,8 @@ export const Value = () => {
 }
 
 export const Unit = () => {
-  const unit = useUnitSign()
+  const [firstDimId] = useDimensionIds()
+  const unit = useUnitSign({ dimensionId: firstDimId })
   return (
     <Label color="textLite" fontSize="1em">
       {unit}

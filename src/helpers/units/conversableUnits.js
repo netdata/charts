@@ -128,25 +128,25 @@ export default {
       check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 1_000 && max < 60_000,
       convert: twoFixed(0.001),
     },
-    min: {
+    "mm:ss": {
       check: (chart, max) =>
         chart.getAttribute("secondsAsTime") && max >= 60_000 && max < 3_600_000,
       convert: value => seconds2time(value / 1_000, "MINUTES"),
     },
-    h: {
+    "h:mm:ss": {
       check: (chart, max) =>
         chart.getAttribute("secondsAsTime") && max >= 3_600_000 && max < 86_400_000,
       convert: value => seconds2time(value / 1_000, "HOURS"),
     },
-    d: {
+    "d:h:mm": {
       check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400_000,
       convert: value => seconds2time(value / 1_000, "DAYS"),
     },
-    mo: {
+    "mo:d:h": {
       check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400_000 * 30,
       convert: value => seconds2time(value / 1_000, "MONTHS"),
     },
-    a: {
+    "a:mo:d": {
       check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400_000 * 365,
       convert: value => seconds2time(value / 1_000, "YEARS"),
     },
@@ -164,23 +164,23 @@ export default {
       check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 1 && max < 60,
       convert: twoFixed(1),
     },
-    min: {
+    "mm:ss": {
       check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 60 && max < 3_600,
       convert: value => seconds2time(value, "MINUTES"),
     },
-    h: {
+    "h:mm:ss": {
       check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 3_600 && max < 86_400,
       convert: value => seconds2time(value, "HOURS"),
     },
-    d: {
+    "d:h:mm": {
       check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400,
       convert: value => seconds2time(value, "DAYS"),
     },
-    mo: {
+    "mo:d:h": {
       check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400 * 30,
       convert: value => seconds2time(value, "MONTHS"),
     },
-    a: {
+    "a:mo:d": {
       check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400 * 365,
       convert: value => seconds2time(value, "YEARS"),
     },
