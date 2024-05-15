@@ -214,18 +214,9 @@ export default {
       is_additive: true,
       is_binary: false,
     },
-    A: {
-      symbol: "A",
-      name: "amp\u00e8re",
-      print_symbol: "A",
-      is_metric: true,
-      is_special: false,
-      is_additive: true,
-      is_binary: false,
-    },
     Ah: {
       symbol: "Ah",
-      name: "amp\u00e8re-hour",
+      name: "amp\u00e8re-hours",
       print_symbol: "Ah",
       is_metric: true,
       is_special: false,
@@ -234,7 +225,7 @@ export default {
     },
     Ampere: {
       symbol: "Ampere",
-      name: "amp\u00e8re",
+      name: "amp\u00e8res",
       print_symbol: "A",
       is_metric: true,
       is_special: false,
@@ -243,7 +234,7 @@ export default {
     },
     "B[mW]": {
       symbol: "B[mW]",
-      name: "bel milliwatt",
+      name: "bel milliwatts",
       print_symbol: "B(mW)",
       is_metric: true,
       is_special: true,
@@ -252,7 +243,7 @@ export default {
     },
     By: {
       symbol: "By",
-      name: "byte",
+      name: "bytes",
       print_symbol: "B",
       is_metric: true,
       is_special: false,
@@ -261,7 +252,7 @@ export default {
     },
     "By/s": {
       symbol: "By/s",
-      name: "byte per second",
+      name: "bytes per second",
       print_symbol: "B/s",
       is_metric: true,
       is_special: false,
@@ -270,7 +261,7 @@ export default {
     },
     "By/{operation}": {
       symbol: "By/{operation}",
-      name: "byte per operation",
+      name: "bytes per operation",
       print_symbol: "B/operation",
       is_metric: true,
       is_special: false,
@@ -279,7 +270,7 @@ export default {
     },
     Cel: {
       symbol: "Cel",
-      name: "degree Celsius",
+      name: "degrees Celsius",
       print_symbol: "\u00b0C",
       is_metric: false,
       is_special: true,
@@ -288,7 +279,7 @@ export default {
     },
     GiBy: {
       symbol: "GiBy",
-      name: "gibibyte",
+      name: "gibibytes",
       print_symbol: "GiB",
       is_metric: true,
       is_special: false,
@@ -308,7 +299,7 @@ export default {
     },
     J: {
       symbol: "J",
-      name: "joule",
+      name: "joules",
       print_symbol: "J",
       is_metric: true,
       is_special: false,
@@ -317,7 +308,7 @@ export default {
     },
     KiBy: {
       symbol: "KiBy",
-      name: "kibibyte",
+      name: "kibibytes",
       print_symbol: "KiB",
       is_metric: true,
       is_special: false,
@@ -328,7 +319,7 @@ export default {
     },
     "KiBy/s": {
       symbol: "KiBy/s",
-      name: "kibibyte per second",
+      name: "kibibytes per second",
       print_symbol: "KiB/s",
       is_metric: true,
       is_special: false,
@@ -339,7 +330,7 @@ export default {
     },
     "KiBy/{operation}": {
       symbol: "KiBy/{operation}",
-      name: "kibibyte per operation",
+      name: "kibibytes per operation",
       print_symbol: "KiB/operation",
       is_metric: true,
       is_special: false,
@@ -350,7 +341,7 @@ export default {
     },
     Kibit: {
       symbol: "Kibit",
-      name: "kilobit",
+      name: "kilobits",
       print_symbol: "kb",
       is_metric: true,
       is_special: false,
@@ -362,7 +353,7 @@ export default {
     },
     "Kibit/s": {
       symbol: "Kibit/s",
-      name: "kilobit per second",
+      name: "kilobits per second",
       print_symbol: "kb/s",
       is_metric: true,
       is_special: false,
@@ -385,7 +376,7 @@ export default {
     },
     MiBy: {
       symbol: "MiBy",
-      name: "mebibyte",
+      name: "mebibytes",
       print_symbol: "MiB",
       is_metric: true,
       is_special: false,
@@ -396,7 +387,7 @@ export default {
     },
     "MiBy/s": {
       symbol: "MiBy/s",
-      name: "mebibyte per second",
+      name: "mebibytes per second",
       print_symbol: "MiB/s",
       is_metric: true,
       is_special: false,
@@ -407,7 +398,7 @@ export default {
     },
     "Mibit/s": {
       symbol: "Mibit/s",
-      name: "megabit per second",
+      name: "megabits per second",
       print_symbol: "mb/s",
       is_metric: true,
       is_special: false,
@@ -419,7 +410,7 @@ export default {
     },
     V: {
       symbol: "V",
-      name: "volt",
+      name: "volts",
       print_symbol: "V",
       is_metric: true,
       is_special: false,
@@ -428,7 +419,7 @@ export default {
     },
     W: {
       symbol: "W",
-      name: "watt",
+      name: "watts",
       print_symbol: "W",
       is_metric: true,
       is_special: false,
@@ -437,7 +428,7 @@ export default {
     },
     "W.h": {
       symbol: "W.h",
-      name: "watt-hour",
+      name: "watt-hours",
       print_symbol: "Wh",
       is_metric: true,
       is_special: false,
@@ -455,7 +446,7 @@ export default {
     },
     "[degF]": {
       symbol: "[degF]",
-      name: "degree Fahrenheit",
+      name: "degrees Fahrenheit",
       print_symbol: "\u00b0F",
       is_metric: false,
       is_special: true,
@@ -473,7 +464,7 @@ export default {
     },
     bit: {
       symbol: "bit",
-      name: "bit",
+      name: "bits",
       print_symbol: "bit",
       is_metric: true,
       is_special: false,
@@ -483,7 +474,7 @@ export default {
     },
     "bit/s": {
       symbol: "bit/s",
-      name: "bit per second",
+      name: "bits per second",
       print_symbol: "bit/s",
       is_metric: true,
       is_special: false,
@@ -504,7 +495,7 @@ export default {
     },
     "dB[mW]": {
       symbol: "dB[mW]",
-      name: "decibel milliwatt",
+      name: "decibel milliwatts",
       print_symbol: "dB(mW)",
       is_metric: true,
       is_special: true,
@@ -515,7 +506,7 @@ export default {
     },
     d: {
       symbol: "d",
-      name: "day",
+      name: "days",
       print_symbol: "d",
       is_metric: false,
       is_special: false,
@@ -524,7 +515,7 @@ export default {
     },
     mo: {
       symbol: "mo",
-      name: "month",
+      name: "months",
       print_symbol: "Mo",
       is_metric: false,
       is_special: false,
@@ -533,7 +524,7 @@ export default {
     },
     a: {
       symbol: "a",
-      name: "year",
+      name: "years",
       print_symbol: "yr",
       is_metric: false,
       is_special: false,
@@ -542,7 +533,7 @@ export default {
     },
     h: {
       symbol: "h",
-      name: "hour",
+      name: "hours",
       print_symbol: "h",
       is_metric: false,
       is_special: false,
@@ -551,7 +542,7 @@ export default {
     },
     wk: {
       symbol: "wk",
-      name: "week",
+      name: "weeks",
       print_symbol: "wk",
       is_metric: false,
       is_special: false,
@@ -571,7 +562,7 @@ export default {
     },
     min: {
       symbol: "min",
-      name: "minute",
+      name: "minutes",
       print_symbol: "min",
       is_metric: false,
       is_special: false,
@@ -580,7 +571,7 @@ export default {
     },
     ms: {
       symbol: "ms",
-      name: "millisecond",
+      name: "milliseconds",
       print_symbol: "ms",
       is_metric: true,
       is_special: false,
@@ -591,7 +582,7 @@ export default {
     },
     "ms/s": {
       symbol: "ms/s",
-      name: "millisecond per second",
+      name: "milliseconds per second",
       print_symbol: "ms/s",
       is_metric: true,
       is_special: false,
@@ -602,7 +593,7 @@ export default {
     },
     "ms/{operation}": {
       symbol: "ms/{operation}",
-      name: "millisecond per operation",
+      name: "milliseconds per operation",
       print_symbol: "ms/operation",
       is_metric: true,
       is_special: false,
@@ -613,7 +604,7 @@ export default {
     },
     "ms/{request}": {
       symbol: "ms/{request}",
-      name: "millisecond per request",
+      name: "milliseconds per request",
       print_symbol: "ms/request",
       is_metric: true,
       is_special: false,
@@ -624,7 +615,7 @@ export default {
     },
     "ms/{run}": {
       symbol: "ms/{run}",
-      name: "millisecond per run",
+      name: "milliseconds per run",
       print_symbol: "ms/run",
       is_metric: true,
       is_special: false,
@@ -635,7 +626,7 @@ export default {
     },
     ns: {
       symbol: "ns",
-      name: "nanosecond",
+      name: "nanoseconds",
       print_symbol: "ns",
       is_metric: true,
       is_special: false,
@@ -646,7 +637,7 @@ export default {
     },
     s: {
       symbol: "s",
-      name: "second",
+      name: "seconds",
       print_symbol: "s",
       is_metric: true,
       is_special: false,
@@ -655,7 +646,7 @@ export default {
     },
     "s/s": {
       symbol: "s/s",
-      name: "second per second",
+      name: "seconds per second",
       print_symbol: "s/s",
       is_metric: true,
       is_special: false,
@@ -664,7 +655,7 @@ export default {
     },
     "s/{operation}": {
       symbol: "s/{operation}",
-      name: "second per operation",
+      name: "seconds per operation",
       print_symbol: "s/operation",
       is_metric: true,
       is_special: false,
@@ -673,7 +664,7 @@ export default {
     },
     "s/{request}": {
       symbol: "s/{request}",
-      name: "second per request",
+      name: "seconds per request",
       print_symbol: "s/request",
       is_metric: true,
       is_special: false,
@@ -682,7 +673,7 @@ export default {
     },
     "s/{run}": {
       symbol: "s/{run}",
-      name: "second per run",
+      name: "seconds per run",
       print_symbol: "s/run",
       is_metric: true,
       is_special: false,
@@ -691,7 +682,7 @@ export default {
     },
     us: {
       symbol: "us",
-      name: "microsecond",
+      name: "microseconds",
       print_symbol: "\u03bcs",
       is_metric: true,
       is_special: false,
@@ -702,7 +693,7 @@ export default {
     },
     "us/s": {
       symbol: "us/s",
-      name: "microsecond per second",
+      name: "microseconds per second",
       print_symbol: "\u03bcs/s",
       is_metric: true,
       is_special: false,
