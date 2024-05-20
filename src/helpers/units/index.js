@@ -54,7 +54,7 @@ export const getUnitsString = (u, prefix = "", base = "", long) => {
   if (!isScalable(u)) return labelify(base, u, long).trim()
 
   if (isMetric(u) || isBinary(u) || isBit(u))
-    return `${labelify(prefix, allUnits.prefixes[prefix], long)}${isBinary(u) || isBit(u) ? "" : " "}${labelify(base, u, long)}`.trim()
+    return `${labelify(prefix, allUnits.prefixes[prefix], long)}${labelify(base, u, long)}`.trim()
 
   return `${labelify(prefix, allUnits.decimal_prefixes[prefix], long)} ${labelify(base, u, long)}`.trim()
 }
