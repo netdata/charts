@@ -22,6 +22,7 @@ const scalable = (units, delta, desiredUnits) => {
     }
   }
 
+  delta = delta * (scaleByKey[prefix] || 1)
   const scale = [...scaleKeys].reverse().find(scale => delta >= (scaleByKey[scale] || 1))
 
   return scale
