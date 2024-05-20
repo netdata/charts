@@ -156,82 +156,77 @@ export default (payload, chart) => {
     ...rest
   } = payload
 
-  const onlyData =
-    chart.getAttribute("versions").contexts_hard_hash === rest.versions.contexts_hard_hash
-
   let details = {}
 
-  if (!onlyData) {
-    let nodes = {}
-    let nodesIndexes = {}
-    nodesArray.forEach(n => {
-      nodes[n.nd || n.mg] = n
-      nodesIndexes[n.ni] = n.nd || n.mg
-    })
+  let nodes = {}
+  let nodesIndexes = {}
+  nodesArray.forEach(n => {
+    nodes[n.nd || n.mg] = n
+    nodesIndexes[n.ni] = n.nd || n.mg
+  })
 
-    let dimensionIds = []
-    let dimensions = {}
-    dimensionsArray.forEach(d => {
-      dimensions[d.id] = d
-      dimensionIds.push(d.id)
-    })
+  let dimensionIds = []
+  let dimensions = {}
+  dimensionsArray.forEach(d => {
+    dimensions[d.id] = d
+    dimensionIds.push(d.id)
+  })
 
-    let instanceId = null
-    const instances = instancesArray.reduce((h, i = {}) => {
-      instanceId = `${i.id}@${nodes[nodesIndexes[i.ni]].nd || nodes[nodesIndexes[i.ni]].mg}`
-      h[instanceId] = { ...i }
-      h[instanceId].nm = `${i.nm || i.id}@${nodes[nodesIndexes[i.ni]].nm}`
+  let instanceId = null
+  const instances = instancesArray.reduce((h, i = {}) => {
+    instanceId = `${i.id}@${nodes[nodesIndexes[i.ni]].nd || nodes[nodesIndexes[i.ni]].mg}`
+    h[instanceId] = { ...i }
+    h[instanceId].nm = `${i.nm || i.id}@${nodes[nodesIndexes[i.ni]].nm}`
+    return h
+  }, {})
+
+  const grouped = viewDimensions.grouped_by
+
+  const [dimContexts, unitsStsByContext] = getStsByContext(
+    grouped,
+    units,
+    viewDimensions,
+    contextsArray
+  )
+
+  const [dbDimContexts, dbUnitsStsByContext] = getStsByContext(
+    grouped,
+    dbUnits,
+    dbDimensions,
+    contextsArray
+  )
+
+  details = {
+    viewDimensions: {
+      ...viewDimensions,
+      contexts: dimContexts,
+      grouped,
+    },
+    units: Array.isArray(units) ? units.map(getAlias) : [getAlias(units)],
+    unitsStsByContext,
+    chartType: heatmapOrChartType(viewDimensions.ids, chartType),
+    title,
+    tiers,
+    perTier,
+    nodes,
+    nodesIndexes,
+    instances,
+    dimensions,
+    dimensionIds,
+    labels: labels.reduce((h, l) => {
+      h[l.id] = l
       return h
-    }, {})
-
-    const grouped = viewDimensions.grouped_by
-
-    const [dimContexts, unitsStsByContext] = getStsByContext(
-      grouped,
-      units,
-      viewDimensions,
-      contextsArray
-    )
-
-    const [dbDimContexts, dbUnitsStsByContext] = getStsByContext(
-      grouped,
-      dbUnits,
-      dbDimensions,
-      contextsArray
-    )
-
-    details = {
-      viewDimensions: {
-        ...viewDimensions,
-        contexts: dimContexts,
-        grouped,
-      },
-      units: Array.isArray(units) ? units.map(getAlias) : [getAlias(units)],
-      unitsStsByContext,
-      chartType: heatmapOrChartType(viewDimensions.ids, chartType),
-      title,
-      tiers,
-      perTier,
-      nodes,
-      nodesIndexes,
-      instances,
-      dimensions,
-      dimensionIds,
-      labels: labels.reduce((h, l) => {
-        h[l.id] = l
-        return h
-      }, {}),
-      alerts: alerts.reduce((h, a) => {
-        h[a.nm] = a
-        return h
-      }, {}),
-      dbDimensions: {
-        ...dbDimensions,
-        contexts: dbDimContexts,
-      },
-      dbUnits: Array.isArray(dbUnits) ? dbUnits.map(getAlias) : [getAlias(dbUnits)],
-      dbUnitsStsByContext,
-    }
+    }, {}),
+    alerts: alerts.reduce((h, a) => {
+      h[a.nm] = a
+      return h
+    }, {}),
+    dbDimensions: {
+      ...dbDimensions,
+      contexts: dbDimContexts,
+    },
+    dbUnits: Array.isArray(dbUnits) ? dbUnits.map(getAlias) : [getAlias(dbUnits)],
+    dbUnitsStsByContext,
   }
 
   return {
