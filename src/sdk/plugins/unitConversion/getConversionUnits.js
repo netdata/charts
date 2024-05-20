@@ -29,7 +29,7 @@ const scalable = (units, delta, desiredUnits) => {
     ? [
         "adjust",
         value => (value * (scaleByKey[prefix] || 1)) / (scaleByKey[scale] || 1),
-        scale,
+        scale === "1" ? "" : scale,
         base,
       ]
     : ["original"]

@@ -1,9 +1,9 @@
 export const keys = {
-  binary: ["Ki", "Mi", "Gi", "Ti"],
-  bit: ["k", "M", "G", "T", "P", "E", "Z", "Y"],
+  binary: ["1", "Ki", "Mi", "Gi", "Ti"],
+  bit: ["1", "k", "M", "G", "T", "P", "E", "Z", "Y"],
 
-  decimal: ["K", "M", "B", "T"],
-  num: ["y", "z", "a", "f", "p", "n", "u", "m", "k", "M", "G", "T", "P", "E", "Z", "Y"],
+  decimal: ["1", "K", "M", "B", "T"],
+  num: ["y", "z", "a", "f", "p", "n", "u", "m", "1", "k", "M", "G", "T", "P", "E", "Z", "Y"],
 }
 
 export default {
