@@ -9,6 +9,8 @@ export const getUnitConfig = u =>
     is_metric: false,
     is_binary: false,
     is_bit: false,
+    print_symbol: u,
+    name: u,
   }
 
 const findCurly = u => {
