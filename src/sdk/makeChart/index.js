@@ -319,6 +319,8 @@ export default ({
     const en = node.getAttribute("en")
     if (!en?.[key]) return count === 1 ? key : pluralize ? `${key}s` : key
 
+    if (typeof en[key] === "string") return en[key]
+
     return count === 1 ? en[key]?.one || key : en[key]?.other || (pluralize ? `${key}s` : key)
   }
 
