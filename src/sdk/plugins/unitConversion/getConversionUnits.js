@@ -50,7 +50,8 @@ const conversable = (chart, units, delta, desiredUnits) => {
   if (scaleIndex === -1) return ["original"]
 
   const key = scaleKeys[scaleIndex]
-  return [makeConversableKey(units, key), null, "", scaleKeys[scaleIndex]]
+
+  return [makeConversableKey(units, key), null, "", key]
 }
 
 const getMethod = (chart, units, min, max) => {

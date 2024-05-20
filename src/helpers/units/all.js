@@ -198,7 +198,7 @@ export default {
   units: {
     "mm:ss": {
       symbol: "mm:ss",
-      name: "duration in minutes",
+      name: "minutes",
       print_symbol: "mm:ss",
       is_metric: false,
       is_special: false,
@@ -207,7 +207,7 @@ export default {
     },
     "h:mm:ss": {
       symbol: "h:mm:ss",
-      name: "duration in hours",
+      name: "hours",
       print_symbol: "h:mm:ss",
       is_metric: false,
       is_special: false,
@@ -216,7 +216,7 @@ export default {
     },
     "d:h:mm": {
       symbol: "d:h:mm",
-      name: "duration in days",
+      name: "days",
       print_symbol: "d:h:mm",
       is_metric: false,
       is_special: false,
@@ -225,7 +225,7 @@ export default {
     },
     "mo:d:h": {
       symbol: "mo:d:h",
-      name: "duration in months",
+      name: "months",
       print_symbol: "mo:d:h",
       is_metric: false,
       is_special: false,
@@ -234,7 +234,7 @@ export default {
     },
     "a:mo:d": {
       symbol: "a:mo:d",
-      name: "duration in years",
+      name: "years",
       print_symbol: "yr:mo:d",
       is_metric: false,
       is_special: false,
