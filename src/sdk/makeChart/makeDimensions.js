@@ -297,8 +297,9 @@ export default (chart, sdk) => {
     const method = chart.getAttribute(`${key}ConversionMethod`)[unitIndex]
     const fractionDigits = chart.getAttribute(`${key}ConversionFractionDigits`)[unitIndex]
     const divider = chart.getAttribute(`${key}ConversionDivider`)[unitIndex]
+    const unit = chart.getAttribute(key)[unitIndex]
 
-    return { method, fractionDigits, base, prefix, divider }
+    return { method, fractionDigits, base, prefix, divider, unit }
   }
 
   chart.getDimensionGroups = () => {

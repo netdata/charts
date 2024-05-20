@@ -5,8 +5,8 @@ import scalableUnits, { keys } from "./scalableUnits"
 export const unitsMissing = u => typeof allUnits.units[u] === "undefined"
 export const getUnitConfig = u =>
   allUnits.units[u] || {
-    is_additive: true,
-    is_metric: true,
+    is_scalable: true,
+    is_metric: false,
     is_binary: false,
     is_bit: false,
   }
@@ -25,19 +25,21 @@ const findCurly = u => {
 
 export const getAlias = u => allUnits.aliases[u] || (allUnits.units[u] ? u : findCurly(u))
 
-export const isAdditive = u =>
-  typeof u === "string" ? getUnitConfig(u).is_additive : u.is_additive
+export const isScalable = u =>
+  typeof u === "string" ? getUnitConfig(u).is_scalable : u.is_scalable
 export const isMetric = u => (typeof u === "string" ? getUnitConfig(u).is_metric : u.is_metric)
 export const isBinary = u => (typeof u === "string" ? getUnitConfig(u).is_binary : u.is_binary)
 export const isBit = u => (typeof u === "string" ? getUnitConfig(u).is_bit : u.is_bit)
 
 export const getScales = u => {
-  if (!isAdditive(u)) return [[], {}]
+  if (!isScalable(u)) return [[], {}]
+
   if (isBinary(u)) return [[...keys.binary], scalableUnits.binary]
-  if (!isMetric(u)) return [[...keys.decimal], scalableUnits.decimal]
   if (isBit(u)) return [[...keys.bit], scalableUnits.num]
 
-  return [[...keys.num], scalableUnits.num]
+  if (isMetric(u)) return [[...keys.num], scalableUnits.num]
+
+  return [[...keys.decimal], scalableUnits.decimal]
 }
 
 const labelify = (base, config, long) => {
@@ -47,7 +49,7 @@ const labelify = (base, config, long) => {
 }
 
 export const getUnitsString = (u, prefix = "", base = "", long) => {
-  if (!isAdditive(u)) return labelify(base, u, long).trim()
+  if (!isScalable(u)) return labelify(base, u, long).trim()
 
   if (isMetric(u) || isBinary(u) || isBit(u))
     return `${labelify(prefix, allUnits.prefixes[prefix], long)}${isBinary(u) || isBit(u) ? "" : " "}${labelify(base, u, long)}`.trim()

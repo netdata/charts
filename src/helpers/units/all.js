@@ -201,8 +201,8 @@ export default {
       name: "duration in minutes",
       print_symbol: "mm:ss",
       is_metric: false,
-      is_special: true,
-      is_additive: false,
+      is_special: false,
+      is_scalable: false,
       is_binary: false,
     },
     "h:mm:ss": {
@@ -210,8 +210,8 @@ export default {
       name: "duration in hours",
       print_symbol: "h:mm:ss",
       is_metric: false,
-      is_special: true,
-      is_additive: false,
+      is_special: false,
+      is_scalable: false,
       is_binary: false,
     },
     "d:h:mm": {
@@ -219,8 +219,8 @@ export default {
       name: "duration in days",
       print_symbol: "d:h:mm",
       is_metric: false,
-      is_special: true,
-      is_additive: false,
+      is_special: false,
+      is_scalable: false,
       is_binary: false,
     },
     "mo:d:h": {
@@ -228,8 +228,8 @@ export default {
       name: "duration in months",
       print_symbol: "mo:d:h",
       is_metric: false,
-      is_special: true,
-      is_additive: false,
+      is_special: false,
+      is_scalable: false,
       is_binary: false,
     },
     "a:mo:d": {
@@ -237,8 +237,8 @@ export default {
       name: "duration in years",
       print_symbol: "yr:mo:d",
       is_metric: false,
-      is_special: true,
-      is_additive: false,
+      is_special: false,
+      is_scalable: false,
       is_binary: false,
     },
     "dHH:MM:ss": {
@@ -246,8 +246,8 @@ export default {
       name: "dHH:MM:ss",
       print_symbol: "",
       is_metric: false,
-      is_special: true,
-      is_additive: false,
+      is_special: false,
+      is_scalable: false,
       is_binary: false,
     },
     "%": {
@@ -256,7 +256,7 @@ export default {
       print_symbol: "%",
       is_metric: false,
       is_special: false,
-      is_additive: false,
+      is_scalable: false,
       is_binary: false,
     },
     1: {
@@ -265,7 +265,7 @@ export default {
       print_symbol: "",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     Ah: {
@@ -274,7 +274,7 @@ export default {
       print_symbol: "Ah",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     Ampere: {
@@ -283,7 +283,7 @@ export default {
       print_symbol: "A",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "B[mW]": {
@@ -292,7 +292,7 @@ export default {
       print_symbol: "B(mW)",
       is_metric: true,
       is_special: true,
-      is_additive: false,
+      is_scalable: false,
       is_binary: false,
     },
     By: {
@@ -301,7 +301,7 @@ export default {
       print_symbol: "B",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: true,
     },
     "By/s": {
@@ -310,7 +310,7 @@ export default {
       print_symbol: "B/s",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: true,
     },
     "By/{operation}": {
@@ -319,7 +319,7 @@ export default {
       print_symbol: "B/operation",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: true,
     },
     Cel: {
@@ -328,7 +328,7 @@ export default {
       print_symbol: "\u00b0C",
       is_metric: false,
       is_special: true,
-      is_additive: false,
+      is_scalable: false,
       is_binary: false,
     },
     GiBy: {
@@ -337,7 +337,7 @@ export default {
       print_symbol: "GiB",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: true,
       base_unit: "By",
       prefix_symbol: "Gi",
@@ -348,7 +348,7 @@ export default {
       print_symbol: "Hz",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     J: {
@@ -357,7 +357,7 @@ export default {
       print_symbol: "J",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     KiBy: {
@@ -366,7 +366,7 @@ export default {
       print_symbol: "KiB",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: true,
       base_unit: "By",
       prefix_symbol: "Ki",
@@ -377,7 +377,7 @@ export default {
       print_symbol: "KiB/s",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: true,
       base_unit: "By/s",
       prefix_symbol: "Ki",
@@ -388,7 +388,7 @@ export default {
       print_symbol: "KiB/operation",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: true,
       base_unit: "By/{operation}",
       prefix_symbol: "Ki",
@@ -399,7 +399,7 @@ export default {
       print_symbol: "kb",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
       is_bit: true,
       base_unit: "bit",
@@ -411,7 +411,7 @@ export default {
       print_symbol: "kb/s",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
       is_bit: true,
       base_unit: "bit/s",
@@ -423,7 +423,7 @@ export default {
       print_symbol: "MHz",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
       base_unit: "Hz",
       prefix_symbol: "M",
@@ -434,7 +434,7 @@ export default {
       print_symbol: "MiB",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: true,
       base_unit: "By",
       prefix_symbol: "Mi",
@@ -445,7 +445,7 @@ export default {
       print_symbol: "MiB/s",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: true,
       base_unit: "By/s",
       prefix_symbol: "Mi",
@@ -456,7 +456,7 @@ export default {
       print_symbol: "mb/s",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
       is_bit: true,
       base_unit: "bit/s",
@@ -468,7 +468,7 @@ export default {
       print_symbol: "V",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     W: {
@@ -477,7 +477,7 @@ export default {
       print_symbol: "W",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "W.h": {
@@ -486,7 +486,7 @@ export default {
       print_symbol: "Wh",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "[CPU]": {
@@ -495,7 +495,7 @@ export default {
       print_symbol: "CPU",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "[degF]": {
@@ -504,7 +504,7 @@ export default {
       print_symbol: "\u00b0F",
       is_metric: false,
       is_special: true,
-      is_additive: false,
+      is_scalable: false,
       is_binary: false,
     },
     "[ppm]": {
@@ -513,7 +513,7 @@ export default {
       print_symbol: "ppm",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     bit: {
@@ -522,7 +522,7 @@ export default {
       print_symbol: "bit",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
       is_bit: true,
     },
@@ -532,7 +532,7 @@ export default {
       print_symbol: "bit/s",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
       is_bit: true,
     },
@@ -542,7 +542,7 @@ export default {
       print_symbol: "cCPU",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
       base_unit: "[CPU]",
       prefix_symbol: "c",
@@ -553,7 +553,7 @@ export default {
       print_symbol: "dB(mW)",
       is_metric: true,
       is_special: true,
-      is_additive: false,
+      is_scalable: false,
       is_binary: false,
       base_unit: "B[mW]",
       prefix_symbol: "d",
@@ -564,7 +564,7 @@ export default {
       print_symbol: "d",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     mo: {
@@ -573,7 +573,7 @@ export default {
       print_symbol: "Mo",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     a: {
@@ -582,7 +582,7 @@ export default {
       print_symbol: "yr",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     h: {
@@ -591,7 +591,7 @@ export default {
       print_symbol: "h",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     wk: {
@@ -600,7 +600,7 @@ export default {
       print_symbol: "wk",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "m[CPU]": {
@@ -609,7 +609,7 @@ export default {
       print_symbol: "mCPU",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
       base_unit: "[CPU]",
       prefix_symbol: "m",
@@ -620,7 +620,7 @@ export default {
       print_symbol: "min",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     ms: {
@@ -629,7 +629,7 @@ export default {
       print_symbol: "ms",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
       base_unit: "s",
       prefix_symbol: "m",
@@ -640,7 +640,7 @@ export default {
       print_symbol: "ms/s",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
       base_unit: "s/s",
       prefix_symbol: "m",
@@ -651,7 +651,7 @@ export default {
       print_symbol: "ms/operation",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
       base_unit: "s/{operation}",
       prefix_symbol: "m",
@@ -662,7 +662,7 @@ export default {
       print_symbol: "ms/request",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
       base_unit: "s/{request}",
       prefix_symbol: "m",
@@ -673,7 +673,7 @@ export default {
       print_symbol: "ms/run",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
       base_unit: "s/{run}",
       prefix_symbol: "m",
@@ -684,7 +684,7 @@ export default {
       print_symbol: "ns",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
       base_unit: "s",
       prefix_symbol: "n",
@@ -695,7 +695,7 @@ export default {
       print_symbol: "s",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "s/s": {
@@ -704,7 +704,7 @@ export default {
       print_symbol: "s/s",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "s/{operation}": {
@@ -713,7 +713,7 @@ export default {
       print_symbol: "s/operation",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "s/{request}": {
@@ -722,7 +722,7 @@ export default {
       print_symbol: "s/request",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "s/{run}": {
@@ -731,7 +731,7 @@ export default {
       print_symbol: "s/run",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     us: {
@@ -740,7 +740,7 @@ export default {
       print_symbol: "\u03bcs",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
       base_unit: "s",
       prefix_symbol: "u",
@@ -751,7 +751,7 @@ export default {
       print_symbol: "\u03bcs/s",
       is_metric: true,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
       base_unit: "s/s",
       prefix_symbol: "u",
@@ -762,7 +762,7 @@ export default {
       print_symbol: "acquisitions/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{action}/s": {
@@ -771,7 +771,7 @@ export default {
       print_symbol: "actions/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{address space}": {
@@ -780,7 +780,7 @@ export default {
       print_symbol: "address spaces",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{answer}/s": {
@@ -789,7 +789,7 @@ export default {
       print_symbol: "answers/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{array}": {
@@ -798,7 +798,7 @@ export default {
       print_symbol: "arrays",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{assembly}/s": {
@@ -807,7 +807,7 @@ export default {
       print_symbol: "assemblies/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{assert}/s": {
@@ -816,7 +816,7 @@ export default {
       print_symbol: "asserts/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{association}": {
@@ -825,7 +825,7 @@ export default {
       print_symbol: "associations",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{attempt}": {
@@ -834,7 +834,7 @@ export default {
       print_symbol: "attempts",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{attempt}/s": {
@@ -843,7 +843,7 @@ export default {
       print_symbol: "attempts/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{authentication}/s": {
@@ -852,7 +852,7 @@ export default {
       print_symbol: "authentications/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{ban}/s": {
@@ -861,7 +861,7 @@ export default {
       print_symbol: "bans/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{batch}": {
@@ -870,7 +870,7 @@ export default {
       print_symbol: "batches",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{batch}/s": {
@@ -879,7 +879,7 @@ export default {
       print_symbol: "batches/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{bind}/s": {
@@ -888,7 +888,7 @@ export default {
       print_symbol: "binds/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{blocked subscription}": {
@@ -897,7 +897,7 @@ export default {
       print_symbol: "blocked subscriptions",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{block}": {
@@ -906,7 +906,7 @@ export default {
       print_symbol: "blocks",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{boolean}": {
@@ -915,7 +915,7 @@ export default {
       print_symbol: "",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{buffer}": {
@@ -924,7 +924,7 @@ export default {
       print_symbol: "buffers",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{callback}/s": {
@@ -933,7 +933,7 @@ export default {
       print_symbol: "callbacks/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{call}": {
@@ -942,7 +942,7 @@ export default {
       print_symbol: "calls",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{call}/s": {
@@ -951,7 +951,7 @@ export default {
       print_symbol: "calls/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{ccw}/s": {
@@ -960,7 +960,7 @@ export default {
       print_symbol: "ccws/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{chain}": {
@@ -969,7 +969,7 @@ export default {
       print_symbol: "chains",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{change}/s": {
@@ -978,7 +978,7 @@ export default {
       print_symbol: "changes/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{channel}/s": {
@@ -987,7 +987,7 @@ export default {
       print_symbol: "channels/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{character}": {
@@ -996,7 +996,7 @@ export default {
       print_symbol: "characters",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{chart}": {
@@ -1005,7 +1005,7 @@ export default {
       print_symbol: "charts",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{checkpoint}/s": {
@@ -1014,7 +1014,7 @@ export default {
       print_symbol: "checkpoints/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{check}/s": {
@@ -1023,7 +1023,7 @@ export default {
       print_symbol: "checks/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{child}": {
@@ -1032,7 +1032,7 @@ export default {
       print_symbol: "children",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{chunk}": {
@@ -1041,7 +1041,7 @@ export default {
       print_symbol: "chunks",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{class}": {
@@ -1050,7 +1050,7 @@ export default {
       print_symbol: "classes",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{class}/s": {
@@ -1059,7 +1059,7 @@ export default {
       print_symbol: "classes/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{client}": {
@@ -1068,7 +1068,7 @@ export default {
       print_symbol: "clients",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{cluster}": {
@@ -1077,7 +1077,7 @@ export default {
       print_symbol: "clusters",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{cluster}/s": {
@@ -1086,7 +1086,7 @@ export default {
       print_symbol: "clusters/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{code}": {
@@ -1095,7 +1095,7 @@ export default {
       print_symbol: "codes",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{collection}": {
@@ -1104,7 +1104,7 @@ export default {
       print_symbol: "collections",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{column}": {
@@ -1113,7 +1113,7 @@ export default {
       print_symbol: "columns",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{command}": {
@@ -1122,7 +1122,7 @@ export default {
       print_symbol: "commands",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{command}/s": {
@@ -1131,7 +1131,7 @@ export default {
       print_symbol: "commands/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{commit}": {
@@ -1140,7 +1140,7 @@ export default {
       print_symbol: "commits",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{commit}/s": {
@@ -1149,7 +1149,7 @@ export default {
       print_symbol: "commits/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{compilation}/s": {
@@ -1158,7 +1158,7 @@ export default {
       print_symbol: "compilations/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{component}": {
@@ -1167,7 +1167,7 @@ export default {
       print_symbol: "components",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{concurrent file accesses}": {
@@ -1176,7 +1176,7 @@ export default {
       print_symbol: "concurrent file accesseses",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{connection}": {
@@ -1185,7 +1185,7 @@ export default {
       print_symbol: "connections",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{connection}/s": {
@@ -1194,7 +1194,7 @@ export default {
       print_symbol: "connections/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{consumer}": {
@@ -1203,7 +1203,7 @@ export default {
       print_symbol: "consumers",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{container}": {
@@ -1212,7 +1212,7 @@ export default {
       print_symbol: "containers",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{contention}/s": {
@@ -1221,7 +1221,7 @@ export default {
       print_symbol: "contentions/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{context switch}/s": {
@@ -1230,7 +1230,7 @@ export default {
       print_symbol: "context switches/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{switch}/s": {
@@ -1239,7 +1239,7 @@ export default {
       print_symbol: "switches/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{context}": {
@@ -1248,7 +1248,7 @@ export default {
       print_symbol: "contexts",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{cookie}/s": {
@@ -1257,7 +1257,7 @@ export default {
       print_symbol: "cookies/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{count}/s": {
@@ -1266,7 +1266,7 @@ export default {
       print_symbol: "counts/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{ctoken}": {
@@ -1275,7 +1275,7 @@ export default {
       print_symbol: "ctokens",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{cursor}": {
@@ -1284,7 +1284,7 @@ export default {
       print_symbol: "cursors",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{cursor}/s": {
@@ -1293,7 +1293,7 @@ export default {
       print_symbol: "cursors/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{cycle}": {
@@ -1302,7 +1302,7 @@ export default {
       print_symbol: "cycles",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{cycle}/s": {
@@ -1311,7 +1311,7 @@ export default {
       print_symbol: "cycles/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{database}": {
@@ -1320,7 +1320,7 @@ export default {
       print_symbol: "databases",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{deadlock}/s": {
@@ -1329,7 +1329,7 @@ export default {
       print_symbol: "deadlocks/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{depth}": {
@@ -1338,7 +1338,7 @@ export default {
       print_symbol: "depths",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{descriptor}": {
@@ -1347,7 +1347,7 @@ export default {
       print_symbol: "descriptors",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{destination}": {
@@ -1356,7 +1356,7 @@ export default {
       print_symbol: "destinations",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{device}": {
@@ -1365,7 +1365,7 @@ export default {
       print_symbol: "devices",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{dialog}": {
@@ -1374,7 +1374,7 @@ export default {
       print_symbol: "dialogs",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{dialog}/s": {
@@ -1383,7 +1383,7 @@ export default {
       print_symbol: "dialogs/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{dictionary}": {
@@ -1392,7 +1392,7 @@ export default {
       print_symbol: "dictionaries",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{difficulty}": {
@@ -1401,7 +1401,7 @@ export default {
       print_symbol: "",
       is_metric: false,
       is_special: false,
-      is_additive: false,
+      is_scalable: false,
       is_binary: false,
     },
     "{dimension}": {
@@ -1410,7 +1410,7 @@ export default {
       print_symbol: "dimensions",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{directory}": {
@@ -1419,7 +1419,7 @@ export default {
       print_symbol: "directories",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{discard}/s": {
@@ -1428,7 +1428,7 @@ export default {
       print_symbol: "discards/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{disk}": {
@@ -1437,7 +1437,7 @@ export default {
       print_symbol: "disks",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{dispatch}/s": {
@@ -1446,7 +1446,7 @@ export default {
       print_symbol: "dispatches/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{document}": {
@@ -1455,7 +1455,7 @@ export default {
       print_symbol: "documents",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{document}/s": {
@@ -1464,7 +1464,7 @@ export default {
       print_symbol: "documents/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{doc}": {
@@ -1473,7 +1473,7 @@ export default {
       print_symbol: "docs",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{domain}": {
@@ -1482,7 +1482,7 @@ export default {
       print_symbol: "domains",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{domain}/s": {
@@ -1491,7 +1491,7 @@ export default {
       print_symbol: "domains/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{dpc}/s": {
@@ -1500,7 +1500,7 @@ export default {
       print_symbol: "dpcs/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{drop}/s": {
@@ -1509,7 +1509,7 @@ export default {
       print_symbol: "drops/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{election}/s": {
@@ -1518,7 +1518,7 @@ export default {
       print_symbol: "elections/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{element}": {
@@ -1527,7 +1527,7 @@ export default {
       print_symbol: "elements",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{email}": {
@@ -1536,7 +1536,7 @@ export default {
       print_symbol: "emails",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{endpoint}": {
@@ -1545,7 +1545,7 @@ export default {
       print_symbol: "endpoints",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{entropy}": {
@@ -1554,7 +1554,7 @@ export default {
       print_symbol: "entropies",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{entry}": {
@@ -1563,7 +1563,7 @@ export default {
       print_symbol: "entries",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{entry}/s": {
@@ -1572,7 +1572,7 @@ export default {
       print_symbol: "entries/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{erase}": {
@@ -1581,7 +1581,7 @@ export default {
       print_symbol: "erases",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{error}": {
@@ -1590,7 +1590,7 @@ export default {
       print_symbol: "errors",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{error}/s": {
@@ -1599,7 +1599,7 @@ export default {
       print_symbol: "errors/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{event}": {
@@ -1608,7 +1608,7 @@ export default {
       print_symbol: "events",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{event}/s": {
@@ -1617,7 +1617,7 @@ export default {
       print_symbol: "events/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{exception}": {
@@ -1626,7 +1626,7 @@ export default {
       print_symbol: "exceptions",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{exception}/s": {
@@ -1635,7 +1635,7 @@ export default {
       print_symbol: "exceptions/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{expectation}/s": {
@@ -1644,7 +1644,7 @@ export default {
       print_symbol: "expectations/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{failure}": {
@@ -1653,7 +1653,7 @@ export default {
       print_symbol: "failures",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{failure}/s": {
@@ -1662,7 +1662,7 @@ export default {
       print_symbol: "failures/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{fail}/s": {
@@ -1671,7 +1671,7 @@ export default {
       print_symbol: "fails/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{fault}": {
@@ -1680,7 +1680,7 @@ export default {
       print_symbol: "faults",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{fault}/s": {
@@ -1689,7 +1689,7 @@ export default {
       print_symbol: "faults/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{fd}": {
@@ -1698,7 +1698,7 @@ export default {
       print_symbol: "fds",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{fetch}": {
@@ -1707,7 +1707,7 @@ export default {
       print_symbol: "fetches",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{file descriptor}": {
@@ -1716,7 +1716,7 @@ export default {
       print_symbol: "file descriptors",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{filesystem}": {
@@ -1725,7 +1725,7 @@ export default {
       print_symbol: "filesystems",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{file}": {
@@ -1734,7 +1734,7 @@ export default {
       print_symbol: "files",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{file}/s": {
@@ -1743,7 +1743,7 @@ export default {
       print_symbol: "files/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{filter}/s": {
@@ -1752,7 +1752,7 @@ export default {
       print_symbol: "filters/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{finally}/s": {
@@ -1761,7 +1761,7 @@ export default {
       print_symbol: "finallies/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{flag}": {
@@ -1770,7 +1770,7 @@ export default {
       print_symbol: "flags",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{flow}": {
@@ -1779,7 +1779,7 @@ export default {
       print_symbol: "flows",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{flush}": {
@@ -1788,7 +1788,7 @@ export default {
       print_symbol: "flushes",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{flush}/s": {
@@ -1797,7 +1797,7 @@ export default {
       print_symbol: "flushes/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{fragment}": {
@@ -1806,7 +1806,7 @@ export default {
       print_symbol: "fragments",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{frame}/s": {
@@ -1815,7 +1815,7 @@ export default {
       print_symbol: "frames/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{fsm}": {
@@ -1824,7 +1824,7 @@ export default {
       print_symbol: "fsms",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{gc}/s": {
@@ -1833,7 +1833,7 @@ export default {
       print_symbol: "gcs/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{goroutine}": {
@@ -1842,7 +1842,7 @@ export default {
       print_symbol: "goroutines",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{handler}/s": {
@@ -1851,7 +1851,7 @@ export default {
       print_symbol: "handlers/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{handle}": {
@@ -1860,7 +1860,7 @@ export default {
       print_symbol: "handles",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{handle}/s": {
@@ -1869,7 +1869,7 @@ export default {
       print_symbol: "handles/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{handshake}/s": {
@@ -1878,7 +1878,7 @@ export default {
       print_symbol: "handshakes/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{harakiri}": {
@@ -1887,7 +1887,7 @@ export default {
       print_symbol: "harakiris",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{hash table}": {
@@ -1896,7 +1896,7 @@ export default {
       print_symbol: "hash tables",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{heartbeat}": {
@@ -1905,7 +1905,7 @@ export default {
       print_symbol: "heartbeats",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{hit}/s": {
@@ -1914,7 +1914,7 @@ export default {
       print_symbol: "hits/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{host}": {
@@ -1923,7 +1923,7 @@ export default {
       print_symbol: "hosts",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{image}": {
@@ -1932,7 +1932,7 @@ export default {
       print_symbol: "images",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{index}": {
@@ -1941,7 +1941,7 @@ export default {
       print_symbol: "indices",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{index}/s": {
@@ -1950,7 +1950,7 @@ export default {
       print_symbol: "indices/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{indice}": {
@@ -1959,7 +1959,7 @@ export default {
       print_symbol: "indices",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{inode}": {
@@ -1968,7 +1968,7 @@ export default {
       print_symbol: "inodes",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{instruction}/s": {
@@ -1977,7 +1977,7 @@ export default {
       print_symbol: "instructions/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{instruction}/{cycle}": {
@@ -1986,7 +1986,7 @@ export default {
       print_symbol: "instructions/cycle",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{interface}": {
@@ -1995,7 +1995,7 @@ export default {
       print_symbol: "interfaces",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{interrupt}": {
@@ -2004,7 +2004,7 @@ export default {
       print_symbol: "interrupts",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{interrupt}/s": {
@@ -2013,7 +2013,7 @@ export default {
       print_symbol: "interrupts/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{invoke}": {
@@ -2022,7 +2022,7 @@ export default {
       print_symbol: "invokes",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{iop}": {
@@ -2031,7 +2031,7 @@ export default {
       print_symbol: "iops",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{iop}/s": {
@@ -2040,7 +2040,7 @@ export default {
       print_symbol: "iops/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{ip}": {
@@ -2049,7 +2049,7 @@ export default {
       print_symbol: "ips",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{issue}/s": {
@@ -2058,7 +2058,7 @@ export default {
       print_symbol: "issues/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{item}": {
@@ -2067,7 +2067,7 @@ export default {
       print_symbol: "items",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{job}": {
@@ -2076,7 +2076,7 @@ export default {
       print_symbol: "jobs",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{job}/s": {
@@ -2085,7 +2085,7 @@ export default {
       print_symbol: "jobs/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{join}/s": {
@@ -2094,7 +2094,7 @@ export default {
       print_symbol: "joins/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{key}": {
@@ -2103,7 +2103,7 @@ export default {
       print_symbol: "keys",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{key}/s": {
@@ -2112,7 +2112,7 @@ export default {
       print_symbol: "keys/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{kill}": {
@@ -2121,7 +2121,7 @@ export default {
       print_symbol: "kills",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{kill}/s": {
@@ -2130,7 +2130,7 @@ export default {
       print_symbol: "kills/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{leaseholder}": {
@@ -2139,7 +2139,7 @@ export default {
       print_symbol: "leaseholders",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{lease}": {
@@ -2148,7 +2148,7 @@ export default {
       print_symbol: "leases",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{listener}": {
@@ -2157,7 +2157,7 @@ export default {
       print_symbol: "listeners",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{listener}/s": {
@@ -2166,7 +2166,7 @@ export default {
       print_symbol: "listeners/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{list}/s": {
@@ -2175,7 +2175,7 @@ export default {
       print_symbol: "lists/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{load}": {
@@ -2184,7 +2184,7 @@ export default {
       print_symbol: "load",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{lock}": {
@@ -2193,7 +2193,7 @@ export default {
       print_symbol: "locks",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{lock}/s": {
@@ -2202,7 +2202,7 @@ export default {
       print_symbol: "locks/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{log2}": {
@@ -2211,7 +2211,7 @@ export default {
       print_symbol: "",
       is_metric: false,
       is_special: false,
-      is_additive: false,
+      is_scalable: false,
       is_binary: false,
     },
     "{login}": {
@@ -2220,7 +2220,7 @@ export default {
       print_symbol: "logins",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{log}/s": {
@@ -2229,7 +2229,7 @@ export default {
       print_symbol: "logs/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{lookup}/s": {
@@ -2238,7 +2238,7 @@ export default {
       print_symbol: "lookups/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{mac address}/s": {
@@ -2247,7 +2247,7 @@ export default {
       print_symbol: "mac addresses/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{marshalling}/s": {
@@ -2256,7 +2256,7 @@ export default {
       print_symbol: "marshallings/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{message}": {
@@ -2265,7 +2265,7 @@ export default {
       print_symbol: "messages",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{message}/s": {
@@ -2274,7 +2274,7 @@ export default {
       print_symbol: "messages/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{method}": {
@@ -2283,7 +2283,7 @@ export default {
       print_symbol: "methods",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{method}/s": {
@@ -2292,7 +2292,7 @@ export default {
       print_symbol: "methods/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{metric}": {
@@ -2301,7 +2301,7 @@ export default {
       print_symbol: "metrics",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{migration}": {
@@ -2310,7 +2310,7 @@ export default {
       print_symbol: "migrations",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{miss}": {
@@ -2319,7 +2319,7 @@ export default {
       print_symbol: "misses",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{miss}/s": {
@@ -2328,7 +2328,7 @@ export default {
       print_symbol: "misses/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{model}": {
@@ -2337,7 +2337,7 @@ export default {
       print_symbol: "models",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{modification}/s": {
@@ -2346,7 +2346,7 @@ export default {
       print_symbol: "modifications/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{netsplit}": {
@@ -2355,7 +2355,7 @@ export default {
       print_symbol: "netsplits",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{netsplit}/s": {
@@ -2364,7 +2364,7 @@ export default {
       print_symbol: "netsplits/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{node}": {
@@ -2373,7 +2373,7 @@ export default {
       print_symbol: "nodes",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{ntp mode}": {
@@ -2382,7 +2382,7 @@ export default {
       print_symbol: "",
       is_metric: false,
       is_special: false,
-      is_additive: false,
+      is_scalable: false,
       is_binary: false,
     },
     "{object}": {
@@ -2391,7 +2391,7 @@ export default {
       print_symbol: "objects",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{object}/s": {
@@ -2400,7 +2400,7 @@ export default {
       print_symbol: "objects/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{observation}": {
@@ -2409,7 +2409,7 @@ export default {
       print_symbol: "observations",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{observe}/s": {
@@ -2418,7 +2418,7 @@ export default {
       print_symbol: "observes/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{octet}": {
@@ -2427,7 +2427,7 @@ export default {
       print_symbol: "octets",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{opcode}": {
@@ -2436,7 +2436,7 @@ export default {
       print_symbol: "opcodes",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{open socket}": {
@@ -2445,7 +2445,7 @@ export default {
       print_symbol: "open sockets",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{operation}": {
@@ -2454,7 +2454,7 @@ export default {
       print_symbol: "operations",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{operation}/s": {
@@ -2463,7 +2463,7 @@ export default {
       print_symbol: "operations/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{overflow}/s": {
@@ -2472,7 +2472,7 @@ export default {
       print_symbol: "overflows/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{packet}": {
@@ -2481,7 +2481,7 @@ export default {
       print_symbol: "packets",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{packet}/s": {
@@ -2490,7 +2490,7 @@ export default {
       print_symbol: "packets/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{page fault}": {
@@ -2499,7 +2499,7 @@ export default {
       print_symbol: "page faults",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{page fault}/s": {
@@ -2508,7 +2508,7 @@ export default {
       print_symbol: "page faults/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{page}": {
@@ -2517,7 +2517,7 @@ export default {
       print_symbol: "pages",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{page}/s": {
@@ -2526,7 +2526,7 @@ export default {
       print_symbol: "pages/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{panic}/s": {
@@ -2535,7 +2535,7 @@ export default {
       print_symbol: "panics/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{peer}": {
@@ -2544,7 +2544,7 @@ export default {
       print_symbol: "peers",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{pipe}": {
@@ -2553,7 +2553,7 @@ export default {
       print_symbol: "pipes",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{pod}": {
@@ -2562,7 +2562,7 @@ export default {
       print_symbol: "pods",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{point}/s": {
@@ -2571,7 +2571,7 @@ export default {
       print_symbol: "points/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{pool}": {
@@ -2580,7 +2580,7 @@ export default {
       print_symbol: "pools",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{prefetch}": {
@@ -2589,7 +2589,7 @@ export default {
       print_symbol: "prefetches",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{prefetch}/s": {
@@ -2598,7 +2598,7 @@ export default {
       print_symbol: "prefetches/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{problem}/s": {
@@ -2607,7 +2607,7 @@ export default {
       print_symbol: "problems/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{process}": {
@@ -2616,7 +2616,7 @@ export default {
       print_symbol: "processes",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{process}/s": {
@@ -2625,7 +2625,7 @@ export default {
       print_symbol: "processes/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{producer}": {
@@ -2634,7 +2634,7 @@ export default {
       print_symbol: "producers",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{program}": {
@@ -2643,7 +2643,7 @@ export default {
       print_symbol: "programs",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{propertie}/s": {
@@ -2652,7 +2652,7 @@ export default {
       print_symbol: "properties/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{publish}/s": {
@@ -2661,7 +2661,7 @@ export default {
       print_symbol: "publishes/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{pull}": {
@@ -2670,7 +2670,7 @@ export default {
       print_symbol: "pulls",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{pull}/s": {
@@ -2679,7 +2679,7 @@ export default {
       print_symbol: "pulls/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{query}": {
@@ -2688,7 +2688,7 @@ export default {
       print_symbol: "queries",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{query}/s": {
@@ -2697,7 +2697,7 @@ export default {
       print_symbol: "queries/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{question}/s": {
@@ -2706,7 +2706,7 @@ export default {
       print_symbol: "questions/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{queue process}": {
@@ -2715,7 +2715,7 @@ export default {
       print_symbol: "queue processes",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{queue process}/s": {
@@ -2724,7 +2724,7 @@ export default {
       print_symbol: "queue processes/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{queue}": {
@@ -2733,7 +2733,7 @@ export default {
       print_symbol: "queues",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{range}": {
@@ -2742,7 +2742,7 @@ export default {
       print_symbol: "ranges",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{read}/s": {
@@ -2751,7 +2751,7 @@ export default {
       print_symbol: "reads/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{read}/{query}": {
@@ -2760,7 +2760,7 @@ export default {
       print_symbol: "reads/query",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{recompile}/s": {
@@ -2769,7 +2769,7 @@ export default {
       print_symbol: "recompiles/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{record}/s": {
@@ -2778,7 +2778,7 @@ export default {
       print_symbol: "records/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{redirect}/s": {
@@ -2787,7 +2787,7 @@ export default {
       print_symbol: "redirects/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{reduction}": {
@@ -2796,7 +2796,7 @@ export default {
       print_symbol: "reductions",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{reference}": {
@@ -2805,7 +2805,7 @@ export default {
       print_symbol: "references",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{referral}/s": {
@@ -2814,7 +2814,7 @@ export default {
       print_symbol: "referrals/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{registration}/s": {
@@ -2823,7 +2823,7 @@ export default {
       print_symbol: "registrations/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{rejection}/s": {
@@ -2832,7 +2832,7 @@ export default {
       print_symbol: "rejections/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{relation}": {
@@ -2841,7 +2841,7 @@ export default {
       print_symbol: "relations",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{reorg}": {
@@ -2850,7 +2850,7 @@ export default {
       print_symbol: "reorgs",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{repair}": {
@@ -2859,7 +2859,7 @@ export default {
       print_symbol: "repairs",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{replica}": {
@@ -2868,7 +2868,7 @@ export default {
       print_symbol: "replicas",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{reply}": {
@@ -2877,7 +2877,7 @@ export default {
       print_symbol: "replies",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{reply}/s": {
@@ -2886,7 +2886,7 @@ export default {
       print_symbol: "replies/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{report}/s": {
@@ -2895,7 +2895,7 @@ export default {
       print_symbol: "reports/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{request}": {
@@ -2904,7 +2904,7 @@ export default {
       print_symbol: "requests",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{request}/s": {
@@ -2913,7 +2913,7 @@ export default {
       print_symbol: "requests/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{reset}/s": {
@@ -2922,7 +2922,7 @@ export default {
       print_symbol: "resets/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{resolution}/s": {
@@ -2931,7 +2931,7 @@ export default {
       print_symbol: "resolutions/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{respawn}": {
@@ -2940,7 +2940,7 @@ export default {
       print_symbol: "respawns",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{response}/s": {
@@ -2949,7 +2949,7 @@ export default {
       print_symbol: "responses/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{restart}": {
@@ -2958,7 +2958,7 @@ export default {
       print_symbol: "restarts",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{retrieval}/s": {
@@ -2967,7 +2967,7 @@ export default {
       print_symbol: "retrievals/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{retry}": {
@@ -2976,7 +2976,7 @@ export default {
       print_symbol: "retries",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{retry}/s": {
@@ -2985,7 +2985,7 @@ export default {
       print_symbol: "retries/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{reuse}/s": {
@@ -2994,7 +2994,7 @@ export default {
       print_symbol: "reuses/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{rotation}/min": {
@@ -3003,7 +3003,7 @@ export default {
       print_symbol: "rotations/min",
       is_metric: false,
       is_special: false,
-      is_additive: false,
+      is_scalable: false,
       is_binary: false,
     },
     "{row}": {
@@ -3012,7 +3012,7 @@ export default {
       print_symbol: "rows",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{row}/s": {
@@ -3021,7 +3021,7 @@ export default {
       print_symbol: "rows/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{rule}": {
@@ -3030,7 +3030,7 @@ export default {
       print_symbol: "rules",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{sample}": {
@@ -3039,7 +3039,7 @@ export default {
       print_symbol: "samples",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{scan}/s": {
@@ -3048,7 +3048,7 @@ export default {
       print_symbol: "scans/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{score}": {
@@ -3057,7 +3057,7 @@ export default {
       print_symbol: "scores",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{search}/s": {
@@ -3066,7 +3066,7 @@ export default {
       print_symbol: "searches/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{sector}": {
@@ -3075,7 +3075,7 @@ export default {
       print_symbol: "sectors",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{sector}/s": {
@@ -3084,7 +3084,7 @@ export default {
       print_symbol: "sectors/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{segment}": {
@@ -3093,7 +3093,7 @@ export default {
       print_symbol: "segments",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{segment}/s": {
@@ -3102,7 +3102,7 @@ export default {
       print_symbol: "segments/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{semaphore}": {
@@ -3111,7 +3111,7 @@ export default {
       print_symbol: "semaphores",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{sender}": {
@@ -3120,7 +3120,7 @@ export default {
       print_symbol: "senders",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{server}": {
@@ -3129,7 +3129,7 @@ export default {
       print_symbol: "servers",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{session}": {
@@ -3138,7 +3138,7 @@ export default {
       print_symbol: "sessions",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{session}/s": {
@@ -3147,7 +3147,7 @@ export default {
       print_symbol: "sessions/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{shard}": {
@@ -3156,7 +3156,7 @@ export default {
       print_symbol: "shards",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{share}": {
@@ -3165,7 +3165,7 @@ export default {
       print_symbol: "shares",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{shutdown}": {
@@ -3174,7 +3174,7 @@ export default {
       print_symbol: "shutdowns",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{sibling}": {
@@ -3183,7 +3183,7 @@ export default {
       print_symbol: "siblings",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{socket}": {
@@ -3192,7 +3192,7 @@ export default {
       print_symbol: "sockets",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{socket}/s": {
@@ -3201,7 +3201,7 @@ export default {
       print_symbol: "sockets/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{softirq}/s": {
@@ -3210,7 +3210,7 @@ export default {
       print_symbol: "softirqs/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{source}": {
@@ -3219,7 +3219,7 @@ export default {
       print_symbol: "sources",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{split}/s": {
@@ -3228,7 +3228,7 @@ export default {
       print_symbol: "splits/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{sstable}": {
@@ -3237,7 +3237,7 @@ export default {
       print_symbol: "sstables",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{stack_frame}/s": {
@@ -3246,7 +3246,7 @@ export default {
       print_symbol: "stack_frames/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{star}": {
@@ -3255,7 +3255,7 @@ export default {
       print_symbol: "stars",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{statement}": {
@@ -3264,7 +3264,7 @@ export default {
       print_symbol: "statements",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{statement}/s": {
@@ -3273,7 +3273,7 @@ export default {
       print_symbol: "statements/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{status}": {
@@ -3282,7 +3282,7 @@ export default {
       print_symbol: "",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{stat}": {
@@ -3291,7 +3291,7 @@ export default {
       print_symbol: "stats",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{stratum}": {
@@ -3300,7 +3300,7 @@ export default {
       print_symbol: "",
       is_metric: false,
       is_special: false,
-      is_additive: false,
+      is_scalable: false,
       is_binary: false,
     },
     "{stub}/s": {
@@ -3309,7 +3309,7 @@ export default {
       print_symbol: "stubs/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{subscription}": {
@@ -3318,7 +3318,7 @@ export default {
       print_symbol: "subscriptions",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{subscription}/s": {
@@ -3327,7 +3327,7 @@ export default {
       print_symbol: "subscriptions/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{switch}": {
@@ -3336,7 +3336,7 @@ export default {
       print_symbol: "switches",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{sync}": {
@@ -3345,7 +3345,7 @@ export default {
       print_symbol: "syncs",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{syscall}/s": {
@@ -3354,7 +3354,7 @@ export default {
       print_symbol: "syscalls/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{table}": {
@@ -3363,7 +3363,7 @@ export default {
       print_symbol: "tables",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{table}/s": {
@@ -3372,7 +3372,7 @@ export default {
       print_symbol: "tables/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{task}": {
@@ -3381,7 +3381,7 @@ export default {
       print_symbol: "tasks",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{task}/s": {
@@ -3390,7 +3390,7 @@ export default {
       print_symbol: "tasks/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{thread}": {
@@ -3399,7 +3399,7 @@ export default {
       print_symbol: "threads",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{thread}/s": {
@@ -3408,7 +3408,7 @@ export default {
       print_symbol: "threads/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{tick}": {
@@ -3417,7 +3417,7 @@ export default {
       print_symbol: "ticks",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{timeout}/s": {
@@ -3426,7 +3426,7 @@ export default {
       print_symbol: "timeouts/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{token}": {
@@ -3435,7 +3435,7 @@ export default {
       print_symbol: "tokens",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{trace}/s": {
@@ -3444,7 +3444,7 @@ export default {
       print_symbol: "traces/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{transaction}": {
@@ -3453,7 +3453,7 @@ export default {
       print_symbol: "transactions",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{transaction}/s": {
@@ -3462,7 +3462,7 @@ export default {
       print_symbol: "transactions/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{transition}/s": {
@@ -3471,7 +3471,7 @@ export default {
       print_symbol: "transitions/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{trip}/s": {
@@ -3480,7 +3480,7 @@ export default {
       print_symbol: "trips/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{tube}": {
@@ -3489,7 +3489,7 @@ export default {
       print_symbol: "tubes",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{unsynchronized block}": {
@@ -3498,7 +3498,7 @@ export default {
       print_symbol: "unsynchronized blocks",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{update}/s": {
@@ -3507,7 +3507,7 @@ export default {
       print_symbol: "updates/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{user}": {
@@ -3516,7 +3516,7 @@ export default {
       print_symbol: "users",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{view}": {
@@ -3525,7 +3525,7 @@ export default {
       print_symbol: "views",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{vm}": {
@@ -3534,7 +3534,7 @@ export default {
       print_symbol: "vms",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{volume}": {
@@ -3543,7 +3543,7 @@ export default {
       print_symbol: "volumes",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{waiter}/s": {
@@ -3552,7 +3552,7 @@ export default {
       print_symbol: "waiters/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{watch}": {
@@ -3561,7 +3561,7 @@ export default {
       print_symbol: "watches",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{level}": {
@@ -3570,7 +3570,7 @@ export default {
       print_symbol: "levels",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{worker}": {
@@ -3579,7 +3579,7 @@ export default {
       print_symbol: "workers",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{worker}/s": {
@@ -3588,7 +3588,7 @@ export default {
       print_symbol: "workers/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{work}": {
@@ -3597,7 +3597,7 @@ export default {
       print_symbol: "works",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{writeset}": {
@@ -3606,7 +3606,7 @@ export default {
       print_symbol: "writesets",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{writeset}/s": {
@@ -3615,7 +3615,7 @@ export default {
       print_symbol: "writesets/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{write}": {
@@ -3624,7 +3624,7 @@ export default {
       print_symbol: "writes",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{write}/s": {
@@ -3633,7 +3633,7 @@ export default {
       print_symbol: "writes/s",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{xid}": {
@@ -3642,7 +3642,7 @@ export default {
       print_symbol: "",
       is_metric: false,
       is_special: false,
-      is_additive: false,
+      is_scalable: false,
       is_binary: false,
     },
     "{zone}": {
@@ -3651,7 +3651,7 @@ export default {
       print_symbol: "zones",
       is_metric: false,
       is_special: false,
-      is_additive: true,
+      is_scalable: true,
       is_binary: false,
     },
     "{z}": {
@@ -3660,7 +3660,7 @@ export default {
       print_symbol: "",
       is_metric: false,
       is_special: false,
-      is_additive: false,
+      is_scalable: false,
       is_binary: false,
     },
   },
@@ -4023,7 +4023,6 @@ export default {
     retries: "{retry}",
     rows: "{row}",
     rules: "{rule}",
-    s: "s",
     samples: "{sample}",
     scores: "{score}",
     seconds: "s",
