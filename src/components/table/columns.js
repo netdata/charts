@@ -154,6 +154,7 @@ export const valueColumn = (
         visible={visible}
         Component={ValueOnDot}
         fractionDigits={fractionDigits}
+        color="text"
       />
     )
   },

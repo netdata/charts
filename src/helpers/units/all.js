@@ -4031,5 +4031,6 @@ export default {
     "s/{operation}": "s",
     "s/{request}": "s",
     "s/{run}": "s",
+    pps: "{packet}/s",
   },
 }

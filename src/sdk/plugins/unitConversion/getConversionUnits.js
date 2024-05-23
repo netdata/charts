@@ -1,5 +1,5 @@
 import conversableUnits, { makeConversableKey } from "@/helpers/units/conversableUnits"
-import convert, { getScales, getUnitConfig, unitsMissing, isScalable } from "@/helpers/units"
+import convert, { getScales, getUnitConfig, isScalable } from "@/helpers/units"
 
 const scalable = (units, delta, desiredUnits) => {
   const [scaleKeys, scaleByKey] = getScales(units)
@@ -55,7 +55,7 @@ const conversable = (chart, units, delta, desiredUnits) => {
 }
 
 const getMethod = (chart, units, min, max) => {
-  if (unitsMissing(units) || !isScalable(units)) return ["original"]
+  if (!isScalable(units)) return ["original"]
 
   const { desiredUnits } = chart.getAttributes()
 
