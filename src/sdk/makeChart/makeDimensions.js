@@ -227,7 +227,7 @@ export default (chart, sdk) => {
     if (sparkline && colorsAttr && colorsAttr.length === 1) return colorsAttr[0]
 
     const isSelected = id === "selected"
-    id = !id || isSelected ? chart.getAttribute("selectedDimensions")[0] : id
+    id = !id || isSelected ? chart.getAttribute("selectedDimensions")[0] || id : id
 
     if (!isNaN(partIndex)) id = id.split(",")?.[partIndex] || id
 
