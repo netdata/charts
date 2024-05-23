@@ -4025,12 +4025,6 @@ export default {
     "faults/s": "{fault}/s",
     Mbps: "Mibit/s",
     RPM: "{rotation}/min",
-    "ms/{operation}": "ms",
-    "ms/{request}": "ms",
-    "ms/{run}": "ms",
-    "s/{operation}": "s",
-    "s/{request}": "s",
-    "s/{run}": "s",
     pps: "{packet}/s",
   },
 }
