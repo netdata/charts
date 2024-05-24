@@ -78,6 +78,10 @@ const getStsByContext = (groups, units, dimensions, contextsArray) => {
     }, "")
   )
 
+  if (!dimensions.ids) {
+    return [[], {}]
+  }
+
   const dimensionContexts = dimensions.ids.map(id => {
     const [, ctx] = id.match(regex)
 
