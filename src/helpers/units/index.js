@@ -28,12 +28,12 @@ const findCurly = u => {
 export const getAlias = u => allUnits.aliases[u] || (allUnits.units[u] ? u : findCurly(u))
 
 export const isScalable = (u = "") =>
-  typeof u === "string" ? getUnitConfig(u).is_scalable : u.is_scalable
+  typeof u === "string" ? getUnitConfig(u)?.is_scalable : u?.is_scalable
 export const isMetric = (u = "") =>
-  typeof u === "string" ? getUnitConfig(u).is_metric : u.is_metric
+  typeof u === "string" ? getUnitConfig(u)?.is_metric : u?.is_metric
 export const isBinary = (u = "") =>
-  typeof u === "string" ? getUnitConfig(u).is_binary : u.is_binary
-export const isBit = (u = "") => (typeof u === "string" ? getUnitConfig(u).is_bit : u.is_bit)
+  typeof u === "string" ? getUnitConfig(u)?.is_binary : u?.is_binary
+export const isBit = (u = "") => (typeof u === "string" ? getUnitConfig(u)?.is_bit : u?.is_bit)
 
 export const getScales = u => {
   if (!isScalable(u)) return [[], {}]

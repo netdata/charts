@@ -78,7 +78,7 @@ const getStsByContext = (groups, units, dimensions, contextsArray) => {
     }, "")
   )
 
-  if (!dimensions.ids) {
+  if (!dimensions?.ids) {
     return [[], {}]
   }
 
