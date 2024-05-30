@@ -67,6 +67,8 @@ const transformResult = result => {
 }
 
 const getStsByContext = (groups, units, dimensions, contextsArray) => {
+  if (!Array.isArray(groups)) return [[], {}]
+
   const unitsByKey = {}
 
   const regex = new RegExp(
@@ -83,8 +85,10 @@ const getStsByContext = (groups, units, dimensions, contextsArray) => {
   }
 
   const dimensionContexts = dimensions.ids.map(id => {
-    const [, ctx] = id.match(regex)
+    const match = id.match(regex)
+    if (!match) return contextsArray[0].id
 
+    const [, ctx] = match
     return ctx || contextsArray[0].id
   })
 

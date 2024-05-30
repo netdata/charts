@@ -171,7 +171,15 @@ export default (sdk, chart) => {
               : chart.getAttribute("unitsConversionFractionDigits")[0],
         })
       }),
-      chart.onAttributeChange("staticValueRange", ([min, max]) => {
+      chart.onAttributeChange("staticValueRange", staticValueRange => {
+        if (!staticValueRange) {
+          dygraph.updateOptions({
+            valueRange: attributes.getValueRange(chart, { dygraph: true }),
+          })
+          return
+        }
+
+        const [min, max] = staticValueRange
         dygraph.updateOptions({
           valueRange: isHeatmap(attributes.chartType)
             ? [Math.ceil(min), Math.ceil(max)]
