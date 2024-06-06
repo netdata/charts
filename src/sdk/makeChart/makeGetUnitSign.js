@@ -9,7 +9,7 @@ export default chart =>
   } = {}) => {
     const { base, prefix, unit } = chart.getUnitAttributes(dimensionId, key)
 
-    if (withoutConversion) return getUnitConfig(base || unit).name
+    if (withoutConversion) return getUnitConfig(unit).name
 
     return getUnitsString(getUnitConfig(base || unit), prefix, base, long)
   })

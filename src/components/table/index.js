@@ -16,13 +16,11 @@ const keepRegex = "(" + keepoutRegex + ")"
 const useColumns = (chart, options = {}) => {
   const { period, dimensionIds, groups, labels, contextGroups } = options
 
-  const hover = useAttributeValue("hoverX")
-
   return useMemo(() => {
     return [
       {
         id: "Instance",
-        header: () => "Instance",
+        header: () => chart.intl("groupInstance", { fallback: "Instance" }),
         columns: labels.map(label =>
           labelColumn(chart, {
             header: uppercase(label),
@@ -52,7 +50,7 @@ const useColumns = (chart, options = {}) => {
         }
       }),
     ]
-  }, [period, !!hover, dimensionIds])
+  }, [period, dimensionIds])
 }
 
 const groupByColumn = (result, ids, groups, attrs) => {
@@ -149,24 +147,29 @@ const Dimensions = () => {
     [chart]
   )
 
+  const hover = useAttributeValue("hoverX")
+  const data = useMemo(() => {
+    return Object.keys(rowGroups).reduce((h, g) => {
+      if (!!searchQuery && !new RegExp(searchQuery).test(g)) return h
+
+      h.push({
+        key: g,
+        ids: searchQuery
+          ? rowGroups[g].filter(rg => new RegExp(searchQuery).test(rg))
+          : rowGroups[g],
+        contextGroups,
+      })
+      return h
+    }, [])
+  }, [searchQuery, rowGroups, hover])
+
   return (
     <Table
       ref={hoverRef}
       enableSorting
       enableColumnVisibility
       dataColumns={columns}
-      data={Object.keys(rowGroups).reduce((h, g) => {
-        if (!!searchQuery && !new RegExp(searchQuery).test(g)) return h
-
-        h.push({
-          key: g,
-          ids: searchQuery
-            ? rowGroups[g].filter(rg => new RegExp(searchQuery).test(rg))
-            : rowGroups[g],
-          contextGroups,
-        })
-        return h
-      }, [])}
+      data={data}
       enableCustomSearch
       // onRowSelected={onItemClick}
       // onSearch={noop}

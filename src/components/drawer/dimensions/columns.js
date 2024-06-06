@@ -46,9 +46,6 @@ export const labelColumn = fallbackExpandKey => ({
 
     const visible = useVisibleDimensionId(id)
 
-    const chart = useChart()
-    const fractionDigits = chart.getAttribute("unitsConversionFractionDigits")
-
     return (
       <Flex
         justifyContent="between"

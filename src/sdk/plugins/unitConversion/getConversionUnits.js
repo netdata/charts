@@ -84,10 +84,7 @@ export const getConversionAttributes = (chart, unit, { min, max, maxDecimals = 5
 
   const delta = Math.abs(cMin === cMax ? cMin : cMax - cMin)
 
-  const fractionDigits =
-    method === "original" || method === "divide" || method === "adjust"
-      ? getFractionDigits(delta)
-      : -1
+  const fractionDigits = getFractionDigits(delta)
 
   return {
     method,

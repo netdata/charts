@@ -313,11 +313,12 @@ export default ({
     node.destroy()
   }
 
-  node.intl = (key, { count = 1, pluralize = true } = {}) => {
+  node.intl = (key, { count = 1, pluralize = true, fallback = "" } = {}) => {
     if (!node) return key
 
     const en = node.getAttribute("en")
-    if (!en?.[key]) return count === 1 ? key : pluralize ? `${key}s` : key
+    if (!en?.[key])
+      return count === 1 ? fallback || key : pluralize ? `${fallback || key}s` : fallback || key
 
     if (typeof en[key] === "string") return en[key]
 

@@ -247,7 +247,7 @@ export default (chart, sdk) => {
 
     let dimName = viewDimensions.names[dimensionsById[id]]
 
-    if (!isNaN(partIndex)) dimName = dimName.split(",")?.[partIndex] || dimName
+    if (!isNaN(partIndex)) dimName = dimName.split(",")?.[partIndex] ?? dimName
 
     if (isHeatmap(chart)) return withoutPrefix(dimName)
 

@@ -52,7 +52,7 @@ const seconds2time = (seconds, maxTimeUnit, minTimeUnit = "MS") => {
 const twoFixed =
   (multiplier = 1) =>
   value =>
-    (value * multiplier).toFixed(2)
+    value * multiplier
 
 export default {
   Cel: {

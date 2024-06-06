@@ -3,7 +3,7 @@ import { TextSmall } from "@netdata/netdata-ui"
 import { useConvertedValue } from "@/components/provider"
 
 export const Value = forwardRef((props, ref) => (
-  <TextSmall color="textDescription" data-testid="chartDimensions-value" {...props} ref={ref} />
+  <TextSmall color="text" data-testid="chartDimensions-value" {...props} ref={ref} />
 ))
 
 const ValueComponent = forwardRef(

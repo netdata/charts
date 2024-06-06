@@ -1,4 +1,4 @@
-import React from "react"
+import React, { forwardRef } from "react"
 import { Flex, TextSmall } from "@netdata/netdata-ui"
 import Color from "@/components/line/dimensions/color"
 import Name from "@/components/line/dimensions/name"
@@ -9,7 +9,10 @@ import {
   useChart,
   useAttributeValue,
   useVisibleDimensionId,
+  useLatestValue,
+  useUnitSign,
 } from "@/components/provider"
+import Tooltip from "@/components/tooltip"
 import Label from "@/components/filterToolbox/label"
 
 const metricsByValue = {
@@ -27,8 +30,8 @@ export const labelColumn = (chart, { fallbackExpandKey, partIndex, header = "Nam
   id: `label${header || ""}${partIndex || ""}`,
   header: () => <TextSmall strong>{header}</TextSmall>,
   sortingFn: (rowA, rowB) => {
-    return (chart.getDimensionName(rowA.original.ids?.[0], partIndex) || "").localeCompare(
-      chart.getDimensionName((rowB.original.ids?.[0], partIndex) || ""),
+    return (chart.getDimensionName(rowA.original.ids?.[0], partIndex) || "-").localeCompare(
+      chart.getDimensionName((rowB.original.ids?.[0], partIndex) || "-"),
       undefined,
       {
         sensitivity: "accent",
@@ -63,8 +66,8 @@ export const labelColumn = (chart, { fallbackExpandKey, partIndex, header = "Nam
         opacity={visible ? null : "weak"}
       >
         <Flex alignItems="center" gap={1} position="relative" width="100%">
-          {visible && <Color id={firstId} partIndex={partIndex} />}
-          <Name padding={[0.5, 1.5]} flex id={firstId} partIndex={partIndex} />
+          {visible && <Color id={firstId} partIndex={partIndex} height="18px" />}
+          <Name padding={[0.5, 1.5]} flex id={firstId} fallback="[empty]" partIndex={partIndex} />
         </Flex>
         {getCanExpand() && (
           <Label
@@ -88,11 +91,11 @@ export const labelColumn = (chart, { fallbackExpandKey, partIndex, header = "Nam
 
 const compareBasic = (a, b) => (a === b ? 0 : a > b ? 1 : -1)
 
-const ValueOnDot = ({ children, fractionDigits = 0, ...rest }) => {
+const ValueOnDot = forwardRef(({ children, fractionDigits = 0, ...rest }, ref) => {
   const [first, last] = children.toString().split(".")
 
   return (
-    <Flex alignItems="center" justifyContent="start">
+    <Flex alignItems="center" justifyContent="start" ref={ref}>
       <ValuePart {...rest} flex={false} basis={3 * 1.6} textAlign="right">
         {first}
       </ValuePart>
@@ -102,6 +105,13 @@ const ValueOnDot = ({ children, fractionDigits = 0, ...rest }) => {
       </ValuePart>
     </Flex>
   )
+})
+
+const TooltipValue = ({ id }) => {
+  const units = useUnitSign({ long: true, dimensionId: id, withoutConversion: true })
+  const value = useLatestValue(id)
+
+  return `${value} ${units}`
 }
 
 export const valueColumn = (
@@ -136,6 +146,14 @@ export const valueColumn = (
   fullWidth: true,
   size: 50,
   minSize: 30,
+  meta: {
+    tooltip: (
+      <TextSmall>
+        {dimension} in{" "}
+        <TextSmall strong>{chart.getUnitSign({ key: "units", dimensionId, long: true })}</TextSmall>
+      </TextSmall>
+    ),
+  },
   cell: ({
     row: {
       original: { key, ids, contextGroups },
@@ -148,14 +166,16 @@ export const valueColumn = (
     const fractionDigits = chart.getAttribute("unitsConversionFractionDigits")
 
     return (
-      <Value
-        period="latest"
-        id={id}
-        visible={visible}
-        Component={ValueOnDot}
-        fractionDigits={fractionDigits}
-        color="text"
-      />
+      <Tooltip content={visible ? <TooltipValue id={id} /> : null}>
+        <Value
+          period="latest"
+          id={id}
+          visible={visible}
+          Component={ValueOnDot}
+          fractionDigits={fractionDigits}
+          color="text"
+        />
+      </Tooltip>
     )
   },
 })
