@@ -13,6 +13,7 @@ import {
   useOnResize,
   useDimensionIds,
   useColor,
+  useLatestValue,
 } from "@/components/provider"
 import FilterToolbox from "@/components/filterToolbox"
 import { ColorBar } from "@/components/line/dimensions/color"
@@ -84,6 +85,7 @@ export const HeadWrapper = ({ children, customChildren, hasFilters = true, ...re
 
   const shadowColor = useColor("themeShadow")
   const debouncedFocused = useDebouncedValue(focused, 400)
+  const value = useLatestValue("selected", { valueKey: "arp" }) || 0
 
   return (
     <ChartHeadWrapper size={size} {...rest} ref={hoverRef}>
@@ -156,7 +158,11 @@ export const HeadWrapper = ({ children, customChildren, hasFilters = true, ...re
               />
             </Flex>
             <Tooltip content="Anomaly rate for this metric">
-              <Icon svg={anomalyBadge} color="anomalyTextLite" size="14px" />
+              <Icon
+                svg={anomalyBadge}
+                color={!!value && value > 0 ? "anomalyTextLite" : "neutralHighlight"}
+                size="14px"
+              />
             </Tooltip>
           </>
         )}
