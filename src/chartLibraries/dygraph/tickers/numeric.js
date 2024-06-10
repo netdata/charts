@@ -62,7 +62,7 @@ export default (a, b, pixels, opts, dygraph, vals) => {
   const pointHeight = (max - min) / 15 / dygraph.getArea().h
 
   return [
-    { label_v: max - pointHeight, label: "AR" },
+    { label_v: max - pointHeight, label: "anomaly%" },
     ...ticks.filter(
       tick => dygraph.toPercentYCoord(tick.v, 0) < 0.92 && dygraph.toPercentYCoord(tick.v, 0) > 0.08
     ),

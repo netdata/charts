@@ -1,6 +1,7 @@
 import React, { forwardRef, useMemo } from "react"
 import groupBy from "lodash/groupBy"
 import isEmpty from "lodash/isEmpty"
+import difference from "lodash/difference"
 import { Table } from "@netdata/netdata-ui"
 import useHover from "@/components/useHover"
 import ChartContainer from "@/components/chartContainer"
@@ -13,7 +14,11 @@ import { labelColumn, valueColumn } from "./columns"
 const keepoutRegex = ".*"
 const keepRegex = "(" + keepoutRegex + ")"
 
+const sortContexts = (contexts, contextScope) =>
+  isEmpty(difference(contexts, contextScope)) ? contexts : contextScope
+
 const useColumns = (chart, options = {}) => {
+  const contextScope = useAttributeValue("contextScope")
   const { period, dimensionIds, groups, labels, contextGroups } = options
 
   return useMemo(() => {
@@ -31,7 +36,7 @@ const useColumns = (chart, options = {}) => {
         fullWidth: true,
         enableResizing: true,
       },
-      ...Object.keys(contextGroups).map(context => {
+      ...sortContexts(Object.keys(contextGroups), contextScope).map(context => {
         return {
           id: `Context-${context}`,
           header: () => chart.intl(context),

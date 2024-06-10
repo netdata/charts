@@ -130,7 +130,7 @@ const Dimensions = () => {
             color={rowFlavour === rowFlavours.ANOMALY_RATE ? "text" : "textLite"}
             textAlign="right"
           >
-            AR %
+            Anomaly%
           </TextMicro>
           <TextMicro
             strong={rowFlavour === rowFlavours.ANNOTATIONS}

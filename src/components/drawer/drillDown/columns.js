@@ -136,7 +136,7 @@ export const valueColumn = () => ({
 
 export const anomalyColumn = ({ period, objKey }) => ({
   id: objKey ? `${objKey}-arp` : "arp",
-  header: <TextMicro>AR %</TextMicro>,
+  header: <TextMicro>Anomaly%</TextMicro>,
   size: 45,
   minSize: 45,
   cell: ({

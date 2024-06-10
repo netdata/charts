@@ -223,7 +223,7 @@ export const contributionColumn = () => ({
 
 export const anomalyRateColumn = () => ({
   id: "anomalyRate",
-  header: <TextMicro strong>AR %</TextMicro>,
+  header: <TextMicro strong>Anomaly%</TextMicro>,
   size: 60,
   minSize: 30,
   maxSize: 300,
