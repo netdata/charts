@@ -132,6 +132,7 @@ export default {
   enabledXAxis: true,
 
   hasToolbox: true,
+  hasHoverPopover: true,
   expandable: false,
 
   hasYlabel: true,

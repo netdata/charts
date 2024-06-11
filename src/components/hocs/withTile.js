@@ -83,13 +83,14 @@ export const HeadWrapper = ({ children, customChildren, hasFilters = true, ...re
     [chart]
   )
 
+  const hasToolbox = useAttributeValue("hasToolbox")
   const shadowColor = useColor("themeShadow")
   const debouncedFocused = useDebouncedValue(focused, 400)
   const value = useLatestValue("selected", { valueKey: "arp" }) || 0
 
   return (
     <ChartHeadWrapper size={size} {...rest} ref={hoverRef}>
-      {focused && debouncedFocused && (
+      {hasToolbox && focused && debouncedFocused && (
         <Toolbox
           position="absolute"
           top="-16px"

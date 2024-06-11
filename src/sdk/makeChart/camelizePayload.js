@@ -68,6 +68,7 @@ const transformResult = result => {
 
 const getStsByContext = (groups, units, dimensions, contextsArray) => {
   if (!Array.isArray(groups)) return [[], {}]
+  if (!Array.isArray(contextsArray) || !contextsArray.length) return [[], {}]
 
   const unitsByKey = {}
 
@@ -133,7 +134,7 @@ export default (payload, chart) => {
       labels = [],
       alerts = [],
       contexts: contextsArray = [],
-    },
+    } = {},
     functions = [],
     totals: {
       contexts: contextsTotals = {},
@@ -141,7 +142,7 @@ export default (payload, chart) => {
       instances: instancesTotals = {},
       label_key_values: labelsTotals = {},
       nodes: nodesTotals = {},
-    },
+    } = {},
     db: {
       update_every: updateEvery,
       first_entry: firstEntry,
@@ -150,16 +151,16 @@ export default (payload, chart) => {
       per_tier: perTier,
       dimensions: dbDimensions,
       units: dbUnits,
-    },
+    } = {},
     view: {
       title,
       update_every: viewUpdateEvery,
       units,
-      dimensions: viewDimensions,
+      dimensions: viewDimensions = {},
       chart_type: chartType,
       min,
       max,
-    },
+    } = {},
     result,
     ...rest
   } = payload
@@ -188,7 +189,7 @@ export default (payload, chart) => {
     return h
   }, {})
 
-  const grouped = viewDimensions.grouped_by
+  const grouped = viewDimensions?.grouped_by
 
   const [dimContexts, unitsStsByContext] = getStsByContext(
     grouped,

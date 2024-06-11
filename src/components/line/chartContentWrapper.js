@@ -57,6 +57,7 @@ const ChartContentWrapper = ({ uiName }) => {
   const initialLoading = useInitialLoading()
   const empty = useEmpty()
   const hasToolbox = useAttributeValue("hasToolbox")
+  const hasHoverPopover = useAttributeValue("hasHoverPopover")
   const processing = useAttributeValue("processing")
 
   return (
@@ -66,7 +67,7 @@ const ChartContentWrapper = ({ uiName }) => {
       {initialLoading && <Skeleton />}
       {hasToolbox && hovered && !empty && <NavigationToolbox />}
       {processing && <Processing />}
-      <Popover uiName={uiName} />
+      {hasHoverPopover && <Popover uiName={uiName} />}
     </Container>
   )
 }
