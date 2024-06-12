@@ -71,18 +71,22 @@ export default (sdk, chart) => {
         wheel: executeLatest.add((...args) => chartUI.trigger("wheel", ...args)),
       },
       series: {
-        ANOMALY_RATE: {
-          plotter: makeAnomalyPlotter(chartUI),
-          drawPoints: false,
-          pointSize: 0,
-          highlightCircleSize: 0,
-        },
-        ANNOTATIONS: {
-          plotter: makeAnnotationsPlotter(chartUI),
-          drawPoints: false,
-          pointSize: 0,
-          highlightCircleSize: 0,
-        },
+        ...(attributes.showAnomalies && {
+          ANOMALY_RATE: {
+            plotter: makeAnomalyPlotter(chartUI),
+            drawPoints: false,
+            pointSize: 0,
+            highlightCircleSize: 0,
+          },
+        }),
+        ...(attributes.showAnnotations && {
+          ANNOTATIONS: {
+            plotter: makeAnnotationsPlotter(chartUI),
+            drawPoints: false,
+            pointSize: 0,
+            highlightCircleSize: 0,
+          },
+        }),
       },
 
       strokeBorderWidth: 0,

@@ -84,7 +84,7 @@ export const getConversionAttributes = (chart, unit, { min, max, maxDecimals = 5
 
   const delta = Math.abs(cMin === cMax ? cMin : cMax - cMin)
 
-  const fractionDigits = getFractionDigits(delta)
+  const fractionDigits = isNaN(delta) ? -1 : getFractionDigits(delta)
 
   return {
     method,

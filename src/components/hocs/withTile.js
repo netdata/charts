@@ -84,6 +84,7 @@ export const HeadWrapper = ({ children, customChildren, hasFilters = true, ...re
   )
 
   const hasToolbox = useAttributeValue("hasToolbox")
+  const showAnomalies = useAttributeValue("showAnomalies")
   const shadowColor = useColor("themeShadow")
   const debouncedFocused = useDebouncedValue(focused, 400)
   const value = useLatestValue("selected", { valueKey: "arp" }) || 0
@@ -141,7 +142,7 @@ export const HeadWrapper = ({ children, customChildren, hasFilters = true, ...re
         {children}
       </Flex>
       <Flex column width={5} alignItems="center" padding={[4, 0]} gap={2}>
-        {firstDim === "selected" && (
+        {showAnomalies && firstDim === "selected" && (
           <>
             <Flex
               column

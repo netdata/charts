@@ -257,4 +257,7 @@ export default {
   xNetdataBearer: null,
 
   showPostAggregations: false,
+
+  showAnomalies: true,
+  showAnnotations: true,
 }
