@@ -5,6 +5,7 @@ import difference from "lodash/difference"
 import { Table } from "@netdata/netdata-ui"
 import useHover from "@/components/useHover"
 import ChartContainer from "@/components/chartContainer"
+import useDebouncedValue from "@netdata/netdata-ui/dist/hooks/useDebouncedValue"
 import { useChart, useDimensionIds, useAttributeValue } from "@/components/provider"
 import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
@@ -168,13 +169,15 @@ const Dimensions = () => {
     }, [])
   }, [searchQuery, rowGroups, hover])
 
+  const debouncedData = useDebouncedValue(data, 300)
+
   return (
     <Table
       ref={hoverRef}
       enableSorting
       enableColumnVisibility
       dataColumns={columns}
-      data={data}
+      data={debouncedData || data}
       enableCustomSearch
       // onRowSelected={onItemClick}
       // onSearch={noop}
