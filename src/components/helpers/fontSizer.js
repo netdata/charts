@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 
 const FontSizer = ({
   children,
@@ -10,18 +10,31 @@ const FontSizer = ({
   ...rest
 }) => {
   const [ref, setRef] = useState()
+  const cancelRef = useRef(false)
 
   useEffect(() => {
     if (!ref) return
 
-    let fontSize = maxFontSize
+    const animId = requestAnimationFrame(() => {
+      cancelRef.current = true
+      let fontSize = maxFontSize
 
-    ref.style.fontSize = fontSize + "px"
-
-    while (fontSize > minFontSize && (ref.offsetWidth > maxWidth || ref.offsetHeight > maxHeight)) {
-      const delta = Math.ceil(fontSize / 100)
-      fontSize = fontSize - delta
       ref.style.fontSize = fontSize + "px"
+
+      while (
+        !cancelRef.current &&
+        fontSize > minFontSize &&
+        (ref.offsetWidth > maxWidth || ref.offsetHeight > maxHeight)
+      ) {
+        const delta = Math.ceil(fontSize / 100)
+        fontSize = fontSize - delta
+        ref.style.fontSize = fontSize + "px"
+      }
+    })
+
+    return () => {
+      cancelRef.current = true
+      cancelAnimationFrame(animId)
     }
   }, [children, maxHeight, maxWidth, ref])
 
