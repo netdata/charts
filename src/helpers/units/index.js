@@ -1,5 +1,5 @@
 import allUnits from "./all"
-import conversableUnits, { makeConversableKey } from "./conversableUnits"
+import conversableUnits, { makeConversableKey, keys as conversableKeys } from "./conversableUnits"
 import scalableUnits, { keys } from "./scalableUnits"
 
 export const unitsMissing = u => typeof allUnits.units[u] === "undefined"
@@ -61,8 +61,8 @@ export const getUnitsString = (u, prefix = "", base = "", long) => {
   return `${labelify(prefix, allUnits.decimal_prefixes[prefix], long)} ${labelify(base, u, long)}`.trim()
 }
 
-const converts = Object.keys(conversableUnits).reduce((acc, unit) => {
-  Object.keys(conversableUnits[unit]).forEach(scale => {
+const converts = Object.keys(conversableKeys).reduce((acc, unit) => {
+  conversableKeys[unit].forEach(scale => {
     acc[makeConversableKey(unit, scale)] = (chart, value) =>
       conversableUnits[unit][scale].convert(value, chart)
   })

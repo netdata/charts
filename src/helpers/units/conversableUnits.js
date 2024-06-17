@@ -8,17 +8,17 @@ const seconds2time = (seconds, maxTimeUnit, minTimeUnit = "MS") => {
   let secondsReturn = Math.abs(seconds)
 
   const years = Math.floor(secondsReturn / (86_400 * 365))
-  const yearsString = maxTimeUnit === "YEARS" ? `${years}yr` : ""
+  const yearsString = `${years}yr`
 
   secondsReturn -= years * (86_400 * 365)
 
   const months = Math.floor(secondsReturn / (86_400 * 30))
-  const monthsString = maxTimeUnit === "MONTHS" ? `${months}mo` : ""
+  const monthsString = `${months}mo`
 
   secondsReturn -= months * (86_400 * 30)
 
   const days = Math.floor(secondsReturn / 86_400)
-  const daysString = maxTimeUnit === "DAYS" ? `${days}d` : ""
+  const daysString = `${days}d`
 
   if (maxTimeUnit === "YEARS") return `${yearsString}:${monthsString}:${daysString}`
 
@@ -27,7 +27,7 @@ const seconds2time = (seconds, maxTimeUnit, minTimeUnit = "MS") => {
   const hours = Math.floor(secondsReturn / 3_600)
   const hoursString = zeropad(hours)
 
-  if (maxTimeUnit === "MONTHS") return `${monthsString}:${daysString} ${hoursString}`
+  if (maxTimeUnit === "MONTHS") return `${monthsString}:${daysString} ${hoursString}h`
 
   secondsReturn -= hours * 3_600
 
@@ -53,6 +53,13 @@ const twoFixed =
   (multiplier = 1) =>
   value =>
     value * multiplier
+
+export const keys = {
+  Cel: ["[degF]"],
+  ns: ["ns", "us", "ms", "s"],
+  ms: ["us", "ms", "s", "a:mo:d", "mo:d:h", "d:h:mm", "h:mm:ss", "mm:ss"],
+  s: ["us", "ms", "s", "a:mo:d", "mo:d:h", "d:h:mm", "h:mm:ss", "mm:ss", "dHH:MM:ss"],
+}
 
 export default {
   Cel: {

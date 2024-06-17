@@ -1,4 +1,7 @@
-import conversableUnits, { makeConversableKey } from "@/helpers/units/conversableUnits"
+import conversableUnits, {
+  makeConversableKey,
+  keys as conversableKeys,
+} from "@/helpers/units/conversableUnits"
 import convert, { getScales, getUnitConfig, isScalable } from "@/helpers/units"
 
 const scalable = (units, delta, desiredUnits) => {
@@ -44,7 +47,7 @@ const conversable = (chart, units, delta, desiredUnits) => {
       : ["original"]
   }
 
-  const scaleKeys = Object.keys(scales)
+  const scaleKeys = conversableKeys[units] || Object.keys(scales)
   const scaleIndex = scaleKeys.findIndex(scale => (scales[scale] || 1).check(chart, delta))
 
   if (scaleIndex === -1) return ["original"]
