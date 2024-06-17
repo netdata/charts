@@ -16,7 +16,7 @@ const FontSizer = ({
     if (!ref) return
 
     const animId = requestAnimationFrame(() => {
-      cancelRef.current = true
+      cancelRef.current = false
       let fontSize = maxFontSize
 
       ref.style.fontSize = fontSize + "px"
