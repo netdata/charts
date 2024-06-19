@@ -22,6 +22,7 @@ export const getChartURLOptions = chart => {
 export const pointMultiplierByChartType = {
   multiBar: 0.1,
   stackedBar: 0.1,
+  table: 0.1,
   heatmap: 0.7,
   default: 0.7,
 }
@@ -40,10 +41,13 @@ export const getChartPayload = chart => {
     fetchStartedAt,
     chartType,
     pixelsPerPoint,
+    chartLibrary,
   } = chart.getAttributes()
 
   const pointsMultiplier =
-    pointMultiplierByChartType[chartType] || pointMultiplierByChartType.default
+    pointMultiplierByChartType[chartType] ||
+    pointMultiplierByChartType[chartLibrary] ||
+    pointMultiplierByChartType.default
 
   const fetchOn =
     hovering && renderedAt ? Math.ceil(renderedAt / 1000) : Math.ceil(fetchStartedAt / 1000)

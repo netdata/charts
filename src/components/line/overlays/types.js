@@ -8,6 +8,7 @@ import Highlight from "./highlight"
 import Proceeded from "./proceeded"
 import ChartName from "./chartName"
 import LatestValue from "./latestValue"
+import LatestTime from "./latestTime"
 import { useAttributeValue } from "@/components/provider"
 
 const NoEventsContainer = styled(LayerContainer)`
@@ -56,6 +57,12 @@ const LatestValueOverlay = props => (
   </NoEventsContainer>
 )
 
+const LatestTimeOverlay = props => (
+  <NoEventsContainer isAbsolute position="center">
+    <LatestTime {...props} />
+  </NoEventsContainer>
+)
+
 export default {
   alarm: AlarmOverlay,
   alarmRange: AlarmRangeOverlay,
@@ -63,4 +70,5 @@ export default {
   proceeded: ProceededOverlay,
   name: NameOverlay,
   latestValue: LatestValueOverlay,
+  latestTime: LatestTimeOverlay,
 }
