@@ -29,11 +29,11 @@ const Legend = () => {
   const maxColor = chart.getThemeAttribute("themeGroupBoxesMax")
 
   return (
-    <Flex data-testid="groupBox-legend" gap={4} alignItems="center">
+    <Flex data-testid="groupBox-legend" gap={4} alignItems="center" width="100%">
       <TextNano strong>
         {selectedContexts && selectedContexts !== "*" ? selectedContexts : contextScope}
       </TextNano>
-      <Flex gap={2} alignItems="center">
+      <Flex gap={2} alignItems="center" width="100%">
         <TextNano>
           {chart.getConvertedValue(min)} {units}
         </TextNano>

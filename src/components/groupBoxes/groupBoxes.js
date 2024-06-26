@@ -1,4 +1,4 @@
-import React, { memo } from "react"
+import React, { memo, useRef } from "react"
 import styled, { keyframes } from "styled-components"
 import { Box, Flex, TextMicro } from "@netdata/netdata-ui"
 import { useLoadingColor, useAttributeValue, useColor } from "@/components/provider"
@@ -78,6 +78,7 @@ const GroupBoxWrapper = ({ uiName, subTree, data, label, groupedBy, hasMore }) =
 
 const GroupBoxes = ({ uiName }) => {
   const { data, tree } = useGroupBox(uiName)
+  const ref = useRef()
 
   const loaded = useAttributeValue("loaded")
   const showingInfo = useAttributeValue("showingInfo")
@@ -88,7 +89,14 @@ const GroupBoxes = ({ uiName }) => {
   if (!loaded) return <SkeletonIcon />
 
   return (
-    <Flex data-testid="groupBoxes" flexWrap flex position="relative" height={{ min: "150px" }}>
+    <Flex
+      data-testid="groupBoxes"
+      flexWrap
+      flex
+      position="relative"
+      height={{ min: "150px" }}
+      ref={ref}
+    >
       {showingInfo ? (
         <Details />
       ) : rest.length ? (

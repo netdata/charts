@@ -151,5 +151,6 @@ export default (chart, el, { onMouseenter, onMouseout }, options = {}) => {
     update,
     activateBox: index => activateBox(index),
     deactivateBox: () => deactivateBox(),
+    getElement: () => backgroundEl,
   }
 }
