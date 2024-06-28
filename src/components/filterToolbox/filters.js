@@ -14,7 +14,6 @@ import TimeAggregation from "./timeAggregation"
 import Labels from "./labels"
 import Reset from "./reset"
 import ShowPostAggregations from "./showPostAggregations"
-import Config from "./config"
 // import Config from "./config" // TODO use it for dropdown form
 import N from "@netdata/netdata-ui/dist/components/icon/assets/N.svg"
 import I from "@netdata/netdata-ui/dist/components/icon/assets/I.svg"

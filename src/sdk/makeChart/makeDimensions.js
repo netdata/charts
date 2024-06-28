@@ -322,8 +322,13 @@ export default (chart, sdk) => {
     value = allowNull && value === null ? value : abs ? Math.abs(value) : value
 
     if (incrementable && isIncremental(chart)) {
-      const index = chart.getDimensionIndex(id)
-      const prevId = chart.getVisibleDimensionIds()[index - 1]
+      let index = chart.getDimensionIds().findIndex(dimId => dimId === id)
+
+      if (index === -1) return value
+
+      let prevId = chart.getDimensionIds()[index - 1]
+      while (prevId && !chart.isDimensionVisible(prevId))
+        prevId = chart.getDimensionIds()[--index - 1]
 
       value =
         value -

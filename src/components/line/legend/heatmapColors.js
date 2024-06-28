@@ -25,7 +25,7 @@ const HeatmapColorsLegend = () => {
   useAttributeValue("theme") // rerender on theme change
 
   return (
-    <Flex data-testid="heatmap-legend" gap={2} alignItems="center" padding={[2, 11]}>
+    <Flex data-testid="heatmap-legend" gap={2} alignItems="center" padding={[2]}>
       <TextNano>
         {chart.getConvertedValue(0)} {units}
       </TextNano>

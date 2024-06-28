@@ -15,13 +15,14 @@ import Dimension, { SkeletonDimension, EmptyDimension } from "./dimension"
 import { Fragment } from "react"
 import Icon from "@/components/icon"
 
-const Container = styled(Flex).attrs({
+const Container = styled(Flex).attrs(props => ({
   gap: 0.5,
   padding: [0, 0, 1],
   alignItems: "center",
   flex: true,
   "data-testid": "chartLegend",
-})`
+  ...props,
+}))`
   overflow-x: auto; // fallback
   overflow-x: overlay;
   overflow-y: hidden;

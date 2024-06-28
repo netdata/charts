@@ -3,7 +3,7 @@ import { Flex } from "@netdata/netdata-ui"
 import Legend from "@/components/line/legend"
 import HeatmapColors from "@/components/line/legend/heatmapColors"
 import DimensionSort from "@/components/line/dimensionSort"
-import { useAttributeValue } from "@/components/provider/selectors"
+import { useAttributeValue, usePayload } from "@/components/provider/selectors"
 import Indicators from "@/components/line/indicators"
 import Expander from "./expander"
 import { useIsHeatmap } from "@/helpers/heatmap"
@@ -22,6 +22,7 @@ const Footer = () => {
   const showingInfo = useAttributeValue("showingInfo")
   const expandable = useAttributeValue("expandable")
 
+  usePayload()
   const isHeatmap = useIsHeatmap()
 
   return (
@@ -31,8 +32,8 @@ const Footer = () => {
         <>
           {isHeatmap && <HeatmapColors />}
           <Flex alignItems="center">
-            <DimensionSort />
-            <Legend />
+            {!isHeatmap && <DimensionSort />}
+            <Legend padding={isHeatmap ? [0, 2] : undefined} />
           </Flex>
         </>
       )}

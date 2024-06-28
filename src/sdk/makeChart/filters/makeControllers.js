@@ -137,6 +137,7 @@ export default chart => {
       chart.updateAttributes({
         chartLibrary: selected,
         processing: true,
+        ...(isHeatmap(selected) && { dimensionsSort: "default" }),
       })
       chart.getUI().unmount()
       chart.setUI({ ...chart.sdk.makeChartUI(chart), ...(chart.ui || {}) }, "default")
