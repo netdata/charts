@@ -31,6 +31,8 @@ const ZoomReset = ({ log = () => {} }) => {
   const chart = useChart()
   const after = useAttributeValue("after")
 
+  if (!chart.getAttribute("enabledResetRange")) return null
+
   const onResetZoom = () => {
     chart.resetNavigation()
     log({

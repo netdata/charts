@@ -98,9 +98,9 @@ export default (sdk, chart) => {
       drawGapEdgePoints: true,
       ylabel: chart.getAttribute("hasYlabel") && chart.getUnitSign({ long: true }),
       digitsAfterDecimal:
-        chart.getAttribute("unitsConversionFractionDigits") < 0
+        chart.getAttribute("unitsConversionFractionDigits")[0] < 0
           ? 0
-          : chart.getAttribute("unitsConversionFractionDigits"),
+          : chart.getAttribute("unitsConversionFractionDigits")[0],
       yLabelWidth: 12,
       yRangePad: 30,
       labelsSeparateLines: true,
@@ -438,9 +438,9 @@ export default (sdk, chart) => {
       ...makeColorOptions(),
       ...makeChartTypeOptions(),
       digitsAfterDecimal:
-        chart.getAttribute("unitsConversionFractionDigits") < 0
+        chart.getAttribute("unitsConversionFractionDigits")[0] < 0
           ? 0
-          : chart.getAttribute("unitsConversionFractionDigits"),
+          : chart.getAttribute("unitsConversionFractionDigits")[0],
       ...makeSparklineOptions(),
     })
 
