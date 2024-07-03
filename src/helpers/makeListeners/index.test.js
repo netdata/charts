@@ -8,5 +8,5 @@ it("triggers a listener", () => {
   listener.trigger("ring", "phone")
 
   expect(spy).toBeCalledTimes(1)
-  expect(spy).toBeCalledWith("phone")
+  expect(spy).toBeCalledWith("phone", "ring")
 })

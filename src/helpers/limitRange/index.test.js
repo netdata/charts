@@ -15,8 +15,8 @@ describe("limitRange", () => {
   })
   it("should now allow duration less than 60 sec", () => {
     expect(limitRange({ after: date - 59, before: date })).toEqual({
-      fixedAfter: date - 60,
-      fixedBefore: date,
+      fixedAfter: date - 60.5,
+      fixedBefore: date + 0.5,
     })
     expect(limitRange({ after: date - 58, before: date })).toEqual({
       fixedAfter: date - 59,
