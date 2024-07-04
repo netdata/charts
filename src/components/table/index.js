@@ -16,7 +16,7 @@ const keepoutRegex = ".*"
 const keepRegex = "(" + keepoutRegex + ")"
 
 const sortContexts = (contexts, contextScope) =>
-  isEmpty(difference(contexts, contextScope)) ? contexts : contextScope
+  isEmpty(difference(contexts, contextScope)) ? contextScope : contexts
 
 const useColumns = (chart, options = {}) => {
   const contextScope = useAttributeValue("contextScope")
