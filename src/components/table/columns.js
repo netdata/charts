@@ -28,6 +28,7 @@ const emptyArray = []
 
 export const labelColumn = (chart, { fallbackExpandKey, partIndex, header = "Name" } = {}) => ({
   id: `label${header || ""}${partIndex || ""}`,
+  name: header,
   header: () => <TextSmall strong>{header}</TextSmall>,
   sortingFn: (rowA, rowB) => {
     return (chart.getDimensionName(rowA.original.ids?.[0], partIndex) || "-").localeCompare(
@@ -119,6 +120,7 @@ export const valueColumn = (
   { context = "Dimensions", dimension = "Value", dimensionId }
 ) => ({
   id: `value${context}${dimension}`,
+  name: `${context}: ${dimension}`,
   header: () => {
     return (
       <Flex column>

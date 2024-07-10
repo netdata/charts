@@ -16,7 +16,11 @@ const keepoutRegex = ".*"
 const keepRegex = "(" + keepoutRegex + ")"
 
 const sortContexts = (contexts, contextScope) =>
-  isEmpty(difference(contexts, contextScope)) ? contextScope : contexts
+  isEmpty(contexts)
+    ? contexts // pass empty array to allow the table to rerender when payload comes back with data
+    : isEmpty(difference(contexts, contextScope))
+      ? contextScope
+      : contexts
 
 const useColumns = (chart, options = {}) => {
   const contextScope = useAttributeValue("contextScope")
