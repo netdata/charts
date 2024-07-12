@@ -108,7 +108,7 @@ const Dimensions = () => {
 
   const chart = useChart()
   const groups = chart.getDimensionGroups()
-  const tableColumns = chart.getAttribute("tableColumns")
+  const { tableColumns, tableSortBy } = chart.getAttributes()
 
   const [rowGroups, contextGroups, labels] = useMemo(() => {
     let forRows = []
@@ -146,6 +146,19 @@ const Dimensions = () => {
     rowGroups,
     contextGroups,
   })
+
+  const sortBy = useMemo(() => {
+    if (!tableSortBy || tableSortBy.length > 1 || !contextGroups) return tableSortBy
+
+    const [first] = tableSortBy
+    if (!first || !contextGroups[first.id] || !Object.keys(contextGroups[first.id]))
+      return tableSortBy
+
+    return Object.keys(contextGroups[first.id]).map(id => ({
+      id: `value${first.id}${id}`,
+      desc: first.desc,
+    }))
+  }, [tableSortBy, contextGroups])
 
   const hoverRef = useHover(
     {
@@ -188,7 +201,7 @@ const Dimensions = () => {
       // onRowSelected={onItemClick}
       // onSearch={noop}
       // meta={meta}
-      // sortBy={sortBy}
+      sortBy={sortBy}
       // rowSelection={rowSelection}
       // onSortingChange={onSortByChange}
       // expanded={expanded}
