@@ -383,6 +383,6 @@ export default (chart, sdk) => {
 
     const keys = chart.isSparkline() ? sparklineDimensions : dimensionIds
 
-    keys.forEach(chart.selectDimensionColor)
+    keys.forEach(id => chart.selectDimensionColor(id))
   }
 }

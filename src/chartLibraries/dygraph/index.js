@@ -402,7 +402,7 @@ export default (sdk, chart) => {
     const dimensionIds = chart.getPayloadDimensionIds()
 
     if (!dimensionIds.length) return {}
-    const colors = dimensionIds.map(chart.selectDimensionColor)
+    const colors = dimensionIds.map(id => chart.selectDimensionColor(id))
 
     return { colors }
   }
