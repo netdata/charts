@@ -1,7 +1,7 @@
 import React, { forwardRef, memo } from "react"
 import styled from "styled-components"
 import { Flex, TextMicro } from "@netdata/netdata-ui"
-import { useChart, useConverted, useAttributeValue } from "@/components/provider"
+import { useChart, useConverted, useAttributeValue, useUnitSign } from "@/components/provider"
 import { BaseColorBar } from "@/components/line/dimensions/color"
 import Label from "./label"
 
@@ -45,7 +45,8 @@ const Labels = forwardRef(({ label, groupLabel, data, id }, ref) => {
 
   const chartWidth = chart.getUI().getChartWidth() * 0.9
   const value = chart.getRowDimensionValue(id, data)
-  const convertedValue = useConverted(value, { valueKey: "percent" })
+  const convertedValue = useConverted(value)
+  const unitSign = useUnitSign()
 
   return (
     <Container data-testid="chartPopover-labels" maxWidth={chartWidth} gap={2} ref={ref}>
@@ -61,8 +62,7 @@ const Labels = forwardRef(({ label, groupLabel, data, id }, ref) => {
             height="18px"
           />
           <TextMicro padding={[1.5, 2]} strong>
-            {convertedValue}
-            {convertedValue !== "-" && "%"}
+            {convertedValue} {convertedValue !== "-" && unitSign}
           </TextMicro>
         </Flex>
       </Flex>
