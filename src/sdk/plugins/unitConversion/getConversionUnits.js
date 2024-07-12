@@ -76,7 +76,7 @@ const decimals = [1000, 100, 10, 1, 0.1, 0.01, 0.001]
 const getFractionDigits = value => {
   const index = decimals.findIndex(d => value > d)
   const digits = index === -1 ? decimals.length - 1 : index
-  return digits === 3 ? 2 : digits
+  return digits === 3 ? 4 : digits
 }
 
 export const getConversionAttributes = (chart, unit, { min, max, maxDecimals = 5 }) => {
