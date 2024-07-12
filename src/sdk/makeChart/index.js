@@ -144,7 +144,7 @@ export default ({
 
     return Intl.NumberFormat(undefined, {
       useGrouping: true,
-      minimumFractionDigits: isNaN(fractionDigits) ? unitsConversionFractionDigits : fractionDigits,
+      minimumFractionDigits: isNaN(fractionDigits) ? 0 : fractionDigits,
       maximumFractionDigits: isNaN(fractionDigits) ? unitsConversionFractionDigits : fractionDigits,
     }).format(converted)
   }
