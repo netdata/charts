@@ -1,16 +1,18 @@
+import getOffsets from "@/helpers/eventOffset"
+
 export default chartUI => {
   const findClosest = (event, points) => {
     if (!Array.isArray(points)) return {}
 
-    const { offsetY } = event
+    const { offsetX, offsetY } = getOffsets(event)
 
     if (offsetY > chartUI.getDygraph().getArea().h - 10) return { seriesName: "ANNOTATIONS" }
     if (offsetY < 15) return { seriesName: "ANOMALY_RATE" }
 
     if (chartUI.chart.getAttribute("chartType"))
-      return chartUI.getDygraph().findStackedPoint(event.offsetX, event.offsetY)
+      return chartUI.getDygraph().findStackedPoint(offsetX, offsetY)
 
-    return chartUI.getDygraph().findClosestPoint(event.offsetX, event.offsetY)
+    return chartUI.getDygraph().findClosestPoint(offsetX, offsetY)
   }
 
   let lastX
@@ -39,8 +41,9 @@ export default chartUI => {
     lastPoints = points
     lastTimestamp = x
 
-    lastX = event.offsetX
-    lastY = event.offsetY
+    const offsets = getOffsets(event)
+    lastX = offsets.offsetX
+    lastY = offsets.offsetY
 
     const dimensionId = getDimension(event, points)
 
@@ -56,8 +59,9 @@ export default chartUI => {
     lastPoints = points
     lastTimestamp = x
 
-    lastX = event.offsetX
-    lastY = event.offsetY
+    const offsets = getOffsets(event)
+    lastX = offsets.offsetX
+    lastY = offsets.offsetY
 
     const dimensionId = getDimension(event, points)
 
@@ -66,10 +70,11 @@ export default chartUI => {
   }
 
   const mousemove = event => {
-    if (Math.abs(event.offsetX - lastX) < 5 && Math.abs(event.offsetY - lastY) < 5) return
+    const { offsetX, offsetY } = getOffsets(event)
+    if (Math.abs(offsetX - lastX) < 5 && Math.abs(offsetY - lastY) < 5) return
 
-    lastX = event.offsetX
-    lastY = event.offsetY
+    lastX = offsetX
+    lastY = offsetY
 
     const dimensionId = getDimension(event, lastPoints)
 
