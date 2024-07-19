@@ -53,8 +53,7 @@ export default chart => {
       chart.consumePayload()
       chart.invalidateClosestRowCache()
 
-      if (!chart.getAttribute("loaded") && chart.getParent())
-        chart.getParent().trigger("chartLoaded", chart)
+      if (!chart.getAttribute("loaded")) chart.getRoot().trigger("chartLoaded", chart)
 
       const attributes = chart.getAttributes()
 
@@ -120,8 +119,7 @@ export default chart => {
     chart.backoff()
     chart.trigger("failFetch", error)
 
-    if (!chart.getAttribute("loaded") && chart.getParent())
-      chart.getParent().trigger("chartLoaded", chart)
+    if (!chart.getAttribute("loaded")) chart.getRoot().trigger("chartLoaded", chart)
 
     chart.updateAttributes({
       loaded: true,

@@ -15,7 +15,7 @@ const FontSizer = ({
   useEffect(() => {
     if (!ref) return
 
-    const animId = requestAnimationFrame(() => {
+    const timeoutId = setTimeout(() => {
       cancelRef.current = false
       let fontSize = maxFontSize
 
@@ -34,7 +34,7 @@ const FontSizer = ({
 
     return () => {
       cancelRef.current = true
-      cancelAnimationFrame(animId)
+      clearTimeout(timeoutId)
     }
   }, [children, maxHeight, maxWidth, ref])
 
