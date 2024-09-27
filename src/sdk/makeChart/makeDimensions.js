@@ -114,6 +114,15 @@ export default (chart, sdk) => {
     },
   }
 
+  const alwaysSort = {
+    valueDesc: true,
+    valueAsc: true,
+    anomalyDesc: true,
+    anomalyAsc: true,
+    annotationsDesc: true,
+    annotationsAsc: true,
+  }
+
   const updateVisibleDimensions = () => {
     const selectedLegendDimensions = chart.getAttribute("selectedLegendDimensions")
 
@@ -136,6 +145,7 @@ export default (chart, sdk) => {
     const dimensionsSort = chart.getAttribute("dimensionsSort")
     const sort = bySortMethod[dimensionsSort] || bySortMethod.default
     sortedDimensionIds = sort()
+
     updateVisibleDimensions()
 
     if (!sortedDimensionIds) return
@@ -167,7 +177,10 @@ export default (chart, sdk) => {
   chart.updateDimensions = () => {
     const dimensionIds = chart.getPayloadDimensionIds()
 
-    if (deepEqual(prevDimensionIds, dimensionIds)) return
+    if (deepEqual(prevDimensionIds, dimensionIds)) {
+      if (alwaysSort[chart.getAttribute("dimensionsSort")]) chart.sortDimensions()
+      return
+    }
 
     prevDimensionIds = dimensionIds
 
