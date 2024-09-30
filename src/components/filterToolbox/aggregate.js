@@ -44,7 +44,7 @@ const useItems = chart =>
 
 const dropTitle = (
   <TextMicro padding={[0, 0, 2]} color="textLite">
-    When aggregating multiple multiple source time-series metrics to one visible dimension on the
+    When aggregating multiple source time-series metrics to one visible dimension on the
     chart, use the following aggregation function
   </TextMicro>
 )
