@@ -22,6 +22,9 @@ export const meta = (row, cell, index) => ({
     ...(row.depth > 0 && { backgroundOpacity: 0.4 }),
     ...(row.depth > 0 && index === 0 && { border: { side: "left", size: "4px" } }),
   },
+  searchStyles: {
+    autoFocus: true,
+  },
 })
 
 const noop = () => {}
