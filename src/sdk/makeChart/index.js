@@ -140,6 +140,8 @@ export default ({
 
     const converted = convert(node, method, value, divider)
 
+    if (isNaN(converted)) return converted
+
     return Intl.NumberFormat(undefined, {
       useGrouping: true,
       minimumFractionDigits: isNaN(fractionDigits) ? 0 : fractionDigits,
