@@ -94,6 +94,7 @@ const compareBasic = (a, b) => (a === b ? 0 : a > b ? 1 : -1)
 
 const ValueOnDot = forwardRef(({ children, fractionDigits = 0, ...rest }, ref) => {
   const [first, last] = children.toString().split(".")
+  fractionDigits = fractionDigits === -1 ? 4 : fractionDigits
 
   return (
     <Flex alignItems="center" justifyContent="start" ref={ref}>

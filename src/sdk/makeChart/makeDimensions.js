@@ -258,7 +258,7 @@ export default (chart, sdk) => {
 
     if (!viewDimensions?.names) return ""
 
-    let dimName = viewDimensions.names[dimensionsById[id]]
+    let dimName = viewDimensions.names[dimensionsById[id]] || id
 
     if (!isNaN(partIndex)) dimName = dimName.split(",")?.[partIndex] ?? dimName
 
