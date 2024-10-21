@@ -140,12 +140,14 @@ export default ({
 
     const converted = convert(node, method, value, divider)
 
-    if (unitsConversionFractionDigits === -1) return converted
-
     return Intl.NumberFormat(undefined, {
       useGrouping: true,
       minimumFractionDigits: isNaN(fractionDigits) ? 0 : fractionDigits,
-      maximumFractionDigits: isNaN(fractionDigits) ? unitsConversionFractionDigits : fractionDigits,
+      maximumFractionDigits: isNaN(fractionDigits)
+        ? unitsConversionFractionDigits === -1
+          ? 4
+          : unitsConversionFractionDigits
+        : fractionDigits,
     }).format(converted)
   }
 
