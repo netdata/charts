@@ -21,13 +21,7 @@ const preview = {
       return (
         <ThemeProvider theme={theme}>
           <GlobalStyles />
-          <Flex
-            width="100vw"
-            height="100vh"
-            background="mainBackground"
-            alignItems="center"
-            justifyContent="center"
-          >
+          <Flex width="100vw" height="100vh" background="mainBackground" justifyContent="center">
             <Story />
           </Flex>
         </ThemeProvider>

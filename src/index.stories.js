@@ -28,7 +28,10 @@ export const Width = () => {
   const [width, setWidth] = useState(false)
   const chart = useMemo(() => {
     const sdk = makeDefaultSDK()
-    const chart = sdk.makeChart({ getChart, attributes: { navigation: "selectVertical" } })
+    const chart = sdk.makeChart({
+      getChart,
+      attributes: { contextScope: ["system.load"], navigation: "selectVertical" },
+    })
     sdk.appendChild(chart)
     return chart
   }, [])
@@ -46,7 +49,7 @@ export const Width = () => {
 }
 
 export const SimpleDark = () => {
-  const sdk = makeDefaultSDK({ attributes: { theme: "dark" } })
+  const sdk = makeDefaultSDK({ attributes: { contextScope: ["system.load"], theme: "dark" } })
   const chart = sdk.makeChart({ getChart })
   sdk.appendChild(chart)
 
@@ -91,7 +94,10 @@ const TimezonePicker = withChartProvider(() => {
 export const Timezone = () => {
   const chart = useMemo(() => {
     const sdk = makeDefaultSDK()
-    const chart = sdk.makeChart({ getChart, attributes: { timezone: "Pacific/Honolulu" } })
+    const chart = sdk.makeChart({
+      getChart,
+      attributes: { contextScope: ["system.load"], timezone: "Pacific/Honolulu" },
+    })
     sdk.appendChild(chart)
 
     return chart
@@ -99,8 +105,10 @@ export const Timezone = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <TimezonePicker chart={chart} />
-      <Line chart={chart} height="315px" />
+      <Flex column>
+        <TimezonePicker chart={chart} />
+        <Line chart={chart} height="315px" />
+      </Flex>
     </ThemeProvider>
   )
 }
@@ -112,7 +120,7 @@ const TimePicker = withChartProvider(() => {
   const run = after < 0
 
   return (
-    <Flex>
+    <Flex alignItems="start">
       <input
         type="checkbox"
         checked={run}
@@ -153,8 +161,10 @@ export const Timepicker = () => {
 
   return (
     <ThemeProvider theme={DefaultTheme}>
-      <TimePicker chart={chart} />
-      <Line chart={chart} height="315px" />
+      <Flex column>
+        <TimePicker chart={chart} />
+        <Line chart={chart} height="315px" />
+      </Flex>
     </ThemeProvider>
   )
 }
@@ -269,7 +279,7 @@ export const InitialLoading = () => {
   const chart = sdk.makeChart({ getChart: () => new Promise(() => {}) })
   const darkChart = sdk.makeChart({
     getChart: () => new Promise(() => {}),
-    attributes: { theme: "dark" },
+    attributes: { contextScope: ["system.load"], theme: "dark" },
   })
   sdk.appendChild(chart)
   sdk.appendChild(darkChart)
@@ -292,7 +302,10 @@ export const Multiple = () => {
   const sdk = makeDefaultSDK()
 
   const charts = Array.from(Array(10)).map((v, index) => {
-    const chart = sdk.makeChart({ attributes: { id: index }, getChart })
+    const chart = sdk.makeChart({
+      attributes: { contextScope: ["system.load"], id: index },
+      getChart,
+    })
     sdk.appendChild(chart)
 
     return chart
@@ -313,7 +326,10 @@ export const Sync = () => {
   const sdk = makeDefaultSDK()
 
   const charts = Array.from(Array(3)).map((v, index) => {
-    const chart = sdk.makeChart({ attributes: { id: index, syncHover: index !== 1 }, getChart })
+    const chart = sdk.makeChart({
+      attributes: { contextScope: ["system.load"], id: index, syncHover: index !== 1 },
+      getChart,
+    })
     sdk.appendChild(chart)
     return chart
   })

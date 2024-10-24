@@ -17,7 +17,7 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
       id: "control",
       selectedContexts: [contexts],
       nodesScope: [nodesScope],
-      contextScope: ["disk.await"],
+      contextScope: ["system.load"],
       host: host,
       aggregationMethod: "sum",
       agent: true,
@@ -208,7 +208,7 @@ export default {
   tags: ["autodocs"],
   args: {
     nodesScope: "*",
-    contextScope: "system.cpu",
+    contextScope: "system.load",
     contexts: "*",
     singleDimension: "*",
     theme: "default",
