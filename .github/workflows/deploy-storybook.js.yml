@@ -3,8 +3,16 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
-  staging:
+  deploy:
+    environment:
+      url: ${{ steps.build-publish.outputs.page_url }}
+
     runs-on: ubuntu-latest
 
     strategy:
