@@ -21,7 +21,6 @@
     "lint": "eslint './src/**/*.js'",
     "clean": "rimraf lib dist es coverage",
     "prepublishOnly": "yarn clean && yarn build",
-    "deploy-storybook": "storybook-to-ghpages",
     "cp-cloud": "cp -R ./dist ../cloud-frontend/node_modules/@netdata/charts/",
     "to-cloud": "yarn build:cjs && yarn cp-cloud",
     "storybook": "storybook dev -p 6006",

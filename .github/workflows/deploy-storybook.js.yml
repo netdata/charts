@@ -13,7 +13,7 @@ jobs:
           - 18.18
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Use node ${{ matrix.node-version }}
         uses: actions/setup-node@v1
@@ -23,15 +23,10 @@ jobs:
       - name: Install yarn
         run: npm install -g yarn
 
-      - name: Check cache
-        uses: actions/cache@v2
+      - uses: bitovi/github-actions-storybook-to-github-pages@v1.0.3
         with:
-          path: "**/node_modules"
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-
-      - name: Deploy
-        run: |
-          yarn
-          yarn deploy-storybook --ci
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          install_command: yarn install # default: npm ci
+          build_command: yarn build-storybook # default: npm run build-storybook
+          path: storybook-static # default: dist/storybook
+          checkout: false # default: true
+          caching: true
