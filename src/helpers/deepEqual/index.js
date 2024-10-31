@@ -5,7 +5,7 @@ export const setsAreEqual = (a, b) => {
 }
 
 export const filter = (arr, { omit = [], keep = [] }) => {
-  if (!omit.length || !keep.length) return arr
+  if (!omit.length && !keep.length) return arr
 
   return arr.filter(element => {
     if (keep.length) return keep.includes(element)
@@ -16,9 +16,8 @@ export const filter = (arr, { omit = [], keep = [] }) => {
 const deepEqual = (objA, objB, options = {}) => {
   if (objA === objB) return true
 
-  if (typeof objA !== "object" || objA === null || typeof objB !== "object" || objB === null) {
+  if (typeof objA !== "object" || objA === null || typeof objB !== "object" || objB === null)
     return false
-  }
 
   const keysA = filter(Object.keys(objA), options)
   const keysB = filter(Object.keys(objB), options)
@@ -27,11 +26,10 @@ const deepEqual = (objA, objB, options = {}) => {
 
   const bHasOwnProperty = Object.prototype.hasOwnProperty.bind(objB)
 
-  return !keysA.some(key => {
-    if (!bHasOwnProperty(key)) return true
-    if (objA[key] === objB[key]) return false
+  return keysA.every(key => {
+    if (!bHasOwnProperty(key)) return false
 
-    return !deepEqual(objA[key], objB[key], options)
+    return deepEqual(objA[key], objB[key])
   })
 }
 

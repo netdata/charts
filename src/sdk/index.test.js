@@ -1,7 +1,10 @@
 import makeSDK from "./index"
 
 it("add charts", () => {
-  const sdk = makeSDK({ defaultUI: "myChartLibrary", ui: { myChartLibrary: () => {} } })
+  const sdk = makeSDK({
+    attributes: { chartLibrary: "myChartLibrary" },
+    ui: { myChartLibrary: () => {} },
+  })
   expect(sdk.getNodes()).toEqual([sdk.getRoot()])
 
   const charts = [sdk.makeChart(), sdk.makeChart(), sdk.makeChart()]
@@ -13,7 +16,10 @@ it("add charts", () => {
 })
 
 it("add charts in containers", () => {
-  const sdk = makeSDK({ defaultUI: "myChartLibrary", ui: { myChartLibrary: () => {} } })
+  const sdk = makeSDK({
+    attributes: { chartLibrary: "myChartLibrary" },
+    ui: { myChartLibrary: () => {} },
+  })
 
   const container1 = sdk.makeContainer("group1")
   sdk.appendChild(container1)

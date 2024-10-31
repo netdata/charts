@@ -3,7 +3,12 @@ import makeContainer from "./makeContainer"
 import makeChart from "./makeChart"
 import initialAttributes from "./initialAttributes"
 
-export default ({ ui, plugins: defaultPlugins = {}, attributes: defaultAttributes, on = {} }) => {
+export default ({
+  ui,
+  plugins: defaultPlugins = {},
+  attributes: defaultAttributes = {},
+  on = {},
+}) => {
   const listeners = makeListeners()
   const attributes = { ui }
   const plugins = {}

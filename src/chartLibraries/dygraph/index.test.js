@@ -3,9 +3,8 @@ import makeDygraph from "./index"
 
 it("renders a chart", () => {
   const sdk = makeSDK({
-    defaultUI: "dygraph",
     ui: { dygraph: makeDygraph },
-    attributes: { after: 1617946860000, before: 1617947750000 },
+    attributes: { chartLibrary: "dygraph", after: 1617946860000, before: 1617947750000 },
   })
   const chart = sdk.makeChart()
   sdk.appendChild(chart)

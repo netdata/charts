@@ -1,5 +1,13 @@
 import "jest-canvas-mock"
 
+class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+window.ResizeObserver = ResizeObserver
+
 Element.prototype.getBoundingClientRect = jest.fn(() => {
   return {
     width: 120,
