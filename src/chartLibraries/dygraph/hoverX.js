@@ -21,26 +21,15 @@ export default chartUI => {
       let closestPoint = _dygraph.findStackedPoint(offsetX, offsetY)
 
       if (closestPoint.point?.canvasy > offsetY) {
-        return points.reduce(
-          (max, p) => {
-            if (!isValidPoint(p)) return max
+        closestPoint = points.reduce((max, p) => (p.yval > max.point.yval ? p : max), {
+          yval: -Infinity,
+        })
 
-            if (p.yval > max.point.yval) {
-              return {
-                point: p,
-                row: p.idx,
-                seriesName: p.name,
-              }
-            }
-
-            return max
-          },
-          {
-            point: { yval: -Infinity },
-            row: null,
-            seriesName: null,
-          }
-        )
+        closestPoint = {
+          point: closestPoint,
+          row: closestPoint.idx,
+          seriesName: closestPoint.name,
+        }
       }
       return closestPoint
     }
