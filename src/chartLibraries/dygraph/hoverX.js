@@ -1,18 +1,51 @@
 import getOffsets from "@/helpers/eventOffset"
+import { isValidPoint } from "dygraphs/src/dygraph-utils"
+
+const shouldFindMaxValue = {
+  stacked: true,
+  stackedBar: true,
+}
 
 export default chartUI => {
   const findClosest = (event, points) => {
     if (!Array.isArray(points)) return {}
 
+    const _dygraph = chartUI.getDygraph()
+
     const { offsetX, offsetY } = getOffsets(event)
 
-    if (offsetY > chartUI.getDygraph().getArea().h - 10) return { seriesName: "ANNOTATIONS" }
+    if (offsetY > _dygraph.getArea().h - 10) return { seriesName: "ANNOTATIONS" }
     if (offsetY < 15) return { seriesName: "ANOMALY_RATE" }
 
-    if (chartUI.chart.getAttribute("chartType"))
-      return chartUI.getDygraph().findStackedPoint(offsetX, offsetY)
+    if (shouldFindMaxValue[chartUI.chart.getAttribute("chartType")]) {
+      let closestPoint = _dygraph.findStackedPoint(offsetX, offsetY)
 
-    return chartUI.getDygraph().findClosestPoint(offsetX, offsetY)
+      if (closestPoint.point?.canvasy > offsetY) {
+        return points.reduce(
+          (max, p) => {
+            if (!isValidPoint(p)) return max
+
+            if (p.yval > max.point.yval) {
+              return {
+                point: p,
+                row: p.idx,
+                seriesName: p.name,
+              }
+            }
+
+            return max
+          },
+          {
+            point: { yval: -Infinity },
+            row: null,
+            seriesName: null,
+          }
+        )
+      }
+      return closestPoint
+    }
+
+    return _dygraph.findClosestPoint(offsetX, offsetY)
   }
 
   let lastX
