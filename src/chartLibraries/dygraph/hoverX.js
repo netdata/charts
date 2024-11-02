@@ -1,5 +1,4 @@
 import getOffsets from "@/helpers/eventOffset"
-import { isValidPoint } from "dygraphs/src/dygraph-utils"
 
 const shouldFindMaxValue = {
   stacked: true,
@@ -21,7 +20,7 @@ export default chartUI => {
       let closestPoint = _dygraph.findStackedPoint(offsetX, offsetY)
 
       if (closestPoint.point?.canvasy > offsetY) {
-        closestPoint = points.reduce((max, p) => (p.yval > max.point.yval ? p : max), {
+        closestPoint = points.reduce((max, p) => (p.yval > max.yval ? p : max), {
           yval: -Infinity,
         })
 
