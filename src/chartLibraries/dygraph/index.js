@@ -218,10 +218,12 @@ export default (sdk, chart) => {
     forceIncludeZero: false,
     errorBars: false,
     makeYAxisLabelFormatter: () => (y, granularity, opts, d) => {
-      const extremes = d.axes_[0].extremeRange
+      const dataMin = chart.getAttribute("min")
+      const dataMax = chart.getAttribute("max")
+
       let [min, max] = d.axes_[0].valueRange || [null, null]
-      min = min === null ? extremes[0] : min
-      max = max === null ? extremes[1] : max
+      min = min === null ? dataMin : min
+      max = max === null ? dataMax : max
 
       if (min !== prevMin || max !== prevMax) {
         prevMin = min
