@@ -19,6 +19,7 @@ const FontSizer = ({
       cancelRef.current = false
       let fontSize = maxFontSize
 
+      ref.style.animation = "font-size 02s"
       ref.style.fontSize = fontSize + "px"
 
       while (

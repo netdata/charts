@@ -1,7 +1,7 @@
 import { heatmapOrChartType } from "@/helpers/heatmap"
 import { getAlias } from "@/helpers/units"
 
-const transformDataRow = (row, point) =>
+const transformDataRow = (row, point, labels, byDimension) =>
   row.reduce(
     (h, dim, i) => {
       h.values.push(i === 0 ? dim : dim[point.value])
@@ -18,6 +18,11 @@ const transformDataRow = (row, point) =>
         h.values = [...h.values, null, null]
         h.all = [...h.all, {}, {}]
       }
+
+      const label = labels[i]
+      if (!byDimension[label]) byDimension[label] = { min: Infinity, max: -Infinity }
+      if (dim[point.value] <= byDimension[label].min) byDimension[label].min = dim[point.value]
+      if (dim[point.value] >= byDimension[label].max) byDimension[label].max = dim[point.value]
 
       return h
     },
@@ -41,14 +46,14 @@ const buildTree = (h, keys, id) => {
 const transformResult = result => {
   const enhancedData = result.data.reduce(
     (h, row) => {
-      const enhancedRow = transformDataRow(row, result.point)
+      const enhancedRow = transformDataRow(row, result.point, result.labels, h.byDimension)
 
       h.data.push(enhancedRow.values)
       h.all.push(enhancedRow.all)
 
       return h
     },
-    { data: [], all: [] }
+    { data: [], all: [], byDimension: {} }
   )
 
   const tree = result.labels.reduce((h, id, i) => {

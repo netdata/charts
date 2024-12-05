@@ -48,7 +48,7 @@ export default (sdk, chart) => {
     const [min, max] = getMinMax()
 
     if (min !== prevMin || max !== prevMax) {
-      chartUI.sdk.trigger("yAxisChange", chart, min, max)
+      chart.trigger("yAxisChange", min, max)
     }
 
     prevMin = min

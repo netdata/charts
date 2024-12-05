@@ -31,8 +31,8 @@ const baseConvert = (chart, unitsKey = "units", min, max) => {
   )
 }
 
-export default sdk => {
-  return sdk.on("yAxisChange", (chart, min, max) => {
+export default chart => {
+  const convert = (min, max) => {
     baseConvert(chart, "units", min, max)
     baseConvert(chart, "dbUnits", min, max)
 
@@ -40,5 +40,33 @@ export default sdk => {
       min,
       max,
     })
+  }
+
+  const offVisibleDimensionsChanged = chart.on("visibleDimensionsChanged", () => {
+    const result = chart.getPayload()
+
+    const dimMinMax = result?.byDimension
+      ? chart.getVisibleDimensionIds().reduce(
+          (h, d) => {
+            if (result.byDimension[d] && result.byDimension[d].min <= h.min)
+              h.min = result.byDimension[d].min
+            if (result.byDimension[d] && result.byDimension[d].max >= h.max)
+              h.max = result.byDimension[d].max
+            return h
+          },
+          { min: Infinity, max: -Infinity }
+        )
+      : { min: Infinity, max: -Infinity }
+
+    if (dimMinMax.min === Infinity) return
+
+    convert(dimMinMax.min, dimMinMax.max)
   })
+
+  const offYAxisChange = chart.on("yAxisChange", convert)
+
+  return () => {
+    offYAxisChange()
+    offVisibleDimensionsChanged()
+  }
 }

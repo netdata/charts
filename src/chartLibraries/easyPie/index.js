@@ -111,7 +111,7 @@ export default (sdk, chart) => {
     easyPie.update(percentage)
 
     if (min !== prevMin || max !== prevMax) {
-      chartUI.sdk.trigger("yAxisChange", chart, min, max)
+      chart.trigger("yAxisChange", min, max)
     }
 
     prevMin = min

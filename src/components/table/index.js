@@ -48,6 +48,7 @@ const useColumns = (chart, options = {}) => {
           columns: contextGroups[context]
             ? Object.keys(contextGroups[context]).map(dimension =>
                 valueColumn(chart, {
+                  contextLabel: chart.intl(context),
                   context,
                   dimension,
                   dimensionId: contextGroups[context]?.[dimension]?.[0],

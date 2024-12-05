@@ -228,7 +228,7 @@ export default (sdk, chart) => {
       if (min !== prevMin || max !== prevMax) {
         prevMin = min
         prevMax = max
-        chartUI.sdk.trigger("yAxisChange", chart, min, max)
+        chart.trigger("yAxisChange", min, max)
       }
       return chart.getConvertedValue(y) // TODO Pass { dimensionId: context.id } when multiple contexts with different units
     },
@@ -269,7 +269,7 @@ export default (sdk, chart) => {
         if (min !== prevMin || max !== prevMax) {
           prevMin = min
           prevMax = max
-          chartUI.sdk.trigger("yAxisChange", chart, min, max)
+          chart.trigger("yAxisChange", min, max)
         }
         const value = parseFloat(parseFloat(y).toFixed(5))
         return isNaN(value) ? y : value

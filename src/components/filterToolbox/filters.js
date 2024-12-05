@@ -1,7 +1,7 @@
 import React from "react"
 import { Flex, TextSmall } from "@netdata/netdata-ui"
 import { useIsHeatmap } from "@/helpers/heatmap"
-import { useAttributeValue } from "@/components/provider"
+import { useAttributeValue, useIsMinimal } from "@/components/provider"
 import Aggregate from "./aggregate"
 import PostAggregate from "./postAggregate"
 import Dimensions from "./dimensions"
@@ -19,6 +19,7 @@ import N from "@netdata/netdata-ui/dist/components/icon/assets/N.svg"
 import I from "@netdata/netdata-ui/dist/components/icon/assets/I.svg"
 import D from "@netdata/netdata-ui/dist/components/icon/assets/D.svg"
 import L from "@netdata/netdata-ui/dist/components/icon/assets/L.svg"
+import GroupBySVG from "@netdata/netdata-ui/dist/components/icon/assets/group_by.svg"
 import gear from "@netdata/netdata-ui/dist/components/icon/assets/gear.svg"
 import chevronRightEnd from "@netdata/netdata-ui/dist/components/icon/assets/chevron_right_end.svg"
 import Icon from "@/components/icon"
@@ -27,6 +28,7 @@ const uppercasedAggrLabel = { secondaryLabel: "The" }
 const emptyObject = {}
 
 const plainLabelProps = {
+  groupBy: { icon: <Icon svg={GroupBySVG} color="textLite" size="12px" />, padding: [0] },
   nodes: { icon: <Icon svg={N} color="textLite" size="16px" />, padding: [0] },
   instances: { icon: <Icon svg={I} color="textLite" size="16px" />, padding: [0] },
   dimensions: { icon: <Icon svg={D} color="textLite" size="16px" />, padding: [0] },
@@ -43,6 +45,7 @@ const FilterToolbox = ({ plain }) => {
 
   const filterElements = useAttributeValue("filterElements")
   const showPostAggregations = useAttributeValue("showPostAggregations")
+  const isMinimal = useIsMinimal()
 
   if (filterElements)
     return filterElements.map((Element, index) => (
@@ -52,7 +55,8 @@ const FilterToolbox = ({ plain }) => {
   if (plain)
     return (
       <>
-        {/*<Config labelProps={plainLabelProps.config} />*/}
+        <GroupBy labelProps={plainLabelProps.groupBy} />
+        <Aggregate labelProps={isHeatmap ? emptyObject : emptyObject} defaultMinimal />
         <Nodes labelProps={plainLabelProps.nodes} />
         <Instances labelProps={plainLabelProps.instances} />
         <Dimensions labelProps={plainLabelProps.dimensions} />
@@ -63,33 +67,47 @@ const FilterToolbox = ({ plain }) => {
   if (showPostAggregations) {
     return (
       <>
-        <Flex padding={[0.5]} flexWrap gap={2}>
+        <Flex padding={isMinimal ? [2, 0.5] : [0.5]} flexWrap gap={2}>
           <Flex alignItems="center">
             <ShowPostAggregations labelProps={plainLabelProps.showPostAggregations} />
             {!isHeatmap && <ContextScope />}
-            {!isHeatmap && <PostGroupBy labelProps={{ secondaryLabel: "Group by" }} />}
+            {!isHeatmap && (
+              <PostGroupBy
+                labelProps={isMinimal ? plainLabelProps.groupBy : { secondaryLabel: "Group by" }}
+              />
+            )}
             <PostAggregate
               labelProps={{
-                ...(isHeatmap ? uppercasedAggrLabel : emptyObject),
+                ...(isHeatmap ? (isMinimal ? emptyObject : uppercasedAggrLabel) : emptyObject),
               }}
             />
-            <TextSmall color="textLite" whiteSpace="nowrap">
-              of the:{" "}
-            </TextSmall>
+            {!isMinimal ? (
+              <TextSmall color="textLite" whiteSpace="nowrap">
+                of the:{" "}
+              </TextSmall>
+            ) : (
+              <TextSmall color="textNoFocus">&lt;</TextSmall>
+            )}
           </Flex>
           <Flex
             round
             border={{ side: "all", size: "2px", type: "dashed", color: "border" }}
             alignItems="center"
           >
-            {!isHeatmap && <GroupBy labelProps={{ secondaryLabel: "Group by" }} />}
-            <Aggregate labelProps={isHeatmap ? uppercasedAggrLabel : emptyObject} />
-            <Nodes />
-            <Instances />
-            <Dimensions />
-            <Labels />
+            {!isHeatmap && (
+              <GroupBy
+                labelProps={isMinimal ? plainLabelProps.groupBy : { secondaryLabel: "Group by" }}
+              />
+            )}
+            <Aggregate
+              labelProps={isHeatmap ? (isMinimal ? emptyObject : uppercasedAggrLabel) : emptyObject}
+            />
+            <Nodes labelProps={isMinimal ? plainLabelProps.nodes : emptyObject} />
+            <Instances labelProps={isMinimal ? plainLabelProps.instances : emptyObject} />
+            <Dimensions labelProps={isMinimal ? plainLabelProps.dimensions : emptyObject} />
+            <Labels labelProps={isMinimal ? plainLabelProps.labels : emptyObject} />
           </Flex>
-          <TimeAggregation />
+          {!isMinimal && <TimeAggregation />}
         </Flex>
         <Reset />
       </>
@@ -98,16 +116,22 @@ const FilterToolbox = ({ plain }) => {
 
   return (
     <>
-      <Flex flexWrap>
+      <Flex flexWrap padding={isMinimal ? [2, 0.5] : [0.5]}>
         <ShowPostAggregations labelProps={plainLabelProps.showPostAggregations} />
         {!isHeatmap && <ContextScope />}
-        {!isHeatmap && <GroupBy labelProps={{ secondaryLabel: "Group by" }} />}
-        <Aggregate labelProps={isHeatmap ? uppercasedAggrLabel : emptyObject} />
-        <Nodes />
-        <Instances />
-        <Dimensions />
-        <Labels />
-        <TimeAggregation />
+        {!isHeatmap && (
+          <GroupBy
+            labelProps={isMinimal ? plainLabelProps.groupBy : { secondaryLabel: "Group by" }}
+          />
+        )}
+        <Aggregate
+          labelProps={isHeatmap ? (isMinimal ? emptyObject : uppercasedAggrLabel) : emptyObject}
+        />
+        <Nodes labelProps={isMinimal ? plainLabelProps.nodes : emptyObject} />
+        <Instances labelProps={isMinimal ? plainLabelProps.instances : emptyObject} />
+        <Dimensions labelProps={isMinimal ? plainLabelProps.dimensions : emptyObject} />
+        <Labels labelProps={isMinimal ? plainLabelProps.labels : emptyObject} />
+        {!isMinimal && <TimeAggregation />}
       </Flex>
       <Reset />
     </>

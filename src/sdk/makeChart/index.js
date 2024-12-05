@@ -1,6 +1,7 @@
 import makeKeyboardListener from "@/helpers/makeKeyboardListener"
 import makeExecuteLatest from "@/helpers/makeExecuteLatest"
 import convert from "@/helpers/units"
+import unitConversion from "@/helpers/unitConversion"
 import makeNode from "../makeNode"
 import { fetchChartData } from "./api"
 import makeDimensions from "./makeDimensions"
@@ -126,6 +127,7 @@ export default ({
   node.on("render", render)
   node.on("hoverChart", render)
   node.on("blurChart", render)
+  unitConversion(node)
 
   node.getConvertedValue = (value, { fractionDigits, key = "units", dimensionId } = {}) => {
     if (!node) return

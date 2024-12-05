@@ -7,7 +7,6 @@ import bars from "./chartLibraries/bars"
 import groupBoxes from "./chartLibraries/groupBoxes"
 import table from "./chartLibraries/table"
 import makeSDK from "./sdk"
-import unitConversion from "./sdk/plugins/unitConversion"
 import hover from "./sdk/plugins/hover"
 import pan from "./sdk/plugins/pan"
 import move from "./sdk/plugins/move"
@@ -24,7 +23,6 @@ export default ({ attributes, ...options } = {}) =>
     plugins: {
       // order matters
       move,
-      unitConversion,
       hover,
       pan,
       highlight,

@@ -6,7 +6,13 @@ import Name, { Name as NameContainer } from "@/components/line/dimensions/name"
 import Value, { Value as ValueContainer } from "@/components/line/dimensions/value"
 import { tooltipStyleProps } from "@/components/tooltip"
 import Units from "@/components/line/dimensions/units"
-import { useVisibleDimensionId, useChart, useLatestValue, useUnitSign } from "@/components/provider"
+import {
+  useVisibleDimensionId,
+  useChart,
+  useLatestValue,
+  useUnitSign,
+  useIsMinimal,
+} from "@/components/provider"
 import Tooltip from "@/components/tooltip"
 import { useIsHeatmap } from "@/helpers/heatmap"
 
@@ -23,40 +29,47 @@ const DimensionContainer = forwardRef((props, ref) => (
 
 export const SkeletonDimension = () => {
   const theme = useTheme()
+  const isMinimal = useIsMinimal()
 
   return (
     <DimensionContainer>
       <ColorContainer bg={getColor("placeholder")({ theme })} />
-      <Flex flex gap={1} column overflow="hidden" data-testid="chartLegendDimension-details">
-        <Flex height="10px" width="76px" background="borderSecondary" round />
-        <Flex
-          height="10px"
-          width="34px"
-          background="borderSecondary"
-          round
-          data-testid="chartLegendDimension-valueContainer"
-        />
-      </Flex>
+      {!isMinimal && (
+        <Flex flex gap={1} column overflow="hidden" data-testid="chartLegendDimension-details">
+          <Flex height="10px" width="76px" background="borderSecondary" round />
+          <Flex
+            height="10px"
+            width="34px"
+            background="borderSecondary"
+            round
+            data-testid="chartLegendDimension-valueContainer"
+          />
+        </Flex>
+      )}
     </DimensionContainer>
   )
 }
 
 export const EmptyDimension = () => {
   const theme = useTheme()
+  const isMinimal = useIsMinimal()
 
   return (
     <DimensionContainer>
       <ColorContainer bg={getColor("placeholder")({ theme })} />
-      <Flex flex gap={0.5} column overflow="hidden" data-testid="chartLegendDimension-details">
-        <NameContainer>No data</NameContainer>
-        <ValueContainer>-</ValueContainer>
-      </Flex>
+      {!isMinimal && (
+        <Flex flex gap={0.5} column overflow="hidden" data-testid="chartLegendDimension-details">
+          <NameContainer>No data</NameContainer>
+          <ValueContainer>-</ValueContainer>
+        </Flex>
+      )}
     </DimensionContainer>
   )
 }
 
 const AnomalyProgressBar = ({ id }) => {
   const value = useLatestValue(id, { valueKey: "arp" })
+  const isMinimal = useIsMinimal()
 
   return <ProgressBar height={0.5} color="anomalyText" width={`${Math.abs(value)}%`} />
 }
@@ -91,6 +104,7 @@ const Dimension = forwardRef(({ id }, ref) => {
   }
 
   const isHeatmap = useIsHeatmap()
+  const isMinimal = useIsMinimal()
 
   return (
     <DimensionContainer
@@ -108,12 +122,14 @@ const Dimension = forwardRef(({ id }, ref) => {
         <Flex flex column overflow="hidden" data-testid="chartLegendDimension-details">
           <Name id={id} noTooltip />
 
-          <AnomalyProgressBar id={id} />
+          {!isMinimal && <AnomalyProgressBar id={id} />}
 
-          <Flex gap={1} alignItems="end" data-testid="chartLegendDimension-valueContainer" flex>
-            <Value id={id} strong visible={visible} Component={TextBig} />
-            <Units visible={visible} dimensionId={id} />
-          </Flex>
+          {!isMinimal && (
+            <Flex gap={1} alignItems="end" data-testid="chartLegendDimension-valueContainer" flex>
+              <Value id={id} strong visible={visible} Component={TextBig} />
+              <Units visible={visible} dimensionId={id} />
+            </Flex>
+          )}
         </Flex>
       </Tooltip>
     </DimensionContainer>

@@ -1,11 +1,18 @@
 import React from "react"
 import { Flex, TextSmall } from "@netdata/netdata-ui"
-import { useTitle, useUnitSign, useName, withChartProvider } from "@/components/provider"
+import {
+  useTitle,
+  useUnitSign,
+  useName,
+  withChartProvider,
+  useIsMinimal,
+} from "@/components/provider"
 
 export const Title = props => {
   const title = useTitle()
   const units = useUnitSign({ long: true })
   const name = useName()
+  const isMinimal = useIsMinimal()
 
   return (
     <Flex
@@ -19,13 +26,13 @@ export const Title = props => {
       <TextSmall color="textDescription" truncate>
         {title}
       </TextSmall>
-      {!!name && (
+      {!!name && (!isMinimal || !title) && (
         <TextSmall color="textLite" whiteSpace="nowrap">
           {title ? "• " : ""}
           {name}
         </TextSmall>
       )}
-      {!!units && (
+      {!!units && !isMinimal && (
         <TextSmall color="textLite" whiteSpace="nowrap">
           • [{units}]
         </TextSmall>

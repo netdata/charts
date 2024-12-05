@@ -403,3 +403,5 @@ export const useConvertedValue = (id, period = "latest", options = {}) => {
 
 export const useLatestConvertedValue = (id, options = {}) =>
   useConvertedValue(id, "latest", { allowNull: true, dimensionId: id, ...options })
+
+export const useIsMinimal = () => useAttributeValue("designFlavour") === "minimal"

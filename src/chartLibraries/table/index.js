@@ -48,7 +48,7 @@ export default (sdk, chart) => {
 
     if (min !== prevMin || max !== prevMax) {
       // Do not pass min max in order for multi context min-max to take place
-      chartUI.sdk.trigger("yAxisChange", chart)
+      chart.trigger("yAxisChange")
     }
 
     prevMin = min

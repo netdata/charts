@@ -1,7 +1,12 @@
 import React, { memo, useMemo } from "react"
 import { TextMicro } from "@netdata/netdata-ui"
-import { useAttributeValue, useChart } from "@/components/provider"
+import { useAttributeValue, useChart, useIsMinimal } from "@/components/provider"
+import AggrAvg from "@netdata/netdata-ui/dist/components/icon/assets/aggregation_avg.svg"
+import AggrSum from "@netdata/netdata-ui/dist/components/icon/assets/aggregation_sum.svg"
+import AggrMin from "@netdata/netdata-ui/dist/components/icon/assets/aggregation_min.svg"
+import AggrMax from "@netdata/netdata-ui/dist/components/icon/assets/aggregation_max.svg"
 import Dropdown from "./dropdownSingleSelect"
+import Icon from "@/components/icon"
 
 const useItems = chart =>
   useMemo(
@@ -12,6 +17,7 @@ const useItems = chart =>
         description:
           "For each point presented, calculate the average of the metrics contributing to it.",
         short: "AVG()",
+        icon: <Icon svg={AggrAvg} color="textLite" size="10px" />,
         "data-track": chart.track("avg"),
       },
       {
@@ -20,6 +26,7 @@ const useItems = chart =>
         description:
           "For each point presented, calculate the sum of the metrics contributing to it.",
         short: "SUM()",
+        icon: <Icon svg={AggrSum} color="textLite" size="10px" />,
         "data-track": chart.track("sum"),
       },
       {
@@ -28,6 +35,7 @@ const useItems = chart =>
         description:
           "For each point presented, present the minimum of the metrics contributing to it.",
         short: "MIN()",
+        icon: <Icon svg={AggrMin} color="textLite" size="10px" />,
         "data-track": chart.track("min"),
       },
       {
@@ -36,6 +44,7 @@ const useItems = chart =>
         description:
           "For each point presented, present the maximum of the metrics contributing to it.",
         short: "MAX()",
+        icon: <Icon svg={AggrMax} color="textLite" size="10px" />,
         "data-track": chart.track("max"),
       },
     ],
@@ -44,8 +53,8 @@ const useItems = chart =>
 
 const dropTitle = (
   <TextMicro padding={[0, 0, 2]} color="textLite">
-    When aggregating multiple source time-series metrics to one visible dimension on the
-    chart, use the following aggregation function
+    When aggregating multiple source time-series metrics to one visible dimension on the chart, use
+    the following aggregation function
   </TextMicro>
 )
 
@@ -54,13 +63,14 @@ const tooltipProps = {
   body: "View or select the aggregation function applied when multiple source time-series metrics need to be grouped together to be presented as dimensions on this chart.",
 }
 
-const Aggregate = ({ labelProps, ...rest }) => {
+const Aggregate = ({ labelProps, defaultMinimal, ...rest }) => {
   const chart = useChart()
   const value = useAttributeValue("aggregationMethod")
 
   const items = useItems(chart)
+  const isMinimal = useIsMinimal()
 
-  const { short } = items.find(item => item.value === value) || items[0]
+  const { short, icon } = items.find(item => item.value === value) || items[0]
 
   return (
     <Dropdown
@@ -71,8 +81,8 @@ const Aggregate = ({ labelProps, ...rest }) => {
       dropTitle={dropTitle}
       {...rest}
       labelProps={{
-        secondaryLabel: "the",
-        label: short,
+        secondaryLabel: isMinimal || defaultMinimal ? "" : "the",
+        label: isMinimal || defaultMinimal ? icon : short,
         title: tooltipProps.heading,
         tooltipProps,
         ...labelProps,

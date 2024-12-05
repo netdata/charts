@@ -192,6 +192,8 @@ export default {
 
   themeShadow: ["rgba(9, 30, 66, 0.15)", "rgba(0, 0, 0, 0.4)"],
 
+  designFlavour: "default",
+
   legendScroll: 0,
 
   initializedFilters: false,

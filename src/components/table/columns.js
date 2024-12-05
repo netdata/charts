@@ -118,10 +118,10 @@ const TooltipValue = ({ id }) => {
 
 export const valueColumn = (
   chart,
-  { context = "Dimensions", dimension = "Value", dimensionId }
+  { contextLabel, context = "Dimensions", dimension = "Value", dimensionId }
 ) => ({
   id: `value${context}${dimension}`,
-  name: `${context}: ${dimension}`,
+  name: `${contextLabel || context} > ${dimension}`,
   header: () => {
     return (
       <Flex column>

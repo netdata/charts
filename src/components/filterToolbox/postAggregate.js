@@ -1,5 +1,10 @@
 import React, { memo, useMemo } from "react"
-import { useAttributeValue, useChart } from "@/components/provider"
+import { useAttributeValue, useChart, useIsMinimal } from "@/components/provider"
+import AggrAvg from "@netdata/netdata-ui/dist/components/icon/assets/aggregation_avg.svg"
+import AggrSum from "@netdata/netdata-ui/dist/components/icon/assets/aggregation_sum.svg"
+import AggrMin from "@netdata/netdata-ui/dist/components/icon/assets/aggregation_min.svg"
+import AggrMax from "@netdata/netdata-ui/dist/components/icon/assets/aggregation_max.svg"
+import Icon from "@/components/icon"
 import Dropdown from "./dropdownSingleSelect"
 
 const useItems = chart =>
@@ -10,6 +15,7 @@ const useItems = chart =>
         label: "Average",
         description: "For each aggregated point, calculate the average of the metrics.",
         short: "AVG()",
+        icon: <Icon svg={AggrAvg} color="textLite" size="10px" />,
         "data-track": chart.track("avg"),
       },
       {
@@ -17,6 +23,7 @@ const useItems = chart =>
         label: "Sum",
         description: "For each aggregated point, calculate the sum of the metrics.",
         short: "SUM()",
+        icon: <Icon svg={AggrSum} color="textLite" size="10px" />,
         "data-track": chart.track("sum"),
       },
       {
@@ -24,6 +31,7 @@ const useItems = chart =>
         label: "Minimum",
         description: "For each aggregated point, present the minimum of the metrics.",
         short: "MIN()",
+        icon: <Icon svg={AggrMin} color="textLite" size="10px" />,
         "data-track": chart.track("min"),
       },
       {
@@ -31,6 +39,7 @@ const useItems = chart =>
         label: "Maximum",
         description: "For each aggregated point, present the maximum of the metrics.",
         short: "MAX()",
+        icon: <Icon svg={AggrMax} color="textLite" size="10px" />,
         "data-track": chart.track("max"),
       },
     ],
@@ -46,8 +55,9 @@ const PostAggregate = ({ labelProps, ...rest }) => {
   const value = useAttributeValue("postAggregationMethod")
 
   const items = useItems(chart)
+  const isMinimal = useIsMinimal()
 
-  const { short } = items.find(item => item.value === value) || items[0]
+  const { short, icon } = items.find(item => item.value === value) || items[0]
 
   return (
     <Dropdown
@@ -57,8 +67,8 @@ const PostAggregate = ({ labelProps, ...rest }) => {
       data-track={chart.track("post-aggregate")}
       {...rest}
       labelProps={{
-        secondaryLabel: "the",
-        label: short,
+        secondaryLabel: isMinimal ? "" : "the",
+        label: isMinimal ? icon : short,
         title: tooltipProps.heading,
         tooltipProps,
         ...labelProps,

@@ -2,7 +2,7 @@ import React, { forwardRef } from "react"
 import useForwardRef from "@netdata/netdata-ui/dist/hooks/useForwardRef"
 import useHover from "@/components/useHover"
 import withChart from "@/components/hocs/withChart"
-import { useChart, useAttributeValue } from "@/components/provider"
+import { useChart, useAttributeValue, useIsMinimal } from "@/components/provider"
 import Header from "@/components/header"
 import Details from "@/components/details"
 import ChartContentWrapper, { ContentWrapper } from "./chartContentWrapper"
@@ -34,12 +34,14 @@ export const Line = forwardRef(
     })
 
     const focused = useAttributeValue("focused")
+    const isMinimal = useIsMinimal()
 
     return (
       <Container
         ref={setRef}
         {...(sparkline && { border: false, background: "transparent" })}
         {...rest}
+        {...(isMinimal && { border: 0 })}
       >
         {hasHeader && <Header />}
         {hasFilters && <FilterToolbox opacity={focused ? 1 : 0.7} />}
