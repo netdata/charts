@@ -1,4 +1,4 @@
-import React, { forwardRef, memo } from "react"
+import React, { memo } from "react"
 import styled from "styled-components"
 import { Flex, TextMicro } from "@netdata/netdata-ui"
 import { useChart, useConverted, useAttributeValue, useUnitSign } from "@/components/provider"
@@ -35,7 +35,7 @@ const Grid = styled.div`
   align-items: center;
 `
 
-const Labels = forwardRef(({ label, groupLabel, data, id }, ref) => {
+const Labels = ({ label, groupLabel, data, id, ref }) => {
   const chart = useChart()
   const viewDimensions = chart.getAttribute("viewDimensions")
   const index = chart.getDimensionIndex(id)
@@ -75,6 +75,6 @@ const Labels = forwardRef(({ label, groupLabel, data, id }, ref) => {
       )}
     </Container>
   )
-})
+}
 
 export default memo(Labels)

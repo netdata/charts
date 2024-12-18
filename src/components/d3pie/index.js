@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react"
+import React from "react"
 import styled, { keyframes } from "styled-components"
 import { Flex } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
@@ -25,7 +25,7 @@ export const Skeleton = styled(Flex).attrs(props => ({
   animation: ${frames} 1.6s ease-in infinite;
 `
 
-export const D3pie = forwardRef(({ uiName, ...rest }, ref) => {
+export const D3pie = ({ uiName, ref, ...rest }) => {
   const loaded = useAttributeValue("loaded")
   const { width, height } = useOnResize(uiName)
   const size = width < height ? width : height
@@ -41,6 +41,6 @@ export const D3pie = forwardRef(({ uiName, ...rest }, ref) => {
       )}
     </ChartWrapper>
   )
-})
+}
 
 export default withChart(D3pie, { tile: true })

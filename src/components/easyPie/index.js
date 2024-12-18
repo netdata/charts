@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react"
+import React from "react"
 import styled, { keyframes } from "styled-components"
 import { Flex, Text } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
@@ -73,7 +73,7 @@ export const Skeleton = styled(Flex).attrs(props => ({
   animation: ${frames} 1.6s ease-in infinite;
 `
 
-export const EasyPie = forwardRef(({ uiName, ...rest }, ref) => {
+export const EasyPie = ({ uiName, ref, ...rest }) => {
   const loaded = useAttributeValue("loaded")
 
   const { width, height } = useOnResize(uiName)
@@ -96,6 +96,6 @@ export const EasyPie = forwardRef(({ uiName, ...rest }, ref) => {
       )}
     </ChartWrapper>
   )
-})
+}
 
 export default withChart(EasyPie, { tile: true })
