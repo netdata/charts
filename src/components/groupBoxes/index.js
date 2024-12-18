@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react"
+import React from "react"
 import useForwardRef from "@netdata/netdata-ui/dist/hooks/useForwardRef"
 import useHover from "@/components/useHover"
 import withChart from "@/components/hocs/withChart"
@@ -10,7 +10,7 @@ import Container from "@/components/container"
 import GroupBoxes from "./groupBoxes"
 import Footer from "./footer"
 
-export const GroupBoxesContainer = forwardRef(({ uiName, ...rest }, ref) => {
+export const GroupBoxesContainer = ({ uiName, ref, ...rest }) => {
   const chart = useChart()
 
   const hoverRef = useHover(
@@ -44,6 +44,6 @@ export const GroupBoxesContainer = forwardRef(({ uiName, ...rest }, ref) => {
       {!showingInfo && <Footer />}
     </Container>
   )
-})
+}
 
 export default withChart(GroupBoxesContainer)

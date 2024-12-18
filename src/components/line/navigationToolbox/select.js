@@ -1,4 +1,4 @@
-import React, { forwardRef, memo, useMemo } from "react"
+import React, { memo, useMemo } from "react"
 import { Flex, Menu } from "@netdata/netdata-ui"
 import dragHorizontalIcon from "@netdata/netdata-ui/dist/components/icon/assets/drag_horizontal.svg"
 import dragVerticalIcon from "@netdata/netdata-ui/dist/components/icon/assets/drag_vertical.svg"
@@ -26,31 +26,29 @@ const useItems = chart =>
     [chart]
   )
 
-const Label = forwardRef(
-  ({ value: selectedValue, onChange, onClick, open, item, ...rest }, ref) => {
-    const { icon, value, title } = item
+const Label = ({ value: selectedValue, onChange, onClick, open, item, ref, ...rest }) => {
+  const { icon, value, title } = item
 
-    return (
-      <Flex ref={ref} alignItems="end" {...rest}>
-        <Button
-          icon={icon}
-          title={title}
-          active={selectedValue === value}
-          onClick={() => onChange(value)}
-          padding="2px"
-          small
-        />
-        <Button
-          icon={<Icon svg={open ? chevronUpIcon : chevronDownIcon} size="12px" />}
-          onClick={onClick}
-          padding="2px"
-          stroked
-          small
-        />
-      </Flex>
-    )
-  }
-)
+  return (
+    <Flex ref={ref} alignItems="end" {...rest}>
+      <Button
+        icon={icon}
+        title={title}
+        active={selectedValue === value}
+        onClick={() => onChange(value)}
+        padding="2px"
+        small
+      />
+      <Button
+        icon={<Icon svg={open ? chevronUpIcon : chevronDownIcon} size="12px" />}
+        onClick={onClick}
+        padding="2px"
+        stroked
+        small
+      />
+    </Flex>
+  )
+}
 
 const Dropdown = ({ onItemClick, items }) => {
   const [{ icon, value, title }] = items

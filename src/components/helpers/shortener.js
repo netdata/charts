@@ -1,9 +1,9 @@
-import React, { forwardRef, useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { mergeRefs } from "@netdata/netdata-ui"
 import shorten from "@/helpers/shorten"
 import Tooltip from "@/components/tooltip"
 
-const Shortener = forwardRef(({ text, Component = "div", noTooltip, ...rest }, forwardedRef) => {
+const Shortener = ({ text, Component = "div", noTooltip, ref: forwardedRef, ...rest }) => {
   const [shortenText, setShortenText] = useState("")
 
   const [ref, setRef] = useState()
@@ -31,6 +31,6 @@ const Shortener = forwardRef(({ text, Component = "div", noTooltip, ...rest }, f
       </Component>
     </Tooltip>
   )
-})
+}
 
 export default Shortener

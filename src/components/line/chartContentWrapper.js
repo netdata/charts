@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react"
+import React from "react"
 import styled, { css } from "styled-components"
 import { Flex } from "@netdata/netdata-ui"
 import { useInitialLoading, useEmpty, useAttributeValue } from "@/components/provider"
@@ -27,13 +27,12 @@ export const ContentWrapper = props => (
   <Flex position="relative" column flex overflow="hidden" data-testid="contentWrapper" {...props} />
 )
 
-export const Container = forwardRef((props, ref) => {
+export const Container = props => {
   const chartLibrary = useAttributeValue("chartLibrary")
   const navigation = useAttributeValue("navigation")
 
   return (
     <StyledContainer
-      ref={ref}
       chartLibrary={chartLibrary}
       position="relative"
       flex
@@ -45,7 +44,7 @@ export const Container = forwardRef((props, ref) => {
       {...props}
     />
   )
-})
+}
 
 const ChartContentWrapper = ({ uiName }) => {
   const id = useAttributeValue("id")

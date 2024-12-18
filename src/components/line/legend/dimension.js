@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react"
+import React from "react"
 import { useTheme } from "styled-components"
 import { TextBig, TextSmall, Flex, ProgressBar, getColor } from "@netdata/netdata-ui"
 import Color, { Color as ColorContainer } from "@/components/line/dimensions/color"
@@ -16,16 +16,15 @@ import {
 import Tooltip from "@/components/tooltip"
 import { useIsHeatmap } from "@/helpers/heatmap"
 
-const DimensionContainer = forwardRef((props, ref) => (
+const DimensionContainer = props => (
   <Flex
-    ref={ref}
     width={{ min: 22, max: 50 }}
     flex={false}
     gap={0.5}
     data-testid="chartLegendDimension"
     {...props}
   />
-))
+)
 
 export const SkeletonDimension = () => {
   const theme = useTheme()
@@ -69,7 +68,6 @@ export const EmptyDimension = () => {
 
 const AnomalyProgressBar = ({ id }) => {
   const value = useLatestValue(id, { valueKey: "arp" })
-  const isMinimal = useIsMinimal()
 
   return <ProgressBar height={0.5} color="anomalyText" width={`${Math.abs(value)}%`} />
 }
@@ -92,7 +90,7 @@ const TooltipValue = ({ id, name }) => {
   )
 }
 
-const Dimension = forwardRef(({ id }, ref) => {
+const Dimension = ({ id, ref }) => {
   const visible = useVisibleDimensionId(id)
   const chart = useChart()
 
@@ -134,6 +132,6 @@ const Dimension = forwardRef(({ id }, ref) => {
       </Tooltip>
     </DimensionContainer>
   )
-})
+}
 
 export default Dimension
