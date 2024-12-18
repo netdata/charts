@@ -1,4 +1,4 @@
-import React, { forwardRef, useMemo } from "react"
+import React, { useMemo } from "react"
 import groupBy from "lodash/groupBy"
 import isEmpty from "lodash/isEmpty"
 import difference from "lodash/difference"
@@ -216,7 +216,7 @@ const Dimensions = () => {
   )
 }
 
-export const TableChart = forwardRef(({ uiName, ...rest }, ref) => (
+export const TableChart = ({ uiName, ref, ...rest }) => (
   <ChartWrapper ref={ref}>
     <ChartContainer
       uiName={uiName}
@@ -229,6 +229,6 @@ export const TableChart = forwardRef(({ uiName, ...rest }, ref) => (
       <Dimensions />
     </ChartContainer>
   </ChartWrapper>
-))
+)
 
 export default withChart(TableChart)
