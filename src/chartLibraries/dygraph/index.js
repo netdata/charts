@@ -17,6 +17,8 @@ import makeHoverX from "./hoverX"
 import makeOverlays from "./overlays"
 import crosshair from "./crosshair"
 
+const touchEvents = ["touchstart", "touchmove", "touchend"]
+
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
   let dygraph = null
@@ -119,6 +121,16 @@ export default (sdk, chart) => {
       () => chartUI.trigger("resize"),
       () => chartUI.trigger("resize")
     )
+
+    touchEvents.forEach(eventType => {
+      element.addEventListener(
+        eventType,
+        event => {
+          event.preventDefault()
+        },
+        { passive: false }
+      )
+    })
 
     hoverX.toggle(attributes.enabledHover)
     navigation.toggle(attributes.enabledNavigation, attributes.navigation)

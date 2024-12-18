@@ -37,7 +37,7 @@ export default sdk => {
 
     if (
       active &&
-      !autofetch &&
+      (!autofetch || lastAfter - lastBefore !== fetchAfter - fetchBefore) &&
       (force || (loaded && (lastAfter !== fetchAfter || lastBefore !== fetchBefore)))
     ) {
       if (fetchStartedAt && now - chart.getUpdateEvery() <= fetchStartedAt) return

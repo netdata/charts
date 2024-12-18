@@ -1,7 +1,14 @@
+import Dygraph from "dygraphs"
+import DygraphInteraction from "dygraphs/src/dygraph-interaction-model"
 import { debounce } from "throttle-debounce"
 import limitRange from "@/helpers/limitRange"
+import makeHoverX from "../hoverX"
+
+const doubleTapDelay = 300
 
 export default chartUI => {
+  const { highlight, destroy } = makeHoverX(chartUI)
+
   const updateNavigation = (
     navigation,
     prevNavigation = chartUI.chart.getAttribute("navigation")
@@ -91,11 +98,60 @@ export default chartUI => {
     zoom(dygraph, percentage, xPct)
   }
 
+  let lastTouchEndTime = 0
+  let dygraphLastTouchMove = 0
+  let dygraphLastTouchPageX = 0
+
+  const touchStart = (event, dygraph, context) => {
+    Dygraph.defaultInteractionModel.touchstart(event, dygraph, context)
+
+    context.touchDirections = { x: true, y: false }
+
+    dygraphLastTouchMove = 0
+    dygraphLastTouchPageX = event.touches[0].pageX || 0
+  }
+
+  const touchMove = (event, dygraph, context) => {
+    Dygraph.defaultInteractionModel.touchmove(event, dygraph, context)
+
+    if (!dygraphLastTouchMove) chartUI.sdk.trigger("panStart", chartUI.chart)
+
+    dygraphLastTouchMove = Date.now()
+  }
+
+  const touchEnd = (event, dygraph, context) => {
+    const now = Date.now()
+
+    if (now - lastTouchEndTime < doubleTapDelay) {
+      chartUI.trigger("dblclick", event, dygraph, context)
+      lastTouchEndTime = now
+      return
+    }
+
+    lastTouchEndTime = now
+
+    Dygraph.defaultInteractionModel.touchend(event, dygraph, context)
+
+    if (dygraphLastTouchMove === 0 && dygraphLastTouchPageX !== 0) {
+      chartUI.chart.updateAttribute("clickX", [context.initialTouches?.[0]?.dataX, null])
+      return
+    }
+
+    if (chartUI.chart.getAttribute("panning"))
+      chartUI.sdk.trigger("panEnd", chartUI.chart, dygraph.dateWindow_)
+  }
+
   const unregister = chartUI
     .on("mousedown", mousedown)
     .on("mouseup", mouseup)
     .on("wheel", onZoom)
     .on("dblclick", chartUI.chart.resetNavigation)
+    .on("touchstart", touchStart)
+    .on("touchmove", touchMove)
+    .on("touchend", touchEnd)
 
-  return () => unregister()
+  return () => {
+    unregister()
+    destroy()
+  }
 }
