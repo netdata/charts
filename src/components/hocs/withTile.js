@@ -94,7 +94,7 @@ export const HeadWrapper = ({ children, customChildren, hasFilters = true, ...re
       {hasToolbox && focused && debouncedFocused && (
         <Toolbox
           position="absolute"
-          top="-16px"
+          top="-14px"
           right="0"
           background="mainChartHeaderBg"
           width={{ min: "100%" }}

@@ -81,6 +81,7 @@ const Aggregate = ({ labelProps, defaultMinimal, ...rest }) => {
       dropTitle={dropTitle}
       {...rest}
       labelProps={{
+        chevron: !isMinimal && !defaultMinimal,
         secondaryLabel: isMinimal || defaultMinimal ? "" : "the",
         label: isMinimal || defaultMinimal ? icon : short,
         title: tooltipProps.heading,

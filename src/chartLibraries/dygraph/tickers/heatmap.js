@@ -1,14 +1,14 @@
 import { withoutPrefix } from "@/helpers/heatmap"
 
-export default (a, b, pixels, opts, dygraph, vals) => {
-  const labels = vals.map(withoutPrefix)
+export default (a, b, pixels, opts, dygraph, vals, { labels: defaultLabels } = {}) => {
+  const labels = defaultLabels.map(withoutPrefix)
 
   const pixelsPerTick = opts("pixelsPerLabel")
   const maxTicks = Math.floor(pixels / pixelsPerTick)
 
   const formatLabel = opts("axisLabelFormatter")
 
-  const hiddenStep = Math.ceil(vals.length / (maxTicks - 1))
+  const hiddenStep = Math.ceil(defaultLabels.length / (maxTicks - 1))
   const ticks = labels.map((l, i) => ({
     v: i,
     label: i % hiddenStep === 0 ? formatLabel(labels[i], 0, opts, dygraph) : null,

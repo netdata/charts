@@ -244,7 +244,10 @@ export default (sdk, chart) => {
       }
       return chart.getConvertedValue(y) // TODO Pass { dimensionId: context.id } when multiple contexts with different units
     },
-    makeYTicker: () => numericTicker,
+    makeYTicker:
+      (options = {}) =>
+      (a, b, pixels, opts, dygraph, vals) =>
+        numericTicker(a, b, pixels, opts, dygraph, vals, options),
     highlightCircleSize: 4,
   }
 
@@ -286,8 +289,10 @@ export default (sdk, chart) => {
         const value = parseFloat(parseFloat(y).toFixed(5))
         return isNaN(value) ? y : value
       },
-      makeYTicker: labels => (a, b, pixels, opts, dygraph) =>
-        heatmapTicker(a, b, pixels, opts, dygraph, labels),
+      makeYTicker:
+        (options = {}) =>
+        (a, b, pixels, opts, dygraph, vals) =>
+          heatmapTicker(a, b, pixels, opts, dygraph, vals, options),
       highlightCircleSize: 0,
     },
     default: {
@@ -316,7 +321,9 @@ export default (sdk, chart) => {
     } = optionsByChartType[chartType] || optionsByChartType.default
 
     const yAxisLabelFormatter = makeYAxisLabelFormatter(labels)
-    const yTicker = makeYTicker ? makeYTicker(chart.getVisibleDimensionIds()) : null
+    const yTicker = makeYTicker
+      ? makeYTicker({ labels: chart.getVisibleDimensionIds(), units: chart.getUnits() })
+      : null
 
     const { selectedLegendDimensions } = chart.getAttributes()
     const dimensionIds = chart.getPayloadDimensionIds()
