@@ -2,6 +2,7 @@ import React, { Fragment } from "react"
 import { Flex } from "@netdata/netdata-ui"
 import { useAttributeValue, useIsMinimal } from "@/components/provider"
 import Toolbox from "@/components/toolbox"
+import FilterToolbox from "@/components/filterToolbox"
 import Separator from "@/components/line/separator"
 import { Title } from "@/components/title"
 
@@ -25,8 +26,10 @@ export const Container = props => {
   )
 }
 
-const Header = () => {
+const Header = ({ hasFilters }) => {
+  const isMinimal = useIsMinimal()
   const leftHeaderElements = useAttributeValue("leftHeaderElements")
+  const focused = useAttributeValue("focused")
 
   return (
     <Container>
@@ -37,6 +40,7 @@ const Header = () => {
         </Fragment>
       ))}
       <Title />
+      {isMinimal && hasFilters && <FilterToolbox opacity={focused ? 1 : 0.7} />}
       <Toolbox />
     </Container>
   )

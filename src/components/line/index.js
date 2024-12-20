@@ -43,8 +43,8 @@ export const Line = forwardRef(
         {...rest}
         {...(isMinimal && { border: 0 })}
       >
-        {hasHeader && <Header />}
-        {hasFilters && <FilterToolbox opacity={focused ? 1 : 0.7} />}
+        {hasHeader && <Header hasFilters={hasFilters} />}
+        {!isMinimal && hasFilters && <FilterToolbox opacity={focused ? 1 : 0.7} />}
         <ContentWrapper>
           {showingInfo ? <Details /> : <ChartContentWrapper uiName={uiName} />}
         </ContentWrapper>
