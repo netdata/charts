@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react"
+import React from "react"
 import styled, { keyframes } from "styled-components"
 import { Flex, Text, getColor } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
@@ -121,7 +121,7 @@ export const Skeleton = styled(Flex).attrs(props => ({
   animation: ${frames} 1.6s ease-in infinite;
 `
 
-export const Gauge = forwardRef(({ uiName, ...rest }, ref) => {
+export const Gauge = ({ uiName, ref, ...rest }) => {
   const loaded = useAttributeValue("loaded")
 
   return (
@@ -145,6 +145,6 @@ export const Gauge = forwardRef(({ uiName, ...rest }, ref) => {
       )}
     </ChartWrapper>
   )
-})
+}
 
 export default withChart(Gauge, { tile: true })
