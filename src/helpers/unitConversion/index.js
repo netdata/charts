@@ -42,7 +42,13 @@ export default chart => {
     })
   }
 
-  const offVisibleDimensionsChanged = chart.on("visibleDimensionsChanged", () => {
+  const onConvert = (ymin, ymax) => {
+    if (Array.isArray(chart.getAttribute("staticValueRange"))) {
+      const [min, max] = chart.getAttribute("staticValueRange")
+      convert(min, max)
+      return
+    }
+
     const result = chart.getPayload()
 
     const dimMinMax = result?.byDimension
@@ -58,12 +64,19 @@ export default chart => {
         )
       : { min: Infinity, max: -Infinity }
 
-    if (dimMinMax.min === Infinity) return
+    if (dimMinMax.min === Infinity) {
+      if (typeof ymin === "undefined" || typeof ymax === "undefined") return
+
+      convert(ymin, ymax)
+
+      return
+    }
 
     convert(dimMinMax.min, dimMinMax.max)
-  })
+  }
 
-  const offYAxisChange = chart.on("yAxisChange", convert)
+  const offVisibleDimensionsChanged = chart.on("visibleDimensionsChanged", () => onConvert())
+  const offYAxisChange = chart.on("yAxisChange", onConvert)
 
   return () => {
     offYAxisChange()
