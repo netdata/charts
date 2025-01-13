@@ -16,7 +16,7 @@ export default (a, b, pixels, opts, dygraph, vals, { units } = {}) => {
   } else {
     if (ticks.length === 0) {
       const mults = isBinary(units[0])
-        ? [1, 2, 4, 8, 16, 32, 64, 128, 256]
+        ? [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
         : [1, 2, 5, 10, 20, 50, 100]
       const base = isBinary(units[0]) ? 1024 : 10
 
