@@ -58,13 +58,14 @@ const LatestValue = ({ dimensionId, textProps, ...rest }) => {
       </FontSizer>
       <FontSizer
         Component={StrokeLabel}
-        maxHeight={(height - 20) * 0.25}
-        maxWidth={(width - 20) * 0.7}
+        maxHeight={(height - 20) * 0.15}
+        maxWidth={(width - 20) * 0.2}
         fontSize="1.1em"
         strong
         {...defaultTextProps}
         color="textLite"
         {...textProps}
+        cacheKey={value}
       >
         {unit}
       </FontSizer>

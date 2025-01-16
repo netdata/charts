@@ -1,6 +1,5 @@
 import Dygraph from "dygraphs"
 import makeChartUI from "@/sdk/makeChartUI"
-import makeExecuteLatest from "@/helpers/makeExecuteLatest"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
 import { isHeatmap } from "@/helpers/heatmap"
 import {
@@ -26,7 +25,6 @@ export default (sdk, chart) => {
   let navigation = null
   let hoverX = null
   let resizeObserver = null
-  let executeLatest
   let overlays = null
 
   const mount = element => {
@@ -40,7 +38,6 @@ export default (sdk, chart) => {
     const attributes = chart.getAttributes()
     const { data, labels } = chart.getPayload()
 
-    executeLatest = makeExecuteLatest()
     const isEmpty = attributes.outOfLimits || data.length === 0
 
     dygraph = new Dygraph(element, isEmpty ? [[0]] : data, {
@@ -50,27 +47,23 @@ export default (sdk, chart) => {
       labels: isEmpty ? ["X"] : labels,
 
       dateWindow: chart.getDateWindow(),
-      clickCallback: executeLatest.add((...args) => chartUI.trigger("click", ...args)),
-      highlightCallback: executeLatest.add((...args) =>
-        chartUI.trigger("highlightCallback", ...args)
-      ),
-      unhighlightCallback: executeLatest.add(() => chartUI.trigger("unhighlightCallback")),
+      clickCallback: (...args) => chartUI.trigger("click", ...args),
+      highlightCallback: (...args) => chartUI.trigger("highlightCallback", ...args),
+      unhighlightCallback: () => chartUI.trigger("unhighlightCallback"),
       drawCallback: (...args) => chartUI.trigger("drawCallback", ...args),
-      underlayCallback: executeLatest.add((...args) =>
-        chartUI.trigger("underlayCallback", ...args)
-      ),
+      underlayCallback: (...args) => chartUI.trigger("underlayCallback", ...args),
       interactionModel: {
         willDestroyContextMyself: true,
-        mouseout: executeLatest.add((...args) => chartUI.trigger("mouseout", ...args)),
-        mousedown: executeLatest.add((...args) => chartUI.trigger("mousedown", ...args)),
-        mousemove: executeLatest.add((...args) => chartUI.trigger("mousemove", ...args)),
-        mouseover: executeLatest.add((...args) => chartUI.trigger("mouseover", ...args)),
-        mouseup: executeLatest.add((...args) => chartUI.trigger("mouseup", ...args)),
-        touchstart: executeLatest.add((...args) => chartUI.trigger("touchstart", ...args)),
-        touchmove: executeLatest.add((...args) => chartUI.trigger("touchmove", ...args)),
-        touchend: executeLatest.add((...args) => chartUI.trigger("touchend", ...args)),
-        dblclick: executeLatest.add((...args) => chartUI.trigger("dblclick", ...args)),
-        wheel: executeLatest.add((...args) => chartUI.trigger("wheel", ...args)),
+        mouseout: (...args) => chartUI.trigger("mouseout", ...args),
+        mousedown: (...args) => chartUI.trigger("mousedown", ...args),
+        mousemove: (...args) => chartUI.trigger("mousemove", ...args),
+        mouseover: (...args) => chartUI.trigger("mouseover", ...args),
+        mouseup: (...args) => chartUI.trigger("mouseup", ...args),
+        touchstart: (...args) => chartUI.trigger("touchstart", ...args),
+        touchmove: (...args) => chartUI.trigger("touchmove", ...args),
+        touchend: (...args) => chartUI.trigger("touchend", ...args),
+        dblclick: (...args) => chartUI.trigger("dblclick", ...args),
+        wheel: (...args) => chartUI.trigger("wheel", ...args),
       },
       series: {
         ...(attributes.showAnomalies && {
@@ -136,30 +129,21 @@ export default (sdk, chart) => {
     navigation.toggle(attributes.enabledNavigation, attributes.navigation)
 
     listeners = [
-      chartUI.on(
-        "resize",
-        executeLatest.add(() => dygraph.resize())
-      ),
-      chart.onAttributeChange(
-        "hoverX",
-        executeLatest.add(dimensions => {
-          const row = Array.isArray(dimensions) ? chart.getClosestRow(dimensions[0]) : -1
+      chartUI.on("resize", () => dygraph.resize()),
+      chart.onAttributeChange("hoverX", dimensions => {
+        const row = Array.isArray(dimensions) ? chart.getClosestRow(dimensions[0]) : -1
 
-          if (row === -1) return dygraph.setSelection()
+        if (row === -1) return dygraph.setSelection()
 
-          crosshair(instance, row)
-        })
-      ),
-      chart.onAttributeChange(
-        "clickX",
-        executeLatest.add(dimensions => {
-          const row = Array.isArray(dimensions) ? chart.getClosestRow(dimensions[0]) : -1
+        crosshair(instance, row)
+      }),
+      chart.onAttributeChange("clickX", dimensions => {
+        const row = Array.isArray(dimensions) ? chart.getClosestRow(dimensions[0]) : -1
 
-          if (row === -1) return dygraph.setSelection()
+        if (row === -1) return dygraph.setSelection()
 
-          crosshair(instance, row, "click")
-        })
-      ),
+        crosshair(instance, row, "click")
+      }),
       chart.onAttributeChange("enabledHover", hoverX.toggle),
       chart.onAttributeChange("enabledNavigation", navigation.toggle),
       chart.onAttributeChange("navigation", navigation.set),
@@ -432,7 +416,6 @@ export default (sdk, chart) => {
     if (!dygraph) return
 
     resizeObserver()
-    if (executeLatest) executeLatest.clear()
     listeners.forEach(listener => listener())
     listeners = []
     chartUI.unmount()

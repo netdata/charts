@@ -7,37 +7,29 @@ const FontSizer = ({
   maxWidth = 100,
   maxFontSize = 500,
   minFontSize = 10,
+  cacheKey,
   ...rest
 }) => {
   const [ref, setRef] = useState()
-  const cancelRef = useRef(false)
 
   useEffect(() => {
     if (!ref) return
 
-    const timeoutId = setTimeout(() => {
-      cancelRef.current = false
+    requestAnimationFrame(() => {
       let fontSize = maxFontSize
 
       ref.style.animation = "font-size 02s"
       ref.style.fontSize = fontSize + "px"
 
-      while (
-        !cancelRef.current &&
-        fontSize > minFontSize &&
-        (ref.offsetWidth > maxWidth || ref.offsetHeight > maxHeight)
-      ) {
-        const delta = Math.ceil(fontSize / 100)
-        fontSize = fontSize - delta
-        ref.style.fontSize = fontSize + "px"
-      }
-    })
+      const widthScale = maxWidth / ref.offsetWidth
+      const heightScale = maxHeight / ref.offsetHeight
 
-    return () => {
-      cancelRef.current = true
-      clearTimeout(timeoutId)
-    }
-  }, [children, maxHeight, maxWidth, ref])
+      const scaleFactor = Math.min(widthScale, heightScale)
+      fontSize = Math.floor(maxFontSize * scaleFactor) || 1
+
+      ref.style.fontSize = fontSize + "px"
+    })
+  }, [children, maxHeight, maxWidth, ref, cacheKey])
 
   return (
     <Component truncate ref={setRef} {...rest}>
