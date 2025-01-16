@@ -104,7 +104,7 @@ export default (sdk, chart) => {
           ? 0
           : chart.getAttribute("unitsConversionFractionDigits")[0],
       yLabelWidth: 12,
-      yRangePad: 30,
+      yRangePad: 15,
       labelsSeparateLines: true,
       rightGap: -5,
 
@@ -222,7 +222,7 @@ export default (sdk, chart) => {
   let prevMax
 
   const defaultOptions = {
-    yRangePad: 30,
+    yRangePad: 15,
     strokeWidth: 0.7,
     fillAlpha: 0.2,
     fillGraph: false,

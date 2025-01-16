@@ -71,9 +71,7 @@ export default (a, b, pixels, opts, dygraph, vals, { units } = {}) => {
 
   return [
     { label_v: max - pointHeight, label: anomalySVG },
-    ...ticks.filter(
-      tick => dygraph.toPercentYCoord(tick.v, 0) < 0.92 && dygraph.toPercentYCoord(tick.v, 0) > 0.08
-    ),
+    ...ticks,
     { label_v: min + pointHeight, label: "" },
   ]
 }
