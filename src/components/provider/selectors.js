@@ -366,6 +366,7 @@ export const useValue = (
   { valueKey = "value", objKey = "viewDimensions", abs, unitsKey = "units", allowNull } = {}
 ) => {
   const chart = useChart()
+  abs = typeof abs === "boolean" ? abs : chart.getAttribute("abs")
 
   const [value, setState] = useState(null)
 

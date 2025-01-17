@@ -90,6 +90,7 @@ export default {
   highlighting: false,
 
   desiredUnits: "auto",
+  abs: true,
 
   unitsConversionMethod: [""],
   unitsConversionDivider: [-1],
