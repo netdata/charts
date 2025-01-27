@@ -34,6 +34,10 @@ const Popover = ({ uiName }) => {
   targetRef.current = target
   updatePositionRef.current = useMakeUpdatePosition(target, dropRef, align, stretch)
 
+  const [dimKey, setDimKey] = useState(0)
+
+  chart.onAttributeChange("selectedLegendDimensions", () => setDimKey(prev => prev + 1))
+
   useEffect(() => {
     return unregister(
       chart.getUI(uiName).on("mousemove", event => {
@@ -79,7 +83,7 @@ const Popover = ({ uiName }) => {
           data-testid="drop"
           sx={{ pointerEvents: "none" }}
         >
-          <Dimensions uiName={uiName} data-testid="chartPopover" />
+          <Dimensions key={dimKey} uiName={uiName} data-testid="chartPopover" />
         </DropContainer>,
         el
       )}

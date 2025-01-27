@@ -26,6 +26,7 @@ const Grid = styled.div`
   width: 100%;
   grid-template-columns: 30px minmax(150px, max-content) 60px 60px minmax(80px, auto);
   align-items: center;
+  justify-content: center;
 `
 
 const GridHeader = styled.div`

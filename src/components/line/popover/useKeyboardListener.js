@@ -10,6 +10,7 @@ const useKeyboardListener = ({ chart, ids }) => {
       const digit = e.code.replace(/^Digit/, "")
       if (digit === null || isNaN(digit)) return
       const id = ids[parseInt(digit) - 1]
+      if (!id) return
       const merge = e.shiftKey || e.ctrlKey || e.metaKey
       chart.toggleDimensionId(id, { merge })
     },
