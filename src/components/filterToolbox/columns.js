@@ -39,7 +39,15 @@ export const labelColumn = fallbackExpandKey => ({
           <Color id={row.original.value} />
           <TextSmall
             strong
-            onClick={!row.original.disabled ? row.getToggleSelectedHandler() : undefined}
+            onClick={
+              !row.original.disabled
+                ? e => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    row.getToggleSelectedHandler()(e)
+                  }
+                : undefined
+            }
             cursor={row.original.disabled ? "default" : "pointer"}
             whiteSpace="normal"
             wordBreak="break-word"
@@ -55,6 +63,8 @@ export const labelColumn = fallbackExpandKey => ({
               metricsByValue.default
             }
             onClick={e => {
+              e.preventDefault()
+              e.stopPropagation()
               row.getToggleExpandedHandler()(e)
               setTimeout(() => e.target.scrollIntoView({ behavior: "smooth", block: "nearest" }))
             }}

@@ -1,6 +1,7 @@
 import Dygraph from "dygraphs"
 import makeChartUI from "@/sdk/makeChartUI"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
+import makeExecuteLatest from "@/helpers/makeExecuteLatest"
 import { isHeatmap } from "@/helpers/heatmap"
 import {
   makeLinePlotter,
@@ -26,6 +27,7 @@ export default (sdk, chart) => {
   let hoverX = null
   let resizeObserver = null
   let overlays = null
+  let executeLatest = null
 
   const mount = element => {
     if (dygraph) return
@@ -38,6 +40,8 @@ export default (sdk, chart) => {
     const attributes = chart.getAttributes()
     const { data, labels } = chart.getPayload()
 
+    executeLatest = makeExecuteLatest()
+
     const isEmpty = attributes.outOfLimits || data.length === 0
 
     dygraph = new Dygraph(element, isEmpty ? [[0]] : data, {
@@ -47,22 +51,26 @@ export default (sdk, chart) => {
       labels: isEmpty ? ["X"] : labels,
 
       dateWindow: chart.getDateWindow(),
-      clickCallback: (...args) => chartUI.trigger("click", ...args),
-      highlightCallback: (...args) => chartUI.trigger("highlightCallback", ...args),
-      unhighlightCallback: () => chartUI.trigger("unhighlightCallback"),
+      clickCallback: executeLatest.add((...args) => chartUI.trigger("click", ...args)),
+      highlightCallback: executeLatest.add((...args) =>
+        chartUI.trigger("highlightCallback", ...args)
+      ),
+      unhighlightCallback: executeLatest.add(() => chartUI.trigger("unhighlightCallback")),
       drawCallback: (...args) => chartUI.trigger("drawCallback", ...args),
-      underlayCallback: (...args) => chartUI.trigger("underlayCallback", ...args),
+      underlayCallback: executeLatest.add((...args) =>
+        chartUI.trigger("underlayCallback", ...args)
+      ),
       interactionModel: {
         willDestroyContextMyself: true,
         mouseout: (...args) => chartUI.trigger("mouseout", ...args),
-        mousedown: (...args) => chartUI.trigger("mousedown", ...args),
+        mousedown: executeLatest.add((...args) => chartUI.trigger("mousedown", ...args)),
         mousemove: (...args) => chartUI.trigger("mousemove", ...args),
         mouseover: (...args) => chartUI.trigger("mouseover", ...args),
         mouseup: (...args) => chartUI.trigger("mouseup", ...args),
         touchstart: (...args) => chartUI.trigger("touchstart", ...args),
         touchmove: (...args) => chartUI.trigger("touchmove", ...args),
         touchend: (...args) => chartUI.trigger("touchend", ...args),
-        dblclick: (...args) => chartUI.trigger("dblclick", ...args),
+        dblclick: executeLatest.add((...args) => chartUI.trigger("dblclick", ...args)),
         wheel: (...args) => chartUI.trigger("wheel", ...args),
       },
       series: {
@@ -414,6 +422,8 @@ export default (sdk, chart) => {
 
   const unmount = () => {
     if (!dygraph) return
+
+    if (executeLatest) executeLatest.clear()
 
     resizeObserver()
     listeners.forEach(listener => listener())
