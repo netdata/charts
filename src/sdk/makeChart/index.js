@@ -125,8 +125,6 @@ export default ({
   )
 
   node.on("render", render)
-  node.on("hoverChart", render)
-  node.on("blurChart", render)
   unitConversion(node)
 
   node.getConvertedValue = (value, { fractionDigits, key = "units", dimensionId } = {}) => {

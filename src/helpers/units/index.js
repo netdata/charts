@@ -3,14 +3,17 @@ import conversableUnits, { makeConversableKey, keys as conversableKeys } from ".
 import scalableUnits, { keys } from "./scalableUnits"
 
 export const unitsMissing = u => typeof allUnits.units[u] === "undefined"
+
+const unitOrEmpty = u => (u === null || typeof u === "undefined" ? "" : u)
+
 export const getUnitConfig = u =>
   allUnits.units[u] || {
     is_scalable: true,
     is_metric: false,
     is_binary: false,
     is_bit: false,
-    print_symbol: u,
-    name: u,
+    print_symbol: unitOrEmpty(u),
+    name: unitOrEmpty(u),
   }
 
 const findCurly = u => {
