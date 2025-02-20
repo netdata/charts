@@ -42,6 +42,8 @@ const Popover = ({ uiName }) => {
         const offsetX = event.offsetX || event.layerX
         const offsetY = event.offsetY || event.layerY
 
+        setOpen(true)
+
         if (!targetRef.current) return
 
         targetRef.current.style.left = `${offsetX}px`
@@ -55,7 +57,6 @@ const Popover = ({ uiName }) => {
 
         setAlign(getAlign(left, top))
       }),
-      chart.getUI(uiName).on("mouseover", () => setOpen(true)),
       chart.getUI(uiName).on("mouseout", () => setOpen(false)),
       chart.onAttributeChange("panning", panning => panning && setOpen(false)),
       chart.onAttributeChange("highlighting", panning => panning && setOpen(false))

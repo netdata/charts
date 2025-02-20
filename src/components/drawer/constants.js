@@ -8,4 +8,5 @@ export const actions = {
 export const tabs = {
   window: "window",
   selectedArea: "selectedArea",
+  point: "point",
 }

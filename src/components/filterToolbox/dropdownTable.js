@@ -53,7 +53,7 @@ const Dropdown = ({
   filterSelectedCount = defaultFilterSelectedCount,
   ...rest
 }) => {
-  const items = useMemo(getOptions, [])
+  const items = useMemo(getOptions, [getOptions])
   const [rowSelection, setRowSelection] = useState(() => buildSelections(items, {}))
 
   useEffect(() => {

@@ -36,7 +36,7 @@ export const labelColumn = fallbackExpandKey => ({
         width="100%"
       >
         <Flex gap={1}>
-          <Color id={row.original.value} />
+          <Color id={getValue()} />
           <TextSmall
             strong
             onClick={
@@ -58,7 +58,7 @@ export const labelColumn = fallbackExpandKey => ({
         {row.getCanExpand() && (
           <Label
             label={
-              metricsByValue[row.original.value] ||
+              metricsByValue[getValue()] ||
               metricsByValue[fallbackExpandKey] ||
               metricsByValue.default
             }
