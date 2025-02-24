@@ -212,7 +212,7 @@ export default {
     contexts: "*",
     singleDimension: "*",
     theme: "default",
-    host: "http://10.20.4.200:19999/api/v2",
+    host: "http://10.10.11.51:19999/api/v3",
   },
   argTypes: {
     host: {

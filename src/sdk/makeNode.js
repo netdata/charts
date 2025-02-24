@@ -62,7 +62,10 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
       return acc
     }, {})
 
-    Object.keys(prevValues).forEach(name => trigger(name, values[name], prevValues[name]))
+    Object.keys(prevValues).forEach(name => {
+      if (values[name] === prevValues[name]) return
+      trigger(name, values[name], prevValues[name])
+    })
 
     if (prevPristine) {
       trigger(pristineKey, attributes[pristineKey], prevPristine)
