@@ -169,9 +169,6 @@ export default (payload, chart) => {
     result,
     ...rest
   } = payload
-
-  let details = {}
-
   let nodes = {}
   let nodesIndexes = {}
   nodesArray.forEach(n => {
@@ -210,7 +207,7 @@ export default (payload, chart) => {
     contextsArray
   )
 
-  details = {
+  const details = {
     viewDimensions: {
       ...viewDimensions,
       contexts: dimContexts,
@@ -223,7 +220,6 @@ export default (payload, chart) => {
     tiers,
     perTier,
     nodes,
-    nodesIndexes,
     instances,
     dimensions,
     dimensionIds,
@@ -242,6 +238,8 @@ export default (payload, chart) => {
     dbUnits: Array.isArray(dbUnits) ? dbUnits.map(getAlias) : [getAlias(dbUnits)],
     dbUnitsStsByContext,
   }
+
+  nodesIndexes = null
 
   return {
     ...rest,

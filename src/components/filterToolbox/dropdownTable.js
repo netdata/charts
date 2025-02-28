@@ -37,7 +37,6 @@ const defaultFilterSelectedCount = arr => arr
 const Dropdown = ({
   getOptions,
   onItemClick,
-  close,
   columns,
   sortBy,
   onSortByChange,
@@ -51,6 +50,8 @@ const Dropdown = ({
   emptyMessage,
   title,
   filterSelectedCount = defaultFilterSelectedCount,
+  sidebar,
+  totalSelected,
   ...rest
 }) => {
   const items = useMemo(getOptions, [getOptions])
@@ -78,27 +79,30 @@ const Dropdown = ({
       flex
       {...rest}
     >
-      <Table
-        title={title}
-        background="dropdownTable"
-        enableResizing
-        enableSorting
-        enableSelection
-        dataColumns={columns}
-        data={items}
-        onRowSelected={onItemClick}
-        onSearch={noop}
-        meta={tableMeta}
-        sortBy={sortBy}
-        rowSelection={rowSelection}
-        onSortingChange={onSortByChange}
-        expanded={expanded}
-        onExpandedChange={onExpandedChange}
-        enableSubRowSelection={enableSubRowSelection}
-        width={{ base: 250, max: "80vw" }}
-        // bulkActions={bulkActions}
-        // rowActions={rowActions}
-      />
+      <Flex>
+        <Table
+          title={title}
+          background="dropdownTable"
+          enableResizing
+          enableSorting
+          enableSelection
+          dataColumns={columns}
+          data={items}
+          onRowSelected={onItemClick}
+          onSearch={noop}
+          meta={tableMeta}
+          sortBy={sortBy}
+          rowSelection={rowSelection}
+          onSortingChange={onSortByChange}
+          expanded={expanded}
+          onExpandedChange={onExpandedChange}
+          enableSubRowSelection={enableSubRowSelection}
+          width={{ base: 250, max: "80vw" }}
+          // bulkActions={bulkActions}
+          // rowActions={rowActions}
+        />
+        {sidebar}
+      </Flex>
 
       <Flex
         padding={[2]}
@@ -145,7 +149,7 @@ const Dropdown = ({
             <TextSmall color="warningText">{emptyMessage}</TextSmall>
           )}
         </Flex>
-        {totals && <Totals selected={value} {...totals} />}
+        {totals && <Totals selected={value} totalSelected={totalSelected} {...totals} />}
       </Flex>
     </Container>
   )
@@ -182,6 +186,8 @@ const DropdownTable = ({
   resourceName,
   title,
   filterSelectedCount,
+  sidebar,
+  totalSelected,
   ...rest
 }) => {
   const [isOpen, setIsOpen] = useState(false)
@@ -234,6 +240,8 @@ const DropdownTable = ({
         emptyMessage,
         title,
         filterSelectedCount,
+        sidebar,
+        totalSelected,
       }}
       value={value}
       onOpen={() => setIsOpen(true)}
@@ -243,7 +251,17 @@ const DropdownTable = ({
       <Label
         data-value={value.join("|") || `${resourceName} all-selected`}
         secondaryLabel={secondaryLabel}
-        label={label || <Totals selected={value} {...totals} resourceName={resourceName} teaser />}
+        label={
+          label || (
+            <Totals
+              selected={value}
+              totalSelected={totalSelected}
+              {...totals}
+              resourceName={resourceName}
+              teaser
+            />
+          )
+        }
         title={tooltipProps.heading}
         tooltipProps={tooltipProps}
         {...labelProps}

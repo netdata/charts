@@ -188,6 +188,27 @@ export default chart => {
     })
   }
 
+  const updateNodeLabelsFilter = selectedLabels => {
+    if (typeof selectedLabels === "function") {
+      const selected = chart.getAttribute("selectedNodeLabelsFilter")
+      selectedLabels = selectedLabels(selected)
+    }
+
+    if (deepEqual(selectedLabels, chart.getAttribute("selectedNodeLabelsFilter"))) return
+
+    chart.updateAttributes({
+      selectedNodeLabelsFilter: selectedLabels,
+      processing: true,
+    })
+
+    chart.trigger("fetch", { processing: true })
+
+    log({
+      chartAction: "chart-host-labels-filter-change",
+      value: selectedLabels,
+    })
+  }
+
   const updateInstancesAttribute = selected => {
     const selectedInstances = selected.map(sel => sel.value)
 
@@ -333,6 +354,7 @@ export default chart => {
     updatePostAggregationMethodAttribute,
     updateTimeAggregationMethodAttribute,
     updateContextScopeAttribute,
+    updateNodeLabelsFilter,
     resetPristine,
     removePristine,
     toggleFullscreen,

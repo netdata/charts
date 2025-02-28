@@ -298,6 +298,44 @@ export default ({
     return attributes[name]?.[index] || name
   }
 
+  node.getFilteredNodeIds = () => {
+    const { selectedNodeLabelsFilter, nodesScope, nodes, nodesById, selectedNodes } =
+      node.getAttributes()
+
+    const byLabel = (selectedNodeLabelsFilter || []).reduce((h, label) => {
+      const [key, value] = label.split("|")
+      if (!h[key]) h[key] = []
+      h[key].push(value)
+      return h
+    }, {})
+
+    if (!nodesById) return selectedNodes
+
+    const dbNodeIds = Object.keys(nodes)
+    const nodeIds = dbNodeIds.length
+      ? dbNodeIds
+      : nodesScope.length
+        ? nodesScope
+        : nodesById
+          ? Object.keys(nodesById)
+          : []
+
+    return [
+      ...new Set([
+        ...selectedNodes,
+        ...nodeIds.filter(
+          id =>
+            !!nodesById[id] &&
+            Object.keys(byLabel).every(label => {
+              return Array.isArray(byLabel[label]) && byLabel[label].length
+                ? `${byLabel[label]}`.includes(nodesById[id].labels[label])
+                : true
+            })
+        ),
+      ]),
+    ]
+  }
+
   const destroy = () => {
     if (!node) return
 

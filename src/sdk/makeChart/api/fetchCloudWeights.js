@@ -8,12 +8,12 @@ const getPayload = chart => {
     context,
     nodesScope,
     contextScope,
-    selectedNodes,
     selectedInstances,
     selectedDimensions,
     selectedLabels,
     aggregationMethod,
   } = chart.getAttributes()
+  const selectedNodes = chart.getFilteredNodeIds()
 
   const options = getChartURLOptions(chart)
   const groupByLabel = chart.getAttribute("groupByLabel").join("|")

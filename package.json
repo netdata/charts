@@ -1,6 +1,6 @@
 {
   "name": "@netdata/charts",
-  "version": "5.5.12",
+  "version": "5.6.0",
   "description": "Netdata frontend SDK and chart utilities",
   "main": "dist/index.js",
   "module": "dist/es6/index.js",
@@ -22,7 +22,7 @@
     "clean": "rimraf lib dist es coverage",
     "prepublishOnly": "yarn clean && yarn build",
     "cp-cloud": "cp -R ./dist ../cloud-frontend/node_modules/@netdata/charts/",
-    "to-cloud": "yarn build:cjs && yarn cp-cloud",
+    "to-cloud": "yarn build:cjs && yarn build:es6 && yarn cp-cloud",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },

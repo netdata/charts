@@ -8,7 +8,6 @@ const getPayload = chart => {
     context,
     nodesScope,
     contextScope,
-    selectedNodes,
     selectedInstances,
     selectedDimensions,
     selectedLabels,
@@ -20,6 +19,8 @@ const getPayload = chart => {
     postAggregationMethod,
     showPostAggregations,
   } = chart.getAttributes()
+
+  const selectedNodes = chart.getFilteredNodeIds()
 
   const options = getChartURLOptions(chart)
 

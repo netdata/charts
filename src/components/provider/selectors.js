@@ -29,6 +29,19 @@ export const useAttributeValue = name => {
   return chart.getAttribute(name)
 }
 
+export const useFilteredNodeIds = () => {
+  const chart = useChart()
+
+  const forceUpdate = useForceUpdate()
+
+  useImmediateListener(() => {
+    chart.onAttributeChange("selectedNodeLabelsFilter", forceUpdate)
+    chart.onAttributeChange("selectedNodes", forceUpdate)
+  }, [chart])
+
+  return chart.getFilteredNodeIds()
+}
+
 export const useInitialLoading = () => {
   const chart = useChart()
 
@@ -147,10 +160,14 @@ export const useVisibleDimensionId = id => {
 
   const forceUpdate = useForceUpdate()
 
-  useImmediateListener(() => {
-    chart.onAttributeChange("selectedDimensions", forceUpdate)
-    chart.on("visibleDimensionsChanged", forceUpdate)
-  }, [chart])
+  useImmediateListener(
+    () =>
+      unregister(
+        chart.onAttributeChange("selectedDimensions", forceUpdate),
+        chart.on("visibleDimensionsChanged", forceUpdate)
+      ),
+    [chart]
+  )
 
   return chart.isDimensionVisible(id)
 }
@@ -210,15 +227,19 @@ export const useOnResize = uiName => {
   const [invalidated, invalidate] = useState(1)
   const forceUpdate = useForceUpdate()
 
-  useImmediateListener(() => {
-    chart.on("mountChartUI", () => {
-      setTimeout(() => {
-        invalidate(prev => prev + 1)
-        forceUpdate()
-      }, 300)
-    })
-    chart.getUI(uiName).on("rendered", forceUpdate).on("resize", forceUpdate)
-  }, [uiName, chart, invalidated])
+  useImmediateListener(
+    () =>
+      unregister(
+        chart.on("mountChartUI", () => {
+          setTimeout(() => {
+            invalidate(prev => prev + 1)
+            forceUpdate()
+          }, 300)
+        }),
+        chart.getUI(uiName).on("rendered", forceUpdate).on("resize", forceUpdate)
+      ),
+    [uiName, chart, invalidated]
+  )
 
   return {
     width: chart.getUI(uiName).getChartWidth(),

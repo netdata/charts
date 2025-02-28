@@ -1,7 +1,12 @@
 import React, { memo, useCallback } from "react"
-import { useChart, useAttribute, useAttributeValue } from "@/components/provider"
-import DropdownTable from "./dropdownTable"
-import { getStats } from "./utils"
+import {
+  useChart,
+  useAttribute,
+  useAttributeValue,
+  useFilteredNodeIds,
+} from "@/components/provider"
+import DropdownTable from "../dropdownTable"
+import { getStats } from "../utils"
 import {
   labelColumn,
   instancesColumn,
@@ -12,7 +17,8 @@ import {
   minColumn,
   avgColumn,
   maxColumn,
-} from "./columns"
+} from "../columns"
+import HostLabelsFilter from "./hostLabelsFilter"
 
 const tooltipProps = {
   heading: "Nodes",
@@ -31,9 +37,10 @@ const columns = [
   maxColumn(),
 ]
 
-const Nodes = ({ labelProps, ...rest }) => {
+const NodesTable = ({ labelProps, ...rest }) => {
   const chart = useChart()
   const value = useAttributeValue("selectedNodes")
+  const totalSelected = useFilteredNodeIds()
 
   const nodes = useAttributeValue("nodes")
   const instances = useAttributeValue("instances")
@@ -70,6 +77,7 @@ const Nodes = ({ labelProps, ...rest }) => {
   const [expanded, onExpandedChange] = useAttribute("nodesExpanded")
 
   const filterSelectedCount = useCallback(values => values.filter(val => !val.isInstance), [])
+  const nodesById = useAttributeValue("nodesById")
 
   return (
     <DropdownTable
@@ -89,9 +97,11 @@ const Nodes = ({ labelProps, ...rest }) => {
       enableSubRowSelection={false}
       totals={nodesTotals}
       filterSelectedCount={filterSelectedCount}
+      totalSelected={totalSelected}
+      sidebar={!!nodesById && <HostLabelsFilter nodesById={nodesById} />}
       {...rest}
     />
   )
 }
 
-export default memo(Nodes)
+export default memo(NodesTable)

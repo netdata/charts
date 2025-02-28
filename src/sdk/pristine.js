@@ -41,6 +41,7 @@ const { updatePristine, resetPristine } = makePristine(pristineKey, [
   "staticZones",
 
   "showPostAggregations",
+  "selectedNodeLabelsFilter",
 ])
 
 export default { update: updatePristine, reset: resetPristine }

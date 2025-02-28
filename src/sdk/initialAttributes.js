@@ -233,11 +233,11 @@ export default {
   lastEntry: 0,
 
   // summary
-  dimensions: [],
-  labels: [],
-  nodes: [],
-  instances: [],
-  alerts: [],
+  dimensions: {},
+  labels: {},
+  nodes: {},
+  instances: {},
+  alerts: {},
 
   weightsAction: "values",
   weightsTab: "window",
@@ -263,4 +263,6 @@ export default {
 
   showAnomalies: true,
   showAnnotations: true,
+
+  selectedNodeLabelsFilter: [],
 }

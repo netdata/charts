@@ -13,17 +13,19 @@ const Totals = ({
   ex = 0,
   teaser = false,
   resourceName,
+  totalSelected,
 }) => {
   const total = sl + ex
-  const selectedCount = selected.length && selected.length < qr ? selected.length : qr
-  const couldBeMore = fl > 0 || (teaser && qr < (selected.length || total))
-  const possiblesCount = (teaser ? selected.length || total : selected.length) || sl
+  const selectedCount = totalSelected || selected.length
+  const queriedSelectedCount = selectedCount && selectedCount < qr ? selectedCount : qr
+  const couldBeMore = fl > 0 || (teaser && qr < (selectedCount || total))
+  const possiblesCount = (teaser ? selectedCount || total : selectedCount) || sl
 
   const chart = useChart()
 
   return (
     <TextMicro color="textLite">
-      <TextMicro color={teaser ? "text" : "primary"}>{selectedCount}</TextMicro>
+      <TextMicro color={teaser ? "text" : "primary"}>{queriedSelectedCount}</TextMicro>
       {!teaser ? " queried" : " "}
       {!teaser && (
         <Icon
@@ -60,7 +62,7 @@ const Totals = ({
         </>
       )}
       {resourceName
-        ? chart.intl(resourceName, { count: couldBeMore ? possiblesCount : selectedCount })
+        ? chart.intl(resourceName, { count: couldBeMore ? possiblesCount : queriedSelectedCount })
         : ""}
     </TextMicro>
   )
