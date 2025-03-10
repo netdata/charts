@@ -90,11 +90,26 @@ const getStsByContext = (groups, units, dimensions, contextsArray) => {
     return [[], {}]
   }
 
-  const dimensionContexts = dimensions.ids.map(id => {
+  let stsByCtx = {}
+
+  const dimensionContexts = dimensions.ids.map((id, index) => {
     const match = id.match(regex)
     if (!match) return contextsArray[0].id
 
     const [, ctx] = match
+
+    if (ctx && dimensions.sts) {
+      stsByCtx[ctx] = stsByCtx[ctx] || { min: Infinity, max: -Infinity }
+      stsByCtx[ctx].min =
+        stsByCtx[ctx].min > dimensions.sts.min[index]
+          ? dimensions.sts.min[index]
+          : stsByCtx[ctx].min
+      stsByCtx[ctx].max =
+        stsByCtx[ctx].max < dimensions.sts.max[index]
+          ? dimensions.sts.max[index]
+          : stsByCtx[ctx].max
+    }
+
     return ctx || contextsArray[0].id
   })
 
@@ -121,7 +136,7 @@ const getStsByContext = (groups, units, dimensions, contextsArray) => {
     dimensionContexts,
     contextsArray.reduce((h, ctx) => {
       h[ctx.id] = {
-        ...ctx.sts,
+        ...(stsByCtx[ctx.id] || ctx.sts),
         units: getAlias(unitsByKey[ctx.id] || (Array.isArray(units) ? units[0] : units)),
       }
 
