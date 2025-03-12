@@ -2743,10 +2743,10 @@
   dependencies:
     "@types/mdx" "^2.0.0"
 
-"@netdata/netdata-ui@^5.0.0-dev.0":
-  version "5.0.0-dev.0"
-  resolved "https://registry.yarnpkg.com/@netdata/netdata-ui/-/netdata-ui-5.0.0-dev.0.tgz#fb61a61072bc4562d0098905a4e9ec73a51440a2"
-  integrity sha512-oluSQvToaivcGqqcFTpj2ON6mXSD5xe6WKveuBxCZfEbkaDTcpc2hXL9e3ilS+AFT4BpsacbJOByczlcSWUUag==
+"@netdata/netdata-ui@^5.0.1":
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/@netdata/netdata-ui/-/netdata-ui-5.0.1.tgz#d60b9da931f1ef1b4faf07111a532ec57a4042f1"
+  integrity sha512-eldpy/CGHSORis2Hi8LOG60rKMgRXOw2w3NVG+W/wIBr0sflbLmPCLT3PaYuwi3qbtSHMTLs2Lbsua8FPV1CNg==
   dependencies:
     "@dnd-kit/core" "^6.3.1"
     "@dnd-kit/sortable" "^10.0.0"
