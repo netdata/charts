@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react"
+import React from "react"
 import { Flex, TextSmall, Tooltip as BaseTooltip } from "@netdata/netdata-ui"
 import { useAttributeValue } from "@/components/provider"
 
@@ -18,10 +18,9 @@ const DefaultContent = ({ children, ...rest }) => (
   </Flex>
 )
 
-const Tooltip = forwardRef(({ content, Content = DefaultContent, ...rest }, ref) =>
+const Tooltip = ({ content, Content = DefaultContent, ...rest }) =>
   content ? (
     <BaseTooltip
-      ref={ref}
       plain
       content={<Content {...rest}>{content}</Content>}
       {...rest}
@@ -30,13 +29,13 @@ const Tooltip = forwardRef(({ content, Content = DefaultContent, ...rest }, ref)
   ) : (
     rest.children
   )
-)
 
-export const withTooltip = (Component, tooltipDefaultProps = {}) =>
-  forwardRef(({ title, ...rest }, ref) => {
+export const withTooltip =
+  (Component, tooltipDefaultProps = {}) =>
+  ({ title, ...rest }) => {
     const id = useAttributeValue("id")
 
-    if (!title) return <Component ref={ref} {...rest} />
+    if (!title) return <Component {...rest} />
 
     return (
       <Tooltip
@@ -47,9 +46,9 @@ export const withTooltip = (Component, tooltipDefaultProps = {}) =>
         {...tooltipDefaultProps}
         {...rest.tooltipProps}
       >
-        <Component ref={ref} {...rest} />
+        <Component {...rest} />
       </Tooltip>
     )
-  })
+  }
 
 export default Tooltip
