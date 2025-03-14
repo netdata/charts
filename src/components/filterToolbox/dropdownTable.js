@@ -79,7 +79,7 @@ const Dropdown = ({
       flex
       {...rest}
     >
-      <Flex>
+      <Flex overflow="hidden">
         <Table
           title={title}
           background="dropdownTable"
@@ -223,7 +223,7 @@ const DropdownTable = ({
         stretch: null,
       }}
       dropdownProps={{
-        height: { max: "60vh" },
+        height: { max: "80vh" },
         width: "100%",
         overflow: "auto",
         columns,

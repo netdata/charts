@@ -22,10 +22,8 @@ const FilterGroup = ({
       {...rest}
     >
       <Flex justifyContent="between" gap={2} cursor="pointer">
-        <Flex alignItems="center" gap={1} height={4.5}>
-          <Flex alignItems="center" gap={0.5}>
-            <TextSmall strong>{title}</TextSmall>
-          </Flex>
+        <Flex alignItems="center" gap={1}>
+          <TextSmall strong>{title}</TextSmall>
           {!!selected?.length && (
             <Pill flavour="neutral" hollow data-testid={`${testIdPrefix}-selected-count`} tiny>
               {selected?.length}

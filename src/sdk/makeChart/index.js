@@ -298,9 +298,8 @@ export default ({
     return attributes[name]?.[index] || name
   }
 
-  node.getFilteredNodeIds = () => {
-    const { selectedNodeLabelsFilter, nodesScope, nodes, nodesById, selectedNodes } =
-      node.getAttributes()
+  node.getNodeIdsForHostLabels = fallback => {
+    const { selectedNodeLabelsFilter, nodesScope, nodes, nodesById } = node.getAttributes()
 
     const byLabel = (selectedNodeLabelsFilter || []).reduce((h, label) => {
       const [key, value] = label.split("|")
@@ -308,8 +307,6 @@ export default ({
       h[key].push(value)
       return h
     }, {})
-
-    if (!nodesById) return selectedNodes
 
     const dbNodeIds = Object.keys(nodes)
     const nodeIds = dbNodeIds.length
@@ -320,20 +317,27 @@ export default ({
           ? Object.keys(nodesById)
           : []
 
-    return [
-      ...new Set([
-        ...selectedNodes,
-        ...nodeIds.filter(
-          id =>
-            !!nodesById[id] &&
-            Object.keys(byLabel).every(label => {
-              return Array.isArray(byLabel[label]) && byLabel[label].length
-                ? `${byLabel[label]}`.includes(nodesById[id].labels[label])
-                : true
-            })
-        ),
-      ]),
-    ]
+    if (!nodesById) return fallback ?? nodeIds
+
+    return nodeIds.filter(
+      id =>
+        !!nodesById[id] &&
+        Object.keys(byLabel).every(label => {
+          return byLabel[label].length
+            ? `${byLabel[label]}`.includes(nodesById[id].labels[label])
+            : false
+        })
+    )
+  }
+
+  node.getFilteredNodeIds = () => {
+    const { selectedNodeLabelsFilter, nodesById, selectedNodes } = node.getAttributes()
+
+    if (!selectedNodeLabelsFilter.length || !nodesById) return selectedNodes
+
+    const nodeIdsForHostLabels = node.getNodeIdsForHostLabels()
+
+    return [...new Set([...selectedNodes, ...nodeIdsForHostLabels])]
   }
 
   const destroy = () => {

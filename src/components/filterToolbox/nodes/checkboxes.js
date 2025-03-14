@@ -160,7 +160,6 @@ const DefaultItem = ({ item, onItemClick, itemProps, ...rest }) => {
 export const CheckboxesContainer = styled(Checkboxes).attrs(props => ({
   background: "transparent",
   hideShadow: true,
-  height: { max: "300px" },
   width: { max: "600px" },
   overflow: "auto",
   ...props,

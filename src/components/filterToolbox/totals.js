@@ -13,10 +13,10 @@ const Totals = ({
   ex = 0,
   teaser = false,
   resourceName,
-  totalSelected,
+  totalSelected = [],
 }) => {
   const total = sl + ex
-  const selectedCount = totalSelected || selected.length
+  const selectedCount = totalSelected?.length || selected.length
   const queriedSelectedCount = selectedCount && selectedCount < qr ? selectedCount : qr
   const couldBeMore = fl > 0 || (teaser && qr < (selectedCount || total))
   const possiblesCount = (teaser ? selectedCount || total : selectedCount) || sl
