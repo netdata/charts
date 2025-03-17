@@ -161,14 +161,16 @@ export default (chart, sdk) => {
   }
 
   const getNextColor = () => {
-    const colorsAttribute = chart.getAttribute("colors")
+    const colorsAttribute = chart.getAttribute("colors") || []
     const index = colorCursor++ % (colorsAttribute.length + dimensionColors.length)
 
     const nextColor =
       index < colorsAttribute.length
         ? typeof colorsAttribute[index] === "number"
           ? dimensionColors[colorsAttribute[index]]
-          : colorsAttribute[index]
+          : !colorsAttribute[index]
+            ? dimensionColors[index]
+            : colorsAttribute[index]
         : dimensionColors[index - colorsAttribute.length]
 
     return nextColor
@@ -237,7 +239,7 @@ export default (chart, sdk) => {
     const key = getMemKey()
     const colorsAttr = chart.getAttribute("colors")
     const sparkline = chart.isSparkline()
-    if (sparkline && colorsAttr && colorsAttr.length === 1) return colorsAttr[0]
+    if (sparkline && Array.isArray(colorsAttr)) return colorsAttr[0]
 
     const isSelected = id === "selected"
     id = !id || isSelected ? chart.getAttribute("selectedDimensions")[0] || id : id
