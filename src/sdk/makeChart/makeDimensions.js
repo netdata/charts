@@ -169,7 +169,7 @@ export default (chart, sdk) => {
         ? typeof colorsAttribute[index] === "number"
           ? dimensionColors[colorsAttribute[index]]
           : !colorsAttribute[index]
-            ? dimensionColors[index]
+            ? dimensionColors[colorCursor % dimensionColors.length]
             : colorsAttribute[index]
         : dimensionColors[index - colorsAttribute.length]
 
