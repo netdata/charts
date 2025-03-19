@@ -108,7 +108,7 @@ const DropdownSingleSelect = ({ labelProps, ...rest }) => {
         "data-toolbox": id,
         width: "460px",
       }}
-      dropdownProps={{ padding: [0, 0, 2, 0], height: { max: "80vh" } }}
+      dropdownProps={{ padding: [0, 0, 2, 0], height: { max: "60vh" } }}
       {...rest}
     >
       <Label {...labelProps} data-value={`${rest.value || "No selection"}`} />

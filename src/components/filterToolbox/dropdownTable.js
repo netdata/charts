@@ -71,7 +71,7 @@ const Dropdown = ({
   return (
     <Container
       role="listbox"
-      background="dropdown"
+      background="modalTabsBackground"
       padding={[0]}
       margin={[1, 0]}
       column
@@ -82,7 +82,6 @@ const Dropdown = ({
       <Flex overflow="hidden">
         <Table
           title={title}
-          background="dropdownTable"
           enableResizing
           enableSorting
           enableSelection
@@ -97,7 +96,7 @@ const Dropdown = ({
           expanded={expanded}
           onExpandedChange={onExpandedChange}
           enableSubRowSelection={enableSubRowSelection}
-          width={{ base: 250, max: "80vw" }}
+          width={{ base: 250, max: "60vh" }}
           // bulkActions={bulkActions}
           // rowActions={rowActions}
         />

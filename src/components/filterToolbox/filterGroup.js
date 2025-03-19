@@ -7,7 +7,7 @@ const FilterGroup = ({
   testIdPrefix,
   param,
   children,
-  border = { side: "bottom", color: "borderSecondary" },
+  border = { side: "left", color: "borderSecondary" },
   title = "Filters",
   ...rest
 }) => {
