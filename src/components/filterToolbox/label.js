@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react"
+import React from "react"
 import styled from "styled-components"
 import { Flex, TextSmall, getColor } from "@netdata/netdata-ui"
 import chevronDown from "@netdata/netdata-ui/dist/components/icon/assets/chevron_down.svg"
@@ -27,32 +27,37 @@ const StyledLabel = styled(TextSmall).attrs({
   flex: 1;
 `
 
-const Label = forwardRef(
-  (
-    { icon, secondaryLabel, tertiaryLabel, label, chevron = true, iconRotate, textProps, ...rest },
-    ref
-  ) =>
-    icon ? (
-      <Container ref={ref} {...rest}>
-        {icon}
-      </Container>
-    ) : (
-      <Container ref={ref} {...rest}>
-        {secondaryLabel && (
-          <TextSmall color="textLite" whiteSpace="nowrap" truncate>
-            {secondaryLabel}
-          </TextSmall>
-        )}
-        <StyledLabel {...textProps}>{label}</StyledLabel>
-        {tertiaryLabel && (
-          <TextSmall color="textLite" whiteSpace="nowrap" truncate>
-            {tertiaryLabel}
-          </TextSmall>
-        )}
-        {chevron && <Icon svg={chevronDown} size="12px" color="textNoFocus" rotate={iconRotate} />}
-      </Container>
-    )
-)
+const Label = ({
+  icon,
+  secondaryLabel,
+  tertiaryLabel,
+  label,
+  chevron = true,
+  iconRotate,
+  textProps,
+  ref,
+  ...rest
+}) =>
+  icon ? (
+    <Container ref={ref} {...rest}>
+      {icon}
+    </Container>
+  ) : (
+    <Container ref={ref} {...rest}>
+      {secondaryLabel && (
+        <TextSmall color="textLite" whiteSpace="nowrap" truncate>
+          {secondaryLabel}
+        </TextSmall>
+      )}
+      <StyledLabel {...textProps}>{label}</StyledLabel>
+      {tertiaryLabel && (
+        <TextSmall color="textLite" whiteSpace="nowrap" truncate>
+          {tertiaryLabel}
+        </TextSmall>
+      )}
+      {chevron && <Icon svg={chevronDown} size="12px" color="textNoFocus" rotate={iconRotate} />}
+    </Container>
+  )
 
 const TooltipContent = ({ heading, body }) => (
   <Flex column gap={1} {...tooltipStyleProps}>

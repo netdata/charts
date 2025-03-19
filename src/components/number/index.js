@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react"
+import React from "react"
 import { Text } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
 import {
@@ -51,7 +51,7 @@ export const Unit = props => {
   )
 }
 
-export const NumberChart = forwardRef(({ uiName, ...rest }, ref) => (
+export const NumberChart = ({ uiName, ref, ...rest }) => (
   <ChartWrapper ref={ref}>
     <ChartContainer
       uiName={uiName}
@@ -65,6 +65,6 @@ export const NumberChart = forwardRef(({ uiName, ...rest }, ref) => (
       <Unit />
     </ChartContainer>
   </ChartWrapper>
-))
+)
 
 export default withChart(NumberChart, { tile: true })
