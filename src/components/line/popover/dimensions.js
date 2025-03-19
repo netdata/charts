@@ -6,6 +6,7 @@ import Units from "@/components/line/dimensions/units"
 import UpdateEvery from "./updateEvery"
 import Timestamp from "./timestamp"
 import Dimension from "./dimension"
+import useKeyboardListener from "./useKeyboardListener"
 
 const Container = styled(Flex).attrs({
   round: true,
@@ -23,8 +24,9 @@ const Container = styled(Flex).attrs({
 const Grid = styled.div`
   display: grid;
   width: 100%;
-  grid-template-columns: minmax(150px, max-content) 60px 60px minmax(80px, auto);
+  grid-template-columns: 30px minmax(150px, max-content) 60px 60px minmax(80px, auto);
   align-items: center;
+  justify-content: center;
 `
 
 const GridHeader = styled.div`
@@ -97,6 +99,8 @@ const Dimensions = () => {
 
   const rowFlavour = rowFlavours[row] || rowFlavours.default
 
+  useKeyboardListener({ chart, ids })
+
   return (
     <Container data-testid="chartPopover-dimensions" gap={2}>
       <Flex column gap={1}>
@@ -108,6 +112,7 @@ const Dimensions = () => {
       </Flex>
       <Grid gap={1} column>
         <GridHeader>
+          <TextMicro strong>Key</TextMicro>
           <TextMicro strong>Dimension</TextMicro>
           <TextMicro
             color={rowFlavour === rowFlavours.default ? "text" : "textLite"}
@@ -140,8 +145,8 @@ const Dimensions = () => {
             Info
           </TextMicro>
         </GridHeader>
-        {ids.map(id => (
-          <Dimension key={id} id={id} strong={row === id} rowFlavour={rowFlavour} />
+        {ids.map((id, index) => (
+          <Dimension key={id} id={id} index={index} strong={row === id} rowFlavour={rowFlavour} />
         ))}
       </Grid>
       <Flex flex={false} height={3}>
