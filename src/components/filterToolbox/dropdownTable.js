@@ -96,7 +96,7 @@ const Dropdown = ({
           expanded={expanded}
           onExpandedChange={onExpandedChange}
           enableSubRowSelection={enableSubRowSelection}
-          width={{ base: 250, max: "60vh" }}
+          width={{ base: 250, max: "80vw" }}
           // bulkActions={bulkActions}
           // rowActions={rowActions}
         />
@@ -222,7 +222,7 @@ const DropdownTable = ({
         stretch: null,
       }}
       dropdownProps={{
-        height: { max: "80vh" },
+        height: { max: "60vh" },
         width: "100%",
         overflow: "auto",
         columns,
