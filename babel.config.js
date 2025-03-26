@@ -3,13 +3,11 @@ const isTest = process.env.NODE_ENV === "test"
 
 module.exports = {
   presets: [
-    ["@babel/env", { loose: true, modules: isES6 ? false : "commonjs" }],
+    ["@babel/env", { loose: false, modules: isES6 ? false : "commonjs" }],
     "@babel/preset-react",
   ],
   plugins: [
     ["styled-components", { ssr: !isTest, displayName: !isTest }],
-    "@babel/plugin-transform-spread",
-    "@babel/plugin-proposal-object-rest-spread",
     [
       "module-resolver",
       {
