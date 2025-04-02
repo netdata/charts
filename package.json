@@ -15,8 +15,7 @@
   "scripts": {
     "build:cjs": "babel src --out-dir dist --copy-files --ignore **/*.stories.js",
     "build:es6": "BABEL_ENV=es6 babel src --out-dir dist/es6 --copy-files --ignore **/*.stories.js",
-    "build:umd": "NODE_ENV=production webpack",
-    "build": "yarn build:umd && yarn build:cjs && yarn build:es6",
+    "build": "yarn build:cjs && yarn build:es6",
     "test": "jest --config ./jest/config.js",
     "lint": "eslint './src/**/*.js'",
     "clean": "rimraf lib dist es coverage",
@@ -57,7 +56,6 @@
     "babel-loader": "^10.0.0",
     "babel-plugin-module-resolver": "^5.0.2",
     "babel-plugin-styled-components": "^2.1.4",
-    "clean-webpack-plugin": "^4.0.0",
     "eslint": "^9.23.0",
     "eslint-plugin-react": "^7.37.4",
     "eslint-plugin-react-hooks": "^5.2.0",
@@ -76,10 +74,7 @@
     "storybook": "^8.6.11",
     "styled-components": "^6.1.16",
     "svg-sprite-loader": "^6.0.11",
-    "svgo-loader": "^4.0.0",
-    "webpack": "^5.98.0",
-    "webpack-cli": "^6.0.1",
-    "webpack-plugin": "^1.0.5"
+    "svgo-loader": "^4.0.0"
   },
   "dependencies": {
     "@storybook/test": "^8.6.11",
