@@ -1,11 +1,11 @@
-import React, { forwardRef } from "react"
+import React from "react"
 import ChartContainer from "@/components/chartContainer"
 import { useOnResize } from "@/components/provider"
 import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
 import Dimensions from "./dimensions"
 
-export const BarsChart = forwardRef(({ uiName, ...rest }, ref) => {
+export const BarsChart = ({ uiName, ref, ...rest }) => {
   const { width, height } = useOnResize(uiName)
 
   return (
@@ -15,6 +15,6 @@ export const BarsChart = forwardRef(({ uiName, ...rest }, ref) => {
       </ChartContainer>
     </ChartWrapper>
   )
-})
+}
 
 export default withChart(BarsChart, { tile: true })

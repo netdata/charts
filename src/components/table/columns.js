@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react"
+import React from "react"
 import { Flex, TextSmall } from "@netdata/netdata-ui"
 import Color from "@/components/line/dimensions/color"
 import Name from "@/components/line/dimensions/name"
@@ -92,7 +92,7 @@ export const labelColumn = (chart, { fallbackExpandKey, partIndex, header = "Nam
 
 const compareBasic = (a, b) => (a === b ? 0 : a > b ? 1 : -1)
 
-const ValueOnDot = forwardRef(({ children, fractionDigits = 0, ...rest }, ref) => {
+const ValueOnDot = ({ children, fractionDigits = 0, ref, ...rest }) => {
   const [first, last] = children.toString().split(".")
   fractionDigits = fractionDigits === -1 ? 4 : fractionDigits
 
@@ -107,7 +107,7 @@ const ValueOnDot = forwardRef(({ children, fractionDigits = 0, ...rest }, ref) =
       </ValuePart>
     </Flex>
   )
-})
+}
 
 const TooltipValue = ({ id }) => {
   const units = useUnitSign({ long: true, dimensionId: id, withoutConversion: true })

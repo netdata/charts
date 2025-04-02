@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react"
+import React from "react"
 import styled from "styled-components"
 import { Flex, getColor, getRgbColor } from "@netdata/netdata-ui"
 import panTool from "@netdata/netdata-ui/dist/components/icon/assets/pan_tool.svg"
@@ -54,7 +54,7 @@ const ZoomReset = ({ log = () => {} }) => {
   )
 }
 
-const NavigationToolbox = forwardRef((props, ref) => {
+const NavigationToolbox = props => {
   const chart = useChart()
   const [navigation, setNavigation] = useAttribute("navigation")
 
@@ -97,7 +97,6 @@ const NavigationToolbox = forwardRef((props, ref) => {
       data-testid="chartToolbox"
       data-toolbox={chart.getId()}
       {...props}
-      ref={ref}
       data-track={chart.track("toolbox")}
     >
       <Button
@@ -143,6 +142,6 @@ const NavigationToolbox = forwardRef((props, ref) => {
       <ZoomReset log={log} />
     </Container>
   )
-})
+}
 
 export default NavigationToolbox

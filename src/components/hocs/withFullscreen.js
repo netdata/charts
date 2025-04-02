@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react"
+import React from "react"
 import { Flex, Layer } from "@netdata/netdata-ui"
 import { useAttributeValue } from "@/components/provider"
 
@@ -17,15 +17,15 @@ const Fullscreen = ({ children }) => {
 }
 
 export default Component => {
-  const FullscreenComponent = forwardRef((props, ref) => {
+  const FullscreenComponent = props => {
     const fullscreen = useAttributeValue("fullscreen")
 
     return (
       <Fullscreen>
-        <Component {...props} height={fullscreen ? "100%" : props.height} ref={ref} />
+        <Component {...props} height={fullscreen ? "100%" : props.height} />
       </Fullscreen>
     )
-  })
+  }
 
   return FullscreenComponent
 }
