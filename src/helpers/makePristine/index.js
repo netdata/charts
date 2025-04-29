@@ -8,6 +8,8 @@ export default (pristineKey, keys, dispatch = defaultDispatch) => {
   const updatePristine = (resource, key, value) => {
     if (!keysSet.has(key)) return
 
+    if (!resource[pristineKey]) return
+
     if (!(key in resource[pristineKey]) && !deepEqual(resource[key], value)) {
       const prev = resource[pristineKey]
       dispatch({ [pristineKey]: { ...resource[pristineKey], [key]: resource[key] } }, resource)
