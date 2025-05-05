@@ -42,7 +42,7 @@ const Labels = ({ labelProps, ...rest }) => {
         getStats(chart, labels[id], {
           key: "labels",
           childrenKey: "values",
-          props: { selected: value.includes(id) },
+          props: { selected: value.includes(id), unselectable: true },
           childProps: {
             unique: "-",
             parentId: id,
