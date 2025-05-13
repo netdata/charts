@@ -94,6 +94,7 @@ const NavigationToolbox = props => {
 
   return (
     <Container
+      data-noprint
       data-testid="chartToolbox"
       data-toolbox={chart.getId()}
       {...props}

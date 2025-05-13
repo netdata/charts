@@ -13,9 +13,10 @@ const ValueComponent = ({
   period = "latest",
   objKey,
   Component = Value,
+  fractionDigits,
   ...rest
 }) => {
-  const value = useConvertedValue(id, period, { valueKey, objKey, allowNull: true })
+  const value = useConvertedValue(id, period, { valueKey, objKey, allowNull: true, fractionDigits })
 
   if (!visible) return null
 

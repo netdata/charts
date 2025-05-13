@@ -104,7 +104,7 @@ const groupByColumn = (result, ids, groups, attrs) => {
 const Dimensions = () => {
   const dimensionIds = useDimensionIds()
 
-  const tab = useAttributeValue("weightsTab")
+  const tab = useAttributeValue("drawerTab")
   const searchQuery = useAttributeValue("searchQuery")
 
   const chart = useChart()

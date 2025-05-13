@@ -108,7 +108,7 @@ export default chart => {
     })
   }
 
-  const failFetch = error => {
+  chart.failFetch = error => {
     if (!chart) return
 
     if (error?.name === "AbortError") {
@@ -147,24 +147,17 @@ export default chart => {
     return firstEntry <= absoluteBefore
   }
 
-  chart.fetch = ({ processing = false } = {}) => {
+  chart.baseFetch = ({
+    doneFetch = chart.doneFetch,
+    failFetch = chart.failFetch,
+    signal,
+    params = {},
+  } = {}) => {
     if (!chart) return
 
-    chart.cancelFetch()
-    chart.updateAttributes({
-      processing,
-      loading: true,
-      fetchStartedAt: Date.now(),
-    })
-
-    chart.trigger("startFetch")
-
-    if (!isNewerThanRetention())
-      return Promise.resolve().then(() => failFetch({ message: "Exceeds data retention" }))
-
-    abortController = new AbortController()
     const options = {
-      signal: abortController.signal,
+      params,
+      signal,
       ...((chart.getAttribute("bearer") || chart.getAttribute("xNetdataBearer")) && {
         headers: {
           ...(chart.getAttribute("bearer")
@@ -181,12 +174,37 @@ export default chart => {
     return chart
       .getChart(chart, options)
       .then(data => {
-        if (data?.errorMsgKey) return failFetch(data)
-        if (!(Array.isArray(data?.result) || Array.isArray(data?.result?.data))) return failFetch()
+        if (data?.errorMsgKey) return failFetch?.(data)
+        if (!(Array.isArray(data?.result) || Array.isArray(data?.result?.data)))
+          return failFetch?.()
 
-        return chart.doneFetch(data)
+        return doneFetch?.(data)
       })
       .catch(failFetch)
+  }
+
+  chart.fetch = ({ processing = false } = {}) => {
+    if (!chart) return
+
+    chart.updateAttributes({
+      processing,
+      loading: true,
+      fetchStartedAt: Date.now(),
+    })
+
+    chart.cancelFetch()
+    chart.trigger("startFetch")
+
+    if (!isNewerThanRetention())
+      return Promise.resolve().then(() => chart.failFetch({ message: "Exceeds data retention" }))
+
+    abortController = new AbortController()
+
+    return chart.baseFetch({
+      doneFetch: chart.doneFetch,
+      failFetch: chart.failFetch,
+      signal: abortController.signal,
+    })
   }
 
   chart.consumePayload = () => {

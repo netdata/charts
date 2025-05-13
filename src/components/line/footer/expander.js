@@ -24,6 +24,7 @@ const Expander = () => {
 
   return (
     <Container
+      data-noprint
       cursor="pointer"
       onClick={() => chart.updateAttribute("expanded", !expanded)}
       alignSelf="center"

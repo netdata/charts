@@ -2,21 +2,23 @@ import { getChartURLOptions, getChartPayload } from "./helpers"
 
 const wildcard = "*"
 
-const getPayload = chart => {
+const getPayload = (chart, params = {}) => {
+  const chartAttributes = chart.getAttributes()
   const {
-    selectedContexts,
-    context,
-    nodesScope,
-    contextScope,
-    selectedInstances,
-    selectedDimensions,
-    selectedLabels,
-    aggregationMethod,
-  } = chart.getAttributes()
-  const selectedNodes = chart.getFilteredNodeIds()
-
-  const options = getChartURLOptions(chart)
-  const groupByLabel = chart.getAttribute("groupByLabel").join("|")
+    selectedContexts = chartAttributes.selectedContexts,
+    context = chartAttributes.context,
+    nodesScope = chartAttributes.nodesScope,
+    contextScope = chartAttributes.contextScope,
+    selectedNodes = chart.getFilteredNodeIds(),
+    selectedInstances = chartAttributes.selectedInstances,
+    selectedDimensions = chartAttributes.selectedDimensions,
+    selectedLabels = chartAttributes.selectedLabels,
+    aggregationMethod = chartAttributes.aggregationMethod,
+    groupBy = chartAttributes.groupBy,
+    groupByLabel = chartAttributes.groupByLabel,
+    options = getChartURLOptions(chart),
+    ...rest
+  } = params
 
   return {
     format: "json",
@@ -28,17 +30,18 @@ const getPayload = chart => {
     instances: selectedInstances.join("|") || wildcard,
     dimensions: selectedDimensions.join("|") || wildcard,
     labels: selectedLabels.join("|") || wildcard,
-    group_by: chart.getAttribute("groupBy").join("|"),
-    ...(!!groupByLabel && { group_by_label: groupByLabel }),
+    group_by: groupBy.join("|"),
+    ...(!!groupByLabel?.length && { group_by_label: groupByLabel.join("|") }),
     aggregation: aggregationMethod,
     ...getChartPayload(chart),
+    ...rest,
   }
 }
 
-export default (chart, options) => {
+export default (chart, { params, ...options } = {}) => {
   const { host } = chart.getAttributes()
 
-  const payload = getPayload(chart)
+  const payload = getPayload(chart, params)
 
   const query = new URLSearchParams(payload).toString()
   const url = `${host}/weights?${query}`

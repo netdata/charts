@@ -284,6 +284,24 @@ export const useUnits = (key = "units") => {
   return chart.getUnits(key)
 }
 
+export const convert = (
+  chart,
+  value,
+  { valueKey, fractionDigits, dimensionId, unitsKey = "units" } = {}
+) => {
+  if (value === null || value === "-") return "-"
+
+  if (valueKey === "arp" || valueKey === "percent")
+    return value === 0
+      ? "-"
+      : (Math.round((value + Number.EPSILON) * 100) / 100).toFixed(fractionDigits || 2)
+
+  if (valueKey === "pa")
+    return parts.reduce((h, a) => (check(value, enums[a]) ? { ...h, [a]: colors[a] } : h), {})
+
+  return chart.getConvertedValue(value, { fractionDigits, key: unitsKey, dimensionId })
+}
+
 export const useConverted = (
   value,
   { valueKey, fractionDigits, dimensionId, unitsKey = "units" } = {}
@@ -291,19 +309,10 @@ export const useConverted = (
   const chart = useChart()
   const unitsConversionPrefix = useAttributeValue(`${unitsKey}ConversionPrefix`)
 
-  return useMemo(() => {
-    if (value === null || value === "-") return "-"
-
-    if (valueKey === "arp" || valueKey === "percent")
-      return value === 0
-        ? "-"
-        : (Math.round((value + Number.EPSILON) * 100) / 100).toFixed(fractionDigits || 2)
-
-    if (valueKey === "pa")
-      return parts.reduce((h, a) => (check(value, enums[a]) ? { ...h, [a]: colors[a] } : h), {})
-
-    return chart.getConvertedValue(value, { fractionDigits, key: unitsKey, dimensionId })
-  }, [chart, value, valueKey, unitsConversionPrefix])
+  return useMemo(
+    () => convert(chart, value, { valueKey, fractionDigits, dimensionId, unitsKey }),
+    [chart, value, valueKey, unitsConversionPrefix]
+  )
 }
 
 export const useLatestRowValue = (options = {}) => {
@@ -358,7 +367,7 @@ export const getValueByPeriod = {
 
     return dimValue
   },
-  window: ({ chart, id, valueKey, objKey }) => {
+  window: ({ chart, id, valueKey = "value", objKey = "viewDimensions" }) => {
     const dimensions = chart.getAttribute(objKey).sts
     const values = dimensions[valueKey]
 
@@ -370,7 +379,7 @@ export const getValueByPeriod = {
 
     return values[chart.getDimensionIndex(id)]
   },
-  highlight: ({ chart, id, valueKey, objKey }) => {
+  highlight: ({ chart, id, valueKey = "value", objKey = "viewDimensions" }) => {
     const { highlight } = chart.getAttribute("overlays")
     debugger
     if (!highlight?.range) return null

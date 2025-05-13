@@ -27,6 +27,7 @@ const Reset = () => {
 
   return (
     <StyledButton
+      data-noprint
       disabled={isPristine}
       onClick={chart.resetPristine}
       data-track={chart.track("reset")}

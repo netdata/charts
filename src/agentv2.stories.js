@@ -195,7 +195,7 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
         <D3pieComponent chart={chart9} height="100px" width="100px" />
         <BarsComponent chart={chart10} height="100px" width="100px" />
       </Flex>*/}
-      <Line chart={chart} height="315px" width="100%" />
+      <Line chart={chart} height="600px" width="100%" />
       {/*<Table chart={chart7} height="315px" width="100%" />*/}
       {/*<GroupBoxes chart={chart4} />*/}
     </Flex>

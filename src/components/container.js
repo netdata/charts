@@ -3,6 +3,7 @@ import { Flex } from "@netdata/netdata-ui"
 
 const Container = styled(Flex).attrs(({ height = "100%", width = "100%", ...rest }) => ({
   "data-testid": "chart",
+  "data-type": "chart",
   column: true,
   position: "relative",
   round: true,

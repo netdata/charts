@@ -144,12 +144,13 @@ export default ({
 
     return Intl.NumberFormat(undefined, {
       useGrouping: true,
-      minimumFractionDigits: isNaN(fractionDigits) ? 0 : fractionDigits,
-      maximumFractionDigits: isNaN(fractionDigits)
-        ? unitsConversionFractionDigits === -1
-          ? 4
-          : unitsConversionFractionDigits
-        : fractionDigits,
+      minimumFractionDigits: isNaN(fractionDigits) || fractionDigits < 0 ? 0 : fractionDigits,
+      maximumFractionDigits:
+        isNaN(fractionDigits) || fractionDigits < 0
+          ? unitsConversionFractionDigits === -1
+            ? 4
+            : unitsConversionFractionDigits
+          : fractionDigits,
     }).format(converted)
   }
 

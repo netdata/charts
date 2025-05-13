@@ -5,6 +5,7 @@ import Separator from "@/components/line/separator"
 import ChartType from "./chartType"
 import Fullscreen from "./fullscreen"
 import Information from "./information"
+import Download from "./download"
 
 const Container = props => (
   <Flex
@@ -23,7 +24,7 @@ const Toolbox = ({ children, ...rest }) => {
   const toolboxElements = useAttributeValue("toolboxElements")
 
   return (
-    <Container {...rest}>
+    <Container data-noprint {...rest}>
       {children}
       {toolboxElements.map((Element, index) => (
         <Element key={index} disabled={disabled} />
@@ -32,6 +33,6 @@ const Toolbox = ({ children, ...rest }) => {
   )
 }
 
-export { Container, Separator, ChartType, Fullscreen, Information }
+export { Container, Separator, ChartType, Fullscreen, Information, Download }
 
 export default Toolbox

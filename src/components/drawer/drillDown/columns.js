@@ -1,11 +1,16 @@
-import React from "react"
-import { Flex, TextSmall, TextMicro } from "@netdata/netdata-ui"
+import React, { useMemo } from "react"
+import { Flex, ProgressBar, TextSmall, TextMicro, MasterCard } from "@netdata/netdata-ui"
 import styled from "styled-components"
 import Color, { ColorBar } from "@/components/line/dimensions/color"
 import Name from "@/components/line/dimensions/name"
 import Units from "@/components/line/dimensions/units"
 import Value, { Value as ValuePart } from "@/components/line/dimensions/value"
-import { useChart, useAttributeValue, useVisibleDimensionId } from "@/components/provider"
+import {
+  useChart,
+  useConverted,
+  useAttributeValue,
+  useVisibleDimensionId,
+} from "@/components/provider"
 import Label from "@/components/filterToolbox/label"
 import { rowFlavours } from "@/components/line/popover/dimensions"
 
@@ -22,70 +27,167 @@ const rowValueKeys = {
   default: "value",
 }
 
-const metricsByValue = {
-  dimension: "dimensions",
-  node: "nodes",
-  instance: "instances",
-  label: "labels",
-  value: "values",
-  default: "values",
-}
+const useMetricsByValue = chart =>
+  useMemo(
+    () => ({
+      dimension: "dimensions",
+      node: "nodes",
+      instance: chart.intl("instance", { count: 2 }),
+      label: "labels",
+      value: "values",
+      default: "values",
+    }),
+    []
+  )
 
 const emptyArray = []
 
 export const labelColumn = fallbackExpandKey => ({
   id: "label",
   header: () => <TextSmall strong>Name</TextSmall>,
-  size: 300,
+  size: 200,
   minSize: 60,
-  cell: ({
-    row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
-  }) => {
-    const [, row] = useAttributeValue("hoverX") || emptyArray
-    const rowFlavour = rowFlavours[row] || rowFlavours.default
-
-    const visible = useVisibleDimensionId(id)
-
+  maxSize: 800,
+  cell: ({ getValue, row }) => {
     const chart = useChart()
-    const fractionDigits = chart.getAttribute("unitsConversionFractionDigits")
+    const metricsByValue = useMetricsByValue(chart)
 
     return (
       <Flex
         justifyContent="between"
         alignItems="center"
-        padding={[0, 0, 0, depth * 3]}
-        opacity={visible ? null : "weak"}
+        padding={[0, 0, 0, row.depth * 3]}
+        width="100%"
       >
-        <Flex alignItems="center" gap={1} position="relative" width="100%">
-          {visible && (
-            <ColorBackground
-              id={id}
-              valueKey={rowValueKeys[rowFlavour] || rowValueKeys.default}
-              height="18px"
-            >
-              <Color id={id} />
-            </ColorBackground>
-          )}
-          <Name padding={[1, 2]} flex id={id} />
+        <Flex gap={1}>
+          <Color id={getValue()} />
+          <TextSmall
+            strong
+            onClick={
+              !row.original.disabled
+                ? e => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    row.getToggleSelectedHandler()(e)
+                  }
+                : undefined
+            }
+            cursor={row.original.disabled ? "default" : "pointer"}
+            whiteSpace="normal"
+            wordBreak="break-word"
+          >
+            {getValue()}
+          </TextSmall>
         </Flex>
-        {getCanExpand() && (
+        {row.getCanExpand() && (
           <Label
             label={
-              metricsByValue[row.original.value] ||
+              metricsByValue[getValue()] ||
               metricsByValue[fallbackExpandKey] ||
               metricsByValue.default
             }
             onClick={e => {
-              getToggleExpandedHandler()(e)
+              e.preventDefault()
+              e.stopPropagation()
+              row.getToggleExpandedHandler()(e)
               setTimeout(() => e.target.scrollIntoView({ behavior: "smooth", block: "nearest" }))
             }}
-            iconRotate={getIsExpanded() ? 2 : null}
+            iconRotate={row.getIsExpanded() ? 2 : null}
             textProps={{ fontSize: "10px", color: "textLite" }}
+            alignItems="center"
           />
         )}
       </Flex>
     )
   },
+})
+
+export const metricsColumn = () => ({
+  id: "metrics",
+  header: <TextMicro strong>Metrics</TextMicro>,
+  size: 60,
+  minSize: 30,
+  maxSize: 300,
+  fullWidth: true,
+  cell: ({ row, getValue }) => {
+    if (!row.original.info?.ds) return <TextSmall color="textLite">{getValue()}</TextSmall>
+
+    const { qr = 0, sl = 0, ex = 0 } = row.original.info.ds
+    return (
+      <Flex flex column gap={0.5}>
+        <TextSmall color="textLite">
+          <TextSmall color="primary">{qr}</TextSmall> of {sl + ex}
+        </TextSmall>
+        <ProgressBar
+          background="progressBg"
+          color={["green", "deyork"]}
+          height={2}
+          width={`${(qr / (sl + ex)) * 100}%`}
+          containerWidth="100%"
+          border="none"
+        />
+      </Flex>
+    )
+  },
+  sortingFn: "basic",
+})
+
+export const contributionColumn = () => ({
+  id: "contribution",
+  header: <TextMicro strong>Vol %</TextMicro>,
+  size: 60,
+  minSize: 30,
+  maxSize: 300,
+  fullWidth: true,
+  cell: ({ row, getValue }) => {
+    if (!row.original.info?.sts) return <TextSmall color="textLite">{getValue()}</TextSmall>
+
+    return (
+      <Flex flex column gap={0.5}>
+        <TextSmall color="primary">
+          {Math.round((getValue() + Number.EPSILON) * 100) / 100}%
+        </TextSmall>
+        <ProgressBar
+          background="progressBg"
+          color={["green", "deyork"]}
+          height={2}
+          width={`${getValue()}%`}
+          containerWidth="100%"
+          border="none"
+        />
+      </Flex>
+    )
+  },
+  sortingFn: "basic",
+})
+
+export const anomalyRateColumn = () => ({
+  id: "anomalyRate",
+  header: <TextMicro strong>Anomaly%</TextMicro>,
+  size: 60,
+  minSize: 30,
+  maxSize: 300,
+  fullWidth: true,
+  cell: ({ row, getValue }) => {
+    if (!row.original.info?.sts) return <TextSmall color="textLite">{getValue()}</TextSmall>
+
+    return (
+      <Flex flex column gap={0.5}>
+        <TextSmall color="textLite">
+          {Math.round((getValue() + Number.EPSILON) * 100) / 100}%
+        </TextSmall>
+        <ProgressBar
+          background="progressBg"
+          color="anomalyText"
+          height={2}
+          width={`${getValue()}%`}
+          containerWidth="100%"
+          border="none"
+        />
+      </Flex>
+    )
+  },
+  sortingFn: "basic",
 })
 
 const ValueOnDot = ({ children, fractionDigits = 0, ...rest }) => {
@@ -134,118 +236,80 @@ export const valueColumn = () => ({
   sortingFn: "basic",
 })
 
-export const anomalyColumn = ({ period, objKey }) => ({
-  id: objKey ? `${objKey}-arp` : "arp",
-  header: <TextMicro>Anomaly%</TextMicro>,
-  size: 45,
-  minSize: 45,
-  cell: ({
-    row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
-  }) => {
-    const visible = useVisibleDimensionId(id)
-
-    return (
-      <Value
-        period={period}
-        objKey={objKey}
-        textAlign="right"
-        id={id}
-        visible={visible}
-        valueKey="arp"
-        Component={ValueOnDot}
-        fractionDigits={2}
-        color="anomalyTextFocus"
-      />
-    )
-  },
-  sortingFn: "basic",
-})
-
-export const minColumn = ({ period, objKey }) => ({
-  id: objKey ? `${objKey}-min` : "min",
+export const minColumn = () => ({
+  id: "min",
   header: (
-    <TextMicro>
+    <TextMicro strong>
       Min <Units visible />
     </TextMicro>
   ),
-  size: 45,
-  minSize: 45,
-  cell: ({
-    row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
-  }) => {
-    const visible = useVisibleDimensionId(id)
-
-    return (
-      <Value
-        period={period}
-        objKey={objKey}
-        textAlign="right"
-        id={id}
-        visible={visible}
-        valueKey="min"
-        Component={ValueOnDot}
-        fractionDigits={2}
-      />
-    )
+  size: 60,
+  minSize: 30,
+  maxSize: 300,
+  fullWidth: true,
+  cell: ({ getValue }) => {
+    const value = useConverted(getValue())
+    return <TextSmall color="textLite">{value}</TextSmall>
   },
   sortingFn: "basic",
 })
 
-export const avgColumn = ({ period, objKey }) => ({
-  id: objKey ? `${objKey}-avg` : "avg",
+export const avgColumn = () => ({
+  id: "avg",
   header: (
-    <TextMicro>
+    <TextMicro strong>
       Avg <Units visible />
     </TextMicro>
   ),
-  size: 45,
-  minSize: 45,
-  cell: ({
-    row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
-  }) => {
-    const visible = useVisibleDimensionId(id)
-
-    return (
-      <Value
-        period={period}
-        objKey={objKey}
-        textAlign="right"
-        id={id}
-        visible={visible}
-        valueKey="avg"
-        Component={ValueOnDot}
-        fractionDigits={2}
-      />
-    )
+  size: 60,
+  minSize: 30,
+  maxSize: 300,
+  fullWidth: true,
+  cell: ({ getValue }) => {
+    const value = useConverted(getValue())
+    return <TextSmall color="textLite">{value}</TextSmall>
   },
   sortingFn: "basic",
 })
 
-export const maxColumn = ({ period, objKey }) => ({
-  id: objKey ? `${objKey}-max` : "max",
+export const maxColumn = () => ({
+  id: "max",
   header: (
-    <TextMicro>
+    <TextMicro strong>
       Max <Units visible />
     </TextMicro>
   ),
-  size: 45,
-  minSize: 45,
-  cell: ({
-    row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
-  }) => {
-    const visible = useVisibleDimensionId(id)
+  size: 60,
+  minSize: 30,
+  maxSize: 300,
+  fullWidth: true,
+  cell: ({ getValue }) => {
+    const value = useConverted(getValue())
+    return <TextSmall color="textLite">{value}</TextSmall>
+  },
+  sortingFn: "basic",
+})
+
+export const alertsColumn = () => ({
+  id: "alerts",
+  header: <TextMicro strong>Alerts</TextMicro>,
+  size: 60,
+  minSize: 30,
+  maxSize: 300,
+  fullWidth: true,
+  cell: ({ row, getValue }) => {
+    if (!row.original.info?.al) return <TextSmall color="textLite">{getValue()}</TextSmall>
+
+    const { cl = 0, cr = 0, wr = 0 } = row.original.info.al
+
+    const pillLeft = { text: cr, flavour: cr ? "error" : "disabledError" }
+    const pillRight = { text: wr, flavour: wr ? "warning" : "disabledWarning" }
+    const pillEnd = { text: cl, flavour: cl ? "clear" : "disabledClear" }
 
     return (
-      <Value
-        period={period}
-        objKey={objKey}
-        textAlign="right"
-        id={id}
-        visible={visible}
-        valueKey="max"
-        Component={ValueOnDot}
-        fractionDigits={2}
-      />
+      <Flex>
+        <MasterCard pillLeft={pillLeft} pillRight={pillRight} pillEnd={pillEnd} />
+      </Flex>
     )
   },
   sortingFn: "basic",

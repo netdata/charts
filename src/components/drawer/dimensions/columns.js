@@ -3,16 +3,22 @@ import { Flex, TextSmall, TextMicro } from "@netdata/netdata-ui"
 import styled from "styled-components"
 import Color, { ColorBar } from "@/components/line/dimensions/color"
 import Name from "@/components/line/dimensions/name"
-import Units from "@/components/line/dimensions/units"
+import Units, { Value as UnitsText } from "@/components/line/dimensions/units"
 import Value, { Value as ValuePart } from "@/components/line/dimensions/value"
-import { useChart, useAttributeValue, useVisibleDimensionId } from "@/components/provider"
+import {
+  useChart,
+  useAttributeValue,
+  useVisibleDimensionId,
+  getValueByPeriod,
+  convert,
+} from "@/components/provider"
 import Label from "@/components/filterToolbox/label"
 import { rowFlavours } from "@/components/line/popover/dimensions"
 
 const ColorBackground = styled(ColorBar).attrs({
   position: "absolute",
-  top: 1,
-  left: 2,
+  top: 1.5,
+  left: 0,
   backgroundOpacity: 0.4,
   round: 0.5,
 })``
@@ -33,11 +39,12 @@ const metricsByValue = {
 
 const emptyArray = []
 
-export const labelColumn = fallbackExpandKey => ({
+export const labelColumn = (chart, fallbackExpandKey) => ({
   id: "label",
   header: () => <TextSmall strong>Name</TextSmall>,
-  size: 300,
+  size: 200,
   minSize: 60,
+  renderString: row => chart.getDimensionName(row.original),
   cell: ({
     row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
   }) => {
@@ -101,15 +108,22 @@ const ValueOnDot = ({ children, fractionDigits = 0, ...rest }) => {
   )
 }
 
-export const valueColumn = () => ({
+export const valueColumn = chart => ({
   id: "value",
   header: (
-    <TextMicro>
-      Value <Units visible />
-    </TextMicro>
+    <Flex column>
+      <TextMicro>Value</TextMicro>
+      <Units visible />
+    </Flex>
   ),
-  size: 45,
-  minSize: 45,
+  headerString: () => `Value (${chart.getUnitSign({ key: "units" })})`,
+  size: 60,
+  minSize: 60,
+  renderString: row =>
+    convert(chart, getValueByPeriod.latest({ chart, id: row.original }), {
+      fractionDigits: 2,
+      dimensionId: row.original,
+    }),
   cell: ({
     row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
   }) => {
@@ -131,11 +145,29 @@ export const valueColumn = () => ({
   sortingFn: "basic",
 })
 
-export const anomalyColumn = ({ period, objKey }) => ({
+export const anomalyColumn = (chart, { period, objKey }) => ({
   id: objKey ? `${objKey}-arp` : "arp",
-  header: <TextMicro>AR %</TextMicro>,
-  size: 45,
-  minSize: 45,
+  header: (
+    <Flex column>
+      <TextMicro>AR</TextMicro>
+      <UnitsText>%</UnitsText>
+    </Flex>
+  ),
+  headerString: () => "Anomaly%",
+  size: 60,
+  minSize: 60,
+  renderString: row =>
+    convert(
+      chart,
+      getValueByPeriod[period]({
+        chart,
+        id: row.original,
+        valueKey: "arp",
+
+        objKey,
+      }),
+      { valueKey: "arp", fractionDigits: 2, dimensionId: row.original }
+    ),
   cell: ({
     row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
   }) => {
@@ -158,15 +190,29 @@ export const anomalyColumn = ({ period, objKey }) => ({
   sortingFn: "basic",
 })
 
-export const minColumn = ({ period, objKey }) => ({
+export const minColumn = (chart, { period, objKey }) => ({
   id: objKey ? `${objKey}-min` : "min",
   header: (
-    <TextMicro>
-      Min <Units visible />
-    </TextMicro>
+    <Flex column>
+      <TextMicro>Min</TextMicro>
+      <Units visible />
+    </Flex>
   ),
-  size: 45,
-  minSize: 45,
+  headerString: () => `Min (${chart.getUnitSign({ key: "units" })})`,
+  size: 60,
+  minSize: 60,
+  renderString: row =>
+    convert(
+      chart,
+      getValueByPeriod[period]({
+        chart,
+        id: row.original,
+        valueKey: "min",
+
+        objKey,
+      }),
+      { valueKey: "min", fractionDigits: 2, dimensionId: row.original }
+    ),
   cell: ({
     row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
   }) => {
@@ -188,15 +234,29 @@ export const minColumn = ({ period, objKey }) => ({
   sortingFn: "basic",
 })
 
-export const avgColumn = ({ period, objKey }) => ({
+export const avgColumn = (chart, { period, objKey }) => ({
   id: objKey ? `${objKey}-avg` : "avg",
   header: (
-    <TextMicro>
-      Avg <Units visible />
-    </TextMicro>
+    <Flex column>
+      <TextMicro>Avg</TextMicro>
+      <Units visible />
+    </Flex>
   ),
-  size: 45,
-  minSize: 45,
+  headerString: () => `Avg (${chart.getUnitSign({ key: "units" })})`,
+  size: 60,
+  minSize: 60,
+  renderString: row =>
+    convert(
+      chart,
+      getValueByPeriod[period]({
+        chart,
+        id: row.original,
+        valueKey: "avg",
+
+        objKey,
+      }),
+      { valueKey: "avg", fractionDigits: 2, dimensionId: row.original }
+    ),
   cell: ({
     row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
   }) => {
@@ -218,15 +278,29 @@ export const avgColumn = ({ period, objKey }) => ({
   sortingFn: "basic",
 })
 
-export const maxColumn = ({ period, objKey }) => ({
+export const maxColumn = (chart, { period, objKey }) => ({
   id: objKey ? `${objKey}-max` : "max",
   header: (
-    <TextMicro>
-      Max <Units visible />
-    </TextMicro>
+    <Flex column>
+      <TextMicro>Max</TextMicro>
+      <Units visible />
+    </Flex>
   ),
-  size: 45,
-  minSize: 45,
+  headerString: () => `Max (${chart.getUnitSign({ key: "units" })})`,
+  size: 60,
+  minSize: 60,
+  renderString: row =>
+    convert(
+      chart,
+      getValueByPeriod[period]({
+        chart,
+        id: row.original,
+        valueKey: "max",
+
+        objKey,
+      }),
+      { valueKey: "max", fractionDigits: 2, dimensionId: row.original }
+    ),
   cell: ({
     row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
   }) => {

@@ -1,11 +1,14 @@
 import React, { useMemo } from "react"
-import { Flex, Table, TextSmall } from "@netdata/netdata-ui"
+import { Flex, Table, TextSmall, downloadCsvAction } from "@netdata/netdata-ui"
 import { uppercase } from "@/helpers/objectTransform"
 import { useChart, useDimensionIds, useAttributeValue } from "@/components/provider/selectors"
-import D3pieComponent from "@/components/d3pie"
+// import { BarsChart } from "@/components/bars"
 import { labelColumn, valueColumn, anomalyColumn, minColumn, avgColumn, maxColumn } from "./columns"
 
+const noop = () => {}
+
 const useColumns = (period, options = {}) => {
+  const chart = useChart()
   const hover = useAttributeValue("hoverX")
 
   return useMemo(() => {
@@ -16,26 +19,29 @@ const useColumns = (period, options = {}) => {
       {
         id: "Dimensions",
         header: () => <TextSmall>Dimension ({hover ? "hovering" : "latest"} value)</TextSmall>,
-        columns: [labelColumn(), valueColumn()],
+        fullWidth: true,
+        columns: [labelColumn(chart), valueColumn(chart)],
       },
       {
         id: "visible",
         header: () => <TextSmall>{uppercase(period)} points</TextSmall>,
+        fullWidth: true,
         columns: [
-          minColumn(columnOptions),
-          avgColumn(columnOptions),
-          maxColumn(columnOptions),
-          anomalyColumn(columnOptions),
+          minColumn(chart, columnOptions),
+          avgColumn(chart, columnOptions),
+          maxColumn(chart, columnOptions),
+          anomalyColumn(chart, columnOptions),
         ],
       },
       {
         id: "aggregated",
         header: () => <TextSmall>Aggregated points</TextSmall>,
+        fullWidth: true,
         columns: [
-          minColumn(dbOptions),
-          avgColumn(dbOptions),
-          maxColumn(dbOptions),
-          anomalyColumn(dbOptions),
+          minColumn(chart, dbOptions),
+          avgColumn(chart, dbOptions),
+          maxColumn(chart, dbOptions),
+          anomalyColumn(chart, dbOptions),
         ],
       },
     ]
@@ -49,39 +55,31 @@ const meta = (row, cell, index) => ({
     ...(row.depth > 0 && { backgroundOpacity: 0.4 }),
     ...(row.depth > 0 && index === 0 && { border: { side: "left", size: "4px" } }),
   },
-  headStyles: {
-    height: "32px",
-  },
-  styles: { verticalAlign: "middle" },
   bulkActionsStyles: {
-    padding: [2, 0],
-  },
-  searchContainerStyles: {
-    width: "100%",
-    padding: [0, 2, 0, 2],
-  },
-  searchStyles: {
-    inputContainerStyles: {
-      height: "20px",
-      border: { side: "all", size: "1px", color: "inputBg" },
-      background: "inputBg",
-      round: true,
-      padding: [1, 2],
-      _hover: {
-        border: { side: "all", size: "1px", color: "borderSecondary" },
-      },
-    },
+    padding: [1, 0],
   },
 })
 
 const Dimensions = () => {
   const dimensionIds = useDimensionIds()
 
-  const tab = useAttributeValue("weightsTab")
+  const tab = useAttributeValue("drawerTab")
   const columns = useColumns(tab)
 
   const chart = useChart()
-  useMemo(() => chart.makeChartUI("custom", "d3pie"), [])
+  useMemo(() => chart.makeChartUI("custom", "bars"), [])
+
+  const bulkActions = useMemo(() => {
+    const filename = `${chart.getAttribute("name") || chart.getAttribute("contextScope").join("-").replace(".", "_")}`
+
+    return {
+      download: {
+        handleAction: downloadCsvAction(filename),
+        tooltipText: "Download as CSV",
+        alwaysEnabled: true,
+      },
+    }
+  }, [chart])
 
   return (
     <Flex gap={2}>
@@ -91,7 +89,7 @@ const Dimensions = () => {
         dataColumns={columns}
         data={dimensionIds}
         // onRowSelected={onItemClick}
-        // onSearch={noop}
+        onSearch={noop}
         meta={meta}
         // sortBy={sortBy}
         // rowSelection={rowSelection}
@@ -100,10 +98,12 @@ const Dimensions = () => {
         // onExpandedChange={onExpandedChange}
         // enableSubRowSelection={enableSubRowSelection}
         width="100%"
-        // bulkActions={bulkActions}
+        bulkActions={bulkActions}
         // rowActions={rowActions}
       />
-      <D3pieComponent chart={chart} uiName="custom" />
+      {/*      <Flex flex={false} width={{base: "30%", min: }}>
+        <BarsChart chart={chart} uiName="custom" />
+      </Flex>*/}
     </Flex>
   )
 }

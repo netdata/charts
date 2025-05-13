@@ -1,6 +1,16 @@
-import React, { useState } from "react"
-import { ThemeProvider } from "styled-components"
+import React from "react"
+import { ThemeProvider, StyleSheetManager } from "styled-components"
+import isPropValid from "@emotion/is-prop-valid"
 import { Flex, DefaultTheme, DarkTheme, GlobalStyles } from "@netdata/netdata-ui"
+
+const shouldForwardProp = (propName, target) => {
+  if (typeof target === "string") {
+    // For HTML elements, forward the prop if it is a valid HTML attribute
+    return isPropValid(propName)
+  }
+  // For other elements, forward all props
+  return true
+}
 
 const preview = {
   parameters: {
@@ -19,12 +29,14 @@ const preview = {
       const theme = context.globals.theme === "dark" ? DarkTheme : DefaultTheme
 
       return (
-        <ThemeProvider theme={theme}>
-          <GlobalStyles />
-          <Flex width="100vw" height="100vh" background="mainBackground" justifyContent="center">
-            <Story />
-          </Flex>
-        </ThemeProvider>
+        <StyleSheetManager shouldForwardProp={shouldForwardProp}>
+          <ThemeProvider theme={theme}>
+            <GlobalStyles />
+            <Flex width="100vw" height="100vh" background="mainBackground" justifyContent="center">
+              <Story />
+            </Flex>
+          </ThemeProvider>
+        </StyleSheetManager>
       )
     },
   ],

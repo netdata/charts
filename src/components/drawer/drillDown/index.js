@@ -1,45 +1,17 @@
 import React, { useMemo } from "react"
-import { Flex, Table, TextSmall } from "@netdata/netdata-ui"
-import { uppercase } from "@/helpers/objectTransform"
-import { useDimensionIds, useAttributeValue } from "@/components/provider/selectors"
-import { labelColumn, valueColumn, anomalyColumn, minColumn, avgColumn, maxColumn } from "./columns"
-
-const useColumns = (period, options = {}) => {
-  const hover = useAttributeValue("hoverX")
-
-  return useMemo(() => {
-    const columnOptions = { period, ...options }
-    const dbOptions = { ...columnOptions, objKey: "dbDimensions", unitsKey: "dbUnits" }
-
-    return [
-      {
-        id: "Dimensions",
-        header: () => <TextSmall>Dimension ({hover ? "hovering" : "latest"} value)</TextSmall>,
-        columns: [labelColumn(), valueColumn()],
-      },
-      {
-        id: "visible",
-        header: () => <TextSmall>{uppercase(period)} points</TextSmall>,
-        columns: [
-          minColumn(columnOptions),
-          avgColumn(columnOptions),
-          maxColumn(columnOptions),
-          anomalyColumn(columnOptions),
-        ],
-      },
-      {
-        id: "aggregated",
-        header: () => <TextSmall>Aggregated points</TextSmall>,
-        columns: [
-          minColumn(dbOptions),
-          avgColumn(dbOptions),
-          maxColumn(dbOptions),
-          anomalyColumn(dbOptions),
-        ],
-      },
-    ]
-  }, [period, !!hover])
-}
+import { Flex, Table } from "@netdata/netdata-ui"
+import { getStats } from "@/components/filterToolbox/utils"
+import { useChart, useAttributeValue } from "@/components/provider/selectors"
+import {
+  labelColumn,
+  metricsColumn,
+  contributionColumn,
+  anomalyRateColumn,
+  alertsColumn,
+  minColumn,
+  avgColumn,
+  maxColumn,
+} from "./columns"
 
 const meta = (row, cell, index) => ({
   cellStyles: {
@@ -72,11 +44,56 @@ const meta = (row, cell, index) => ({
   },
 })
 
-const DrillDown = () => {
-  const dimensionIds = useDimensionIds()
+const columns = [
+  labelColumn(),
+  metricsColumn(),
+  contributionColumn(),
+  anomalyRateColumn(),
+  alertsColumn(),
+  minColumn(),
+  avgColumn(),
+  maxColumn(),
+]
 
-  const tab = useAttributeValue("weightsTab")
-  const columns = useColumns(tab)
+const DrillDown = () => {
+  const chart = useChart()
+
+  const nodes = useAttributeValue("nodes")
+  const instances = useAttributeValue("instances")
+  const dimensions = useAttributeValue("dimensions")
+
+  const selectedNodes = useAttributeValue("selectedNodes")
+  const selectedInstances = useAttributeValue("selectedInstances")
+  const selectedDimensions = useAttributeValue("selectedDimensions")
+
+  const data = useMemo(
+    () =>
+      Object.keys(nodes).map(id => {
+        const selected = selectedNodes.includes(id)
+
+        return getStats(chart, nodes[id], {
+          id,
+          key: "nodes",
+          childrenKey: "instances",
+          props: { selected },
+          childProps: {
+            isInstance: true,
+            getValue: instance => `${instance.id}@${id}`,
+            getIsSelected: instance => selectedInstances.includes(`${instance.id}@${id}`),
+          },
+          children: Object.keys(instances).reduce((h, instanceId) => {
+            if (instances[instanceId].ni !== nodes[id].ni) return h
+
+            h.push(instances[instanceId])
+            return h
+          }, []),
+        })
+      }),
+    [nodes, selectedNodes, selectedInstances]
+  )
+  debugger
+
+  const tab = useAttributeValue("drawerTab")
 
   return (
     <Flex>
@@ -84,7 +101,7 @@ const DrillDown = () => {
         enableSorting
         // enableSelection
         dataColumns={columns}
-        data={dimensionIds}
+        data={data}
         // onRowSelected={onItemClick}
         // onSearch={noop}
         meta={meta}

@@ -5,8 +5,9 @@ import HeatmapColors from "@/components/line/legend/heatmapColors"
 import DimensionSort from "@/components/line/dimensionSort"
 import { useAttributeValue, usePayload, useIsMinimal } from "@/components/provider"
 import Indicators from "@/components/line/indicators"
-import Expander from "./expander"
 import { useIsHeatmap } from "@/helpers/heatmap"
+import Drawer from "@/components/drawer"
+import Expander from "./expander"
 
 export const Container = props => (
   <Flex
@@ -21,6 +22,7 @@ export const Container = props => (
 const Footer = () => {
   const showingInfo = useAttributeValue("showingInfo")
   const expandable = useAttributeValue("expandable")
+  const expanded = useAttributeValue("expanded")
 
   usePayload()
   const isHeatmap = useIsHeatmap()
@@ -38,6 +40,7 @@ const Footer = () => {
           </Flex>
         </>
       )}
+      {expandable && expanded && <Drawer />}
       {expandable && (
         <Flex
           flex

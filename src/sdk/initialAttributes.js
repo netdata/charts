@@ -1,6 +1,7 @@
 import ChartType from "@/components/toolbox/chartType"
 import Fullscreen from "@/components/toolbox/fullscreen"
 import Information from "@/components/toolbox/information"
+import Download from "@/components/toolbox/download"
 
 import Status from "@/components/status"
 
@@ -134,7 +135,7 @@ export default {
 
   hasToolbox: true,
   hasHoverPopover: true,
-  expandable: false,
+  expandable: true,
 
   hasYlabel: true,
   yAxisLabelWidth: 60,
@@ -202,7 +203,7 @@ export default {
 
   agent: true,
 
-  toolboxElements: [Information, ChartType, Fullscreen],
+  toolboxElements: [Information, ChartType, Fullscreen, Download],
   toolboxProps: {},
   leftHeaderElements: [Status],
 
@@ -239,8 +240,8 @@ export default {
   instances: {},
   alerts: {},
 
-  weightsAction: "values",
-  weightsTab: "window",
+  drawerAction: "values",
+  drawerTab: "window",
 
   renderedAt: null,
   fetchAt: null,

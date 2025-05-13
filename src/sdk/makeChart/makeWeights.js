@@ -59,7 +59,7 @@ export default (chart, sdk) => {
 
   const cancelFetch = () => abortController && abortController.abort()
 
-  const doneFetch = nextRawWeights => {
+  const doneFetch = (nextRawWeights, tab) => {
     const { result, ...restPayload } = camelizePayload(nextRawWeights)
 
     debugger
@@ -72,7 +72,7 @@ export default (chart, sdk) => {
     chart.trigger("weights:finishFetch")
   }
 
-  const failFetch = error => {
+  const failFetch = (error, tab) => {
     if (!chart) return
 
     if (error?.name === "AbortError") {
@@ -88,12 +88,25 @@ export default (chart, sdk) => {
     chart.trigger("weights:finishFetch")
   }
 
-  const fetchWeights = () => {
+  const fetchWeights = tab => {
     if (!chart) return
 
     const dataFetch = () => {
       abortController = new AbortController()
-      const options = { signal: abortController.signal }
+      const options = {
+        signal: abortController.signal,
+        ...((chart.getAttribute("bearer") || chart.getAttribute("xNetdataBearer")) && {
+          headers: {
+            ...(chart.getAttribute("bearer")
+              ? {
+                  Authorization: `Bearer ${chart.getAttribute("bearer")}`,
+                }
+              : {
+                  "X-Netdata-Auth": `Bearer ${chart.getAttribute("xNetdataBearer")}`,
+                }),
+          },
+        }),
+      }
       return fetchChartWeights(chart, options)
         .then(data => {
           debugger
@@ -101,9 +114,9 @@ export default (chart, sdk) => {
           // if (!(Array.isArray(data?.result) || Array.isArray(data?.result?.data)))
           //   return failFetch()
 
-          return doneFetch(data)
+          return doneFetch(data, tab)
         })
-        .catch(failFetch)
+        .catch(e => failFetch(e, tab))
     }
 
     cancelFetch()
