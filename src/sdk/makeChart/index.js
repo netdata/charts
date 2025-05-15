@@ -265,11 +265,13 @@ export default ({
     node.invalidateClosestRowCache()
   })
 
-  node.makeChartUI = (uiName, chartLibrary = node.getAttribute("chartLibrary")) => {
+  node.makeChartUI = (uiName, chartLibrary = node.getAttribute("chartLibrary"), force = false) => {
     if (!(chartLibrary in sdk.ui))
       console.error(
         `Chart library "${chartLibrary}" does not exist in ${Object.keys(sdk.ui).join(", ")}`
       )
+
+    if (node.getUI(uiName) && !force) return
 
     const makeChartLibrary = sdk.ui[chartLibrary]
 

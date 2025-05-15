@@ -33,6 +33,7 @@ const Drawer = () => {
       data-testid="drawer"
       background="mainChartBg"
       border={{ side: "top", color: "borderSecondary" }}
+      overflow={{ vertical: "scroll" }}
     >
       <Header />
       <Component />
