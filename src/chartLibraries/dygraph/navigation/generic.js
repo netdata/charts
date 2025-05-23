@@ -1,5 +1,4 @@
 import Dygraph from "dygraphs"
-import DygraphInteraction from "dygraphs/src/dygraph-interaction-model"
 import { debounce } from "throttle-debounce"
 import limitRange from "@/helpers/limitRange"
 import makeHoverX from "../hoverX"
@@ -7,7 +6,7 @@ import makeHoverX from "../hoverX"
 const doubleTapDelay = 300
 
 export default chartUI => {
-  const { highlight, destroy } = makeHoverX(chartUI)
+  const { destroy } = makeHoverX(chartUI)
 
   const updateNavigation = (
     navigation,
@@ -65,7 +64,7 @@ export default chartUI => {
         after: afterSeconds,
         before: beforeSeconds,
       })
-      if (fixedAfter === afterAxis && fixedBefore === beforeAxis) {
+      if (fixedAfter * 1000 === afterAxis && fixedBefore * 1000 === beforeAxis) {
         return
       }
 
