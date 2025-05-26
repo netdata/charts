@@ -19,7 +19,7 @@ export default sdk => {
           renderedAt:
             chart.getAttribute("after") < 0
               ? chart.getUI().getRenderedAt()
-              : chart.getAttribute("before"),
+              : chart.getAttribute("before") * 1000,
         })
       })
       sdk.trigger("play:hoverChart", chart)
