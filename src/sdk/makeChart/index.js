@@ -77,8 +77,8 @@ export default ({
       after > 0
         ? [after * 1000, before * 1000]
         : renderedAt
-          ? [renderedAt * 1000 + after, renderedAt * 1000]
-          : [now + after, now]
+          ? [renderedAt * 1000 + after * 1000, renderedAt * 1000]
+          : [now + after * 1000, now]
 
     return cachedDateWindow
   }
