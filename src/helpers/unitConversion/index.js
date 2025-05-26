@@ -55,10 +55,10 @@ export default chart => {
       ? chart.getVisibleDimensionIds().reduce(
           (h, d) => {
             const dname = chart.getDimensionName(d)
-            if (result.byDimension[dname] && result.byDimension[dname].min <= h.min)
-              h.min = result.byDimension[dname].min
-            if (result.byDimension[dname] && result.byDimension[dname].max >= h.max)
-              h.max = result.byDimension[dname].max
+            const dimSts = result.byDimension[d] || result.byDimension[dname]
+
+            if (dimSts && dimSts.min <= h.min) h.min = dimSts.min
+            if (dimSts && dimSts.max >= h.max) h.max = dimSts.max
             return h
           },
           { min: Infinity, max: -Infinity }
