@@ -1,12 +1,13 @@
-import React, { memo, useState } from "react"
+import React, { memo } from "react"
 import Icon, { Button } from "@/components/icon"
 import { useAttributeValue, useChart } from "@/components/provider"
 import Tooltip from "@/components/tooltip"
-import { Flex, TextNano, TextInput } from "@netdata/netdata-ui"
+import { Flex, TextNano } from "@netdata/netdata-ui"
 import plusIcon from "@netdata/netdata-ui/dist/components/icon/assets/plus.svg"
 import xIcon from "@netdata/netdata-ui/dist/components/icon/assets/x.svg"
 import styled from "styled-components"
-import { Divider } from "./highlight"
+import { Divider } from "../highlight"
+import AnnotationForm from "./form"
 
 const StyledDraftAnnotation = styled(Flex).attrs({
   justifyContent: "center",
@@ -23,18 +24,17 @@ const StyledDraftAnnotation = styled(Flex).attrs({
   zIndex: 10,
 })``
 
-const DraftAnnotationContent = memo(({ draftAnnotation }) => {
-  const formatTime = ts => {
-    const date = new Date(ts * 1000)
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-  }
+const DraftAnnotationContent = memo(({ annotation }) => {
+  const chart = useChart()
 
   return (
     <Flex column gap={[0.5]}>
       <TextNano strong color="textLite">
         New annotation
       </TextNano>
-      <TextNano color="textLite">{formatTime(draftAnnotation.timestamp)}</TextNano>
+      <TextNano color="textLite">
+        {chart.formatTime(annotation.timestamp)} • {chart.formatTime(annotation.timestamp)}
+      </TextNano>
     </Flex>
   )
 })
@@ -55,7 +55,7 @@ const DraftAnnotationActions = memo(() => {
   }
 
   if (draftAnnotation.status === "editing") {
-    return <AnnotationForm />
+    return <DraftAnnotationForm />
   }
 
   return (
@@ -79,26 +79,27 @@ const DraftAnnotationActions = memo(() => {
   )
 })
 
-const AnnotationForm = memo(() => {
+const DraftAnnotationForm = memo(() => {
   const chart = useChart()
   const draftAnnotation = useAttributeValue("draftAnnotation")
-  const [text, setText] = useState("")
 
-  const handleSave = () => {
-    if (!text.trim()) return
-
+  const handleSave = formData => {
     chart.updateAttribute("draftAnnotation", {
       ...draftAnnotation,
       status: "saving",
     })
 
     const newAnnotation = {
-      id: `annotation_${draftAnnotation.timestamp}_${text.toLowerCase().replace(/[^a-z0-9]/g, "").substring(0, 8)}`,
+      id: `annotation_${draftAnnotation.timestamp}_${formData.text
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "")
+        .substring(0, 8)}`,
       type: "annotation",
       timestamp: draftAnnotation.timestamp,
-      text: text.trim(),
+      text: formData.text,
       created: new Date().toISOString(),
-      color: "#0075F2",
+      color: formData.color,
+      priority: formData.priority,
     }
 
     const overlays = chart.getAttribute("overlays")
@@ -115,28 +116,13 @@ const AnnotationForm = memo(() => {
 
   const handleCancel = () => chart.updateAttribute("draftAnnotation", null)
 
-  const handleKeyDown = e => {
-    if (e.key === "Enter") {
-      e.preventDefault()
-      handleSave()
-    } else if (e.key === "Escape") {
-      e.preventDefault()
-      handleCancel()
-    }
-  }
-
   return (
-    <Flex gap={1} alignItems="center">
-      <TextInput
-        placeholder="Annotation text..."
-        value={text}
-        onChange={e => setText(e.target.value)}
-        onKeyDown={handleKeyDown}
-        autoFocus
-      />
-      <Button label="Save" onClick={handleSave} disabled={!text.trim()} size="small" />
-      <Button label="Cancel" onClick={handleCancel} size="small" variant="secondary" />
-    </Flex>
+    <AnnotationForm
+      placeholder="Annotation text..."
+      onSave={handleSave}
+      onCancel={handleCancel}
+      autoFocus
+    />
   )
 })
 
@@ -147,7 +133,7 @@ const DraftAnnotation = () => {
 
   return (
     <StyledDraftAnnotation>
-      <DraftAnnotationContent draftAnnotation={draftAnnotation} />
+      <DraftAnnotationContent annotation={draftAnnotation} />
       <Divider />
       <DraftAnnotationActions />
     </StyledDraftAnnotation>

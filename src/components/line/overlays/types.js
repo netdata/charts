@@ -10,7 +10,7 @@ import ChartName from "./chartName"
 import LatestValue from "./latestValue"
 import LatestTime from "./latestTime"
 import Annotation from "./annotation"
-import DraftAnnotation from "./draftAnnotation"
+import DraftAnnotation from "./annotation/draft"
 import { useAttributeValue } from "@/components/provider"
 
 const NoEventsContainer = styled(LayerContainer)`
