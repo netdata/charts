@@ -11,6 +11,7 @@ const Overlays = ({ uiName }) => {
       {Object.keys(overlays).map(id => {
         const { type, ...rest } = overlays[id]
         const Overlay = types[type]
+
         return <Overlay key={id} id={id} uiName={uiName} {...rest} />
       })}
     </Fragment>

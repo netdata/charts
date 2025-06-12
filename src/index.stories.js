@@ -345,6 +345,53 @@ export const Sync = () => {
   )
 }
 
+export const WithAnnotations = () => {
+  const sdk = makeDefaultSDK()
+
+  const chart = sdk.makeChart({
+    getChart,
+    attributes: {
+      hasCorrelation: true, // Enable correlation buttons
+      overlays: {
+        annotation1: {
+          type: "annotation",
+          timestamp: Math.floor(Date.now() / 1000 - 10 * 60), // 10 minutes ago
+          text: "Deployment started",
+          author: "DevOps Team",
+          created: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
+          color: "#00AB44",
+          position: "top",
+        },
+        annotation2: {
+          type: "annotation",
+          timestamp: Math.floor(Date.now() / 1000 - 5 * 60), // 5 minutes ago
+          text: "CPU spike detected - investigating root cause",
+          author: "Backend Team",
+          created: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+          color: "#ff6b6b",
+          position: "bottom",
+        },
+        annotation3: {
+          type: "annotation",
+          timestamp: Math.floor(Date.now() / 1000 - 2 * 60), // 2 minutes ago
+          text: "Issue resolved",
+          author: "SRE Team",
+          created: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+          color: "#0075F2",
+          position: "top",
+        },
+      },
+    },
+  })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Line chart={chart} height="315px" />
+    </ThemeProvider>
+  )
+}
+
 export default {
   title: "Charts",
   component: Simple,
