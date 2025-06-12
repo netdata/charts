@@ -92,9 +92,8 @@ const AnnotationForm = memo(() => {
       status: "saving",
     })
 
-    const newAnnotationId = `annotation_${Date.now()}`
     const newAnnotation = {
-      id: newAnnotationId,
+      id: `annotation_${draftAnnotation.timestamp}_${text.toLowerCase().replace(/[^a-z0-9]/g, "").substring(0, 8)}`,
       type: "annotation",
       timestamp: draftAnnotation.timestamp,
       text: text.trim(),
@@ -106,7 +105,7 @@ const AnnotationForm = memo(() => {
 
     chart.updateAttribute("overlays", {
       ...overlays,
-      [newAnnotationId]: newAnnotation,
+      [newAnnotation.id]: newAnnotation,
     })
 
     chart.updateAttribute("draftAnnotation", null)
