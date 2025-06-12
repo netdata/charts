@@ -33,7 +33,8 @@ const DraftAnnotationContent = memo(({ annotation }) => {
         New annotation
       </TextNano>
       <TextNano color="textLite">
-        {chart.formatTime(annotation.timestamp)} • {chart.formatTime(annotation.timestamp)}
+        {chart.formatDate(annotation.timestamp * 1000)} •{" "}
+        {chart.formatTime(annotation.timestamp * 1000)}
       </TextNano>
     </Flex>
   )

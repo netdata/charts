@@ -51,12 +51,12 @@ const AnnotationContent = memo(({ annotation }) => {
           flexShrink: 0,
         }}
       />
-      <Flex column gap={[0.5]}>
+      <Flex column gap={[0.5]} title={text}>
         <TextSmall strong color="textLite" ellipsis>
           {text}
         </TextSmall>
         <TextMicro color="textLite">
-          {chart.formatDate(timestamp)} • {chart.formatTime(timestamp)}{" "}
+          {chart.formatDate(timestamp * 1000)} • {chart.formatTime(timestamp * 1000)}{" "}
           {priorityInfo && `• ${priorityInfo.label}`} {author && `• ${author}`}
         </TextMicro>
       </Flex>
