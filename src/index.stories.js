@@ -392,6 +392,29 @@ export const WithAnnotations = () => {
   )
 }
 
+export const AnnotationCreation = () => {
+  const sdk = makeDefaultSDK()
+
+  const chart = sdk.makeChart({
+    getChart,
+    attributes: {
+      hasCorrelation: true,
+    },
+  })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <div>
+        <p style={{ marginBottom: "10px", fontSize: "14px", color: "#666" }}>
+          Click anywhere on the chart to create a new annotation
+        </p>
+        <Line chart={chart} height="315px" />
+      </div>
+    </ThemeProvider>
+  )
+}
+
 export default {
   title: "Charts",
   component: Simple,

@@ -1,9 +1,8 @@
-import React, { memo } from "react"
+import React, { memo, useEffect, useState } from "react"
 import Icon, { Button } from "@/components/icon"
 import { useAttributeValue, useChart } from "@/components/provider"
-import useDebouncedValue from "@netdata/netdata-ui/dist/hooks/useDebouncedValue"
 import Tooltip from "@/components/tooltip"
-import { Flex, TextNano, getColor } from "@netdata/netdata-ui"
+import { Flex, TextNano } from "@netdata/netdata-ui"
 import expandIcon from "@netdata/netdata-ui/dist/components/icon/assets/chevron_expand.svg"
 import correlationsIcon from "@netdata/netdata-ui/dist/components/icon/assets/correlations.svg"
 import pencilIcon from "@netdata/netdata-ui/dist/components/icon/assets/pencil_outline.svg"
@@ -21,10 +20,10 @@ const StyledAnnotation = styled(Flex).attrs({
   width: { min: "120px" },
   padding: [1, 2],
   border: { side: "all", color: "borderSecondary" },
-})`
-  background-color: ${getColor("mainBackground")}80;
-  pointer-events: all;
-`
+  background: "mainBackground",
+  backgroundOpacity: 0.8,
+  zIndex: 20,
+})``
 
 const AnnotationContent = memo(({ annotation }) => {
   const { text, timestamp, author } = annotation
@@ -102,17 +101,26 @@ const Annotation = ({ id }) => {
   const overlays = useAttributeValue("overlays")
   const hoverX = useAttributeValue("hoverX")
 
-  const [ref, hovered] = useHovered({ stop: true }, [id, overlays])
+  const [ref, popoverHovered] = useHovered({ stop: true }, [id, overlays])
 
   const annotation = overlays[id]
-  const debouncedHoveredLine = useDebouncedValue(
-    hoverX && Math.abs(hoverX[0] - annotation.timestamp * 1000) < 60_000,
-    400
-  )
+
+  const hovered = !!hoverX && Math.abs(hoverX[0] / 1000 - annotation.timestamp) < 2 // 2 seconds tolerance
+  const [debouncedHovered, setDebouncedHovered] = useState(false)
+
+  useEffect(() => {
+    if (hovered) {
+      setDebouncedHovered(true)
+    } else {
+      const timeout = setTimeout(() => setDebouncedHovered(false), 1000)
+
+      return () => clearTimeout(timeout)
+    }
+  }, [hovered])
 
   if (!annotation || annotation.type !== "annotation") return null
 
-  const isHovered = hovered || debouncedHoveredLine
+  const isHovered = popoverHovered || hovered || debouncedHovered
 
   if (!isHovered) return null
 

@@ -10,6 +10,7 @@ import ChartName from "./chartName"
 import LatestValue from "./latestValue"
 import LatestTime from "./latestTime"
 import Annotation from "./annotation"
+import DraftAnnotation from "./draftAnnotation"
 import { useAttributeValue } from "@/components/provider"
 
 const NoEventsContainer = styled(LayerContainer)`
@@ -70,6 +71,12 @@ const AnnotationOverlay = ({ id, ...rest }) => (
   </Container>
 )
 
+const DraftAnnotationOverlay = ({ id, ...rest }) => (
+  <Container id={id} align={alignment.elementRight} top="25px" right={-5} {...rest}>
+    <DraftAnnotation />
+  </Container>
+)
+
 export default {
   alarm: AlarmOverlay,
   alarmRange: AlarmRangeOverlay,
@@ -79,4 +86,5 @@ export default {
   latestValue: LatestValueOverlay,
   latestTime: LatestTimeOverlay,
   annotation: AnnotationOverlay,
+  draftAnnotation: DraftAnnotationOverlay,
 }
