@@ -13,6 +13,7 @@ import styled from "styled-components"
 import { useHovered } from "@/components/useHover"
 import { Divider } from "../highlight"
 import { annotationPriorities } from "./colorPicker"
+import makeLog from "@/sdk/makeLog"
 import AnnotationForm from "./form"
 
 const hoverTolerance = 5
@@ -33,7 +34,9 @@ const StyledAnnotation = styled(Flex).attrs(({ isSynced }) => ({
   backgroundOpacity: isSynced ? 0.6 : 0.8,
   zIndex: 20,
 }))`
-  ${({ isSynced }) => isSynced && `
+  ${({ isSynced }) =>
+    isSynced &&
+    `
     opacity: 0.75;
     border-style: dashed;
   `}
@@ -124,6 +127,15 @@ const AnnotationActions = memo(({ id, annotation, onEdit }) => {
   }
 
   const confirmDelete = () => {
+    // Log annotation deletion for debugging
+    makeLog(chart)({
+      event: isSynced ? "annotation_sync_removed" : "annotation_deleted",
+      annotationId: id,
+      timestamp: annotation.timestamp,
+      isSynced,
+      originallyFrom: annotation.originallyFrom,
+    })
+
     if (isSynced) {
       handleRemoveSync()
     } else {
@@ -147,11 +159,13 @@ const AnnotationActions = memo(({ id, annotation, onEdit }) => {
           icon={<Icon svg={checkIcon} size="16px" />}
           onClick={confirmDelete}
           data-testid="annotation-delete-confirm"
+          data-track={chart.track(`annotation-delete-confirm-${isSynced ? "synced" : "local"}`)}
         />
         <Button
           icon={<Icon svg={xIcon} size="16px" />}
           onClick={cancelDelete}
           data-testid="annotation-delete-cancel"
+          data-track={chart.track("annotation-delete-cancel")}
         />
       </Flex>
     )
@@ -165,6 +179,7 @@ const AnnotationActions = memo(({ id, annotation, onEdit }) => {
             icon={<Icon svg={expandIcon} size="16px" />}
             onClick={handleGoToChart}
             data-testid="annotation-goto-chart"
+            data-track={chart.track("annotation-goto-source-chart")}
           />
         </Tooltip>
 
@@ -174,6 +189,7 @@ const AnnotationActions = memo(({ id, annotation, onEdit }) => {
               icon={<Icon svg={correlationsIcon} size="16px" />}
               onClick={handleCorrelation}
               data-testid="annotation-correlation"
+              data-track={chart.track("annotation-correlation")}
             />
           </Tooltip>
         )}
@@ -183,6 +199,7 @@ const AnnotationActions = memo(({ id, annotation, onEdit }) => {
             icon={<Icon svg={trashIcon} size="16px" />}
             onClick={handleDelete}
             data-testid="annotation-remove-sync"
+            data-track={chart.track("annotation-remove-sync")}
           />
         </Tooltip>
       </Flex>
@@ -196,6 +213,7 @@ const AnnotationActions = memo(({ id, annotation, onEdit }) => {
           icon={<Icon svg={expandIcon} size="16px" />}
           onClick={handleSync}
           data-testid="annotation-sync"
+          data-track={chart.track("annotation-sync-charts")}
         />
       </Tooltip>
 
@@ -205,6 +223,7 @@ const AnnotationActions = memo(({ id, annotation, onEdit }) => {
             icon={<Icon svg={correlationsIcon} size="16px" />}
             onClick={handleCorrelation}
             data-testid="annotation-correlation"
+            data-track={chart.track("annotation-correlation")}
           />
         </Tooltip>
       )}
@@ -214,6 +233,7 @@ const AnnotationActions = memo(({ id, annotation, onEdit }) => {
           icon={<Icon svg={pencilIcon} size="16px" />}
           onClick={handleEdit}
           data-testid="annotation-edit"
+          data-track={chart.track("annotation-edit")}
         />
       </Tooltip>
 
@@ -222,6 +242,7 @@ const AnnotationActions = memo(({ id, annotation, onEdit }) => {
           icon={<Icon svg={trashIcon} size="16px" />}
           onClick={handleDelete}
           data-testid="annotation-delete"
+          data-track={chart.track("annotation-delete")}
         />
       </Tooltip>
     </Flex>
@@ -239,9 +260,14 @@ const Annotation = ({ id }) => {
   const annotation = overlays[id]
   const isSynced = !!annotation?.originallyFrom
 
-
   useEffect(() => {
-    if (!annotation || !annotation.timestamp || !chart || chart.getAttribute("chartLibrary") !== "dygraph") return
+    if (
+      !annotation ||
+      !annotation.timestamp ||
+      !chart ||
+      chart.getAttribute("chartLibrary") !== "dygraph"
+    )
+      return
 
     const chartUI = chart.getUI()
     if (!chartUI) return
@@ -289,6 +315,15 @@ const Annotation = ({ id }) => {
   }
 
   const handleSave = updatedAnnotation => {
+    // Log annotation edit for debugging
+    makeLog(chart)({
+      event: "annotation_updated",
+      annotationId: id,
+      timestamp: updatedAnnotation.timestamp,
+      textLength: updatedAnnotation.text?.length,
+      priority: updatedAnnotation.priority,
+    })
+
     chart.trigger("annotationUpdate", id, updatedAnnotation)
     chart.sdk.trigger("annotationUpdate", chart, id, updatedAnnotation)
     setIsEditing(false)
@@ -303,7 +338,11 @@ const Annotation = ({ id }) => {
   if (!isHovered) return null
 
   return (
-    <StyledAnnotation ref={ref} isSynced={isSynced}>
+    <StyledAnnotation
+      ref={ref}
+      isSynced={isSynced}
+      data-track={chart.track(`annotation-hover-${isSynced ? "synced" : "local"}`)}
+    >
       {isEditing && !isSynced ? (
         <AnnotationEditForm
           annotation={annotation}
