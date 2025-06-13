@@ -10,24 +10,26 @@ const getTimestampPosition = (dygraph, timestamp) => {
   return { x, timestampMs }
 }
 
-const drawAnnotationLine = (ctx, x, height, color, isDraft = false) => {
+const drawAnnotationLine = (ctx, x, height, color, isDraft = false, isSynced = false) => {
   ctx.beginPath()
-  if (isDraft) ctx.setLineDash([5, 5])
+  if (isDraft || isSynced) ctx.setLineDash([5, 5])
   ctx.moveTo(x, 0)
   ctx.lineTo(x, height)
-  ctx.lineWidth = 2
+  ctx.lineWidth = 1
   ctx.strokeStyle = color
+  ctx.globalAlpha = isSynced ? 0.7 : 1
   ctx.stroke()
-  if (isDraft) ctx.setLineDash([])
+  ctx.globalAlpha = 1
+  if (isDraft || isSynced) ctx.setLineDash([])
 }
 
 export default (chartUI, id) => {
   const draftAnnotation = chartUI.chart.getAttribute("draftAnnotation")
-  
+
   if (id === "draftAnnotation" && draftAnnotation) {
     const { timestamp } = draftAnnotation
     const color = "#888888"
-    
+
     if (!timestamp) return
 
     const dygraph = chartUI.getDygraph()
@@ -39,18 +41,18 @@ export default (chartUI, id) => {
 
     const { x } = pos
     const area = { from: x, to: x, width: 0 }
-    
+
     trigger(chartUI, id, area)
 
     ctx.save()
     drawAnnotationLine(ctx, x, h, color, true)
-    
+
     ctx.beginPath()
-    ctx.arc(x, 0, 4, 0, 2 * Math.PI)
+    ctx.arc(x, 0, 2, 0, 1 * Math.PI)
     ctx.strokeStyle = color
-    ctx.lineWidth = 2
+    ctx.lineWidth = 1
     ctx.stroke()
-    
+
     ctx.restore()
     return
   }
@@ -60,7 +62,8 @@ export default (chartUI, id) => {
 
   if (!annotation || annotation.type !== "annotation") return
 
-  const { timestamp, color = "#ff6b6b", position = "top" } = annotation
+  const { timestamp, color = "#ff6b6b", position = "top", originallyFrom } = annotation
+  const isSynced = !!originallyFrom
 
   if (!timestamp) return
 
@@ -81,12 +84,14 @@ export default (chartUI, id) => {
 
   ctx.save()
 
-  drawAnnotationLine(ctx, x, h, color)
+  drawAnnotationLine(ctx, x, h, color, false, isSynced)
 
   ctx.beginPath()
-  ctx.arc(x, position === "top" ? 0 : h, 4, 0, 2 * Math.PI)
+  ctx.arc(x, position === "top" ? 0 : h, 2, 0, 1 * Math.PI)
   ctx.fillStyle = color
+  ctx.globalAlpha = isSynced ? 0.7 : 1
   ctx.fill()
+  ctx.globalAlpha = 1
 
   ctx.restore()
 }

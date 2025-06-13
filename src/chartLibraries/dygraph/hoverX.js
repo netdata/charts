@@ -74,7 +74,7 @@ export default chartUI => {
     chartUI.chart.trigger("highlightHover", x, dimensionId)
   }
 
-  const isNearAnnotation = (event, x) => {
+  const isNearAnnotation = event => {
     const overlays = chartUI.chart.getAttribute("overlays")
     const dygraph = chartUI.getDygraph()
     const { offsetX } = getOffsets(event)
@@ -91,7 +91,7 @@ export default chartUI => {
   }
 
   const annotate = (event, x) => {
-    if (isNearAnnotation(event, x)) return
+    if (isNearAnnotation(event)) return
 
     const existingDraft = chartUI.chart.getAttribute("draftAnnotation")
 

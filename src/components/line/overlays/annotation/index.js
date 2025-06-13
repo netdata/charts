@@ -19,7 +19,7 @@ const hoverTolerance = 5
 const debounceDelay = 1000
 const timeWindow = 300
 
-const StyledAnnotation = styled(Flex).attrs({
+const StyledAnnotation = styled(Flex).attrs(({ isSynced }) => ({
   justifyContent: "center",
   alignItems: "center",
   gap: 2,
@@ -28,11 +28,16 @@ const StyledAnnotation = styled(Flex).attrs({
   round: true,
   width: { min: "120px" },
   padding: [1, 2],
-  border: { side: "all", color: "borderSecondary" },
+  border: { side: "all", color: isSynced ? "borderPrimary" : "borderSecondary" },
   background: "mainBackground",
-  backgroundOpacity: 0.8,
+  backgroundOpacity: isSynced ? 0.6 : 0.8,
   zIndex: 20,
-})``
+}))`
+  ${({ isSynced }) => isSynced && `
+    opacity: 0.75;
+    border-style: dashed;
+  `}
+`
 
 const AnnotationContent = memo(({ annotation }) => {
   const chart = useChart()
@@ -88,9 +93,11 @@ const AnnotationActions = memo(({ id, annotation, onEdit }) => {
   const chart = useChart()
   const hasCorrelation = useAttributeValue("hasCorrelation")
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const isSynced = !!annotation.originallyFrom
 
   const handleSync = () => {
     chart.sdk.trigger("syncToTime", chart, annotation.timestamp)
+    chart.sdk.trigger("syncAnnotation", chart, id, annotation)
   }
 
   const handleCorrelation = () => {
@@ -106,9 +113,23 @@ const AnnotationActions = memo(({ id, annotation, onEdit }) => {
     setShowDeleteConfirm(true)
   }
 
+  const handleGoToChart = () => {
+    chart.sdk.trigger("goToLink", chart, annotation.originallyFrom)
+  }
+
+  const handleRemoveSync = () => {
+    const overlays = chart.getAttribute("overlays")
+    const { [id]: removed, ...remainingOverlays } = overlays
+    chart.updateAttribute("overlays", remainingOverlays)
+  }
+
   const confirmDelete = () => {
-    chart.trigger("annotationDelete", id, annotation)
-    chart.sdk.trigger("annotationDelete", chart, id, annotation)
+    if (isSynced) {
+      handleRemoveSync()
+    } else {
+      chart.trigger("annotationDelete", id, annotation)
+      chart.sdk.trigger("annotationDelete", chart, id, annotation)
+    }
     setShowDeleteConfirm(false)
   }
 
@@ -119,7 +140,9 @@ const AnnotationActions = memo(({ id, annotation, onEdit }) => {
   if (showDeleteConfirm) {
     return (
       <Flex gap={1} alignItems="center">
-        <TextMicro color="textLite">Are you sure?</TextMicro>
+        <TextMicro color="textLite">
+          {isSynced ? "Remove from this chart?" : "Are you sure?"}
+        </TextMicro>
         <Button
           icon={<Icon svg={checkIcon} size="16px" />}
           onClick={confirmDelete}
@@ -130,6 +153,38 @@ const AnnotationActions = memo(({ id, annotation, onEdit }) => {
           onClick={cancelDelete}
           data-testid="annotation-delete-cancel"
         />
+      </Flex>
+    )
+  }
+
+  if (isSynced) {
+    return (
+      <Flex gap={1}>
+        <Tooltip content="Go to source chart">
+          <Button
+            icon={<Icon svg={expandIcon} size="16px" />}
+            onClick={handleGoToChart}
+            data-testid="annotation-goto-chart"
+          />
+        </Tooltip>
+
+        {hasCorrelation && (
+          <Tooltip content="Run metrics correlation at this point">
+            <Button
+              icon={<Icon svg={correlationsIcon} size="16px" />}
+              onClick={handleCorrelation}
+              data-testid="annotation-correlation"
+            />
+          </Tooltip>
+        )}
+
+        <Tooltip content="Remove annotation sync">
+          <Button
+            icon={<Icon svg={trashIcon} size="16px" />}
+            onClick={handleDelete}
+            data-testid="annotation-remove-sync"
+          />
+        </Tooltip>
       </Flex>
     )
   }
@@ -182,9 +237,11 @@ const Annotation = ({ id }) => {
   const [isEditing, setIsEditing] = useState(false)
 
   const annotation = overlays[id]
+  const isSynced = !!annotation?.originallyFrom
+
 
   useEffect(() => {
-    if (!annotation || !chart || chart.getAttribute("chartLibrary") !== "dygraph") return
+    if (!annotation || !annotation.timestamp || !chart || chart.getAttribute("chartLibrary") !== "dygraph") return
 
     const chartUI = chart.getUI()
     if (!chartUI) return
@@ -211,7 +268,7 @@ const Annotation = ({ id }) => {
       canvas.removeEventListener("mousemove", handleMouseMove)
       canvas.removeEventListener("mouseleave", () => setMouseHovered(false))
     }
-  }, [annotation, chart])
+  }, [annotation, annotation?.timestamp, chart, id])
 
   useEffect(() => {
     const hovered = mouseHovered || popoverHovered
@@ -226,7 +283,9 @@ const Annotation = ({ id }) => {
   if (!annotation || annotation.type !== "annotation") return null
 
   const handleEdit = () => {
-    setIsEditing(true)
+    if (!isSynced) {
+      setIsEditing(true)
+    }
   }
 
   const handleSave = updatedAnnotation => {
@@ -244,8 +303,8 @@ const Annotation = ({ id }) => {
   if (!isHovered) return null
 
   return (
-    <StyledAnnotation ref={ref}>
-      {isEditing ? (
+    <StyledAnnotation ref={ref} isSynced={isSynced}>
+      {isEditing && !isSynced ? (
         <AnnotationEditForm
           annotation={annotation}
           onSave={handleSave}
