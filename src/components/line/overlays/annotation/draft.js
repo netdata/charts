@@ -7,6 +7,7 @@ import plusIcon from "@netdata/netdata-ui/dist/components/icon/assets/plus.svg"
 import xIcon from "@netdata/netdata-ui/dist/components/icon/assets/x.svg"
 import styled from "styled-components"
 import { Divider } from "../highlight"
+import makeLog from "@/sdk/makeLog"
 import AnnotationForm from "./form"
 
 const StyledDraftAnnotation = styled(Flex).attrs({
@@ -66,6 +67,7 @@ const DraftAnnotationActions = memo(() => {
           icon={<Icon svg={plusIcon} size="16px" />}
           onClick={handleStartEditing}
           data-testid="draft-annotation-add"
+          data-track={chart.track("annotation-start-editing")}
         />
       </Tooltip>
 
@@ -74,6 +76,7 @@ const DraftAnnotationActions = memo(() => {
           icon={<Icon svg={xIcon} size="16px" />}
           onClick={handleCancel}
           data-testid="draft-annotation-cancel"
+          data-track={chart.track("annotation-draft-cancel")}
         />
       </Tooltip>
     </Flex>
@@ -103,6 +106,15 @@ const DraftAnnotationForm = memo(() => {
       priority: formData.priority,
     }
 
+    // Log annotation creation for debugging
+    makeLog(chart)({
+      event: "annotation_created",
+      annotationId: newAnnotation.id,
+      timestamp: newAnnotation.timestamp,
+      textLength: formData.text.length,
+      priority: formData.priority,
+    })
+
     const overlays = chart.getAttribute("overlays")
 
     chart.updateAttribute("overlays", {
@@ -128,12 +140,13 @@ const DraftAnnotationForm = memo(() => {
 })
 
 const DraftAnnotation = () => {
+  const chart = useChart()
   const draftAnnotation = useAttributeValue("draftAnnotation")
 
   if (!draftAnnotation) return null
 
   return (
-    <StyledDraftAnnotation>
+    <StyledDraftAnnotation data-track={chart.track("annotation-draft-display")}>
       <DraftAnnotationContent annotation={draftAnnotation} />
       <Divider />
       <DraftAnnotationActions />

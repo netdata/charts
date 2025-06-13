@@ -3,6 +3,7 @@ import Icon, { Button } from "@/components/icon"
 import { Flex, TextInput } from "@netdata/netdata-ui"
 import xIcon from "@netdata/netdata-ui/dist/components/icon/assets/x.svg"
 import checkIcon from "@netdata/netdata-ui/dist/components/icon/assets/check.svg"
+import { useChart } from "@/components/provider"
 import ColorPicker from "./colorPicker"
 
 const AnnotationForm = ({
@@ -14,6 +15,7 @@ const AnnotationForm = ({
   onCancel,
   autoFocus = true,
 }) => {
+  const chart = useChart()
   const [text, setText] = useState(initialText)
   const [color, setColor] = useState(initialColor)
   const [priority, setPriority] = useState(initialPriority)
@@ -59,12 +61,14 @@ const AnnotationForm = ({
           onClick={handleSave}
           disabled={!text.trim()}
           size="small"
+          data-track={chart.track(`annotation-save-${initialText ? 'edit' : 'create'}`)}
         />
         <Button
           icon={<Icon svg={xIcon} size="16px" />}
           onClick={onCancel}
           size="small"
           variant="secondary"
+          data-track={chart.track("annotation-cancel")}
         />
       </Flex>
       <ColorPicker selectedColor={color} onColorChange={handleColorChange} />
