@@ -96,7 +96,6 @@ export default chartUI => {
     const existingDraft = chartUI.chart.getAttribute("draftAnnotation")
 
     if (existingDraft && existingDraft.status === "editing") return
-    if (existingDraft) chartUI.chart.updateAttribute("draftAnnotation", null)
 
     chartUI.chart.updateAttribute("draftAnnotation", {
       timestamp: x / 1000,
