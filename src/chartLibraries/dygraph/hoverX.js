@@ -74,7 +74,40 @@ export default chartUI => {
     chartUI.chart.trigger("highlightHover", x, dimensionId)
   }
 
-  const persistedHighlight = (event, x, points) => {
+  const isNearAnnotation = event => {
+    const overlays = chartUI.chart.getAttribute("overlays")
+    const dygraph = chartUI.getDygraph()
+    const { offsetX } = getOffsets(event)
+
+    for (const overlay of Object.values(overlays)) {
+      if (overlay.type === "annotation") {
+        const annotationX = dygraph.toDomXCoord(overlay.timestamp * 1000)
+        if (Math.abs(offsetX - annotationX) < 10) {
+          return true
+        }
+      }
+    }
+    return false
+  }
+
+  const annotate = (event, x) => {
+    if (isNearAnnotation(event)) return
+
+    const existingDraft = chartUI.chart.getAttribute("draftAnnotation")
+
+    if (existingDraft && existingDraft.status === "editing") return
+
+    chartUI.chart.updateAttribute("draftAnnotation", {
+      timestamp: x / 1000,
+      createdAt: new Date(),
+      status: "draft",
+    })
+
+    chartUI.sdk.trigger("annotationCreate", chartUI.chart, x / 1000)
+    chartUI.chart.trigger("annotationCreate", x / 1000)
+  }
+
+  const click = (event, x, points) => {
     if (lastTimestamp === x) return
 
     lastPoints = points
@@ -85,6 +118,8 @@ export default chartUI => {
     lastY = offsets.offsetY
 
     const dimensionId = getDimension(event, points)
+
+    annotate(event, x)
 
     chartUI.sdk.trigger("highlightClick", chartUI.chart, x, dimensionId)
     chartUI.chart.trigger("highlightClick", x, dimensionId)
@@ -118,7 +153,7 @@ export default chartUI => {
     chartUI.off("highlightCallback", highlight)
     chartUI.off("mousemove", mousemove)
     chartUI.off("mouseout", mouseout)
-    chartUI.off("click", persistedHighlight)
+    chartUI.off("click", click)
   }
 
   const toggle = enabled => {
@@ -127,7 +162,7 @@ export default chartUI => {
           .on("highlightCallback", highlight)
           .on("mousemove", mousemove)
           .on("mouseout", mouseout)
-          .on("click", persistedHighlight)
+          .on("click", click)
       : destroy()
   }
 

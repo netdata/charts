@@ -345,6 +345,125 @@ export const Sync = () => {
   )
 }
 
+export const WithAnnotations = () => {
+  const sdk = makeDefaultSDK()
+
+  const chart = sdk.makeChart({
+    getChart,
+    attributes: {
+      hasCorrelation: true, // Enable correlation buttons
+      overlays: {
+        annotation1: {
+          type: "annotation",
+          timestamp: Math.floor(Date.now() / 1000 - 10 * 60), // 10 minutes ago
+          text: "Deployment started",
+          author: "DevOps Team",
+          created: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
+          color: "#00AB44",
+          position: "top",
+        },
+        annotation2: {
+          type: "annotation",
+          timestamp: Math.floor(Date.now() / 1000 - 5 * 60), // 5 minutes ago
+          text: "CPU spike detected - investigating root cause",
+          author: "Backend Team",
+          created: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+          color: "#ff6b6b",
+          position: "bottom",
+        },
+        annotation3: {
+          type: "annotation",
+          timestamp: Math.floor(Date.now() / 1000 - 2 * 60), // 2 minutes ago
+          text: "Issue resolved",
+          author: "SRE Team",
+          created: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+          color: "#0075F2",
+          position: "top",
+        },
+      },
+    },
+  })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Line chart={chart} height="315px" />
+    </ThemeProvider>
+  )
+}
+
+export const AnnotationCreation = () => {
+  const sdk = makeDefaultSDK()
+
+  const chart = sdk.makeChart({
+    getChart,
+    attributes: {
+      hasCorrelation: true,
+    },
+  })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <div>
+        <p style={{ marginBottom: "10px", fontSize: "14px", color: "#666" }}>
+          Click anywhere on the chart to create a new annotation
+        </p>
+        <Line chart={chart} height="315px" />
+      </div>
+    </ThemeProvider>
+  )
+}
+
+export const CrossChartAnnotationSync = () => {
+  const sdk = makeDefaultSDK()
+
+  const charts = Array.from(Array(3)).map((v, index) => {
+    const chart = sdk.makeChart({
+      attributes: { 
+        contextScope: ["system.load"], 
+        id: `chart-${index}`,
+        hasCorrelation: true,
+        overlays: index === 0 ? {
+          annotation1: {
+            type: "annotation",
+            timestamp: Math.floor(Date.now() / 1000 - 8 * 60),
+            text: "Performance issue detected",
+            author: "SRE Team",
+            created: new Date(Date.now() - 8 * 60 * 1000).toISOString(),
+            color: "#ff6b6b",
+            priority: "error",
+          },
+        } : {},
+      },
+      getChart,
+    })
+    sdk.appendChild(chart)
+    return chart
+  })
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <div>
+        <p style={{ marginBottom: "10px", fontSize: "14px", color: "#666" }}>
+          Hover the annotation on the first chart and click "Sync all charts" to see cross-chart synchronization. 
+          Synced annotations appear with dashed borders and different actions.
+        </p>
+        <Flex column gap={2}>
+          {charts.map((chart, index) => (
+            <div key={chart.getAttribute("id")}>
+              <h4 style={{ margin: "10px 0 5px", fontSize: "12px", color: "#888" }}>
+                Chart {index + 1} (ID: {chart.getAttribute("id")})
+              </h4>
+              <Line chart={chart} height="200px" />
+            </div>
+          ))}
+        </Flex>
+      </div>
+    </ThemeProvider>
+  )
+}
+
 export default {
   title: "Charts",
   component: Simple,

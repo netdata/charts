@@ -263,7 +263,8 @@ export default {
   showPostAggregations: false,
 
   showAnomalies: true,
-  showAnnotations: true,
+
+  draftAnnotation: null, // { timestamp, createdAt, status: "draft"|"editing"|"saving" }
 
   selectedNodeLabelsFilter: [],
 }
