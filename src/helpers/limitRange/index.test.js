@@ -1,26 +1,59 @@
-import limitRange from "."
-
-const date = 1657640000
+import limitRange from "./index"
 
 describe("limitRange", () => {
-  it("should return the same range when duration is 60 seconds or more", () => {
-    expect(limitRange({ after: date - 60, before: date })).toEqual({
-      fixedAfter: date - 60,
-      fixedBefore: date,
-    })
-    expect(limitRange({ after: date - 120, before: date })).toEqual({
-      fixedAfter: date - 120,
-      fixedBefore: date,
+  it("keeps range when duration exceeds minimum", () => {
+    const range = { after: 100, before: 200 }
+    const result = limitRange(range)
+    
+    expect(result).toEqual({
+      fixedAfter: 100,
+      fixedBefore: 200
     })
   })
-  it("should now allow duration less than 60 sec", () => {
-    expect(limitRange({ after: date - 59, before: date })).toEqual({
-      fixedAfter: date - 60.5,
-      fixedBefore: date + 0.5,
+
+  it("expands range when duration is less than minimum", () => {
+    const range = { after: 100, before: 130 }
+    const result = limitRange(range)
+    
+    expect(result.fixedBefore - result.fixedAfter).toBe(60)
+    expect(result.fixedAfter).toBeLessThan(100)
+    expect(result.fixedBefore).toBeGreaterThan(130)
+  })
+
+  it("handles even duration expansion", () => {
+    const range = { after: 100, before: 150 }
+    const result = limitRange(range)
+    
+    expect(result).toEqual({
+      fixedAfter: 95,
+      fixedBefore: 155
     })
-    expect(limitRange({ after: date - 58, before: date })).toEqual({
-      fixedAfter: date - 59,
-      fixedBefore: date + 1,
+  })
+
+  it("handles odd duration expansion", () => {
+    const range = { after: 100, before: 149 }
+    const result = limitRange(range)
+    
+    expect(result).toEqual({
+      fixedAfter: 93.5,
+      fixedBefore: 154.5
+    })
+  })
+
+  it("uses default before value of 0", () => {
+    const range = { after: -30 }
+    const result = limitRange(range)
+    
+    expect(result.fixedBefore - result.fixedAfter).toBe(60)
+  })
+
+  it("handles minimum duration exactly", () => {
+    const range = { after: 0, before: 60 }
+    const result = limitRange(range)
+    
+    expect(result).toEqual({
+      fixedAfter: 0,
+      fixedBefore: 60
     })
   })
 })
