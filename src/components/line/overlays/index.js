@@ -15,6 +15,8 @@ const Overlays = ({ uiName }) => {
         const { type, ...rest } = overlays[id]
         const Overlay = types[type]
 
+        if (!Overlay) return null
+
         return <Overlay key={id} id={id} uiName={uiName} {...rest} />
       })}
     </Fragment>
