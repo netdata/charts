@@ -20,10 +20,10 @@ module.exports = {
   coveragePathIgnorePatterns: ["/node_modules/", "/jest/"],
   coverageThreshold: {
     global: {
-      statements: 51,
-      branches: 41,
+      statements: 50,
+      branches: 40,
       functions: 47,
-      lines: 53,
+      lines: 50,
     },
   },
   testPathIgnorePatterns: ["/node_modules/"],

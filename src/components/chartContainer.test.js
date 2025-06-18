@@ -25,7 +25,9 @@ describe("ChartContainer", () => {
     renderWithChart(<ChartContainer uiName="default" />)
     
     const container = screen.getByTestId("chartContent")
-    expect(container).toHaveStyle({ height: "100%", width: "100%", overflow: "hidden" })
+    expect(container).toHaveStyle({ overflow: "hidden" })
+    expect(container).toHaveAttribute("height", "100%")
+    expect(container).toHaveAttribute("width", "100%")
   })
 
   it("renders with custom dimensions", () => {
@@ -34,18 +36,16 @@ describe("ChartContainer", () => {
     )
     
     const container = screen.getByTestId("chartContent")
-    expect(container).toHaveStyle({ width: "200px", height: "300px" })
+    expect(container).toHaveAttribute("width", "200px")
+    expect(container).toHaveAttribute("height", "300px")
   })
 
-  it("renders children when provided", () => {
-    renderWithChart(
-      <ChartContainer uiName="default">
-        <div data-testid="child-element">Child content</div>
-      </ChartContainer>
-    )
+  it("renders chart canvas when mounted", () => {
+    renderWithChart(<ChartContainer uiName="default" />)
     
-    expect(screen.getByTestId("child-element")).toBeInTheDocument()
-    expect(screen.getByText("Child content")).toBeInTheDocument()
+    const container = screen.getByTestId("chartContent")
+    const canvas = container.querySelector("canvas")
+    expect(canvas).toBeInTheDocument()
   })
 
   it("applies flex properties", () => {
