@@ -194,7 +194,7 @@ export default ({
     if (!node) return
 
     const { units } = node.getAttributes()
-    return Array.isArray(units) ? units[0] : units
+    return units
   }
 
   node.getApplicableNodes = (attributes, options) => {
