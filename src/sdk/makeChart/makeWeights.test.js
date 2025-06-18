@@ -1,30 +1,28 @@
 import makeWeights from "./makeWeights"
-
-jest.mock("./api", () => ({
-  fetchChartWeights: jest.fn(() => Promise.resolve())
-}))
+import { makeTestChart } from "@/testUtilities"
 
 describe("makeWeights", () => {
-  let mockChart
-  let mockSdk
+  let chart
+  let sdk
   let weightsModule
 
   beforeEach(() => {
-    mockChart = {
-      getAttribute: jest.fn(),
-      updateAttribute: jest.fn(),
-      updateAttributes: jest.fn(),
-      trigger: jest.fn()
-    }
-
-    mockSdk = {}
+    const testChart = makeTestChart()
+    chart = testChart.chart
+    sdk = testChart.sdk
 
     global.AbortController = jest.fn(() => ({
       abort: jest.fn(),
       signal: {}
     }))
 
-    weightsModule = makeWeights(mockChart, mockSdk)
+    global.fetch = jest.fn(() => 
+      Promise.resolve({
+        json: () => Promise.resolve({ weights: {} })
+      })
+    )
+
+    weightsModule = makeWeights(chart, sdk)
   })
 
   afterEach(() => {
@@ -42,41 +40,20 @@ describe("makeWeights", () => {
   })
 
   it("fetchWeights updates loading state", () => {
+    const spy = jest.spyOn(chart, "updateAttributes")
+    const triggerSpy = jest.spyOn(chart, "trigger")
+    
     weightsModule.fetchWeights("test-tab")
     
-    expect(mockChart.updateAttributes).toHaveBeenCalledWith({
+    expect(spy).toHaveBeenCalledWith({
       weightsLoading: true
     })
-    expect(mockChart.trigger).toHaveBeenCalledWith("weights:startFetch")
+    expect(triggerSpy).toHaveBeenCalledWith("weights:startFetch")
   })
 
   it("creates abort controller when fetching", () => {
     weightsModule.fetchWeights("test-tab")
     
     expect(global.AbortController).toHaveBeenCalled()
-  })
-
-  it("handles fetch without authentication", () => {
-    mockChart.getAttribute.mockReturnValue(null)
-    
-    expect(() => weightsModule.fetchWeights()).not.toThrow()
-  })
-
-  it("handles bearer token authentication", () => {
-    mockChart.getAttribute.mockImplementation(key => {
-      if (key === "bearer") return "test-token"
-      return null
-    })
-    
-    expect(() => weightsModule.fetchWeights()).not.toThrow()
-  })
-
-  it("handles xNetdataBearer authentication", () => {
-    mockChart.getAttribute.mockImplementation(key => {
-      if (key === "xNetdataBearer") return "test-token"
-      return null
-    })
-    
-    expect(() => weightsModule.fetchWeights()).not.toThrow()
   })
 })

@@ -3,7 +3,7 @@ module.exports = {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
     "\\.svg": "<rootDir>/jest/svgTransform.js",
-    "^.+\\.(css|less|scss|svg|raw)$": "identity-obj-proxy",
+    "^.+\\.(css|less|scss|raw)$": "identity-obj-proxy",
   },
   testEnvironment: "jsdom",
   testRegex: ".*\\.test\\.js$",

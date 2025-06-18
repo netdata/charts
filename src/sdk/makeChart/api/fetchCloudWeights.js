@@ -4,8 +4,7 @@ const wildcardArray = ["*"]
 
 const getPayload = (chart, params = {}) => {
   const chartAttributes = chart.getAttributes()
-  const extraAttributes = ({ after, before, points, time_group, time_resampling, format } =
-    getChartPayload(chart))
+  const extraAttributes = getChartPayload(chart)
 
   const {
     selectedContexts = chartAttributes.selectedContexts,

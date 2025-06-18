@@ -1,7 +1,5 @@
 import conversableUnits, { makeConversableKey, keys } from "./conversableUnits"
 
-// Mock zeropad since we're focusing on the conversion logic
-jest.mock("@/helpers/zeropad", () => jest.fn(val => String(val).padStart(2, "0")))
 
 describe("conversableUnits", () => {
   describe("makeConversableKey", () => {

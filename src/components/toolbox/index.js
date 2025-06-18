@@ -26,7 +26,7 @@ const Toolbox = ({ children, ...rest }) => {
   return (
     <Container data-noprint {...rest}>
       {children}
-      {toolboxElements.map((Element, index) => (
+      {toolboxElements && toolboxElements.map((Element, index) => (
         <Element key={index} disabled={disabled} />
       ))}
     </Container>

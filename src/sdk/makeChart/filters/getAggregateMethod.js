@@ -66,8 +66,10 @@ export default chart => {
   if (averageUnits.has(unit) || averageRegex.test(lowerUnit)) return "avg"
 
   const unitSign = chart.getUnitSign()
-  lowerUnit = unitSign.toLowerCase()
-  if (averageUnits.has(unitSign) || averageRegex.test(lowerUnit)) return "avg"
+  if (unitSign) {
+    lowerUnit = unitSign.toLowerCase()
+    if (averageUnits.has(unitSign) || averageRegex.test(lowerUnit)) return "avg"
+  }
 
   return "sum"
 }

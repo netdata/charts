@@ -1,79 +1,21 @@
-import makeSDK from "@/sdk"
 import makeDygraph from "./index"
+import makeDefaultSDK from "@/makeDefaultSDK"
+import makeMockPayload from "@/helpers/makeMockPayload"
+import systemLoadLine from "../../../fixtures/systemLoadLine"
 
-// Mock external dependencies
-jest.mock("dygraphs", () => {
-  const MockDygraph = jest.fn().mockImplementation((element, data, options) => ({
-    // Mock the essential Dygraph methods
-    resize: jest.fn(),
-    setSelection: jest.fn(),
-    updateOptions: jest.fn(),
-    destroy: jest.fn(),
-    getSelection: jest.fn(() => []),
-    axes_: [{ valueRange: [0, 100] }],
-    // Store options for testing
-    options_: options,
-    element_: element,
-    data_: data,
-  }))
 
-  // Mock static properties and methods
-  MockDygraph.defaultInteractionModel = {
-    touchstart: jest.fn(),
-    touchmove: jest.fn(),
-    touchend: jest.fn(),
-  }
-  MockDygraph.dateTicker = jest.fn()
 
-  return MockDygraph
-})
-
-const mockResizeObserverCleanup = jest.fn()
-jest.mock("@/helpers/makeResizeObserver", () => jest.fn(() => mockResizeObserverCleanup))
-
-jest.mock("@/helpers/makeExecuteLatest", () =>
-  jest.fn(() => ({
-    add: jest.fn(fn => fn),
-    clear: jest.fn(),
-  }))
-)
-
-jest.mock("./navigation", () =>
-  jest.fn(() => ({
-    toggle: jest.fn(),
-    set: jest.fn(),
-    destroy: jest.fn(),
-  }))
-)
-
-jest.mock("./hoverX", () =>
-  jest.fn(() => ({
-    toggle: jest.fn(),
-    destroy: jest.fn(),
-  }))
-)
-
-jest.mock("./overlays", () =>
-  jest.fn(() => ({
-    toggle: jest.fn(),
-    destroy: jest.fn(),
-  }))
-)
-
-jest.mock("./crosshair", () => jest.fn())
 
 describe("dygraph chartLibrary", () => {
   let sdk, chart, element
 
   beforeEach(() => {
-    // Create a clean DOM element for each test
     element = document.createElement("div")
     element.style.width = "800px"
     element.style.height = "400px"
     document.body.appendChild(element)
 
-    // Setup SDK with dygraph
-    sdk = makeSDK({
+    sdk = makeDefaultSDK({
       ui: { dygraph: makeDygraph },
       attributes: {
         chartLibrary: "dygraph",
@@ -86,25 +28,13 @@ describe("dygraph chartLibrary", () => {
       },
     })
 
-    chart = sdk.makeChart()
-    sdk.appendChild(chart)
-
-    // Provide test data
-    chart.doneFetch({
-      result: {
-        labels: ["time", "cpu", "memory", "disk"],
-        data: [
-          [1617946860000, 25, 50, 75],
-          [1617946920000, 30, 55, 70],
-          [1617946980000, 20, 45, 80],
-          [1617947040000, 35, 60, 65],
-        ],
-      },
+    chart = sdk.makeChart({
+      getChart: makeMockPayload(systemLoadLine[0], { delay: 0 })
     })
+    sdk.appendChild(chart)
   })
 
   afterEach(() => {
-    // Clean up DOM
     if (element && element.parentNode) {
       element.parentNode.removeChild(element)
     }

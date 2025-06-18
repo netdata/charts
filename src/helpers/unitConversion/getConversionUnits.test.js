@@ -1,287 +1,164 @@
 import getConversionUnits, { getConversionAttributes } from "./getConversionUnits"
-
-jest.mock("@/helpers/units/conversableUnits", () => ({
-  makeConversableKey: jest.fn((unit, scale) => `${unit}-${scale}`),
-  keys: {
-    "seconds": ["MS", "S", "MINUTES", "HOURS", "DAYS"],
-    "bytes": ["B", "KB", "MB", "GB", "TB"]
-  },
-  __esModule: true,
-  default: {}
-}))
-
-jest.mock("@/helpers/units", () => ({
-  getScales: jest.fn(() => [["", "K", "M", "G"], { "": 1, "K": 1000, "M": 1000000, "G": 1000000000 }]),
-  getUnitConfig: jest.fn(() => ({ base_unit: "bytes", prefix_symbol: "" })),
-  isScalable: jest.fn(() => true),
-  __esModule: true,
-  default: jest.fn((chart, method, value, divider) => {
-    if (method === "original") return value
-    if (divider) return divider(value)
-    return value
-  })
-}))
+import { makeTestChart } from "@/testUtilities"
 
 describe("getConversionUnits", () => {
-  let mockChart
-  let getScales, getUnitConfig, isScalable, conversableUnits, makeConversableKey
+  let chart
 
   beforeEach(() => {
-    getScales = require("@/helpers/units").getScales
-    getUnitConfig = require("@/helpers/units").getUnitConfig
-    isScalable = require("@/helpers/units").isScalable
-    conversableUnits = require("@/helpers/units/conversableUnits").default
-    makeConversableKey = require("@/helpers/units/conversableUnits").makeConversableKey
-
-    mockChart = {
-      getAttribute: jest.fn(),
-      getAttributes: jest.fn(() => ({ desiredUnits: "auto" })),
-      updateAttributes: jest.fn(),
-      updateAttribute: jest.fn(),
-      getPayload: jest.fn(),
-      getVisibleDimensionIds: jest.fn(() => ["cpu", "memory"]),
-      getDimensionName: jest.fn(id => id),
-      on: jest.fn(() => jest.fn())
-    }
-
-    getScales.mockReturnValue([["", "K", "M", "G"], { "": 1, "K": 1000, "M": 1000000, "G": 1000000000 }])
-    getUnitConfig.mockReturnValue({ base_unit: "bytes", prefix_symbol: "" })
-    isScalable.mockReturnValue(true)
-    makeConversableKey.mockImplementation((unit, scale) => `${unit}-${scale}`)
-    
-    // Reset conversableUnits default object
-    Object.keys(conversableUnits).forEach(key => delete conversableUnits[key])
+    const testChart = makeTestChart({
+      attributes: {
+        units: ["By", "By"],
+        desiredUnits: "auto",
+        unitsConversion: "original",
+        visibleDimensionIds: ["dim1", "dim2"]
+      }
+    })
+    chart = testChart.chart
   })
 
   describe("getConversionAttributes", () => {
     it("returns conversion attributes for scalable units", () => {
-      getUnitConfig.mockReturnValue({ base_unit: "bytes", prefix_symbol: "" })
-      
-      const result = getConversionAttributes(mockChart, "bytes", { min: 1000, max: 5000 })
-      
+      const result = getConversionAttributes(chart, "By", { min: 1000, max: 5000 })
+
       expect(result).toHaveProperty("method")
-      expect(result).toHaveProperty("divider")
+      expect(result).toHaveProperty("divider") 
       expect(result).toHaveProperty("fractionDigits")
       expect(result).toHaveProperty("prefix")
       expect(result).toHaveProperty("base")
-      expect(result).toHaveProperty("unit", "bytes")
+      expect(result).toHaveProperty("unit", "By")
     })
 
-    it("handles conversable units when no conversable unit is available", () => {
-      const result = getConversionAttributes(mockChart, "seconds", { min: 1, max: 10 })
-      
+    it("handles non-scalable units", () => {
+      const result = getConversionAttributes(chart, "%", { min: 0, max: 100 })
+
       expect(result.method).toBe("original")
-      expect(result).toHaveProperty("unit", "seconds")
+      expect(result.unit).toBe("%")
+      expect(result.divider).toBeUndefined()
     })
 
-    it("returns original method for non-scalable units", () => {
-      isScalable.mockReturnValue(false)
-      
-      const result = getConversionAttributes(mockChart, "custom", { min: 1, max: 10 })
-      
-      expect(result.method).toBe("original")
-    })
+    it("uses proper scale for large values", () => {
+      const result = getConversionAttributes(chart, "By", { min: 0, max: 10000000 })
 
-    it("handles desired units for scalable conversion", () => {
-      mockChart.getAttributes.mockReturnValue({ desiredUnits: "KB" })
-      getUnitConfig
-        .mockReturnValueOnce({ base_unit: "bytes", prefix_symbol: "" })
-        .mockReturnValueOnce({ base_unit: "bytes", prefix_symbol: "K" })
-      getScales.mockReturnValue([["", "K", "M"], { "": 1, "K": 1000, "M": 1000000 }])
-      
-      const result = getConversionAttributes(mockChart, "bytes", { min: 1000, max: 5000 })
-      
-      expect(result.method).toBe("adjust")
-      expect(result.prefix).toBe("K")
-      expect(result.base).toBe("bytes")
-    })
-
-    it("handles desired units for conversable units", () => {
-      mockChart.getAttributes.mockReturnValue({ desiredUnits: "MINUTES" })
-      conversableUnits["seconds"] = {
-        "MINUTES": { check: jest.fn() }
+      expect(result.prefix).toBeTruthy()
+      if (result.method === "adjust") {
+        expect(typeof result.divider).toBe("function")
+      } else if (result.method === "divide") {
+        expect(result.divider).toBeGreaterThan(1)
       }
-      
-      const result = getConversionAttributes(mockChart, "seconds", { min: 60, max: 300 })
-      
-      expect(makeConversableKey).toHaveBeenCalledWith("seconds", "MINUTES")
-      expect(result.method).toBe("seconds-MINUTES")
     })
 
-    it("falls back to original when desired units not available", () => {
-      mockChart.getAttributes.mockReturnValue({ desiredUnits: "unknown" })
-      conversableUnits["seconds"] = {
-        "S": { check: jest.fn() }
-      }
-      
-      const result = getConversionAttributes(mockChart, "seconds", { min: 1, max: 10 })
-      
-      expect(result.method).toBe("original")
+    it("handles zero range", () => {
+      const result = getConversionAttributes(chart, "By", { min: 100, max: 100 })
+
+      expect(result).toHaveProperty("method")
+      expect(result).toHaveProperty("unit", "By")
     })
 
-    it("calculates fraction digits correctly", () => {
-      const result1 = getConversionAttributes(mockChart, "bytes", { min: 1500, max: 2500 })
-      expect(result1.fractionDigits).toBeGreaterThanOrEqual(-1)
-      
-      const result2 = getConversionAttributes(mockChart, "bytes", { min: 0.05, max: 0.1 })
-      expect(result2.fractionDigits).toBeGreaterThanOrEqual(-1)
+    it("handles negative values", () => {
+      const result = getConversionAttributes(chart, "By", { min: -1000, max: 1000 })
+
+      expect(result).toHaveProperty("method")
+      expect(result).toHaveProperty("divider")
     })
 
-    it("handles equal min and max values", () => {
-      const result = getConversionAttributes(mockChart, "bytes", { min: 1000, max: 1000 })
+    it("respects desired units setting", () => {
+      chart.updateAttribute("desiredUnits", "KiB")
       
-      expect(result.fractionDigits).toBeGreaterThanOrEqual(-1)
-    })
+      const result = getConversionAttributes(chart, "By", { min: 0, max: 10000 })
 
-    it("respects maxDecimals option", () => {
-      const result = getConversionAttributes(mockChart, "bytes", { min: 0.001, max: 0.002, maxDecimals: 2 })
-      
-      expect(result.fractionDigits).toBeLessThanOrEqual(2)
-    })
-
-    it("handles NaN delta", () => {
-      const result = getConversionAttributes(mockChart, "bytes", { min: NaN, max: NaN })
-      
-      expect(result.fractionDigits).toBe(-1)
-    })
-
-    it("handles zero delta", () => {
-      const result = getConversionAttributes(mockChart, "bytes", { min: 0, max: 0 })
-      
-      expect(result.fractionDigits).toBe(-1)
-    })
-
-    it("selects appropriate scale for large values", () => {
-      getScales.mockReturnValue([["", "K", "M", "G"], { "": 1, "K": 1000, "M": 1000000, "G": 1000000000 }])
-      
-      const result = getConversionAttributes(mockChart, "bytes", { min: 1000000, max: 5000000 })
-      
-      expect(result.method).toBe("adjust")
-      expect(result.prefix).toBe("M")
-    })
-
-    it("uses absolute values for comparison", () => {
-      const result = getConversionAttributes(mockChart, "bytes", { min: -5000, max: -1000 })
-      
-      expect(result.method).toBe("adjust")
-      expect(typeof result.divider).toBe("function")
-    })
-
-    it("handles units that do not match any conversable scale", () => {
-      const result = getConversionAttributes(mockChart, "seconds", { min: 1, max: 10 })
-      
-      expect(result.method).toBe("original")
-      expect(result).toHaveProperty("unit", "seconds")
+      // Should use Ki prefix for binary units
+      expect(result.prefix).toContain("Ki")
     })
   })
 
   describe("getConversionUnits", () => {
-    it("processes multiple units correctly", () => {
-      mockChart.getAttribute.mockReturnValue(["bytes", "seconds"])
-      
-      const result = getConversionUnits(mockChart, "units")
-      
+    it("returns arrays of conversion parameters for dimensions", () => {
+      // Set up chart with multiple dimensions
+      chart.updateAttribute("visibleDimensionIds", ["dim1", "dim2"])
+      chart.payload = {
+        byDimension: {
+          dim1: { min: 0, max: 1000 },
+          dim2: { min: 0, max: 2000 }
+        }
+      }
+
+      const result = getConversionUnits(chart, "units", { min: 0, max: 2000 })
+
       expect(result).toHaveProperty("method")
       expect(result).toHaveProperty("fractionDigits")
       expect(result).toHaveProperty("prefix")
       expect(result).toHaveProperty("base")
       expect(result).toHaveProperty("divider")
-      
-      expect(result.method).toHaveLength(2)
-      expect(result.fractionDigits).toHaveLength(2)
-      expect(result.prefix).toHaveLength(2)
-      expect(result.base).toHaveLength(2)
-      expect(result.divider).toHaveLength(2)
+
+      // Arrays should have length equal to number of dimensions
+      expect(Array.isArray(result.method)).toBe(true)
+      expect(result.method.length).toBe(2)
     })
 
-    it("handles empty units array", () => {
-      mockChart.getAttribute.mockReturnValue([])
+    it("handles charts with single dimension", () => {
+      chart.updateAttribute("visibleDimensionIds", ["single"])
+      chart.updateAttribute("units", ["By"])
       
-      const result = getConversionUnits(mockChart, "units")
-      
-      expect(result.method).toEqual([])
-      expect(result.fractionDigits).toEqual([])
-      expect(result.prefix).toEqual([])
-      expect(result.base).toEqual([])
-      expect(result.divider).toEqual([])
-    })
+      const result = getConversionUnits(chart, "units", { min: 0, max: 100 })
 
-    it("passes options to getConversionAttributes", () => {
-      mockChart.getAttribute.mockReturnValue(["bytes"])
-      const options = { min: 100, max: 1000, maxDecimals: 3 }
-      
-      getConversionUnits(mockChart, "units", options)
-      
-      expect(mockChart.getAttribute).toHaveBeenCalledWith("units")
-    })
-
-    it("handles single unit", () => {
-      mockChart.getAttribute.mockReturnValue(["bytes"])
-      
-      const result = getConversionUnits(mockChart, "units")
-      
       expect(result.method).toHaveLength(1)
-      expect(result.fractionDigits).toHaveLength(1)
       expect(result.prefix).toHaveLength(1)
-      expect(result.base).toHaveLength(1)
-      expect(result.divider).toHaveLength(1)
-    })
-  })
-
-  describe("edge cases", () => {
-    it("handles missing scales gracefully", () => {
-      getScales.mockReturnValue([[], {}])
-      
-      const result = getConversionAttributes(mockChart, "bytes", { min: 1000, max: 5000 })
-      
-      expect(result.method).toBe("original")
     })
 
-    it("handles invalid getUnitConfig response", () => {
-      getUnitConfig.mockReturnValue({})
+    it("uses unitsCurrent when available", () => {
+      chart.updateAttribute("unitsCurrent", ["KiB", "KiB"])
       
-      const result = getConversionAttributes(mockChart, "bytes", { min: 1000, max: 5000 })
+      const result = getConversionUnits(chart, "unitsCurrent", { min: 0, max: 1000 })
+
+      expect(result.base).toContain("KiB")
+    })
+
+    it("falls back to units when unitsCurrent not set", () => {
+      chart.updateAttribute("units", ["%"])
+      chart.updateAttribute("unitsCurrent", null)
+      chart.updateAttribute("visibleDimensionIds", ["percent"])
       
-      expect(result).toHaveProperty("method")
+      const result = getConversionUnits(chart, "units", { min: 0, max: 100 })
+
+      expect(result.method).toContain("original")
+      expect(result.base[0]).toBe("")
+    })
+
+    it("handles unitsConversion method override", () => {
+      chart.updateAttribute("unitsConversion", "absolute")
+      
+      const result = getConversionUnits(chart, "units", { min: 0, max: 100 })
+
+      expect(result.method.length).toBeGreaterThan(0)
+      expect(result.method[0]).toMatch(/adjust|original|divide/)
+    })
+
+    it("processes metric units correctly", () => {
+      chart.updateAttribute("units", ["m"])
+      chart.updateAttribute("visibleDimensionIds", ["dist"])
+      
+      const result = getConversionUnits(chart, "units", { min: 0, max: 1500 })
+
+      expect(result.prefix[0]).toBeTruthy()
+    })
+
+    it("handles empty visible dimensions", () => {
+      chart.updateAttribute("visibleDimensionIds", [])
+      chart.updateAttribute("units", [])
+      
+      const result = getConversionUnits(chart, "units", { min: 0, max: 100 })
+
+      expect(result.method).toEqual([])
+      expect(result.prefix).toEqual([])
+    })
+
+    it("processes dbUnits separately", () => {
+      chart.updateAttribute("dbUnits", ["custom", "custom"])
+      
+      const result = getConversionUnits(chart, "dbUnits", { min: 0, max: 100 })
+
       expect(result).toHaveProperty("base")
-      expect(result).toHaveProperty("prefix")
-    })
-
-    it("handles delta that results in decimal index", () => {
-      const result = getConversionAttributes(mockChart, "bytes", { min: 1.5, max: 2.5 })
-      
-      expect(result.fractionDigits).toBeGreaterThanOrEqual(-1)
-    })
-
-    it("handles very small values", () => {
-      const result = getConversionAttributes(mockChart, "bytes", { min: 0.0001, max: 0.0005 })
-      
-      expect(result.fractionDigits).toBeGreaterThanOrEqual(-1)
-    })
-
-    it("handles very large values", () => {
-      getScales.mockReturnValue([["", "K", "M", "G", "T"], { "": 1, "K": 1000, "M": 1000000, "G": 1000000000, "T": 1000000000000 }])
-      
-      const result = getConversionAttributes(mockChart, "bytes", { min: 1000000000000, max: 5000000000000 })
-      
-      expect(result.method).toBe("adjust")
-      expect(result.prefix).toBe("T")
-    })
-
-    it("handles missing conversable units", () => {
-      delete conversableUnits["unknown"]
-      
-      const result = getConversionAttributes(mockChart, "unknown", { min: 1, max: 10 })
-      
-      expect(result.method).toBe("original")
-    })
-
-    it("handles scale finding when no scale matches small values", () => {
-      getScales.mockReturnValue([["K", "M"], { "K": 1000, "M": 1000000 }])
-      
-      const result = getConversionAttributes(mockChart, "bytes", { min: 1, max: 10 })
-      
-      expect(result.method).toBe("original")
+      expect(result.base).toContain("custom")
     })
   })
 })

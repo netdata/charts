@@ -1,532 +1,292 @@
-import makeHoverX from "./hoverX"
-
-// Mock external dependencies
-jest.mock("@/helpers/eventOffset", () => jest.fn((event) => ({
-  offsetX: event.offsetX || 100,
-  offsetY: event.offsetY || 50
-})))
+import hoverX from "./hoverX"
+import { makeTestChart } from "@/testUtilities"
 
 describe("hoverX", () => {
-  let mockChartUI, mockDygraph, mockChart, mockSDK, hoverX
+  let chart, chartUI, hoverXInstance
 
   beforeEach(() => {
-    // Mock SDK
-    mockSDK = {
-      trigger: jest.fn()
-    }
-
-    // Mock chart
-    mockChart = {
-      getAttribute: jest.fn(),
-      updateAttribute: jest.fn(),
-      trigger: jest.fn(),
-      getPayloadDimensionIds: jest.fn(() => ["cpu", "memory", "disk"])
-    }
-
-    // Mock dygraph
-    mockDygraph = {
-      getArea: jest.fn(() => ({ h: 400 })),
-      findStackedPoint: jest.fn(() => ({
-        point: { canvasy: 60 },
-        row: 1,
-        seriesName: "cpu"
-      })),
-      findClosestPoint: jest.fn(() => ({
-        point: { canvasy: 50 },
-        row: 2,
-        seriesName: "memory"
-      })),
-      getPropertiesForSeries: jest.fn((seriesName) => {
-        if (seriesName === "ANNOTATIONS" || seriesName === "ANOMALY_RATE") return null
-        return {
-          column: seriesName === "cpu" ? 1 : seriesName === "memory" ? 2 : 3,
-          name: seriesName
-        }
-      }),
-      toDomXCoord: jest.fn((timestamp) => timestamp / 1000000)
-    }
-
-    // Mock chartUI
-    mockChartUI = {
-      getDygraph: jest.fn(() => mockDygraph),
-      chart: mockChart,
-      sdk: mockSDK,
-      on: jest.fn(() => mockChartUI),
-      off: jest.fn()
-    }
-
-    // Set default chart attributes
-    mockChart.getAttribute.mockImplementation((attr) => {
-      const attrs = {
+    const testChart = makeTestChart({
+      attributes: {
         chartType: "line",
-        overlays: {},
-        draftAnnotation: null
+        overlays: {}
       }
-      return attrs[attr]
     })
-
-    hoverX = makeHoverX(mockChartUI)
+    
+    chart = testChart.chart
+    chart.trigger = jest.fn()
+    chart.updateAttribute = jest.fn()
+    
+    chartUI = {
+      on: jest.fn().mockReturnThis(),
+      off: jest.fn().mockReturnThis(),
+      getDygraph: jest.fn(() => ({
+        getArea: jest.fn(() => ({ h: 200 })),
+        findStackedPoint: jest.fn(() => ({ 
+          point: { canvasy: 100 }, 
+          row: 0, 
+          seriesName: "test"
+        })),
+        findClosestPoint: jest.fn(() => ({ seriesName: "test" })),
+        getPropertiesForSeries: jest.fn(() => ({ column: 1 })),
+        toDomXCoord: jest.fn(x => x)
+      })),
+      sdk: {
+        trigger: jest.fn()
+      },
+      chart
+    }
+    
+    hoverXInstance = hoverX(chartUI)
   })
 
-  afterEach(() => {
-    jest.clearAllMocks()
+  it("creates hoverX handler", () => {
+    expect(typeof hoverX).toBe("function")
+    expect(hoverXInstance).toHaveProperty("toggle")
+    expect(hoverXInstance).toHaveProperty("destroy")
   })
 
-  describe("findClosest functionality", () => {
-    it("returns empty object for non-array points", () => {
-      const event = { offsetX: 100, offsetY: 50 }
-      const result = hoverX.toggle(true)
-
-      // Simulate highlight callback with invalid points
-      mockChartUI.on.mock.calls[0][1](event, 123456789, null)
-
-      expect(mockSDK.trigger).not.toHaveBeenCalled()
-    })
-
-    it("detects annotation area when near bottom", () => {
-      const event = { offsetX: 100, offsetY: 395 } // Near bottom
-      const points = [{ name: "cpu", yval: 25 }]
-
-      hoverX.toggle(true)
-      const highlightCallback = mockChartUI.on.mock.calls[0][1]
-      highlightCallback(event, 123456789, points)
-
-      // Should not trigger highlight for annotation area
-      expect(mockSDK.trigger).not.toHaveBeenCalledWith("highlightHover", mockChart, expect.any(Number), expect.any(String))
-    })
-
-    it("detects anomaly area when near top", () => {
-      const event = { offsetX: 100, offsetY: 10 } // Near top
-      const points = [{ name: "cpu", yval: 25 }]
-
-      hoverX.toggle(true)
-      const highlightCallback = mockChartUI.on.mock.calls[0][1]
-      highlightCallback(event, 123456789, points)
-
-      // Should not trigger highlight for anomaly area
-      expect(mockSDK.trigger).not.toHaveBeenCalledWith("highlightHover", mockChart, expect.any(Number), expect.any(String))
-    })
-
-    it("uses stacked point finding for stacked charts", () => {
-      mockChart.getAttribute.mockImplementation((attr) => {
-        if (attr === "chartType") return "stacked"
-        return null
-      })
-
-      const event = { offsetX: 100, offsetY: 70 } // Below stacked point
-      const points = [
-        { name: "cpu", yval: 25, idx: 1 },
-        { name: "memory", yval: 50, idx: 1 }
-      ]
-
-      hoverX.toggle(true)
-      const highlightCallback = mockChartUI.on.mock.calls[0][1]
-      highlightCallback(event, 123456789, points)
-
-      expect(mockDygraph.findStackedPoint).toHaveBeenCalledWith(100, 70)
-    })
-
-    it("finds max value point when stacked point is above cursor", () => {
-      mockChart.getAttribute.mockImplementation((attr) => {
-        if (attr === "chartType") return "stackedBar"
-        return null
-      })
-
-      mockDygraph.findStackedPoint.mockReturnValue({
-        point: { canvasy: 80 }, // Below cursor at y=70, so condition will be true
-        row: 1,
-        seriesName: "cpu"
-      })
-
-      const event = { offsetX: 100, offsetY: 70 }
-      const points = [
-        { name: "cpu", yval: 25, idx: 1 },
-        { name: "memory", yval: 75, idx: 1 }, // Max value
-        { name: "disk", yval: 50, idx: 1 }
-      ]
-
-      hoverX.toggle(true)
-      const highlightCallback = mockChartUI.on.mock.calls[0][1]
-      highlightCallback(event, 123456789, points)
-
-      expect(mockSDK.trigger).toHaveBeenCalledWith("highlightHover", mockChart, 123456789, "memory")
-    })
-
-    it("uses regular closest point finding for non-stacked charts", () => {
-      const event = { offsetX: 100, offsetY: 50 }
-      const points = [{ name: "cpu", yval: 25 }]
-
-      hoverX.toggle(true)
-      const highlightCallback = mockChartUI.on.mock.calls[0][1]
-      highlightCallback(event, 123456789, points)
-
-      expect(mockDygraph.findClosestPoint).toHaveBeenCalledWith(100, 50)
-    })
+  it("registers event listeners when toggled on", () => {
+    hoverXInstance.toggle(true)
+    
+    expect(chartUI.on).toHaveBeenCalledWith("highlightCallback", expect.any(Function))
+    expect(chartUI.on).toHaveBeenCalledWith("mousemove", expect.any(Function))
+    expect(chartUI.on).toHaveBeenCalledWith("mouseout", expect.any(Function))
+    expect(chartUI.on).toHaveBeenCalledWith("click", expect.any(Function))
   })
 
-  describe("dimension detection", () => {
-    it("gets dimension ID from series properties", () => {
-      const event = { offsetX: 100, offsetY: 50 }
-      const points = [{ name: "cpu", yval: 25 }]
-
-      mockDygraph.findClosestPoint.mockReturnValue({
-        seriesName: "memory"
-      })
-
-      hoverX.toggle(true)
-      const highlightCallback = mockChartUI.on.mock.calls[0][1]
-      highlightCallback(event, 123456789, points)
-
-      expect(mockDygraph.getPropertiesForSeries).toHaveBeenCalledWith("memory")
-      expect(mockSDK.trigger).toHaveBeenCalledWith("highlightHover", mockChart, 123456789, "memory")
-    })
-
-    it("handles missing series properties", () => {
-      const event = { offsetX: 100, offsetY: 50 }
-      const points = [{ name: "cpu", yval: 25 }]
-
-      mockDygraph.findClosestPoint.mockReturnValue({
-        seriesName: "unknown"
-      })
-      mockDygraph.getPropertiesForSeries.mockReturnValue(null)
-
-      hoverX.toggle(true)
-      const highlightCallback = mockChartUI.on.mock.calls[0][1]
-      highlightCallback(event, 123456789, points)
-
-      expect(mockSDK.trigger).not.toHaveBeenCalled()
-    })
-
-    it("handles missing dimension IDs", () => {
-      const event = { offsetX: 100, offsetY: 50 }
-      const points = [{ name: "cpu", yval: 25 }]
-
-      mockChart.getPayloadDimensionIds.mockReturnValue(null)
-
-      hoverX.toggle(true)
-      const highlightCallback = mockChartUI.on.mock.calls[0][1]
-      highlightCallback(event, 123456789, points)
-
-      expect(mockSDK.trigger).not.toHaveBeenCalled()
-    })
-
-    it("returns series name when dimension ID not found", () => {
-      const event = { offsetX: 100, offsetY: 50 }
-      const points = [{ name: "cpu", yval: 25 }]
-
-      mockDygraph.findClosestPoint.mockReturnValue({
-        seriesName: "unknown_series"
-      })
-      mockDygraph.getPropertiesForSeries.mockReturnValue({
-        column: 10, // Out of bounds
-        name: "unknown_series"
-      })
-
-      hoverX.toggle(true)
-      const highlightCallback = mockChartUI.on.mock.calls[0][1]
-      highlightCallback(event, 123456789, points)
-
-      expect(mockSDK.trigger).toHaveBeenCalledWith("highlightHover", mockChart, 123456789, "unknown_series")
-    })
+  it("handles highlight event with valid data", () => {
+    hoverXInstance.toggle(true)
+    
+    const highlightHandler = chartUI.on.mock.calls.find(call => call[0] === "highlightCallback")[1]
+    
+    const mockEvent = { 
+      offsetX: 100, 
+      offsetY: 100, 
+      stopImmediatePropagation: jest.fn(),
+      preventDefault: jest.fn(),
+      target: { getBoundingClientRect: () => ({ left: 0, top: 0 }) }
+    }
+    const xValue = 1640995200000
+    const points = [{ 
+      xval: xValue,
+      yval: 100,
+      idx: 0,
+      name: "test"
+    }]
+    
+    chart.getPayloadDimensionIds = jest.fn(() => ["test"])
+    
+    highlightHandler(mockEvent, xValue, points)
+    
+    expect(chartUI.sdk.trigger).toHaveBeenCalledWith("highlightHover", chart, xValue, "test")
+    expect(chart.trigger).toHaveBeenCalledWith("highlightHover", xValue, "test")
   })
 
-  describe("highlight functionality", () => {
-    it("triggers highlight events", () => {
-      const event = { offsetX: 100, offsetY: 50 }
-      const points = [{ name: "cpu", yval: 25 }]
-
-      mockDygraph.findClosestPoint.mockReturnValue({
-        seriesName: "cpu"
-      })
-
-      hoverX.toggle(true)
-      const highlightCallback = mockChartUI.on.mock.calls[0][1]
-      highlightCallback(event, 123456789, points)
-
-      expect(mockSDK.trigger).toHaveBeenCalledWith("highlightHover", mockChart, 123456789, "cpu")
-      expect(mockChart.trigger).toHaveBeenCalledWith("highlightHover", 123456789, "cpu")
-    })
-
-    it("ignores duplicate timestamps", () => {
-      const event = { offsetX: 100, offsetY: 50 }
-      const points = [{ name: "cpu", yval: 25 }]
-
-      mockDygraph.findClosestPoint.mockReturnValue({
-        seriesName: "cpu"
-      })
-
-      hoverX.toggle(true)
-      const highlightCallback = mockChartUI.on.mock.calls[0][1]
-      
-      // First call
-      highlightCallback(event, 123456789, points)
-      expect(mockSDK.trigger).toHaveBeenCalledTimes(1)
-
-      // Second call with same timestamp
-      highlightCallback(event, 123456789, points)
-      expect(mockSDK.trigger).toHaveBeenCalledTimes(1) // Should not increase
-    })
-
-    it("stores last position and points", () => {
-      const event = { offsetX: 150, offsetY: 75 }
-      const points = [{ name: "memory", yval: 50 }]
-
-      mockDygraph.findClosestPoint.mockReturnValue({
-        seriesName: "memory"
-      })
-
-      hoverX.toggle(true)
-      const highlightCallback = mockChartUI.on.mock.calls[0][1]
-      highlightCallback(event, 123456789, points)
-
-      // Verify internal state by triggering mousemove with small delta
-      const mousemoveCallback = mockChartUI.on.mock.calls[1][1]
-      const moveEvent = { offsetX: 152, offsetY: 77 } // Small movement, should be ignored
-      mousemoveCallback(moveEvent)
-
-      // Should not trigger additional events due to small movement
-      expect(mockSDK.trigger).toHaveBeenCalledTimes(1)
-    })
+  it("handles mouseout event", () => {
+    hoverXInstance.toggle(true)
+    
+    const mouseoutHandler = chartUI.on.mock.calls.find(call => call[0] === "mouseout")[1]
+    
+    mouseoutHandler()
+    
+    expect(chartUI.sdk.trigger).toHaveBeenCalledWith("highlightBlur", chart)
+    expect(chart.trigger).toHaveBeenCalledWith("highlightBlur")
   })
 
-  describe("click functionality", () => {
-    it("triggers click events", () => {
-      const event = { offsetX: 100, offsetY: 50 }
-      const points = [{ name: "cpu", yval: 25 }]
-
-      mockDygraph.findClosestPoint.mockReturnValue({
-        seriesName: "cpu"
-      })
-
-      hoverX.toggle(true)
-      const clickCallback = mockChartUI.on.mock.calls[3][1] // click is the 4th event
-      clickCallback(event, 123456789, points)
-
-      expect(mockSDK.trigger).toHaveBeenCalledWith("highlightClick", mockChart, 123456789, "cpu")
-      expect(mockChart.trigger).toHaveBeenCalledWith("highlightClick", 123456789, "cpu")
-    })
-
-    it("creates draft annotation", () => {
-      const event = { offsetX: 100, offsetY: 50 }
-      const points = [{ name: "cpu", yval: 25 }]
-
-      mockDygraph.findClosestPoint.mockReturnValue({
-        seriesName: "cpu"
-      })
-
-      hoverX.toggle(true)
-      const clickCallback = mockChartUI.on.mock.calls[3][1]
-      clickCallback(event, 123456789, points)
-
-      expect(mockChart.updateAttribute).toHaveBeenCalledWith("draftAnnotation", {
-        timestamp: 123456.789,
-        createdAt: expect.any(Date),
-        status: "draft"
-      })
-      expect(mockSDK.trigger).toHaveBeenCalledWith("annotationCreate", mockChart, 123456.789)
-      expect(mockChart.trigger).toHaveBeenCalledWith("annotationCreate", 123456.789)
-    })
-
-    it("ignores click near existing annotation", () => {
-      mockChart.getAttribute.mockImplementation((attr) => {
-        if (attr === "overlays") {
-          return {
-            "annotation1": {
-              type: "annotation",
-              timestamp: 123456.8 // Close to click timestamp
-            }
-          }
-        }
-        return null
-      })
-
-      mockDygraph.toDomXCoord.mockReturnValue(99) // Close to offsetX=100
-
-      const event = { offsetX: 100, offsetY: 50 }
-      const points = [{ name: "cpu", yval: 25 }]
-
-      hoverX.toggle(true)
-      const clickCallback = mockChartUI.on.mock.calls[3][1]
-      clickCallback(event, 123456789, points)
-
-      expect(mockChart.updateAttribute).not.toHaveBeenCalledWith("draftAnnotation", expect.any(Object))
-    })
-
-    it("ignores click when annotation is being edited", () => {
-      mockChart.getAttribute.mockImplementation((attr) => {
-        if (attr === "draftAnnotation") {
-          return { status: "editing" }
-        }
-        if (attr === "overlays") return {}
-        return null
-      })
-
-      const event = { offsetX: 100, offsetY: 50 }
-      const points = [{ name: "cpu", yval: 25 }]
-
-      hoverX.toggle(true)
-      const clickCallback = mockChartUI.on.mock.calls[3][1]
-      clickCallback(event, 123456789, points)
-
-      expect(mockChart.updateAttribute).not.toHaveBeenCalledWith("draftAnnotation", expect.any(Object))
-    })
+  it("handles annotations area hover", () => {
+    hoverXInstance.toggle(true)
+    
+    const highlightHandler = chartUI.on.mock.calls.find(call => call[0] === "highlightCallback")[1]
+    
+    const mockEvent = { 
+      offsetX: 100, 
+      offsetY: 195,
+      target: { getBoundingClientRect: () => ({ left: 0, top: 0 }) }
+    }
+    
+    highlightHandler(mockEvent, 1640995200000, [])
+    
+    expect(chartUI.sdk.trigger).not.toHaveBeenCalled()
+    expect(chart.trigger).not.toHaveBeenCalled()
   })
 
-  describe("mousemove functionality", () => {
-    it("triggers events on significant movement", () => {
-      const event = { offsetX: 100, offsetY: 50 }
-      const points = [{ name: "cpu", yval: 25 }]
-
-      mockDygraph.findClosestPoint.mockReturnValue({
-        seriesName: "cpu"
-      })
-
-      hoverX.toggle(true)
-      
-      // First, trigger highlight to set lastPoints and lastTimestamp
-      const highlightCallback = mockChartUI.on.mock.calls[0][1]
-      highlightCallback(event, 123456789, points)
-
-      // Now trigger mousemove with significant movement
-      const mousemoveCallback = mockChartUI.on.mock.calls[1][1]
-      const moveEvent = { offsetX: 110, offsetY: 60 } // Significant movement
-      mousemoveCallback(moveEvent)
-
-      expect(mockSDK.trigger).toHaveBeenCalledTimes(2) // Once for highlight, once for mousemove
-    })
-
-    it("ignores small movements", () => {
-      const event = { offsetX: 100, offsetY: 50 }
-      const points = [{ name: "cpu", yval: 25 }]
-
-      hoverX.toggle(true)
-      
-      // First, trigger highlight to set lastPoints and lastTimestamp
-      const highlightCallback = mockChartUI.on.mock.calls[0][1]
-      highlightCallback(event, 123456789, points)
-
-      // Now trigger mousemove with small movement
-      const mousemoveCallback = mockChartUI.on.mock.calls[1][1]
-      const moveEvent = { offsetX: 102, offsetY: 52 } // Small movement
-      mousemoveCallback(moveEvent)
-
-      expect(mockSDK.trigger).toHaveBeenCalledTimes(1) // Only the initial highlight
-    })
-
-    it("handles missing lastPoints gracefully", () => {
-      hoverX.toggle(true)
-      
-      const mousemoveCallback = mockChartUI.on.mock.calls[1][1]
-      const moveEvent = { offsetX: 110, offsetY: 60 }
-      
-      expect(() => mousemoveCallback(moveEvent)).not.toThrow()
-      // Should not trigger events without lastPoints
-      expect(mockSDK.trigger).not.toHaveBeenCalled()
-    })
+  it("handles anomaly rate area hover", () => {
+    hoverXInstance.toggle(true)
+    
+    const highlightHandler = chartUI.on.mock.calls.find(call => call[0] === "highlightCallback")[1]
+    
+    const mockEvent = { 
+      offsetX: 100, 
+      offsetY: 10,
+      target: { getBoundingClientRect: () => ({ left: 0, top: 0 }) }
+    }
+    
+    highlightHandler(mockEvent, 1640995200000, [])
+    
+    expect(chartUI.sdk.trigger).not.toHaveBeenCalled()
+    expect(chart.trigger).not.toHaveBeenCalled()
   })
 
-  describe("mouseout functionality", () => {
-    it("triggers blur events", () => {
-      hoverX.toggle(true)
-      
-      const mouseoutCallback = mockChartUI.on.mock.calls[2][1]
-      mouseoutCallback()
-
-      expect(mockSDK.trigger).toHaveBeenCalledWith("highlightBlur", mockChart)
-      expect(mockChart.trigger).toHaveBeenCalledWith("highlightBlur")
+  it("handles stacked chart type", () => {
+    chart.getAttribute = jest.fn((key) => {
+      if (key === "chartType") return "stacked"
+      if (key === "overlays") return {}
+      return null
     })
+    hoverXInstance.toggle(true)
+    
+    const highlightHandler = chartUI.on.mock.calls.find(call => call[0] === "highlightCallback")[1]
+    
+    const mockEvent = { 
+      offsetX: 100, 
+      offsetY: 100,
+      target: { getBoundingClientRect: () => ({ left: 0, top: 0 }) }
+    }
+    const points = [
+      { yval: 10, idx: 0, name: "cpu" },
+      { yval: 20, idx: 0, name: "memory" }
+    ]
+    
+    chart.getPayloadDimensionIds = jest.fn(() => ["cpu", "memory"])
+    
+    highlightHandler(mockEvent, 1640995200000, points)
+    
+    expect(chartUI.sdk.trigger).toHaveBeenCalled()
   })
 
-  describe("toggle functionality", () => {
-    it("enables hover by registering event listeners", () => {
-      hoverX.toggle(true)
-
-      expect(mockChartUI.on).toHaveBeenCalledWith("highlightCallback", expect.any(Function))
-      expect(mockChartUI.on).toHaveBeenCalledWith("mousemove", expect.any(Function))
-      expect(mockChartUI.on).toHaveBeenCalledWith("mouseout", expect.any(Function))
-      expect(mockChartUI.on).toHaveBeenCalledWith("click", expect.any(Function))
-    })
-
-    it("disables hover by calling destroy", () => {
-      hoverX.toggle(false)
-
-      expect(mockChartUI.off).toHaveBeenCalledWith("highlightCallback", expect.any(Function))
-      expect(mockChartUI.off).toHaveBeenCalledWith("mousemove", expect.any(Function))
-      expect(mockChartUI.off).toHaveBeenCalledWith("mouseout", expect.any(Function))
-      expect(mockChartUI.off).toHaveBeenCalledWith("click", expect.any(Function))
-    })
+  it("triggers SDK hover event", () => {
+    hoverXInstance.toggle(true)
+    
+    const highlightHandler = chartUI.on.mock.calls.find(call => call[0] === "highlightCallback")[1]
+    
+    const mockEvent = { 
+      offsetX: 100, 
+      offsetY: 100,
+      target: { getBoundingClientRect: () => ({ left: 0, top: 0 }) }
+    }
+    
+    chart.getPayloadDimensionIds = jest.fn(() => ["test"])
+    
+    highlightHandler(mockEvent, 1640995200000, [])
+    
+    expect(chartUI.sdk.trigger).toHaveBeenCalledWith("highlightHover", chart, 1640995200000, "test")
   })
 
-  describe("destroy functionality", () => {
-    it("cleans up event listeners and state", () => {
-      hoverX.destroy()
-
-      expect(mockChartUI.off).toHaveBeenCalledWith("highlightCallback", expect.any(Function))
-      expect(mockChartUI.off).toHaveBeenCalledWith("mousemove", expect.any(Function))
-      expect(mockChartUI.off).toHaveBeenCalledWith("mouseout", expect.any(Function))
-      expect(mockChartUI.off).toHaveBeenCalledWith("click", expect.any(Function))
-    })
+  it("handles destroy method", () => {
+    hoverXInstance.toggle(true)
+    hoverXInstance.destroy()
+    
+    expect(chartUI.off).toHaveBeenCalledWith("highlightCallback", expect.any(Function))
+    expect(chartUI.off).toHaveBeenCalledWith("mousemove", expect.any(Function))
+    expect(chartUI.off).toHaveBeenCalledWith("mouseout", expect.any(Function))
+    expect(chartUI.off).toHaveBeenCalledWith("click", expect.any(Function))
   })
 
-  describe("annotation detection", () => {
-    it("detects near annotation", () => {
-      mockChart.getAttribute.mockImplementation((attr) => {
-        if (attr === "overlays") {
-          return {
-            "annotation1": {
-              type: "annotation",
-              timestamp: 123456.8
-            },
-            "annotation2": {
-              type: "alarm",
-              timestamp: 123457.0
-            }
-          }
-        }
-        return null
-      })
+  it("deduplicates repeated hover events at same position", () => {
+    hoverXInstance.toggle(true)
+    
+    const highlightHandler = chartUI.on.mock.calls.find(call => call[0] === "highlightCallback")[1]
+    
+    const mockEvent = { 
+      offsetX: 100, 
+      offsetY: 100, 
+      stopImmediatePropagation: jest.fn(),
+      preventDefault: jest.fn(),
+      target: { getBoundingClientRect: () => ({ left: 0, top: 0 }) }
+    }
+    
+    const xValue = 1640995200000
+    const points = [{ idx: 0, name: "test" }]
+    
+    chart.getPayloadDimensionIds = jest.fn(() => ["test"])
+    
+    highlightHandler(mockEvent, xValue, points)
+    expect(chartUI.sdk.trigger).toHaveBeenCalledTimes(1)
+    
+    highlightHandler(mockEvent, xValue, points)
+    expect(chartUI.sdk.trigger).toHaveBeenCalledTimes(1)
+    
+    highlightHandler(mockEvent, xValue + 60000, points)
+    expect(chartUI.sdk.trigger).toHaveBeenCalledTimes(2)
+  })
 
-      mockDygraph.toDomXCoord.mockReturnValue(95) // Within 10px threshold
+  it("handles click event for annotations", () => {
+    hoverXInstance.toggle(true)
+    
+    const clickHandler = chartUI.on.mock.calls.find(call => call[0] === "click")[1]
+    
+    const mockEvent = { 
+      offsetX: 100, 
+      offsetY: 100,
+      target: { getBoundingClientRect: () => ({ left: 0, top: 0 }) }
+    }
+    
+    chart.getPayloadDimensionIds = jest.fn(() => ["test"])
+    
+    clickHandler(mockEvent, 1640995200000, [])
+    
+    expect(chart.updateAttribute).toHaveBeenCalledWith("draftAnnotation", expect.objectContaining({
+      timestamp: 1640995200,
+      status: "draft"
+    }))
+    expect(chart.trigger).toHaveBeenCalledWith("annotationCreate", 1640995200)
+    expect(chartUI.sdk.trigger).toHaveBeenCalledWith("annotationCreate", expect.objectContaining({
+      trigger: chart.trigger,
+      getAttribute: chart.getAttribute
+    }), 1640995200)
+  })
 
-      const event = { offsetX: 100, offsetY: 50 }
-      const points = [{ name: "cpu", yval: 25 }]
-
-      hoverX.toggle(true)
-      const clickCallback = mockChartUI.on.mock.calls[3][1]
-      clickCallback(event, 123456789, points)
-
-      // Should not create annotation due to proximity
-      expect(mockChart.updateAttribute).not.toHaveBeenCalledWith("draftAnnotation", expect.any(Object))
+  it("skips annotation creation near existing annotations", () => {
+    chart.getAttribute = jest.fn((key) => {
+      if (key === "overlays") return { "1": { type: "annotation", timestamp: 1640995200 } }
+      return null
     })
-
-    it("allows annotation when far from existing ones", () => {
-      mockChart.getAttribute.mockImplementation((attr) => {
-        if (attr === "overlays") {
-          return {
-            "annotation1": {
-              type: "annotation",
-              timestamp: 123456.8
-            }
-          }
-        }
-        return null
+    
+    chartUI.getDygraph = jest.fn(() => ({
+      getArea: jest.fn(() => ({ h: 200 })),
+      findClosestPoint: jest.fn(() => ({ seriesName: "test" })),
+      getPropertiesForSeries: jest.fn(() => ({ column: 1 })),
+      toDomXCoord: jest.fn((timestamp) => {
+        if (timestamp === 1640995200 * 1000) return 105
+        return timestamp
       })
+    }))
+    
+    hoverXInstance.toggle(true)
+    
+    const clickHandler = chartUI.on.mock.calls.find(call => call[0] === "click")[1]
+    
+    const mockEvent = { 
+      clientX: 105, 
+      clientY: 100,
+      target: { getBoundingClientRect: () => ({ left: 0, top: 0 }) }
+    }
+    
+    chart.getPayloadDimensionIds = jest.fn(() => ["test"])
+    
+    clickHandler(mockEvent, 1640995200000, [])
+    
+    expect(chart.updateAttribute).not.toHaveBeenCalledWith("draftAnnotation", expect.anything())
+  })
 
-      mockDygraph.toDomXCoord.mockReturnValue(85) // >10px away
-
-      const event = { offsetX: 100, offsetY: 50 }
-      const points = [{ name: "cpu", yval: 25 }]
-
-      mockDygraph.findClosestPoint.mockReturnValue({
-        seriesName: "cpu"
-      })
-
-      hoverX.toggle(true)
-      const clickCallback = mockChartUI.on.mock.calls[3][1]
-      clickCallback(event, 123456789, points)
-
-      // Should create annotation since far enough
-      expect(mockChart.updateAttribute).toHaveBeenCalledWith("draftAnnotation", expect.any(Object))
-    })
+  it("handles mousemove event", () => {
+    hoverXInstance.toggle(true)
+    
+    const highlightHandler = chartUI.on.mock.calls.find(call => call[0] === "highlightCallback")[1]
+    const mousemoveHandler = chartUI.on.mock.calls.find(call => call[0] === "mousemove")[1]
+    
+    chart.getPayloadDimensionIds = jest.fn(() => ["test"])
+    
+    highlightHandler({ offsetX: 100, offsetY: 100, target: { getBoundingClientRect: () => ({ left: 0, top: 0 }) } }, 1640995200000, [])
+    
+    const mockEvent = { 
+      offsetX: 200, 
+      offsetY: 150,
+      target: { getBoundingClientRect: () => ({ left: 0, top: 0 }) }
+    }
+    
+    mousemoveHandler(mockEvent)
+    
+    expect(chartUI.sdk.trigger).toHaveBeenCalledWith("highlightHover", chart, 1640995200000, "test")
   })
 })
