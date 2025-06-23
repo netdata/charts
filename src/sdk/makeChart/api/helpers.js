@@ -27,7 +27,7 @@ export const pointMultiplierByChartType = {
   default: 0.7,
 }
 
-export const getChartPayload = chart => {
+export const getChartPayload = (chart, attrs = {}) => {
   const ui = chart.getUI()
   const width = chart.getAttribute("containerWidth") || ui.getChartWidth()
 
@@ -42,7 +42,7 @@ export const getChartPayload = chart => {
     chartType,
     pixelsPerPoint,
     chartLibrary,
-  } = chart.getAttributes()
+  } = { ...chart.getAttributes(), ...attrs }
 
   const pointsMultiplier =
     pointMultiplierByChartType[chartType] ||

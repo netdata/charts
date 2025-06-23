@@ -1,7 +1,7 @@
 import React from "react"
 import { screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
-import { renderWithChart, makeTestChart } from "@/testUtilities"
+import { renderWithChart, makeTestChart } from "@jest/testUtilities"
 import { Title } from "./index"
 
 describe("Title component", () => {
@@ -11,12 +11,12 @@ describe("Title component", () => {
         title: "CPU Usage",
         name: "system.cpu",
         isMinimal: false,
-        units: ["%"]
-      }
+        units: ["%"],
+      },
     })
-    
+
     renderWithChart(<Title />, { testChartOptions: { chart } })
-    
+
     expect(screen.getByText("CPU Usage")).toBeInTheDocument()
     expect(screen.getByText(/system\.cpu/)).toBeInTheDocument()
   })
@@ -30,12 +30,12 @@ describe("Title component", () => {
         units: ["By"],
         unitsCurrent: ["By"],
         unitsConversionBase: ["B"],
-        unitsConversionPrefix: ["Ki"]
-      }
+        unitsConversionPrefix: ["Ki"],
+      },
     })
-    
+
     renderWithChart(<Title />, { testChartOptions: { chart } })
-    
+
     expect(screen.getByText("Memory Usage")).toBeInTheDocument()
     expect(screen.getByText(/\[.*\]/)).toBeInTheDocument() // Units in brackets
   })
@@ -46,12 +46,12 @@ describe("Title component", () => {
         title: "Minimal Title",
         name: "system.test",
         designFlavour: "minimal",
-        units: ["%"]
-      }
+        units: ["%"],
+      },
     })
-    
+
     renderWithChart(<Title />, { testChartOptions: { chart } })
-    
+
     expect(screen.getByText("Minimal Title")).toBeInTheDocument()
     expect(screen.queryByText(/system\.test/)).not.toBeInTheDocument()
     expect(screen.queryByText(/\[.*\]/)).not.toBeInTheDocument()
@@ -62,12 +62,12 @@ describe("Title component", () => {
       attributes: {
         title: "",
         name: "system.noTitle",
-        isMinimal: false
-      }
+        isMinimal: false,
+      },
     })
-    
+
     renderWithChart(<Title />, { testChartOptions: { chart } })
-    
+
     expect(screen.getByText("system.noTitle")).toBeInTheDocument()
   })
 
@@ -76,17 +76,17 @@ describe("Title component", () => {
       attributes: {
         title: "Initial Title",
         name: "initial.name",
-        isMinimal: false
-      }
+        isMinimal: false,
+      },
     })
-    
+
     const { rerender } = renderWithChart(<Title />, { testChartOptions: { chart } })
-    
+
     expect(screen.getByText("Initial Title")).toBeInTheDocument()
-    
+
     chart.updateAttribute("title", "Updated Title")
     rerender(<Title />)
-    
+
     expect(screen.queryByText("Initial Title")).not.toBeInTheDocument()
     expect(screen.getByText("Updated Title")).toBeInTheDocument()
   })
@@ -97,29 +97,29 @@ describe("Title component", () => {
         title: "Toggle Test",
         name: "system.toggle",
         designFlavour: "default",
-        units: ["%"]
-      }
+        units: ["%"],
+      },
     })
-    
+
     const { rerender } = renderWithChart(<Title />, { testChartOptions: { chart } })
-    
+
     expect(screen.getByText(/system\.toggle/)).toBeInTheDocument()
-    
+
     chart.updateAttribute("designFlavour", "minimal")
     rerender(<Title />)
-    
+
     expect(screen.queryByText(/system\.toggle/)).not.toBeInTheDocument()
   })
 
   it("applies custom className", () => {
     const { chart } = makeTestChart({
       attributes: {
-        title: "Styled Title"
-      }
+        title: "Styled Title",
+      },
     })
-    
+
     renderWithChart(<Title className="custom-title" />, { testChartOptions: { chart } })
-    
+
     const container = screen.getByTestId("chartHeaderStatus-title")
     expect(container).toHaveClass("custom-title")
   })
@@ -127,15 +127,12 @@ describe("Title component", () => {
   it("passes additional props", () => {
     const { chart } = makeTestChart({
       attributes: {
-        title: "Props Test"
-      }
+        title: "Props Test",
+      },
     })
-    
-    renderWithChart(
-      <Title data-custom="value" />,
-      { testChartOptions: { chart } }
-    )
-    
+
+    renderWithChart(<Title data-custom="value" />, { testChartOptions: { chart } })
+
     const container = screen.getByTestId("chartHeaderStatus-title")
     expect(container).toHaveAttribute("data-custom", "value")
   })
@@ -145,12 +142,12 @@ describe("Title component", () => {
       attributes: {
         title: "",
         name: "",
-        units: [""]
-      }
+        units: [""],
+      },
     })
-    
+
     renderWithChart(<Title />, { testChartOptions: { chart } })
-    
+
     const container = screen.getByTestId("chartHeaderStatus-title")
     expect(container).toBeInTheDocument()
     // Should not render bullets when empty
@@ -162,12 +159,12 @@ describe("Title component", () => {
       attributes: {
         title: "Title Part",
         name: "Name Part",
-        isMinimal: false
-      }
+        isMinimal: false,
+      },
     })
-    
+
     renderWithChart(<Title />, { testChartOptions: { chart } })
-    
+
     expect(screen.getByText("Title Part")).toBeInTheDocument()
     expect(screen.getByText(/•.*Name Part/)).toBeInTheDocument()
   })
@@ -175,12 +172,12 @@ describe("Title component", () => {
   it("truncates long titles", () => {
     const { chart } = makeTestChart({
       attributes: {
-        title: "This is a very long title that should be truncated to prevent overflow in the UI"
-      }
+        title: "This is a very long title that should be truncated to prevent overflow in the UI",
+      },
     })
-    
+
     renderWithChart(<Title />, { testChartOptions: { chart } })
-    
+
     const titleElement = screen.getByText(/This is a very long title/)
     // TextSmall component should have truncate prop
     expect(titleElement).toBeInTheDocument()

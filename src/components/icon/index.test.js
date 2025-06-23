@@ -1,7 +1,7 @@
 import React from "react"
 import { screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
-import { renderWithChart } from "@/testUtilities"
+import { renderWithChart } from "@jest/testUtilities"
 import Icon, { Button } from "./index"
 
 const mockSvg = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -55,19 +55,19 @@ describe("Icon component", () => {
   it("reuses existing svg if already injected", () => {
     const { rerender } = renderWithChart(<Icon svg={mockSvg} />)
     const defsBeforeRerender = document.querySelector("#netdata-sdk-svg defs").children.length
-    
+
     rerender(<Icon svg={mockSvg} />)
     const defsAfterRerender = document.querySelector("#netdata-sdk-svg defs").children.length
-    
+
     expect(defsAfterRerender).toBe(defsBeforeRerender)
   })
 
   it("creates unique ids for different svgs", () => {
     const anotherSvg = `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>`
-    
+
     renderWithChart(<Icon svg={mockSvg} />)
     renderWithChart(<Icon svg={anotherSvg} />)
-    
+
     const defs = document.querySelector("#netdata-sdk-svg defs")
     expect(defs.children.length).toBe(2)
   })

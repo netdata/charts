@@ -266,5 +266,22 @@ export default {
 
   draftAnnotation: null, // { timestamp, createdAt, status: "draft"|"editing"|"saving" }
 
+  compareData: {},
+  comparePeriods: [],
+  compareLoading: false,
+  compareError: null,
+  customPeriods: [
+    {
+      id: "24h",
+      label: "24 hours before",
+      offsetSeconds: 86400,
+    },
+    {
+      id: "7d", 
+      label: "7 days before",
+      offsetSeconds: 604800,
+    },
+  ],
+
   selectedNodeLabelsFilter: [],
 }

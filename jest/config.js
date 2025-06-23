@@ -2,6 +2,7 @@ module.exports = {
   rootDir: "../",
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
+    "^@jest/testUtilities(.*)$": "<rootDir>/jest/testUtilities$1",
     "\\.svg": "<rootDir>/jest/svgTransform.js",
     "^.+\\.(css|less|scss|raw)$": "identity-obj-proxy",
   },

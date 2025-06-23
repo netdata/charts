@@ -1,7 +1,7 @@
 import React from "react"
 import { render, screen, waitFor } from "@testing-library/react"
 import "@testing-library/jest-dom"
-import { renderWithChart } from "@/testUtilities"
+import { renderWithChart } from "@jest/testUtilities"
 import Tooltip, { withTooltip, tooltipStyleProps } from "./index"
 
 describe("Tooltip component", () => {
@@ -11,7 +11,7 @@ describe("Tooltip component", () => {
         <button>Hover me</button>
       </Tooltip>
     )
-    
+
     expect(screen.getByText("Hover me")).toBeInTheDocument()
   })
 
@@ -21,7 +21,7 @@ describe("Tooltip component", () => {
         <button>No tooltip button</button>
       </Tooltip>
     )
-    
+
     expect(screen.getByText("No tooltip button")).toBeInTheDocument()
   })
 
@@ -31,18 +31,18 @@ describe("Tooltip component", () => {
         <button>Hover for tooltip</button>
       </Tooltip>
     )
-    
+
     const button = screen.getByText("Hover for tooltip")
-    
+
     // Hover over the button
     await user.hover(button)
-    
+
     // Tooltip content should appear
     expect(await screen.findByText("This is the tooltip content")).toBeInTheDocument()
-    
+
     // Unhover
     await user.unhover(button)
-    
+
     // Tooltip should disappear
     await waitFor(() => {
       expect(screen.queryByText("This is the tooltip content")).not.toBeInTheDocument()
@@ -50,16 +50,14 @@ describe("Tooltip component", () => {
   })
 
   it("uses custom Content component when provided", () => {
-    const CustomContent = ({ children }) => (
-      <div data-testid="custom-content">{children}</div>
-    )
-    
+    const CustomContent = ({ children }) => <div data-testid="custom-content">{children}</div>
+
     renderWithChart(
       <Tooltip content="Custom tooltip" Content={CustomContent}>
         <button>Button</button>
       </Tooltip>
     )
-    
+
     expect(screen.getByText("Button")).toBeInTheDocument()
   })
 
@@ -69,7 +67,7 @@ describe("Tooltip component", () => {
         <button>Button</button>
       </Tooltip>
     )
-    
+
     expect(screen.getByText("Button")).toBeInTheDocument()
   })
 
@@ -79,9 +77,9 @@ describe("Tooltip component", () => {
         <button>Hover me</button>
       </Tooltip>
     )
-    
+
     await user.hover(screen.getByText("Hover me"))
-    
+
     const tooltipContent = await screen.findByText("Styled tooltip")
     expect(tooltipContent).toBeInTheDocument()
   })
@@ -92,9 +90,9 @@ describe("Tooltip component", () => {
         <button>Disabled tooltip</button>
       </Tooltip>
     )
-    
+
     await user.hover(screen.getByText("Disabled tooltip"))
-    
+
     // Tooltip should not appear when disabled
     expect(screen.queryByText("Should not show")).not.toBeInTheDocument()
   })
@@ -107,15 +105,11 @@ describe("withTooltip HOC", () => {
         {children}
       </button>
     )
-    
+
     const WrappedComponent = withTooltip(TestComponent)
-    
-    renderWithChart(
-      <WrappedComponent title="Test tooltip">
-        Button with tooltip
-      </WrappedComponent>
-    )
-    
+
+    renderWithChart(<WrappedComponent title="Test tooltip">Button with tooltip</WrappedComponent>)
+
     expect(screen.getByTestId("test-button")).toBeInTheDocument()
     expect(screen.getByText("Button with tooltip")).toBeInTheDocument()
   })
@@ -124,26 +118,26 @@ describe("withTooltip HOC", () => {
     const TestComponent = ({ customProp, ...props }) => (
       <div data-testid="test-component" data-custom={customProp} {...props} />
     )
-    
+
     const WrappedComponent = withTooltip(TestComponent)
-    
+
     renderWithChart(
       <WrappedComponent customProp="custom-value" className="test-class">
         Content
       </WrappedComponent>
     )
-    
+
     const element = screen.getByTestId("test-component")
     expect(element).toHaveAttribute("data-custom", "custom-value")
     expect(element).toHaveClass("test-class")
   })
 
   it("handles components without title prop", () => {
-    const TestComponent = (props) => <div data-testid="no-title" {...props} />
+    const TestComponent = props => <div data-testid="no-title" {...props} />
     const WrappedComponent = withTooltip(TestComponent)
-    
+
     renderWithChart(<WrappedComponent>No tooltip</WrappedComponent>)
-    
+
     expect(screen.getByTestId("no-title")).toBeInTheDocument()
   })
 })
@@ -155,7 +149,7 @@ describe("tooltipStyleProps", () => {
       margin: [2],
       round: 1,
       width: { max: "300px", base: "fit-content" },
-      background: "tooltip"
+      background: "tooltip",
     })
   })
 })

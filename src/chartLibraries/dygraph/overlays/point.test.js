@@ -1,22 +1,22 @@
-import { makeTestChart } from "@/testUtilities"
+import { makeTestChart } from "@jest/testUtilities"
 import point from "./point"
 
 describe("point overlay", () => {
   it("handles overlay access", () => {
     const { chart } = makeTestChart()
-    
-    chart.getAttribute = (key) => {
+
+    chart.getAttribute = key => {
       if (key === "overlays") {
         return {
           "test-point": {
-            row: 5
-          }
+            row: 5,
+          },
         }
       }
       return {}
     }
-    
-    const chartUI = { 
+
+    const chartUI = {
       chart,
       getDygraph: () => ({
         getArea: () => ({ h: 100 }),
@@ -29,21 +29,21 @@ describe("point overlay", () => {
           lineTo: () => {},
           stroke: () => {},
           strokeStyle: "",
-          lineWidth: 0
-        }
-      })
+          lineWidth: 0,
+        },
+      }),
     }
-    
+
     expect(() => point(chartUI, "test-point")).not.toThrow()
   })
 
   it("handles missing overlay", () => {
     const { chart } = makeTestChart()
-    
+
     chart.getAttribute = () => ({})
-    
+
     const chartUI = { chart }
-    
+
     expect(() => point(chartUI, "missing-overlay")).toThrow()
   })
 })

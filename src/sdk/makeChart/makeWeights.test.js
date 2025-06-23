@@ -1,5 +1,5 @@
 import makeWeights from "./makeWeights"
-import { makeTestChart } from "@/testUtilities"
+import { makeTestChart } from "@jest/testUtilities"
 
 describe("makeWeights", () => {
   let chart
@@ -13,12 +13,12 @@ describe("makeWeights", () => {
 
     global.AbortController = jest.fn(() => ({
       abort: jest.fn(),
-      signal: {}
+      signal: {},
     }))
 
-    global.fetch = jest.fn(() => 
+    global.fetch = jest.fn(() =>
       Promise.resolve({
-        json: () => Promise.resolve({ weights: {} })
+        json: () => Promise.resolve({ weights: {} }),
       })
     )
 
@@ -42,18 +42,18 @@ describe("makeWeights", () => {
   it("fetchWeights updates loading state", () => {
     const spy = jest.spyOn(chart, "updateAttributes")
     const triggerSpy = jest.spyOn(chart, "trigger")
-    
+
     weightsModule.fetchWeights("test-tab")
-    
+
     expect(spy).toHaveBeenCalledWith({
-      weightsLoading: true
+      weightsLoading: true,
     })
     expect(triggerSpy).toHaveBeenCalledWith("weights:startFetch")
   })
 
   it("creates abort controller when fetching", () => {
     weightsModule.fetchWeights("test-tab")
-    
+
     expect(global.AbortController).toHaveBeenCalled()
   })
 })

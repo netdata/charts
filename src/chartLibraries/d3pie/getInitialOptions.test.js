@@ -1,20 +1,20 @@
 import React from "react"
-import { renderWithChart } from "@/testUtilities"
+import { renderWithChart } from "@jest/testUtilities"
 import getInitialOptions from "./getInitialOptions"
 
 describe("getInitialOptions", () => {
   it("returns valid d3pie configuration object", () => {
     const { chart } = renderWithChart(<div />, {
-      chartType: "pie"
+      chartType: "pie",
     })
-    
+
     const mockChartUI = {
       getElement: () => ({ clientWidth: 400, clientHeight: 300 }),
-      chart
+      chart,
     }
-    
+
     const options = getInitialOptions(mockChartUI)
-    
+
     expect(options).toHaveProperty("header")
     expect(options).toHaveProperty("footer")
     expect(options).toHaveProperty("data")
@@ -28,32 +28,32 @@ describe("getInitialOptions", () => {
 
   it("sets canvas dimensions from element size", () => {
     const { chart } = renderWithChart(<div />, {
-      chartType: "pie"
+      chartType: "pie",
     })
-    
+
     const mockChartUI = {
       getElement: () => ({ clientWidth: 500, clientHeight: 400 }),
-      chart
+      chart,
     }
-    
+
     const options = getInitialOptions(mockChartUI)
-    
+
     expect(options.size.canvasWidth).toBe(500)
     expect(options.size.canvasHeight).toBe(400)
   })
 
   it("includes custom formatter function", () => {
     const { chart } = renderWithChart(<div />, {
-      chartType: "pie"
+      chartType: "pie",
     })
-    
+
     const mockChartUI = {
       getElement: () => ({ clientWidth: 400, clientHeight: 300 }),
-      chart
+      chart,
     }
-    
+
     const options = getInitialOptions(mockChartUI)
-    
+
     expect(typeof options.labels.formatter).toBe("function")
   })
 })

@@ -1,14 +1,14 @@
 import React from "react"
-import { renderWithChart } from "@/testUtilities"
+import { renderWithChart } from "@jest/testUtilities"
 import proceeded from "./proceeded"
 
 const mockDygraph = {
-  xAxisRange: () => [1000000, 2000000]
+  xAxisRange: () => [1000000, 2000000],
 }
 
 jest.mock("./helpers", () => ({
   trigger: jest.fn(),
-  getArea: jest.fn(() => ({ from: 50, width: 100 }))
+  getArea: jest.fn(() => ({ from: 50, width: 100 })),
 }))
 
 describe("proceeded overlay", () => {
@@ -19,41 +19,41 @@ describe("proceeded overlay", () => {
       chartType: "line",
       attributes: {
         outOfLimits: false,
-        error: false
-      }
+        error: false,
+      },
     })
-    
+
     chart.getFirstEntry = jest.fn(() => 1500)
-    
+
     chartUI = {
       chart,
-      getDygraph: () => mockDygraph
+      getDygraph: () => mockDygraph,
     }
-    
+
     jest.clearAllMocks()
   })
 
   it("calculates time range correctly", () => {
     proceeded(chartUI, "test-proceeded")
-    
+
     expect(chartUI.chart.getFirstEntry).toHaveBeenCalled()
   })
 
   it("handles outOfLimits state", () => {
     chartUI.chart.getAttribute = jest.fn(() => ({
       outOfLimits: true,
-      error: false
+      error: false,
     }))
-    
+
     expect(() => proceeded(chartUI, "test-proceeded")).not.toThrow()
   })
 
   it("handles error state", () => {
     chartUI.chart.getAttribute = jest.fn(() => ({
       outOfLimits: false,
-      error: true
+      error: true,
     }))
-    
+
     expect(() => proceeded(chartUI, "test-proceeded")).not.toThrow()
   })
 
@@ -61,11 +61,11 @@ describe("proceeded overlay", () => {
     chartUI.chart.getFirstEntry = jest.fn(() => null)
     chartUI.chart.getAttribute = jest.fn(() => ({
       outOfLimits: false,
-      error: false
+      error: false,
     }))
-    
+
     proceeded(chartUI, "test-proceeded")
-    
+
     expect(chartUI.chart.getFirstEntry).toHaveBeenCalled()
   })
 })

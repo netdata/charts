@@ -1,7 +1,7 @@
 import React from "react"
 import { screen, fireEvent } from "@testing-library/react"
 import "@testing-library/jest-dom"
-import { renderWithChart } from "@/testUtilities"
+import { renderWithChart } from "@jest/testUtilities"
 import Button from "./button"
 
 describe("Icon Button", () => {
@@ -33,16 +33,16 @@ describe("Icon Button", () => {
   it("handles click events", () => {
     const handleClick = jest.fn()
     renderWithChart(<Button onClick={handleClick}>Click me</Button>)
-    
+
     const button = screen.getByRole("button")
     fireEvent.click(button)
-    
+
     expect(handleClick).toHaveBeenCalled()
   })
 
   it("shows tooltip when title prop is provided", () => {
     renderWithChart(<Button title="This is a tooltip">Hover me</Button>)
-    
+
     const button = screen.getByRole("button")
     expect(button).toBeInTheDocument()
     // Button is wrapped with withTooltip HOC which handles tooltip display
@@ -60,7 +60,7 @@ describe("Icon Button", () => {
         Custom props
       </Button>
     )
-    
+
     const button = screen.getByTestId("custom-button")
     expect(button).toHaveClass("custom-class")
   })
@@ -68,7 +68,7 @@ describe("Icon Button", () => {
   it("applies hover indicator by default", () => {
     const { container } = renderWithChart(<Button>Hover indicator</Button>)
     const button = container.querySelector("button")
-    
+
     // hoverIndicator prop defaults to true
     expect(button).toBeInTheDocument()
   })
@@ -85,7 +85,7 @@ describe("Icon Button", () => {
         <path d="M10 10" />
       </svg>
     )
-    
+
     renderWithChart(<Button icon={<StrokedIcon />} stroked />)
     expect(screen.getByTestId("stroked-icon")).toBeInTheDocument()
   })

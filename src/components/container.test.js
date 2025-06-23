@@ -1,26 +1,26 @@
 import React from "react"
 import { screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
-import { renderWithChart } from "@/testUtilities"
+import { renderWithChart } from "@jest/testUtilities"
 import Container from "./container"
 
 describe("Container", () => {
   it("renders container component with content", () => {
     renderWithChart(<Container>Test content</Container>)
-    
+
     expect(screen.getByText("Test content")).toBeInTheDocument()
   })
 
   it("renders with data-testid and data-type attributes", () => {
     renderWithChart(<Container>Content</Container>)
-    
+
     const container = screen.getByTestId("chart")
     expect(container).toHaveAttribute("data-type", "chart")
   })
 
   it("applies default dimensions", () => {
     renderWithChart(<Container>Content</Container>)
-    
+
     const container = screen.getByTestId("chart")
     expect(container).toHaveStyle({ height: "100%", width: "100%" })
   })
@@ -31,7 +31,7 @@ describe("Container", () => {
         Content
       </Container>
     )
-    
+
     const container = screen.getByTestId("chart")
     expect(container).toHaveStyle({ height: "200px", width: "300px" })
   })
@@ -42,14 +42,14 @@ describe("Container", () => {
         Content
       </Container>
     )
-    
+
     const container = screen.getByTestId("chart")
     expect(container).toHaveStyle({ height: "250px", width: "350px" })
   })
 
   it("applies default styling", () => {
     renderWithChart(<Container>Content</Container>)
-    
+
     const container = screen.getByTestId("chart")
     expect(container).toHaveStyle({ position: "relative" })
     // Check that it has styled-component classes
@@ -62,7 +62,7 @@ describe("Container", () => {
         Content
       </Container>
     )
-    
+
     const container = screen.getByTestId("chart")
     expect(container).toHaveClass("custom-class")
     expect(container).toHaveAttribute("data-custom", "value")

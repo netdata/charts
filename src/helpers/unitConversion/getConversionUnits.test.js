@@ -1,5 +1,5 @@
 import getConversionUnits, { getConversionAttributes } from "./getConversionUnits"
-import { makeTestChart } from "@/testUtilities"
+import { makeTestChart } from "@jest/testUtilities"
 
 describe("getConversionUnits", () => {
   let chart
@@ -10,8 +10,8 @@ describe("getConversionUnits", () => {
         units: ["By", "By"],
         desiredUnits: "auto",
         unitsConversion: "original",
-        visibleDimensionIds: ["dim1", "dim2"]
-      }
+        visibleDimensionIds: ["dim1", "dim2"],
+      },
     })
     chart = testChart.chart
   })
@@ -21,7 +21,7 @@ describe("getConversionUnits", () => {
       const result = getConversionAttributes(chart, "By", { min: 1000, max: 5000 })
 
       expect(result).toHaveProperty("method")
-      expect(result).toHaveProperty("divider") 
+      expect(result).toHaveProperty("divider")
       expect(result).toHaveProperty("fractionDigits")
       expect(result).toHaveProperty("prefix")
       expect(result).toHaveProperty("base")
@@ -63,7 +63,7 @@ describe("getConversionUnits", () => {
 
     it("respects desired units setting", () => {
       chart.updateAttribute("desiredUnits", "KiB")
-      
+
       const result = getConversionAttributes(chart, "By", { min: 0, max: 10000 })
 
       // Should use Ki prefix for binary units
@@ -78,8 +78,8 @@ describe("getConversionUnits", () => {
       chart.payload = {
         byDimension: {
           dim1: { min: 0, max: 1000 },
-          dim2: { min: 0, max: 2000 }
-        }
+          dim2: { min: 0, max: 2000 },
+        },
       }
 
       const result = getConversionUnits(chart, "units", { min: 0, max: 2000 })
@@ -98,7 +98,7 @@ describe("getConversionUnits", () => {
     it("handles charts with single dimension", () => {
       chart.updateAttribute("visibleDimensionIds", ["single"])
       chart.updateAttribute("units", ["By"])
-      
+
       const result = getConversionUnits(chart, "units", { min: 0, max: 100 })
 
       expect(result.method).toHaveLength(1)
@@ -107,7 +107,7 @@ describe("getConversionUnits", () => {
 
     it("uses unitsCurrent when available", () => {
       chart.updateAttribute("unitsCurrent", ["KiB", "KiB"])
-      
+
       const result = getConversionUnits(chart, "unitsCurrent", { min: 0, max: 1000 })
 
       expect(result.base).toContain("KiB")
@@ -117,7 +117,7 @@ describe("getConversionUnits", () => {
       chart.updateAttribute("units", ["%"])
       chart.updateAttribute("unitsCurrent", null)
       chart.updateAttribute("visibleDimensionIds", ["percent"])
-      
+
       const result = getConversionUnits(chart, "units", { min: 0, max: 100 })
 
       expect(result.method).toContain("original")
@@ -126,7 +126,7 @@ describe("getConversionUnits", () => {
 
     it("handles unitsConversion method override", () => {
       chart.updateAttribute("unitsConversion", "absolute")
-      
+
       const result = getConversionUnits(chart, "units", { min: 0, max: 100 })
 
       expect(result.method.length).toBeGreaterThan(0)
@@ -136,7 +136,7 @@ describe("getConversionUnits", () => {
     it("processes metric units correctly", () => {
       chart.updateAttribute("units", ["m"])
       chart.updateAttribute("visibleDimensionIds", ["dist"])
-      
+
       const result = getConversionUnits(chart, "units", { min: 0, max: 1500 })
 
       expect(result.prefix[0]).toBeTruthy()
@@ -145,7 +145,7 @@ describe("getConversionUnits", () => {
     it("handles empty visible dimensions", () => {
       chart.updateAttribute("visibleDimensionIds", [])
       chart.updateAttribute("units", [])
-      
+
       const result = getConversionUnits(chart, "units", { min: 0, max: 100 })
 
       expect(result.method).toEqual([])
@@ -154,7 +154,7 @@ describe("getConversionUnits", () => {
 
     it("processes dbUnits separately", () => {
       chart.updateAttribute("dbUnits", ["custom", "custom"])
-      
+
       const result = getConversionUnits(chart, "dbUnits", { min: 0, max: 100 })
 
       expect(result).toHaveProperty("base")

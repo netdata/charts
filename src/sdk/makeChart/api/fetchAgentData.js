@@ -2,7 +2,7 @@ import { getChartURLOptions, getChartPayload } from "./helpers"
 
 const wildcard = "*"
 
-const getPayload = chart => {
+const getPayload = (chart, attrs = {}) => {
   const {
     selectedContexts,
     context,
@@ -18,11 +18,11 @@ const getPayload = chart => {
     postGroupByLabel,
     postAggregationMethod,
     showPostAggregations,
-  } = chart.getAttributes()
+  } = { ...chart.getAttributes(), ...attrs }
   const selectedNodes = chart.getFilteredNodeIds()
 
   const options = getChartURLOptions(chart)
-  const extraPayload = getChartPayload(chart)
+  const extraPayload = getChartPayload(chart, attrs)
 
   return {
     ...extraPayload,
@@ -47,10 +47,10 @@ const getPayload = chart => {
   }
 }
 
-export default (chart, options) => {
+export default (chart, { attrs, ...options } = {}) => {
   const { host } = chart.getAttributes()
 
-  const payload = getPayload(chart)
+  const payload = getPayload(chart, attrs)
 
   const query = new URLSearchParams(payload).toString()
   const url = `${host}/data?${query}`

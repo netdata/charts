@@ -4,14 +4,14 @@ import { useAttributeValue } from "@/components/provider"
 import Header from "./header"
 import Dimensions from "./dimensions"
 import DrillDown from "./drillDown"
-// import Compare from "./compare"
+import Compare from "./compare"
 // import Correlate from "./correlate"
 import { actions } from "./constants"
 
 const componentsByAction = {
   [actions.values]: Dimensions,
   [actions.drillDown]: DrillDown,
-  // [actions.compare]: Compare,
+  [actions.compare]: Compare,
   // [actions.correlate]: Correlate,
 }
 

@@ -1,38 +1,38 @@
 import React from "react"
 import { screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
-import { renderWithChart, makeTestChart } from "@/testUtilities"
+import { renderWithChart, makeTestChart } from "@jest/testUtilities"
 import { NumberChart, Value, Unit } from "./index"
 
 describe("NumberChart", () => {
   it("renders chart container with value and unit", () => {
     renderWithChart(<NumberChart />)
-    
+
     expect(screen.getByTestId("chartContent")).toBeInTheDocument()
   })
 
   it("renders with chartWrapper styling", () => {
     renderWithChart(<NumberChart />)
-    
+
     const container = screen.getByTestId("chartContent").parentElement
     expect(container).toBeInTheDocument()
   })
 
   it("passes additional props to container", () => {
     renderWithChart(<NumberChart data-custom="value" />)
-    
+
     const container = screen.getByTestId("chartContent")
     expect(container).toHaveAttribute("data-custom", "value")
   })
 
   it("applies correct layout styling", () => {
     renderWithChart(<NumberChart />)
-    
+
     const container = screen.getByTestId("chartContent")
     expect(container).toHaveStyle({
       alignItems: "center",
       justifyContent: "center",
-      position: "relative"
+      position: "relative",
     })
   })
 })
@@ -47,11 +47,11 @@ describe("Value component", () => {
           selectedDimensions: ["cpu"],
           unitsConversionMethod: ["original"],
           unitsConversionDivider: [1],
-          unitsConversionFractionDigits: [2]
-        }
-      }
+          unitsConversionFractionDigits: [2],
+        },
+      },
     })
-    
+
     expect(screen.getByText("-")).toBeInTheDocument()
   })
 
@@ -64,11 +64,11 @@ describe("Value component", () => {
           selectedDimensions: ["memory"],
           unitsConversionMethod: ["divide"],
           unitsConversionDivider: [1024],
-          unitsConversionFractionDigits: [2]
-        }
-      }
+          unitsConversionFractionDigits: [2],
+        },
+      },
     })
-    
+
     expect(screen.getByText("-")).toBeInTheDocument()
   })
 
@@ -78,11 +78,11 @@ describe("Value component", () => {
         attributes: {
           dimensionIds: ["cpu"],
           latestValues: [],
-          selectedDimensions: ["cpu"]
-        }
-      }
+          selectedDimensions: ["cpu"],
+        },
+      },
     })
-    
+
     expect(screen.getByText("-")).toBeInTheDocument()
   })
 
@@ -92,79 +92,79 @@ describe("Value component", () => {
         attributes: {
           dimensionIds: ["cpu"],
           latestValues: [42],
-          selectedDimensions: ["cpu"]
-        }
-      }
+          selectedDimensions: ["cpu"],
+        },
+      },
     })
-    
+
     chart.trigger("resize", { width: 400, height: 300 })
-    
+
     expect(screen.getByText("-")).toBeInTheDocument()
   })
 })
 
 describe("Unit component", () => {
   it("renders unit sign when available", () => {
-    renderWithChart(<Unit />, { 
-      testChartOptions: { 
+    renderWithChart(<Unit />, {
+      testChartOptions: {
         attributes: {
           dimensionIds: ["cpu"],
           units: ["%"],
           unitsCurrent: ["%"],
           unitsConversionBase: ["%"],
-          unitsConversionPrefix: [""]
-        }
-      }
+          unitsConversionPrefix: [""],
+        },
+      },
     })
-    
+
     expect(screen.getByText("%")).toBeInTheDocument()
   })
 
   it("renders nothing when unit is empty", () => {
-    const { container } = renderWithChart(<Unit />, { 
-      testChartOptions: { 
+    const { container } = renderWithChart(<Unit />, {
+      testChartOptions: {
         attributes: {
           dimensionIds: ["cpu"],
           units: [""],
           unitsCurrent: "",
           unitsConversionBase: [""],
-          unitsConversionPrefix: [""]
-        }
-      }
+          unitsConversionPrefix: [""],
+        },
+      },
     })
-    
+
     expect(container.firstChild).toBeNull()
   })
 
   it("shows unit with prefix when converted", () => {
-    renderWithChart(<Unit />, { 
-      testChartOptions: { 
+    renderWithChart(<Unit />, {
+      testChartOptions: {
         attributes: {
           dimensionIds: ["memory"],
           units: ["By"],
           unitsCurrent: "By",
           unitsConversionBase: ["B"],
-          unitsConversionPrefix: ["Ki"]
-        }
-      }
+          unitsConversionPrefix: ["Ki"],
+        },
+      },
     })
-    
+
     expect(screen.getByText(/Ki.*B/)).toBeInTheDocument()
   })
 
   it("uses first dimension for unit determination", () => {
-    renderWithChart(<Unit />, { 
-      testChartOptions: { 
+    renderWithChart(<Unit />, {
+      testChartOptions: {
         attributes: {
           dimensionIds: ["cpu", "memory"],
           units: ["%"],
           unitsCurrent: ["%"],
           unitsConversionBase: ["%", "B"],
-          unitsConversionPrefix: ["", "Ki"]
-        }
-      }
+          unitsConversionPrefix: ["", "Ki"],
+        },
+      },
     })
-    
+
     expect(screen.getByText("%")).toBeInTheDocument()
   })
 
@@ -172,11 +172,11 @@ describe("Unit component", () => {
     const { container } = renderWithChart(<Unit />, {
       testChartOptions: {
         attributes: {
-          dimensionIds: []
-        }
-      }
+          dimensionIds: [],
+        },
+      },
     })
-    
+
     expect(container.firstChild).toBeNull()
   })
 })

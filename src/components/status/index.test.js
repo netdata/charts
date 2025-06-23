@@ -1,7 +1,7 @@
 import React from "react"
 import { screen, waitFor } from "@testing-library/react"
 import "@testing-library/jest-dom"
-import { renderWithChart, makeTestChart } from "@/testUtilities"
+import { renderWithChart, makeTestChart } from "@jest/testUtilities"
 import Status from "./index"
 
 describe("Status component", () => {
@@ -9,12 +9,12 @@ describe("Status component", () => {
     const { chart } = makeTestChart({
       attributes: {
         initialLoading: true,
-        loaded: false
-      }
+        loaded: false,
+      },
     })
-    
+
     renderWithChart(<Status />, { testChartOptions: { chart } })
-    
+
     expect(screen.getByText("Loading")).toBeInTheDocument()
     expect(screen.getByTestId("chartHeaderStatus-loading")).toBeInTheDocument()
   })
@@ -24,13 +24,13 @@ describe("Status component", () => {
       attributes: {
         error: "Failed to load data",
         initialLoading: false,
-        loaded: true
-      }
+        loaded: true,
+      },
     })
-    
+
     renderWithChart(<Status />, { testChartOptions: { chart } })
     chart.trigger("failFetch")
-    
+
     await waitFor(() => {
       expect(screen.getByText(/Error.*Failed to load data/)).toBeInTheDocument()
       expect(screen.getByTestId("chartHeaderStatus-error")).toBeInTheDocument()
@@ -42,33 +42,33 @@ describe("Status component", () => {
       attributes: {
         empty: true,
         initialLoading: false,
-        loaded: true
-      }
+        loaded: true,
+      },
     })
-    
+
     renderWithChart(<Status />, { testChartOptions: { chart } })
-    
+
     expect(screen.getByText("No data")).toBeInTheDocument()
     expect(screen.getByTestId("chartHeaderStatus-empty")).toBeInTheDocument()
   })
 
   it("renders logo/reload container", () => {
     const { chart } = makeTestChart()
-    
+
     renderWithChart(<Status />, { testChartOptions: { chart } })
-    
+
     expect(screen.getByTestId("chartHeaderStatus-logo")).toBeInTheDocument()
   })
 
   it("hides badges when plain prop is true", () => {
     const { chart } = makeTestChart({
       attributes: {
-        initialLoading: true
-      }
+        initialLoading: true,
+      },
     })
-    
+
     renderWithChart(<Status plain />, { testChartOptions: { chart } })
-    
+
     expect(screen.queryByText("Loading")).not.toBeInTheDocument()
     expect(screen.getByTestId("chartHeaderStatus-logo")).toBeInTheDocument()
   })
@@ -76,18 +76,18 @@ describe("Status component", () => {
   it("updates when loading state changes", () => {
     const { chart } = makeTestChart({
       attributes: {
-        initialLoading: true
-      }
+        initialLoading: true,
+      },
     })
-    
+
     const { rerender } = renderWithChart(<Status />, { testChartOptions: { chart } })
-    
+
     expect(screen.getByText("Loading")).toBeInTheDocument()
-    
+
     chart.updateAttribute("initialLoading", false)
     chart.updateAttribute("loaded", true)
     rerender(<Status />)
-    
+
     expect(screen.queryByText("Loading")).not.toBeInTheDocument()
   })
 
@@ -96,13 +96,13 @@ describe("Status component", () => {
       attributes: {
         initialLoading: true,
         error: "Network error",
-        loaded: false
-      }
+        loaded: false,
+      },
     })
-    
+
     renderWithChart(<Status />, { testChartOptions: { chart } })
     chart.trigger("failFetch")
-    
+
     await waitFor(() => {
       expect(screen.getByText(/Error.*Network error/)).toBeInTheDocument()
       expect(screen.queryByText("Loading")).not.toBeInTheDocument()
@@ -112,20 +112,20 @@ describe("Status component", () => {
   it("handles empty error string", () => {
     const { chart } = makeTestChart({
       attributes: {
-        error: ""
-      }
+        error: "",
+      },
     })
-    
+
     renderWithChart(<Status />, { testChartOptions: { chart } })
-    
+
     expect(screen.queryByTestId("chartHeaderStatus-error")).not.toBeInTheDocument()
   })
 
   it("passes additional props to container", () => {
     const { chart } = makeTestChart()
-    
+
     renderWithChart(<Status data-custom="test" />, { testChartOptions: { chart } })
-    
+
     const container = screen.getByTestId("chartHeaderStatus")
     expect(container).toHaveAttribute("data-custom", "test")
   })
@@ -135,14 +135,14 @@ describe("Status component", () => {
       attributes: {
         initialLoading: false,
         loaded: true,
-        error: null
-      }
+        error: null,
+      },
     })
-    
+
     chart.getPayload = jest.fn(() => ({ data: [1, 2, 3] }))
-    
+
     renderWithChart(<Status />, { testChartOptions: { chart } })
-    
+
     expect(screen.queryByTestId("chartHeaderStatus-loading")).not.toBeInTheDocument()
     expect(screen.queryByTestId("chartHeaderStatus-error")).not.toBeInTheDocument()
     expect(screen.queryByTestId("chartHeaderStatus-empty")).not.toBeInTheDocument()

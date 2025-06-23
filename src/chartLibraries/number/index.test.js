@@ -1,15 +1,15 @@
 import React from "react"
-import { renderWithChart } from "@/testUtilities"
+import { renderWithChart } from "@jest/testUtilities"
 import numberChart from "./index"
 
 describe("numberChart", () => {
   it("creates chart instance with required methods", () => {
     const { chart } = renderWithChart(<div />, {
-      chartType: "number"
+      chartType: "number",
     })
-    
+
     const instance = numberChart(chart.sdk, chart)
-    
+
     expect(instance).toHaveProperty("mount")
     expect(instance).toHaveProperty("unmount")
     expect(instance).toHaveProperty("render")
@@ -20,23 +20,23 @@ describe("numberChart", () => {
 
   it("mounts without errors", () => {
     const { chart } = renderWithChart(<div />, {
-      chartType: "number"
+      chartType: "number",
     })
-    
+
     const instance = numberChart(chart.sdk, chart)
     const element = document.createElement("div")
-    
+
     expect(() => instance.mount(element)).not.toThrow()
   })
 
   it("unmounts and cleans up resources", () => {
     const { chart } = renderWithChart(<div />, {
-      chartType: "number"
+      chartType: "number",
     })
-    
+
     const instance = numberChart(chart.sdk, chart)
     const element = document.createElement("div")
-    
+
     instance.mount(element)
     expect(() => instance.unmount()).not.toThrow()
   })
@@ -44,12 +44,12 @@ describe("numberChart", () => {
   it("renders without errors when chart is loaded", () => {
     const { chart } = renderWithChart(<div />, {
       chartType: "number",
-      attributes: { loaded: true }
+      attributes: { loaded: true },
     })
-    
+
     const instance = numberChart(chart.sdk, chart)
     const element = document.createElement("div")
-    
+
     instance.mount(element)
     expect(() => instance.render()).not.toThrow()
     instance.unmount()

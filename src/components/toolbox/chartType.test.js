@@ -1,7 +1,7 @@
 import React from "react"
 import { screen, fireEvent, waitFor } from "@testing-library/react"
 import "@testing-library/jest-dom"
-import { renderWithChart, makeTestChart } from "@/testUtilities"
+import { renderWithChart, makeTestChart } from "@jest/testUtilities"
 import ChartType from "./chartType"
 
 describe("ChartType component", () => {
@@ -9,15 +9,15 @@ describe("ChartType component", () => {
     const { chart } = makeTestChart({
       attributes: {
         chartLibrary: "dygraph",
-        chartType: "line"
-      }
+        chartType: "line",
+      },
     })
-    
+
     renderWithChart(<ChartType disabled={false} />, { testChartOptions: { chart } })
-    
+
     const button = screen.getByTestId("chartHeaderToolbox-chartType")
     fireEvent.click(button)
-    
+
     expect(screen.getByText("Timeseries")).toBeInTheDocument()
     expect(screen.getByText("Line")).toBeInTheDocument()
     expect(screen.getByText("Area")).toBeInTheDocument()
@@ -28,12 +28,12 @@ describe("ChartType component", () => {
     const { chart } = makeTestChart({
       attributes: {
         chartLibrary: "dygraph",
-        chartType: "area"
-      }
+        chartType: "area",
+      },
     })
-    
+
     renderWithChart(<ChartType disabled={false} />, { testChartOptions: { chart } })
-    
+
     const button = screen.getByTestId("chartHeaderToolbox-chartType")
     expect(button).toBeInTheDocument()
   })
@@ -42,33 +42,33 @@ describe("ChartType component", () => {
     const { chart } = makeTestChart({
       attributes: {
         chartLibrary: "dygraph",
-        chartType: "line"
-      }
+        chartType: "line",
+      },
     })
-    
+
     const spy = jest.spyOn(chart, "updateChartTypeAttribute")
-    
+
     renderWithChart(<ChartType disabled={false} />, { testChartOptions: { chart } })
-    
+
     const button = screen.getByTestId("chartHeaderToolbox-chartType")
     fireEvent.click(button)
-    
+
     const areaButton = screen.getByText("Area")
     fireEvent.click(areaButton)
-    
+
     expect(spy).toHaveBeenCalledWith("area")
   })
 
   it("renders with disabled state", () => {
     renderWithChart(<ChartType disabled={true} />)
-    
+
     const button = screen.getByTestId("chartHeaderToolbox-chartType")
     expect(button).toBeDisabled()
   })
 
   it("renders with enabled state by default", () => {
     renderWithChart(<ChartType />)
-    
+
     const button = screen.getByTestId("chartHeaderToolbox-chartType")
     expect(button).not.toBeDisabled()
   })
@@ -77,20 +77,20 @@ describe("ChartType component", () => {
     const { chart } = makeTestChart({
       attributes: {
         chartLibrary: "dygraph",
-        chartType: "line"
-      }
+        chartType: "line",
+      },
     })
-    
+
     const spy = jest.spyOn(chart, "updateChartTypeAttribute")
-    
+
     renderWithChart(<ChartType />, { testChartOptions: { chart } })
-    
+
     const button = screen.getByTestId("chartHeaderToolbox-chartType")
     fireEvent.click(button)
-    
+
     const stackedButton = screen.getByText("Stacked")
     fireEvent.click(stackedButton)
-    
+
     expect(spy).toHaveBeenCalledWith("stacked")
   })
 
@@ -98,21 +98,21 @@ describe("ChartType component", () => {
     const { chart } = makeTestChart({
       attributes: {
         chartLibrary: "dygraph",
-        chartType: "line"
-      }
+        chartType: "line",
+      },
     })
-    
+
     const { rerender } = renderWithChart(<ChartType />, { testChartOptions: { chart } })
-    
+
     let button = screen.getByTestId("chartHeaderToolbox-chartType")
     fireEvent.click(button)
     expect(screen.getByText("Line")).toBeInTheDocument()
-    
+
     fireEvent.keyDown(document, { key: "Escape" })
-    
+
     chart.updateAttribute("chartType", "area")
     rerender(<ChartType />)
-    
+
     await waitFor(() => {
       button = screen.getByTestId("chartHeaderToolbox-chartType")
       fireEvent.click(button)
@@ -124,14 +124,14 @@ describe("ChartType component", () => {
     const { chart } = makeTestChart({
       attributes: {
         chartLibrary: "dygraph",
-        chartType: "line"
-      }
+        chartType: "line",
+      },
     })
-    
+
     chart.getHeatmapType = jest.fn(() => "enabled")
-    
+
     renderWithChart(<ChartType disabled={false} />, { testChartOptions: { chart } })
-    
+
     const button = screen.getByTestId("chartHeaderToolbox-chartType")
     expect(button).toBeInTheDocument()
     expect(chart.getHeatmapType).toBeDefined()
@@ -142,15 +142,15 @@ describe("ChartType component", () => {
       attributes: {
         chartLibrary: "dygraph",
         chartType: "line",
-        heatmapType: "disabled"
-      }
+        heatmapType: "disabled",
+      },
     })
-    
+
     renderWithChart(<ChartType disabled={false} />, { testChartOptions: { chart } })
-    
+
     const button = screen.getByTestId("chartHeaderToolbox-chartType")
     fireEvent.click(button)
-    
+
     expect(screen.queryByText("Heatmap")).not.toBeInTheDocument()
   })
 })

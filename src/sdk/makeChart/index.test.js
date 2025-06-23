@@ -1,5 +1,5 @@
 import makeChart from "./index"
-import { makeTestChart } from "@/testUtilities"
+import { makeTestChart } from "@jest/testUtilities"
 
 describe("makeChart", () => {
   let chart
@@ -44,7 +44,7 @@ describe("makeChart", () => {
     chart.updateAttributes({
       loaded: true,
       updateEvery: 5,
-      viewUpdateEvery: null
+      viewUpdateEvery: null,
     })
 
     const result = chart.getUpdateEvery()
@@ -55,7 +55,7 @@ describe("makeChart", () => {
     chart.updateAttributes({
       loaded: true,
       updateEvery: 5,
-      viewUpdateEvery: 10
+      viewUpdateEvery: 10,
     })
 
     const result = chart.getUpdateEvery()
@@ -65,7 +65,7 @@ describe("makeChart", () => {
   it("getUpdateEvery returns 0 when not loaded", () => {
     chart.updateAttributes({
       loaded: false,
-      updateEvery: 5
+      updateEvery: 5,
     })
 
     const result = chart.getUpdateEvery()
@@ -87,7 +87,7 @@ describe("makeChart", () => {
   it("focus does not update when already focused and hovering", () => {
     chart.updateAttributes({ focused: true, hovering: true })
     const spy = jest.spyOn(chart, "updateAttributes")
-    
+
     chart.focus({ type: "focus" })
 
     expect(spy).not.toHaveBeenCalled()
@@ -96,7 +96,7 @@ describe("makeChart", () => {
   it("focus updates attributes", () => {
     chart.updateAttribute("focused", false)
     chart.updateAttribute("hovering", false)
-    
+
     chart.focus({ type: "focus" })
 
     expect(chart.getAttribute("focused")).toBe(true)
@@ -106,7 +106,7 @@ describe("makeChart", () => {
   it("blur does not update when not focused or hovering", () => {
     chart.updateAttributes({ focused: false, hovering: false })
     const spy = jest.spyOn(chart, "updateAttributes")
-    
+
     chart.blur({ type: "blur" })
 
     expect(spy).not.toHaveBeenCalled()
@@ -115,7 +115,7 @@ describe("makeChart", () => {
   it("blur updates attributes", () => {
     chart.updateAttribute("focused", true)
     chart.updateAttribute("hovering", true)
-    
+
     chart.blur({ type: "blur" })
 
     expect(chart.getAttribute("focused")).toBe(false)
@@ -124,7 +124,7 @@ describe("makeChart", () => {
 
   it("activate sets active to true", () => {
     chart.updateAttribute("active", false)
-    
+
     chart.activate()
 
     expect(chart.getAttribute("active")).toBe(true)
@@ -132,7 +132,7 @@ describe("makeChart", () => {
 
   it("deactivate sets active to false", () => {
     chart.updateAttribute("active", true)
-    
+
     chart.deactivate()
 
     expect(chart.getAttribute("active")).toBe(false)
@@ -156,7 +156,7 @@ describe("makeChart", () => {
 
   it("intl uses translation when available", () => {
     chart.updateAttribute("en", {
-      "test.key": "Translated Text"
+      "test.key": "Translated Text",
     })
     const result = chart.intl("test.key")
     expect(result).toBe("Translated Text")

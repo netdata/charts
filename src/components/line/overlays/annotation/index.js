@@ -27,7 +27,7 @@ const hasActiveSyncs = (chart, id) => {
   return allCharts.some(targetChart => {
     if (targetChart.getId() === chart.getId()) return false
     const overlays = targetChart.getAttribute("overlays")
-    return Object.keys(overlays).some(overlayId => 
+    return Object.keys(overlays).some(overlayId =>
       overlayId.startsWith(`synced_${id}_from_${chart.getId()}`)
     )
   })
@@ -328,7 +328,8 @@ const AnnotationActions = memo(({ id, annotation, onEdit }) => {
   const getTooltipContent = () => {
     if (isGlobal) return "Global annotation • Double-click to make chart-specific"
     if (isTemp) return "Temporarily synced • Click: remove sync • Double-click: make global"
-    if (isRootWithSyncs) return "Temporarily synced • Click: remove sync • Double-click: make global"
+    if (isRootWithSyncs)
+      return "Temporarily synced • Click: remove sync • Double-click: make global"
     return "Click: sync temporarily • Double-click: make global"
   }
 
@@ -395,7 +396,7 @@ const AnnotationActions = memo(({ id, annotation, onEdit }) => {
 const Annotation = ({ id }) => {
   const chart = useChart()
   const overlays = useAttributeValue("overlays")
-  const [ref, popoverHovered] = useHovered({ stop: true }, [id, overlays])
+  const [ref, popoverHovered] = useHovered({}, [id, overlays])
   const [mouseHovered, setMouseHovered] = useState(false)
   const [debouncedHovered, setDebouncedHovered] = useState(false)
   const [isEditing, setIsEditing] = useState(false)

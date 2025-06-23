@@ -1,5 +1,5 @@
 import { fetchChartData, fetchChartWeights } from "./index"
-import { makeTestChart } from "@/testUtilities"
+import { makeTestChart } from "@jest/testUtilities"
 
 // Mock fetch globally for API tests
 global.fetch = jest.fn(() =>
@@ -25,8 +25,8 @@ describe("API index", () => {
           agent: true,
           agentURL: "http://localhost:19999",
           chartId: "test.chart",
-          host: "localhost"
-        }
+          host: "localhost",
+        },
       })
 
       const promise = fetchChartData(chart, { signal: new AbortController().signal })
@@ -46,8 +46,8 @@ describe("API index", () => {
           agent: false,
           chartId: "test.chart",
           nodeIDs: ["node1"],
-          url: "https://api.netdata.cloud"
-        }
+          url: "https://api.netdata.cloud",
+        },
       })
 
       const promise = fetchChartData(chart, { signal: new AbortController().signal })
@@ -62,8 +62,8 @@ describe("API index", () => {
         attributes: {
           chartId: "test.chart",
           nodeIDs: ["node1"],
-          url: "https://api.netdata.cloud"
-        }
+          url: "https://api.netdata.cloud",
+        },
       })
 
       const promise = fetchChartData(chart, { signal: new AbortController().signal })
@@ -78,8 +78,8 @@ describe("API index", () => {
           agent: true,
           agentURL: "http://localhost:19999",
           chartId: "test.chart",
-          host: "localhost"
-        }
+          host: "localhost",
+        },
       })
 
       const promise = fetchChartWeights(chart, { signal: new AbortController().signal })
@@ -99,8 +99,8 @@ describe("API index", () => {
           agent: false,
           chartId: "test.chart",
           nodeIDs: ["node1"],
-          url: "https://api.netdata.cloud"
-        }
+          url: "https://api.netdata.cloud",
+        },
       })
 
       const promise = fetchChartWeights(chart, { signal: new AbortController().signal })
@@ -112,8 +112,8 @@ describe("API index", () => {
         attributes: {
           chartId: "test.chart",
           nodeIDs: ["node1"],
-          url: "https://api.netdata.cloud"
-        }
+          url: "https://api.netdata.cloud",
+        },
       })
 
       const promise = fetchChartWeights(chart, { signal: new AbortController().signal })

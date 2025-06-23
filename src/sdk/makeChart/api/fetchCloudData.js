@@ -2,7 +2,7 @@ import { getChartURLOptions, getChartPayload } from "./helpers"
 
 const wildcardArray = ["*"]
 
-const getPayload = chart => {
+const getPayload = (chart, attrs = {}) => {
   const {
     selectedContexts,
     context,
@@ -18,13 +18,13 @@ const getPayload = chart => {
     postGroupByLabel,
     postAggregationMethod,
     showPostAggregations,
-  } = chart.getAttributes()
+  } = { ...chart.getAttributes(), ...attrs }
 
   const selectedNodes = chart.getFilteredNodeIds()
 
   const options = getChartURLOptions(chart)
 
-  const { after, before, points, time_group, time_resampling, format } = getChartPayload(chart)
+  const { after, before, points, time_group, time_resampling, format } = getChartPayload(chart, attrs)
 
   return {
     format,
@@ -81,10 +81,10 @@ const getPayload = chart => {
   }
 }
 
-export default (chart, options) => {
+export default (chart, { attrs, ...options } = {}) => {
   const { host } = chart.getAttributes()
 
-  const payload = getPayload(chart)
+  const payload = getPayload(chart, attrs)
 
   return fetch(`${host}/data`, {
     method: "POST",

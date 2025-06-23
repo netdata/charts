@@ -4,7 +4,7 @@ const isTest = process.env.NODE_ENV === "test"
 module.exports = {
   presets: [
     ["@babel/env", { loose: false, modules: isES6 ? false : "commonjs" }],
-    "@babel/preset-react",
+    ["@babel/preset-react", { runtime: "automatic" }],
   ],
   plugins: [
     ["styled-components", { ssr: !isTest, displayName: !isTest }],
