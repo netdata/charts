@@ -24,7 +24,11 @@ const useColumns = (period, options = {}) => {
       },
       {
         id: "visible",
-        header: () => <TextSmall>{uppercase(period)} points</TextSmall>,
+        header: () => (
+          <TextSmall>
+            {period === "highlight" ? "Selected area" : uppercase(period)} points
+          </TextSmall>
+        ),
         fullWidth: true,
         columns: [
           minColumn(chart, columnOptions),
@@ -33,17 +37,17 @@ const useColumns = (period, options = {}) => {
           anomalyColumn(chart, columnOptions),
         ],
       },
-      {
-        id: "aggregated",
-        header: () => <TextSmall>Aggregated points</TextSmall>,
-        fullWidth: true,
-        columns: [
-          minColumn(chart, dbOptions),
-          avgColumn(chart, dbOptions),
-          maxColumn(chart, dbOptions),
-          anomalyColumn(chart, dbOptions),
-        ],
-      },
+      // {
+      //   id: "aggregated",
+      //   header: () => <TextSmall>Aggregated points</TextSmall>,
+      //   fullWidth: true,
+      //   columns: [
+      //     minColumn(chart, dbOptions),
+      //     avgColumn(chart, dbOptions),
+      //     maxColumn(chart, dbOptions),
+      //     anomalyColumn(chart, dbOptions),
+      //   ],
+      // },
     ]
   }, [period, !!hover])
 }
@@ -64,7 +68,8 @@ const Dimensions = () => {
   const dimensionIds = useDimensionIds()
 
   const tab = useAttributeValue("drawerTab")
-  const columns = useColumns(tab)
+  const period = tab === "selectedArea" ? "highlight" : "window"
+  const columns = useColumns(period)
 
   const chart = useChart()
   useMemo(() => chart.makeChartUI("custom", "bars"), [])
@@ -84,6 +89,7 @@ const Dimensions = () => {
   return (
     <Flex gap={2}>
       <Table
+        key={period}
         enableSorting
         // enableSelection
         dataColumns={columns}

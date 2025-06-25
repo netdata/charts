@@ -28,15 +28,19 @@ const Drawer = () => {
       height={`${expandedHeight}px`}
       flex={false}
       column
-      gap={2}
-      padding={[3, 2]}
       data-testid="drawer"
       background="mainChartBg"
       border={{ side: "top", color: "borderSecondary" }}
-      overflow={{ vertical: "scroll" }}
     >
-      <Header />
-      <Component />
+      <Header padding={[3, 2, 2, 2]} />
+      <Flex
+        flex
+        column
+        padding={[0, 2, 3, 2]}
+        overflow={{ vertical: "scroll" }}
+      >
+        <Component />
+      </Flex>
     </Flex>
   )
 }

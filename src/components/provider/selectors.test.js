@@ -1,5 +1,5 @@
 import { renderHook, act } from "@testing-library/react"
-import { renderHookWithChart } from "@jest/testUtilities"
+import { renderHookWithChart, makeTestChart } from "@jest/testUtilities"
 import {
   useChart,
   useAttributeValue,
@@ -8,6 +8,7 @@ import {
   useTitle,
   useName,
   useIsMinimal,
+  getValueByPeriod,
 } from "./selectors"
 
 describe("Chart Provider Selectors", () => {
@@ -131,6 +132,120 @@ describe("Chart Provider Selectors", () => {
       })
 
       expect(result.current).toBe(false)
+    })
+  })
+
+  describe("getValueByPeriod", () => {
+    let chart
+
+    const mockData = [
+      [1617946860000, 25, 50, 75],
+      [1617946920000, 30, 55, 70], 
+      [1617946980000, 20, 45, 80],
+      [1617947040000, 35, 60, 65],
+    ]
+
+    beforeEach(() => {
+      const { chart: testChart } = makeTestChart()
+      chart = testChart
+      
+      jest.spyOn(chart, 'getPayload').mockReturnValue({ data: mockData })
+      jest.spyOn(chart, 'getDimensionIndex').mockReturnValue(0)
+      jest.spyOn(chart, 'isDimensionVisible').mockReturnValue(true)
+      jest.spyOn(chart, 'getVisibleDimensionIds').mockReturnValue(['dim1'])
+    })
+
+    describe("highlight period", () => {
+      it("returns null when no highlight range is set", () => {
+        chart.updateAttribute("overlays", {})
+        
+        const result = getValueByPeriod.highlight({
+          chart,
+          id: "dim1",
+          valueKey: "avg"
+        })
+        
+        expect(result).toBeNull()
+      })
+
+      it("filters data by highlight range and calculates min value", () => {
+        const highlightRange = [1617946920, 1617946980]
+        chart.updateAttribute("overlays", {
+          highlight: { range: highlightRange }
+        })
+        
+        const result = getValueByPeriod.highlight({
+          chart,
+          id: "dim1", 
+          valueKey: "min"
+        })
+        
+        expect(result).toBe(20)
+      })
+
+      it("filters data by highlight range and calculates avg value", () => {
+        const highlightRange = [1617946920, 1617946980]
+        chart.updateAttribute("overlays", {
+          highlight: { range: highlightRange }
+        })
+        
+        const result = getValueByPeriod.highlight({
+          chart,
+          id: "dim1",
+          valueKey: "avg"
+        })
+        
+        expect(result).toBe(25)
+      })
+
+      it("filters data by highlight range and calculates max value", () => {
+        const highlightRange = [1617946920, 1617946980]
+        chart.updateAttribute("overlays", {
+          highlight: { range: highlightRange }
+        })
+        
+        const result = getValueByPeriod.highlight({
+          chart,
+          id: "dim1",
+          valueKey: "max" 
+        })
+        
+        expect(result).toBe(30)
+      })
+
+      it("returns null when no data matches highlight range", () => {
+        const highlightRange = [1617900000, 1617900060]
+        chart.updateAttribute("overlays", {
+          highlight: { range: highlightRange }
+        })
+        
+        const result = getValueByPeriod.highlight({
+          chart,
+          id: "dim1",
+          valueKey: "avg"
+        })
+        
+        expect(result).toBeNull()
+      })
+
+      it("handles dimension not visible by using first visible dimension", () => {
+        jest.spyOn(chart, 'isDimensionVisible').mockReturnValue(false)
+        jest.spyOn(chart, 'getVisibleDimensionIds').mockReturnValue(['visibleDim'])
+        jest.spyOn(chart, 'getDimensionIndex').mockReturnValue(1)
+        
+        const highlightRange = [1617946860, 1617947040]
+        chart.updateAttribute("overlays", {
+          highlight: { range: highlightRange }
+        })
+        
+        const result = getValueByPeriod.highlight({
+          chart,
+          id: "hiddenDim",
+          valueKey: "avg"
+        })
+        
+        expect(result).toBe(52.5)
+      })
     })
   })
 })

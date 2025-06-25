@@ -379,14 +379,45 @@ export const getValueByPeriod = {
 
     return values[chart.getDimensionIndex(id)]
   },
-  highlight: ({ chart, id, valueKey = "value", objKey = "viewDimensions" }) => {
+  highlight: ({ chart, id, valueKey = "value" }) => {
     const { highlight } = chart.getAttribute("overlays")
-    debugger
     if (!highlight?.range) return null
 
-    const range = highlight?.range
+    const highlightRange = highlight.range
+    const { data } = chart.getPayload()
+    
+    if (!data?.length) return null
 
-    const { after, before } = highlight?.moveX ?? {}
+    const filteredData = data.filter(row => {
+      const timestamp = row[0]
+      const highlightStart = highlightRange[0] * 1000
+      const highlightEnd = highlightRange[1] * 1000
+      return timestamp >= highlightStart && timestamp <= highlightEnd
+    })
+
+    if (!filteredData.length) return null
+
+    id = chart.isDimensionVisible(id) ? id : chart.getVisibleDimensionIds()[0]
+    if (!id) return null
+
+    const dimensionIndex = chart.getDimensionIndex(id)
+    if (dimensionIndex === -1) return null
+
+    const values = filteredData
+      .map(row => row[dimensionIndex + 1])
+      .filter(val => val !== null && !isNaN(val) && isFinite(val))
+
+    if (!values.length) return null
+
+    const sum = values.reduce((a, b) => a + b, 0)
+
+    const stats = {
+      min: Math.min(...values),
+      avg: sum / values.length,
+      max: Math.max(...values),
+    }
+
+    return stats[valueKey] ?? null
   },
 }
 
