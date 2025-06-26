@@ -2,6 +2,7 @@ import { useCallback, useLayoutEffect, useContext, useMemo, useReducer, useState
 import { scaleLinear } from "d3-scale"
 import { unregister } from "@/helpers/makeListeners"
 import { enums, parts, check, colors } from "@/helpers/annotations"
+import { calculateAllStats } from "@/helpers/statistics"
 import chartTitleByContextMap from "../helpers/chartTitleByContextMap"
 import context from "./context"
 
@@ -349,6 +350,41 @@ export const useLatestRowValue = (options = {}) => {
   return value
 }
 
+const calculateClientSideStats = (chart, id, valueKey, period) => {
+  const { data } = chart.getPayload()
+  if (!data?.length) return null
+  
+  let filteredData = data
+  
+  if (period === "highlight") {
+    const { highlight } = chart.getAttribute("overlays")
+    if (!highlight?.range) return null
+    
+    const [start, end] = highlight.range
+    filteredData = data.filter(row => {
+      const timestamp = row[0] / 1000
+      return timestamp >= start && timestamp <= end
+    })
+  }
+  
+  if (!filteredData.length) return null
+  
+  id = chart.isDimensionVisible(id) ? id : chart.getVisibleDimensionIds()[0]
+  if (!id) return null
+  
+  const dimensionIndex = chart.getDimensionIndex(id)
+  if (dimensionIndex === -1) return null
+  
+  const values = filteredData
+    .map(row => row[dimensionIndex + 1])
+    .filter(val => val !== null && !isNaN(val) && isFinite(val))
+    
+  if (!values.length) return null
+  
+  const allStats = calculateAllStats(values)
+  return allStats[valueKey] ?? null
+}
+
 export const getValueByPeriod = {
   latest: ({ chart, id, ...options }) => {
     const hover = chart.getAttribute("hoverX")
@@ -368,56 +404,19 @@ export const getValueByPeriod = {
     return dimValue
   },
   window: ({ chart, id, valueKey = "value", objKey = "viewDimensions" }) => {
-    const dimensions = chart.getAttribute(objKey).sts
-    const values = dimensions[valueKey]
-
-    if (!values?.length) return null
-
-    id = chart.isDimensionVisible(id) ? id : chart.getVisibleDimensionIds()[0]
-
-    if (!id) return null
-
-    return values[chart.getDimensionIndex(id)]
+    if (["value", "min", "avg", "max", "arp"].includes(valueKey)) {
+      const dimensions = chart.getAttribute(objKey).sts
+      const values = dimensions[valueKey]
+      if (values?.length) {
+        id = chart.isDimensionVisible(id) ? id : chart.getVisibleDimensionIds()[0]
+        if (id) return values[chart.getDimensionIndex(id)]
+      }
+    }
+    
+    return calculateClientSideStats(chart, id, valueKey, "window")
   },
   highlight: ({ chart, id, valueKey = "value" }) => {
-    const { highlight } = chart.getAttribute("overlays")
-    if (!highlight?.range) return null
-
-    const highlightRange = highlight.range
-    const { data } = chart.getPayload()
-    
-    if (!data?.length) return null
-
-    const filteredData = data.filter(row => {
-      const timestamp = row[0]
-      const highlightStart = highlightRange[0] * 1000
-      const highlightEnd = highlightRange[1] * 1000
-      return timestamp >= highlightStart && timestamp <= highlightEnd
-    })
-
-    if (!filteredData.length) return null
-
-    id = chart.isDimensionVisible(id) ? id : chart.getVisibleDimensionIds()[0]
-    if (!id) return null
-
-    const dimensionIndex = chart.getDimensionIndex(id)
-    if (dimensionIndex === -1) return null
-
-    const values = filteredData
-      .map(row => row[dimensionIndex + 1])
-      .filter(val => val !== null && !isNaN(val) && isFinite(val))
-
-    if (!values.length) return null
-
-    const sum = values.reduce((a, b) => a + b, 0)
-
-    const stats = {
-      min: Math.min(...values),
-      avg: sum / values.length,
-      max: Math.max(...values),
-    }
-
-    return stats[valueKey] ?? null
+    return calculateClientSideStats(chart, id, valueKey, "highlight")
   },
 }
 

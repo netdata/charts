@@ -1,5 +1,5 @@
 import React from "react"
-import { screen, act } from "@testing-library/react"
+import { screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { renderWithChart } from "@jest/testUtilities"
 import Dimensions from "./index"
