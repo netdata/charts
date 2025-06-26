@@ -1,3 +1,5 @@
+import { calculateAllStats } from "@/helpers/statistics"
+
 export const calculateStats = (payload, highlightRange = null) => {
   if (!payload?.data?.length) return null
 
@@ -20,12 +22,10 @@ export const calculateStats = (payload, highlightRange = null) => {
 
   if (!values.length) return null
 
-  const sum = values.reduce((a, b) => a + b, 0)
+  const stats = calculateAllStats(values)
 
   return {
-    min: Math.min(...values),
-    avg: sum / values.length,
-    max: Math.max(...values),
+    ...stats,
     points: filteredData.length,
     dimensions: payload.dimensions?.length || 0,
   }
@@ -57,6 +57,12 @@ export const calculateComparisons = periods => {
         max: calculatePercentageChange(period.stats.max, base.stats.max),
         points: calculatePercentageChange(period.stats.points, base.stats.points),
         dimensions: calculatePercentageChange(period.stats.dimensions, base.stats.dimensions),
+        median: calculatePercentageChange(period.stats.median, base.stats.median),
+        stddev: calculatePercentageChange(period.stats.stddev, base.stats.stddev),
+        p95: calculatePercentageChange(period.stats.p95, base.stats.p95),
+        range: calculatePercentageChange(period.stats.range, base.stats.range),
+        volume: calculatePercentageChange(period.stats.volume, base.stats.volume),
+        count: calculatePercentageChange(period.stats.count, base.stats.count),
       },
     }
   })

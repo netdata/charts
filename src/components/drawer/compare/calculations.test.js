@@ -19,7 +19,18 @@ describe("calculations", () => {
         avg: 35,
         max: 60,
         points: 3,
-        dimensions: 2
+        dimensions: 2,
+        value: 60,
+        arp: 0,
+        cv: 48.79500364742666,
+        median: 35,
+        stddev: 17.07825127659933,
+        p25: 22.5,
+        p75: 47.5,
+        p95: 57.5,
+        range: 50,
+        count: 6,
+        volume: 210
       })
     })
 
@@ -42,7 +53,18 @@ describe("calculations", () => {
         avg: 45,
         max: 60,
         points: 2,
-        dimensions: 2
+        dimensions: 2,
+        value: 60,
+        arp: 0,
+        cv: 24.845199749997665,
+        median: 45,
+        stddev: 11.180339887498949,
+        p25: 37.5,
+        p75: 52.5,
+        p95: 58.5,
+        range: 30,
+        count: 4,
+        volume: 180
       })
     })
 
@@ -77,7 +99,18 @@ describe("calculations", () => {
         avg: 40,
         max: 60,
         points: 3,
-        dimensions: 1
+        dimensions: 1,
+        value: 60,
+        arp: 0,
+        cv: 40.8248290463863,
+        median: 40,
+        stddev: 16.32993161855452,
+        p25: 30,
+        p75: 50,
+        p95: 58,
+        range: 40,
+        count: 3,
+        volume: 120
       })
     })
 

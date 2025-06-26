@@ -240,8 +240,11 @@ export default {
   instances: {},
   alerts: {},
 
-  drawerAction: "values",
-  drawerTab: "window",
+  drawer: {
+    action: "values",
+    tab: "window",
+    showAdvancedStats: false,
+  },
 
   renderedAt: null,
   fetchAt: null,

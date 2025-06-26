@@ -17,7 +17,7 @@ const componentsByAction = {
 
 const Drawer = () => {
   const expandedHeight = useAttributeValue("expandedHeight")
-  const action = useAttributeValue("drawerAction")
+  const action = useAttributeValue("drawer.action")
 
   const Component = useMemo(() => {
     return componentsByAction[action] || componentsByAction.values

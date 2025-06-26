@@ -64,7 +64,7 @@ export default ({
   let prevNow = null
   node.getDateWindow = () => {
     const { after, before, renderedAt } = node.getAttributes()
-    const now = sdk.getRoot().getAttribute("fetchAt") || Date.now()
+    const now = sdk.getRoot().getAttribute("fetchAt", Date.now())
 
     if (prevAfter === after && prevRenderedAt === renderedAt && prevNow === now)
       return cachedDateWindow

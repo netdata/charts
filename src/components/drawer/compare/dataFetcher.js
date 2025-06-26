@@ -29,24 +29,24 @@ export const getChartAttributes = chart => {
 export const getComparisonPeriods = ({ after, before }, customPeriods = []) => {
   const basePeriod = {
     id: "selected",
-    label: "Selected timeframe", 
+    label: "Selected timeframe",
     after,
     before,
     isBase: true,
   }
-  
+
   const comparisonPeriods = customPeriods.map(period => ({
     ...period,
     after: after - period.offsetSeconds,
     before: before - period.offsetSeconds,
   }))
-  
+
   return [basePeriod, ...comparisonPeriods]
 }
 
 export const fetchComparisonData = async chart => {
   const timeRange = getCurrentTimeRange(chart)
-  const customPeriods = chart.getAttribute("customPeriods") || []
+  const customPeriods = chart.getAttribute("customPeriods", [])
   const periods = getComparisonPeriods(timeRange, customPeriods)
 
   chart.updateAttribute("compareLoading", true)

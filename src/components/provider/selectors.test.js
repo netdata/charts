@@ -52,6 +52,26 @@ describe("Chart Provider Selectors", () => {
 
       expect(result.current).toBe(true)
     })
+
+    it("returns default value when attribute is undefined", () => {
+      const { result } = renderHookWithChart(() => useAttributeValue("nonexistent", "default"))
+
+      expect(result.current).toBe("default")
+    })
+
+    it("supports nested attributes with fallback values", () => {
+      const { result } = renderHookWithChart(() => useAttributeValue("drawer.showAdvancedStats", false), {
+        testChartOptions: { attributes: { drawer: { showAdvancedStats: true } } }
+      })
+
+      expect(result.current).toBe(true)
+    })
+
+    it("returns fallback for nested attributes when parent missing", () => {
+      const { result } = renderHookWithChart(() => useAttributeValue("drawer.showAdvancedStats", false))
+
+      expect(result.current).toBe(false)
+    })
   })
 
   describe("useEmpty", () => {

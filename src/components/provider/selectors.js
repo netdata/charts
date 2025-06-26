@@ -20,14 +20,14 @@ export const useImmediateListener = (func, deps) => {
   useLayoutEffect(() => off, [off])
 }
 
-export const useAttributeValue = name => {
+export const useAttributeValue = (name, defaultValue) => {
   const chart = useChart()
 
   const forceUpdate = useForceUpdate()
 
   useImmediateListener(() => chart.onAttributeChange(name, forceUpdate), [chart])
 
-  return chart.getAttribute(name)
+  return chart.getAttribute(name, defaultValue)
 }
 
 export const useFilteredNodeIds = () => {
@@ -285,6 +285,29 @@ export const useUnits = (key = "units") => {
   return chart.getUnits(key)
 }
 
+const formatPercentage = (value, { fractionDigits }) => 
+  value === 0 ? "-" : (Math.round((value + Number.EPSILON) * 100) / 100).toFixed(fractionDigits || 2)
+
+const formatPercentageWithSymbol = (value, { fractionDigits }) => {
+  if (value == null || value === 0) return "-"
+  return (Math.round((value + Number.EPSILON) * 100) / 100).toFixed(fractionDigits || 1) + "%"
+}
+
+const formatInteger = (value) => Math.round(value).toString()
+
+const formatAnomalyParts = (value) => 
+  parts.reduce((h, a) => (check(value, enums[a]) ? { ...h, [a]: colors[a] } : h), {})
+
+const formatByType = {
+  arp: formatPercentage,
+  percent: formatPercentage,
+  cv: formatPercentageWithSymbol,
+  count: formatInteger,
+  points: formatInteger,
+  dimensions: formatInteger,
+  pa: formatAnomalyParts,
+}
+
 export const convert = (
   chart,
   value,
@@ -292,13 +315,10 @@ export const convert = (
 ) => {
   if (value === null || value === "-") return "-"
 
-  if (valueKey === "arp" || valueKey === "percent")
-    return value === 0
-      ? "-"
-      : (Math.round((value + Number.EPSILON) * 100) / 100).toFixed(fractionDigits || 2)
-
-  if (valueKey === "pa")
-    return parts.reduce((h, a) => (check(value, enums[a]) ? { ...h, [a]: colors[a] } : h), {})
+  const formatter = formatByType[valueKey]
+  if (formatter) {
+    return formatter(value, { fractionDigits, dimensionId, unitsKey })
+  }
 
   return chart.getConvertedValue(value, { fractionDigits, key: unitsKey, dimensionId })
 }

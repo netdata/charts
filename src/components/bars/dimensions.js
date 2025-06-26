@@ -71,7 +71,7 @@ const Dimensions = ({ height, width }) => {
     let dimensionIds =
       chart.onHoverSortDimensions(
         index,
-        rowSorting[row] || chart.getAttribute("dimensionsSort") || rowSorting.default
+        rowSorting[row] || chart.getAttribute("dimensionsSort", rowSorting.default)
       ) || []
 
     if (chart.getAttribute("selectedDimensions").length > 0) {

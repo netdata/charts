@@ -93,7 +93,7 @@ const DrillDown = () => {
   )
   debugger
 
-  const tab = useAttributeValue("drawerTab")
+  const tab = useAttributeValue("drawer.tab")
 
   return (
     <Flex>

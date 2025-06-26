@@ -161,7 +161,7 @@ export default (chart, sdk) => {
   }
 
   const getNextColor = () => {
-    const colorsAttribute = chart.getAttribute("colors") || []
+    const colorsAttribute = chart.getAttribute("colors", [])
     const index = colorCursor++ % (colorsAttribute.length + dimensionColors.length)
 
     const nextColor =

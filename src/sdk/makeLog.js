@@ -7,7 +7,7 @@ const makeLog =
   (payload = {}) => {
     if (!chart) return () => {}
 
-    const logOptions = chart.getAttribute("logOptions") || defaultLogOptions
+    const logOptions = chart.getAttribute("logOptions", defaultLogOptions)
     const { sendLog, payload: logPayload } = logOptions
     const mergedData = {
       ...(payload?.data ? { ...payload.data } : {}),

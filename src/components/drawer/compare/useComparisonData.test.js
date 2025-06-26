@@ -36,7 +36,7 @@ describe("useComparisonData", () => {
       attributes: {
         after: 1000,
         before: 2000,
-        drawerAction: "compare",
+        drawer: { action: "compare" },
         comparePeriods: mockPeriods,
         compareLoading: false,
         compareError: null
@@ -110,7 +110,7 @@ describe("useComparisonData", () => {
   })
 
   it("does not fetch data when drawer action is not compare", async () => {
-    chart.updateAttribute("drawerAction", "values")
+    chart.updateAttribute("drawer.action", "values")
     
     renderHook(() => useComparisonData(), { wrapper })
     
@@ -151,7 +151,7 @@ describe("useComparisonData", () => {
       attributes: {
         after: 1000,
         before: 2000,
-        drawerAction: "compare",
+        drawer: { action: "compare" },
         comparePeriods: [],
         compareLoading: false,
         compareError: null
@@ -180,7 +180,7 @@ describe("useComparisonData", () => {
     const windowStats = result.current.periods[0].stats
     expect(windowStats.points).toBe(1)
     
-    chart.updateAttribute("drawerTab", "selectedArea")
+    chart.updateAttribute("drawer.tab", "selectedArea")
     rerender()
     
     const highlightStats = result.current.periods[0].stats

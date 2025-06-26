@@ -73,21 +73,22 @@ const meta = (row, cell, index) => ({
 const Dimensions = () => {
   const dimensionIds = useDimensionIds()
 
-  const tab = useAttributeValue("drawerTab")
+  const tab = useAttributeValue("drawer.tab")
   const period = tab === "selectedArea" ? "highlight" : "window"
   const columns = useColumns(period)
+  const showAdvancedStats = useAttributeValue("drawer.showAdvancedStats", false)
 
   const chart = useChart()
   useMemo(() => chart.makeChartUI("custom", "bars"), [])
 
   const columnVisibility = useMemo(() => ({
-    median: false,
-    stddev: false,
-    p95: false,
-    range: false,
-    count: false,
-    volume: false,
-  }), [])
+    median: showAdvancedStats,
+    stddev: showAdvancedStats,
+    p95: showAdvancedStats,
+    range: showAdvancedStats,
+    count: showAdvancedStats,
+    volume: showAdvancedStats,
+  }), [showAdvancedStats])
 
   const bulkActions = useMemo(() => {
     const filename = `${chart.getAttribute("name") || chart.getAttribute("contextScope").join("-").replace(".", "_")}`

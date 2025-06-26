@@ -27,7 +27,7 @@ describe("Dimensions", () => {
 
   it("shows selected area header when selectedArea tab is active", () => {
     const { chart } = renderWithChart(<Dimensions />, {
-      testChartOptions: { attributes: { drawerTab: "selectedArea" } },
+      testChartOptions: { attributes: { drawer: { tab: "selectedArea" } } },
     })
 
     jest.spyOn(chart, "getPayload").mockReturnValue({ data: mockData })

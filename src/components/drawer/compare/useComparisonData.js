@@ -11,8 +11,8 @@ export const useComparisonData = () => {
 
   const after = useAttributeValue("after")
   const before = useAttributeValue("before")
-  const drawerAction = useAttributeValue("drawerAction")
-  const tab = useAttributeValue("drawerTab")
+  const drawerAction = useAttributeValue("drawer.action")
+  const tab = useAttributeValue("drawer.tab")
   const overlays = useAttributeValue("overlays")
 
   const periods = useMemo(() => {

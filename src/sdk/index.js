@@ -42,7 +42,7 @@ export default ({
   const makeChartCore = options => makeChart({ sdk: instance, ...options })
 
   const makeChartUI = chart => {
-    const chartLibrary = chart.getAttribute("chartLibrary") || defaultAttributes.chartLibrary
+    const chartLibrary = chart.getAttribute("chartLibrary", defaultAttributes.chartLibrary)
 
     if (!(chartLibrary in attributes.ui))
       console.error(

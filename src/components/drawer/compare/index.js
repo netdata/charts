@@ -1,7 +1,7 @@
 import React, { useState } from "react"
-import { Flex, TextSmall, TextMicro, Button } from "@netdata/netdata-ui"
+import { Flex, TextSmall, TextMicro, Button, Icon } from "@netdata/netdata-ui"
 import { useComparisonData } from "./useComparisonData"
-import { useChart } from "@/components/provider"
+import { useChart, convert, useAttributeValue } from "@/components/provider"
 import ChangeIndicator from "./changeIndicator"
 import CustomPeriodForm from "./customPeriodForm"
 
@@ -11,15 +11,39 @@ const formatDateRange = (chart, after, before) => {
   return `${chart.formatDate(afterDate)} ${chart.formatTime(afterDate)} → ${chart.formatDate(beforeDate)} ${chart.formatTime(beforeDate)}`
 }
 
-const formatValue = value => {
-  if (value == null) return "N/A"
-  if (typeof value === "number") {
-    return value.toFixed(2)
-  }
-  return value.toString()
+const StatRow = ({ label, value, change, valueKey = "value" }) => {
+  const chart = useChart()
+  const formattedValue = convert(chart, value, { valueKey, fractionDigits: 2 })
+
+  return (
+    <Flex justifyContent="between">
+      <TextMicro>{label}</TextMicro>
+      <Flex alignItems="center" gap={1}>
+        <TextMicro>{formattedValue}</TextMicro>
+        <ChangeIndicator change={change} />
+      </Flex>
+    </Flex>
+  )
 }
 
-const ComparisonCard = ({ period }) => {
+const basicStats = [
+  { key: "min", label: "Min" },
+  { key: "avg", label: "Avg" },
+  { key: "max", label: "Max" },
+  { key: "points", label: "Data Points" },
+  { key: "dimensions", label: "Dimensions" },
+]
+
+const advancedStats = [
+  { key: "median", label: "Median" },
+  { key: "stddev", label: "StdDev" },
+  { key: "p95", label: "P95" },
+  { key: "range", label: "Range" },
+  { key: "volume", label: "Volume" },
+  { key: "count", label: "Count" },
+]
+
+const ComparisonCard = ({ period, showAdvanced }) => {
   const chart = useChart()
   const dateRange = formatDateRange(chart, period.after, period.before)
   const hasData = period.payload && period.stats && !period.error
@@ -39,41 +63,26 @@ const ComparisonCard = ({ period }) => {
         </Flex>
       ) : (
         <Flex column gap={1}>
-          <Flex justifyContent="between">
-            <TextMicro>Min</TextMicro>
-            <Flex alignItems="center" gap={1}>
-              <TextMicro>{formatValue(period.stats.min)}</TextMicro>
-              <ChangeIndicator change={period.changes?.min} />
-            </Flex>
-          </Flex>
-          <Flex justifyContent="between">
-            <TextMicro>Avg</TextMicro>
-            <Flex alignItems="center" gap={1}>
-              <TextMicro>{formatValue(period.stats.avg)}</TextMicro>
-              <ChangeIndicator change={period.changes?.avg} />
-            </Flex>
-          </Flex>
-          <Flex justifyContent="between">
-            <TextMicro>Max</TextMicro>
-            <Flex alignItems="center" gap={1}>
-              <TextMicro>{formatValue(period.stats.max)}</TextMicro>
-              <ChangeIndicator change={period.changes?.max} />
-            </Flex>
-          </Flex>
-          <Flex justifyContent="between">
-            <TextMicro>Data Points</TextMicro>
-            <Flex alignItems="center" gap={1}>
-              <TextMicro>{period.stats.points}</TextMicro>
-              <ChangeIndicator change={period.changes?.points} />
-            </Flex>
-          </Flex>
-          <Flex justifyContent="between">
-            <TextMicro>Dimensions</TextMicro>
-            <Flex alignItems="center" gap={1}>
-              <TextMicro>{period.stats.dimensions}</TextMicro>
-              <ChangeIndicator change={period.changes?.dimensions} />
-            </Flex>
-          </Flex>
+          {basicStats.map(stat => (
+            <StatRow
+              key={stat.key}
+              label={stat.label}
+              value={period.stats[stat.key]}
+              change={period.changes?.[stat.key]}
+              valueKey={stat.key}
+            />
+          ))}
+
+          {showAdvanced &&
+            advancedStats.map(stat => (
+              <StatRow
+                key={stat.key}
+                label={stat.label}
+                value={period.stats[stat.key]}
+                change={period.changes?.[stat.key]}
+                valueKey={stat.key}
+              />
+            ))}
         </Flex>
       )}
     </Flex>
@@ -84,9 +93,10 @@ const Compare = () => {
   const chart = useChart()
   const { periods, loading, error } = useComparisonData()
   const [showCustomForm, setShowCustomForm] = useState(false)
+  const showAllStats = useAttributeValue("drawer.showAdvancedStats", false)
 
-  const addCustomPeriod = (customPeriod) => {
-    const currentCustomPeriods = chart.getAttribute("customPeriods") || []
+  const addCustomPeriod = customPeriod => {
+    const currentCustomPeriods = chart.getAttribute("customPeriods", [])
     chart.updateAttribute("customPeriods", [...currentCustomPeriods, customPeriod])
     setShowCustomForm(false)
   }
@@ -105,7 +115,7 @@ const Compare = () => {
 
       <Flex gap={3} overflow={{ horizontal: "scroll" }}>
         {periods.map(period => (
-          <ComparisonCard key={period.id} period={period} />
+          <ComparisonCard key={period.id} period={period} showAdvanced={showAllStats} />
         ))}
 
         {periods.length > 0 && !showCustomForm && (
@@ -125,10 +135,7 @@ const Compare = () => {
         )}
 
         {showCustomForm && (
-          <CustomPeriodForm
-            onAdd={addCustomPeriod}
-            onCancel={() => setShowCustomForm(false)}
-          />
+          <CustomPeriodForm onAdd={addCustomPeriod} onCancel={() => setShowCustomForm(false)} />
         )}
       </Flex>
     </Flex>

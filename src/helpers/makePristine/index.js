@@ -1,4 +1,5 @@
 import deepEqual from "@/helpers/deepEqual"
+import { getValue, setValue, deleteKey } from "@/helpers/crud"
 
 const defaultDispatch = (value, resource) => Object.assign(resource, value)
 
@@ -10,16 +11,21 @@ export default (pristineKey, keys, dispatch = defaultDispatch) => {
 
     if (!resource[pristineKey]) return
 
-    if (!(key in resource[pristineKey]) && !deepEqual(resource[key], value)) {
+    const currentValue = getValue(key, undefined, resource)
+    const pristineValue = getValue(key, undefined, resource[pristineKey])
+
+    if (pristineValue === undefined && !deepEqual(currentValue, value)) {
       const prev = resource[pristineKey]
-      dispatch({ [pristineKey]: { ...resource[pristineKey], [key]: resource[key] } }, resource)
+      const newPristine = { ...resource[pristineKey] }
+      setValue(key, currentValue, newPristine)
+      dispatch({ [pristineKey]: newPristine }, resource)
       return prev
     }
 
-    if (deepEqual(resource[pristineKey][key], value)) {
+    if (deepEqual(pristineValue, value)) {
       const prev = resource[pristineKey]
       const copy = { ...resource[pristineKey] }
-      delete copy[key]
+      deleteKey(key, copy)
       dispatch({ [pristineKey]: copy }, resource)
       return prev
     }
