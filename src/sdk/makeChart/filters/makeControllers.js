@@ -39,7 +39,13 @@ export default chart => {
     selected: true,
   }
 
-  const updateGroupByAttribute = selected => {
+  const baseUpdateGroupBy = (selected, {
+    groupByKey = "groupBy",
+    groupByLabelKey = "groupByLabel", 
+    fallbackGroupBy = ["dimension"],
+    dataKey = null,
+    loadingKey = null
+  }) => {
     const selectedLabels = selected.filter(sel => sel.isLabel)
     const groupByLabel = selectedLabels.map(sel => sel.value)
 
@@ -51,19 +57,30 @@ export default chart => {
 
     if (selectedLabels.length) groupBy.push("label")
 
-    if (!groupBy.length) groupBy = ["dimension"]
+    if (!groupBy.length) groupBy = fallbackGroupBy
 
     if (
-      deepEqual(groupBy, chart.getAttribute("groupBy")) &&
-      deepEqual(groupByLabel, chart.getAttribute("groupByLabel"))
+      deepEqual(groupBy, chart.getAttribute(groupByKey)) &&
+      deepEqual(groupByLabel, chart.getAttribute(groupByLabelKey))
     )
-      return
+      return false
 
-    chart.updateAttributes({
-      groupByLabel: groupByLabel,
-      groupBy: groupBy,
+    const updates = {
+      [groupByLabelKey]: groupByLabel,
+      [groupByKey]: groupBy,
       processing: true,
-    })
+    }
+    
+    if (dataKey) updates[dataKey] = null
+    if (loadingKey) updates[loadingKey] = true
+
+    chart.updateAttributes(updates)
+    return true
+  }
+
+  const updateGroupByAttribute = selected => {
+    const changed = baseUpdateGroupBy(selected, {})
+    if (!changed) return
 
     chart.updateAttributes(getInitialFilterAttributes(chart))
     chart.fetch({ processing: true }).then(() => onGroupChange(chart.getAttribute("groupBy")))
@@ -358,5 +375,6 @@ export default chart => {
     resetPristine,
     removePristine,
     toggleFullscreen,
+    baseUpdateGroupBy,
   }
 }

@@ -127,6 +127,10 @@ describe("makeControllers", () => {
   })
 
   describe("updateGroupByAttribute", () => {
+    beforeEach(() => {
+      chart.fetch = jest.fn(() => Promise.resolve())
+    })
+
     it("updates groupBy with allowed values", () => {
       const selected = [
         { value: "node", isLabel: false },
@@ -144,6 +148,94 @@ describe("makeControllers", () => {
         processing: true,
       })
       expect(fetchSpy).toHaveBeenCalledWith({ processing: true })
+    })
+
+    it("handles label selections and adds label to groupBy", () => {
+      const selected = [
+        { value: "dimension", isLabel: false },
+        { value: "custom_label", isLabel: true },
+      ]
+
+      const spy = jest.spyOn(chart, "updateAttributes")
+
+      controllers.updateGroupByAttribute(selected)
+
+      expect(spy).toHaveBeenCalledWith({
+        groupByLabel: ["custom_label"],
+        groupBy: ["dimension", "label"],
+        processing: true,
+      })
+    })
+
+    it("falls back to dimension when no valid groupBy selected", () => {
+      chart.updateAttributes({ groupBy: ["node"] })
+
+      const selected = [
+        { value: "invalid", isLabel: false },
+      ]
+
+      const spy = jest.spyOn(chart, "updateAttributes")
+
+      controllers.updateGroupByAttribute(selected)
+
+      expect(spy).toHaveBeenCalledWith({
+        groupByLabel: [],
+        groupBy: ["dimension"],
+        processing: true,
+      })
+    })
+
+    it("skips update when values unchanged", () => {
+      chart.updateAttributes({
+        groupBy: ["node"],
+        groupByLabel: []
+      })
+
+      const selected = [{ value: "node", isLabel: false }]
+      const spy = jest.spyOn(chart, "updateAttributes")
+      const fetchSpy = jest.spyOn(chart, "fetch")
+
+      controllers.updateGroupByAttribute(selected)
+
+      expect(spy).not.toHaveBeenCalled()
+      expect(fetchSpy).not.toHaveBeenCalled()
+    })
+
+    it("filters out non-allowed groupBy values", () => {
+      const selected = [
+        { value: "node", isLabel: false },
+        { value: "invalid_value", isLabel: false },
+        { value: "instance", isLabel: false },
+      ]
+
+      const spy = jest.spyOn(chart, "updateAttributes")
+
+      controllers.updateGroupByAttribute(selected)
+
+      expect(spy).toHaveBeenCalledWith({
+        groupByLabel: [],
+        groupBy: ["node", "instance"],
+        processing: true,
+      })
+    })
+
+    it("handles mixed labels and groupBy values", () => {
+      const selected = [
+        { value: "node", isLabel: false },
+        { value: "label1", isLabel: true },
+        { value: "label2", isLabel: true },
+        { value: "instance", isLabel: false },
+      ]
+
+      const spy = jest.spyOn(chart, "updateAttributes")
+
+      controllers.updateGroupByAttribute(selected)
+
+      expect(spy).toHaveBeenCalledWith({
+        groupByLabel: ["label1", "label2"],
+        groupBy: ["node", "instance", "label"],
+        processing: true,
+      })
     })
   })
 

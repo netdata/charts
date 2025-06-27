@@ -160,6 +160,16 @@ export default {
   groupByExpanded: {},
   labelsExpanded: {},
 
+  drilldown: {
+    groupBy: ["node", "instance", "dimension"],
+    groupByLabel: [],
+    data: null,
+    loading: false,
+    error: null,
+    sortBy: [],
+    expanded: {},
+  },
+
   pristine: {},
 
   themeGridColor: ["#E4E8E8", "#212727"],

@@ -2,46 +2,46 @@ import { getChartURLOptions, getChartPayload } from "./helpers"
 
 const wildcard = "*"
 
-const getPayload = (chart, params = {}) => {
+const getPayload = (chart, attrs = {}) => {
   const chartAttributes = chart.getAttributes()
   const {
-    selectedContexts = chartAttributes.selectedContexts,
-    context = chartAttributes.context,
-    nodesScope = chartAttributes.nodesScope,
-    contextScope = chartAttributes.contextScope,
+    selectedContexts,
+    context,
+    nodesScope,
+    contextScope,
     selectedNodes = chart.getFilteredNodeIds(),
-    selectedInstances = chartAttributes.selectedInstances,
-    selectedDimensions = chartAttributes.selectedDimensions,
-    selectedLabels = chartAttributes.selectedLabels,
-    aggregationMethod = chartAttributes.aggregationMethod,
-    groupBy = chartAttributes.groupBy,
-    groupByLabel = chartAttributes.groupByLabel,
+    selectedInstances,
+    selectedDimensions,
+    selectedLabels,
+    aggregationMethod,
+    groupBy,
+    groupByLabel,
     options = getChartURLOptions(chart),
-    ...rest
-  } = params
+  } = { ...chartAttributes, ...attrs }
 
   return {
     format: "json",
-    options: options.join("|"),
-    contexts: selectedContexts.join("|") || context || wildcard,
-    scope_contexts: contextScope.join("|") || wildcard,
-    scope_nodes: nodesScope.join("|") || wildcard,
-    nodes: selectedNodes.join("|") || wildcard,
-    instances: selectedInstances.join("|") || wildcard,
-    dimensions: selectedDimensions.join("|") || wildcard,
-    labels: selectedLabels.join("|") || wildcard,
-    group_by: groupBy.join("|"),
-    ...(!!groupByLabel?.length && { group_by_label: groupByLabel.join("|") }),
+    options: Array.isArray(options) ? options.join("|") : "",
+    contexts:
+      (Array.isArray(selectedContexts) ? selectedContexts.join("|") : "") || context || wildcard,
+    scope_contexts: (Array.isArray(contextScope) ? contextScope.join("|") : "") || wildcard,
+    scope_nodes: (Array.isArray(nodesScope) ? nodesScope.join("|") : "") || wildcard,
+    nodes: (Array.isArray(selectedNodes) ? selectedNodes.join("|") : "") || wildcard,
+    instances: (Array.isArray(selectedInstances) ? selectedInstances.join("|") : "") || wildcard,
+    dimensions: (Array.isArray(selectedDimensions) ? selectedDimensions.join("|") : "") || wildcard,
+    labels: (Array.isArray(selectedLabels) ? selectedLabels.join("|") : "") || wildcard,
+    group_by: Array.isArray(groupBy) ? groupBy.join("|") : "",
+    ...(Array.isArray(groupByLabel) &&
+      groupByLabel.length && { group_by_label: groupByLabel.join("|") }),
     aggregation: aggregationMethod,
-    ...getChartPayload(chart),
-    ...rest,
+    ...getChartPayload(chart, attrs),
   }
 }
 
-export default (chart, { params, ...options } = {}) => {
+export default (chart, { attrs, ...options } = {}) => {
   const { host } = chart.getAttributes()
 
-  const payload = getPayload(chart, params)
+  const payload = getPayload(chart, attrs)
 
   const query = new URLSearchParams(payload).toString()
   const url = `${host}/weights?${query}`

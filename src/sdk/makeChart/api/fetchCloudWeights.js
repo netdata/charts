@@ -2,22 +2,22 @@ import { getChartURLOptions, getChartPayload } from "./helpers"
 
 const wildcardArray = ["*"]
 
-const getPayload = (chart, params = {}) => {
+const getPayload = (chart, attrs = {}) => {
   const chartAttributes = chart.getAttributes()
-  const extraAttributes = getChartPayload(chart)
+  const extraAttributes = getChartPayload(chart, attrs)
 
   const {
-    selectedContexts = chartAttributes.selectedContexts,
-    context = chartAttributes.context,
-    nodesScope = chartAttributes.nodesScope,
-    contextScope = chartAttributes.contextScope,
+    selectedContexts,
+    context,
+    nodesScope,
+    contextScope,
     selectedNodes = chart.getFilteredNodeIds(),
-    selectedInstances = chartAttributes.selectedInstances,
-    selectedDimensions = chartAttributes.selectedDimensions,
-    selectedLabels = chartAttributes.selectedLabels,
-    aggregationMethod = chartAttributes.aggregationMethod,
-    groupBy = chartAttributes.groupBy,
-    groupByLabel = chartAttributes.groupByLabel,
+    selectedInstances,
+    selectedDimensions,
+    selectedLabels,
+    aggregationMethod,
+    groupBy,
+    groupByLabel,
     options = getChartURLOptions(chart),
     after = extraAttributes.after,
     before = extraAttributes.before,
@@ -29,7 +29,7 @@ const getPayload = (chart, params = {}) => {
     highlightBefore,
     baselineAfter,
     baselineBefore,
-  } = params
+  } = { ...chartAttributes, ...attrs }
 
   return {
     selectors: {
@@ -66,12 +66,12 @@ const getPayload = (chart, params = {}) => {
       ],
     },
     window: {
-      after: Math.floor(highlightAfter / 1000),
-      before: Math.floor(highlightBefore / 1000),
+      after: Math.floor((highlightAfter || after) / 1000),
+      before: Math.floor((highlightBefore || before) / 1000),
       points,
       baseline: {
-        after: Math.floor((baselineAfter || after) / 1000),
-        before: Math.floor((baselineBefore || before) / 1000),
+        after: Math.floor(after / 1000),
+        before: Math.floor(before / 1000),
       },
     },
     scope: {
@@ -89,10 +89,10 @@ const getPayload = (chart, params = {}) => {
   }
 }
 
-export default (chart, { params, ...options } = {}) => {
+export default (chart, { attrs, ...options } = {}) => {
   const { host } = chart.getAttributes()
 
-  const payload = getPayload(chart, params)
+  const payload = getPayload(chart, attrs)
 
   return fetch(`${host}/weights`, {
     method: "POST",

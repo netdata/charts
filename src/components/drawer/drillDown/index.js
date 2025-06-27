@@ -1,17 +1,18 @@
-import React, { useMemo } from "react"
+import React from "react"
 import { Flex, Table } from "@netdata/netdata-ui"
-import { getStats } from "@/components/filterToolbox/utils"
 import { useChart, useAttributeValue } from "@/components/provider/selectors"
+import { useDrilldownData } from "./useDrilldownData"
+import updateDrilldownGroupBy from "./updateDrilldownGroupBy"
 import {
   labelColumn,
-  metricsColumn,
   contributionColumn,
   anomalyRateColumn,
-  alertsColumn,
   minColumn,
   avgColumn,
   maxColumn,
 } from "./columns"
+
+const noop = () => {}
 
 const meta = (row, cell, index) => ({
   cellStyles: {
@@ -20,100 +21,63 @@ const meta = (row, cell, index) => ({
     ...(row.depth > 0 && { backgroundOpacity: 0.4 }),
     ...(row.depth > 0 && index === 0 && { border: { side: "left", size: "4px" } }),
   },
-  headStyles: {
-    height: "32px",
-  },
   bulkActionsStyles: {
-    padding: [2, 0],
-  },
-  searchContainerStyles: {
-    width: "100%",
-    padding: [0, 2, 0, 2],
-  },
-  searchStyles: {
-    inputContainerStyles: {
-      height: "20px",
-      border: { side: "all", size: "1px", color: "inputBg" },
-      background: "inputBg",
-      round: true,
-      padding: [1, 2],
-      _hover: {
-        border: { side: "all", size: "1px", color: "borderSecondary" },
-      },
-    },
+    padding: [1, 0],
   },
 })
 
-const columns = [
-  labelColumn(),
-  metricsColumn(),
-  contributionColumn(),
-  anomalyRateColumn(),
-  alertsColumn(),
-  minColumn(),
-  avgColumn(),
-  maxColumn(),
-]
-
 const DrillDown = () => {
   const chart = useChart()
+  const { hierarchicalData, loading, error } = useDrilldownData()
+  const groupBy = useAttributeValue("drilldown.groupBy", ["node", "instance", "dimension"])
+  const expanded = useAttributeValue("drilldown.expanded", {})
+  const sortBy = useAttributeValue("drilldown.sortBy", [])
 
-  const nodes = useAttributeValue("nodes")
-  const instances = useAttributeValue("instances")
-  const dimensions = useAttributeValue("dimensions")
+  const columns = [
+    labelColumn(groupBy),
+    contributionColumn(),
+    anomalyRateColumn(),
+    minColumn(),
+    avgColumn(),
+    maxColumn(),
+  ]
 
-  const selectedNodes = useAttributeValue("selectedNodes")
-  const selectedInstances = useAttributeValue("selectedInstances")
-  const selectedDimensions = useAttributeValue("selectedDimensions")
+  const onGroupByChange = selected => {
+    updateDrilldownGroupBy(chart, selected)
+  }
 
-  const data = useMemo(
-    () =>
-      Object.keys(nodes).map(id => {
-        const selected = selectedNodes.includes(id)
+  const onExpandedChange = expandedState => {
+    chart.updateAttribute("drilldown.expanded", expandedState)
+  }
 
-        return getStats(chart, nodes[id], {
-          id,
-          key: "nodes",
-          childrenKey: "instances",
-          props: { selected },
-          childProps: {
-            isInstance: true,
-            getValue: instance => `${instance.id}@${id}`,
-            getIsSelected: instance => selectedInstances.includes(`${instance.id}@${id}`),
-          },
-          children: Object.keys(instances).reduce((h, instanceId) => {
-            if (instances[instanceId].ni !== nodes[id].ni) return h
+  const onSortByChange = sortState => {
+    chart.updateAttribute("drilldown.sortBy", sortState)
+  }
 
-            h.push(instances[instanceId])
-            return h
-          }, []),
-        })
-      }),
-    [nodes, selectedNodes, selectedInstances]
-  )
-  debugger
-
-  const tab = useAttributeValue("drawer.tab")
+  if (error) {
+    return (
+      <Flex padding={[3]} justifyContent="center" color="text">
+        Error loading drilldown data: {error.message}
+      </Flex>
+    )
+  }
 
   return (
     <Flex>
       <Table
         enableSorting
-        // enableSelection
+        enableExpanding
         dataColumns={columns}
-        data={data}
-        // onRowSelected={onItemClick}
-        // onSearch={noop}
+        data={hierarchicalData}
         meta={meta}
-        // sortBy={sortBy}
-        // rowSelection={rowSelection}
-        // onSortingChange={onSortByChange}
-        // expanded={expanded}
-        // onExpandedChange={onExpandedChange}
-        // enableSubRowSelection={enableSubRowSelection}
+        sortBy={sortBy}
+        onSearch={noop}
+        onSortingChange={onSortByChange}
+        expanded={expanded}
+        onExpandedChange={onExpandedChange}
+        loading={loading}
         width="100%"
-        // bulkActions={bulkActions}
-        // rowActions={rowActions}
+        headerChildren={<div>Group by controls will go here</div>}
       />
     </Flex>
   )
