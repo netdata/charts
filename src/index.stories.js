@@ -14,7 +14,10 @@ const getChart = makeMockPayload(systemLoadLine[0], { delay: 600 })
 
 export const Simple = () => {
   const sdk = makeDefaultSDK()
-  const chart = sdk.makeChart({ getChart })
+  const chart = sdk.makeChart({ 
+    getChart,
+    attributes: { contextScope: ["system.load"] }
+  })
   sdk.appendChild(chart)
 
   return (
@@ -66,6 +69,7 @@ export const NoData = () => {
   const sdk = makeDefaultSDK()
   const chart = sdk.makeChart({
     getChart: () => new Promise(r => setTimeout(() => r(noData), 600)),
+    attributes: { contextScope: ["system.load"] }
   })
   sdk.appendChild(chart)
 
@@ -153,7 +157,7 @@ const TimePicker = withChartProvider(() => {
 export const Timepicker = () => {
   const chart = useMemo(() => {
     const sdk = makeDefaultSDK()
-    const chart = sdk.makeChart({ getChart, attributes: {} })
+    const chart = sdk.makeChart({ getChart, attributes: { contextScope: ["system.load"] } })
     sdk.appendChild(chart)
 
     return chart
@@ -174,6 +178,7 @@ export const SelectedDimensions = () => {
   const chart = sdk.makeChart({
     getChart,
     attributes: {
+      contextScope: ["system.load"],
       selectedDimensions: ["load5", "load15"],
     },
   })
@@ -245,6 +250,9 @@ export const Timeout = () => {
         return new Promise(r => setTimeout(() => getChart(params).then(r), 15000))
       return getChart(params)
     },
+    attributes: {
+      contextScope: ["system.load"]
+    }
   })
   sdk.appendChild(chart)
 
@@ -264,6 +272,9 @@ export const Error = () => {
         return new Promise((resolve, reject) => setTimeout(() => reject(), 200))
       return getChart(params)
     },
+    attributes: {
+      contextScope: ["system.load"]
+    }
   })
   sdk.appendChild(chart)
 
@@ -276,7 +287,10 @@ export const Error = () => {
 
 export const InitialLoading = () => {
   const sdk = makeDefaultSDK()
-  const chart = sdk.makeChart({ getChart: () => new Promise(() => {}) })
+  const chart = sdk.makeChart({ 
+    getChart: () => new Promise(() => {}),
+    attributes: { contextScope: ["system.load"] }
+  })
   const darkChart = sdk.makeChart({
     getChart: () => new Promise(() => {}),
     attributes: { contextScope: ["system.load"], theme: "dark" },
@@ -303,7 +317,7 @@ export const Multiple = () => {
 
   const charts = Array.from(Array(10)).map((v, index) => {
     const chart = sdk.makeChart({
-      attributes: { contextScope: ["system.load"], id: index },
+      attributes: { contextScope: ["system.load"], id: `chart-${index}` },
       getChart,
     })
     sdk.appendChild(chart)
@@ -327,7 +341,7 @@ export const Sync = () => {
 
   const charts = Array.from(Array(3)).map((v, index) => {
     const chart = sdk.makeChart({
-      attributes: { contextScope: ["system.load"], id: index, syncHover: index !== 1 },
+      attributes: { contextScope: ["system.load"], id: `chart-${index}`, syncHover: index !== 1 },
       getChart,
     })
     sdk.appendChild(chart)
@@ -351,6 +365,7 @@ export const WithAnnotations = () => {
   const chart = sdk.makeChart({
     getChart,
     attributes: {
+      contextScope: ["system.load"],
       hasCorrelation: true, // Enable correlation buttons
       overlays: {
         annotation1: {
@@ -398,6 +413,7 @@ export const AnnotationCreation = () => {
   const chart = sdk.makeChart({
     getChart,
     attributes: {
+      contextScope: ["system.load"],
       hasCorrelation: true,
     },
   })
