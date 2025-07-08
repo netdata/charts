@@ -1,11 +1,12 @@
 import React from "react"
-import { Flex, TextSmall } from "@netdata/netdata-ui"
+import { Flex, TextSmall, CopyToClipboard } from "@netdata/netdata-ui"
 import {
   useTitle,
   useUnitSign,
   useName,
   withChartProvider,
   useIsMinimal,
+  useAttributeValue,
 } from "@/components/provider"
 
 export const Title = props => {
@@ -13,6 +14,7 @@ export const Title = props => {
   const units = useUnitSign({ long: true })
   const name = useName()
   const isMinimal = useIsMinimal()
+  const contextScope = useAttributeValue("contextScope")
 
   return (
     <Flex
@@ -27,10 +29,14 @@ export const Title = props => {
         {title}
       </TextSmall>
       {!!name && (!isMinimal || !title) && (
-        <TextSmall color="textLite" whiteSpace="nowrap">
-          {title ? "• " : ""}
-          {name}
-        </TextSmall>
+        <CopyToClipboard
+          text={contextScope && contextScope.length ? contextScope.join(", ") : name}
+        >
+          <TextSmall color="textLite" whiteSpace="nowrap">
+            {title ? "• " : ""}
+            {name}
+          </TextSmall>
+        </CopyToClipboard>
       )}
       {!!units && !isMinimal && (
         <TextSmall color="textLite" whiteSpace="nowrap">
