@@ -153,7 +153,7 @@ export const useName = () => {
   const name = useAttributeValue("name")
   const contextScope = useAttributeValue("contextScope")
 
-  return name || contextScope.join(", ")
+  return name || (contextScope && contextScope.length ? contextScope.join(", ") : "")
 }
 
 export const useVisibleDimensionId = id => {

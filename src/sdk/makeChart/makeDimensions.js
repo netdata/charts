@@ -231,7 +231,8 @@ export default (chart, sdk) => {
     if (memKey) return memKey
     const { colors, contextScope, id } = chart.getAttributes()
 
-    memKey = colors.length ? chart.getAttribute("id") : (id || contextScope[0]).split(/[._]/)[0]
+    const keySource = String(id || (contextScope && contextScope[0]) || "default")
+    memKey = colors.length ? chart.getAttribute("id") : keySource.split(/[._]/)[0]
     return memKey
   }
 
