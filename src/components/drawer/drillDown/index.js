@@ -3,6 +3,7 @@ import { Flex, Table } from "@netdata/netdata-ui"
 import { useChart, useAttributeValue } from "@/components/provider/selectors"
 import { useDrilldownData } from "./useDrilldownData"
 import updateDrilldownGroupBy from "./updateDrilldownGroupBy"
+import GroupBy from "@/components/filterToolbox/groupBy"
 import {
   labelColumn,
   contributionColumn,
@@ -42,10 +43,6 @@ const DrillDown = () => {
     maxColumn(),
   ]
 
-  const onGroupByChange = selected => {
-    updateDrilldownGroupBy(chart, selected)
-  }
-
   const onExpandedChange = expandedState => {
     chart.updateAttribute("drilldown.expanded", expandedState)
   }
@@ -77,7 +74,17 @@ const DrillDown = () => {
         onExpandedChange={onExpandedChange}
         loading={loading}
         width="100%"
-        headerChildren={<div>Group by controls will go here</div>}
+        headerChildren={
+          <GroupBy
+            groupByKey="drilldown.groupBy"
+            groupByLabelKey="drilldown.groupByLabel"
+            sortByKey="drilldown.groupBySortBy"
+            expandedKey="drilldown.groupByExpanded"
+            onChange={selected => updateDrilldownGroupBy(chart, selected)}
+            trackingId="drilldown-group-by"
+            emptyMessage="Deselecting everything will use GROUP BY NODE, INSTANCE, DIMENSION by default"
+          />
+        }
       />
     </Flex>
   )

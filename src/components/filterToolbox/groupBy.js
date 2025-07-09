@@ -51,10 +51,20 @@ const columns = [
   maxColumn(),
 ]
 
-const GroupBy = ({ labelProps, ...rest }) => {
+const GroupBy = ({ 
+  groupByKey = "groupBy",
+  groupByLabelKey = "groupByLabel",
+  sortByKey = "groupBySortBy",
+  expandedKey = "groupByExpanded",
+  onChange,
+  trackingId = "group-by",
+  emptyMessage = "Deselecting everything will use GROUP BY DIMENSION by default",
+  labelProps, 
+  ...rest 
+}) => {
   const chart = useChart()
-  const groupBy = useAttributeValue("groupBy")
-  const groupByLabel = useAttributeValue("groupByLabel")
+  const groupBy = useAttributeValue(groupByKey)
+  const groupByLabel = useAttributeValue(groupByLabelKey)
 
   let label = "everything"
 
@@ -117,8 +127,13 @@ const GroupBy = ({ labelProps, ...rest }) => {
 
   const value = useMemo(() => [...groupBy, ...groupByLabel], [groupBy, groupByLabel])
 
-  const [sortBy, onSortByChange] = useAttribute("groupBySortBy")
-  const [expanded, onExpandedChange] = useAttribute("groupByExpanded")
+  const [sortBy, onSortByChange] = useAttribute(sortByKey)
+  const [expanded, onExpandedChange] = useAttribute(expandedKey)
+
+  const defaultOnChange = useCallback(
+    selected => chart.updateGroupByAttribute(selected),
+    [chart]
+  )
 
   return (
     <DropdownTable
@@ -128,9 +143,9 @@ const GroupBy = ({ labelProps, ...rest }) => {
         </TextBig>
       }
       label={label}
-      data-track={chart.track("group-by")}
+      data-track={chart.track(trackingId)}
       labelProps={labelProps}
-      onChange={chart.updateGroupByAttribute}
+      onChange={onChange || defaultOnChange}
       getOptions={getOptions}
       secondaryLabel="Group by"
       tooltipProps={tooltipProps}
@@ -141,7 +156,7 @@ const GroupBy = ({ labelProps, ...rest }) => {
       onSortByChange={onSortByChange}
       expanded={expanded}
       onExpandedChange={onExpandedChange}
-      emptyMessage="Deselecting everything will use GROUP BY DIMENSION by default"
+      emptyMessage={emptyMessage}
       {...rest}
     />
   )

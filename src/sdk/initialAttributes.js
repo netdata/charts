@@ -168,6 +168,8 @@ export default {
     error: null,
     sortBy: [],
     expanded: {},
+    groupBySortBy: [],
+    groupByExpanded: {},
   },
 
   pristine: {},
