@@ -6,20 +6,20 @@ describe("crosshair", () => {
 
   beforeEach(() => {
     const { chart: testChart } = makeTestChart({
-      libraryName: "dygraph"
+      libraryName: "dygraph",
     })
-    
+
     chart = testChart
-    
-    jest.spyOn(chart, 'getPayload').mockReturnValue({
+
+    jest.spyOn(chart, "getPayload").mockReturnValue({
       data: [
         [1617946860000, 25, 50, 75],
         [1617946920000, 30, 55, 70],
         [1617946980000, 20, 45, 80],
         [1617947040000, 35, 60, 65],
-      ]
+      ],
     })
-    
+
     mockCtx = {
       save: jest.fn(),
       restore: jest.fn(),
@@ -29,19 +29,19 @@ describe("crosshair", () => {
       lineTo: jest.fn(),
       stroke: jest.fn(),
       setLineDash: jest.fn(),
-      strokeStyle: ""
+      strokeStyle: "",
     }
 
     mockDygraph = {
       getArea: jest.fn(() => ({ h: 400 })),
       canvas_ctx_: mockCtx,
       toDomXCoord: jest.fn(timestamp => timestamp / 1000000),
-      setSelection: jest.fn()
+      setSelection: jest.fn(),
     }
 
     mockChartUI = {
       getDygraph: jest.fn(() => mockDygraph),
-      chart: chart
+      chart: chart,
     }
   })
 
@@ -70,7 +70,7 @@ describe("crosshair", () => {
     })
 
     it("draws line from top to bottom of chart area", () => {
-      const mockX = 1617.946920000 // Expected x coordinate
+      const mockX = 1617.94692 // Expected x coordinate
       mockDygraph.toDomXCoord.mockReturnValue(mockX)
 
       crosshair(mockChartUI, 0)
@@ -80,59 +80,59 @@ describe("crosshair", () => {
     })
 
     it("uses correct stroke style for hover", () => {
-      const getThemeAttributeSpy = jest.spyOn(chart, 'getThemeAttribute').mockReturnValue("#ff6600")
-      
+      const getThemeAttributeSpy = jest.spyOn(chart, "getThemeAttribute").mockReturnValue("#ff6600")
+
       crosshair(mockChartUI, 0, "hover")
 
       expect(getThemeAttributeSpy).toHaveBeenCalledWith("themeCrosshair")
       expect(mockCtx.strokeStyle).toBe("#ff6600")
-      
+
       getThemeAttributeSpy.mockRestore()
     })
   })
 
   describe("flavour variations", () => {
     it("handles hover flavour", () => {
-      const getThemeAttributeSpy = jest.spyOn(chart, 'getThemeAttribute')
-      
+      const getThemeAttributeSpy = jest.spyOn(chart, "getThemeAttribute")
+
       crosshair(mockChartUI, 1, "hover")
 
       expect(mockCtx.setLineDash).toHaveBeenCalledWith([5, 5])
       expect(getThemeAttributeSpy).toHaveBeenCalledWith("themeCrosshair")
-      
+
       getThemeAttributeSpy.mockRestore()
     })
 
     it("handles click flavour", () => {
-      const getThemeAttributeSpy = jest.spyOn(chart, 'getThemeAttribute')
-      
+      const getThemeAttributeSpy = jest.spyOn(chart, "getThemeAttribute")
+
       crosshair(mockChartUI, 1, "click")
 
       expect(mockCtx.setLineDash).toHaveBeenCalledWith([2, 2])
       expect(getThemeAttributeSpy).toHaveBeenCalledWith("themeNetdata")
-      
+
       getThemeAttributeSpy.mockRestore()
     })
 
     it("defaults to hover flavour when no flavour specified", () => {
-      const getThemeAttributeSpy = jest.spyOn(chart, 'getThemeAttribute')
-      
+      const getThemeAttributeSpy = jest.spyOn(chart, "getThemeAttribute")
+
       crosshair(mockChartUI, 1)
 
       expect(mockCtx.setLineDash).toHaveBeenCalledWith([5, 5])
       expect(getThemeAttributeSpy).toHaveBeenCalledWith("themeCrosshair")
-      
+
       getThemeAttributeSpy.mockRestore()
     })
 
     it("handles unknown flavour by using undefined values", () => {
-      const getThemeAttributeSpy = jest.spyOn(chart, 'getThemeAttribute')
-      
+      const getThemeAttributeSpy = jest.spyOn(chart, "getThemeAttribute")
+
       crosshair(mockChartUI, 1, "unknown")
 
       expect(mockCtx.setLineDash).toHaveBeenCalledWith(undefined)
       expect(getThemeAttributeSpy).toHaveBeenCalledWith(undefined)
-      
+
       getThemeAttributeSpy.mockRestore()
     })
   })
@@ -157,10 +157,7 @@ describe("crosshair", () => {
 
     it("returns early for non-array row data", () => {
       chart.getPayload.mockReturnValue({
-        data: [
-          null,
-          [1617946920000, 30, 55, 70],
-        ]
+        data: [null, [1617946920000, 30, 55, 70]],
       })
 
       crosshair(mockChartUI, 0)
@@ -203,11 +200,11 @@ describe("crosshair", () => {
         mockCtx.lineTo,
         mockCtx.stroke,
         mockCtx.closePath,
-        mockCtx.restore
+        mockCtx.restore,
       ]
 
       // Verify all drawing methods were called
-      calls.forEach((call) => {
+      calls.forEach(call => {
         expect(call).toHaveBeenCalled()
       })
     })
@@ -267,32 +264,32 @@ describe("crosshair", () => {
 
   describe("theme integration", () => {
     it("retrieves theme color for hover", () => {
-      const getThemeAttributeSpy = jest.spyOn(chart, 'getThemeAttribute')
-      
+      const getThemeAttributeSpy = jest.spyOn(chart, "getThemeAttribute")
+
       crosshair(mockChartUI, 0, "hover")
 
       expect(getThemeAttributeSpy).toHaveBeenCalledWith("themeCrosshair")
-      
+
       getThemeAttributeSpy.mockRestore()
     })
 
     it("retrieves theme color for click", () => {
-      const getThemeAttributeSpy = jest.spyOn(chart, 'getThemeAttribute')
-      
+      const getThemeAttributeSpy = jest.spyOn(chart, "getThemeAttribute")
+
       crosshair(mockChartUI, 0, "click")
 
       expect(getThemeAttributeSpy).toHaveBeenCalledWith("themeNetdata")
-      
+
       getThemeAttributeSpy.mockRestore()
     })
 
     it("handles missing theme attributes gracefully", () => {
-      const getThemeAttributeSpy = jest.spyOn(chart, 'getThemeAttribute').mockReturnValue(undefined)
+      const getThemeAttributeSpy = jest.spyOn(chart, "getThemeAttribute").mockReturnValue(undefined)
 
       crosshair(mockChartUI, 0)
 
       expect(mockCtx.strokeStyle).toBeUndefined()
-      
+
       getThemeAttributeSpy.mockRestore()
     })
   })

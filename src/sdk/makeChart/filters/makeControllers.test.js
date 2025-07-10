@@ -170,9 +170,7 @@ describe("makeControllers", () => {
     it("falls back to dimension when no valid groupBy selected", () => {
       chart.updateAttributes({ groupBy: ["node"] })
 
-      const selected = [
-        { value: "invalid", isLabel: false },
-      ]
+      const selected = [{ value: "invalid", isLabel: false }]
 
       const spy = jest.spyOn(chart, "updateAttributes")
 
@@ -188,7 +186,7 @@ describe("makeControllers", () => {
     it("skips update when values unchanged", () => {
       chart.updateAttributes({
         groupBy: ["node"],
-        groupByLabel: []
+        groupByLabel: [],
       })
 
       const selected = [{ value: "node", isLabel: false }]

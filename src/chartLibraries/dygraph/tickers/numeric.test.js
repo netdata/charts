@@ -6,17 +6,17 @@ describe("numericTicker", () => {
   let mockDygraph
 
   beforeEach(() => {
-    mockOpts = jest.fn((key) => {
+    mockOpts = jest.fn(key => {
       const options = {
         pixelsPerLabel: 50,
-        axisLabelFormatter: jest.fn((value) => `${value}`)
+        axisLabelFormatter: jest.fn(value => `${value}`),
       }
       return options[key]
     })
 
     mockDygraph = {
       yAxisRange: jest.fn(() => [0, 100]),
-      getArea: jest.fn(() => ({ h: 300 }))
+      getArea: jest.fn(() => ({ h: 300 })),
     }
   })
 
@@ -25,7 +25,7 @@ describe("numericTicker", () => {
     const ticks = numericTicker(0, 100, 200, mockOpts, mockDygraph, vals, { units: [""] })
 
     expect(ticks.length).toBeGreaterThan(vals.length) // includes boundary ticks and anomaly SVG
-    
+
     // Check that vals are included in ticks
     vals.forEach(val => {
       expect(ticks.some(tick => tick.v === val)).toBe(true)
@@ -46,7 +46,7 @@ describe("numericTicker", () => {
 
     expect(Array.isArray(ticks)).toBe(true)
     expect(ticks.length).toBeGreaterThan(2)
-    
+
     // Verify ticks are using binary spacing (powers of 2)
     const dataTicks = ticks.filter(tick => tick.v !== undefined && !tick.label_v).map(t => t.v)
     if (dataTicks.length > 2) {
@@ -62,7 +62,7 @@ describe("numericTicker", () => {
 
     expect(Array.isArray(ticks)).toBe(true)
     expect(ticks.length).toBeGreaterThan(2)
-    
+
     // Verify ticks are using decimal spacing
     const dataTicks = ticks.filter(tick => tick.v !== undefined && !tick.label_v).map(t => t.v)
     if (dataTicks.length > 2) {
@@ -75,13 +75,13 @@ describe("numericTicker", () => {
   it("calculates appropriate number of ticks based on pixels", () => {
     const pixels = 500
     const pixelsPerLabel = 50
-    mockOpts.mockImplementation((key) => {
+    mockOpts.mockImplementation(key => {
       if (key === "pixelsPerLabel") return pixelsPerLabel
-      if (key === "axisLabelFormatter") return jest.fn((v) => `${v}`)
+      if (key === "axisLabelFormatter") return jest.fn(v => `${v}`)
     })
 
     const ticks = numericTicker(0, 100, pixels, mockOpts, mockDygraph, null, { units: [""] })
-    
+
     // Should not exceed maximum ticks based on pixel spacing
     const maxTicks = Math.ceil(pixels / pixelsPerLabel)
     const dataTicks = ticks.filter(tick => tick.v !== undefined && !tick.label_v)
@@ -89,8 +89,8 @@ describe("numericTicker", () => {
   })
 
   it("formats labels using axisLabelFormatter", () => {
-    const mockFormatter = jest.fn((value) => `formatted_${value}`)
-    mockOpts.mockImplementation((key) => {
+    const mockFormatter = jest.fn(value => `formatted_${value}`)
+    mockOpts.mockImplementation(key => {
       if (key === "axisLabelFormatter") return mockFormatter
       if (key === "pixelsPerLabel") return 50
     })
@@ -124,7 +124,7 @@ describe("numericTicker", () => {
 
     expect(Array.isArray(ticks)).toBe(true)
     expect(ticks.length).toBeGreaterThan(2)
-    
+
     // Should include ticks in negative range
     const dataTicks = ticks.filter(tick => tick.v !== undefined && !tick.label_v)
     expect(dataTicks.some(tick => tick.v < 0)).toBe(true)
@@ -153,12 +153,12 @@ describe("numericTicker", () => {
   it("formats all generated ticks with labels", () => {
     const vals = [0, 25, 50, 75, 100]
     const ticks = numericTicker(0, 100, 200, mockOpts, mockDygraph, vals, { units: [""] })
-    
+
     // All ticks should have labels (including boundary ticks)
     ticks.forEach(tick => {
       expect(tick).toHaveProperty("label")
     })
-    
+
     // Data ticks should have formatted labels
     const dataTicks = ticks.filter(tick => tick.v !== undefined && !tick.label_v)
     dataTicks.forEach(tick => {

@@ -1,11 +1,10 @@
 import React from "react"
-import { render, screen } from "@testing-library/react"
+import { screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { renderWithChart } from "@jest/testUtilities"
 import { Line } from "./index"
 
 describe("Line Component", () => {
-
   it("renders with default props", () => {
     renderWithChart(<Line />, {
       attributes: {

@@ -6,13 +6,13 @@ describe("select navigation", () => {
   beforeEach(() => {
     chartUI = {
       sdk: {
-        trigger: jest.fn()
+        trigger: jest.fn(),
       },
       chart: {
-        trigger: jest.fn()
+        trigger: jest.fn(),
       },
       on: jest.fn(() => chartUI),
-      off: jest.fn(() => chartUI)
+      off: jest.fn(() => chartUI),
     }
   })
 

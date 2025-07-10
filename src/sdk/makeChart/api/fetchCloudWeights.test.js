@@ -13,7 +13,7 @@ describe("fetchCloudWeights", () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    
+
     const { chart: testChart } = makeTestChart({
       attributes: {
         host: "https://api.netdata.cloud",
@@ -29,9 +29,9 @@ describe("fetchCloudWeights", () => {
         after: 1000,
         before: 2000,
         points: 100,
-      }
+      },
     })
-    
+
     chart = testChart
   })
 
@@ -42,12 +42,12 @@ describe("fetchCloudWeights", () => {
       "https://api.netdata.cloud/weights",
       expect.objectContaining({
         method: "POST",
-        body: expect.any(String)
+        body: expect.any(String),
       })
     )
 
     const payload = JSON.parse(global.fetch.mock.calls[0][1].body)
-    
+
     expect(payload.aggregations.metrics[0].group_by).toEqual(["dimension"])
     expect(payload.aggregations.metrics[0].aggregation).toBe("sum")
     expect(payload.selectors.contexts).toEqual(["system.cpu"])
@@ -62,11 +62,11 @@ describe("fetchCloudWeights", () => {
         after: 3000,
         before: 4000,
         points: 200,
-      }
+      },
     })
 
     const payload = JSON.parse(global.fetch.mock.calls[0][1].body)
-    
+
     expect(payload.aggregations.metrics[0].group_by).toEqual(["node", "instance"])
     expect(payload.aggregations.metrics[0].group_by_label).toEqual(["custom_label"])
     expect(payload.aggregations.metrics[0].aggregation).toBe("avg")
@@ -84,11 +84,11 @@ describe("fetchCloudWeights", () => {
         before: 2000,
         highlightAfter: 1500,
         highlightBefore: 1800,
-      }
+      },
     })
 
     const payload = JSON.parse(global.fetch.mock.calls[0][1].body)
-    
+
     expect(payload.window.after).toBe(1)
     expect(payload.window.before).toBe(1)
     expect(payload.window.baseline.after).toBe(1)
@@ -100,11 +100,11 @@ describe("fetchCloudWeights", () => {
       attrs: {
         after: 3000,
         before: 4000,
-      }
+      },
     })
 
     const payload = JSON.parse(global.fetch.mock.calls[0][1].body)
-    
+
     expect(payload.window.after).toBe(3)
     expect(payload.window.before).toBe(4)
     expect(payload.window.baseline.after).toBe(3)
@@ -115,11 +115,11 @@ describe("fetchCloudWeights", () => {
     await fetchCloudWeights(chart, {
       attrs: {
         method: "custom-method",
-      }
+      },
     })
 
     const payload = JSON.parse(global.fetch.mock.calls[0][1].body)
-    
+
     expect(payload.method).toBe("custom-method")
   })
 
@@ -127,11 +127,11 @@ describe("fetchCloudWeights", () => {
     await fetchCloudWeights(chart, {
       attrs: {
         options: ["custom", "option"],
-      }
+      },
     })
 
     const payload = JSON.parse(global.fetch.mock.calls[0][1].body)
-    
+
     expect(payload.options).toContain("custom")
     expect(payload.options).toContain("option")
     expect(payload.options).toContain("minify")
@@ -143,7 +143,7 @@ describe("fetchCloudWeights", () => {
     await fetchCloudWeights(chart)
 
     const payload = JSON.parse(global.fetch.mock.calls[0][1].body)
-    
+
     expect(payload.method).toBe("ks2")
   })
 
@@ -151,7 +151,7 @@ describe("fetchCloudWeights", () => {
     await fetchCloudWeights(chart)
 
     const payload = JSON.parse(global.fetch.mock.calls[0][1].body)
-    
+
     expect(payload.timeout).toBe(180_000)
     expect(payload).toHaveProperty("selectors")
     expect(payload).toHaveProperty("aggregations")
@@ -161,10 +161,10 @@ describe("fetchCloudWeights", () => {
 
   it("passes through additional fetch options", async () => {
     const signal = new AbortController().signal
-    
+
     await fetchCloudWeights(chart, {
       signal,
-      headers: { "Custom-Header": "value" }
+      headers: { "Custom-Header": "value" },
     })
 
     expect(global.fetch).toHaveBeenCalledWith(
@@ -172,7 +172,7 @@ describe("fetchCloudWeights", () => {
       expect.objectContaining({
         method: "POST",
         signal,
-        headers: { "Custom-Header": "value" }
+        headers: { "Custom-Header": "value" },
       })
     )
   })

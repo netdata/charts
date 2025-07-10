@@ -9,7 +9,7 @@ describe("allUnits", () => {
 
   it("contains standard SI prefixes", () => {
     const { prefixes } = allUnits
-    
+
     expect(prefixes).toHaveProperty("Y")
     expect(prefixes).toHaveProperty("Z")
     expect(prefixes).toHaveProperty("E")
@@ -22,13 +22,13 @@ describe("allUnits", () => {
   it("prefix objects have required properties", () => {
     const { prefixes } = allUnits
     const yottaPrefix = prefixes.Y
-    
+
     expect(yottaPrefix).toHaveProperty("symbol")
     expect(yottaPrefix).toHaveProperty("name")
     expect(yottaPrefix).toHaveProperty("print_symbol")
     expect(yottaPrefix).toHaveProperty("value")
     expect(yottaPrefix).toHaveProperty("is_binary")
-    
+
     expect(typeof yottaPrefix.symbol).toBe("string")
     expect(typeof yottaPrefix.name).toBe("string")
     expect(typeof yottaPrefix.value).toBe("number")
@@ -37,7 +37,7 @@ describe("allUnits", () => {
 
   it("prefixes have correct values", () => {
     const { prefixes } = allUnits
-    
+
     expect(prefixes.Y.value).toBe(1e24)
     expect(prefixes.Z.value).toBe(1e21)
     expect(prefixes.E.value).toBe(1e18)

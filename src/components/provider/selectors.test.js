@@ -39,7 +39,7 @@ describe("Chart Provider Selectors", () => {
       await act(async () => {
         result.current()
       })
-      
+
       expect(renderCount).toBeGreaterThan(initialRenderCount)
     })
   })
@@ -47,7 +47,7 @@ describe("Chart Provider Selectors", () => {
   describe("useAttributeValue", () => {
     it("returns attribute value from chart", () => {
       const { result } = renderHookWithChart(() => useAttributeValue("sparkline"), {
-        testChartOptions: { attributes: { sparkline: true } }
+        testChartOptions: { attributes: { sparkline: true } },
       })
 
       expect(result.current).toBe(true)
@@ -60,15 +60,20 @@ describe("Chart Provider Selectors", () => {
     })
 
     it("supports nested attributes with fallback values", () => {
-      const { result } = renderHookWithChart(() => useAttributeValue("drawer.showAdvancedStats", false), {
-        testChartOptions: { attributes: { drawer: { showAdvancedStats: true } } }
-      })
+      const { result } = renderHookWithChart(
+        () => useAttributeValue("drawer.showAdvancedStats", false),
+        {
+          testChartOptions: { attributes: { drawer: { showAdvancedStats: true } } },
+        }
+      )
 
       expect(result.current).toBe(true)
     })
 
     it("returns fallback for nested attributes when parent missing", () => {
-      const { result } = renderHookWithChart(() => useAttributeValue("drawer.showAdvancedStats", false))
+      const { result } = renderHookWithChart(() =>
+        useAttributeValue("drawer.showAdvancedStats", false)
+      )
 
       expect(result.current).toBe(false)
     })
@@ -77,7 +82,7 @@ describe("Chart Provider Selectors", () => {
   describe("useEmpty", () => {
     it("returns true when chart data is empty", () => {
       const { result } = renderHookWithChart(() => useEmpty(), {
-        testChartOptions: { mockData: { result: { data: [] } } }
+        testChartOptions: { mockData: { result: { data: [] } } },
       })
 
       expect(result.current).toBe(true)
@@ -98,12 +103,12 @@ describe("Chart Provider Selectors", () => {
   describe("useTitle", () => {
     it("returns title from chart attributes", () => {
       const { result } = renderHookWithChart(() => useTitle(), {
-        testChartOptions: { 
-          attributes: { 
+        testChartOptions: {
+          attributes: {
             title: "Test Chart Title",
-            contextScope: ["system.cpu"]
-          }
-        }
+            contextScope: ["system.cpu"],
+          },
+        },
       })
 
       expect(result.current).toBe("Test Chart Title")
@@ -113,12 +118,12 @@ describe("Chart Provider Selectors", () => {
   describe("useName", () => {
     it("returns name from chart attributes", () => {
       const { result } = renderHookWithChart(() => useName(), {
-        testChartOptions: { 
-          attributes: { 
+        testChartOptions: {
+          attributes: {
             name: "Test Chart Name",
-            contextScope: ["system.cpu"]
-          }
-        }
+            contextScope: ["system.cpu"],
+          },
+        },
       })
 
       expect(result.current).toBe("Test Chart Name")
@@ -126,11 +131,11 @@ describe("Chart Provider Selectors", () => {
 
     it("returns contextScope when no name provided", () => {
       const { result } = renderHookWithChart(() => useName(), {
-        testChartOptions: { 
-          attributes: { 
-            contextScope: ["system.cpu", "system.memory"]
-          }
-        }
+        testChartOptions: {
+          attributes: {
+            contextScope: ["system.cpu", "system.memory"],
+          },
+        },
       })
 
       expect(result.current).toBe("system.cpu, system.memory")
@@ -140,7 +145,7 @@ describe("Chart Provider Selectors", () => {
   describe("useIsMinimal", () => {
     it("returns true when design flavour is minimal", () => {
       const { result } = renderHookWithChart(() => useIsMinimal(), {
-        testChartOptions: { attributes: { designFlavour: "minimal" } }
+        testChartOptions: { attributes: { designFlavour: "minimal" } },
       })
 
       expect(result.current).toBe(true)
@@ -148,7 +153,7 @@ describe("Chart Provider Selectors", () => {
 
     it("returns false when design flavour is not minimal", () => {
       const { result } = renderHookWithChart(() => useIsMinimal(), {
-        testChartOptions: { attributes: { designFlavour: "standard" } }
+        testChartOptions: { attributes: { designFlavour: "standard" } },
       })
 
       expect(result.current).toBe(false)
@@ -160,7 +165,7 @@ describe("Chart Provider Selectors", () => {
 
     const mockData = [
       [1617946860000, 25, 50, 75],
-      [1617946920000, 30, 55, 70], 
+      [1617946920000, 30, 55, 70],
       [1617946980000, 20, 45, 80],
       [1617947040000, 35, 60, 65],
     ]
@@ -168,102 +173,102 @@ describe("Chart Provider Selectors", () => {
     beforeEach(() => {
       const { chart: testChart } = makeTestChart()
       chart = testChart
-      
-      jest.spyOn(chart, 'getPayload').mockReturnValue({ data: mockData })
-      jest.spyOn(chart, 'getDimensionIndex').mockReturnValue(0)
-      jest.spyOn(chart, 'isDimensionVisible').mockReturnValue(true)
-      jest.spyOn(chart, 'getVisibleDimensionIds').mockReturnValue(['dim1'])
+
+      jest.spyOn(chart, "getPayload").mockReturnValue({ data: mockData })
+      jest.spyOn(chart, "getDimensionIndex").mockReturnValue(0)
+      jest.spyOn(chart, "isDimensionVisible").mockReturnValue(true)
+      jest.spyOn(chart, "getVisibleDimensionIds").mockReturnValue(["dim1"])
     })
 
     describe("highlight period", () => {
       it("returns null when no highlight range is set", () => {
         chart.updateAttribute("overlays", {})
-        
+
         const result = getValueByPeriod.highlight({
           chart,
           id: "dim1",
-          valueKey: "avg"
+          valueKey: "avg",
         })
-        
+
         expect(result).toBeNull()
       })
 
       it("filters data by highlight range and calculates min value", () => {
         const highlightRange = [1617946920, 1617946980]
         chart.updateAttribute("overlays", {
-          highlight: { range: highlightRange }
+          highlight: { range: highlightRange },
         })
-        
+
         const result = getValueByPeriod.highlight({
           chart,
-          id: "dim1", 
-          valueKey: "min"
+          id: "dim1",
+          valueKey: "min",
         })
-        
+
         expect(result).toBe(20)
       })
 
       it("filters data by highlight range and calculates avg value", () => {
         const highlightRange = [1617946920, 1617946980]
         chart.updateAttribute("overlays", {
-          highlight: { range: highlightRange }
+          highlight: { range: highlightRange },
         })
-        
+
         const result = getValueByPeriod.highlight({
           chart,
           id: "dim1",
-          valueKey: "avg"
+          valueKey: "avg",
         })
-        
+
         expect(result).toBe(25)
       })
 
       it("filters data by highlight range and calculates max value", () => {
         const highlightRange = [1617946920, 1617946980]
         chart.updateAttribute("overlays", {
-          highlight: { range: highlightRange }
+          highlight: { range: highlightRange },
         })
-        
+
         const result = getValueByPeriod.highlight({
           chart,
           id: "dim1",
-          valueKey: "max" 
+          valueKey: "max",
         })
-        
+
         expect(result).toBe(30)
       })
 
       it("returns null when no data matches highlight range", () => {
         const highlightRange = [1617900000, 1617900060]
         chart.updateAttribute("overlays", {
-          highlight: { range: highlightRange }
+          highlight: { range: highlightRange },
         })
-        
+
         const result = getValueByPeriod.highlight({
           chart,
           id: "dim1",
-          valueKey: "avg"
+          valueKey: "avg",
         })
-        
+
         expect(result).toBeNull()
       })
 
       it("handles dimension not visible by using first visible dimension", () => {
-        jest.spyOn(chart, 'isDimensionVisible').mockReturnValue(false)
-        jest.spyOn(chart, 'getVisibleDimensionIds').mockReturnValue(['visibleDim'])
-        jest.spyOn(chart, 'getDimensionIndex').mockReturnValue(1)
-        
+        jest.spyOn(chart, "isDimensionVisible").mockReturnValue(false)
+        jest.spyOn(chart, "getVisibleDimensionIds").mockReturnValue(["visibleDim"])
+        jest.spyOn(chart, "getDimensionIndex").mockReturnValue(1)
+
         const highlightRange = [1617946860, 1617947040]
         chart.updateAttribute("overlays", {
-          highlight: { range: highlightRange }
+          highlight: { range: highlightRange },
         })
-        
+
         const result = getValueByPeriod.highlight({
           chart,
           id: "hiddenDim",
-          valueKey: "avg"
+          valueKey: "avg",
         })
-        
+
         expect(result).toBe(52.5)
       })
     })

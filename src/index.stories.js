@@ -14,9 +14,9 @@ const getChart = makeMockPayload(systemLoadLine[0], { delay: 600 })
 
 export const Simple = () => {
   const sdk = makeDefaultSDK()
-  const chart = sdk.makeChart({ 
+  const chart = sdk.makeChart({
     getChart,
-    attributes: { contextScope: ["system.load"] }
+    attributes: { contextScope: ["system.load"] },
   })
   sdk.appendChild(chart)
 
@@ -69,7 +69,7 @@ export const NoData = () => {
   const sdk = makeDefaultSDK()
   const chart = sdk.makeChart({
     getChart: () => new Promise(r => setTimeout(() => r(noData), 600)),
-    attributes: { contextScope: ["system.load"] }
+    attributes: { contextScope: ["system.load"] },
   })
   sdk.appendChild(chart)
 
@@ -251,8 +251,8 @@ export const Timeout = () => {
       return getChart(params)
     },
     attributes: {
-      contextScope: ["system.load"]
-    }
+      contextScope: ["system.load"],
+    },
   })
   sdk.appendChild(chart)
 
@@ -273,8 +273,8 @@ export const Error = () => {
       return getChart(params)
     },
     attributes: {
-      contextScope: ["system.load"]
-    }
+      contextScope: ["system.load"],
+    },
   })
   sdk.appendChild(chart)
 
@@ -287,9 +287,9 @@ export const Error = () => {
 
 export const InitialLoading = () => {
   const sdk = makeDefaultSDK()
-  const chart = sdk.makeChart({ 
+  const chart = sdk.makeChart({
     getChart: () => new Promise(() => {}),
-    attributes: { contextScope: ["system.load"] }
+    attributes: { contextScope: ["system.load"] },
   })
   const darkChart = sdk.makeChart({
     getChart: () => new Promise(() => {}),
@@ -436,21 +436,24 @@ export const CrossChartAnnotationSync = () => {
 
   const charts = Array.from(Array(3)).map((v, index) => {
     const chart = sdk.makeChart({
-      attributes: { 
-        contextScope: ["system.load"], 
+      attributes: {
+        contextScope: ["system.load"],
         id: `chart-${index}`,
         hasCorrelation: true,
-        overlays: index === 0 ? {
-          annotation1: {
-            type: "annotation",
-            timestamp: Math.floor(Date.now() / 1000 - 8 * 60),
-            text: "Performance issue detected",
-            author: "SRE Team",
-            created: new Date(Date.now() - 8 * 60 * 1000).toISOString(),
-            color: "#ff6b6b",
-            priority: "error",
-          },
-        } : {},
+        overlays:
+          index === 0
+            ? {
+                annotation1: {
+                  type: "annotation",
+                  timestamp: Math.floor(Date.now() / 1000 - 8 * 60),
+                  text: "Performance issue detected",
+                  author: "SRE Team",
+                  created: new Date(Date.now() - 8 * 60 * 1000).toISOString(),
+                  color: "#ff6b6b",
+                  priority: "error",
+                },
+              }
+            : {},
       },
       getChart,
     })
@@ -462,8 +465,8 @@ export const CrossChartAnnotationSync = () => {
     <ThemeProvider theme={DefaultTheme}>
       <div>
         <p style={{ marginBottom: "10px", fontSize: "14px", color: "#666" }}>
-          Hover the annotation on the first chart and click "Sync all charts" to see cross-chart synchronization. 
-          Synced annotations appear with dashed borders and different actions.
+          Hover the annotation on the first chart and click "Sync all charts" to see cross-chart
+          synchronization. Synced annotations appear with dashed borders and different actions.
         </p>
         <Flex column gap={2}>
           {charts.map((chart, index) => (

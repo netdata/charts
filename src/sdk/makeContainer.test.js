@@ -8,17 +8,17 @@ describe("makeContainer", () => {
   beforeEach(() => {
     mockSDK = {
       trigger: jest.fn(),
-      getRoot: jest.fn(() => ({}))
+      getRoot: jest.fn(() => ({})),
     }
     mockParent = {
       getId: () => "parent-id",
       getAttributes: () => ({ timezone: "UTC" }),
-      removeChild: jest.fn()
+      removeChild: jest.fn(),
     }
     container = makeContainer({
       sdk: mockSDK,
       parent: mockParent,
-      attributes: { id: "test-container" }
+      attributes: { id: "test-container" },
     })
   })
 
@@ -35,7 +35,7 @@ describe("makeContainer", () => {
     it("adds child and triggers events", () => {
       const mockChild = {
         setParent: jest.fn(),
-        type: "chart"
+        type: "chart",
       }
 
       container.appendChild(mockChild)
@@ -48,7 +48,7 @@ describe("makeContainer", () => {
     it("respects inherit option", () => {
       const mockChild = {
         setParent: jest.fn(),
-        type: "chart"
+        type: "chart",
       }
 
       container.appendChild(mockChild, { inherit: false })
@@ -62,7 +62,7 @@ describe("makeContainer", () => {
       const mockChild = {
         setParent: jest.fn(),
         getId: () => "child-id",
-        type: "chart"
+        type: "chart",
       }
 
       container.appendChild(mockChild)
@@ -81,7 +81,7 @@ describe("makeContainer", () => {
       const mockChild = {
         setParent: jest.fn(),
         getId: () => "child-id",
-        type: "chart"
+        type: "chart",
       }
 
       container.appendChild(mockChild)
@@ -94,7 +94,7 @@ describe("makeContainer", () => {
       const mockChild = {
         setParent: jest.fn(),
         match: jest.fn(() => true),
-        type: "chart"
+        type: "chart",
       }
 
       container.appendChild(mockChild)
@@ -107,7 +107,7 @@ describe("makeContainer", () => {
       const mockChild = {
         setParent: jest.fn(),
         match: jest.fn(() => false),
-        type: "chart"
+        type: "chart",
       }
 
       container.appendChild(mockChild)
@@ -120,14 +120,14 @@ describe("makeContainer", () => {
       const nestedChild = {
         setParent: jest.fn(),
         match: jest.fn(() => true),
-        type: "chart"
+        type: "chart",
       }
 
       const nestedContainer = {
         setParent: jest.fn(),
         match: jest.fn(() => false),
         type: "container",
-        getNode: jest.fn(() => nestedChild)
+        getNode: jest.fn(() => nestedChild),
       }
 
       container.appendChild(nestedContainer)
@@ -140,7 +140,7 @@ describe("makeContainer", () => {
   describe("getNextColor", () => {
     it("returns consistent color for same id", () => {
       const mockGetNext = jest.fn(() => "#ff0000")
-      
+
       const color1 = container.getNextColor(mockGetNext, "group1", "id1")
       const color2 = container.getNextColor(mockGetNext, "group1", "id1")
 
@@ -150,10 +150,8 @@ describe("makeContainer", () => {
     })
 
     it("returns different colors for different ids", () => {
-      const mockGetNext = jest.fn()
-        .mockReturnValueOnce("#ff0000")
-        .mockReturnValueOnce("#00ff00")
-      
+      const mockGetNext = jest.fn().mockReturnValueOnce("#ff0000").mockReturnValueOnce("#00ff00")
+
       const color1 = container.getNextColor(mockGetNext, "group1", "id1")
       const color2 = container.getNextColor(mockGetNext, "group1", "id2")
 
@@ -168,7 +166,7 @@ describe("makeContainer", () => {
       const mockChild = {
         setParent: jest.fn(),
         destroy: jest.fn(),
-        type: "chart"
+        type: "chart",
       }
 
       container.appendChild(mockChild)

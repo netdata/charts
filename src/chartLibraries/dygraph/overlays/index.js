@@ -14,7 +14,7 @@ export default chartUI => {
   const drawOverlays = () => {
     const overlays = chartUI.chart.getAttribute("overlays")
     Object.keys(overlays).forEach(drawOverlay)
-    
+
     const draftAnnotation = chartUI.chart.getAttribute("draftAnnotation")
     if (draftAnnotation) {
       const makeOverlay = types["annotation"]

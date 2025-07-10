@@ -1,6 +1,5 @@
 import linePlotter from "./linePlotter"
 
-
 describe("linePlotter", () => {
   it("returns a function", () => {
     const plotter = linePlotter()

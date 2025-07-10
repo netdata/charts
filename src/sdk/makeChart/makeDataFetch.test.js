@@ -14,7 +14,7 @@ describe("makeDataFetch", () => {
         chartType: "line",
         title: null,
         loaded: false,
-        initializedFilters: false
+        initializedFilters: false,
       })),
       updateAttribute: jest.fn(),
       updateAttributes: jest.fn(),
@@ -22,24 +22,31 @@ describe("makeDataFetch", () => {
       trigger: jest.fn(),
       on: jest.fn(),
       getParent: jest.fn(() => ({
-        updateAttribute: jest.fn()
+        updateAttribute: jest.fn(),
       })),
       getRoot: jest.fn(() => ({
-        trigger: jest.fn()
+        trigger: jest.fn(),
       })),
-      getChart: jest.fn(() => Promise.resolve({
-        result: { data: [[1000, 10], [2000, 20]] }
-      })),
+      getChart: jest.fn(() =>
+        Promise.resolve({
+          result: {
+            data: [
+              [1000, 10],
+              [2000, 20],
+            ],
+          },
+        })
+      ),
       updateDimensions: jest.fn(),
       startAutofetch: jest.fn(),
       backoff: jest.fn(),
-      invalidateClosestRowCache: jest.fn()
+      invalidateClosestRowCache: jest.fn(),
     }
 
     global.Date.now = jest.fn(() => 1000000000)
     global.AbortController = jest.fn(() => ({
       abort: jest.fn(),
-      signal: {}
+      signal: {},
     }))
 
     makeDataFetch(mockChart)
@@ -59,7 +66,7 @@ describe("makeDataFetch", () => {
       labels: [],
       data: [],
       all: [],
-      tree: {}
+      tree: {},
     })
   })
 
@@ -101,17 +108,17 @@ describe("makeDataFetch", () => {
 
   it("handles failFetch with abort error", () => {
     const abortError = { name: "AbortError" }
-    
+
     mockChart.failFetch(abortError)
-    
+
     expect(mockChart.updateAttribute).toHaveBeenCalledWith("loading", false)
   })
 
   it("handles failFetch with general error", () => {
     const error = { message: "Network error" }
-    
+
     mockChart.failFetch(error)
-    
+
     expect(mockChart.backoff).toHaveBeenCalled()
     expect(mockChart.trigger).toHaveBeenCalledWith("failFetch", error)
   })
@@ -123,26 +130,26 @@ describe("makeDataFetch", () => {
 
   it("baseFetch calls getChart with correct options", async () => {
     await mockChart.baseFetch()
-    
+
     expect(mockChart.getChart).toHaveBeenCalledWith(mockChart, {
       params: {},
-      signal: undefined
+      signal: undefined,
     })
   })
 
   it("fetch updates loading state", () => {
     mockChart.fetch()
-    
+
     expect(mockChart.updateAttributes).toHaveBeenCalledWith({
       processing: false,
       loading: true,
-      fetchStartedAt: 1000000000
+      fetchStartedAt: 1000000000,
     })
   })
 
   it("fetch triggers startFetch event", () => {
     mockChart.fetch()
-    
+
     expect(mockChart.trigger).toHaveBeenCalledWith("startFetch")
   })
 })

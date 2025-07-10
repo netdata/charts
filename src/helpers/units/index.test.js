@@ -1,17 +1,16 @@
-import unitConverter, { 
-  unitsMissing, 
-  getUnitConfig, 
-  getAlias, 
-  isScalable, 
-  isMetric, 
-  isBinary, 
-  isBit, 
-  getScales, 
-  getUnitsString 
+import unitConverter, {
+  unitsMissing,
+  getUnitConfig,
+  getAlias,
+  isScalable,
+  isMetric,
+  isBinary,
+  isBit,
+  getScales,
+  getUnitsString,
 } from "."
 import allUnits from "./all"
 import scalableUnits from "./scalableUnits"
-
 
 describe("units helpers", () => {
   describe("unitsMissing", () => {
@@ -61,7 +60,7 @@ describe("units helpers", () => {
         is_binary: false,
         is_bit: false,
         print_symbol: "unknown_unit",
-        name: "unknown_unit"
+        name: "unknown_unit",
       })
     })
 
@@ -137,7 +136,7 @@ describe("units helpers", () => {
     it("handles unit config object input", () => {
       const scalableConfig = { is_scalable: true }
       const nonScalableConfig = { is_scalable: false }
-      
+
       expect(isScalable(scalableConfig)).toBe(true)
       expect(isScalable(nonScalableConfig)).toBe(false)
     })
@@ -163,7 +162,7 @@ describe("units helpers", () => {
     it("handles unit config object input", () => {
       const metricConfig = { is_metric: true }
       const nonMetricConfig = { is_metric: false }
-      
+
       expect(isMetric(metricConfig)).toBe(true)
       expect(isMetric(nonMetricConfig)).toBe(false)
     })
@@ -188,7 +187,7 @@ describe("units helpers", () => {
     it("handles unit config object input", () => {
       const binaryConfig = { is_binary: true }
       const nonBinaryConfig = { is_binary: false }
-      
+
       expect(isBinary(binaryConfig)).toBe(true)
       expect(isBinary(nonBinaryConfig)).toBe(false)
     })
@@ -214,7 +213,7 @@ describe("units helpers", () => {
     it("handles unit config object input", () => {
       const bitConfig = { is_bit: true }
       const nonBitConfig = { is_bit: false }
-      
+
       expect(isBit(bitConfig)).toBe(true)
       expect(isBit(nonBitConfig)).toBe(false)
     })
@@ -324,7 +323,7 @@ describe("units helpers", () => {
     beforeEach(() => {
       mockChart = {
         getAttribute: jest.fn(),
-        updateAttribute: jest.fn()
+        updateAttribute: jest.fn(),
       }
     })
 
@@ -385,7 +384,7 @@ describe("units helpers", () => {
     it("preserves object references for scale data", () => {
       const [, binaryScales] = getScales("By")
       const [, metricScales] = getScales("s")
-      
+
       expect(binaryScales).toBe(scalableUnits.binary)
       expect(metricScales).toBe(scalableUnits.num)
     })

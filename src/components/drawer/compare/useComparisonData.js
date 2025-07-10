@@ -19,27 +19,24 @@ export const useComparisonData = () => {
     if (!rawPeriods?.length) return []
 
     const baseHighlightRange = tab === "selectedArea" ? overlays?.highlight?.range : null
-    
+
     const periodsWithStats = rawPeriods.map(period => {
       let highlightRange = baseHighlightRange
-      
+
       if (baseHighlightRange && !period.isBase) {
         const basePeriod = rawPeriods.find(p => p.isBase)
         if (basePeriod) {
           const timeOffset = basePeriod.after - period.after
-          highlightRange = [
-            baseHighlightRange[0] - timeOffset,
-            baseHighlightRange[1] - timeOffset
-          ]
+          highlightRange = [baseHighlightRange[0] - timeOffset, baseHighlightRange[1] - timeOffset]
         }
       }
-      
+
       return {
         ...period,
         stats: period.payload ? calculateStats(period.payload, highlightRange) : null,
       }
     })
-    
+
     return calculateComparisons(periodsWithStats)
   }, [rawPeriods, tab, overlays?.highlight?.range])
 

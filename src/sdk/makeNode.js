@@ -3,7 +3,7 @@ import makeListeners from "@/helpers/makeListeners"
 import limitRange from "@/helpers/limitRange"
 import pristine, { pristineKey } from "./pristine"
 import makeIntls from "./makeIntls"
-import { getValue, setValue, deleteKey, flattenObject } from "@/helpers/crud"
+import { getValue, setValue } from "@/helpers/crud"
 
 export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   const listeners = makeListeners()
@@ -46,10 +46,9 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
 
   const updateAttributes = values => {
     let prevPristine = null
-    const flatValues = flattenObject(values)
 
-    const prevValues = Object.keys(flatValues).reduce((acc, name) => {
-      const value = flatValues[name]
+    const prevValues = Object.keys(values).reduce((acc, name) => {
+      const value = values[name]
       const prevValue = getValue(name, undefined, attributes)
       if (prevValue === value) return acc
 
@@ -63,8 +62,8 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     }, {})
 
     Object.keys(prevValues).forEach(name => {
-      if (flatValues[name] === prevValues[name]) return
-      trigger(name, flatValues[name], prevValues[name])
+      if (values[name] === prevValues[name]) return
+      trigger(name, values[name], prevValues[name])
     })
 
     if (prevPristine) {

@@ -3,7 +3,20 @@ import { Flex, Table, TextSmall, downloadCsvAction } from "@netdata/netdata-ui"
 import { uppercase } from "@/helpers/objectTransform"
 import { useChart, useDimensionIds, useAttributeValue } from "@/components/provider/selectors"
 // import { BarsChart } from "@/components/bars"
-import { labelColumn, valueColumn, anomalyColumn, minColumn, avgColumn, maxColumn, medianColumn, stdDevColumn, p95Column, rangeColumn, countColumn, volumeColumn } from "./columns"
+import {
+  labelColumn,
+  valueColumn,
+  anomalyColumn,
+  minColumn,
+  avgColumn,
+  maxColumn,
+  medianColumn,
+  stdDevColumn,
+  p95Column,
+  rangeColumn,
+  countColumn,
+  volumeColumn,
+} from "./columns"
 
 const noop = () => {}
 
@@ -81,14 +94,17 @@ const Dimensions = () => {
   const chart = useChart()
   useMemo(() => chart.makeChartUI("custom", "bars"), [])
 
-  const columnVisibility = useMemo(() => ({
-    median: showAdvancedStats,
-    stddev: showAdvancedStats,
-    p95: showAdvancedStats,
-    range: showAdvancedStats,
-    count: showAdvancedStats,
-    volume: showAdvancedStats,
-  }), [showAdvancedStats])
+  const columnVisibility = useMemo(
+    () => ({
+      median: showAdvancedStats,
+      stddev: showAdvancedStats,
+      p95: showAdvancedStats,
+      range: showAdvancedStats,
+      count: showAdvancedStats,
+      volume: showAdvancedStats,
+    }),
+    [showAdvancedStats]
+  )
 
   const bulkActions = useMemo(() => {
     const filename = `${chart.getAttribute("name") || chart.getAttribute("contextScope").join("-").replace(".", "_")}`

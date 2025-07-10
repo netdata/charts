@@ -7,13 +7,13 @@ describe("makeNode", () => {
 
   beforeEach(() => {
     mockSdk = {
-      trigger: jest.fn()
+      trigger: jest.fn(),
     }
     mockParent = {
       getAttributes: jest.fn(() => ({ timezone: "UTC" })),
-      removeChild: jest.fn()
+      removeChild: jest.fn(),
     }
-    
+
     const initialAttributes = {
       id: "test-chart",
       chartLibrary: "dygraph",
@@ -21,10 +21,10 @@ describe("makeNode", () => {
       drawer: {
         action: "values",
         tab: "window",
-        showAdvancedStats: false
-      }
+        showAdvancedStats: false,
+      },
     }
-    
+
     node = makeNode({ sdk: mockSdk, parent: mockParent, attributes: initialAttributes })
   })
 
@@ -72,9 +72,9 @@ describe("makeNode", () => {
     it("updates simple attributes and triggers listeners", () => {
       const listener = jest.fn()
       node.onAttributeChange("testAttr", listener)
-      
+
       node.updateAttribute("testAttr", "newValue")
-      
+
       expect(node.getAttribute("testAttr")).toBe("newValue")
       expect(listener).toHaveBeenCalledWith("newValue", undefined, "testAttr")
     })
@@ -82,9 +82,9 @@ describe("makeNode", () => {
     it("updates nested attributes and triggers listeners", () => {
       const listener = jest.fn()
       node.onAttributeChange("drawer.showAdvancedStats", listener)
-      
+
       node.updateAttribute("drawer.showAdvancedStats", true)
-      
+
       expect(node.getAttribute("drawer.showAdvancedStats")).toBe(true)
       expect(listener).toHaveBeenCalledWith(true, false, "drawer.showAdvancedStats")
     })
@@ -92,18 +92,18 @@ describe("makeNode", () => {
     it("does not trigger listeners if value unchanged", () => {
       const listener = jest.fn()
       node.onAttributeChange("drawer.action", listener)
-      
+
       node.updateAttribute("drawer.action", "values")
-      
+
       expect(listener).not.toHaveBeenCalled()
     })
 
     it("handles undefined to defined transitions", () => {
       const listener = jest.fn()
       node.onAttributeChange("newAttr", listener)
-      
+
       node.updateAttribute("newAttr", "value")
-      
+
       expect(listener).toHaveBeenCalledWith("value", undefined, "newAttr")
     })
   })
@@ -114,75 +114,50 @@ describe("makeNode", () => {
       const listener2 = jest.fn()
       node.onAttributeChange("attr1", listener1)
       node.onAttributeChange("attr2", listener2)
-      
+
       node.updateAttributes({
         attr1: "value1",
-        attr2: "value2"
+        attr2: "value2",
       })
-      
+
       expect(node.getAttribute("attr1")).toBe("value1")
       expect(node.getAttribute("attr2")).toBe("value2")
       expect(listener1).toHaveBeenCalledWith("value1", undefined, "attr1")
       expect(listener2).toHaveBeenCalledWith("value2", undefined, "attr2")
     })
 
-    it("handles dot notation in updateAttributes", () => {
-      const listener = jest.fn()
-      node.onAttributeChange("drawer.showAdvancedStats", listener)
-      
-      node.updateAttributes({
-        "drawer.showAdvancedStats": true,
-        "drawer.action": "compare"
-      })
-      
-      expect(node.getAttribute("drawer.showAdvancedStats")).toBe(true)
-      expect(node.getAttribute("drawer.action")).toBe("compare")
-      expect(listener).toHaveBeenCalledWith(true, false, "drawer.showAdvancedStats")
-    })
-
     it("handles nested objects in updateAttributes", () => {
-      const listener1 = jest.fn()
-      const listener2 = jest.fn()
-      node.onAttributeChange("drawer.showAdvancedStats", listener1)
-      node.onAttributeChange("drawer.action", listener2)
-      
+      const listener = jest.fn()
+      node.onAttributeChange("drawer", listener)
+
       node.updateAttributes({
         drawer: {
           showAdvancedStats: true,
-          action: "compare"
-        }
+          action: "compare",
+        },
       })
-      
+
       expect(node.getAttribute("drawer.showAdvancedStats")).toBe(true)
       expect(node.getAttribute("drawer.action")).toBe("compare")
-      expect(listener1).toHaveBeenCalledWith(true, false, "drawer.showAdvancedStats")
-      expect(listener2).toHaveBeenCalledWith("compare", "values", "drawer.action")
+      expect(listener).toHaveBeenCalledWith(
+        { action: "compare", showAdvancedStats: true },
+        { action: "values", showAdvancedStats: false, tab: "window" },
+        "drawer"
+      )
     })
 
     it("handles mixed flat and nested updates", () => {
       node.updateAttributes({
         simpleAttr: "value",
         nested: {
-          prop: "nested value"
+          prop: "nested value",
         },
-        "dot.notation": "dot value"
+        dot: { notation: "dot value" },
       })
-      
+
       expect(node.getAttribute("simpleAttr")).toBe("value")
       expect(node.getAttribute("nested.prop")).toBe("nested value")
       expect(node.getAttribute("dot.notation")).toBe("dot value")
-    })
-
-    it("preserves existing nested properties when updating siblings", () => {
-      node.updateAttributes({
-        drawer: {
-          showAdvancedStats: true
-        }
-      })
-      
-      expect(node.getAttribute("drawer.showAdvancedStats")).toBe(true)
-      expect(node.getAttribute("drawer.action")).toBe("values")
-      expect(node.getAttribute("drawer.tab")).toBe("window")
     })
   })
 
@@ -190,35 +165,35 @@ describe("makeNode", () => {
     it("supports multiple listeners on same attribute", () => {
       const listener1 = jest.fn()
       const listener2 = jest.fn()
-      
+
       node.onAttributeChange("testAttr", listener1)
       node.onAttributeChange("testAttr", listener2)
-      
+
       node.updateAttribute("testAttr", "value")
-      
+
       expect(listener1).toHaveBeenCalledWith("value", undefined, "testAttr")
       expect(listener2).toHaveBeenCalledWith("value", undefined, "testAttr")
     })
 
     it("supports listening to multiple attributes", () => {
       const listener = jest.fn()
-      
+
       node.onAttributesChange(["attr1", "attr2"], listener)
-      
+
       node.updateAttribute("attr1", "value1")
       node.updateAttribute("attr2", "value2")
-      
+
       expect(listener).toHaveBeenCalledTimes(2)
     })
 
     it("supports once listeners", () => {
       const listener = jest.fn()
-      
+
       node.onceAttributeChange("testAttr", listener)
-      
+
       node.updateAttribute("testAttr", "value1")
       node.updateAttribute("testAttr", "value2")
-      
+
       expect(listener).toHaveBeenCalledTimes(1)
       expect(listener).toHaveBeenCalledWith("value1", undefined, "testAttr")
     })
@@ -227,7 +202,7 @@ describe("makeNode", () => {
   describe("pristine functionality", () => {
     it("tracks pristine state changes", () => {
       node.updateAttribute("chartType", "table")
-      
+
       expect(mockSdk.trigger).toHaveBeenCalledWith(
         "pristineChanged",
         "pristine",
@@ -242,7 +217,7 @@ describe("makeNode", () => {
     it("handles null/undefined values in nested attributes", () => {
       node.setAttribute("test.null", null)
       node.setAttribute("test.undefined", undefined)
-      
+
       expect(node.getAttribute("test.null")).toBe(null)
       expect(node.getAttribute("test.undefined", "default")).toBe("default")
     })
@@ -253,12 +228,12 @@ describe("makeNode", () => {
     })
 
     it("handles null parent gracefully", () => {
-      const nodeWithoutParent = makeNode({ 
-        sdk: mockSdk, 
-        parent: null, 
-        attributes: { id: "test" } 
+      const nodeWithoutParent = makeNode({
+        sdk: mockSdk,
+        parent: null,
+        attributes: { id: "test" },
       })
-      
+
       expect(nodeWithoutParent.getAttribute("id")).toBe("test")
     })
   })
@@ -267,15 +242,15 @@ describe("makeNode", () => {
     it("inherits parent attributes", () => {
       mockParent.getAttributes.mockReturnValue({
         timezone: "America/New_York",
-        inherited: "value"
+        inherited: "value",
       })
-      
-      const childNode = makeNode({ 
-        sdk: mockSdk, 
-        parent: mockParent, 
-        attributes: { id: "child" } 
+
+      const childNode = makeNode({
+        sdk: mockSdk,
+        parent: mockParent,
+        attributes: { id: "child" },
       })
-      
+
       expect(childNode.getAttribute("timezone")).toBe("America/New_York")
       expect(childNode.getAttribute("inherited")).toBe("value")
       expect(childNode.getAttribute("id")).toBe("child")

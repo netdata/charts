@@ -11,7 +11,7 @@ describe("makePristine", () => {
     resource = {
       name: "John",
       age: 30,
-      pristine: {}
+      pristine: {},
     }
   })
 
@@ -19,10 +19,7 @@ describe("makePristine", () => {
     it("stores original value when property changes", () => {
       pristine.updatePristine(resource, "name", "Jane")
 
-      expect(mockDispatch).toBeCalledWith(
-        { pristine: { name: "John" } },
-        resource
-      )
+      expect(mockDispatch).toBeCalledWith({ pristine: { name: "John" } }, resource)
     })
 
     it("ignores properties not in keys set", () => {
@@ -46,29 +43,23 @@ describe("makePristine", () => {
 
     it("removes pristine entry when value reverts to original", () => {
       resource.pristine = { name: "John" }
-      
+
       pristine.updatePristine(resource, "name", "John")
 
-      expect(mockDispatch).toBeCalledWith(
-        { pristine: {} },
-        resource
-      )
+      expect(mockDispatch).toBeCalledWith({ pristine: {} }, resource)
     })
 
     it("preserves other pristine values when removing one", () => {
       resource.pristine = { name: "John", age: 30 }
-      
+
       pristine.updatePristine(resource, "name", "John")
 
-      expect(mockDispatch).toBeCalledWith(
-        { pristine: { age: 30 } },
-        resource
-      )
+      expect(mockDispatch).toBeCalledWith({ pristine: { age: 30 } }, resource)
     })
 
     it("doesn't store pristine if property already in pristine and value different", () => {
       resource.pristine = { name: "Original" }
-      
+
       pristine.updatePristine(resource, "name", "Jane")
 
       expect(mockDispatch).not.toBeCalled()
@@ -90,10 +81,7 @@ describe("makePristine", () => {
 
       pristine.resetPristine(resource)
 
-      expect(mockDispatch).toBeCalledWith(
-        { name: "Original", age: 25, pristine: {} },
-        resource
-      )
+      expect(mockDispatch).toBeCalledWith({ name: "Original", age: 25, pristine: {} }, resource)
     })
   })
 

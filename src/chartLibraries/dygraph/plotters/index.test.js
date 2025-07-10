@@ -24,18 +24,18 @@ describe("plotters", () => {
       drawingContext: {
         fillStyle: "",
         fillRect: () => {},
-        strokeRect: () => {}
+        strokeRect: () => {},
       },
       points: [
         { canvasx: 10, canvasy: 20 },
-        { canvasx: 30, canvasy: 40 }
+        { canvasx: 30, canvasy: 40 },
       ],
       dygraph: {
-        toDomYCoord: () => 100
+        toDomYCoord: () => 100,
       },
-      color: "#ff0000"
+      color: "#ff0000",
     }
-    
+
     const plotter = plotters.makeStackedBarPlotter()
     expect(() => plotter(mockPlotter)).not.toThrow()
   })

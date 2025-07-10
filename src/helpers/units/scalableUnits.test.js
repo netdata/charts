@@ -15,7 +15,25 @@ describe("scalableUnits", () => {
     })
 
     it("contains num scale keys", () => {
-      expect(keys.num).toEqual(["y", "z", "a", "f", "p", "n", "u", "m", "1", "k", "M", "G", "T", "P", "E", "Z", "Y"])
+      expect(keys.num).toEqual([
+        "y",
+        "z",
+        "a",
+        "f",
+        "p",
+        "n",
+        "u",
+        "m",
+        "1",
+        "k",
+        "M",
+        "G",
+        "T",
+        "P",
+        "E",
+        "Z",
+        "Y",
+      ])
     })
   })
 

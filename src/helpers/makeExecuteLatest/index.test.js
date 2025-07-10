@@ -57,7 +57,7 @@ describe("makeExecuteLatest", () => {
 
     execute1("first")
     execute2("second")
-    
+
     executeLatest.clear()
     jest.runAllTimers()
 
@@ -71,7 +71,7 @@ describe("makeExecuteLatest", () => {
 
     execute("first")
     const firstTimeoutId = setTimeout(() => {}, 0)
-    
+
     execute("second")
     jest.runAllTimers()
 

@@ -51,7 +51,7 @@ const columns = [
   maxColumn(),
 ]
 
-const GroupBy = ({ 
+const GroupBy = ({
   groupByKey = "groupBy",
   groupByLabelKey = "groupByLabel",
   sortByKey = "groupBySortBy",
@@ -59,8 +59,8 @@ const GroupBy = ({
   onChange,
   trackingId = "group-by",
   emptyMessage = "Deselecting everything will use GROUP BY DIMENSION by default",
-  labelProps, 
-  ...rest 
+  labelProps,
+  ...rest
 }) => {
   const chart = useChart()
   const groupBy = useAttributeValue(groupByKey)
@@ -130,10 +130,7 @@ const GroupBy = ({
   const [sortBy, onSortByChange] = useAttribute(sortByKey)
   const [expanded, onExpandedChange] = useAttribute(expandedKey)
 
-  const defaultOnChange = useCallback(
-    selected => chart.updateGroupByAttribute(selected),
-    [chart]
-  )
+  const defaultOnChange = useCallback(selected => chart.updateGroupByAttribute(selected), [chart])
 
   return (
     <DropdownTable

@@ -1,20 +1,20 @@
-import { getValue, setValue, deleteKey, flattenObject } from "./crud"
+import { getValue, setValue, deleteKey } from "./crud"
 
 describe("getValue", () => {
   const testObj = {
     simple: "value",
     nested: {
       level1: {
-        level2: "deep value"
+        level2: "deep value",
       },
       array: [1, 2, 3],
-      number: 42
+      number: 42,
     },
     drawer: {
       action: "values",
       tab: "window",
-      showAdvancedStats: false
-    }
+      showAdvancedStats: false,
+    },
   }
 
   it("returns simple values", () => {
@@ -36,9 +36,9 @@ describe("getValue", () => {
     const objWithNulls = {
       a: null,
       b: undefined,
-      c: { d: null }
+      c: { d: null },
     }
-    
+
     expect(getValue("a.b", "default", objWithNulls)).toBe("default")
     expect(getValue("b.c", "default", objWithNulls)).toBe("default")
     expect(getValue("c.d.e", "default", objWithNulls)).toBe("default")
@@ -101,7 +101,7 @@ describe("setValue", () => {
     setValue("drawer.action", "values", obj)
     setValue("drawer.tab", "window", obj)
     setValue("drawer.showAdvancedStats", true, obj)
-    
+
     expect(obj.drawer.action).toBe("values")
     expect(obj.drawer.tab).toBe("window")
     expect(obj.drawer.showAdvancedStats).toBe(true)
@@ -134,13 +134,13 @@ describe("deleteKey", () => {
       drawer: {
         action: "values",
         tab: "window",
-        showAdvancedStats: true
-      }
+        showAdvancedStats: true,
+      },
     }
     deleteKey("drawer.showAdvancedStats", obj)
     expect(obj.drawer).toEqual({
       action: "values",
-      tab: "window"
+      tab: "window",
     })
   })
 
@@ -149,9 +149,9 @@ describe("deleteKey", () => {
       a: {
         b: {
           c: "delete me",
-          d: "keep me"
-        }
-      }
+          d: "keep me",
+        },
+      },
     }
     deleteKey("a.b.c", obj)
     expect(obj.a.b).toEqual({ d: "keep me" })
@@ -179,87 +179,13 @@ describe("deleteKey", () => {
         tab: "window",
         nested: {
           deep: "value",
-          another: "prop"
-        }
-      }
+          another: "prop",
+        },
+      },
     }
     deleteKey("drawer.nested.deep", obj)
     expect(obj.drawer.nested).toEqual({ another: "prop" })
     expect(obj.drawer.action).toBe("values")
     expect(obj.drawer.tab).toBe("window")
-  })
-})
-
-describe("flattenObject", () => {
-  it("flattens simple nested objects", () => {
-    const obj = {
-      drawer: {
-        action: "values",
-        tab: "window"
-      }
-    }
-    const result = flattenObject(obj)
-    expect(result).toEqual({
-      "drawer.action": "values",
-      "drawer.tab": "window"
-    })
-  })
-
-  it("flattens deeply nested objects", () => {
-    const obj = {
-      a: {
-        b: {
-          c: "deep"
-        }
-      }
-    }
-    const result = flattenObject(obj)
-    expect(result).toEqual({
-      "a.b.c": "deep"
-    })
-  })
-
-  it("handles mixed flat and nested properties", () => {
-    const obj = {
-      simple: "value",
-      nested: {
-        prop: "nested value"
-      }
-    }
-    const result = flattenObject(obj)
-    expect(result).toEqual({
-      "simple": "value",
-      "nested.prop": "nested value"
-    })
-  })
-
-  it("handles arrays as values", () => {
-    const obj = {
-      drawer: {
-        items: [1, 2, 3]
-      }
-    }
-    const result = flattenObject(obj)
-    expect(result).toEqual({
-      "drawer.items": [1, 2, 3]
-    })
-  })
-
-  it("handles null and undefined values", () => {
-    const obj = {
-      drawer: {
-        nullValue: null,
-        undefinedValue: undefined
-      }
-    }
-    const result = flattenObject(obj)
-    expect(result).toEqual({
-      "drawer.nullValue": null,
-      "drawer.undefinedValue": undefined
-    })
-  })
-
-  it("returns empty object for empty input", () => {
-    expect(flattenObject({})).toEqual({})
   })
 })

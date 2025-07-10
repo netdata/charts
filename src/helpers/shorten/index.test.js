@@ -65,7 +65,7 @@ describe("shortForLength", () => {
   it("progressively shortens long strings", () => {
     const longString = "this is a very long string that needs shortening"
     const result = shortForLength(longString, 20)
-    
+
     expect(result.length).toBeLessThanOrEqual(20)
     expect(result).toBeTruthy()
   })
@@ -73,14 +73,14 @@ describe("shortForLength", () => {
   it("uses default max length of 30", () => {
     const longString = "this is a very long string that definitely exceeds thirty characters"
     const result = shortForLength(longString)
-    
+
     expect(result.length).toBeLessThanOrEqual(30)
   })
 
   it("handles extreme shortening with ellipsis", () => {
     const veryLongString = "extremely long string with many repeated letters and vowels"
     const result = shortForLength(veryLongString, 10)
-    
+
     expect(result.length).toBeLessThanOrEqual(10)
     expect(result).toContain("...")
   })

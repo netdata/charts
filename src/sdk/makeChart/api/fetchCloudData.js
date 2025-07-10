@@ -24,7 +24,10 @@ const getPayload = (chart, attrs = {}) => {
 
   const options = getChartURLOptions(chart)
 
-  const { after, before, points, time_group, time_resampling, format } = getChartPayload(chart, attrs)
+  const { after, before, points, time_group, time_resampling, format } = getChartPayload(
+    chart,
+    attrs
+  )
 
   return {
     format,

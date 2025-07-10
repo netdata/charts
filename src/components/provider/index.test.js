@@ -42,7 +42,7 @@ describe("ChartProvider", () => {
 describe("withChartProvider", () => {
   it("wraps component with chart provider", () => {
     const { chart } = makeTestChart()
-    
+
     const TestComponent = () => {
       const contextChart = useChart()
       return <div data-testid="wrapped-chart-id">{contextChart.getId()}</div>
@@ -57,10 +57,8 @@ describe("withChartProvider", () => {
 
   it("passes through other props to wrapped component", () => {
     const { chart } = makeTestChart()
-    
-    const TestComponent = ({ testProp }) => (
-      <div data-testid="test-prop">{testProp}</div>
-    )
+
+    const TestComponent = ({ testProp }) => <div data-testid="test-prop">{testProp}</div>
 
     const WrappedComponent = withChartProvider(TestComponent)
 
@@ -71,7 +69,7 @@ describe("withChartProvider", () => {
 
   it("excludes chart prop from passed props", () => {
     const { chart } = makeTestChart()
-    
+
     const TestComponent = ({ chart: propChart, ...props }) => {
       const contextChart = useChart()
       return (

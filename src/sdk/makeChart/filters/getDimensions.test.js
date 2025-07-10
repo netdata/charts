@@ -5,7 +5,7 @@ describe("getDimensions", () => {
 
   beforeEach(() => {
     mockChart = {
-      getAttributes: jest.fn()
+      getAttributes: jest.fn(),
     }
   })
 
@@ -13,7 +13,7 @@ describe("getDimensions", () => {
     mockChart.getAttributes.mockReturnValue({
       selectedDimensions: ["cpu", "memory"],
       groupBy: [],
-      dimensionsOnNonDimensionGrouping: ["disk"]
+      dimensionsOnNonDimensionGrouping: ["disk"],
     })
 
     const result = getDimensions(mockChart)
@@ -24,7 +24,7 @@ describe("getDimensions", () => {
     mockChart.getAttributes.mockReturnValue({
       selectedDimensions: [],
       groupBy: ["dimension", "instance"],
-      dimensionsOnNonDimensionGrouping: ["disk"]
+      dimensionsOnNonDimensionGrouping: ["disk"],
     })
 
     const result = getDimensions(mockChart)
@@ -35,7 +35,7 @@ describe("getDimensions", () => {
     mockChart.getAttributes.mockReturnValue({
       selectedDimensions: [],
       groupBy: ["instance"],
-      dimensionsOnNonDimensionGrouping: ["disk", "network"]
+      dimensionsOnNonDimensionGrouping: ["disk", "network"],
     })
 
     const result = getDimensions(mockChart)
@@ -46,7 +46,7 @@ describe("getDimensions", () => {
     mockChart.getAttributes.mockReturnValue({
       selectedDimensions: [],
       groupBy: ["instance"],
-      dimensionsOnNonDimensionGrouping: null
+      dimensionsOnNonDimensionGrouping: null,
     })
 
     const result = getDimensions(mockChart)
@@ -57,7 +57,7 @@ describe("getDimensions", () => {
     mockChart.getAttributes.mockReturnValue({
       selectedDimensions: ["cpu"],
       groupBy: [],
-      dimensionsOnNonDimensionGrouping: ["disk"]
+      dimensionsOnNonDimensionGrouping: ["disk"],
     })
 
     const result = getDimensions(mockChart)

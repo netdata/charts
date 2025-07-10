@@ -31,7 +31,7 @@ describe("deepMerge", () => {
     const objA = { a: 1, b: 2 }
     const objB = { b: 3, c: 4 }
     const result = deepMerge(objA, objB)
-    
+
     expect(result).toBeUndefined()
   })
 
@@ -40,7 +40,7 @@ describe("deepMerge", () => {
     const arrA = [1, 2, 3]
     const arrB = [4, 5]
     const result = deepMerge(arrA, arrB)
-    
+
     expect(result).toEqual([1, 2, 3])
   })
 })

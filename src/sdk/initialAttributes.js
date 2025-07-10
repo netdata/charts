@@ -292,7 +292,7 @@ export default {
       offsetSeconds: 86400,
     },
     {
-      id: "7d", 
+      id: "7d",
       label: "7 days before",
       offsetSeconds: 604800,
     },

@@ -1,10 +1,10 @@
-import { 
-  heatmapTypes, 
-  isHeatmap, 
-  isIncremental, 
-  heatmapOrChartType, 
-  makeGetColor, 
-  withoutPrefix 
+import {
+  heatmapTypes,
+  isHeatmap,
+  isIncremental,
+  heatmapOrChartType,
+  makeGetColor,
+  withoutPrefix,
 } from "./heatmap"
 
 describe("heatmap utilities", () => {
@@ -27,14 +27,14 @@ describe("heatmap utilities", () => {
 
     it("returns true for chart object with heatmap type", () => {
       const chart = {
-        getAttribute: jest.fn(() => "heatmap")
+        getAttribute: jest.fn(() => "heatmap"),
       }
       expect(isHeatmap(chart)).toBe(true)
     })
 
     it("returns false for chart object with non-heatmap type", () => {
       const chart = {
-        getAttribute: jest.fn(() => "line")
+        getAttribute: jest.fn(() => "line"),
       }
       expect(isHeatmap(chart)).toBe(false)
     })
@@ -48,27 +48,27 @@ describe("heatmap utilities", () => {
   describe("isIncremental", () => {
     it("returns true for incremental heatmap", () => {
       const chart = {
-        getAttribute: jest.fn((attr) => {
+        getAttribute: jest.fn(attr => {
           if (attr === "chartType") return "heatmap"
           if (attr === "heatmapType") return "incremental"
-        })
+        }),
       }
       expect(isIncremental(chart)).toBe(true)
     })
 
     it("returns false for non-incremental heatmap", () => {
       const chart = {
-        getAttribute: jest.fn((attr) => {
+        getAttribute: jest.fn(attr => {
           if (attr === "chartType") return "heatmap"
           if (attr === "heatmapType") return "default"
-        })
+        }),
       }
       expect(isIncremental(chart)).toBe(false)
     })
 
     it("returns false for non-heatmap", () => {
       const chart = {
-        getAttribute: jest.fn(() => "line")
+        getAttribute: jest.fn(() => "line"),
       }
       expect(isIncremental(chart)).toBe(false)
     })
@@ -109,7 +109,7 @@ describe("heatmap utilities", () => {
 
     beforeEach(() => {
       mockChart = {
-        getAttribute: jest.fn(() => 800)
+        getAttribute: jest.fn(() => 800),
       }
     })
 

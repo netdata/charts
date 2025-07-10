@@ -5,10 +5,10 @@ const parseColor = colorStr => {
     return {
       r: parseInt(rgbMatch[1], 10),
       g: parseInt(rgbMatch[2], 10),
-      b: parseInt(rgbMatch[3], 10)
+      b: parseInt(rgbMatch[3], 10),
     }
   }
-  
+
   // Handle hex format #RRGGBB or #RGB
   const hexMatch = colorStr.match(/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/)
   if (hexMatch) {
@@ -20,10 +20,10 @@ const parseColor = colorStr => {
     return {
       r: parseInt(hex.substr(0, 2), 16),
       g: parseInt(hex.substr(2, 2), 16),
-      b: parseInt(hex.substr(4, 2), 16)
+      b: parseInt(hex.substr(4, 2), 16),
     }
   }
-  
+
   // Default to black if parsing fails
   return { r: 0, g: 0, b: 0 }
 }

@@ -27,7 +27,7 @@ describe("makeDimensions", () => {
           priorities: [1, 2],
           units: ["percentage", "bytes"],
           contexts: ["cpu", "memory"],
-          grouped: []
+          grouped: [],
         },
         sparkline: false,
         heatmapType: null,
@@ -37,23 +37,29 @@ describe("makeDimensions", () => {
         unitsConversionMethod: ["fixed", "fixed"],
         unitsConversionFractionDigits: [2, 2],
         unitsConversionDivider: [1, 1],
-        unitsByContext: {}
+        unitsByContext: {},
       })),
       getThemeIndex: jest.fn(() => 0),
       getPayload: jest.fn(() => ({
-        data: [[1000, 10, 20], [2000, 15, 25]],
-        all: [[1000, 10, 20], [2000, 15, 25]]
+        data: [
+          [1000, 10, 20],
+          [2000, 15, 25],
+        ],
+        all: [
+          [1000, 10, 20],
+          [2000, 15, 25],
+        ],
       })),
       getDimensionValue: jest.fn(() => 50),
       getVisibleDimensionIds: jest.fn(() => ["cpu", "memory"]),
       getDimensionIds: jest.fn(() => ["cpu", "memory"]),
-      isDimensionVisible: jest.fn(() => true)
+      isDimensionVisible: jest.fn(() => true),
     }
 
     mockSdk = {
       getRoot: jest.fn(() => ({
-        getNextColor: jest.fn(() => "#ff0000")
-      }))
+        getNextColor: jest.fn(() => "#ff0000"),
+      })),
     }
 
     makeDimensions(mockChart, mockSdk)
@@ -115,14 +121,14 @@ describe("makeDimensions", () => {
     })
 
     expect(typeof mockChart.getDimensionName).toBe("function")
-    
+
     const result = mockChart.getDimensionName("cpu")
     expect(result).toBe("cpu")
   })
 
   it("adds getDimensionPriority method", () => {
     expect(typeof mockChart.getDimensionPriority).toBe("function")
-    
+
     const result = mockChart.getDimensionPriority("cpu")
     expect(result).toBe(0)
   })
@@ -134,7 +140,7 @@ describe("makeDimensions", () => {
     })
 
     expect(typeof mockChart.getDimensionUnit).toBe("function")
-    
+
     const result = mockChart.getDimensionUnit()
     expect(result).toBe("percentage")
   })
@@ -147,7 +153,7 @@ describe("makeDimensions", () => {
     })
 
     expect(typeof mockChart.selectDimensionColor).toBe("function")
-    
+
     const result = mockChart.selectDimensionColor("cpu")
     expect(result).toBe("#ff0000")
   })
@@ -183,8 +189,8 @@ describe("makeDimensions", () => {
 
   describe("sorting methods", () => {
     beforeEach(() => {
-      mockChart.getDimensionName = jest.fn((id) => id === "cpu" ? "CPU Usage" : "Memory Usage")
-      mockChart.getDimensionPriority = jest.fn((id) => id === "cpu" ? 1 : 2)
+      mockChart.getDimensionName = jest.fn(id => (id === "cpu" ? "CPU Usage" : "Memory Usage"))
+      mockChart.getDimensionPriority = jest.fn(id => (id === "cpu" ? 1 : 2))
     })
 
     it("sorts by default method using priority", () => {
@@ -296,7 +302,7 @@ describe("makeDimensions", () => {
         if (key === "dimensionsSort") return "default"
         return null
       })
-      mockChart.getDimensionName = jest.fn((id) => id === "cpu" ? "CPU Usage" : "Memory Usage")
+      mockChart.getDimensionName = jest.fn(id => (id === "cpu" ? "CPU Usage" : "Memory Usage"))
 
       mockChart.sortDimensions()
       expect(mockChart.trigger).toHaveBeenCalledWith("dimensionChanged")
@@ -319,7 +325,7 @@ describe("makeDimensions", () => {
         if (key === "dimensionsSort") return "default"
         return null
       })
-      mockChart.getDimensionName = jest.fn((id) => id === "cpu" ? "CPU Usage" : "Memory Usage")
+      mockChart.getDimensionName = jest.fn(id => (id === "cpu" ? "CPU Usage" : "Memory Usage"))
 
       mockChart.sortDimensions()
       expect(mockChart.trigger).toHaveBeenCalledWith("dimensionChanged")
@@ -442,7 +448,7 @@ describe("makeDimensions", () => {
       mockChart.getPayloadDimensionIds = jest.fn(() => dimensionIds)
 
       mockChart.updateDimensions()
-      
+
       expect(mockChart.setAttribute).toHaveBeenCalled()
     })
 
@@ -460,7 +466,7 @@ describe("makeDimensions", () => {
       mockChart.getPayloadDimensionIds = jest.fn(() => dimensionIds)
 
       mockChart.updateDimensions()
-      
+
       expect(mockChart.setAttribute).toHaveBeenCalled()
     })
 
@@ -478,7 +484,7 @@ describe("makeDimensions", () => {
       mockChart.getPayloadDimensionIds = jest.fn(() => dimensionIds)
 
       mockChart.updateDimensions()
-      
+
       expect(mockChart.setAttribute).toHaveBeenCalled()
     })
 
@@ -495,7 +501,7 @@ describe("makeDimensions", () => {
       mockChart.getPayloadDimensionIds = jest.fn(() => dimensionIds)
 
       mockChart.updateDimensions()
-      
+
       expect(mockChart.setAttribute).toHaveBeenCalledWith("heatmapType", null)
     })
   })
@@ -509,7 +515,7 @@ describe("makeDimensions", () => {
       mockChart.getDimensionIds = jest.fn(() => ["cpu", "memory", "disk"])
 
       mockChart.toggleDimensionId("cpu")
-      
+
       expect(mockChart.updateAttribute).toHaveBeenCalledWith("selectedLegendDimensions", ["cpu"])
     })
 
@@ -521,8 +527,11 @@ describe("makeDimensions", () => {
       mockChart.getDimensionIds = jest.fn(() => ["cpu", "memory", "disk"])
 
       mockChart.toggleDimensionId("cpu", { merge: true })
-      
-      expect(mockChart.updateAttribute).toHaveBeenCalledWith("selectedLegendDimensions", ["memory", "disk"])
+
+      expect(mockChart.updateAttribute).toHaveBeenCalledWith("selectedLegendDimensions", [
+        "memory",
+        "disk",
+      ])
     })
 
     it("removes visible dimension", () => {
@@ -530,10 +539,10 @@ describe("makeDimensions", () => {
         if (key === "selectedLegendDimensions") return ["cpu", "memory"]
         return null
       })
-      mockChart.isDimensionVisible = jest.fn((id) => id === "cpu")
+      mockChart.isDimensionVisible = jest.fn(id => id === "cpu")
 
       mockChart.toggleDimensionId("cpu")
-      
+
       expect(mockChart.updateAttribute).toHaveBeenCalledWith("selectedLegendDimensions", ["cpu"])
     })
 
@@ -542,10 +551,10 @@ describe("makeDimensions", () => {
         if (key === "selectedLegendDimensions") return ["cpu", "memory"]
         return null
       })
-      mockChart.isDimensionVisible = jest.fn((id) => id === "cpu")
+      mockChart.isDimensionVisible = jest.fn(id => id === "cpu")
 
       mockChart.toggleDimensionId("cpu", { merge: true })
-      
+
       expect(mockChart.updateAttribute).toHaveBeenCalledWith("selectedLegendDimensions", ["memory"])
     })
 
@@ -557,7 +566,7 @@ describe("makeDimensions", () => {
       mockChart.isDimensionVisible = jest.fn(() => true)
 
       mockChart.toggleDimensionId("cpu")
-      
+
       expect(mockChart.updateAttribute).toHaveBeenCalledWith("selectedLegendDimensions", [])
     })
 
@@ -569,7 +578,7 @@ describe("makeDimensions", () => {
       mockChart.isDimensionVisible = jest.fn(() => false)
 
       mockChart.toggleDimensionId("memory")
-      
+
       expect(mockChart.updateAttribute).toHaveBeenCalledWith("selectedLegendDimensions", ["memory"])
     })
 
@@ -581,15 +590,18 @@ describe("makeDimensions", () => {
       mockChart.isDimensionVisible = jest.fn(() => false)
 
       mockChart.toggleDimensionId("memory", { merge: true })
-      
-      expect(mockChart.updateAttribute).toHaveBeenCalledWith("selectedLegendDimensions", ["cpu", "memory"])
+
+      expect(mockChart.updateAttribute).toHaveBeenCalledWith("selectedLegendDimensions", [
+        "cpu",
+        "memory",
+      ])
     })
   })
 
   describe("edge cases and additional methods", () => {
     it("handles getUnitAttributes with context", () => {
       mockChart.getAttribute.mockImplementation(key => {
-        if (key === "unitsByContext") return { "cpu": { unit: "percentage" } }
+        if (key === "unitsByContext") return { cpu: { unit: "percentage" } }
         if (key === "viewDimensions") return { contexts: ["cpu", "memory"] }
         return null
       })
@@ -645,13 +657,11 @@ describe("makeDimensions", () => {
       })
       mockChart.getDimensionIds = jest.fn(() => ["cpu", "memory", "disk"])
       mockChart.isDimensionVisible = jest.fn(() => true)
-      mockChart.getRowDimensionValue = jest.fn()
-        .mockReturnValueOnce(30)
-        .mockReturnValueOnce(10)
+      mockChart.getRowDimensionValue = jest.fn().mockReturnValueOnce(30).mockReturnValueOnce(10)
 
       const pointData = [1000, 10, 20, 30]
       const value = mockChart.getRowDimensionValue("disk", pointData, { incrementable: true })
-      
+
       expect(mockChart.getRowDimensionValue).toHaveBeenCalled()
     })
 
@@ -699,8 +709,8 @@ describe("makeDimensions", () => {
     })
 
     it("handles always sort conditions", () => {
-      const sortDimensionsSpy = jest.spyOn(mockChart, 'sortDimensions')
-      
+      const sortDimensionsSpy = jest.spyOn(mockChart, "sortDimensions")
+
       mockChart.getAttribute.mockImplementation(key => {
         if (key === "dimensionsSort") return "valueDesc"
         if (key === "selectedLegendDimensions") return []

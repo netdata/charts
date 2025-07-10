@@ -10,7 +10,7 @@ describe("anomaly plotter", () => {
       strokeStyle: "black",
       fillStyle: "black",
       fillRect: jest.fn(),
-      strokeRect: jest.fn()
+      strokeRect: jest.fn(),
     }
 
     mockPlotter = {
@@ -18,8 +18,8 @@ describe("anomaly plotter", () => {
       drawingContext: mockCtx,
       points: [
         { canvasx: 10, xval: 1000 },
-        { canvasx: 20, xval: 2000 }
-      ]
+        { canvasx: 20, xval: 2000 },
+      ],
     }
 
     mockChartUI = {
@@ -31,11 +31,11 @@ describe("anomaly plotter", () => {
         getPayload: () => ({
           all: [
             [1000, { arp: 25 }, { arp: 50 }],
-            [2000, { arp: 75 }, { arp: 100 }]
-          ]
+            [2000, { arp: 75 }, { arp: 100 }],
+          ],
         }),
-        getClosestRow: (xval) => xval === 1000 ? 0 : 1
-      }
+        getClosestRow: xval => (xval === 1000 ? 0 : 1),
+      },
     }
   })
 
@@ -68,7 +68,7 @@ describe("anomaly plotter", () => {
   it("renders anomaly rate bars", () => {
     const plotter = anomalyPlotter(mockChartUI)
     plotter(mockPlotter)
-    
+
     expect(mockCtx.fillRect).toHaveBeenCalled()
     expect(mockCtx.strokeRect).toHaveBeenCalled()
     expect(mockCtx.fillRect).toHaveBeenCalledTimes(2)
@@ -78,7 +78,7 @@ describe("anomaly plotter", () => {
     mockChartUI.chart.getAttribute = () => ["dim1"]
     const plotter = anomalyPlotter(mockChartUI)
     plotter(mockPlotter)
-    
+
     expect(mockCtx.fillRect).toHaveBeenCalled()
     expect(mockCtx.strokeRect).toHaveBeenCalled()
   })
@@ -86,7 +86,7 @@ describe("anomaly plotter", () => {
   it("calculates max anomaly rate value correctly", () => {
     const plotter = anomalyPlotter(mockChartUI)
     plotter(mockPlotter)
-    
+
     // Should use max arp value from selected dimensions
     expect(mockCtx.fillRect).toHaveBeenCalledTimes(2)
     expect(mockCtx.strokeRect).toHaveBeenCalledTimes(2)
@@ -96,13 +96,13 @@ describe("anomaly plotter", () => {
     mockChartUI.chart.getPayload = () => ({
       all: [
         [1000, { arp: 0 }, { arp: 0 }],
-        [2000, { arp: 0 }, { arp: 0 }]
-      ]
+        [2000, { arp: 0 }, { arp: 0 }],
+      ],
     })
-    
+
     const plotter = anomalyPlotter(mockChartUI)
     plotter(mockPlotter)
-    
+
     expect(mockCtx.fillRect).toHaveBeenCalled()
   })
 })

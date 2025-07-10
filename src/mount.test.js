@@ -16,14 +16,14 @@ describe("mount", () => {
       render: jest.fn(),
     }
     createRoot.mockReturnValue(mockRoot)
-    
+
     mockChart = {
       getId: jest.fn(() => "test-chart-id"),
       getAttribute: jest.fn(),
     }
-    
+
     mockElement = document.createElement("div")
-    
+
     Line.mockReturnValue(<div>Mocked Line Component</div>)
   })
 
@@ -82,7 +82,7 @@ describe("mount", () => {
 
   it("handles different DOM elements", () => {
     const anotherElement = document.createElement("section")
-    
+
     mount(mockChart, anotherElement)
 
     expect(createRoot).toHaveBeenCalledWith(anotherElement)

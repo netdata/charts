@@ -14,7 +14,7 @@ export const useDrilldownData = () => {
 
   const hierarchicalData = useMemo(() => {
     if (!rawData?.result) return []
-    
+
     const flatData = transformWeightsData(rawData, groupBy)
     return buildHierarchicalTree(flatData, groupBy)
   }, [rawData, groupBy])

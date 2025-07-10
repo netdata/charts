@@ -285,17 +285,19 @@ export const useUnits = (key = "units") => {
   return chart.getUnits(key)
 }
 
-const formatPercentage = (value, { fractionDigits }) => 
-  value === 0 ? "-" : (Math.round((value + Number.EPSILON) * 100) / 100).toFixed(fractionDigits || 2)
+const formatPercentage = (value, { fractionDigits }) =>
+  value === 0
+    ? "-"
+    : (Math.round((value + Number.EPSILON) * 100) / 100).toFixed(fractionDigits || 2)
 
 const formatPercentageWithSymbol = (value, { fractionDigits }) => {
   if (value == null || value === 0) return "-"
   return (Math.round((value + Number.EPSILON) * 100) / 100).toFixed(fractionDigits || 1) + "%"
 }
 
-const formatInteger = (value) => Math.round(value).toString()
+const formatInteger = value => Math.round(value).toString()
 
-const formatAnomalyParts = (value) => 
+const formatAnomalyParts = value =>
   parts.reduce((h, a) => (check(value, enums[a]) ? { ...h, [a]: colors[a] } : h), {})
 
 const formatByType = {
@@ -373,34 +375,34 @@ export const useLatestRowValue = (options = {}) => {
 const calculateClientSideStats = (chart, id, valueKey, period) => {
   const { data } = chart.getPayload()
   if (!data?.length) return null
-  
+
   let filteredData = data
-  
+
   if (period === "highlight") {
     const { highlight } = chart.getAttribute("overlays")
     if (!highlight?.range) return null
-    
+
     const [start, end] = highlight.range
     filteredData = data.filter(row => {
       const timestamp = row[0] / 1000
       return timestamp >= start && timestamp <= end
     })
   }
-  
+
   if (!filteredData.length) return null
-  
+
   id = chart.isDimensionVisible(id) ? id : chart.getVisibleDimensionIds()[0]
   if (!id) return null
-  
+
   const dimensionIndex = chart.getDimensionIndex(id)
   if (dimensionIndex === -1) return null
-  
+
   const values = filteredData
     .map(row => row[dimensionIndex + 1])
     .filter(val => val !== null && !isNaN(val) && isFinite(val))
-    
+
   if (!values.length) return null
-  
+
   const allStats = calculateAllStats(values)
   return allStats[valueKey] ?? null
 }
@@ -432,7 +434,7 @@ export const getValueByPeriod = {
         if (id) return values[chart.getDimensionIndex(id)]
       }
     }
-    
+
     return calculateClientSideStats(chart, id, valueKey, "window")
   },
   highlight: ({ chart, id, valueKey = "value" }) => {

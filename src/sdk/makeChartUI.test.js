@@ -8,18 +8,18 @@ describe("makeChartUI", () => {
 
   beforeEach(() => {
     mockSDK = {
-      trigger: jest.fn()
+      trigger: jest.fn(),
     }
-    
+
     mockChart = {
       getDateWindow: jest.fn(() => [1000, 2000]),
       trigger: jest.fn(),
-      on: jest.fn()
+      on: jest.fn(),
     }
 
     mockElement = {
       offsetWidth: 800,
-      offsetHeight: 400
+      offsetHeight: 400,
     }
 
     chartUI = makeChartUI(mockSDK, mockChart)
@@ -58,7 +58,7 @@ describe("makeChartUI", () => {
   describe("render", () => {
     it("updates rendered timestamp", () => {
       mockChart.getDateWindow.mockReturnValue([1500, 2500])
-      
+
       chartUI.render()
 
       expect(chartUI.getRenderedAt()).toBe(2500)

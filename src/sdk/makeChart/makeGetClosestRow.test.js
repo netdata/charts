@@ -8,14 +8,14 @@ describe("makeGetClosestRow", () => {
       getPayload: jest.fn(() => ({
         data: [
           [1000, 10],
-          [2000, 20], 
+          [2000, 20],
           [3000, 30],
           [4000, 40],
-          [5000, 50]
-        ]
-      }))
+          [5000, 50],
+        ],
+      })),
     }
-    
+
     makeGetClosestRow(mockChart)
   })
 
@@ -29,7 +29,7 @@ describe("makeGetClosestRow", () => {
 
   it("returns -1 for empty data", () => {
     mockChart.getPayload.mockReturnValue({ data: [] })
-    
+
     const result = mockChart.getClosestRow(1500)
     expect(result).toBe(-1)
   })
@@ -57,7 +57,7 @@ describe("makeGetClosestRow", () => {
   it("caches results for same timestamp", () => {
     mockChart.getClosestRow(2500)
     mockChart.getClosestRow(2500)
-    
+
     expect(mockChart.getPayload).toHaveBeenCalledTimes(1)
   })
 
@@ -65,7 +65,7 @@ describe("makeGetClosestRow", () => {
     mockChart.getClosestRow(2500)
     mockChart.invalidateClosestRowCache()
     mockChart.getClosestRow(2500)
-    
+
     expect(mockChart.getPayload).toHaveBeenCalledTimes(2)
   })
 

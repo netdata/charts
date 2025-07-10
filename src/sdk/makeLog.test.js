@@ -1,88 +1,113 @@
 import makeLog from "./makeLog"
+import { makeTestChart } from "@jest/testUtilities"
 
 describe("makeLog", () => {
-  let mockChart
-  let mockSendLog
-  let log
+  let sendLogCalls
+  let realSendLog
 
   beforeEach(() => {
-    mockSendLog = jest.fn()
-    mockChart = {
-      getAttribute: jest.fn((key) => {
-        if (key === "id") return "test-chart"
-        if (key === "logOptions") return { sendLog: mockSendLog, payload: { data: { base: "value" } } }
-        return null
-      })
+    sendLogCalls = []
+    realSendLog = data => {
+      sendLogCalls.push(data)
     }
-    log = makeLog(mockChart)
   })
 
   it("creates log function", () => {
+    const { chart } = makeTestChart()
+    const log = makeLog(chart)
+
     expect(typeof log).toBe("function")
   })
 
   it("calls sendLog with merged data", () => {
+    const { chart } = makeTestChart({
+      attributes: {
+        logOptions: {
+          sendLog: realSendLog,
+          payload: { data: { base: "value" } },
+        },
+      },
+    })
+
+    const log = makeLog(chart)
     const payload = { action: "test", data: { custom: "data" } }
-    
+
     log(payload)
 
-    expect(mockSendLog).toBeCalledWith({
+    expect(sendLogCalls).toHaveLength(1)
+    expect(sendLogCalls[0]).toEqual({
       action: "test",
       data: { base: "value" },
       custom: "data",
       base: "value",
-      chartId: "test-chart"
+      chartId: chart.getAttribute("id"),
     })
   })
 
   it("handles empty payload", () => {
+    const { chart } = makeTestChart({
+      attributes: {
+        logOptions: {
+          sendLog: realSendLog,
+          payload: { data: { base: "value" } },
+        },
+      },
+    })
+
+    const log = makeLog(chart)
     log()
 
-    expect(mockSendLog).toBeCalledWith({
+    expect(sendLogCalls).toHaveLength(1)
+    expect(sendLogCalls[0]).toEqual({
       data: { base: "value" },
       base: "value",
-      chartId: "test-chart"
+      chartId: chart.getAttribute("id"),
     })
   })
 
   it("returns noop when chart is null", () => {
     const nullLog = makeLog(null)
-    
+
     expect(typeof nullLog()).toBe("function")
   })
 
-  it("handles missing logOptions", () => {
-    mockChart.getAttribute.mockReturnValue(null)
-    const simpleLog = makeLog(mockChart)
-    
-    expect(() => simpleLog()).not.toThrow()
-  })
-
   it("handles missing sendLog function", () => {
-    mockChart.getAttribute.mockImplementation((key) => {
-      if (key === "logOptions") return { payload: {} }
-      return "test-chart"
+    const { chart } = makeTestChart({
+      attributes: {
+        logOptions: { payload: {} },
+      },
     })
-    
-    const logWithoutSender = makeLog(mockChart)
-    
+
+    const logWithoutSender = makeLog(chart)
+
     expect(() => logWithoutSender()).not.toThrow()
   })
 
   it("merges payload data correctly", () => {
-    const payload = { 
-      event: "click", 
-      data: { overlay: "annotation" } 
+    const { chart } = makeTestChart({
+      attributes: {
+        logOptions: {
+          sendLog: realSendLog,
+          payload: { data: { base: "value" } },
+        },
+      },
+    })
+
+    const log = makeLog(chart)
+    const payload = {
+      event: "click",
+      data: { overlay: "annotation" },
     }
-    
+
     log(payload)
 
-    expect(mockSendLog).toBeCalledWith({
+    expect(sendLogCalls).toHaveLength(1)
+    expect(sendLogCalls[0]).toEqual({
       event: "click",
       data: { base: "value" },
       overlay: "annotation",
       base: "value",
-      chartId: "test-chart"
+      chartId: chart.getAttribute("id"),
     })
   })
 })

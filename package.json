@@ -23,7 +23,8 @@
     "cp-cloud": "cp -R ./dist ../cloud-frontend/node_modules/@netdata/charts/",
     "to-cloud": "yarn build:cjs && yarn build:es6 && yarn cp-cloud",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "format": "prettier --write \"**/*.{js,mjs}\""
   },
   "keywords": [
     "netdata",

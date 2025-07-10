@@ -3,9 +3,6 @@ import makeDefaultSDK from "@/makeDefaultSDK"
 import makeMockPayload from "@/helpers/makeMockPayload"
 import systemLoadLine from "../../../fixtures/systemLoadLine"
 
-
-
-
 describe("dygraph chartLibrary", () => {
   let sdk, chart, element
 
@@ -29,7 +26,7 @@ describe("dygraph chartLibrary", () => {
     })
 
     chart = sdk.makeChart({
-      getChart: makeMockPayload(systemLoadLine[0], { delay: 0 })
+      getChart: makeMockPayload(systemLoadLine[0], { delay: 0 }),
     })
     sdk.appendChild(chart)
   })

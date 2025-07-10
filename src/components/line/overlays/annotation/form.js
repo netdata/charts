@@ -61,7 +61,7 @@ const AnnotationForm = ({
           onClick={handleSave}
           disabled={!text.trim()}
           size="small"
-          data-track={chart.track(`annotation-save-${initialText ? 'edit' : 'create'}`)}
+          data-track={chart.track(`annotation-save-${initialText ? "edit" : "create"}`)}
         />
         <Button
           icon={<Icon svg={xIcon} size="16px" />}

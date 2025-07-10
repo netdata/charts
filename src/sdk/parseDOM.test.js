@@ -8,12 +8,12 @@ describe("parseDOM", () => {
     mockSDK = {
       getRoot: jest.fn(() => ({ id: "root" })),
       makeContainer: jest.fn(() => ({ id: "container" })),
-      makeChart: jest.fn(() => ({ id: "chart" }))
+      makeChart: jest.fn(() => ({ id: "chart" })),
     }
 
     // Mock DOM
     global.document = {
-      querySelectorAll: jest.fn(() => [])
+      querySelectorAll: jest.fn(() => []),
     }
   })
 
@@ -30,16 +30,18 @@ describe("parseDOM", () => {
 
   it("initializes with SDK when elements present", () => {
     mockSDK.getRoot.mockReturnValue({
-      appendChild: jest.fn()
+      appendChild: jest.fn(),
     })
-    
-    global.document.querySelectorAll = jest.fn(() => [{
-      hasAttribute: jest.fn(() => true),
-      getAttributeNames: jest.fn(() => ["data-id"]),
-      getAttribute: jest.fn(() => "test"),
-      parentElement: null
-    }])
-    
+
+    global.document.querySelectorAll = jest.fn(() => [
+      {
+        hasAttribute: jest.fn(() => true),
+        getAttributeNames: jest.fn(() => ["data-id"]),
+        getAttribute: jest.fn(() => "test"),
+        parentElement: null,
+      },
+    ])
+
     parseDOM(mockSDK)
     expect(mockSDK.getRoot).toBeCalled()
   })

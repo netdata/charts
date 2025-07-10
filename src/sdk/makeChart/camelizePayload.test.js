@@ -6,8 +6,8 @@ describe("camelizePayload", () => {
       result: {
         data: [[1000, 1, 2]],
         labels: ["time", "cpu", "memory"],
-        point: { value: 0 }
-      }
+        point: { value: 0 },
+      },
     }
 
     const result = camelizePayload(payload)
@@ -24,8 +24,8 @@ describe("camelizePayload", () => {
       result: {
         data: [],
         labels: [],
-        point: { value: 0 }
-      }
+        point: { value: 0 },
+      },
     }
 
     expect(() => camelizePayload(payload)).not.toThrow()
@@ -36,13 +36,13 @@ describe("camelizePayload", () => {
       view: {
         title: "Test Chart",
         chart_type: "line",
-        units: "bytes"
+        units: "bytes",
       },
       result: {
         data: [],
         labels: [],
-        point: { value: 0 }
-      }
+        point: { value: 0 },
+      },
     }
 
     const result = camelizePayload(payload)
@@ -57,13 +57,13 @@ describe("camelizePayload", () => {
       summary: {
         nodes: [{ nd: "node1", ni: 0, nm: "Node 1" }],
         instances: [{ id: "inst1", ni: 0, nm: "Instance 1" }],
-        dimensions: [{ id: "dim1" }]
+        dimensions: [{ id: "dim1" }],
       },
       result: {
         data: [],
         labels: [],
-        point: { value: 0 }
-      }
+        point: { value: 0 },
+      },
     }
 
     const result = camelizePayload(payload)

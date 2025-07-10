@@ -39,13 +39,16 @@ export default chart => {
     selected: true,
   }
 
-  const baseUpdateGroupBy = (selected, {
-    groupByKey = "groupBy",
-    groupByLabelKey = "groupByLabel", 
-    fallbackGroupBy = ["dimension"],
-    dataKey = null,
-    loadingKey = null
-  }) => {
+  const baseUpdateGroupBy = (
+    selected,
+    {
+      groupByKey = "groupBy",
+      groupByLabelKey = "groupByLabel",
+      fallbackGroupBy = ["dimension"],
+      dataKey = null,
+      loadingKey = null,
+    }
+  ) => {
     const selectedLabels = selected.filter(sel => sel.isLabel)
     const groupByLabel = selectedLabels.map(sel => sel.value)
 
@@ -70,7 +73,7 @@ export default chart => {
       [groupByKey]: groupBy,
       processing: true,
     }
-    
+
     if (dataKey) updates[dataKey] = null
     if (loadingKey) updates[loadingKey] = true
 

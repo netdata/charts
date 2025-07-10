@@ -7,14 +7,14 @@ describe("makeResizeObserver", () => {
 
   beforeEach(() => {
     jest.useFakeTimers()
-    
+
     mockElement = {}
     mockObserver = {
       observe: jest.fn(),
-      disconnect: jest.fn()
+      disconnect: jest.fn(),
     }
 
-    global.ResizeObserver = jest.fn((callback) => {
+    global.ResizeObserver = jest.fn(callback => {
       observeCallback = callback
       return mockObserver
     })

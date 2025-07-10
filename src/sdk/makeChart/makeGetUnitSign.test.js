@@ -6,10 +6,10 @@ describe("makeGetUnitSign", () => {
   beforeEach(() => {
     mockChart = {
       getUnitAttributes: jest.fn(() => ({
-        base: "bytes", 
-        prefix: "K", 
-        unit: "bytes"
-      }))
+        base: "bytes",
+        prefix: "K",
+        unit: "bytes",
+      })),
     }
     makeGetUnitSign(mockChart)
   })
@@ -32,24 +32,24 @@ describe("makeGetUnitSign", () => {
   it("returns unit name without conversion when requested", () => {
     mockChart.getUnitAttributes.mockReturnValue({
       base: "bytes",
-      prefix: "M", 
-      unit: "bytes"
+      prefix: "M",
+      unit: "bytes",
     })
-    
-    const result = mockChart.getUnitSign({ 
-      dimensionId: "test", 
-      withoutConversion: true 
+
+    const result = mockChart.getUnitSign({
+      dimensionId: "test",
+      withoutConversion: true,
     })
-    
+
     expect(typeof result).toBe("string")
   })
 
   it("handles long format", () => {
-    const result = mockChart.getUnitSign({ 
-      dimensionId: "test", 
-      long: true 
+    const result = mockChart.getUnitSign({
+      dimensionId: "test",
+      long: true,
     })
-    
+
     expect(typeof result).toBe("string")
   })
 
@@ -62,9 +62,9 @@ describe("makeGetUnitSign", () => {
     mockChart.getUnitAttributes.mockReturnValue({
       base: null,
       prefix: "",
-      unit: "percent"
+      unit: "percent",
     })
-    
+
     const result = mockChart.getUnitSign({ dimensionId: "test" })
     expect(typeof result).toBe("string")
   })

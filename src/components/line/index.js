@@ -59,5 +59,4 @@ export const Line = ({
   )
 }
 
-
 export default withChart(Line)

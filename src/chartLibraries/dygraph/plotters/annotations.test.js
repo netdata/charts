@@ -8,9 +8,9 @@ describe("annotations plotter", () => {
   beforeEach(() => {
     mockCtx = {
       strokeStyle: "black",
-      fillStyle: "black",  
+      fillStyle: "black",
       fillRect: jest.fn(),
-      strokeRect: jest.fn()
+      strokeRect: jest.fn(),
     }
 
     mockPlotter = {
@@ -18,11 +18,11 @@ describe("annotations plotter", () => {
       drawingContext: mockCtx,
       points: [
         { canvasx: 10, xval: 1000 },
-        { canvasx: 20, xval: 2000 }
+        { canvasx: 20, xval: 2000 },
       ],
       dygraph: {
-        getArea: () => ({ h: 100 })
-      }
+        getArea: () => ({ h: 100 }),
+      },
     }
 
     mockChartUI = {
@@ -33,11 +33,11 @@ describe("annotations plotter", () => {
         getPayload: () => ({
           all: [
             [1000, { pa: 1 }, { pa: 2 }],
-            [2000, { pa: 4 }, { pa: 8 }]
-          ]
+            [2000, { pa: 4 }, { pa: 8 }],
+          ],
         }),
-        getClosestRow: (xval) => xval === 1000 ? 0 : 1
-      }
+        getClosestRow: xval => (xval === 1000 ? 0 : 1),
+      },
     }
   })
 
@@ -70,7 +70,7 @@ describe("annotations plotter", () => {
   it("renders annotations with transparent background", () => {
     const plotter = annotationsPlotter(mockChartUI)
     plotter(mockPlotter)
-    
+
     expect(mockCtx.fillRect).toHaveBeenCalled()
     expect(mockCtx.strokeRect).toHaveBeenCalled()
   })
@@ -79,7 +79,7 @@ describe("annotations plotter", () => {
     mockChartUI.chart.getAttribute = () => ["dim1"]
     const plotter = annotationsPlotter(mockChartUI)
     plotter(mockPlotter)
-    
+
     expect(mockCtx.fillRect).toHaveBeenCalled()
     expect(mockCtx.strokeRect).toHaveBeenCalled()
   })

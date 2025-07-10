@@ -2,12 +2,8 @@ import React, { useMemo } from "react"
 import { Flex, ProgressBar, TextSmall, TextMicro } from "@netdata/netdata-ui"
 import Color from "@/components/line/dimensions/color"
 import Units from "@/components/line/dimensions/units"
-import {
-  useChart,
-  useConverted,
-} from "@/components/provider"
+import { useChart, useConverted } from "@/components/provider"
 import Label from "@/components/filterToolbox/label"
-
 
 const useMetricsByValue = chart =>
   useMemo(
@@ -34,11 +30,11 @@ export const labelColumn = (groupByOrder = []) => ({
   cell: ({ getValue, row }) => {
     const chart = useChart()
     const metricsByValue = useMetricsByValue(chart)
-    
+
     const currentLevel = row.original.level || 0
     const nextLevel = currentLevel + 1
     const nextGroupByType = groupByOrder[nextLevel]
-    
+
     const expandLabel = nextGroupByType
       ? metricsByValue[nextGroupByType] || metricsByValue.default
       : metricsByValue.default
@@ -89,7 +85,6 @@ export const labelColumn = (groupByOrder = []) => ({
   },
 })
 
-
 export const contributionColumn = () => ({
   id: "contribution",
   header: <TextMicro strong>Vol %</TextMicro>,
@@ -104,9 +99,7 @@ export const contributionColumn = () => ({
 
     return (
       <Flex flex column gap={0.5}>
-        <TextSmall color="primary">
-          {percentage}%
-        </TextSmall>
+        <TextSmall color="primary">{percentage}%</TextSmall>
         <ProgressBar
           background="progressBg"
           color={["green", "deyork"]}
@@ -135,9 +128,7 @@ export const anomalyRateColumn = () => ({
 
     return (
       <Flex flex column gap={0.5}>
-        <TextSmall color="textLite">
-          {percentage}%
-        </TextSmall>
+        <TextSmall color="textLite">{percentage}%</TextSmall>
         <ProgressBar
           background="progressBg"
           color="anomalyText"
@@ -151,7 +142,6 @@ export const anomalyRateColumn = () => ({
   },
   sortingFn: "basic",
 })
-
 
 export const minColumn = () => ({
   id: "min",
@@ -209,4 +199,3 @@ export const maxColumn = () => ({
   },
   sortingFn: "basic",
 })
-

@@ -13,7 +13,7 @@ describe("fetchAgentWeights", () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    
+
     const { chart: testChart } = makeTestChart({
       attributes: {
         host: "http://localhost:19999",
@@ -29,9 +29,9 @@ describe("fetchAgentWeights", () => {
         after: 1000,
         before: 2000,
         points: 100,
-      }
+      },
     })
-    
+
     chart = testChart
   })
 
@@ -45,7 +45,7 @@ describe("fetchAgentWeights", () => {
 
     const callUrl = global.fetch.mock.calls[0][0]
     const urlParams = new URLSearchParams(callUrl.split("?")[1])
-    
+
     expect(urlParams.get("group_by")).toBe("dimension")
     expect(urlParams.get("aggregation")).toBe("sum")
     expect(urlParams.get("contexts")).toBe("system.cpu")
@@ -59,12 +59,12 @@ describe("fetchAgentWeights", () => {
         aggregationMethod: "avg",
         after: 3000,
         before: 4000,
-      }
+      },
     })
 
     const callUrl = global.fetch.mock.calls[0][0]
     const urlParams = new URLSearchParams(callUrl.split("?")[1])
-    
+
     expect(urlParams.get("group_by")).toBe("node|instance")
     expect(urlParams.get("group_by_label")).toBe("custom_label")
     expect(urlParams.get("aggregation")).toBe("avg")
@@ -77,12 +77,12 @@ describe("fetchAgentWeights", () => {
       attrs: {
         groupBy: ["dimension"],
         groupByLabel: [],
-      }
+      },
     })
 
     const callUrl = global.fetch.mock.calls[0][0]
     const urlParams = new URLSearchParams(callUrl.split("?")[1])
-    
+
     expect(urlParams.get("group_by")).toBe("dimension")
     expect(urlParams.has("group_by_label")).toBe(false)
   })
@@ -91,29 +91,29 @@ describe("fetchAgentWeights", () => {
     await fetchAgentWeights(chart, {
       attrs: {
         options: ["custom", "option"],
-      }
+      },
     })
 
     const callUrl = global.fetch.mock.calls[0][0]
     const urlParams = new URLSearchParams(callUrl.split("?")[1])
-    
+
     expect(urlParams.get("options")).toContain("custom")
     expect(urlParams.get("options")).toContain("option")
   })
 
   it("passes through additional fetch options", async () => {
     const signal = new AbortController().signal
-    
+
     await fetchAgentWeights(chart, {
       signal,
-      headers: { "Custom-Header": "value" }
+      headers: { "Custom-Header": "value" },
     })
 
     expect(global.fetch).toHaveBeenCalledWith(
       expect.stringContaining("/weights"),
       expect.objectContaining({
         signal,
-        headers: { "Custom-Header": "value" }
+        headers: { "Custom-Header": "value" },
       })
     )
   })

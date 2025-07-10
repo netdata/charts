@@ -33,12 +33,7 @@ const Drawer = () => {
       border={{ side: "top", color: "borderSecondary" }}
     >
       <Header padding={[3, 2, 2, 2]} />
-      <Flex
-        flex
-        column
-        padding={[0, 2, 3, 2]}
-        overflow={{ vertical: "scroll" }}
-      >
+      <Flex flex column padding={[0, 2, 3, 2]} overflow={{ vertical: "scroll" }}>
         <Component />
       </Flex>
     </Flex>

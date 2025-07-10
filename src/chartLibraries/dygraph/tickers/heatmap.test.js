@@ -6,17 +6,17 @@ describe("heatmapTicker", () => {
   let mockDygraph
 
   beforeEach(() => {
-    mockOpts = jest.fn((key) => {
+    mockOpts = jest.fn(key => {
       const options = {
         pixelsPerLabel: 50,
-        axisLabelFormatter: jest.fn((value) => `label_${value}`)
+        axisLabelFormatter: jest.fn(value => `label_${value}`),
       }
       return options[key]
     })
 
     mockDygraph = {
       yAxisRange: jest.fn(() => [0, 100]),
-      getArea: jest.fn(() => ({ h: 300 }))
+      getArea: jest.fn(() => ({ h: 300 })),
     }
   })
 
@@ -37,7 +37,7 @@ describe("heatmapTicker", () => {
     // withoutPrefix should remove the prefix from labels
     const dataTicks = ticks.filter(tick => tick.v !== undefined)
     expect(dataTicks.length).toBe(defaultLabels.length)
-    
+
     // Verify ticks have been generated with labels
     const labeledTicks = ticks.filter(tick => tick.label !== null && tick.label !== undefined)
     expect(labeledTicks.length).toBeGreaterThan(0)
@@ -46,9 +46,11 @@ describe("heatmapTicker", () => {
   it("calculates maximum ticks based on pixels and pixelsPerLabel", () => {
     const defaultLabels = Array.from({ length: 20 }, (_, i) => `label${i}`)
     const pixels = 300
-    
-    const ticks = heatmapTicker(0, 100, pixels, mockOpts, mockDygraph, null, { labels: defaultLabels })
-    
+
+    const ticks = heatmapTicker(0, 100, pixels, mockOpts, mockDygraph, null, {
+      labels: defaultLabels,
+    })
+
     // Should limit number of visible labels based on available pixels
     const visibleTicks = ticks.filter(tick => tick.label && tick.label !== null)
     expect(visibleTicks.length).toBeLessThanOrEqual(Math.floor(pixels / 50))
@@ -56,8 +58,8 @@ describe("heatmapTicker", () => {
 
   it("formats labels using axisLabelFormatter", () => {
     const defaultLabels = ["label1", "label2"]
-    const mockFormatter = jest.fn((value) => `formatted_${value}`)
-    mockOpts.mockImplementation((key) => {
+    const mockFormatter = jest.fn(value => `formatted_${value}`)
+    mockOpts.mockImplementation(key => {
       if (key === "axisLabelFormatter") return mockFormatter
       if (key === "pixelsPerLabel") return 50
     })
@@ -70,9 +72,11 @@ describe("heatmapTicker", () => {
   it("calculates hidden step to reduce label density", () => {
     const defaultLabels = Array.from({ length: 10 }, (_, i) => `label${i}`)
     const pixels = 100 // Small pixel count to force hiding
-    
-    const ticks = heatmapTicker(0, 100, pixels, mockOpts, mockDygraph, null, { labels: defaultLabels })
-    
+
+    const ticks = heatmapTicker(0, 100, pixels, mockOpts, mockDygraph, null, {
+      labels: defaultLabels,
+    })
+
     // Check that some labels are hidden (set to null)
     const middleTicks = ticks.slice(1, -1) // Exclude first and last which have label_v
     const hiddenTicks = middleTicks.filter(tick => tick.label === null)
@@ -87,7 +91,7 @@ describe("heatmapTicker", () => {
     expect(ticks[0]).toHaveProperty("label_v")
     expect(typeof ticks[0].label_v).toBe("number")
 
-    // Last tick should have label_v for bottom boundary  
+    // Last tick should have label_v for bottom boundary
     expect(ticks[ticks.length - 1]).toHaveProperty("label_v")
     expect(typeof ticks[ticks.length - 1].label_v).toBe("number")
   })
@@ -95,7 +99,7 @@ describe("heatmapTicker", () => {
   it("calculates point height based on y-axis range and area", () => {
     mockDygraph.yAxisRange.mockReturnValue([10, 90])
     mockDygraph.getArea.mockReturnValue({ h: 150 })
-    
+
     const defaultLabels = ["label1"]
     const ticks = heatmapTicker(0, 100, 200, mockOpts, mockDygraph, null, { labels: defaultLabels })
 

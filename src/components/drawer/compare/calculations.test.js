@@ -7,13 +7,13 @@ describe("calculations", () => {
         data: [
           [1, 10, 20],
           [2, 30, 40],
-          [3, 50, 60]
+          [3, 50, 60],
         ],
-        dimensions: ["cpu", "memory"]
+        dimensions: ["cpu", "memory"],
       }
-      
+
       const result = calculateStats(payload)
-      
+
       expect(result).toEqual({
         min: 10,
         avg: 35,
@@ -30,24 +30,24 @@ describe("calculations", () => {
         p95: 57.5,
         range: 50,
         count: 6,
-        volume: 210
+        volume: 210,
       })
     })
 
     it("filters data by highlight range", () => {
       const payload = {
         data: [
-          [1000000, 10, 20],  // 1000 seconds in ms
-          [2000000, 30, 40],  // 2000 seconds in ms
-          [3000000, 50, 60],  // 3000 seconds in ms
-          [4000000, 70, 80]   // 4000 seconds in ms
+          [1000000, 10, 20], // 1000 seconds in ms
+          [2000000, 30, 40], // 2000 seconds in ms
+          [3000000, 50, 60], // 3000 seconds in ms
+          [4000000, 70, 80], // 4000 seconds in ms
         ],
-        dimensions: ["cpu", "memory"]
+        dimensions: ["cpu", "memory"],
       }
-      
+
       // Highlight range in seconds (1500-3500), will be converted to ms internally
       const result = calculateStats(payload, [1500, 3500])
-      
+
       expect(result).toEqual({
         min: 30,
         avg: 45,
@@ -64,7 +64,7 @@ describe("calculations", () => {
         p95: 58.5,
         range: 30,
         count: 4,
-        volume: 180
+        volume: 180,
       })
     })
 
@@ -72,13 +72,13 @@ describe("calculations", () => {
       const payload = {
         data: [
           [1000, 10, 20],
-          [2000, 30, 40]
+          [2000, 30, 40],
         ],
-        dimensions: ["cpu", "memory"]
+        dimensions: ["cpu", "memory"],
       }
-      
+
       const result = calculateStats(payload, [5000, 6000])
-      
+
       expect(result).toBeNull()
     })
 
@@ -87,13 +87,13 @@ describe("calculations", () => {
         data: [
           [1, null, 20],
           [2, NaN, 40],
-          [3, Infinity, 60]
+          [3, Infinity, 60],
         ],
-        dimensions: ["cpu"]
+        dimensions: ["cpu"],
       }
-      
+
       const result = calculateStats(payload)
-      
+
       expect(result).toEqual({
         min: 20,
         avg: 40,
@@ -110,7 +110,7 @@ describe("calculations", () => {
         p95: 58,
         range: 40,
         count: 3,
-        volume: 120
+        volume: 120,
       })
     })
 
@@ -125,21 +125,21 @@ describe("calculations", () => {
   describe("calculatePercentageChange", () => {
     it("calculates positive percentage change", () => {
       const result = calculatePercentageChange(120, 100)
-      
+
       expect(result).toEqual({
         value: 20,
         direction: "up",
-        formatted: "20.0%"
+        formatted: "20.0%",
       })
     })
 
     it("calculates negative percentage change", () => {
       const result = calculatePercentageChange(80, 100)
-      
+
       expect(result).toEqual({
         value: 20,
         direction: "down",
-        formatted: "20.0%"
+        formatted: "20.0%",
       })
     })
 
@@ -147,9 +147,9 @@ describe("calculations", () => {
       expect(calculatePercentageChange(0, 100)).toEqual({
         value: 100,
         direction: "down",
-        formatted: "100.0%"
+        formatted: "100.0%",
       })
-      
+
       expect(calculatePercentageChange(100, 0)).toBeNull()
       expect(calculatePercentageChange(null, 100)).toBeNull()
       expect(calculatePercentageChange(100, null)).toBeNull()
@@ -162,41 +162,39 @@ describe("calculations", () => {
       {
         id: "selected",
         isBase: true,
-        stats: { min: 10, avg: 30, max: 50, points: 100, dimensions: 2 }
+        stats: { min: 10, avg: 30, max: 50, points: 100, dimensions: 2 },
       },
       {
         id: "24h",
-        stats: { min: 8, avg: 36, max: 60, points: 90, dimensions: 2 }
+        stats: { min: 8, avg: 36, max: 60, points: 90, dimensions: 2 },
       },
       {
         id: "7d",
-        stats: { min: 12, avg: 24, max: 40, points: 110, dimensions: 2 }
-      }
+        stats: { min: 12, avg: 24, max: 40, points: 110, dimensions: 2 },
+      },
     ]
 
     it("calculates comparisons correctly", () => {
       const result = calculateComparisons(mockPeriods)
-      
+
       expect(result[0]).toEqual(mockPeriods[0])
-      
+
       expect(result[1].changes.min).toEqual({
         value: 20,
         direction: "down",
-        formatted: "20.0%"
+        formatted: "20.0%",
       })
-      
+
       expect(result[1].changes.avg).toEqual({
         value: 20,
         direction: "up",
-        formatted: "20.0%"
+        formatted: "20.0%",
       })
     })
 
     it("handles missing base period", () => {
-      const periodsWithoutBase = [
-        { id: "24h", stats: { min: 10, avg: 20, max: 30 } }
-      ]
-      
+      const periodsWithoutBase = [{ id: "24h", stats: { min: 10, avg: 20, max: 30 } }]
+
       const result = calculateComparisons(periodsWithoutBase)
       expect(result).toEqual(periodsWithoutBase)
     })

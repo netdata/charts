@@ -4,7 +4,7 @@ import makeLog from "@/sdk/makeLog"
 export default (chart, selected) => {
   const controllers = chart.controllers || {}
   const { baseUpdateGroupBy } = controllers
-  
+
   if (!baseUpdateGroupBy) {
     console.error("baseUpdateGroupBy not available")
     return
@@ -17,7 +17,7 @@ export default (chart, selected) => {
     groupByLabelKey: "drilldown.groupByLabel",
     fallbackGroupBy: ["node", "instance", "dimension"],
     dataKey: "drilldown.data",
-    loadingKey: "drilldown.loading"
+    loadingKey: "drilldown.loading",
   })
   if (!changed) return
 

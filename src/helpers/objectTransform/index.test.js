@@ -4,7 +4,7 @@ import {
   underscoreToCamel,
   objectTransformator,
   underscoredKeys,
-  camelizeKeys
+  camelizeKeys,
 } from "."
 
 describe("objectTransform helpers", () => {
@@ -57,10 +57,10 @@ describe("objectTransform helpers", () => {
 
     it("transforms arrays", () => {
       const data = [1, 2, 3]
-      const result = objectTransformator(data, { 
-        func: mockFunc, 
-        action: mockAction, 
-        omit: [] 
+      const result = objectTransformator(data, {
+        func: mockFunc,
+        action: mockAction,
+        omit: [],
       })
 
       expect(result).toEqual([1, 2, 3])
@@ -69,10 +69,10 @@ describe("objectTransform helpers", () => {
 
     it("transforms objects", () => {
       const data = { a: 1, b: 2 }
-      const result = objectTransformator(data, { 
-        func: mockFunc, 
-        action: mockAction, 
-        omit: [] 
+      const result = objectTransformator(data, {
+        func: mockFunc,
+        action: mockAction,
+        omit: [],
       })
 
       expect(mockFunc).toHaveBeenCalledTimes(2)
@@ -82,10 +82,10 @@ describe("objectTransform helpers", () => {
 
     it("omits specified keys", () => {
       const data = { a: 1, b: 2, c: 3 }
-      const result = objectTransformator(data, { 
-        func: mockFunc, 
-        action: mockAction, 
-        omit: ["b"] 
+      const result = objectTransformator(data, {
+        func: mockFunc,
+        action: mockAction,
+        omit: ["b"],
       })
 
       expect(mockFunc).toHaveBeenCalledTimes(2) // a and c only
@@ -108,15 +108,15 @@ describe("objectTransform helpers", () => {
     })
 
     it("handles nested objects", () => {
-      const data = { 
-        firstName: "John", 
-        contactInfo: { phoneNumber: "123-456-7890" } 
+      const data = {
+        firstName: "John",
+        contactInfo: { phoneNumber: "123-456-7890" },
       }
       const result = underscoredKeys(data)
 
-      expect(result).toEqual({ 
-        first_name: "John", 
-        contact_info: { phone_number: "123-456-7890" } 
+      expect(result).toEqual({
+        first_name: "John",
+        contact_info: { phone_number: "123-456-7890" },
       })
     })
 
@@ -124,10 +124,10 @@ describe("objectTransform helpers", () => {
       const data = { firstName: "John", lastName: "Doe", specialKey: "value" }
       const result = underscoredKeys(data, { omit: ["specialKey"] })
 
-      expect(result).toEqual({ 
-        first_name: "John", 
-        last_name: "Doe", 
-        specialKey: "value" 
+      expect(result).toEqual({
+        first_name: "John",
+        last_name: "Doe",
+        specialKey: "value",
       })
     })
   })
@@ -141,15 +141,15 @@ describe("objectTransform helpers", () => {
     })
 
     it("handles nested objects", () => {
-      const data = { 
-        first_name: "John", 
-        contact_info: { phone_number: "123-456-7890" } 
+      const data = {
+        first_name: "John",
+        contact_info: { phone_number: "123-456-7890" },
       }
       const result = camelizeKeys(data)
 
-      expect(result).toEqual({ 
-        firstName: "John", 
-        contactInfo: { phoneNumber: "123-456-7890" } 
+      expect(result).toEqual({
+        firstName: "John",
+        contactInfo: { phoneNumber: "123-456-7890" },
       })
     })
 
@@ -157,10 +157,10 @@ describe("objectTransform helpers", () => {
       const data = { first_name: "John", last_name: "Doe", special_key: "value" }
       const result = camelizeKeys(data, { omit: ["special_key"] })
 
-      expect(result).toEqual({ 
-        firstName: "John", 
-        lastName: "Doe", 
-        special_key: "value" 
+      expect(result).toEqual({
+        firstName: "John",
+        lastName: "Doe",
+        special_key: "value",
       })
     })
   })
