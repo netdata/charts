@@ -26,9 +26,10 @@ export default (chart, sdk) => {
   }
 
   const withSortByNameFallback =
-    (cb = noop) =>
+    (cb = noop, fallbackCb = noop) =>
     (a, b) =>
       cb(a, b) ||
+      fallbackCb(a, b) ||
       chart.getDimensionName(a).localeCompare(chart.getDimensionName(b), undefined, {
         sensitivity: "accent",
         ignorePunctuation: true,
@@ -72,7 +73,8 @@ export default (chart, sdk) => {
         withSortByNameFallback(
           (a, b) =>
             chart.getDimensionValue(b, x, { valueKey: "arp" }) -
-            chart.getDimensionValue(a, x, { valueKey: "arp" })
+            chart.getDimensionValue(a, x, { valueKey: "arp" }),
+          (a, b) => chart.getDimensionValue(b, x) - chart.getDimensionValue(a, x)
         )
       )
     },
@@ -84,7 +86,8 @@ export default (chart, sdk) => {
         withSortByNameFallback(
           (a, b) =>
             chart.getDimensionValue(a, x, { valueKey: "arp" }) -
-            chart.getDimensionValue(b, x, { valueKey: "arp" })
+            chart.getDimensionValue(b, x, { valueKey: "arp" }),
+          (a, b) => chart.getDimensionValue(a, x) - chart.getDimensionValue(b, x)
         )
       )
     },
@@ -96,7 +99,8 @@ export default (chart, sdk) => {
         withSortByNameFallback(
           (a, b) =>
             chart.getDimensionValue(b, x, { valueKey: "pa" }) -
-            chart.getDimensionValue(a, x, { valueKey: "pa" })
+            chart.getDimensionValue(a, x, { valueKey: "pa" }),
+          (a, b) => chart.getDimensionValue(b, x) - chart.getDimensionValue(a, x)
         )
       )
     },
@@ -108,7 +112,8 @@ export default (chart, sdk) => {
         withSortByNameFallback(
           (a, b) =>
             chart.getDimensionValue(a, x, { valueKey: "pa" }) -
-            chart.getDimensionValue(b, x, { valueKey: "pa" })
+            chart.getDimensionValue(b, x, { valueKey: "pa" }),
+          (a, b) => chart.getDimensionValue(a, x) - chart.getDimensionValue(b, x)
         )
       )
     },
