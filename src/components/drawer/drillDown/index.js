@@ -29,13 +29,13 @@ const meta = (row, cell, index) => ({
 
 const DrillDown = () => {
   const chart = useChart()
-  const { hierarchicalData, loading, error } = useDrilldownData()
+  const { hierarchicalData, loading, error, groupedBy } = useDrilldownData()
   const groupBy = useAttributeValue("drilldown.groupBy", ["node", "instance", "dimension"])
   const expanded = useAttributeValue("drilldown.expanded", {})
   const sortBy = useAttributeValue("drilldown.sortBy", [])
 
   const columns = [
-    labelColumn(groupBy),
+    labelColumn(groupedBy),
     contributionColumn(),
     anomalyRateColumn(),
     minColumn(),

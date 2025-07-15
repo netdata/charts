@@ -41,7 +41,7 @@ const emptyArray = []
 
 export const labelColumn = (chart, fallbackExpandKey) => ({
   id: "label",
-  header: () => <TextSmall strong>Name</TextSmall>,
+  header: <TextSmall strong>Name</TextSmall>,
   size: 200,
   minSize: 60,
   renderString: row => chart.getDimensionName(row.original),
@@ -124,9 +124,7 @@ export const valueColumn = chart => ({
       fractionDigits: 2,
       dimensionId: row.original,
     }),
-  cell: ({
-    row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
-  }) => {
+  cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
 
     const chart = useChart()
@@ -168,9 +166,7 @@ export const anomalyColumn = (chart, { period, objKey }) => ({
       }),
       { valueKey: "arp", fractionDigits: 2, dimensionId: row.original }
     ),
-  cell: ({
-    row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
-  }) => {
+  cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
 
     return (
@@ -213,9 +209,7 @@ export const minColumn = (chart, { period, objKey }) => ({
       }),
       { valueKey: "min", fractionDigits: 2, dimensionId: row.original }
     ),
-  cell: ({
-    row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
-  }) => {
+  cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
 
     return (
@@ -257,9 +251,7 @@ export const avgColumn = (chart, { period, objKey }) => ({
       }),
       { valueKey: "avg", fractionDigits: 2, dimensionId: row.original }
     ),
-  cell: ({
-    row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
-  }) => {
+  cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
 
     return (
@@ -301,9 +293,7 @@ export const maxColumn = (chart, { period, objKey }) => ({
       }),
       { valueKey: "max", fractionDigits: 2, dimensionId: row.original }
     ),
-  cell: ({
-    row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
-  }) => {
+  cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
 
     return (
@@ -331,7 +321,7 @@ export const medianColumn = (chart, { period, objKey }) => ({
     </Flex>
   ),
   headerString: () => `Median (${chart.getUnitSign({ key: "units" })})`,
-  size: 70,
+  size: 60,
   minSize: 60,
   renderString: row =>
     convert(
@@ -344,9 +334,7 @@ export const medianColumn = (chart, { period, objKey }) => ({
       }),
       { valueKey: "median", fractionDigits: 2, dimensionId: row.original }
     ),
-  cell: ({
-    row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
-  }) => {
+  cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
 
     return (
@@ -374,7 +362,7 @@ export const stdDevColumn = (chart, { period, objKey }) => ({
     </Flex>
   ),
   headerString: () => `StdDev (${chart.getUnitSign({ key: "units" })})`,
-  size: 70,
+  size: 60,
   minSize: 60,
   renderString: row =>
     convert(
@@ -387,9 +375,7 @@ export const stdDevColumn = (chart, { period, objKey }) => ({
       }),
       { valueKey: "stddev", fractionDigits: 3, dimensionId: row.original }
     ),
-  cell: ({
-    row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
-  }) => {
+  cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
 
     return (
@@ -417,7 +403,7 @@ export const p95Column = (chart, { period, objKey }) => ({
     </Flex>
   ),
   headerString: () => `95th Percentile (${chart.getUnitSign({ key: "units" })})`,
-  size: 70,
+  size: 60,
   minSize: 60,
   renderString: row =>
     convert(
@@ -430,9 +416,7 @@ export const p95Column = (chart, { period, objKey }) => ({
       }),
       { valueKey: "p95", fractionDigits: 2, dimensionId: row.original }
     ),
-  cell: ({
-    row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
-  }) => {
+  cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
 
     return (
@@ -460,7 +444,7 @@ export const rangeColumn = (chart, { period, objKey }) => ({
     </Flex>
   ),
   headerString: () => `Range (${chart.getUnitSign({ key: "units" })})`,
-  size: 70,
+  size: 60,
   minSize: 60,
   renderString: row =>
     convert(
@@ -473,9 +457,7 @@ export const rangeColumn = (chart, { period, objKey }) => ({
       }),
       { valueKey: "range", fractionDigits: 2, dimensionId: row.original }
     ),
-  cell: ({
-    row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
-  }) => {
+  cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
 
     return (
@@ -496,7 +478,7 @@ export const rangeColumn = (chart, { period, objKey }) => ({
 
 export const countColumn = (chart, { period, objKey }) => ({
   id: objKey ? `${objKey}-count` : "count",
-  header: () => <TextMicro>Count</TextMicro>,
+  header: <TextMicro>Count</TextMicro>,
   headerString: () => "Data Points",
   size: 60,
   minSize: 50,
@@ -507,9 +489,7 @@ export const countColumn = (chart, { period, objKey }) => ({
       valueKey: "count",
       objKey,
     })?.toString() || "0",
-  cell: ({
-    row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
-  }) => {
+  cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
 
     return (
@@ -537,7 +517,7 @@ export const volumeColumn = (chart, { period, objKey }) => ({
     </Flex>
   ),
   headerString: () => `Volume (${chart.getUnitSign({ key: "units" })})`,
-  size: 70,
+  size: 60,
   minSize: 60,
   renderString: row =>
     convert(
@@ -550,9 +530,7 @@ export const volumeColumn = (chart, { period, objKey }) => ({
       }),
       { valueKey: "volume", fractionDigits: 1, dimensionId: row.original }
     ),
-  cell: ({
-    row: { original: id, depth = 0, getCanExpand, getToggleExpandedHandler, getIsExpanded },
-  }) => {
+  cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
 
     return (

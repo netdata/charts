@@ -68,8 +68,8 @@ describe("fetchAgentWeights", () => {
     expect(urlParams.get("group_by")).toBe("node|instance")
     expect(urlParams.get("group_by_label")).toBe("custom_label")
     expect(urlParams.get("aggregation")).toBe("avg")
-    expect(urlParams.get("after")).toBe("3000")
-    expect(urlParams.get("before")).toBe("4000")
+    expect(urlParams.get("after")).toBe("3")
+    expect(urlParams.get("before")).toBe("4")
   })
 
   it("handles empty groupByLabel correctly", async () => {

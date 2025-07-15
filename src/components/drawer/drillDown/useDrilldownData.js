@@ -11,12 +11,20 @@ export const useDrilldownData = () => {
   const groupBy = useAttributeValue("drilldown.groupBy", ["node", "instance", "dimension"])
   const groupByLabel = useAttributeValue("drilldown.groupByLabel", [])
   const drawerAction = useAttributeValue("drawer.action")
+  const drawerTab = useAttributeValue("drawer.tab")
+  const after = useAttributeValue("after")
+  const before = useAttributeValue("before")
+  const overlays = useAttributeValue("overlays")
 
-  const hierarchicalData = useMemo(() => {
-    if (!rawData?.result) return []
+  const { hierarchicalData, groupedBy } = useMemo(() => {
+    if (!rawData?.result) return { hierarchicalData: [], groupedBy: groupBy }
 
-    const flatData = transformWeightsData(rawData, groupBy)
-    return buildHierarchicalTree(flatData, groupBy)
+    const responseGroupBy = rawData.request?.aggregations?.metrics?.[0]?.group_by || groupBy
+    const groupedBy = [...responseGroupBy].reverse()
+    
+    const flatData = transformWeightsData(rawData, responseGroupBy)
+    const hierarchicalData = buildHierarchicalTree(flatData, groupedBy)
+    return { hierarchicalData, groupedBy }
   }, [rawData, groupBy])
 
   useEffect(() => {
@@ -32,7 +40,7 @@ export const useDrilldownData = () => {
     }
 
     fetchData()
-  }, [chart, drawerAction, groupBy, groupByLabel])
+  }, [chart, drawerAction, drawerTab, groupBy, groupByLabel, after, before, overlays?.highlight?.range])
 
-  return { hierarchicalData, loading, error }
+  return { hierarchicalData, loading, error, groupedBy }
 }

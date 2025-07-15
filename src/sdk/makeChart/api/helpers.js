@@ -42,6 +42,7 @@ export const getChartPayload = (chart, attrs = {}) => {
     chartType,
     pixelsPerPoint,
     chartLibrary,
+    points: customPoints,
   } = { ...chart.getAttributes(), ...attrs }
 
   const pointsMultiplier =
@@ -60,7 +61,8 @@ export const getChartPayload = (chart, attrs = {}) => {
           before: fetchOn,
         }
 
-  const points = Math.round((width / pixelsPerPoint) * pointsMultiplier)
+  const points = customPoints || Math.round((width / pixelsPerPoint) * pointsMultiplier)
+
   return {
     points: isNaN(points) ? 300 : points,
     format: "json2",

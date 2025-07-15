@@ -4,6 +4,8 @@ const wildcard = "*"
 
 const getPayload = (chart, attrs = {}) => {
   const chartAttributes = chart.getAttributes()
+  const { after, before, points, time_group, time_resampling } = getChartPayload(chart, attrs)
+
   const {
     selectedContexts,
     context,
@@ -17,6 +19,11 @@ const getPayload = (chart, attrs = {}) => {
     groupBy,
     groupByLabel,
     options = getChartURLOptions(chart),
+    method,
+    highlightAfter,
+    highlightBefore,
+    baselineAfter,
+    baselineBefore,
   } = { ...chartAttributes, ...attrs }
 
   return {
@@ -35,6 +42,14 @@ const getPayload = (chart, attrs = {}) => {
       groupByLabel.length && { group_by_label: groupByLabel.join("|") }),
     aggregation: aggregationMethod,
     ...getChartPayload(chart, attrs),
+    after: Math.floor((highlightAfter || after) / 1000),
+    before: Math.floor((highlightBefore || before) / 1000),
+    baseline_after: Math.floor((baselineAfter || after) / 1000),
+    baseline_before: Math.floor((baselineBefore || before) / 1000),
+    method: method || "ks2",
+    points,
+    time_group: time_group || "average",
+    time_resampling,
   }
 }
 

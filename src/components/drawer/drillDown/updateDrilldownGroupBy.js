@@ -2,8 +2,7 @@ import { fetchDrilldownData } from "./dataFetcher"
 import makeLog from "@/sdk/makeLog"
 
 export default (chart, selected) => {
-  const controllers = chart.controllers || {}
-  const { baseUpdateGroupBy } = controllers
+  const baseUpdateGroupBy = chart.baseUpdateGroupBy
 
   if (!baseUpdateGroupBy) {
     console.error("baseUpdateGroupBy not available")

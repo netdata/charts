@@ -7,6 +7,7 @@ export const transformWeightsData = (weightsResponse, groupByOrder) => {
     const { id, nm, v } = item
 
     const groupedValues = id.split(",")
+    const groupedNames = nm.split(",")
     const weightStats = v[0] || []
     const timeframeStats = v[1] || []
 
@@ -14,12 +15,18 @@ export const transformWeightsData = (weightsResponse, groupByOrder) => {
       acc[field] = groupedValues[index] || ""
       return acc
     }, {})
+    
+    const groupedByNames = groupByOrder.reduce((acc, field, index) => {
+      acc[field] = groupedNames[index] || groupedValues[index] || ""
+      return acc
+    }, {})
 
     return {
       id,
       nm,
-      label: groupedByFields[groupByOrder[0]] || nm,
+      label: groupedByNames[groupByOrder[0]] || nm,
       groupedBy: groupedByFields,
+      groupedByNames,
       weight: {
         min: weightStats[0],
         avg: weightStats[1],
@@ -47,17 +54,18 @@ export const buildHierarchicalTree = (flatData, groupByOrder) => {
   if (!groupByOrder?.length) return flatData
 
   const itemsByLevel = flatData.reduce((acc, item) => {
-    const { groupedBy } = item
+    const { groupedBy, groupedByNames } = item
 
     groupByOrder.reduce((parentKeys, field, level) => {
       const value = groupedBy[field]
+      const name = groupedByNames[field]
       const levelKey = [...parentKeys, value].join("|")
 
       if (!acc[levelKey]) {
         acc[levelKey] = {
           ...item,
           id: levelKey,
-          label: value,
+          label: name,
           level,
           parentId: level > 0 ? parentKeys.join("|") : null,
           children: [],
@@ -66,7 +74,7 @@ export const buildHierarchicalTree = (flatData, groupByOrder) => {
       }
 
       if (level === groupByOrder.length - 1) {
-        acc[levelKey] = { ...item, level, parentId: parentKeys.join("|"), isGroupNode: false }
+        acc[levelKey] = { ...item, label: name, level, parentId: parentKeys.join("|"), isGroupNode: false }
       }
 
       return [...parentKeys, value]

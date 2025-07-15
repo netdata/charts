@@ -4,7 +4,7 @@ const wildcardArray = ["*"]
 
 const getPayload = (chart, attrs = {}) => {
   const chartAttributes = chart.getAttributes()
-  const extraAttributes = getChartPayload(chart, attrs)
+  const { after, before, points, time_group, time_resampling } = getChartPayload(chart, attrs)
 
   const {
     selectedContexts,
@@ -19,11 +19,6 @@ const getPayload = (chart, attrs = {}) => {
     groupBy,
     groupByLabel,
     options = getChartURLOptions(chart),
-    after = extraAttributes.after,
-    before = extraAttributes.before,
-    points = extraAttributes.points,
-    time_group = extraAttributes.time_group,
-    time_resampling = extraAttributes.time_resampling,
     method,
     highlightAfter,
     highlightBefore,
@@ -70,8 +65,8 @@ const getPayload = (chart, attrs = {}) => {
       before: Math.floor((highlightBefore || before) / 1000),
       points,
       baseline: {
-        after: Math.floor(after / 1000),
-        before: Math.floor(before / 1000),
+        after: Math.floor((baselineAfter || after) / 1000),
+        before: Math.floor((baselineBefore || before) / 1000),
       },
     },
     scope: {

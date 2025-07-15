@@ -89,6 +89,7 @@ const Dimensions = () => {
   const tab = useAttributeValue("drawer.tab")
   const period = tab === "selectedArea" ? "highlight" : "window"
   const columns = useColumns(period)
+
   const showAdvancedStats = useAttributeValue("drawer.showAdvancedStats", false)
 
   const chart = useChart()
