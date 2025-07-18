@@ -1,6 +1,13 @@
 import React from "react"
 import { Flex } from "@netdata/netdata-ui"
 import Line from "@/components/line"
+import GaugeComponent from "@/components/gauge"
+import EasyPieComponent from "@/components/easyPie"
+import NumberComponent from "@/components/number"
+import D3pieComponent from "@/components/d3pie"
+import BarsComponent from "@/components/bars"
+import GroupBoxes from "@/components/groupBoxes"
+import Table from "@/components/table"
 import HeadlessChart from "@/components/headlessChart"
 import makeDefaultSDK from "./makeDefaultSDK"
 
@@ -180,7 +187,7 @@ export const Chart = ({ contextScope, selectedContexts, host, theme }) => {
         <BarsComponent chart={chart10} height="100px" width="100px" />
       </Flex>*/}
       <Line chart={chart} height="600px" width="100%" />
-      {/*<Table chart={chart7} height="315px" width="100%" />*/}
+      <Table chart={chart7} height="315px" width="100%" />
       {/*<GroupBoxes chart={chart4} />*/}
     </Flex>
   )
