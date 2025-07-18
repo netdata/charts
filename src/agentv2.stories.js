@@ -1,23 +1,16 @@
 import React from "react"
 import { Flex } from "@netdata/netdata-ui"
 import Line from "@/components/line"
-import GaugeComponent from "@/components/gauge"
-import EasyPieComponent from "@/components/easyPie"
-import NumberComponent from "@/components/number"
-import D3pieComponent from "@/components/d3pie"
-import BarsComponent from "@/components/bars"
-import GroupBoxes from "@/components/groupBoxes"
-import Table from "@/components/table"
+import HeadlessChart from "@/components/headlessChart"
 import makeDefaultSDK from "./makeDefaultSDK"
 
-export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleDimension }) => {
+export const Chart = ({ contextScope, selectedContexts, host, theme }) => {
   const sdk = makeDefaultSDK({ attributes: { theme, containerWidth: 1000 } })
   const chart = sdk.makeChart({
     attributes: {
       id: "control",
-      selectedContexts: [contexts],
-      nodesScope: [nodesScope],
-      contextScope: ["system.load"],
+      selectedContexts,
+      contextScope,
       host: host,
       aggregationMethod: "sum",
       agent: true,
@@ -31,8 +24,7 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
   const chart7 = sdk.makeChart({
     attributes: {
       id: "control",
-      selectedContexts: [contexts],
-      nodesScope: [nodesScope],
+      selectedContexts,
       contextScope: ["disk.io", "disk.ops", "disk.await", "disk.util"],
       host: host,
       aggregationMethod: "avg",
@@ -54,9 +46,8 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
 
   const chart2 = sdk.makeChart({
     attributes: {
-      selectedContexts: [contexts],
-      nodesScope: [nodesScope],
-      contextScope: [contextScope],
+      selectedContexts,
+      contextScope,
       selectedDimensions: ["in"],
       host: host,
       agent: true,
@@ -72,9 +63,8 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
 
   const chart3 = sdk.makeChart({
     attributes: {
-      selectedContexts: [contexts],
-      nodesScope: [nodesScope],
-      contextScope: [contextScope],
+      selectedContexts,
+      contextScope,
       selectedDimensions: ["out"],
       host: host,
       agent: true,
@@ -89,9 +79,8 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
 
   const chart4 = sdk.makeChart({
     attributes: {
-      selectedContexts: [contexts],
-      nodesScope: [nodesScope],
-      contextScope: [contextScope],
+      selectedContexts,
+      contextScope,
       host: host,
       agent: true,
       chartLibrary: "groupBoxes",
@@ -103,9 +92,8 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
 
   const chart5 = sdk.makeChart({
     attributes: {
-      selectedContexts: [contexts],
-      nodesScope: [nodesScope],
-      contextScope: [contextScope],
+      selectedContexts,
+      contextScope,
       host: host,
       agent: true,
       chartLibrary: "number",
@@ -118,9 +106,8 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
 
   const chart6 = sdk.makeChart({
     attributes: {
-      selectedContexts: [contexts],
-      nodesScope: [nodesScope],
-      contextScope: [contextScope],
+      selectedContexts,
+      contextScope,
       host: host,
       aggregationMethod: "avg",
       agent: true,
@@ -135,9 +122,8 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
 
   const chart8 = sdk.makeChart({
     attributes: {
-      selectedContexts: [contexts],
-      nodesScope: [nodesScope],
-      contextScope: [contextScope],
+      selectedContexts,
+      contextScope,
       host: host,
       aggregationMethod: "avg",
       agent: true,
@@ -152,9 +138,8 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
 
   const chart9 = sdk.makeChart({
     attributes: {
-      selectedContexts: [contexts],
-      nodesScope: [nodesScope],
-      contextScope: [contextScope],
+      selectedContexts,
+      contextScope,
       host: host,
       aggregationMethod: "avg",
       agent: true,
@@ -169,9 +154,8 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
 
   const chart10 = sdk.makeChart({
     attributes: {
-      selectedContexts: [contexts],
-      nodesScope: [nodesScope],
-      contextScope: [contextScope],
+      selectedContexts,
+      contextScope,
       host: host,
       agent: true,
       chartLibrary: "bars",
@@ -202,15 +186,120 @@ export const Chart = ({ nodesScope, contextScope, contexts, host, theme, singleD
   )
 }
 
+export const HeadlessChartExample = ({
+  nodesScope,
+  contextScope,
+  selectedContexts,
+  host,
+  theme,
+}) => {
+  const sdk = makeDefaultSDK({ attributes: { theme, containerWidth: 1000 } })
+
+  const chart = sdk.makeChart({
+    attributes: {
+      id: "control",
+      selectedContexts,
+      contextScope,
+      host: host,
+      aggregationMethod: "sum",
+      agent: true,
+      syncHover: true,
+      groupingMethod: "average",
+    },
+  })
+
+  sdk.appendChild(chart)
+
+  return (
+    <Flex background="mainBackground" column gap={2} padding={[3]} overflow="auto" height="100%">
+      <Line chart={chart} height="600px" width="100%" />
+      <HeadlessChart
+        sdk={sdk}
+        contextScope={[contextScope]}
+        nodesScope={[nodesScope]}
+        host={host}
+        agent={true}
+        syncHover={true}
+        aggregationMethod="avg"
+        groupingMethod="average"
+      >
+        {({ data, state, helpers, currentRow }) => (
+          <Flex column gap={2}>
+            <h3>HeadlessChart Example</h3>
+
+            {state.loading && <div>Loading chart data...</div>}
+            {state.empty && <div>No data available</div>}
+
+            {data && data.length > 0 && (
+              <Flex column gap={1}>
+                <div>
+                  <strong>Latest Data Point ({data.length} total points):</strong>
+                </div>
+                <div>{helpers.formatTime(data[data.length - 1][0])}</div>
+                <Flex gap={2}>
+                  {helpers.getVisibleDimensionIds().map(dimensionId => {
+                    const value = helpers.getDimensionValue(dimensionId, data.length - 1)
+                    const color = helpers.selectDimensionColor(dimensionId)
+
+                    return (
+                      <Flex key={dimensionId} alignItems="center" gap={1}>
+                        <div
+                          style={{
+                            width: 8,
+                            height: 8,
+                            backgroundColor: color,
+                            borderRadius: 2,
+                          }}
+                        />
+                        <span>
+                          {dimensionId}: {value}
+                        </span>
+                      </Flex>
+                    )
+                  })}
+                </Flex>
+
+                <div>
+                  <strong>Hovered Data Point:</strong>
+                </div>
+                <div>{currentRow.formattedTime}</div>
+                <Flex gap={2}>
+                  {currentRow.dimensions.map(dim => {
+                    return (
+                      <Flex key={dim.id} alignItems="center" gap={1}>
+                        <div
+                          style={{
+                            width: 8,
+                            height: 8,
+                            backgroundColor: dim.color,
+                            borderRadius: 2,
+                          }}
+                        />
+                        <span>
+                          {dim.id}: {dim.convertedValue}
+                        </span>
+                      </Flex>
+                    )
+                  })}
+                </Flex>
+              </Flex>
+            )}
+          </Flex>
+        )}
+      </HeadlessChart>
+    </Flex>
+  )
+}
+
 export default {
   title: "Agent V2",
   component: Chart,
   tags: ["autodocs"],
   args: {
-    nodesScope: "*",
-    contextScope: "system.load",
-    contexts: "*",
-    singleDimension: "*",
+    nodesScope: [],
+    contextScope: ["system.load"],
+    selectedContexts: [],
+    selectedDimensions: [],
     theme: "default",
     host: "http://10.10.11.51:19999/api/v3",
   },
@@ -218,18 +307,18 @@ export default {
     host: {
       control: { type: "text" },
     },
-    nodesScope: {
-      control: { type: "text" },
-    },
     contextScope: {
-      control: { type: "text" },
+      control: { type: "multi-select" },
+      options: ["system.load"],
     },
-    contexts: {
-      control: { type: "text" },
+    selectedContexts: {
+      control: { type: "multi-select" },
+      options: ["system.load"],
     },
-    // singleDimension: {
-    //   control: { type: "text" },
-    // },
+    selectedDimensions: {
+      control: { type: "multi-select" },
+      options: ["in", "out"],
+    },
     theme: {
       control: { type: "select" },
       options: ["default", "dark"],
