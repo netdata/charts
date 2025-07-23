@@ -1,7 +1,7 @@
 import React from "react"
 import { screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
-import { renderWithChart, makeTestChart } from "@jest/testUtilities"
+import { renderWithChart } from "@jest/testUtilities"
 import Download from "./download"
 
 describe("Download component", () => {
@@ -29,7 +29,7 @@ describe("Download component", () => {
   })
 
   it("triggers CSV raw download when option is clicked", async () => {
-    const { chart } = makeTestChart({
+    const { user, chart } = renderWithChart(<Download />, {
       attributes: {
         name: "Test Chart",
       },
@@ -43,8 +43,6 @@ describe("Download component", () => {
       labels: ["time", "value"],
     }
 
-    const { user } = renderWithChart(<Download />, { testChartOptions: { chart } })
-
     const button = screen.getByTestId("chartHeaderToolbox-download")
     await user.click(button)
 
@@ -53,7 +51,7 @@ describe("Download component", () => {
   })
 
   it("triggers CSV converted download with formatted values", async () => {
-    const { chart } = makeTestChart({
+    const { user, chart } = renderWithChart(<Download />, {
       attributes: {
         name: "Test Chart",
         units: ["%", "%"],
@@ -68,8 +66,6 @@ describe("Download component", () => {
       labels: ["time", "cpu"],
     }
 
-    const { user } = renderWithChart(<Download />, { testChartOptions: { chart } })
-
     const button = screen.getByTestId("chartHeaderToolbox-download")
     await user.click(button)
 
@@ -78,9 +74,7 @@ describe("Download component", () => {
   })
 
   it("triggers PNG download when option is clicked", async () => {
-    const { chart } = makeTestChart()
-
-    const { user } = renderWithChart(<Download />, { testChartOptions: { chart } })
+    const { user } = renderWithChart(<Download />)
 
     const button = screen.getByTestId("chartHeaderToolbox-download")
     await user.click(button)
@@ -90,9 +84,7 @@ describe("Download component", () => {
   })
 
   it("triggers PDF download when option is clicked", async () => {
-    const { chart } = makeTestChart()
-
-    const { user } = renderWithChart(<Download />, { testChartOptions: { chart } })
+    const { user } = renderWithChart(<Download />)
 
     const button = screen.getByTestId("chartHeaderToolbox-download")
     await user.click(button)
@@ -109,13 +101,11 @@ describe("Download component", () => {
   })
 
   it("handles empty chart data gracefully", async () => {
-    const { chart } = makeTestChart()
+    const { user, chart } = renderWithChart(<Download />)
     chart.payload = {
       data: [],
       labels: [],
     }
-
-    const { user } = renderWithChart(<Download />, { testChartOptions: { chart } })
 
     const button = screen.getByTestId("chartHeaderToolbox-download")
     await user.click(button)
@@ -124,7 +114,7 @@ describe("Download component", () => {
   })
 
   it("generates filename with timestamp", async () => {
-    const { chart } = makeTestChart({
+    const { user, chart } = renderWithChart(<Download />, {
       attributes: {
         name: "My Chart",
       },
@@ -135,8 +125,6 @@ describe("Download component", () => {
       labels: ["time", "value"],
     }
 
-    const { user } = renderWithChart(<Download />, { testChartOptions: { chart } })
-
     const button = screen.getByTestId("chartHeaderToolbox-download")
     await user.click(button)
 
@@ -145,14 +133,12 @@ describe("Download component", () => {
   })
 
   it("handles heatmap chart type", async () => {
-    const { chart } = makeTestChart({
+    const { user } = renderWithChart(<Download />, {
       attributes: {
         chartType: "heatmap",
         dimensionIds: ["dim1", "dim2"],
       },
     })
-
-    const { user } = renderWithChart(<Download />, { testChartOptions: { chart } })
 
     const button = screen.getByTestId("chartHeaderToolbox-download")
     await user.click(button)

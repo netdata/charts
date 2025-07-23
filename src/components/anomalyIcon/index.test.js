@@ -1,7 +1,6 @@
 import React from "react"
-import { screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
-import { renderWithChart, makeTestChart } from "@jest/testUtilities"
+import { renderWithChart } from "@jest/testUtilities"
 import AnomalyIcon from "./index"
 
 describe("AnomalyIcon", () => {
@@ -29,14 +28,12 @@ describe("AnomalyIcon", () => {
   })
 
   it("applies loading color to icon", () => {
-    const { chart } = makeTestChart({
+    const { container } = renderWithChart(<AnomalyIcon />, {
       attributes: {
         loading: true,
         fetchStartedAt: Date.now(),
       },
     })
-
-    const { container } = renderWithChart(<AnomalyIcon />, { testChartOptions: { chart } })
 
     const icon = container.querySelector("svg")
     // Default loading color is themeNeutralBackground

@@ -6,13 +6,11 @@ import Fullscreen from "./fullscreen"
 
 describe("Fullscreen component", () => {
   it("renders fullscreen button when not in fullscreen mode", () => {
-    const { chart } = makeTestChart({
+    renderWithChart(<Fullscreen />, {
       attributes: {
         fullscreen: false,
       },
     })
-
-    renderWithChart(<Fullscreen />, { testChartOptions: { chart } })
 
     const button = screen.getByRole("button")
     expect(button).toBeInTheDocument()
@@ -20,13 +18,11 @@ describe("Fullscreen component", () => {
   })
 
   it("renders minimize button when in fullscreen mode", () => {
-    const { chart } = makeTestChart({
+    renderWithChart(<Fullscreen />, {
       attributes: {
         fullscreen: true,
       },
     })
-
-    renderWithChart(<Fullscreen />, { testChartOptions: { chart } })
 
     const button = screen.getByRole("button")
     expect(button).toBeInTheDocument()
@@ -41,7 +37,7 @@ describe("Fullscreen component", () => {
 
     const spy = jest.spyOn(chart, "toggleFullscreen")
 
-    renderWithChart(<Fullscreen />, { testChartOptions: { chart } })
+    renderWithChart(<Fullscreen />, { chart })
 
     const button = screen.getByRole("button")
     fireEvent.click(button)
@@ -92,7 +88,7 @@ describe("Fullscreen component", () => {
 
     const spy = jest.spyOn(chart, "toggleFullscreen")
 
-    renderWithChart(<Fullscreen />, { testChartOptions: { chart } })
+    renderWithChart(<Fullscreen />, { chart })
 
     const button = screen.getByRole("button")
 
@@ -104,13 +100,11 @@ describe("Fullscreen component", () => {
   })
 
   it("has correct accessibility attributes", () => {
-    const { chart } = makeTestChart({
+    renderWithChart(<Fullscreen />, {
       attributes: {
         fullscreen: false,
       },
     })
-
-    renderWithChart(<Fullscreen />, { testChartOptions: { chart } })
 
     const button = screen.getByRole("button")
     expect(button).toHaveAttribute("data-testid", "chartHeaderToolbox-fullscreen")

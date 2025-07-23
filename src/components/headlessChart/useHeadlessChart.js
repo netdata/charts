@@ -82,19 +82,20 @@ export const useHeadlessChart = () => {
 
   const loading = useIsFetching()
   const empty = useEmpty()
+  const loaded = useAttributeValue("loaded")
+  const error = useAttributeValue("error")
   const showingInfo = useAttributeValue("showingInfo")
   const focused = useAttributeValue("focused")
-
   const state = useMemo(
     () => ({
       loading,
       empty,
-      loaded: chart.getAttribute("loaded"),
-      error: chart.getAttribute("error"),
+      loaded,
+      error,
       showingInfo,
       focused,
     }),
-    [chart, loading, empty, hover, showingInfo, focused]
+    [loading, empty, loaded, error, showingInfo, focused]
   )
 
   return {

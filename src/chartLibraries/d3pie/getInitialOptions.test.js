@@ -5,7 +5,9 @@ import getInitialOptions from "./getInitialOptions"
 describe("getInitialOptions", () => {
   it("returns valid d3pie configuration object", () => {
     const { chart } = renderWithChart(<div />, {
-      chartType: "pie",
+      attributes: {
+        chartType: "pie",
+      },
     })
 
     const mockChartUI = {

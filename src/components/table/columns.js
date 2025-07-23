@@ -14,6 +14,7 @@ import {
 } from "@/components/provider"
 import Tooltip from "@/components/tooltip"
 import Label from "@/components/filterToolbox/label"
+import { getValue } from "@/helpers/crud"
 
 const metricsByValue = {
   dimension: "dimensions",
@@ -118,67 +119,73 @@ const TooltipValue = ({ id }) => {
 
 export const valueColumn = (
   chart,
-  { contextLabel, context = "Dimensions", dimension = "Value", dimensionId }
-) => ({
-  id: `value${context}${dimension}`,
-  name: `${contextLabel || context} > ${dimension}`,
-  header: () => {
-    return (
-      <Flex column>
-        <TextSmall>{dimension}</TextSmall>
-        <Units visible dimensionId={dimensionId} />
-      </Flex>
-    )
-  },
-  sortingFn: (rowA, rowB) => {
-    return compareBasic(
-      getValueByPeriod.latest({
-        chart,
-        id: (rowA.original.contextGroups?.[context]?.[dimension] || rowA.original.ids).find(id =>
-          id.includes(rowA.original.key)
-        ),
-      }),
-      getValueByPeriod.latest({
-        chart,
-        id: (rowB.original.contextGroups?.[context]?.[dimension] || rowB.original.ids).find(id =>
-          id.includes(rowB.original.key)
-        ),
-      })
-    )
-  },
-  fullWidth: true,
-  size: 50,
-  minSize: 30,
-  meta: {
-    tooltip: (
-      <TextSmall>
-        {dimension} in{" "}
-        <TextSmall strong>{chart.getUnitSign({ key: "units", dimensionId, long: true })}</TextSmall>
-      </TextSmall>
-    ),
-  },
-  cell: ({
-    row: {
-      original: { key, ids, contextGroups },
+  { contextLabel = "Dimensions", dimensionLabel = "Value", dimensionId, keys = [] }
+) => {
+  const keysStr = keys.length ? keys.join("|") : ""
+
+  return {
+    id: `value${keysStr}`,
+    name: `${contextLabel} > ${dimensionLabel}`,
+    header: () => {
+      return (
+        <Flex column>
+          <TextSmall>{dimensionLabel}</TextSmall>
+          <Units visible dimensionId={dimensionId} />
+        </Flex>
+      )
     },
-  }) => {
-    const id = (contextGroups?.[context]?.[dimension] || ids).find(id => id.includes(key))
-    const visible = useVisibleDimensionId(id)
+    sortingFn: (rowA, rowB) => {
+      return compareBasic(
+        getValueByPeriod.latest({
+          chart,
+          id: (getValue(keysStr, null, rowA.original.contextGroups, "|") || rowA.original.ids).find(
+            id => id.includes(rowA.original.key)
+          ),
+        }),
+        getValueByPeriod.latest({
+          chart,
+          id: (getValue(keysStr, null, rowB.original.contextGroups, "|") || rowB.original.ids).find(
+            id => id.includes(rowB.original.key)
+          ),
+        })
+      )
+    },
+    fullWidth: true,
+    size: 50,
+    minSize: 30,
+    meta: {
+      tooltip: (
+        <TextSmall>
+          {dimensionLabel} in{" "}
+          <TextSmall strong>
+            {chart.getUnitSign({ key: "units", dimensionId, long: true })}
+          </TextSmall>
+        </TextSmall>
+      ),
+    },
+    cell: ({
+      row: {
+        original: { key, ids, contextGroups },
+      },
+    }) => {
+      const id = (getValue(keysStr, null, contextGroups, "|") || ids).find(id => id.includes(key))
+      const visible = useVisibleDimensionId(id)
 
-    const chart = useChart()
-    const fractionDigits = chart.getAttribute("unitsConversionFractionDigits")
+      const chart = useChart()
+      const fractionDigits = chart.getAttribute("unitsConversionFractionDigits")
 
-    return (
-      <Tooltip content={visible ? <TooltipValue id={id} /> : null}>
-        <Value
-          period="latest"
-          id={id}
-          visible={visible}
-          Component={ValueOnDot}
-          fractionDigits={fractionDigits}
-          color="text"
-        />
-      </Tooltip>
-    )
-  },
-})
+      return (
+        <Tooltip content={visible ? <TooltipValue id={id} /> : null}>
+          <Value
+            period="latest"
+            id={id}
+            visible={visible}
+            Component={ValueOnDot}
+            fractionDigits={fractionDigits}
+            color="text"
+          />
+        </Tooltip>
+      )
+    },
+  }
+}

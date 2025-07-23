@@ -1,0 +1,222 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TableChart renders table with actual dimension data and values 1`] = `
+<div>
+  <div
+    aligncontent="center"
+    class="flex-sc-1gtk8kg-0 sc-kAFUCS gqACan"
+    gap="2"
+    height="100%"
+    justifycontent="center"
+    overflow="hidden"
+    position="relative"
+    width="100%"
+  >
+    <div
+      alignitems="center"
+      class="flex-sc-1gtk8kg-0 hRXZOY"
+      data-testid="chartContent"
+      height="100%"
+      justifycontent="center"
+      overflow="hidden"
+      position="relative"
+      width="100%"
+    >
+      <div
+        class="flex-sc-1gtk8kg-0 dsNQpo"
+        flex="1"
+        height="[object Object]"
+        overflow="hidden"
+        width="100%"
+      >
+        <div
+          alignitems="center"
+          background="mainBackground"
+          class="flex-sc-1gtk8kg-0 mSYHS"
+          data-noprint="true"
+          gap="1"
+          padding="1"
+          width="100%"
+          zindex="10"
+        >
+          <div
+            class="flex-sc-1gtk8kg-0 gNGIXq"
+            flex="grow"
+          >
+            <label
+              class="flex-sc-1gtk8kg-0 doPywY"
+              gap="0.5"
+            >
+              <div
+                class="flex-sc-1gtk8kg-0 sMHQK"
+                position="relative"
+              >
+                <div
+                  alignitems="center"
+                  bottom="0"
+                  class="flex-sc-1gtk8kg-0 kieztg"
+                  left="1"
+                  position="absolute"
+                  top="0"
+                >
+                  <svg
+                    class="styled__StyledIcon-sc-1wxz4b1-0 iNXTCu"
+                    color="textLite"
+                    height="18px"
+                    width="18px"
+                  >
+                    <use
+                      xlink:href="#undefined"
+                    />
+                  </svg>
+                </div>
+                <input
+                  _focus="[object Object]"
+                  _hover="[object Object]"
+                  background="inputBg"
+                  backgroundopacity="1"
+                  border="inputBorder"
+                  class="flex-sc-1gtk8kg-0 styled__Input-sc-1iygz87-0 bfvoCL gkqVxu"
+                  data-ga="undefined::search-words::table-filter"
+                  data-testid="table-global-search-filter"
+                  height="7"
+                  padding="1,2"
+                  placeholder="Search"
+                  round="0.5"
+                  title="search"
+                  type="text"
+                  value=""
+                  width="100%"
+                />
+              </div>
+            </label>
+          </div>
+          <div
+            class="flex-sc-1gtk8kg-0 frmJog"
+            data-testid="bulk-actions"
+            gap="0.5"
+            justifycontent="end"
+            width="100%"
+          >
+            <div
+              _hover="[object Object]"
+              alignitems="center"
+              background="elementBackground"
+              class="flex-sc-1gtk8kg-0 dBBNbo"
+              cursor="pointer"
+              justifycontent="center"
+            >
+              <button
+                class="styled__StyledButton-sc-14wh25s-0 cKVTfR box-sc-12jmtj1-0 dbXfyX"
+                colors="[object Object]"
+                data-testid="netdata-table-action-columnVisibility-bulk-bulk"
+                flavour="borderless"
+                iconheight="14px"
+                iconwidth="14px"
+                padding="0.5"
+                texttransform="firstLetter"
+              >
+                <div
+                  alignitems="center"
+                  class="flex-sc-1gtk8kg-0 guvWc"
+                  height="100%"
+                  justifycontent="center"
+                  width="auto"
+                >
+                  <svg
+                    class="styled__StyledIcon-sc-1wxz4b1-0 eHRwuo button-icon"
+                    height="14px"
+                    title="gear"
+                    width="14px"
+                  >
+                    <use
+                      xlink:href="#undefined"
+                    />
+                  </svg>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div
+          data-testid="netdata-table"
+          style="display: flex; height: 100%; overflow: auto; flex: 1;"
+        >
+          <div
+            style="height: 120px; position: relative; display: flex; flex: 1 0 auto;"
+          >
+            <div
+              data-index="0"
+              style="transform: translateY(0px); top: 0px; left: 0px; position: sticky; z-index: 1; min-width: 100%; align-self: start; flex: 1 1 auto; display: flex;"
+            >
+              <div
+                border="[object Object]"
+                class="flex-sc-1gtk8kg-0 bstcGC"
+                data-testid="netdata-table-head"
+              >
+                <div
+                  border="[object Object]"
+                  class="flex-sc-1gtk8kg-0 iqSyFZ"
+                  flex="grow"
+                  left="0"
+                  position="relative"
+                  width="150px"
+                >
+                  <div
+                    background="tableRowBg2"
+                    class="flex-sc-1gtk8kg-0 fbDUxm"
+                    data-testid="netdata-table-headRow"
+                    id="center_0"
+                  >
+                    <div
+                      class="flex-sc-1gtk8kg-0 cLTFNJ"
+                      flex="1"
+                      padding="1,2"
+                      position="relative"
+                      width="150px"
+                    >
+                      <div
+                        alignitems="start"
+                        class="flex-sc-1gtk8kg-0 rFPfh"
+                        gap="1"
+                        width="100%"
+                      >
+                        <div
+                          alignitems="center"
+                          class="flex-sc-1gtk8kg-0 cell__LabelContainer-sc-z651qs-1 fVlTcm kluSqo"
+                          cursor="default"
+                          overflow="hidden"
+                          padding="0,2,0,0"
+                          width="100%"
+                        >
+                          <span
+                            class="typography-sc-1lwqv72-0 cell__Label-sc-z651qs-0 dIzreQ zogmi"
+                          >
+                            Instance
+                          </span>
+                        </div>
+                      </div>
+                      <div
+                        _active="[object Object]"
+                        _hover="[object Object]"
+                        border="[object Object]"
+                        bottom="2px"
+                        class="flex-sc-1gtk8kg-0 hkvhaz"
+                        position="absolute"
+                        right="0"
+                        sx="[object Object]"
+                        top="2px"
+                        width="8px"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

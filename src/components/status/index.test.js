@@ -13,7 +13,7 @@ describe("Status component", () => {
       },
     })
 
-    renderWithChart(<Status />, { testChartOptions: { chart } })
+    renderWithChart(<Status />, { chart })
 
     expect(screen.getByText("Loading")).toBeInTheDocument()
     expect(screen.getByTestId("chartHeaderStatus-loading")).toBeInTheDocument()
@@ -28,7 +28,7 @@ describe("Status component", () => {
       },
     })
 
-    renderWithChart(<Status />, { testChartOptions: { chart } })
+    renderWithChart(<Status />, { chart })
     chart.trigger("failFetch")
 
     await waitFor(() => {
@@ -46,7 +46,7 @@ describe("Status component", () => {
       },
     })
 
-    renderWithChart(<Status />, { testChartOptions: { chart } })
+    renderWithChart(<Status />, { chart })
 
     expect(screen.getByText("No data")).toBeInTheDocument()
     expect(screen.getByTestId("chartHeaderStatus-empty")).toBeInTheDocument()
@@ -55,7 +55,7 @@ describe("Status component", () => {
   it("renders logo/reload container", () => {
     const { chart } = makeTestChart()
 
-    renderWithChart(<Status />, { testChartOptions: { chart } })
+    renderWithChart(<Status />, { chart })
 
     expect(screen.getByTestId("chartHeaderStatus-logo")).toBeInTheDocument()
   })
@@ -67,7 +67,7 @@ describe("Status component", () => {
       },
     })
 
-    renderWithChart(<Status plain />, { testChartOptions: { chart } })
+    renderWithChart(<Status plain />, { chart })
 
     expect(screen.queryByText("Loading")).not.toBeInTheDocument()
     expect(screen.getByTestId("chartHeaderStatus-logo")).toBeInTheDocument()
@@ -80,7 +80,7 @@ describe("Status component", () => {
       },
     })
 
-    const { rerender } = renderWithChart(<Status />, { testChartOptions: { chart } })
+    const { rerender } = renderWithChart(<Status />, { chart })
 
     expect(screen.getByText("Loading")).toBeInTheDocument()
 
@@ -100,7 +100,7 @@ describe("Status component", () => {
       },
     })
 
-    renderWithChart(<Status />, { testChartOptions: { chart } })
+    renderWithChart(<Status />, { chart })
     chart.trigger("failFetch")
 
     await waitFor(() => {
@@ -116,7 +116,7 @@ describe("Status component", () => {
       },
     })
 
-    renderWithChart(<Status />, { testChartOptions: { chart } })
+    renderWithChart(<Status />, { chart })
 
     expect(screen.queryByTestId("chartHeaderStatus-error")).not.toBeInTheDocument()
   })
@@ -124,7 +124,7 @@ describe("Status component", () => {
   it("passes additional props to container", () => {
     const { chart } = makeTestChart()
 
-    renderWithChart(<Status data-custom="test" />, { testChartOptions: { chart } })
+    renderWithChart(<Status data-custom="test" />, { chart })
 
     const container = screen.getByTestId("chartHeaderStatus")
     expect(container).toHaveAttribute("data-custom", "test")
@@ -141,7 +141,7 @@ describe("Status component", () => {
 
     chart.getPayload = jest.fn(() => ({ data: [1, 2, 3] }))
 
-    renderWithChart(<Status />, { testChartOptions: { chart } })
+    renderWithChart(<Status />, { chart })
 
     expect(screen.queryByTestId("chartHeaderStatus-loading")).not.toBeInTheDocument()
     expect(screen.queryByTestId("chartHeaderStatus-error")).not.toBeInTheDocument()

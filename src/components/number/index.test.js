@@ -40,15 +40,13 @@ describe("NumberChart", () => {
 describe("Value component", () => {
   it("renders latest converted value", () => {
     renderWithChart(<Value />, {
-      testChartOptions: {
-        attributes: {
-          dimensionIds: ["cpu"],
-          latestValues: [42.5],
-          selectedDimensions: ["cpu"],
-          unitsConversionMethod: ["original"],
-          unitsConversionDivider: [1],
-          unitsConversionFractionDigits: [2],
-        },
+      attributes: {
+        dimensionIds: ["cpu"],
+        latestValues: [42.5],
+        selectedDimensions: ["cpu"],
+        unitsConversionMethod: ["original"],
+        unitsConversionDivider: [1],
+        unitsConversionFractionDigits: [2],
       },
     })
 
@@ -57,15 +55,13 @@ describe("Value component", () => {
 
   it("formats value based on conversion settings", () => {
     renderWithChart(<Value />, {
-      testChartOptions: {
-        attributes: {
-          dimensionIds: ["memory"],
-          latestValues: [1024],
-          selectedDimensions: ["memory"],
-          unitsConversionMethod: ["divide"],
-          unitsConversionDivider: [1024],
-          unitsConversionFractionDigits: [2],
-        },
+      attributes: {
+        dimensionIds: ["memory"],
+        latestValues: [1024],
+        selectedDimensions: ["memory"],
+        unitsConversionMethod: ["divide"],
+        unitsConversionDivider: [1024],
+        unitsConversionFractionDigits: [2],
       },
     })
 
@@ -74,12 +70,10 @@ describe("Value component", () => {
 
   it("handles missing values gracefully", () => {
     renderWithChart(<Value />, {
-      testChartOptions: {
-        attributes: {
-          dimensionIds: ["cpu"],
-          latestValues: [],
-          selectedDimensions: ["cpu"],
-        },
+      attributes: {
+        dimensionIds: ["cpu"],
+        latestValues: [],
+        selectedDimensions: ["cpu"],
       },
     })
 
@@ -88,12 +82,10 @@ describe("Value component", () => {
 
   it("responds to dimension size changes", () => {
     const { chart } = renderWithChart(<Value />, {
-      testChartOptions: {
-        attributes: {
-          dimensionIds: ["cpu"],
-          latestValues: [42],
-          selectedDimensions: ["cpu"],
-        },
+      attributes: {
+        dimensionIds: ["cpu"],
+        latestValues: [42],
+        selectedDimensions: ["cpu"],
       },
     })
 
@@ -106,14 +98,12 @@ describe("Value component", () => {
 describe("Unit component", () => {
   it("renders unit sign when available", () => {
     renderWithChart(<Unit />, {
-      testChartOptions: {
-        attributes: {
-          dimensionIds: ["cpu"],
-          units: ["%"],
-          unitsCurrent: ["%"],
-          unitsConversionBase: ["%"],
-          unitsConversionPrefix: [""],
-        },
+      attributes: {
+        dimensionIds: ["cpu"],
+        units: ["%"],
+        unitsCurrent: ["%"],
+        unitsConversionBase: ["%"],
+        unitsConversionPrefix: [""],
       },
     })
 
@@ -122,14 +112,12 @@ describe("Unit component", () => {
 
   it("renders nothing when unit is empty", () => {
     const { container } = renderWithChart(<Unit />, {
-      testChartOptions: {
-        attributes: {
-          dimensionIds: ["cpu"],
-          units: [""],
-          unitsCurrent: "",
-          unitsConversionBase: [""],
-          unitsConversionPrefix: [""],
-        },
+      attributes: {
+        dimensionIds: ["cpu"],
+        units: [""],
+        unitsCurrent: "",
+        unitsConversionBase: [""],
+        unitsConversionPrefix: [""],
       },
     })
 
@@ -138,14 +126,12 @@ describe("Unit component", () => {
 
   it("shows unit with prefix when converted", () => {
     renderWithChart(<Unit />, {
-      testChartOptions: {
-        attributes: {
-          dimensionIds: ["memory"],
-          units: ["By"],
-          unitsCurrent: "By",
-          unitsConversionBase: ["B"],
-          unitsConversionPrefix: ["Ki"],
-        },
+      attributes: {
+        dimensionIds: ["memory"],
+        units: ["By"],
+        unitsCurrent: "By",
+        unitsConversionBase: ["B"],
+        unitsConversionPrefix: ["Ki"],
       },
     })
 
@@ -154,14 +140,12 @@ describe("Unit component", () => {
 
   it("uses first dimension for unit determination", () => {
     renderWithChart(<Unit />, {
-      testChartOptions: {
-        attributes: {
-          dimensionIds: ["cpu", "memory"],
-          units: ["%"],
-          unitsCurrent: ["%"],
-          unitsConversionBase: ["%", "B"],
-          unitsConversionPrefix: ["", "Ki"],
-        },
+      attributes: {
+        dimensionIds: ["cpu", "memory"],
+        units: ["%"],
+        unitsCurrent: ["%"],
+        unitsConversionBase: ["%", "B"],
+        unitsConversionPrefix: ["", "Ki"],
       },
     })
 
@@ -170,10 +154,8 @@ describe("Unit component", () => {
 
   it("handles no dimensions gracefully", () => {
     const { container } = renderWithChart(<Unit />, {
-      testChartOptions: {
-        attributes: {
-          dimensionIds: [],
-        },
+      attributes: {
+        dimensionIds: [],
       },
     })
 

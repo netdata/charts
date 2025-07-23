@@ -1,7 +1,7 @@
-export const getValue = (path, defaultValue, obj = {}) => {
+export const getValue = (path, defaultValue, obj = {}, sep = ".") => {
   if (typeof path !== "string" || !path || obj == null) return defaultValue
 
-  const keys = path.split(".")
+  const keys = path.split(sep)
   const [currentKey, ...remainingKeys] = keys
 
   if (remainingKeys.length === 0) {

@@ -29,7 +29,7 @@ const Footer = () => {
   const isMinimal = useIsMinimal()
 
   return (
-    <Container>
+    <Container data-testid="chartFooter">
       {!isMinimal && <Indicators />}
       {!showingInfo && (
         <>

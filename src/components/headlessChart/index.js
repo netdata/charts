@@ -8,17 +8,29 @@ const RenderPropProvider = ({ children }) => {
   return children(headlessChartData)
 }
 
-const HeadlessChart = ({ children, sdk, ...chartAttributes }) => {
-  const chart = useMemo(() => {
-    const chartSDK = sdk || makeDefaultSDK()
-    return chartSDK.makeChart({ attributes: chartAttributes })
-  }, [sdk, chartAttributes])
+const HeadlessChart = ({
+  children,
+  sdk: defaultSDK,
+  chart: defaultChart,
+  getChart,
+  makeTrack,
+  ...chartAttributes
+}) => {
+  const [sdk, chart] = useMemo(() => {
+    if (defaultChart) return defaultChart
 
-  useMemo(() => {
-    if (sdk) {
-      sdk.appendChild(chart)
-    }
-  }, [sdk, chart])
+    const chartSDK = defaultSDK || makeDefaultSDK({ chartLibrary: "table" })
+
+    const newChart = chartSDK.makeChart({
+      attributes: chartAttributes,
+      ...(!!getChart && { getChart }),
+      ...(!!makeTrack && { makeTrack }),
+    })
+
+    chartSDK.appendChild(newChart)
+
+    return [chartSDK, newChart]
+  }, [defaultSDK, chartAttributes])
 
   useImmediateListener(() => {
     const id = window.requestAnimationFrame(chart.activate)
@@ -40,5 +52,6 @@ const HeadlessChart = ({ children, sdk, ...chartAttributes }) => {
   return <ChartProvider chart={chart}>{children}</ChartProvider>
 }
 
-export default HeadlessChart
 export { default as useHeadlessChart } from "./useHeadlessChart"
+
+export default HeadlessChart

@@ -338,7 +338,7 @@ export default ({
   node.getFilteredNodeIds = () => {
     const { selectedNodeLabelsFilter, nodesById, selectedNodes } = node.getAttributes()
 
-    if (!selectedNodeLabelsFilter.length || !nodesById) return selectedNodes
+    if (!selectedNodeLabelsFilter?.length || !nodesById) return selectedNodes
 
     const nodeIdsForHostLabels = node.getNodeIdsForHostLabels()
 

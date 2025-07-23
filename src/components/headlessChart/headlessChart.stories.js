@@ -1,8 +1,11 @@
 import React from "react"
 import { Flex, Text, Table } from "@netdata/netdata-ui"
-import HeadlessChart from "./index"
+import { uppercase } from "@/helpers/objectTransform"
 import useHeadlessChart from "./useHeadlessChart"
+import { useTableMatrix } from "../table/useTableMatrix"
+import { labelColumn, valueColumn } from "../table/columns"
 import makeDefaultSDK from "../../makeDefaultSDK"
+import HeadlessChart from "."
 
 const CustomTable = () => {
   const { data, currentRow, dimensionIds, helpers, state } = useHeadlessChart()
@@ -112,20 +115,20 @@ const CustomTable = () => {
         enableSorting
         maxHeight="400px"
         enableRowSelection={false}
+        enableResizing
       />
     </Flex>
   )
 }
 
-export const HeadlessChartStory = ({ host, contextScope, nodesScope, ...args }) => {
+export const HeadlessChartStory = ({ host, ...args }) => {
   const sdk = makeDefaultSDK({ attributes: { theme: "default", containerWidth: 1000 } })
 
   return (
     <Flex background="mainBackground" padding={[4]} height="100vh">
       <HeadlessChart
         sdk={sdk}
-        contextScope={[contextScope]}
-        nodesScope={[nodesScope]}
+        contextScope={["system.load"]}
         host={host}
         agent={true}
         syncHover={true}
@@ -139,15 +142,14 @@ export const HeadlessChartStory = ({ host, contextScope, nodesScope, ...args }) 
   )
 }
 
-export const HeadlessChartRenderProp = ({ host, contextScope, nodesScope, ...args }) => {
+export const HeadlessChartRenderProp = ({ host, ...args }) => {
   const sdk = makeDefaultSDK({ attributes: { theme: "default", containerWidth: 1000 } })
 
   return (
     <Flex background="mainBackground" padding={[4]} height="100vh">
       <HeadlessChart
         sdk={sdk}
-        contextScope={[contextScope]}
-        nodesScope={[nodesScope]}
+        contextScope={["system.load"]}
         host={host}
         agent={true}
         syncHover={true}
@@ -197,27 +199,107 @@ export const HeadlessChartRenderProp = ({ host, contextScope, nodesScope, ...arg
   )
 }
 
+const MultiContextTable = () => {
+  const { chart, state } = useHeadlessChart()
+  const { rowGroups, contextGroups, groups, labels, data } = useTableMatrix()
+
+  if (state.loading && !state.loaded) {
+    return (
+      <Flex padding={[4]} justifyContent="center">
+        <Text>Loading multi-context data...</Text>
+      </Flex>
+    )
+  }
+
+  if (state.empty || !Object.keys(rowGroups).length) {
+    return (
+      <Flex padding={[4]} justifyContent="center">
+        <Text>No matrix data available</Text>
+      </Flex>
+    )
+  }
+
+  const columns = [
+    ...labels.map(label =>
+      labelColumn(chart, {
+        header: uppercase(label),
+        partIndex: groups.findIndex(gi => gi === label),
+      })
+    ),
+    ...Object.keys(contextGroups).flatMap(context =>
+      Object.keys(contextGroups[context]).map(dimension =>
+        valueColumn(chart, {
+          contextLabel: `${context} > ${dimension}`,
+          dimensionLabel: chart.intl(dimension),
+          dimensionId: contextGroups[context][dimension]?.[0],
+          keys: [context, dimension],
+        })
+      )
+    ),
+  ]
+
+  return (
+    <Flex column gap={2} width="100vw">
+      <Flex justifyContent="space-between" alignItems="center">
+        <Text variant="h6">Multi-Context Matrix Table</Text>
+        <Text variant="caption" color="textSecondary">
+          Rows: {Object.keys(rowGroups).length} | Contexts: {Object.keys(contextGroups).length}
+        </Text>
+      </Flex>
+
+      <Flex gap={2} padding={[2]} background="backgroundSecondary" borderRadius={1}>
+        <Text weight="bold">Contexts:</Text>
+        {Object.keys(contextGroups).map(context => (
+          <Text key={context}>{context}</Text>
+        ))}
+      </Flex>
+
+      <Table
+        data={data}
+        dataColumns={columns}
+        enableSorting
+        maxHeight="400px"
+        enableRowSelection={false}
+      />
+    </Flex>
+  )
+}
+
+export const MultiContextMatrix = ({ host, ...args }) => {
+  const sdk = makeDefaultSDK({ attributes: { theme: "default", containerWidth: 1000 } })
+
+  return (
+    <Flex background="mainBackground" padding={[4]} height="100vh">
+      <HeadlessChart
+        sdk={sdk}
+        contextScope={["disk.io", "disk.ops", "disk.await", "disk.util"]}
+        host={host}
+        agent={true}
+        syncHover={true}
+        aggregationMethod="avg"
+        groupingMethod="average"
+        groupBy={["label", "dimension", "context", "node"]}
+        groupByLabel={["device"]}
+        tableColumns={["context", "dimension"]}
+        {...args}
+      >
+        <MultiContextTable />
+      </HeadlessChart>
+    </Flex>
+  )
+}
+
 export default {
   title: "HeadlessChart",
   component: HeadlessChartStory,
   tags: ["autodocs"],
   args: {
     host: "http://10.10.11.51:19999/api/v3",
-    contextScope: "system.load",
-    nodesScope: "*",
   },
   argTypes: {
     host: {
       control: { type: "text" },
       description: "API endpoint for data fetching",
-    },
-    contextScope: {
-      control: { type: "text" },
-      description: "Chart context scope",
-    },
-    nodesScope: {
-      control: { type: "text" },
-      description: "Nodes scope for data filtering",
     },
   },
 }

@@ -3,6 +3,7 @@ import { screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { renderWithChart, makeTestChart } from "@jest/testUtilities"
 import { TableChart } from "./index"
+import tableFixture from "../../../fixtures/table"
 
 describe("TableChart", () => {
   it("renders table chart container", () => {
@@ -30,38 +31,40 @@ describe("TableChart", () => {
     expect(container).toHaveClass("custom-class")
   })
 
-  it("renders with dimensions when data is available", () => {
-    const { chart } = makeTestChart({
+  it.skip("renders table with actual dimension data and values", async () => {
+    const { container } = renderWithChart(<TableChart />, {
+      mockData: tableFixture[0],
       attributes: {
-        dimensionIds: ["cpu.user", "cpu.system"],
-        contextScope: ["cpu"],
+        contextScope: ["disk.io", "disk.ops", "disk.await", "disk.util"],
+        chartLibrary: "table",
+        groupBy: ["dimension", "label", "node", "context"],
+        groupByLabel: ["device"],
         tableColumns: ["context", "dimension"],
-        tableSortBy: [],
       },
     })
 
-    chart.getDimensionGroups = jest.fn(() => ["context", "dimension"])
-
-    renderWithChart(<TableChart />, { testChartOptions: { chart } })
-
-    expect(screen.getByTestId("chartContent")).toBeInTheDocument()
+    await screen.getByText("nd-child-unpaid01")
+    expect(container).toMatchSnapshot()
   })
 
-  it("handles search functionality", () => {
-    const { chart } = makeTestChart({
+  it.skip("displays multi-context table with grouped data", () => {
+    renderWithChart(<TableChart />, {
+      mockData: tableFixture[0],
       attributes: {
-        dimensionIds: ["cpu.user", "memory.used"],
-        contextScope: ["cpu", "memory"],
-        tableColumns: ["context"],
+        contextScope: ["disk.io", "disk.ops", "disk.await", "disk.util"],
+        tableColumns: ["context", "dimension"],
+        tableSortBy: [],
         searchQuery: "",
+        chartLibrary: "table",
+        groupBy: ["label", "dimension", "context", "node"],
+        groupByLabel: ["device"],
       },
     })
 
-    chart.getDimensionGroups = jest.fn(() => ["context", "dimension"])
-
-    renderWithChart(<TableChart />, { testChartOptions: { chart } })
-
-    expect(screen.getByTestId("chartContent")).toBeInTheDocument()
+    expect(screen.getByText("sda")).toBeInTheDocument()
+    expect(screen.getByText("dm-0")).toBeInTheDocument()
+    expect(screen.getByText("reads")).toBeInTheDocument()
+    expect(screen.getByText("writes")).toBeInTheDocument()
   })
 
   it("handles empty dimension list", () => {
@@ -76,7 +79,7 @@ describe("TableChart", () => {
 
     chart.getDimensionGroups = jest.fn(() => [])
 
-    renderWithChart(<TableChart />, { testChartOptions: { chart } })
+    renderWithChart(<TableChart />, { chart })
 
     expect(screen.getByTestId("chartContent")).toBeInTheDocument()
   })

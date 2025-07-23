@@ -1,7 +1,7 @@
 import React from "react"
 import { screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
-import { renderWithChart, makeTestChart } from "@jest/testUtilities"
+import { renderWithChart } from "@jest/testUtilities"
 import Toolbox, {
   Container,
   Separator,
@@ -40,14 +40,12 @@ describe("Container component", () => {
 
 describe("Toolbox component", () => {
   it("renders toolbox with children", () => {
-    const { chart } = makeTestChart({
+    renderWithChart(<Toolbox>Test Content</Toolbox>, {
       attributes: {
         focused: true,
         toolboxElements: [],
       },
     })
-
-    renderWithChart(<Toolbox>Test Content</Toolbox>, { testChartOptions: { chart } })
 
     expect(screen.getByText("Test Content")).toBeInTheDocument()
     expect(screen.getByTestId("chartHeaderToolbox")).toBeInTheDocument()
@@ -56,14 +54,12 @@ describe("Toolbox component", () => {
   it("renders custom toolbox elements with correct disabled state when not focused", () => {
     const CustomElement = ({ disabled }) => <button disabled={disabled}>Custom Button</button>
 
-    const { chart } = makeTestChart({
+    renderWithChart(<Toolbox>Regular Content</Toolbox>, {
       attributes: {
         focused: false,
         toolboxElements: [CustomElement],
       },
     })
-
-    renderWithChart(<Toolbox>Regular Content</Toolbox>, { testChartOptions: { chart } })
 
     expect(screen.getByText("Custom Button")).toBeInTheDocument()
     expect(screen.getByText("Custom Button")).toBeDisabled()
@@ -73,14 +69,12 @@ describe("Toolbox component", () => {
   it("renders custom toolbox elements enabled when focused", () => {
     const CustomElement = ({ disabled }) => <button disabled={disabled}>Custom Button</button>
 
-    const { chart } = makeTestChart({
+    renderWithChart(<Toolbox>Regular Content</Toolbox>, {
       attributes: {
         focused: true,
         toolboxElements: [CustomElement],
       },
     })
-
-    renderWithChart(<Toolbox>Regular Content</Toolbox>, { testChartOptions: { chart } })
 
     expect(screen.getByText("Custom Button")).toBeInTheDocument()
     expect(screen.getByText("Custom Button")).not.toBeDisabled()
@@ -90,14 +84,12 @@ describe("Toolbox component", () => {
     const Element1 = ({ disabled }) => <button disabled={disabled}>Element 1</button>
     const Element2 = ({ disabled }) => <button disabled={disabled}>Element 2</button>
 
-    const { chart } = makeTestChart({
+    renderWithChart(<Toolbox>Content</Toolbox>, {
       attributes: {
         focused: true,
         toolboxElements: [Element1, Element2],
       },
     })
-
-    renderWithChart(<Toolbox>Content</Toolbox>, { testChartOptions: { chart } })
 
     expect(screen.getByText("Element 1")).toBeInTheDocument()
     expect(screen.getByText("Element 2")).toBeInTheDocument()
@@ -105,18 +97,16 @@ describe("Toolbox component", () => {
   })
 
   it("passes additional props to Container", () => {
-    const { chart } = makeTestChart({
-      attributes: {
-        focused: true,
-        toolboxElements: [],
-      },
-    })
-
     renderWithChart(
       <Toolbox className="custom-toolbox" data-test="toolbox">
         Content
       </Toolbox>,
-      { testChartOptions: { chart } }
+      {
+        attributes: {
+          focused: true,
+          toolboxElements: [],
+        },
+      }
     )
 
     const container = screen.getByTestId("chartHeaderToolbox")
@@ -125,27 +115,23 @@ describe("Toolbox component", () => {
   })
 
   it("handles null toolboxElements gracefully", () => {
-    const { chart } = makeTestChart({
+    renderWithChart(<Toolbox>Content</Toolbox>, {
       attributes: {
         focused: true,
         toolboxElements: null,
       },
     })
 
-    renderWithChart(<Toolbox>Content</Toolbox>, { testChartOptions: { chart } })
-
     expect(screen.getByText("Content")).toBeInTheDocument()
   })
 
   it("handles empty toolboxElements array", () => {
-    const { chart } = makeTestChart({
+    renderWithChart(<Toolbox>Content</Toolbox>, {
       attributes: {
         focused: true,
         toolboxElements: [],
       },
     })
-
-    renderWithChart(<Toolbox>Content</Toolbox>, { testChartOptions: { chart } })
 
     expect(screen.getByText("Content")).toBeInTheDocument()
   })

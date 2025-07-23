@@ -4,7 +4,7 @@ import Filters from "./filters"
 import withLoader from "./withLoader"
 
 const FilterToolbox = ({ plain, ...rest }) => (
-  <FiltersContainer {...rest}>
+  <FiltersContainer {...rest} data-testid="chartFilters">
     <Filters plain={plain} />
   </FiltersContainer>
 )

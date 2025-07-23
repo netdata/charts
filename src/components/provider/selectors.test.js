@@ -47,7 +47,7 @@ describe("Chart Provider Selectors", () => {
   describe("useAttributeValue", () => {
     it("returns attribute value from chart", () => {
       const { result } = renderHookWithChart(() => useAttributeValue("sparkline"), {
-        testChartOptions: { attributes: { sparkline: true } },
+        attributes: { sparkline: true },
       })
 
       expect(result.current).toBe(true)
@@ -63,7 +63,7 @@ describe("Chart Provider Selectors", () => {
       const { result } = renderHookWithChart(
         () => useAttributeValue("drawer.showAdvancedStats", false),
         {
-          testChartOptions: { attributes: { drawer: { showAdvancedStats: true } } },
+          attributes: { drawer: { showAdvancedStats: true } },
         }
       )
 
@@ -82,7 +82,7 @@ describe("Chart Provider Selectors", () => {
   describe("useEmpty", () => {
     it("returns true when chart data is empty", () => {
       const { result } = renderHookWithChart(() => useEmpty(), {
-        testChartOptions: { mockData: { result: { data: [] } } },
+        mockData: { result: { data: [] } },
       })
 
       expect(result.current).toBe(true)
@@ -103,11 +103,9 @@ describe("Chart Provider Selectors", () => {
   describe("useTitle", () => {
     it("returns title from chart attributes", () => {
       const { result } = renderHookWithChart(() => useTitle(), {
-        testChartOptions: {
-          attributes: {
-            title: "Test Chart Title",
-            contextScope: ["system.cpu"],
-          },
+        attributes: {
+          title: "Test Chart Title",
+          contextScope: ["system.cpu"],
         },
       })
 
@@ -118,11 +116,9 @@ describe("Chart Provider Selectors", () => {
   describe("useName", () => {
     it("returns name from chart attributes", () => {
       const { result } = renderHookWithChart(() => useName(), {
-        testChartOptions: {
-          attributes: {
-            name: "Test Chart Name",
-            contextScope: ["system.cpu"],
-          },
+        attributes: {
+          name: "Test Chart Name",
+          contextScope: ["system.cpu"],
         },
       })
 
@@ -131,10 +127,8 @@ describe("Chart Provider Selectors", () => {
 
     it("returns contextScope when no name provided", () => {
       const { result } = renderHookWithChart(() => useName(), {
-        testChartOptions: {
-          attributes: {
-            contextScope: ["system.cpu", "system.memory"],
-          },
+        attributes: {
+          contextScope: ["system.cpu", "system.memory"],
         },
       })
 
@@ -145,7 +139,7 @@ describe("Chart Provider Selectors", () => {
   describe("useIsMinimal", () => {
     it("returns true when design flavour is minimal", () => {
       const { result } = renderHookWithChart(() => useIsMinimal(), {
-        testChartOptions: { attributes: { designFlavour: "minimal" } },
+        attributes: { designFlavour: "minimal" },
       })
 
       expect(result.current).toBe(true)
@@ -153,7 +147,7 @@ describe("Chart Provider Selectors", () => {
 
     it("returns false when design flavour is not minimal", () => {
       const { result } = renderHookWithChart(() => useIsMinimal(), {
-        testChartOptions: { attributes: { designFlavour: "standard" } },
+        attributes: { designFlavour: "default" },
       })
 
       expect(result.current).toBe(false)

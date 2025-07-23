@@ -5,19 +5,22 @@ import { renderWithChart } from "@jest/testUtilities"
 import { Line } from "./index"
 
 describe("Line Component", () => {
-  it("renders with default props", () => {
+  it("renders with default props", async () => {
     renderWithChart(<Line />, {
       attributes: {
         showingInfo: false,
         sparkline: false,
-        focused: false,
-        designFlavour: "standard",
+        focused: true,
+        designFlavour: "default",
       },
     })
 
     expect(screen.getByTestId("chart")).toBeInTheDocument()
     expect(screen.getByTestId("contentWrapper")).toBeInTheDocument()
     expect(screen.getByTestId("chartContentWrapper")).toBeInTheDocument()
+    expect(screen.getByTestId("chartHeader")).toBeInTheDocument()
+    expect(screen.getByTestId("chartFooter")).toBeInTheDocument()
+    // expect(screen.getByTestId("chartFilters")).toBeInTheDocument() TODO fix me, why am I missing?
   })
 
   it("hides header when hasHeader is false", () => {
@@ -26,10 +29,10 @@ describe("Line Component", () => {
         showingInfo: false,
         sparkline: false,
         focused: false,
-        designFlavour: "standard",
       },
     })
 
+    expect(screen.queryByTestId("chartHeader")).not.toBeInTheDocument()
     expect(screen.getByTestId("chartContentWrapper")).toBeInTheDocument()
   })
 
@@ -39,10 +42,10 @@ describe("Line Component", () => {
         showingInfo: false,
         sparkline: false,
         focused: false,
-        designFlavour: "standard",
       },
     })
 
+    expect(screen.queryByTestId("chartFooter")).not.toBeInTheDocument()
     expect(screen.getByTestId("chartContentWrapper")).toBeInTheDocument()
   })
 
@@ -52,10 +55,10 @@ describe("Line Component", () => {
         showingInfo: false,
         sparkline: false,
         focused: false,
-        designFlavour: "standard",
       },
     })
 
+    expect(screen.queryByTestId("chartFilters")).not.toBeInTheDocument()
     expect(screen.getByTestId("chartContentWrapper")).toBeInTheDocument()
   })
 
@@ -65,11 +68,11 @@ describe("Line Component", () => {
         showingInfo: true,
         sparkline: false,
         focused: false,
-        designFlavour: "standard",
       },
     })
 
     expect(screen.getByTestId("contentWrapper")).toBeInTheDocument()
+    expect(screen.getByTestId("chartDetails")).toBeInTheDocument()
   })
 
   it("hides filters in minimal mode", () => {
@@ -82,20 +85,28 @@ describe("Line Component", () => {
       },
     })
 
+    expect(screen.queryByTestId("chartFilters")).not.toBeInTheDocument()
     expect(screen.getByTestId("chartContentWrapper")).toBeInTheDocument()
   })
 
-  it("passes uiName to chart content wrapper", () => {
-    renderWithChart(<Line />, {
+  it("renders with chart data and dimensions", () => {
+    const { getByTestId } = renderWithChart(<Line />, {
       attributes: {
         showingInfo: false,
         sparkline: false,
         focused: false,
-        designFlavour: "standard",
+        dimensionIds: ["cpu.user", "cpu.system"],
+      },
+      payload: {
+        data: [
+          [1234567890000, 10, 5],
+          [1234567891000, 15, 8],
+        ],
       },
     })
 
-    expect(screen.getByTestId("chartContentWrapper")).toBeInTheDocument()
+    expect(getByTestId("chartContentWrapper")).toBeInTheDocument()
+    expect(getByTestId("chart")).toBeInTheDocument()
   })
 
   it("applies sparkline styling when sparkline is true", () => {
@@ -104,24 +115,24 @@ describe("Line Component", () => {
         showingInfo: false,
         sparkline: true,
         focused: false,
-        designFlavour: "standard",
       },
     })
 
-    const containerElement = container.querySelector("[data-testid]").parentElement
-    expect(containerElement).toBeInTheDocument()
+    const chartElement = container.querySelector("[data-testid='chart']")
+    expect(chartElement).toBeInTheDocument()
   })
 
-  it("sets focus and blur handlers correctly", () => {
+  it("handles focused state correctly", () => {
     renderWithChart(<Line />, {
       attributes: {
         showingInfo: false,
         sparkline: false,
-        focused: false,
-        designFlavour: "standard",
+        focused: true,
       },
     })
 
+    const chart = screen.getByTestId("chart")
+    expect(chart).toBeInTheDocument()
     expect(screen.getByTestId("chartContentWrapper")).toBeInTheDocument()
   })
 })

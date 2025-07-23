@@ -9,10 +9,8 @@ import { makeTestChart } from "./makeTestChart"
 
 export const renderWithChart = (
   component,
-  { theme = DefaultTheme, testChartOptions = {}, ...otherOptions } = {}
+  { theme = DefaultTheme, otherOptions = {}, chart, ...testChartOptions } = {}
 ) => {
-  let chart = testChartOptions.chart
-
   if (!chart) {
     const result = makeTestChart(testChartOptions)
     chart = result.chart
@@ -31,10 +29,8 @@ export const renderWithChart = (
 
 export const renderHookWithChart = (
   hook,
-  { theme = DefaultTheme, testChartOptions = {}, ...otherOptions } = {}
+  { theme = DefaultTheme, chart, otherOptions = {}, ...testChartOptions } = {}
 ) => {
-  let chart = testChartOptions.chart
-
   if (!chart) {
     const result = makeTestChart(testChartOptions)
     chart = result.chart
