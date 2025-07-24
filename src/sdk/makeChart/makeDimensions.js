@@ -371,6 +371,39 @@ export default (chart, sdk) => {
     return chart.getRowDimensionValue(id, pointData, options)
   }
 
+  chart.getAggregatedDimensionValue = (dimensionIds, index, { aggregationMethod = "sum", ...options } = {}) => {
+    const { all } = chart.getPayload()
+    const pointData = all[index]
+    
+    let targetDimensionIds = dimensionIds
+    
+    if (!Array.isArray(dimensionIds) || dimensionIds.length === 0) {
+      const visibleIds = chart.getVisibleDimensionIds()
+      targetDimensionIds = visibleIds.length > 0 ? visibleIds : chart.getDimensionIds()
+    }
+
+    const values = targetDimensionIds
+      .map(id => chart.getRowDimensionValue(id, pointData, options))
+      .filter(value => value !== null && value !== undefined && !isNaN(value))
+
+    if (values.length === 0) {
+      return 0
+    }
+
+    switch (aggregationMethod) {
+      case "sum":
+        return values.reduce((acc, val) => acc + val, 0)
+      case "avg":
+        return values.reduce((acc, val) => acc + val, 0) / values.length
+      case "min":
+        return Math.min(...values)
+      case "max":
+        return Math.max(...values)
+      default:
+        return values.reduce((acc, val) => acc + val, 0)
+    }
+  }
+
   chart.toggleDimensionId = (id, { merge = false } = {}) => {
     const selectedLegendDimensions = chart.getAttribute("selectedLegendDimensions")
 

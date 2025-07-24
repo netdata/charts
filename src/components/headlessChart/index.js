@@ -16,7 +16,7 @@ const HeadlessChart = ({
   makeTrack,
   ...chartAttributes
 }) => {
-  const [sdk, chart] = useMemo(() => {
+  const chart = useMemo(() => {
     if (defaultChart) return defaultChart
 
     const chartSDK = defaultSDK || makeDefaultSDK({ chartLibrary: "table" })
@@ -29,7 +29,7 @@ const HeadlessChart = ({
 
     chartSDK.appendChild(newChart)
 
-    return [chartSDK, newChart]
+    return newChart
   }, [defaultSDK, chartAttributes])
 
   useImmediateListener(() => {
