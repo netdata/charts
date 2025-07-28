@@ -1,6 +1,8 @@
 import dimensionColors from "./theme/dimensionColors"
 import deepEqual, { setsAreEqual } from "@/helpers/deepEqual"
 import { heatmapTypes, isHeatmap, isIncremental, withoutPrefix } from "@/helpers/heatmap"
+import groupBy from "lodash/groupBy"
+import isEmpty from "lodash/isEmpty"
 
 const noop = () => {}
 
@@ -402,6 +404,95 @@ export default (chart, sdk) => {
       default:
         return values.reduce((acc, val) => acc + val, 0)
     }
+  }
+
+  const keepoutRegex = ".*"
+  const keepRegex = "(" + keepoutRegex + ")"
+
+  const applyGroupByRecursively = (obj, groupByRegex) => {
+    if (Array.isArray(obj)) {
+      return groupBy(obj, value => {
+        const [, ...matches] = value.match(groupByRegex)
+        return matches.join(",")
+      })
+    }
+
+    if (typeof obj === "object" && obj !== null) {
+      const result = {}
+      Object.keys(obj).forEach(key => {
+        result[key] = applyGroupByRecursively(obj[key], groupByRegex)
+      })
+      return result
+    }
+
+    return obj
+  }
+
+  const groupByColumn = (result, ids, groups, attrs) => {
+    if (!attrs || !Array.isArray(attrs) || attrs.length === 0) {
+      return result
+    }
+    const [attr, ...restAttrs] = attrs
+    const groupByRegex = new RegExp(
+      groups.reduce((s, g) => {
+        s = s + (s ? "," : "")
+
+        if (attr === g) {
+          s = s + keepRegex
+        } else {
+          s = s + keepoutRegex
+        }
+
+        return s
+      }, "")
+    )
+
+    if (isEmpty(result)) {
+      result = groupBy(ids, value => {
+        const [, ...matches] = value.match(groupByRegex)
+        return matches.join(",")
+      })
+    } else {
+      Object.keys(result).forEach(key => {
+        result[key] = applyGroupByRecursively(result[key], groupByRegex)
+      })
+    }
+
+    if (!restAttrs.length) return result
+
+    return groupByColumn(result, ids, groups, restAttrs)
+  }
+
+  chart.getTableMatrix = () => {
+    const dimensionIds = chart.getDimensionIds()
+    const groups = chart.getDimensionGroups()
+    const tableColumns = chart.getAttribute("tableColumns")
+
+    let forRows = []
+
+    let groupByRegex = new RegExp(
+      groups.reduce((s, g) => {
+        s = s + (s ? "," : "")
+
+        if (tableColumns.includes(g)) {
+          s = s + keepoutRegex
+        } else {
+          s = s + keepRegex
+          forRows.push(g)
+        }
+
+        return s
+      }, "")
+    )
+
+    const baseGroup = groupBy(dimensionIds, value => {
+      const [, ...matches] = value.match(groupByRegex)
+      return matches.join(",")
+    })
+
+    let contextAndDimensionsGroup = groupByColumn({}, dimensionIds, groups, tableColumns)
+
+    return [baseGroup, contextAndDimensionsGroup, forRows]
   }
 
   chart.toggleDimensionId = (id, { merge = false } = {}) => {

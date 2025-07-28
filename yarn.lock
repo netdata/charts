@@ -2778,10 +2778,10 @@
     zod "^3.23.8"
     zod-to-json-schema "^3.24.1"
 
-"@netdata/netdata-ui@^5.0.24":
-  version "5.0.24"
-  resolved "https://registry.yarnpkg.com/@netdata/netdata-ui/-/netdata-ui-5.0.24.tgz#a3aacf8eaf1c6a7bbc55badfdd9de4961b0a6618"
-  integrity sha512-ugkdKWA/j0zFzPHaanXnG3gGBiZduAitCry+a2+ZTaEGOIHrEOPUc5XUy679URjkobl5mV//BkcEObEd9wl4qA==
+"@netdata/netdata-ui@^5.0.31":
+  version "5.0.31"
+  resolved "https://registry.yarnpkg.com/@netdata/netdata-ui/-/netdata-ui-5.0.31.tgz#e52722cc35aedef1331e3ab4c23e61e4af65c1b2"
+  integrity sha512-7yJmua2R+II1Voe8VIn2oiV7MJxMRDG8C2tWa9RqUdghPg7NQcdb73Nu9EY4RXQ4/7ChV+Evaz4VPN2ir8KKyg==
   dependencies:
     "@dnd-kit/core" "^6.3.1"
     "@dnd-kit/sortable" "^10.0.0"
