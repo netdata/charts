@@ -23,6 +23,7 @@ const Footer = () => {
   const showingInfo = useAttributeValue("showingInfo")
   const expandable = useAttributeValue("expandable")
   const expanded = useAttributeValue("expanded")
+  const legend = useAttributeValue("legend")
 
   usePayload()
   const isHeatmap = useIsHeatmap()
@@ -31,7 +32,7 @@ const Footer = () => {
   return (
     <Container data-testid="chartFooter">
       {!isMinimal && <Indicators />}
-      {!showingInfo && (
+      {!showingInfo && legend && (
         <>
           {isHeatmap && <HeatmapColors />}
           <Flex alignItems="center" padding={isMinimal ? [2] : [0]}>

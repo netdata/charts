@@ -2,6 +2,7 @@ import ChartType from "@/components/toolbox/chartType"
 import Fullscreen from "@/components/toolbox/fullscreen"
 import Information from "@/components/toolbox/information"
 import Download from "@/components/toolbox/download"
+import Settings from "@/components/toolbox/settings"
 
 import Status from "@/components/status"
 
@@ -90,7 +91,8 @@ export default {
   syncHighlight: true,
   highlighting: false,
 
-  desiredUnits: "auto",
+  desiredUnits: ["auto"],
+  staticFractionDigits: null,
   abs: true,
 
   unitsConversionMethod: [""],
@@ -215,7 +217,7 @@ export default {
 
   agent: true,
 
-  toolboxElements: [Information, ChartType, Fullscreen, Download],
+  toolboxElements: [Settings, Information, ChartType, Fullscreen, Download],
   toolboxProps: {},
   leftHeaderElements: [Status],
 

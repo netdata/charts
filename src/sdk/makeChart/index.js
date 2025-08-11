@@ -144,6 +144,8 @@ export default ({
 
     if (isNaN(converted)) return converted
 
+    fractionDigits = fractionDigits ?? node.getAttribute("staticFractionDigits")
+
     return Intl.NumberFormat(undefined, {
       useGrouping: true,
       minimumFractionDigits: isNaN(fractionDigits) || fractionDigits < 0 ? 0 : fractionDigits,

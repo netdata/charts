@@ -9,18 +9,13 @@ const scalable = (units, delta, desiredUnits) => {
 
   const { base_unit: base = units, prefix_symbol: prefix } = getUnitConfig(units)
 
-  const { base_unit: desiredBase = desiredUnits, prefix_symbol: desiredPrefix } =
-    getUnitConfig(desiredUnits)
-
-  if (desiredUnits && base === desiredBase && prefix !== desiredPrefix) {
-    const desiredScales = getScales(desiredUnits)
-
-    if (desiredScales) {
+  if (desiredUnits && desiredUnits !== "auto" && desiredUnits !== "original") {
+    if (scaleByKey[desiredUnits] !== undefined) {
       return [
         "adjust",
-        value => (value * (scaleByKey[prefix] || 1)) / (scaleByKey[desiredPrefix] || 1),
-        desiredPrefix,
-        desiredBase,
+        value => (value * (scaleByKey[prefix] || 1)) / (scaleByKey[desiredUnits] || 1),
+        desiredUnits === "1" ? "" : desiredUnits,
+        base,
       ]
     }
   }
@@ -41,10 +36,14 @@ const scalable = (units, delta, desiredUnits) => {
 const conversable = (chart, units, delta, desiredUnits) => {
   const scales = conversableUnits[units]
 
-  if (desiredUnits !== "auto") {
+  if (desiredUnits && desiredUnits !== "auto" && desiredUnits !== "original") {
     return desiredUnits in scales
       ? [makeConversableKey(units, desiredUnits), undefined, desiredUnits]
       : ["original"]
+  }
+
+  if (desiredUnits === "original") {
+    return ["original"]
   }
 
   const scaleKeys = conversableKeys[units] || Object.keys(scales)
@@ -60,7 +59,14 @@ const conversable = (chart, units, delta, desiredUnits) => {
 const getMethod = (chart, units, min, max) => {
   if (!isScalable(units)) return ["original"]
 
-  const { desiredUnits } = chart.getAttributes()
+  const allUnits = chart.getAttribute("units")
+  const desiredUnitsArray = chart.getAttribute("desiredUnits") || ["auto"]
+  const unitIndex = allUnits.indexOf(units)
+  const desiredUnits = unitIndex >= 0 ? (desiredUnitsArray[unitIndex] || "auto") : "auto"
+  
+  if (desiredUnits === "original") {
+    return ["original"]
+  }
 
   const absMin = Math.abs(min)
   const absMax = Math.abs(max)

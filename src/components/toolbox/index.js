@@ -6,6 +6,7 @@ import ChartType from "./chartType"
 import Fullscreen from "./fullscreen"
 import Information from "./information"
 import Download from "./download"
+import Settings from "./settings"
 
 const Container = props => (
   <Flex
@@ -32,6 +33,6 @@ const Toolbox = ({ children, ...rest }) => {
   )
 }
 
-export { Container, Separator, ChartType, Fullscreen, Information, Download }
+export { Container, Separator, ChartType, Fullscreen, Information, Download, Settings }
 
 export default Toolbox
