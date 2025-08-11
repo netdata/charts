@@ -1,8 +1,8 @@
 import React from "react"
 import { Flex, Table } from "@netdata/netdata-ui"
 import { useChart, useAttributeValue } from "@/components/provider/selectors"
-import { useDrilldownData } from "./useDrilldownData"
-import updateDrilldownGroupBy from "./updateDrilldownGroupBy"
+import useData from "./useData"
+import updateDrilldownGroupBy from "./updateGroupBy"
 import GroupBy from "@/components/filterToolbox/groupBy"
 import {
   labelColumn,
@@ -29,8 +29,8 @@ const meta = (row, cell, index) => ({
 
 const DrillDown = () => {
   const chart = useChart()
-  const { hierarchicalData, loading, error, groupedBy } = useDrilldownData()
-  const groupBy = useAttributeValue("drilldown.groupBy", ["node", "instance", "dimension"])
+  const { hierarchicalData, loading, error, groupedBy } = useData()
+
   const expanded = useAttributeValue("drilldown.expanded", {})
   const sortBy = useAttributeValue("drilldown.sortBy", [])
 
@@ -55,6 +55,19 @@ const DrillDown = () => {
     return (
       <Flex padding={[3]} justifyContent="center" color="text">
         Error loading drilldown data: {error.message}
+      </Flex>
+    )
+  }
+
+  if (!loading && (!hierarchicalData || hierarchicalData.length === 0)) {
+    return (
+      <Flex padding={[3]} justifyContent="center" alignItems="center" direction="column" gap={2}>
+        <Flex color="textLite" fontSize="14px">
+          No data available for the selected time range
+        </Flex>
+        <Flex color="textLite" fontSize="12px">
+          Try adjusting the time range or chart settings
+        </Flex>
       </Flex>
     )
   }

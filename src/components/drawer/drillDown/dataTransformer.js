@@ -50,45 +50,113 @@ export const transformWeightsData = (weightsResponse, groupByOrder) => {
   })
 }
 
+const aggregateStats = (statsArray, statType) => {
+  if (!statsArray.length) return null
+
+  const values = statsArray.filter(stats => stats && typeof stats === 'object')
+  if (!values.length) return null
+
+  return {
+    min: Math.min(...values.map(s => s.min).filter(v => v != null)),
+    max: Math.max(...values.map(s => s.max).filter(v => v != null)),
+    sum: values.reduce((acc, s) => acc + (s.sum || 0), 0),
+    avg: statType === 'weight' 
+      ? values.reduce((acc, s) => acc + (s.sum || 0), 0) / values.filter(s => s.count > 0).length || 0
+      : values.reduce((acc, s) => acc + (s.avg || 0) * (s.count || 0), 0) / values.reduce((acc, s) => acc + (s.count || 0), 0) || 0,
+    count: values.reduce((acc, s) => acc + (s.count || 0), 0),
+    anomaly_count: statType === 'timeframe' ? values.reduce((acc, s) => acc + (s.anomaly_count || 0), 0) : undefined
+  }
+}
+
 export const buildHierarchicalTree = (flatData, groupByOrder) => {
   if (!groupByOrder?.length) return flatData
 
-  const itemsByLevel = flatData.reduce((acc, item) => {
+  // Build nodes for each level of the hierarchy
+  const nodesByKey = {}
+  const allLeafItems = []
+
+  // First pass: create all nodes and collect leaf items
+  flatData.forEach(item => {
     const { groupedBy, groupedByNames } = item
-
-    groupByOrder.reduce((parentKeys, field, level) => {
-      const value = groupedBy[field]
-      const name = groupedByNames[field]
-      const levelKey = [...parentKeys, value].join("|")
-
-      if (!acc[levelKey]) {
-        acc[levelKey] = {
-          ...item,
-          id: levelKey,
-          label: name,
+    
+    groupByOrder.forEach((field, level) => {
+      const pathValues = groupByOrder.slice(0, level + 1).map(f => groupedBy[f])
+      const nodeKey = pathValues.join("|")
+      const parentKey = level > 0 ? pathValues.slice(0, -1).join("|") : null
+      
+      if (!nodesByKey[nodeKey]) {
+        nodesByKey[nodeKey] = {
+          id: nodeKey,
+          nm: nodeKey,
+          label: groupedByNames[field],
           level,
-          parentId: level > 0 ? parentKeys.join("|") : null,
+          parentId: parentKey,
           children: [],
           isGroupNode: level < groupByOrder.length - 1,
+          groupedBy: groupByOrder.slice(0, level + 1).reduce((acc, f, idx) => {
+            acc[f] = pathValues[idx]
+            return acc
+          }, {}),
+          groupedByNames: groupByOrder.slice(0, level + 1).reduce((acc, f, idx) => {
+            acc[f] = idx === level ? groupedByNames[field] : item.groupedByNames[f]
+            return acc
+          }, {})
         }
       }
-
-      if (level === groupByOrder.length - 1) {
-        acc[levelKey] = { ...item, label: name, level, parentId: parentKeys.join("|"), isGroupNode: false }
-      }
-
-      return [...parentKeys, value]
-    }, [])
-
-    return acc
-  }, {})
-
-  return Object.values(itemsByLevel).reduce((tree, item) => {
-    if (item.parentId && itemsByLevel[item.parentId]) {
-      itemsByLevel[item.parentId].children.push(item)
-    } else if (!item.parentId) {
-      tree.push(item)
+    })
+    
+    // Store the actual data item at the leaf level
+    const leafKey = groupByOrder.map(f => item.groupedBy[f]).join("|")
+    nodesByKey[leafKey] = {
+      ...item,
+      id: leafKey,
+      label: item.groupedByNames[groupByOrder[groupByOrder.length - 1]] || item.label,
+      level: groupByOrder.length - 1,
+      parentId: groupByOrder.length > 1 ? groupByOrder.slice(0, -1).map(f => item.groupedBy[f]).join("|") : null,
+      isGroupNode: false
     }
-    return tree
-  }, [])
+    allLeafItems.push(item)
+  })
+
+  // Second pass: aggregate values for group nodes
+  Object.values(nodesByKey).forEach(node => {
+    if (node.isGroupNode) {
+      // Find all leaf items that belong to this group
+      const belongingItems = allLeafItems.filter(item => {
+        // Check if this item matches the group at the current level
+        return groupByOrder.slice(0, node.level + 1).every((field, idx) => {
+          const nodeValue = node.groupedBy[field]
+          const itemValue = item.groupedBy[field]
+          return nodeValue === itemValue
+        })
+      })
+      
+      if (belongingItems.length > 0) {
+        const weightStats = aggregateStats(belongingItems.map(item => item.weight), 'weight')
+        const timeframeStats = aggregateStats(belongingItems.map(item => item.timeframe), 'timeframe')
+        
+        if (weightStats) {
+          node.weight = weightStats
+          node.contribution = weightStats.sum
+        }
+        
+        if (timeframeStats) {
+          node.timeframe = timeframeStats
+          node.anomalyRate = timeframeStats.count > 0 ? (timeframeStats.anomaly_count * 100) / timeframeStats.count : 0
+        }
+      }
+    }
+  })
+
+  // Build the tree structure
+  const tree = []
+  Object.values(nodesByKey).forEach(node => {
+    if (node.parentId && nodesByKey[node.parentId]) {
+      nodesByKey[node.parentId].children.push(node)
+    } else if (!node.parentId) {
+      tree.push(node)
+    }
+  })
+
+  return tree
 }

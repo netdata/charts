@@ -70,11 +70,11 @@ describe("fetchCloudWeights", () => {
     expect(payload.aggregations.metrics[0].group_by).toEqual(["node", "instance"])
     expect(payload.aggregations.metrics[0].group_by_label).toEqual(["custom_label"])
     expect(payload.aggregations.metrics[0].aggregation).toBe("avg")
-    expect(payload.window.after).toBe(3)
-    expect(payload.window.before).toBe(4)
+    expect(payload.window.after).toBe(3000)
+    expect(payload.window.before).toBe(4000)
     expect(payload.window.points).toBe(200)
-    expect(payload.window.baseline.after).toBe(3)
-    expect(payload.window.baseline.before).toBe(4)
+    expect(payload.window.baseline.after).toBe(3000)
+    expect(payload.window.baseline.before).toBe(4000)
   })
 
   it("uses highlight window when provided with baseline fallback", async () => {
@@ -89,10 +89,10 @@ describe("fetchCloudWeights", () => {
 
     const payload = JSON.parse(global.fetch.mock.calls[0][1].body)
 
-    expect(payload.window.after).toBe(1)
-    expect(payload.window.before).toBe(1)
-    expect(payload.window.baseline.after).toBe(1)
-    expect(payload.window.baseline.before).toBe(2)
+    expect(payload.window.after).toBe(1000)
+    expect(payload.window.before).toBe(2000)
+    expect(payload.window.baseline.after).toBe(1500)
+    expect(payload.window.baseline.before).toBe(1800)
   })
 
   it("falls back to main range when no highlight provided", async () => {
@@ -105,10 +105,10 @@ describe("fetchCloudWeights", () => {
 
     const payload = JSON.parse(global.fetch.mock.calls[0][1].body)
 
-    expect(payload.window.after).toBe(3)
-    expect(payload.window.before).toBe(4)
-    expect(payload.window.baseline.after).toBe(3)
-    expect(payload.window.baseline.before).toBe(4)
+    expect(payload.window.after).toBe(3000)
+    expect(payload.window.before).toBe(4000)
+    expect(payload.window.baseline.after).toBe(3000)
+    expect(payload.window.baseline.before).toBe(4000)
   })
 
   it("handles weights-specific attributes", async () => {

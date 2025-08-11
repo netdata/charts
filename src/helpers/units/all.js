@@ -2098,6 +2098,15 @@ export default {
       is_scalable: true,
       is_binary: false,
     },
+    "{load}": {
+      symbol: "{thread}",
+      name: "threads",
+      print_symbol: "threads",
+      is_metric: false,
+      is_special: false,
+      is_scalable: false,
+      is_binary: false,
+    },
     "{lock}": {
       symbol: "{lock}",
       name: "locks",
@@ -3886,7 +3895,6 @@ export default {
     leaseholders: "{leaseholder}",
     leases: "{lease}",
     listeners: "{listener}",
-    load: "{thread}",
     locks: "{lock}",
     logins: "{login}",
     mCPU: "m[CPU]",

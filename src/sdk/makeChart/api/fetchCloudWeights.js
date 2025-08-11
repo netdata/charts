@@ -61,12 +61,12 @@ const getPayload = (chart, attrs = {}) => {
       ],
     },
     window: {
-      after: Math.floor((highlightAfter || after) / 1000),
-      before: Math.floor((highlightBefore || before) / 1000),
+      after: Math.floor(highlightAfter || after),
+      before: Math.floor(highlightBefore || before),
       points,
       baseline: {
-        after: Math.floor((baselineAfter || after) / 1000),
-        before: Math.floor((baselineBefore || before) / 1000),
+        after: Math.floor(baselineAfter || after),
+        before: Math.floor(baselineBefore || before),
       },
     },
     scope: {

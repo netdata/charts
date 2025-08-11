@@ -18,8 +18,6 @@ const useMetricsByValue = chart =>
     []
   )
 
-const emptyArray = []
-
 export const labelColumn = (groupByOrder = []) => ({
   id: "label",
   header: () => <TextSmall strong>Name</TextSmall>,

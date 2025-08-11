@@ -1,4 +1,3 @@
-import { fetchDrilldownData } from "./dataFetcher"
 import makeLog from "@/sdk/makeLog"
 
 export default (chart, selected) => {
@@ -19,8 +18,6 @@ export default (chart, selected) => {
     loadingKey: "drilldown.loading",
   })
   if (!changed) return
-
-  fetchDrilldownData(chart)
 
   log({
     chartAction: "drilldown-groupby-change",
