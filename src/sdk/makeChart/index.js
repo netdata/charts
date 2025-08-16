@@ -182,12 +182,14 @@ export default ({
     if (!node) return
     node.updateAttribute("active", true)
     sdk.trigger("active", node, true)
+    node.trigger("active", true)
   }
 
   node.deactivate = () => {
     if (!node) return
     node.updateAttribute("active", false)
     sdk.trigger("active", node, false)
+    node.trigger("active", false)
   }
 
   node.getFirstEntry = () => node.getAttribute("firstEntry")
