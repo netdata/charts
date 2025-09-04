@@ -5,6 +5,13 @@ import { useChart, useAttributeValue } from "@/components/provider"
 import { actions, tabs } from "../constants"
 import metricsIcon from "@netdata/netdata-ui/dist/components/icon/assets/metrics.svg"
 
+const supportsAdvancedStats = {
+  values: true,
+  drillDown: false,
+  compare: true,
+  correlate: false,
+}
+
 const SelectedAreaButton = ({ chart, selected }) => {
   const { highlight } = useAttributeValue("overlays")
   const range = highlight?.range
@@ -73,15 +80,17 @@ const Header = ({ onClick, ...rest }) => {
           />*/}
         </Flex>
       </Flex>
-      <Flex>
-        <IconButton
-          icon={<Icon svg={metricsIcon} size="16px" />}
-          title="Show all statistics"
-          active={showAdvancedStats}
-          onClick={() => chart.updateAttribute("drawer.showAdvancedStats", !showAdvancedStats)}
-          data-testid="drawer-header-advanced-stats"
-        />
-      </Flex>
+      {supportsAdvancedStats[action] && (
+        <Flex>
+          <IconButton
+            icon={<Icon svg={metricsIcon} size="16px" />}
+            title="Show all statistics"
+            active={showAdvancedStats}
+            onClick={() => chart.updateAttribute("drawer.showAdvancedStats", !showAdvancedStats)}
+            data-testid="drawer-header-advanced-stats"
+          />
+        </Flex>
+      )}
     </Flex>
   )
 }
