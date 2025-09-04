@@ -27,7 +27,6 @@ export const calculateStats = (payload, highlightRange = null) => {
   return {
     ...stats,
     points: filteredData.length,
-    dimensions: payload.dimensions?.length || 0,
   }
 }
 
@@ -37,7 +36,7 @@ export const calculatePercentageChange = (current, base) => {
   const change = ((current - base) / Math.abs(base)) * 100
   return {
     value: Math.abs(change),
-    direction: change >= 0 ? "up" : "down",
+    direction: !change ? "neutral" : change > 0 ? "up" : "down",
     formatted: `${Math.abs(change).toFixed(1)}%`,
   }
 }
@@ -56,7 +55,6 @@ export const calculateComparisons = periods => {
         avg: calculatePercentageChange(period.stats.avg, base.stats.avg),
         max: calculatePercentageChange(period.stats.max, base.stats.max),
         points: calculatePercentageChange(period.stats.points, base.stats.points),
-        dimensions: calculatePercentageChange(period.stats.dimensions, base.stats.dimensions),
         median: calculatePercentageChange(period.stats.median, base.stats.median),
         stddev: calculatePercentageChange(period.stats.stddev, base.stats.stddev),
         p95: calculatePercentageChange(period.stats.p95, base.stats.p95),

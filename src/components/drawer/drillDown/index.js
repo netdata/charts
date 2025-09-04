@@ -61,7 +61,7 @@ const DrillDown = () => {
 
   if (!loading && (!hierarchicalData || hierarchicalData.length === 0)) {
     return (
-      <Flex padding={[3]} justifyContent="center" alignItems="center" direction="column" gap={2}>
+      <Flex padding={[3]} justifyContent="center" alignItems="center" column gap={2}>
         <Flex color="textLite" fontSize="14px">
           No data available for the selected time range
         </Flex>

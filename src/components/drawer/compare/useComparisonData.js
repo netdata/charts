@@ -14,6 +14,7 @@ export const useComparisonData = () => {
   const drawerAction = useAttributeValue("drawer.action")
   const tab = useAttributeValue("drawer.tab")
   const overlays = useAttributeValue("overlays")
+  const customPeriods = useAttributeValue("customPeriods", [])
 
   const periods = useMemo(() => {
     if (!rawPeriods?.length) return []
@@ -53,7 +54,7 @@ export const useComparisonData = () => {
     }
 
     fetchData()
-  }, [chart, after, before, drawerAction])
+  }, [chart, after, before, drawerAction, customPeriods])
 
   return { periods, loading, error }
 }

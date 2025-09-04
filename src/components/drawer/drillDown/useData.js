@@ -13,7 +13,7 @@ const fetch = async chart => {
   chart.updateAttribute("drilldown.error", null)
 
   try {
-    const attrs = { groupBy, groupByLabel }
+    const attrs = { groupBy, groupByLabel, method: "value" }
 
     if (drawerTab === "selectedArea" && overlays?.highlight?.range) {
       const [highlightAfter, highlightBefore] = overlays.highlight.range

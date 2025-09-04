@@ -31,7 +31,6 @@ const basicStats = [
   { key: "avg", label: "Avg" },
   { key: "max", label: "Max" },
   { key: "points", label: "Data Points" },
-  { key: "dimensions", label: "Dimensions" },
 ]
 
 const advancedStats = [
