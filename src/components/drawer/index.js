@@ -5,14 +5,14 @@ import Header from "./header"
 import Dimensions from "./dimensions"
 import DrillDown from "./drillDown"
 import Compare from "./compare"
-// import Correlate from "./correlate"
+import Correlate from "./correlate"
 import { actions } from "./constants"
 
 const componentsByAction = {
   [actions.values]: Dimensions,
   [actions.drillDown]: DrillDown,
   [actions.compare]: Compare,
-  // [actions.correlate]: Correlate,
+  [actions.correlate]: Correlate,
 }
 
 const Drawer = () => {
@@ -33,7 +33,7 @@ const Drawer = () => {
       border={{ side: "top", color: "borderSecondary" }}
     >
       <Header padding={[3, 2, 2, 2]} />
-      <Flex flex column padding={[0, 2, 3, 2]} overflow={{ vertical: "scroll" }}>
+      <Flex flex column padding={[0, 2, 3, 2]} overflow={{ vertical: "scroll" }} height="100%">
         <Component />
       </Flex>
     </Flex>

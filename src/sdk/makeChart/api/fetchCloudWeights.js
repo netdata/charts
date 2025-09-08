@@ -73,7 +73,7 @@ const getPayload = (chart, attrs = {}) => {
       nodes: Array.isArray(nodesScope) && nodesScope.length ? nodesScope : [],
       contexts: Array.isArray(contextScope) && contextScope.length ? contextScope : wildcardArray,
     },
-    method: method || "ks2",
+    method: method || "volume",
     options: [
       ...(options ? (Array.isArray(options) ? options : [options]) : []),
       "minify",

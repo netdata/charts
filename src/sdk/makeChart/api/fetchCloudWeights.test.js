@@ -144,7 +144,7 @@ describe("fetchCloudWeights", () => {
 
     const payload = JSON.parse(global.fetch.mock.calls[0][1].body)
 
-    expect(payload.method).toBe("ks2")
+    expect(payload.method).toBe("volume")
   })
 
   it("includes timeout and default structure", async () => {

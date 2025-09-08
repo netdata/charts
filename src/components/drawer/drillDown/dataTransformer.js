@@ -5,13 +5,14 @@ const sanitizeValue = value => {
   return value
 }
 
-export const transformWeightsData = (weightsResponse, groupByOrder) => {
+export const transformWeightsData = (weightsResponse, groupByOrder, chart) => {
   if (!weightsResponse?.result || !groupByOrder?.length) return []
 
   const { result, v_schema } = weightsResponse
 
   const weightIndex = v_schema?.items?.findIndex(item => item.name === "weight") ?? 0
   const timeframeIndex = v_schema?.items?.findIndex(item => item.name === "timeframe") ?? 1
+  const nodes = chart.getAttribute("nodes", [])
 
   return result.map(item => {
     const { id, nm, v } = item
@@ -28,6 +29,10 @@ export const transformWeightsData = (weightsResponse, groupByOrder) => {
 
     const groupedByNames = groupByOrder.reduce((acc, field, index) => {
       acc[field] = groupedNames[index] || groupedValues[index] || ""
+      if (field === "node") {
+        debugger
+        acc[field] = nodes[acc[field]]?.nm || acc[field]
+      }
       return acc
     }, {})
 
@@ -87,11 +92,9 @@ const aggregateStats = (statsArray, statType) => {
 export const buildHierarchicalTree = (flatData, groupByOrder) => {
   if (!groupByOrder?.length) return flatData
 
-  // Build nodes for each level of the hierarchy
   const nodesByKey = {}
   const allLeafItems = []
 
-  // First pass: create all nodes and collect leaf items
   flatData.forEach(item => {
     const { groupedBy, groupedByNames } = item
 
@@ -121,7 +124,6 @@ export const buildHierarchicalTree = (flatData, groupByOrder) => {
       }
     })
 
-    // Store the actual data item at the leaf level
     const leafKey = groupByOrder.map(f => item.groupedBy[f]).join("|")
     nodesByKey[leafKey] = {
       ...item,
@@ -140,12 +142,9 @@ export const buildHierarchicalTree = (flatData, groupByOrder) => {
     allLeafItems.push(item)
   })
 
-  // Second pass: aggregate values for group nodes
   Object.values(nodesByKey).forEach(node => {
     if (node.isGroupNode) {
-      // Find all leaf items that belong to this group
       const belongingItems = allLeafItems.filter(item => {
-        // Check if this item matches the group at the current level
         return groupByOrder.slice(0, node.level + 1).every((field, idx) => {
           const nodeValue = node.groupedBy[field]
           const itemValue = item.groupedBy[field]
@@ -179,7 +178,6 @@ export const buildHierarchicalTree = (flatData, groupByOrder) => {
     }
   })
 
-  // Build the tree structure
   const tree = []
   Object.values(nodesByKey).forEach(node => {
     if (node.parentId && nodesByKey[node.parentId]) {

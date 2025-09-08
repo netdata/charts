@@ -85,7 +85,6 @@ const DrillDown = () => {
         onSortingChange={onSortByChange}
         expanded={expanded}
         onExpandedChange={onExpandedChange}
-        loading={loading}
         width="100%"
         headerChildren={
           <GroupBy

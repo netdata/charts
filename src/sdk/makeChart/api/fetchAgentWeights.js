@@ -46,7 +46,7 @@ const getPayload = (chart, attrs = {}) => {
     before: Math.floor(highlightBefore || before),
     baseline_after: Math.floor(baselineAfter || after),
     baseline_before: Math.floor(baselineBefore || before),
-    method: method || "ks2",
+    method: method || "volume",
     points,
     time_group: time_group || "average",
     time_resampling,
