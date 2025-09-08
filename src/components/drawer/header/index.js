@@ -15,14 +15,13 @@ const supportsAdvancedStats = {
 const SelectedAreaButton = ({ chart, selected }) => {
   const { highlight } = useAttributeValue("overlays")
   const range = highlight?.range
-  const { after } = highlight?.moveX ?? {}
 
   return (
     <Button
       tiny
       neutral={!selected}
       label="Selected area"
-      disabled={!range || !after}
+      disabled={!range}
       onClick={() => chart.updateAttribute("drawer.tab", tabs.selectedArea)}
     />
   )

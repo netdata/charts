@@ -31,7 +31,15 @@ export const calculateStats = (payload, highlightRange = null) => {
 }
 
 export const calculatePercentageChange = (current, base) => {
-  if (current == null || base == null || base === 0) return null
+  if (current == null || base == null) return null
+
+  if (base === 0) {
+    return {
+      value: 0,
+      direction: "neutral",
+      formatted: "0.0%",
+    }
+  }
 
   const change = ((current - base) / Math.abs(base)) * 100
   return {
@@ -54,13 +62,11 @@ export const calculateComparisons = periods => {
         min: calculatePercentageChange(period.stats.min, base.stats.min),
         avg: calculatePercentageChange(period.stats.avg, base.stats.avg),
         max: calculatePercentageChange(period.stats.max, base.stats.max),
-        points: calculatePercentageChange(period.stats.points, base.stats.points),
         median: calculatePercentageChange(period.stats.median, base.stats.median),
         stddev: calculatePercentageChange(period.stats.stddev, base.stats.stddev),
         p95: calculatePercentageChange(period.stats.p95, base.stats.p95),
         range: calculatePercentageChange(period.stats.range, base.stats.range),
         volume: calculatePercentageChange(period.stats.volume, base.stats.volume),
-        count: calculatePercentageChange(period.stats.count, base.stats.count),
       },
     }
   })

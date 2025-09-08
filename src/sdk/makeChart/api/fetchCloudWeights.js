@@ -70,8 +70,8 @@ const getPayload = (chart, attrs = {}) => {
       },
     },
     scope: {
-      nodes: Array.isArray(contextScope) && contextScope.length ? contextScope : wildcardArray,
-      contexts: Array.isArray(nodesScope) && nodesScope.length ? nodesScope : [],
+      nodes: Array.isArray(nodesScope) && nodesScope.length ? nodesScope : [],
+      contexts: Array.isArray(contextScope) && contextScope.length ? contextScope : wildcardArray,
     },
     method: method || "ks2",
     options: [

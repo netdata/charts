@@ -55,10 +55,10 @@ export default () => {
     const responseGroupBy = rawData.request?.aggregations?.metrics?.[0]?.group_by || groupBy
     const groupedBy = [...responseGroupBy].reverse()
 
-    const flatData = transformWeightsData(rawData, responseGroupBy)
+    const flatData = transformWeightsData(rawData, responseGroupBy, chart)
     const hierarchicalData = buildHierarchicalTree(flatData, groupedBy)
     return { hierarchicalData, groupedBy }
-  }, [rawData, groupBy])
+  }, [rawData, groupBy, chart])
 
   useEffect(() => {
     if (drawerAction !== "drillDown") return

@@ -14,7 +14,6 @@ import {
   stdDevColumn,
   p95Column,
   rangeColumn,
-  countColumn,
   volumeColumn,
 } from "./columns"
 
@@ -52,7 +51,6 @@ const useColumns = (period, options = {}) => {
           stdDevColumn(chart, columnOptions),
           p95Column(chart, columnOptions),
           rangeColumn(chart, columnOptions),
-          countColumn(chart, columnOptions),
           volumeColumn(chart, columnOptions),
         ],
       },
@@ -101,7 +99,6 @@ const Dimensions = () => {
       stddev: showAdvancedStats,
       p95: showAdvancedStats,
       range: showAdvancedStats,
-      count: showAdvancedStats,
       volume: showAdvancedStats,
     }),
     [showAdvancedStats]
