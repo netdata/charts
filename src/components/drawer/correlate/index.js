@@ -5,7 +5,7 @@ import Table from "./table"
 import useData from "./useData"
 
 const Correlate = () => {
-  const { loading, error, data } = useData()
+  const { error, data } = useData()
 
   return (
     <Flex column gap={2}>
@@ -17,7 +17,7 @@ const Correlate = () => {
         </Flex>
       )}
 
-      {data && data.length > 0 && !loading && <Table data={data} />}
+      {data && data.length > 0 && <Table data={data} />}
     </Flex>
   )
 }

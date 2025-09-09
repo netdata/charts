@@ -59,6 +59,7 @@ export const labelColumn = (chart, fallbackExpandKey) => ({
         alignItems="center"
         padding={[0, 0, 0, depth * 3]}
         opacity={visible ? null : "weak"}
+        width="100%"
       >
         <Flex alignItems="center" gap={1} position="relative" width="100%">
           {visible && (

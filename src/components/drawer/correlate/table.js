@@ -1,6 +1,7 @@
 import React from "react"
 import { Flex, TextSmall, TextMicro, Icon, Button } from "@netdata/netdata-ui"
 import { useChart, useAttributeValue } from "@/components/provider"
+import Sparkline from "./sparkline"
 
 const getWeightColor = weight => {
   const absWeight = Math.abs(weight)
@@ -35,12 +36,12 @@ const DimensionRow = ({ dimension, contextName }) => {
     >
       <Flex column gap={0.5} flex={1}>
         <TextSmall
-          title={`Metric: ${dimension.dimensionName}\nContext: ${contextName}\nNode: ${dimension.nodeName}`}
+          title={`Metric: ${dimension.dimensionName}\nContext: ${dimension.context}\nNode: ${dimension.nodeName}`}
         >
           {dimension.dimensionName}
         </TextSmall>
         <TextMicro color="textDescription">
-          {dimension.nodeName} • {contextName}
+          {dimension.nodeName} • {dimension.context}
         </TextMicro>
       </Flex>
 
@@ -63,6 +64,10 @@ const DimensionRow = ({ dimension, contextName }) => {
         >
           <TextSmall color={changeColor}>{formatChange(dimension.percentChange)}</TextSmall>
           <TextMicro color="textDescription">Change</TextMicro>
+        </Flex>
+
+        <Flex width="120px">
+          <Sparkline dimension={dimension} contextName={contextName} />
         </Flex>
       </Flex>
     </Flex>
@@ -114,7 +119,7 @@ const ContextRow = ({ contextGroup, isExpanded, onToggle }) => {
             <DimensionRow
               key={`${dimension.dimension}-${dimension.nodeId}`}
               dimension={dimension}
-              contextName={contextGroup.contextName}
+              contextName={contextGroup.context}
             />
           ))}
         </Flex>

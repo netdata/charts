@@ -17,14 +17,14 @@ const useData = () => {
   const aggregation = useAttributeValue("correlate.aggregation", "average")
   const dataType = useAttributeValue("correlate.dataType", "")
   const threshold = useAttributeValue("correlate.threshold", 0.01)
-  
+
   const getTimeRange = () => {
     if (tab === "selectedArea" && overlays?.highlight?.range) {
       const [highlightAfter, highlightBefore] = overlays.highlight.range
       const baselineDuration = highlightBefore - highlightAfter
       const baselineAfter = highlightAfter - baselineDuration * 4
       const baselineBefore = highlightAfter
-      
+
       return {
         highlightAfter,
         highlightBefore,
@@ -32,11 +32,11 @@ const useData = () => {
         baselineBefore,
       }
     }
-    
+
     const windowDuration = before - after
     const baselineAfter = after - windowDuration * 4
     const baselineBefore = after
-    
+
     return {
       highlightAfter: after,
       highlightBefore: before,
@@ -44,10 +44,10 @@ const useData = () => {
       baselineBefore,
     }
   }
-  
-  const fetchWeights = async (signal) => {
+
+  const fetchWeights = async signal => {
     const timeRange = getTimeRange()
-    
+
     try {
       const response = await fetchChartWeights(chart, {
         attrs: {
@@ -61,7 +61,7 @@ const useData = () => {
         },
         signal,
       })
-      
+
       if (!signal.aborted) {
         chart.updateAttribute("correlate.data", response)
         chart.updateAttribute("correlate.loading", false)
@@ -73,46 +73,46 @@ const useData = () => {
       }
     }
   }
-  
+
   const transformedData = useMemo(() => {
     if (!data) return []
-    
+
     const scopeContexts = chart.getAttribute("contextScope", [])
     const correlationData = transformCorrelationData(data, threshold, scopeContexts)
     return groupByContext(correlationData)
   }, [data, threshold, chart])
-  
+
   useEffect(() => {
     const shouldFetch = tab === "window" || (tab === "selectedArea" && overlays?.highlight?.range)
     if (!shouldFetch) return
-    
+
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
     }
-    
+
     abortControllerRef.current = new AbortController()
     const signal = abortControllerRef.current.signal
-    
+
     chart.updateAttribute("correlate.loading", true)
     chart.updateAttribute("correlate.error", null)
-    
+
     fetchWeights(signal)
-    
+
     return () => {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort()
       }
     }
   }, [
-    tab, 
-    method, 
-    aggregation, 
-    dataType, 
-    after, 
-    before, 
-    ...(tab === "selectedArea" ? [overlays?.highlight?.range] : [])
+    tab,
+    method,
+    aggregation,
+    dataType,
+    after,
+    before,
+    ...(tab === "selectedArea" ? overlays?.highlight?.range || [null, null] : [null, null]),
   ])
-  
+
   return { loading, error, data: transformedData }
 }
 
