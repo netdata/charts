@@ -30,9 +30,8 @@ const Drawer = () => {
       column
       data-testid="drawer"
       background="mainChartBg"
-      border={{ side: "top", color: "borderSecondary" }}
     >
-      <Header padding={[3, 2, 2, 2]} />
+      <Header padding={[0, 2, 2, 2]} />
       <Flex flex column padding={[0, 2, 3, 2]} overflow={{ vertical: "scroll" }} height="100%">
         <Component />
       </Flex>

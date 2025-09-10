@@ -7,6 +7,7 @@ import { useAttributeValue, usePayload, useIsMinimal } from "@/components/provid
 import Indicators from "@/components/line/indicators"
 import { useIsHeatmap } from "@/helpers/heatmap"
 import Drawer from "@/components/drawer"
+import Separator from "@/components/drawer/separator"
 import Expander from "./expander"
 
 export const Container = props => (
@@ -41,7 +42,12 @@ const Footer = () => {
           </Flex>
         </>
       )}
-      {expandable && expanded && <Drawer />}
+      {expandable && expanded && (
+        <>
+          <Separator />
+          <Drawer />
+        </>
+      )}
       {expandable && (
         <Flex
           flex
