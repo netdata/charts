@@ -1,5 +1,6 @@
 import React from "react"
 import { Flex, TextSmall, Select, InputRange } from "@netdata/netdata-ui"
+import Tooltip from "@/components/tooltip"
 import { useChart, useAttributeValue } from "@/components/provider"
 
 const methodOptions = [
@@ -34,9 +35,11 @@ const Controls = () => {
   return (
     <Flex column gap={2}>
       <Flex gap={2} alignItems="center">
-        <TextSmall title="Algorithm used to calculate correlation strength.\nVolume: Percentage change between periods\nKS2: Statistical distribution comparison">
-          Method:
-        </TextSmall>
+        <Tooltip content="Algorithm used to calculate correlation strength.\nVolume: Percentage change between periods\nKS2: Statistical distribution comparison">
+          <TextSmall>
+            Method:
+          </TextSmall>
+        </Tooltip>
         <Select
           options={methodOptions}
           value={selectedMethod}
@@ -44,9 +47,11 @@ const Controls = () => {
           styles={{ size: "tiny" }}
         />
 
-        <TextSmall title="How to aggregate data points within the time period.\nAffects how metrics are summarized before correlation calculation.">
-          Aggregation:
-        </TextSmall>
+        <Tooltip content="How to aggregate data points within the time period.\nAffects how metrics are summarized before correlation calculation.">
+          <TextSmall>
+            Aggregation:
+          </TextSmall>
+        </Tooltip>
         <Select
           options={aggregationOptions}
           value={selectedAggregation}
@@ -54,9 +59,11 @@ const Controls = () => {
           styles={{ size: "tiny" }}
         />
 
-        <TextSmall title="Type of data to correlate.\nMetrics: Actual metric values\nAnomaly Rate: Anomaly detection patterns">
-          Data:
-        </TextSmall>
+        <Tooltip content="Type of data to correlate.\nMetrics: Actual metric values\nAnomaly Rate: Anomaly detection patterns">
+          <TextSmall>
+            Data:
+          </TextSmall>
+        </Tooltip>
         <Select
           options={dataTypeOptions}
           value={selectedDataType}
@@ -66,22 +73,27 @@ const Controls = () => {
       </Flex>
 
       <Flex gap={2} alignItems="center">
-        <TextSmall title="Filter to show only metrics with correlation weight below this threshold.\nLower threshold = show only strongest correlations.\n1% shows only metrics with <1% weight (very strong correlations).">
-          Show top:
-        </TextSmall>
+        <Tooltip content="Filter to show only metrics with correlation weight below this threshold.\nLower threshold = show only strongest correlations.\n1% shows only metrics with <1% weight (very strong correlations).">
+          <TextSmall>
+            Show top:
+          </TextSmall>
+        </Tooltip>
         <Flex flex={1}>
-          <InputRange
-            min={0.01}
-            max={1}
-            step={0.01}
-            value={threshold}
-            onChange={e => chart.updateAttribute("correlate.threshold", parseFloat(e.target.value))}
-            title={`Currently showing metrics with correlation weight < ${(threshold * 100).toFixed(0)}%`}
-          />
+          <Tooltip content={`Currently showing metrics with correlation weight < ${(threshold * 100).toFixed(0)}%`}>
+            <InputRange
+              min={0.01}
+              max={1}
+              step={0.01}
+              value={threshold}
+              onChange={e => chart.updateAttribute("correlate.threshold", parseFloat(e.target.value))}
+            />
+          </Tooltip>
         </Flex>
-        <TextSmall title={`Showing metrics with correlation weight < ${(threshold * 100).toFixed(0)}%`}>
-          {(threshold * 100).toFixed(0)}%
-        </TextSmall>
+        <Tooltip content={`Showing metrics with correlation weight < ${(threshold * 100).toFixed(0)}%`}>
+          <TextSmall>
+            {(threshold * 100).toFixed(0)}%
+          </TextSmall>
+        </Tooltip>
       </Flex>
     </Flex>
   )

@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { Flex, TextSmall, TextMicro, Button, Icon } from "@netdata/netdata-ui"
 import styled from "styled-components"
+import Tooltip from "@/components/tooltip"
 import { useComparisonData } from "./useComparisonData"
 import { useChart, convert, useAttributeValue } from "@/components/provider"
 import ChangeIndicator from "./changeIndicator"
@@ -18,13 +19,15 @@ const formatDateRange = (chart, after, before) => {
   return `${chart.formatDate(afterDate)} ${chart.formatTime(afterDate)} → ${chart.formatDate(beforeDate)} ${chart.formatTime(beforeDate)}`
 }
 
-const StatRow = ({ label, value, change, valueKey = "value", tab }) => {
+const StatRow = ({ label, value, change, valueKey = "value", tab, tooltip }) => {
   const chart = useChart()
   const formattedValue = convert(chart, value, { valueKey, fractionDigits: 2 })
 
   return (
     <Flex justifyContent="between" alignItems="center">
-      <TextMicro>{label}</TextMicro>
+      <Tooltip content={tooltip}>
+        <TextMicro>{label}</TextMicro>
+      </Tooltip>
       <Flex alignItems="center" gap={1} flex="1 1 auto" justifyContent="end">
         <TextMicro textAlign="right">{formattedValue}</TextMicro>
 
@@ -35,17 +38,17 @@ const StatRow = ({ label, value, change, valueKey = "value", tab }) => {
 }
 
 const basicStats = [
-  { key: "min", label: "Min" },
-  { key: "avg", label: "Avg" },
-  { key: "max", label: "Max" },
+  { key: "min", label: "Min", tooltip: "Minimum value in the time period" },
+  { key: "avg", label: "Avg", tooltip: "Average (mean) value in the time period" },
+  { key: "max", label: "Max", tooltip: "Maximum value in the time period" },
 ]
 
 const advancedStats = [
-  { key: "median", label: "Median" },
-  { key: "stddev", label: "StdDev" },
-  { key: "p95", label: "P95" },
-  { key: "range", label: "Range" },
-  { key: "volume", label: "Volume" },
+  { key: "median", label: "Median", tooltip: "Middle value when sorted (50th percentile)" },
+  { key: "stddev", label: "StdDev", tooltip: "Standard deviation - measures data spread around the mean" },
+  { key: "p95", label: "P95", tooltip: "95th percentile - 95% of values are below this" },
+  { key: "range", label: "Range", tooltip: "Difference between maximum and minimum values" },
+  { key: "volume", label: "Volume", tooltip: "Sum of all values in the time period" },
 ]
 
 const ComparisonCard = ({ period, showAdvanced, tab }) => {
@@ -76,6 +79,7 @@ const ComparisonCard = ({ period, showAdvanced, tab }) => {
               change={period.changes?.[stat.key]}
               valueKey={stat.key}
               tab={tab}
+              tooltip={stat.tooltip}
             />
           ))}
 
@@ -88,6 +92,7 @@ const ComparisonCard = ({ period, showAdvanced, tab }) => {
                 change={period.changes?.[stat.key]}
                 valueKey={stat.key}
                 tab={tab}
+                tooltip={stat.tooltip}
               />
             ))}
         </Flex>
@@ -138,7 +143,9 @@ const Compare = () => {
             height={{ min: "142px" }}
           >
             <TextSmall>Custom</TextSmall>
-            <Button tiny label="Select a timeframe" onClick={() => setShowCustomForm(true)} />
+            <Tooltip content="Add a custom time period for comparison - Choose any specific date range to compare with the current view">
+              <Button tiny label="Select a timeframe" onClick={() => setShowCustomForm(true)} />
+            </Tooltip>
           </Flex>
         )}
 

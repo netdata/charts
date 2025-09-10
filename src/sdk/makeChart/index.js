@@ -142,7 +142,7 @@ export default ({
 
     const converted = convert(node, method, value, divider)
 
-    if (isNaN(converted)) return converted
+    if (converted !== null && isNaN(converted)) return converted
 
     fractionDigits = fractionDigits ?? node.getAttribute("staticFractionDigits")
 
@@ -150,7 +150,7 @@ export default ({
       useGrouping: true,
       minimumFractionDigits: isNaN(fractionDigits) || fractionDigits < 0 ? 0 : fractionDigits,
       maximumFractionDigits:
-        isNaN(fractionDigits) || fractionDigits < 0
+        fractionDigits === null || isNaN(fractionDigits) || fractionDigits < 0
           ? unitsConversionFractionDigits === -1
             ? 4
             : unitsConversionFractionDigits
