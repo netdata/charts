@@ -29,10 +29,8 @@ export const transformWeightsData = (weightsResponse, groupByOrder, chart) => {
 
     const groupedByNames = groupByOrder.reduce((acc, field, index) => {
       acc[field] = groupedNames[index] || groupedValues[index] || ""
-      if (field === "node") {
-        debugger
-        acc[field] = nodes[acc[field]]?.nm || acc[field]
-      }
+      if (field === "node") acc[field] = nodes[acc[field]]?.nm || acc[field]
+
       return acc
     }, {})
 

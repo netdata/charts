@@ -122,14 +122,13 @@ export const valueColumn = chart => ({
   minSize: 60,
   renderString: row =>
     convert(chart, getValueByPeriod.latest({ chart, id: row.original }), {
-      fractionDigits: 2,
+      fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
       dimensionId: row.original,
     }),
   cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
 
     const chart = useChart()
-    const fractionDigits = chart.getAttribute("unitsConversionFractionDigits")
 
     return (
       <Value
@@ -137,7 +136,7 @@ export const valueColumn = chart => ({
         id={id}
         visible={visible}
         Component={ValueOnDot}
-        fractionDigits={fractionDigits}
+        fractionDigits={chart.getAttribute("unitsConversionFractionDigits")}
       />
     )
   },
@@ -165,7 +164,11 @@ export const anomalyColumn = (chart, { period, objKey }) => ({
 
         objKey,
       }),
-      { valueKey: "arp", fractionDigits: 2, dimensionId: row.original }
+      {
+        valueKey: "arp",
+        fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
+        dimensionId: row.original,
+      }
     ),
   cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
@@ -179,7 +182,7 @@ export const anomalyColumn = (chart, { period, objKey }) => ({
         visible={visible}
         valueKey="arp"
         Component={ValueOnDot}
-        fractionDigits={2}
+        fractionDigits={chart.getAttribute("unitsConversionFractionDigits")}
         color="anomalyTextFocus"
       />
     )
@@ -205,10 +208,13 @@ export const minColumn = (chart, { period, objKey }) => ({
         chart,
         id: row.original,
         valueKey: "min",
-
         objKey,
       }),
-      { valueKey: "min", fractionDigits: 2, dimensionId: row.original }
+      {
+        valueKey: "min",
+        fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
+        dimensionId: row.original,
+      }
     ),
   cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
@@ -222,7 +228,7 @@ export const minColumn = (chart, { period, objKey }) => ({
         visible={visible}
         valueKey="min"
         Component={ValueOnDot}
-        fractionDigits={2}
+        fractionDigits={chart.getAttribute("unitsConversionFractionDigits")}
       />
     )
   },
@@ -250,7 +256,11 @@ export const avgColumn = (chart, { period, objKey }) => ({
 
         objKey,
       }),
-      { valueKey: "avg", fractionDigits: 2, dimensionId: row.original }
+      {
+        valueKey: "avg",
+        fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
+        dimensionId: row.original,
+      }
     ),
   cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
@@ -264,7 +274,7 @@ export const avgColumn = (chart, { period, objKey }) => ({
         visible={visible}
         valueKey="avg"
         Component={ValueOnDot}
-        fractionDigits={2}
+        fractionDigits={chart.getAttribute("unitsConversionFractionDigits")}
       />
     )
   },
@@ -292,7 +302,11 @@ export const maxColumn = (chart, { period, objKey }) => ({
 
         objKey,
       }),
-      { valueKey: "max", fractionDigits: 2, dimensionId: row.original }
+      {
+        valueKey: "max",
+        fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
+        dimensionId: row.original,
+      }
     ),
   cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
@@ -306,7 +320,7 @@ export const maxColumn = (chart, { period, objKey }) => ({
         visible={visible}
         valueKey="max"
         Component={ValueOnDot}
-        fractionDigits={2}
+        fractionDigits={chart.getAttribute("unitsConversionFractionDigits")}
       />
     )
   },
@@ -333,7 +347,11 @@ export const medianColumn = (chart, { period, objKey }) => ({
         valueKey: "median",
         objKey,
       }),
-      { valueKey: "median", fractionDigits: 2, dimensionId: row.original }
+      {
+        valueKey: "median",
+        fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
+        dimensionId: row.original,
+      }
     ),
   cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
@@ -347,7 +365,7 @@ export const medianColumn = (chart, { period, objKey }) => ({
         visible={visible}
         valueKey="median"
         Component={ValueOnDot}
-        fractionDigits={2}
+        fractionDigits={chart.getAttribute("unitsConversionFractionDigits")}
       />
     )
   },
@@ -374,7 +392,11 @@ export const stdDevColumn = (chart, { period, objKey }) => ({
         valueKey: "stddev",
         objKey,
       }),
-      { valueKey: "stddev", fractionDigits: 3, dimensionId: row.original }
+      {
+        valueKey: "stddev",
+        fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
+        dimensionId: row.original,
+      }
     ),
   cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
@@ -388,7 +410,7 @@ export const stdDevColumn = (chart, { period, objKey }) => ({
         visible={visible}
         valueKey="stddev"
         Component={ValueOnDot}
-        fractionDigits={3}
+        fractionDigits={chart.getAttribute("unitsConversionFractionDigits")}
       />
     )
   },
@@ -415,7 +437,11 @@ export const p95Column = (chart, { period, objKey }) => ({
         valueKey: "p95",
         objKey,
       }),
-      { valueKey: "p95", fractionDigits: 2, dimensionId: row.original }
+      {
+        valueKey: "p95",
+        fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
+        dimensionId: row.original,
+      }
     ),
   cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
@@ -429,7 +455,7 @@ export const p95Column = (chart, { period, objKey }) => ({
         visible={visible}
         valueKey="p95"
         Component={ValueOnDot}
-        fractionDigits={2}
+        fractionDigits={chart.getAttribute("unitsConversionFractionDigits")}
       />
     )
   },
@@ -456,7 +482,11 @@ export const rangeColumn = (chart, { period, objKey }) => ({
         valueKey: "range",
         objKey,
       }),
-      { valueKey: "range", fractionDigits: 2, dimensionId: row.original }
+      {
+        valueKey: "range",
+        fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
+        dimensionId: row.original,
+      }
     ),
   cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
@@ -470,7 +500,7 @@ export const rangeColumn = (chart, { period, objKey }) => ({
         visible={visible}
         valueKey="range"
         Component={ValueOnDot}
-        fractionDigits={2}
+        fractionDigits={chart.getAttribute("unitsConversionFractionDigits")}
       />
     )
   },

@@ -2,7 +2,7 @@ import { useCallback, useLayoutEffect, useContext, useMemo, useReducer, useState
 import { scaleLinear } from "d3-scale"
 import { unregister } from "@/helpers/makeListeners"
 import { enums, parts, check, colors } from "@/helpers/annotations"
-import { calculateAllStats } from "@/helpers/statistics"
+import { calculatePercentile } from "@/helpers/statistics"
 import chartTitleByContextMap from "../helpers/chartTitleByContextMap"
 import context from "./context"
 
@@ -372,9 +372,11 @@ export const useLatestRowValue = (options = {}) => {
   return value
 }
 
-const calculateClientSideStats = (chart, id, valueKey, period) => {
+const calculateStats = (chart, id, period, options = {}) => {
   const { data } = chart.getPayload()
   if (!data?.length) return null
+
+  options.abs = typeof options.abs === "boolean" ? options.abs : chart.getAttribute("abs")
 
   let filteredData = data
 
@@ -392,23 +394,69 @@ const calculateClientSideStats = (chart, id, valueKey, period) => {
   if (!filteredData.length) return null
 
   id = chart.isDimensionVisible(id) ? id : chart.getVisibleDimensionIds()[0]
+
   if (!id) return null
 
   const dimensionIndex = chart.getDimensionIndex(id)
   if (dimensionIndex === -1) return null
 
-  const values = filteredData
-    .map(row => row[dimensionIndex + 1])
-    .filter(val => val !== null && !isNaN(val) && isFinite(val))
+  const values = []
+  for (let i = 0; i < filteredData.length; i++) {
+    const value = chart.getRowDimensionValue(id, filteredData[i], options)
+    if (value !== null && !isNaN(value) && isFinite(value)) {
+      values.push(value)
+    }
+  }
 
   if (!values.length) return null
 
-  const allStats = calculateAllStats(values)
-  return allStats[valueKey] ?? null
+  switch (options.valueKey) {
+    case "min":
+      return Math.min(...values)
+    case "max":
+      return Math.max(...values)
+    case "avg":
+      return values.reduce((a, b) => a + b, 0) / values.length
+    case "value":
+      return values[values.length - 1]
+    case "arp":
+      return 0
+    case "median": {
+      const sorted = [...values].sort((a, b) => a - b)
+      const mid = Math.floor(sorted.length / 2)
+      return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2
+    }
+    case "stddev": {
+      const avg = values.reduce((a, b) => a + b, 0) / values.length
+      const variance = values.reduce((sum, val) => sum + Math.pow(val - avg, 2), 0) / values.length
+      return Math.sqrt(variance)
+    }
+    case "cv": {
+      const avg = values.reduce((a, b) => a + b, 0) / values.length
+      const variance = values.reduce((sum, val) => sum + Math.pow(val - avg, 2), 0) / values.length
+      const stddev = Math.sqrt(variance)
+      return avg ? (stddev / Math.abs(avg)) * 100 : null
+    }
+    case "count":
+      return values.length
+    case "volume":
+      return values.reduce((sum, val) => sum + Math.abs(val), 0)
+    case "range":
+      return Math.max(...values) - Math.min(...values)
+    case "p25":
+      return calculatePercentile(values, 25)
+    case "p75":
+      return calculatePercentile(values, 75)
+    case "p95":
+      return calculatePercentile(values, 95)
+    default:
+      return null
+  }
 }
 
 export const getValueByPeriod = {
   latest: ({ chart, id, ...options }) => {
+    options.abs = typeof options.abs === "boolean" ? options.abs : chart.getAttribute("abs")
     const hover = chart.getAttribute("hoverX")
     const { all } = chart.getPayload()
 
@@ -425,31 +473,16 @@ export const getValueByPeriod = {
 
     return dimValue
   },
-  window: ({ chart, id, valueKey = "value", objKey = "viewDimensions" }) => {
-    if (["value", "min", "avg", "max", "arp"].includes(valueKey)) {
-      const dimensions = chart.getAttribute(objKey).sts
-      const values = dimensions[valueKey]
-      if (values?.length) {
-        id = chart.isDimensionVisible(id) ? id : chart.getVisibleDimensionIds()[0]
-        if (id) return values[chart.getDimensionIndex(id)]
-      }
-    }
-
-    return calculateClientSideStats(chart, id, valueKey, "window")
-  },
-  highlight: ({ chart, id, valueKey = "value" }) => {
-    return calculateClientSideStats(chart, id, valueKey, "highlight")
-  },
+  window: ({ chart, id, ...options }) => calculateStats(chart, id, "window", options),
+  highlight: ({ chart, id, options }) => calculateStats(chart, id, "highlight", options),
 }
 
 export const useValue = (
   id,
   period = "latest",
-  { valueKey = "value", objKey = "viewDimensions", abs, unitsKey = "units", allowNull } = {}
+  { valueKey = "value", abs, unitsKey = "units", allowNull } = {}
 ) => {
   const chart = useChart()
-  abs = typeof abs === "boolean" ? abs : chart.getAttribute("abs")
-
   const [value, setState] = useState(null)
 
   useLayoutEffect(() => {
@@ -458,7 +491,6 @@ export const useValue = (
         chart,
         id,
         valueKey,
-        objKey,
         abs,
         allowNull,
       })
@@ -471,7 +503,7 @@ export const useValue = (
       chart.onAttributeChange(`${unitsKey}Conversion`, () => setState(getValue())),
       chart.on("render", () => setState(getValue()))
     )
-  }, [chart, id, valueKey, period, objKey, unitsKey])
+  }, [chart, id, valueKey, period, unitsKey])
 
   return value
 }
