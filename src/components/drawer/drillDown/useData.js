@@ -75,7 +75,6 @@ export default () => {
 
     fetchData()
   }, [
-    chart,
     drawerAction,
     drawerTab,
     groupBy,

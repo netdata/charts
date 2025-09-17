@@ -38,9 +38,9 @@ const DrillDown = () => {
     labelColumn(groupedBy),
     contributionColumn(),
     anomalyRateColumn(),
-    minColumn(),
-    avgColumn(),
-    maxColumn(),
+    minColumn(chart),
+    avgColumn(chart),
+    maxColumn(chart),
   ]
 
   const onExpandedChange = expandedState => {

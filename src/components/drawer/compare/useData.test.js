@@ -1,13 +1,13 @@
 import React from "react"
 import { renderHook, waitFor } from "@testing-library/react"
-import { useComparisonData } from "./useComparisonData"
+import useData from "./useData"
 import { makeTestChart } from "@jest/testUtilities"
 import { fetchComparisonData } from "./dataFetcher"
 import ChartProvider from "@/components/provider"
 
 jest.mock("./dataFetcher")
 
-describe("useComparisonData", () => {
+describe("useData", () => {
   let chart
   let wrapper
 
@@ -48,7 +48,7 @@ describe("useComparisonData", () => {
   })
 
   it("returns periods from chart attributes", () => {
-    const { result } = renderHook(() => useComparisonData(), { wrapper })
+    const { result } = renderHook(() => useData(), { wrapper })
 
     expect(result.current.periods).toHaveLength(2)
     expect(result.current.periods[0]).toMatchObject({
@@ -85,7 +85,7 @@ describe("useComparisonData", () => {
   it("returns loading state from chart attributes", () => {
     chart.updateAttribute("compareLoading", true)
 
-    const { result } = renderHook(() => useComparisonData(), { wrapper })
+    const { result } = renderHook(() => useData(), { wrapper })
 
     expect(result.current.loading).toBe(true)
   })
@@ -94,7 +94,7 @@ describe("useComparisonData", () => {
     const error = "Network error"
     chart.updateAttribute("compareError", error)
 
-    const { result } = renderHook(() => useComparisonData(), { wrapper })
+    const { result } = renderHook(() => useData(), { wrapper })
 
     expect(result.current.error).toBe(error)
   })
@@ -102,7 +102,7 @@ describe("useComparisonData", () => {
   it("fetches data when drawer action is compare", async () => {
     fetchComparisonData.mockResolvedValue([])
 
-    renderHook(() => useComparisonData(), { wrapper })
+    renderHook(() => useData(), { wrapper })
 
     await waitFor(() => {
       expect(fetchComparisonData).toHaveBeenCalledWith(chart)
@@ -112,7 +112,7 @@ describe("useComparisonData", () => {
   it("does not fetch data when drawer action is not compare", async () => {
     chart.updateAttribute("drawer.action", "values")
 
-    renderHook(() => useComparisonData(), { wrapper })
+    renderHook(() => useData(), { wrapper })
 
     await waitFor(() => {
       expect(fetchComparisonData).not.toHaveBeenCalled()
@@ -122,7 +122,7 @@ describe("useComparisonData", () => {
   it("refetches data when time range changes", async () => {
     fetchComparisonData.mockResolvedValue([])
 
-    const { rerender } = renderHook(() => useComparisonData(), { wrapper })
+    const { rerender } = renderHook(() => useData(), { wrapper })
 
     chart.updateAttribute("after", 2000)
     chart.updateAttribute("before", 3000)
@@ -137,7 +137,7 @@ describe("useComparisonData", () => {
     const consoleSpy = jest.spyOn(console, "error").mockImplementation()
     fetchComparisonData.mockRejectedValue(new Error("Fetch failed"))
 
-    renderHook(() => useComparisonData(), { wrapper })
+    renderHook(() => useData(), { wrapper })
 
     await waitFor(() => {
       expect(consoleSpy).toHaveBeenCalledWith("Failed to fetch comparison data:", expect.any(Error))
@@ -163,7 +163,7 @@ describe("useComparisonData", () => {
     )
     testChart.getAttribute = jest.fn().mockReturnValue(undefined)
 
-    renderHook(() => useComparisonData(), { wrapper: noChartWrapper })
+    renderHook(() => useData(), { wrapper: noChartWrapper })
 
     await waitFor(() => {
       expect(fetchComparisonData).not.toHaveBeenCalled()
@@ -177,7 +177,7 @@ describe("useComparisonData", () => {
       },
     })
 
-    const { result, rerender } = renderHook(() => useComparisonData(), { wrapper })
+    const { result, rerender } = renderHook(() => useData(), { wrapper })
 
     const windowStats = result.current.periods[0].stats
     expect(windowStats.points).toBe(1)

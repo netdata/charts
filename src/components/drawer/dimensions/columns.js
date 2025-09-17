@@ -15,6 +15,36 @@ import {
 import Label from "@/components/filterToolbox/label"
 import { rowFlavours } from "@/components/line/popover/dimensions"
 
+const makeNumberSortingFn =
+  (chart, { key, period, objKey }) =>
+  (rowA, rowB) => {
+    const aId = rowA.original
+    const bId = rowB.original
+
+    const aValue = getValueByPeriod[period]({
+      chart,
+      id: aId,
+      valueKey: key,
+      objKey,
+    })
+    const bValue = getValueByPeriod[period]({
+      chart,
+      id: bId,
+      valueKey: key,
+      objKey,
+    })
+
+    const result = aValue - bValue
+
+    if (!result)
+      return aId.localeCompare(bId, undefined, {
+        sensitivity: "accent",
+        ignorePunctuation: true,
+      })
+
+    return result > 0 ? 1 : -1
+  }
+
 const ColorBackground = styled(ColorBar).attrs({
   position: "absolute",
   top: 1.5,
@@ -90,6 +120,15 @@ export const labelColumn = (chart, fallbackExpandKey) => ({
         )}
       </Flex>
     )
+  },
+  sortingFn: (rowA, rowB) => {
+    const aId = rowA.original
+    const bId = rowB.original
+
+    return aId.localeCompare(bId, undefined, {
+      sensitivity: "accent",
+      ignorePunctuation: true,
+    })
   },
 })
 
@@ -232,7 +271,7 @@ export const minColumn = (chart, { period, objKey }) => ({
       />
     )
   },
-  sortingFn: "basic",
+  sortingFn: makeNumberSortingFn(chart, { key: "min", period, objKey }),
 })
 
 export const avgColumn = (chart, { period, objKey }) => ({
@@ -278,7 +317,7 @@ export const avgColumn = (chart, { period, objKey }) => ({
       />
     )
   },
-  sortingFn: "basic",
+  sortingFn: makeNumberSortingFn(chart, { key: "avg", period, objKey }),
 })
 
 export const maxColumn = (chart, { period, objKey }) => ({
@@ -324,7 +363,7 @@ export const maxColumn = (chart, { period, objKey }) => ({
       />
     )
   },
-  sortingFn: "basic",
+  sortingFn: makeNumberSortingFn(chart, { key: "max", period, objKey }),
 })
 
 export const medianColumn = (chart, { period, objKey }) => ({
@@ -369,7 +408,7 @@ export const medianColumn = (chart, { period, objKey }) => ({
       />
     )
   },
-  sortingFn: "basic",
+  sortingFn: makeNumberSortingFn(chart, { key: "median", period, objKey }),
 })
 
 export const stdDevColumn = (chart, { period, objKey }) => ({
@@ -414,7 +453,7 @@ export const stdDevColumn = (chart, { period, objKey }) => ({
       />
     )
   },
-  sortingFn: "basic",
+  sortingFn: makeNumberSortingFn(chart, { key: "stddev", period, objKey }),
 })
 
 export const p95Column = (chart, { period, objKey }) => ({
@@ -459,7 +498,7 @@ export const p95Column = (chart, { period, objKey }) => ({
       />
     )
   },
-  sortingFn: "basic",
+  sortingFn: makeNumberSortingFn(chart, { key: "p95", period, objKey }),
 })
 
 export const rangeColumn = (chart, { period, objKey }) => ({
@@ -504,39 +543,7 @@ export const rangeColumn = (chart, { period, objKey }) => ({
       />
     )
   },
-  sortingFn: "basic",
-})
-
-export const countColumn = (chart, { period, objKey }) => ({
-  id: objKey ? `${objKey}-count` : "count",
-  header: <TextMicro>Count</TextMicro>,
-  headerString: () => "Data Points",
-  size: 60,
-  minSize: 50,
-  renderString: row =>
-    getValueByPeriod[period]({
-      chart,
-      id: row.original,
-      valueKey: "count",
-      objKey,
-    })?.toString() || "0",
-  cell: ({ row: { original: id } }) => {
-    const visible = useVisibleDimensionId(id)
-
-    return (
-      <Value
-        period={period}
-        objKey={objKey}
-        textAlign="right"
-        id={id}
-        visible={visible}
-        valueKey="count"
-        Component={ValueOnDot}
-        fractionDigits={0}
-      />
-    )
-  },
-  sortingFn: "basic",
+  sortingFn: makeNumberSortingFn(chart, { key: "range", period, objKey }),
 })
 
 export const volumeColumn = (chart, { period, objKey }) => ({
@@ -577,5 +584,5 @@ export const volumeColumn = (chart, { period, objKey }) => ({
       />
     )
   },
-  sortingFn: "basic",
+  sortingFn: makeNumberSortingFn(chart, { key: "volume", period, objKey }),
 })

@@ -21,6 +21,7 @@ const useMetricsByValue = chart =>
 export const labelColumn = (groupByOrder = []) => ({
   id: "label",
   header: () => <TextSmall strong>Name</TextSmall>,
+  headerString: () => "Name",
   accessorKey: "label",
   size: 200,
   minSize: 60,
@@ -86,6 +87,7 @@ export const labelColumn = (groupByOrder = []) => ({
 export const contributionColumn = () => ({
   id: "contribution",
   header: <TextMicro strong>Vol %</TextMicro>,
+  headerString: () => "Vol %",
   accessorKey: "contribution",
   size: 60,
   minSize: 30,
@@ -115,6 +117,7 @@ export const contributionColumn = () => ({
 export const anomalyRateColumn = () => ({
   id: "anomalyRate",
   header: <TextMicro strong>Anomaly%</TextMicro>,
+  headerString: () => "Anomaly%",
   accessorKey: "anomalyRate",
   size: 60,
   minSize: 30,
@@ -141,13 +144,14 @@ export const anomalyRateColumn = () => ({
   sortingFn: "basic",
 })
 
-export const minColumn = () => ({
+export const minColumn = chart => ({
   id: "min",
   header: (
     <TextMicro strong>
       Min <Units visible />
     </TextMicro>
   ),
+  headerString: () => `Min  (${chart.getUnitSign({ key: "units" })})`,
   accessorFn: row => row.timeframe?.min,
   size: 60,
   minSize: 30,
@@ -160,13 +164,14 @@ export const minColumn = () => ({
   sortingFn: "basic",
 })
 
-export const avgColumn = () => ({
+export const avgColumn = chart => ({
   id: "avg",
   header: (
     <TextMicro strong>
       Avg <Units visible />
     </TextMicro>
   ),
+  headerString: () => `Avg  (${chart.getUnitSign({ key: "units" })})`,
   accessorFn: row => row.timeframe?.avg,
   size: 60,
   minSize: 30,
@@ -179,13 +184,14 @@ export const avgColumn = () => ({
   sortingFn: "basic",
 })
 
-export const maxColumn = () => ({
+export const maxColumn = chart => ({
   id: "max",
   header: (
     <TextMicro strong>
       Max <Units visible />
     </TextMicro>
   ),
+  headerString: () => `Max  (${chart.getUnitSign({ key: "units" })})`,
   accessorFn: row => row.timeframe?.max,
   size: 60,
   minSize: 30,

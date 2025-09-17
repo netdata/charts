@@ -31,6 +31,7 @@ const useColumns = (period, options = {}) => {
       {
         id: "Dimensions",
         header: () => <TextSmall>Dimension ({hover ? "hovering" : "latest"} value)</TextSmall>,
+        headerString: () => "",
         fullWidth: true,
         columns: [labelColumn(chart), valueColumn(chart)],
       },
@@ -41,6 +42,7 @@ const useColumns = (period, options = {}) => {
             {period === "highlight" ? "Selected area" : uppercase(period)} points
           </TextSmall>
         ),
+        headerString: () => "",
         fullWidth: true,
         columns: [
           minColumn(chart, columnOptions),

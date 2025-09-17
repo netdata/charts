@@ -3,7 +3,7 @@ import { screen, fireEvent } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { renderWithChart } from "@jest/testUtilities"
 import Compare from "./index"
-import { useComparisonData } from "./useComparisonData"
+import { useComparisonData } from "./useData"
 
 jest.mock("./useComparisonData")
 

@@ -1,8 +1,8 @@
 import React, { useState } from "react"
-import { Flex, TextSmall, TextMicro, Button, Icon } from "@netdata/netdata-ui"
+import { Flex, TextSmall, TextMicro, Button } from "@netdata/netdata-ui"
 import styled from "styled-components"
 import Tooltip from "@/components/tooltip"
-import { useComparisonData } from "./useComparisonData"
+import useData from "./useData"
 import { useChart, convert, useAttributeValue } from "@/components/provider"
 import ChangeIndicator from "./changeIndicator"
 import CustomPeriodForm from "./customPeriodForm"
@@ -45,7 +45,11 @@ const basicStats = [
 
 const advancedStats = [
   { key: "median", label: "Median", tooltip: "Middle value when sorted (50th percentile)" },
-  { key: "stddev", label: "StdDev", tooltip: "Standard deviation - measures data spread around the mean" },
+  {
+    key: "stddev",
+    label: "StdDev",
+    tooltip: "Standard deviation - measures data spread around the mean",
+  },
   { key: "p95", label: "P95", tooltip: "95th percentile - 95% of values are below this" },
   { key: "range", label: "Range", tooltip: "Difference between maximum and minimum values" },
   { key: "volume", label: "Volume", tooltip: "Sum of all values in the time period" },
@@ -66,7 +70,7 @@ const ComparisonCard = ({ period, showAdvanced, tab }) => {
       {!hasData ? (
         <Flex column gap={1}>
           <TextMicro color="textDescription">
-            {period.error ? "Error loading data" : "Loading..."}
+            {period.error ? "Error loading data" : "No data available for the selected time range"}
           </TextMicro>
         </Flex>
       ) : (
@@ -103,7 +107,7 @@ const ComparisonCard = ({ period, showAdvanced, tab }) => {
 
 const Compare = () => {
   const chart = useChart()
-  const { periods, loading, error } = useComparisonData()
+  const { periods, loading, error } = useData()
   const [showCustomForm, setShowCustomForm] = useState(false)
   const showAllStats = useAttributeValue("drawer.showAdvancedStats", false)
   const tab = useAttributeValue("drawer.tab", "window")

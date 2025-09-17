@@ -3,7 +3,7 @@ import { useChart, useAttributeValue } from "@/components/provider"
 import { fetchComparisonData } from "./dataFetcher"
 import { calculateStats, calculateComparisons } from "./calculations"
 
-export const useComparisonData = () => {
+export default () => {
   const chart = useChart()
   const rawPeriods = useAttributeValue("comparePeriods")
   const loading = useAttributeValue("compareLoading")
@@ -54,7 +54,13 @@ export const useComparisonData = () => {
     }
 
     fetchData()
-  }, [chart, after, before, drawerAction, customPeriods])
+
+    const unsubscribe = chart.on("fetch", fetchData)
+
+    return () => {
+      unsubscribe()
+    }
+  }, [after, before, drawerAction, customPeriods])
 
   return { periods, loading, error }
 }
