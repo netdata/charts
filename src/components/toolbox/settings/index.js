@@ -1,83 +1,42 @@
-import React, { useCallback, useState, useEffect } from "react"
-import { Flex, Button as UIButton } from "@netdata/netdata-ui"
-import { useAttributeValue } from "@/components/provider"
-import ValueRange from "./valueRange"
-import NumberFormat from "./numberFormat"
-import ChartElements from "./chartElements"
+import React, { useRef, useState } from "react"
+import { Drop } from "@netdata/netdata-ui"
+import settings from "@netdata/netdata-ui/dist/components/icon/assets/settings.svg"
+import Icon, { Button } from "@/components/icon"
+import { useChart } from "@/components/provider"
+import SettingsContent from "./content"
 
-const SettingsContent = ({ chart, onClose }) => {
-  const currentStaticValueRange = useAttributeValue("staticValueRange")
-  const currentDesiredUnits = useAttributeValue("desiredUnits") || ["auto"]
-  const currentStaticFractionDigits = useAttributeValue("staticFractionDigits")
-  const currentEnabledYAxis = useAttributeValue("enabledYAxis")
-  const currentEnabledXAxis = useAttributeValue("enabledXAxis")
-  const currentLegend = useAttributeValue("legend")
-
-  const [formState, setFormState] = useState({
-    staticValueRange: null,
-    desiredUnits: ["auto"],
-    staticFractionDigits: null,
-    enabledYAxis: true,
-    enabledXAxis: true,
-    legend: true,
-  })
-
-  useEffect(() => {
-    setFormState({
-      staticValueRange: currentStaticValueRange,
-      desiredUnits: currentDesiredUnits,
-      staticFractionDigits: currentStaticFractionDigits,
-      enabledYAxis: currentEnabledYAxis,
-      enabledXAxis: currentEnabledXAxis,
-      legend: currentLegend,
-    })
-  }, [
-    currentStaticValueRange,
-    currentDesiredUnits,
-    currentStaticFractionDigits,
-    currentEnabledYAxis,
-    currentEnabledXAxis,
-    currentLegend,
-  ])
-
-  const handleChange = useCallback(changes => {
-    setFormState(prev => ({ ...prev, ...changes }))
-  }, [])
-
-  const handleApply = useCallback(() => {
-    chart.updateAttributes(formState)
-
-    onClose()
-    chart.trigger("yAxisChange")
-  }, [formState, chart, onClose])
-
-  const handleReset = useCallback(() => {
-    const resetState = {
-      staticValueRange: null,
-      desiredUnits: ["auto"],
-      staticFractionDigits: null,
-      enabledYAxis: true,
-      enabledXAxis: true,
-      legend: true,
-    }
-    setFormState(resetState)
-    Object.entries(resetState).forEach(([key, value]) => {
-      chart.updateAttribute(key, value)
-    })
-    onClose()
-  }, [chart, onClose])
+const Settings = ({ disabled }) => {
+  const ref = useRef()
+  const chart = useChart()
+  const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <Flex column gap={3} padding={[3]} width={{ min: "220px" }}>
-      <ValueRange formState={formState} onChange={handleChange} />
-      <NumberFormat formState={formState} onChange={handleChange} />
-      <ChartElements formState={formState} onChange={handleChange} />
-      <Flex gap={1} justifyContent="end">
-        <UIButton label="Reset" onClick={handleReset} neutral small />
-        <UIButton label="Apply" onClick={handleApply} primary small />
-      </Flex>
-    </Flex>
+    <>
+      <Button
+        ref={ref}
+        icon={<Icon svg={settings} size="16px" />}
+        title="Settings"
+        disabled={disabled}
+        data-testid="chartHeaderToolbox-settings"
+        onClick={() => setIsOpen(prev => !prev)}
+        data-track={chart.track("settings")}
+      />
+      {ref.current && isOpen && (
+        <Drop
+          target={ref.current}
+          align={{ top: "bottom", right: "right" }}
+          onEsc={() => setIsOpen(false)}
+          onClickOutside={() => setIsOpen(false)}
+          data-toolbox={chart.getId()}
+          background="modalBackground"
+          margin={[2, 0, 0]}
+          round
+        >
+          <SettingsContent chart={chart} onClose={() => setIsOpen(false)} />
+        </Drop>
+      )}
+    </>
   )
 }
 
-export default SettingsContent
+export default Settings

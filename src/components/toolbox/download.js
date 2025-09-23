@@ -35,8 +35,8 @@ const useDownloadCsv =
     let tableData = [
       labels.map(l =>
         hideUnits[l]
-          ? labelTexts[l] || l
-          : `${labelTexts[l] || l} (${chart.getUnitSign({ key: "units", dimensionId: l, withoutConversion: !shouldConvert })})`
+          ? labelTexts[l] || chart.getDimensionName(l)
+          : `${labelTexts[l] || chart.getDimensionName(l)} (${chart.getUnitSign({ key: "units", dimensionId: l, withoutConversion: !shouldConvert })})`
       ),
     ]
     data.forEach(row => {
