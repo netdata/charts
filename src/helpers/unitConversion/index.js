@@ -23,8 +23,8 @@ const baseConvert = (chart, unitsKey = "units", min, max) => {
     `${unitsKey}ByContext`,
     Object.keys(unitsStsByContext).reduce((h, ctx) => {
       h[ctx] = getConversionAttributes(chart, unitsStsByContext[ctx].units, {
-        min: unitsStsByContext[ctx]?.min || min,
-        max: unitsStsByContext[ctx]?.max || max,
+        min: unitsStsByContext[ctx]?.min ?? min,
+        max: unitsStsByContext[ctx]?.max ?? max,
       })
       return h
     }, {})

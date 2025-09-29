@@ -18,7 +18,6 @@ const Container = styled(Flex)`
 
 export const meta = (row, cell, index) => ({
   cellStyles: {
-    ...(row?.getIsExpanded?.() && { background: "columnHighlight", backgroundOpacity: 0.7 }),
     ...(row.depth > 0 && { backgroundOpacity: 0.4 }),
     ...(row.depth > 0 && index === 0 && { border: { side: "left", size: "4px" } }),
   },
