@@ -14,6 +14,7 @@ export default chart => {
   let abortController = null
   let payload = initialPayload
   let nextPayload = null
+  let currentFetchKey = null
 
   chart.lastFetch = [null, null]
 
@@ -21,11 +22,60 @@ export default chart => {
 
   makeGetClosestRow(chart)
 
+  const getFetchKey = () => {
+    const {
+      after,
+      before,
+      points,
+      selectedContexts,
+      context,
+      nodesScope,
+      contextScope,
+      selectedInstances,
+      selectedDimensions,
+      selectedLabels,
+      aggregationMethod,
+      groupBy,
+      groupByLabel,
+      postGroupBy,
+      postGroupByLabel,
+      postAggregationMethod,
+      showPostAggregations,
+      agent,
+      host,
+    } = chart.getAttributes()
+    const selectedNodes = chart.getFilteredNodeIds()
+
+    return JSON.stringify({
+      after,
+      before,
+      points,
+      selectedContexts,
+      context,
+      nodesScope,
+      contextScope,
+      selectedNodes,
+      selectedInstances,
+      selectedDimensions,
+      selectedLabels,
+      aggregationMethod,
+      groupBy,
+      groupByLabel,
+      postGroupBy,
+      postGroupByLabel,
+      postAggregationMethod,
+      showPostAggregations,
+      agent,
+      host,
+    })
+  }
+
   chart.cancelFetch = () => abortController && abortController.abort()
 
   const finishFetch = () => {
     if (!chart) return
 
+    currentFetchKey = null
     chart.startAutofetch()
     chart.trigger("finishFetch")
     chart.trigger("render")
@@ -186,6 +236,12 @@ export default chart => {
   chart.fetch = ({ processing = false } = {}) => {
     if (!chart) return
 
+    const fetchKey = getFetchKey()
+
+    if (abortController && !abortController.signal.aborted && currentFetchKey === fetchKey) {
+      return Promise.resolve()
+    }
+
     chart.updateAttributes({
       processing,
       loading: true,
@@ -198,6 +254,7 @@ export default chart => {
     if (!isNewerThanRetention())
       return Promise.resolve().then(() => chart.failFetch({ message: "Exceeds data retention" }))
 
+    currentFetchKey = fetchKey
     abortController = new AbortController()
 
     return chart.baseFetch({
