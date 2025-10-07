@@ -1,6 +1,6 @@
 import React from "react"
 import styled from "styled-components"
-import { Flex } from "@netdata/netdata-ui"
+import { Flex, TextMicro } from "@netdata/netdata-ui"
 import Color, { ColorBar } from "@/components/line/dimensions/color"
 import Name from "@/components/line/dimensions/name"
 import Value, { Value as ValuePart } from "@/components/line/dimensions/value"
@@ -64,7 +64,7 @@ const AnnotationsValue = ({ children: annotations, showFull, ...rest }) => (
   </Flex>
 )
 
-const Dimension = ({ id, strong, rowFlavour }) => {
+const Dimension = ({ id, index, strong, rowFlavour }) => {
   const visible = useVisibleDimensionId(id)
 
   const chart = useChart()
@@ -73,6 +73,7 @@ const Dimension = ({ id, strong, rowFlavour }) => {
 
   return (
     <GridRow opacity={visible ? null : "weak"}>
+      <TextMicro>{index < 9 ? index + 1 : ""}</TextMicro>
       <Flex alignItems="center" gap={1} position="relative">
         <ColorBackground
           id={id}
