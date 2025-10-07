@@ -117,15 +117,12 @@ const TooltipValue = ({ id }) => {
   return `${value} ${units}`
 }
 
-export const valueColumn = (
-  chart,
-  { contextLabel = "Dimensions", dimensionLabel = "Value", dimensionId, keys = [] }
-) => {
+export const valueColumn = (chart, { dimensionLabel = "Value", dimensionId, keys = [] }) => {
   const keysStr = keys.length ? keys.join("|") : ""
 
   return {
     id: `value${keysStr}`,
-    name: `${contextLabel} > ${dimensionLabel}`,
+    name: dimensionLabel,
     header: () => {
       return (
         <Flex column>

@@ -3,7 +3,7 @@ import { useChart, useAttributeValue } from "@/components/provider"
 import { fetchChartWeights } from "@/sdk/makeChart/api"
 import { transformWeightsData, buildHierarchicalTree } from "./dataTransformer"
 
-const fetch = async chart => {
+const fetch = async (chart, signal) => {
   const groupBy = chart.getAttribute("drilldown.groupBy", ["node", "instance", "dimension"])
   const groupByLabel = chart.getAttribute("drilldown.groupByLabel", [])
   const drawerTab = chart.getAttribute("drawer.tab")
@@ -12,28 +12,22 @@ const fetch = async chart => {
   chart.updateAttribute("drilldown.loading", true)
   chart.updateAttribute("drilldown.error", null)
 
-  try {
-    const attrs = { groupBy, groupByLabel, method: "value" }
+  const attrs = { groupBy, groupByLabel, method: "value" }
 
-    if (drawerTab === "selectedArea" && overlays?.highlight?.range) {
-      const [highlightAfter, highlightBefore] = overlays.highlight.range
-      attrs.highlightAfter = highlightAfter
-      attrs.highlightBefore = highlightBefore
-      attrs.baselineAfter = highlightAfter
-      attrs.baselineBefore = highlightBefore
-    }
-
-    const weightsResponse = await fetchChartWeights(chart, { attrs })
-
-    chart.updateAttribute("drilldown.data", weightsResponse)
-    chart.updateAttribute("drilldown.loading", false)
-
-    return weightsResponse
-  } catch (error) {
-    chart.updateAttribute("drilldown.error", error.message)
-    chart.updateAttribute("drilldown.loading", false)
-    throw error
+  if (drawerTab === "selectedArea" && overlays?.highlight?.range) {
+    const [highlightAfter, highlightBefore] = overlays.highlight.range
+    attrs.highlightAfter = highlightAfter
+    attrs.highlightBefore = highlightBefore
+    attrs.baselineAfter = highlightAfter
+    attrs.baselineBefore = highlightBefore
   }
+
+  const weightsResponse = await fetchChartWeights(chart, { attrs, signal })
+
+  chart.updateAttribute("drilldown.data", weightsResponse)
+  chart.updateAttribute("drilldown.loading", false)
+
+  return weightsResponse
 }
 
 export default () => {
@@ -64,25 +58,27 @@ export default () => {
     if (drawerAction !== "drillDown") return
     if (!chart) return
 
+    const abortController = new AbortController()
+
     const fetchData = async () => {
       try {
-        await fetch(chart)
+        await fetch(chart, abortController.signal)
       } catch (err) {
-        chart.updateAttribute("drilldown.error", err.message || "Failed to fetch drilldown data")
+        if (err.name === "AbortError") return
+        chart.updateAttribute(
+          "drilldown.error",
+          err.errorMessage || "Failed to fetch drilldown data"
+        )
         chart.updateAttribute("drilldown.loading", false)
       }
     }
 
     fetchData()
-  }, [
-    drawerAction,
-    drawerTab,
-    groupBy,
-    groupByLabel,
-    after,
-    before,
-    overlays?.highlight?.range,
-  ])
+
+    return () => {
+      abortController.abort()
+    }
+  }, [drawerAction, drawerTab, groupBy, groupByLabel, after, before, overlays?.highlight?.range])
 
   return { hierarchicalData, loading, error, groupedBy }
 }

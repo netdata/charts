@@ -14,9 +14,10 @@ import {
   maxColumn,
 } from "./columns"
 
-const useDefaultItems = chart =>
-  useMemo(
-    () => [
+const useDefaultItems = (chart, { groupByKey, contextScope }) =>
+  useMemo(() => {
+    const hasMultipleContexts = contextScope.length > 1
+    return [
       { nm: "node", id: "node", key: "nodes" },
       {
         nm: `${chart.intl("instance")} ${
@@ -26,14 +27,14 @@ const useDefaultItems = chart =>
         key: "instances",
       },
       { nm: "dimension", id: "dimension", key: "dimensions" },
-      {
+      "drilldown.groupBy" === groupByKey && {
         nm: `percentage of ${chart.intl("instance")}`,
         id: "percentage-of-instance",
         key: "instances",
       },
-    ],
-    []
-  )
+      hasMultipleContexts && { nm: "context", id: "context", key: "contexts" },
+    ].filter(Boolean)
+  }, [groupByKey, contextScope])
 
 const tooltipProps = {
   heading: "Group by",
@@ -65,10 +66,11 @@ const GroupBy = ({
   const chart = useChart()
   const groupBy = useAttributeValue(groupByKey)
   const groupByLabel = useAttributeValue(groupByLabelKey)
+  const contextScope = useAttributeValue("contextScope")
 
   let label = "everything"
 
-  const defaultItems = useDefaultItems(chart)
+  const defaultItems = useDefaultItems(chart, { groupByKey, contextScope })
 
   const getOptions = useCallback(() => {
     const attributes = chart.getAttributes()

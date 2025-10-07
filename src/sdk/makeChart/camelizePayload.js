@@ -184,6 +184,9 @@ export default (payload, chart) => {
     result,
     ...rest
   } = payload
+  let contexts = {}
+  contextsArray.forEach(c => (contexts[c.id] = c))
+
   let nodes = {}
   let nodesIndexes = {}
   nodesArray.forEach(n => {
@@ -234,6 +237,7 @@ export default (payload, chart) => {
     title,
     tiers,
     perTier,
+    contexts,
     nodes,
     instances,
     dimensions,

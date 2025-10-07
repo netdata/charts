@@ -36,10 +36,10 @@ export const useTableColumns = (options = {}) => {
         return {
           id: `Context-${context}`,
           header: () => chart.intl(context),
+          headerString: () => chart.intl(context),
           columns: contextGroups[context]
             ? Object.keys(contextGroups[context]).map(dimension =>
                 valueColumn(chart, {
-                  contextLabel: chart.intl(context),
                   dimensionLabel: chart.intl(dimension),
                   dimensionId: contextGroups[context][dimension]?.[0],
                   keys: [context, dimension],

@@ -54,7 +54,7 @@ const DrillDown = () => {
   if (error) {
     return (
       <Flex padding={[3]} justifyContent="center" color="text">
-        Error loading drilldown data: {error.message}
+        Error loading drilldown data: {error}
       </Flex>
     )
   }
