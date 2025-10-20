@@ -60,7 +60,7 @@ const rowSorting = {
   default: "valueDesc",
 }
 
-const Dimensions = ({ height, width }) => {
+const Dimensions = ({ height }) => {
   const chart = useChart()
   const [x, row] = useAttributeValue("hoverX") || emptyArray
   const { data } = usePayload()

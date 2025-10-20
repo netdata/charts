@@ -23,7 +23,10 @@ const Container = styled(Flex).attrs({
 const Grid = styled.div`
   display: grid;
   width: 100%;
-  grid-template-columns: minmax(150px, max-content) 60px 60px minmax(80px, auto);
+  grid-template-columns: minmax(200px, 2fr) minmax(80px, 1.5fr) minmax(80px, 1fr) minmax(
+      80px,
+      0.5fr
+    );
   align-items: center;
 `
 

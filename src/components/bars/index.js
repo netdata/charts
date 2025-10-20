@@ -6,12 +6,12 @@ import { ChartWrapper } from "@/components/hocs/withTile"
 import Dimensions from "./dimensions"
 
 export const BarsChart = ({ uiName, ref, ...rest }) => {
-  const { width, height } = useOnResize(uiName)
+  const { height } = useOnResize(uiName)
 
   return (
     <ChartWrapper ref={ref}>
       <ChartContainer uiName={uiName} column gap={0.5} position="relative" {...rest}>
-        <Dimensions height={height} width={width} />
+        <Dimensions height={height} />
       </ChartContainer>
     </ChartWrapper>
   )

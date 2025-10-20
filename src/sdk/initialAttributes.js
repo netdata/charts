@@ -138,6 +138,7 @@ export default {
   hasToolbox: true,
   hasHoverPopover: true,
   expandable: true,
+  showAnnotations: true,
 
   hasYlabel: true,
   yAxisLabelWidth: 60,
