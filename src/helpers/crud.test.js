@@ -120,6 +120,18 @@ describe("setValue", () => {
     setValue(undefined, "value", obj)
     expect(Object.keys(obj)).toHaveLength(0)
   })
+
+  it("does not mutate shared object references", () => {
+    const sharedDrawer = { action: "values", tab: "window" }
+    const obj1 = { drawer: sharedDrawer }
+    const obj2 = { drawer: sharedDrawer }
+
+    setValue("drawer.action", "compare", obj1)
+
+    expect(obj1.drawer.action).toBe("compare")
+    expect(obj2.drawer.action).toBe("values")
+    expect(obj1.drawer).not.toBe(obj2.drawer)
+  })
 })
 
 describe("deleteKey", () => {

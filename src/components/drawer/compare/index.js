@@ -128,8 +128,6 @@ const Compare = () => {
 
   return (
     <Flex column gap={3}>
-      {loading && <TextMicro color="textDescription">Loading comparison data...</TextMicro>}
-
       <GridContainer>
         {periods.map(period => (
           <ComparisonCard key={period.id} period={period} showAdvanced={showAllStats} tab={tab} />

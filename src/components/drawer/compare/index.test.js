@@ -111,18 +111,6 @@ describe("Compare", () => {
     expect(screen.getByText("Error loading data")).toBeInTheDocument()
   })
 
-  it("shows loading state when comparison data is loading", () => {
-    useComparisonData.mockReturnValue({
-      periods: [],
-      loading: true,
-      error: null,
-    })
-
-    renderWithChart(<Compare />)
-
-    expect(screen.getByText("Loading comparison data...")).toBeInTheDocument()
-  })
-
   it("shows error message when hook returns error", () => {
     const error = "Network connection failed"
     useComparisonData.mockReturnValue({
