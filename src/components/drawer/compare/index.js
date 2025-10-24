@@ -2,8 +2,10 @@ import React, { useState } from "react"
 import { Flex, TextSmall, TextMicro, Button } from "@netdata/netdata-ui"
 import styled from "styled-components"
 import Tooltip from "@/components/tooltip"
+import Icon, { Button as IconButton } from "@/components/icon"
 import useData from "./useData"
 import { useChart, convert, useAttributeValue } from "@/components/provider"
+import pencilIcon from "@netdata/netdata-ui/dist/components/icon/assets/pencil_outline.svg"
 import ChangeIndicator from "./changeIndicator"
 import CustomPeriodForm from "./customPeriodForm"
 
@@ -60,12 +62,31 @@ const ComparisonCard = ({ period, showAdvanced, tab }) => {
   const dateRange = formatDateRange(chart, period.after, period.before)
   const hasData = period.payload && period.stats && !period.error
 
+  const [showEditForm, setShowEditForm] = useState(false)
+
+  const updatePeriod = updated => {
+    const currentCustomPeriods = chart.getAttribute("customPeriods", [])
+
+    const updatedPeriods = currentCustomPeriods.map(p => (p.id === updated.id ? updated : p))
+    chart.updateAttribute("customPeriods", updatedPeriods)
+    setShowEditForm(false)
+  }
+
   return (
     <Flex column gap={2} padding={[3]} border="all" round>
-      <Flex column gap={1}>
-        <TextSmall strong>{period.label}</TextSmall>
-        <TextMicro color="textDescription">{dateRange}</TextMicro>
-      </Flex>
+      <Tooltip content={dateRange}>
+        <Flex alignItems="center" gap={1} justifyContent="between">
+          <TextSmall strong>{period.label}</TextSmall>
+          {!period.isBase && (
+            <IconButton
+              icon={<Icon svg={pencilIcon} size="10px" />}
+              onClick={() => setShowEditForm(true)}
+              data-testid="period-edit"
+              data-track={chart.track("period-edit")}
+            />
+          )}
+        </Flex>
+      </Tooltip>
 
       {!hasData ? (
         <Flex column gap={1}>
@@ -73,6 +94,12 @@ const ComparisonCard = ({ period, showAdvanced, tab }) => {
             {period.error ? "Error loading data" : "No data available for the selected time range"}
           </TextMicro>
         </Flex>
+      ) : showEditForm ? (
+        <CustomPeriodForm
+          initialValues={period}
+          onSubmit={updatePeriod}
+          onCancel={() => setShowEditForm(false)}
+        />
       ) : (
         <Flex column gap={1}>
           {basicStats.map(stat => (
@@ -133,7 +160,7 @@ const Compare = () => {
           <ComparisonCard key={period.id} period={period} showAdvanced={showAllStats} tab={tab} />
         ))}
 
-        {periods.length > 0 && !showCustomForm && (
+        {!showCustomForm ? (
           <Flex
             column
             gap={2}
@@ -149,10 +176,8 @@ const Compare = () => {
               <Button tiny label="Select a timeframe" onClick={() => setShowCustomForm(true)} />
             </Tooltip>
           </Flex>
-        )}
-
-        {showCustomForm && (
-          <CustomPeriodForm onAdd={addCustomPeriod} onCancel={() => setShowCustomForm(false)} />
+        ) : (
+          <CustomPeriodForm onSubmit={addCustomPeriod} onCancel={() => setShowCustomForm(false)} />
         )}
       </GridContainer>
     </Flex>
