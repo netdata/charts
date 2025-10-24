@@ -63,8 +63,8 @@ export const fetchComparisonData = async chart => {
         })
 
         const camelizedPayload = camelizePayload(rawPayload, chart)
-        const { result } = camelizedPayload
-        const payload = result
+        const { result, viewUpdateEvery } = camelizedPayload
+        const payload = { ...result, viewUpdateEvery }
 
         return {
           ...period,

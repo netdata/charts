@@ -10,6 +10,7 @@ describe("calculations", () => {
           [3, 50, 60],
         ],
         dimensions: ["cpu", "memory"],
+        viewUpdateEvery: 2,
       }
 
       const result = calculateStats(payload)
@@ -43,6 +44,7 @@ describe("calculations", () => {
           [4000000, 70, 80], // 4000 seconds in ms
         ],
         dimensions: ["cpu", "memory"],
+        viewUpdateEvery: 2,
       }
 
       // Highlight range in seconds (1500-3500), will be converted to ms internally
@@ -90,6 +92,7 @@ describe("calculations", () => {
           [3, Infinity, 60],
         ],
         dimensions: ["cpu"],
+        viewUpdateEvery: 1,
       }
 
       const result = calculateStats(payload)
@@ -99,7 +102,7 @@ describe("calculations", () => {
         avg: 40,
         max: 60,
         points: 3,
-        dimensions: 1,
+        dimensions: 2,
         value: 60,
         arp: 0,
         cv: 40.8248290463863,
@@ -150,10 +153,20 @@ describe("calculations", () => {
         formatted: "100.0%",
       })
 
-      expect(calculatePercentageChange(100, 0)).toBeNull()
+      expect(calculatePercentageChange(100, 0)).toEqual({
+        value: 0,
+        direction: "neutral",
+        formatted: "0.0%",
+      })
+
+      expect(calculatePercentageChange(0, 0)).toEqual({
+        value: 0,
+        direction: "neutral",
+        formatted: "0.0%",
+      })
+
       expect(calculatePercentageChange(null, 100)).toBeNull()
       expect(calculatePercentageChange(100, null)).toBeNull()
-      expect(calculatePercentageChange(0, 0)).toBeNull()
     })
   })
 

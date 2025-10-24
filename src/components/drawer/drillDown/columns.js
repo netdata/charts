@@ -49,15 +49,12 @@ export const labelColumn = (groupByOrder = []) => ({
           <Color id={row.original.id} />
           <TextSmall
             strong
-            onClick={
-              !row.original.disabled
-                ? e => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    row.getToggleSelectedHandler?.()?.(e)
-                  }
-                : undefined
-            }
+            onClick={e => {
+              e.preventDefault()
+              e.stopPropagation()
+              row.getToggleExpandedHandler?.()?.(e)
+              setTimeout(() => e.target.scrollIntoView({ behavior: "smooth", block: "nearest" }))
+            }}
             cursor={row.original.disabled ? "default" : "pointer"}
             whiteSpace="normal"
             wordBreak="break-word"

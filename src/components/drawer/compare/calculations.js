@@ -3,7 +3,7 @@ import { calculateAllStats } from "@/helpers/statistics"
 export const calculateStats = (payload, highlightRange = null) => {
   if (!payload?.data?.length) return null
 
-  const { data } = payload
+  const { data, viewUpdateEvery = 1 } = payload
 
   const filteredData = highlightRange
     ? data.filter(row => {
@@ -22,11 +22,13 @@ export const calculateStats = (payload, highlightRange = null) => {
 
   if (!values.length) return null
 
-  const stats = calculateAllStats(values)
+  const dimensions = filteredData[0]?.length - 1 || 0
+  const stats = calculateAllStats(values, filteredData.length, viewUpdateEvery)
 
   return {
     ...stats,
     points: filteredData.length,
+    dimensions,
   }
 }
 

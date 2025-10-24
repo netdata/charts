@@ -27,7 +27,7 @@ export const calculatePercentile = (values, percentile) => {
     : sorted[lower] + (sorted[upper] - sorted[lower]) * (index - lower)
 }
 
-export const calculateAdvancedStats = (values, basicStats = {}) => {
+export const calculateAdvancedStats = (values, basicStats = {}, points = 0, updateEvery = 1) => {
   if (!values?.length) return {}
 
   const { avg } = basicStats
@@ -41,12 +41,12 @@ export const calculateAdvancedStats = (values, basicStats = {}) => {
     p95: calculatePercentile(values, 95),
     range: Math.max(...values) - Math.min(...values),
     count: values.length,
-    volume: values.reduce((sum, val) => sum + Math.abs(val), 0),
+    volume: points > 0 ? avg * points * updateEvery : values.reduce((sum, val) => sum + Math.abs(val), 0),
     cv: avg && stddev ? (stddev / Math.abs(avg)) * 100 : null,
   }
 }
 
-export const calculateAllStats = values => {
+export const calculateAllStats = (values, points = 0, updateEvery = 1) => {
   if (!values?.length) return {}
 
   const sum = values.reduce((a, b) => a + b, 0)
@@ -58,7 +58,7 @@ export const calculateAllStats = values => {
     arp: 0,
   }
 
-  const advancedStats = calculateAdvancedStats(values, basicStats)
+  const advancedStats = calculateAdvancedStats(values, basicStats, points, updateEvery)
 
   return { ...basicStats, ...advancedStats }
 }
