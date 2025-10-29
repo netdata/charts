@@ -24,7 +24,11 @@ export default sdk => {
   const autofetchIfActive = (chart, { now = new Date(), force = false } = {}) => {
     const { after, hovering, active, loaded, fetchStartedAt } = chart.getAttributes()
 
-    let autofetch = after < 0 && !hovering && !chart.getRoot().getAttribute("paused")
+    const paused =
+      (!sdk.getRoot().getAttribute("autofetchOnWindowBlur") &&
+        sdk.getRoot().getAttribute("blurred")) ||
+      sdk.getRoot().getAttribute("paused")
+    let autofetch = after < 0 && !hovering && !paused
 
     if (chart.type === "container") return chart.updateAttribute("autofetch", autofetch)
 
@@ -49,17 +53,24 @@ export default sdk => {
 
   const blur = () => {
     sdk.getRoot().updateAttributes({
-      paused: !sdk.getRoot().getAttribute("autofetchOnWindowBlur"),
       blurred: true,
     })
-    toggleRender(sdk.getRoot().getAttribute("after") < 0 && !sdk.getRoot().getAttribute("paused"))
+    const paused =
+      (!sdk.getRoot().getAttribute("autofetchOnWindowBlur") &&
+        sdk.getRoot().getAttribute("blurred")) ||
+      sdk.getRoot().getAttribute("paused")
+    toggleRender(sdk.getRoot().getAttribute("after") < 0 && !paused)
 
     sdk.getNodes().forEach(node => autofetchIfActive(node))
   }
 
   const focus = () => {
-    sdk.getRoot().updateAttributes({ paused: false, blurred: false })
-    toggleRender(sdk.getRoot().getAttribute("after") < 0 && !sdk.getRoot().getAttribute("paused"))
+    sdk.getRoot().updateAttributes({ blurred: false })
+    const paused =
+      (!sdk.getRoot().getAttribute("autofetchOnWindowBlur") &&
+        sdk.getRoot().getAttribute("blurred")) ||
+      sdk.getRoot().getAttribute("paused")
+    toggleRender(sdk.getRoot().getAttribute("after") < 0 && !paused)
 
     sdk.getNodes().forEach(node => autofetchIfActive(node))
   }
