@@ -1,5 +1,6 @@
 import { heatmapOrChartType } from "@/helpers/heatmap"
 import { getAlias } from "@/helpers/units"
+import normalizeSelectedInstances from "@/helpers/normalizeSelectedInstances"
 
 const transformDataRow = (row, point, labels, byDimension) =>
   row.reduce(
@@ -209,6 +210,11 @@ export default (payload, chart) => {
     return h
   }, {})
 
+  const selectedInstances = normalizeSelectedInstances(
+    chart?.getAttribute("selectedInstances"),
+    instances
+  )
+
   const grouped = viewDimensions?.grouped_by
 
   const [dimContexts, unitsStsByContext] = getStsByContext(
@@ -276,5 +282,6 @@ export default (payload, chart) => {
     nodesTotals,
     min,
     max,
+    selectedInstances,
   }
 }
