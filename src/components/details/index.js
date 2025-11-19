@@ -5,6 +5,7 @@ import { useAttributeValue } from "@/components/provider"
 import Context from "./context"
 import Source from "./source"
 import Description from "./description"
+import Units from "./units"
 
 const Container = styled(Flex).attrs({
   column: true,
@@ -23,6 +24,7 @@ const Details = () => {
       <Description />
       {nodeName && <Source />}
       <Context />
+      <Units />
     </Container>
   )
 }
