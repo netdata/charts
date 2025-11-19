@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useMemo } from "react"
 import { Flex, TextSmall, CopyToClipboard } from "@netdata/netdata-ui"
 import {
   useTitle,
@@ -11,10 +11,21 @@ import {
 
 export const Title = props => {
   const title = useTitle()
-  const units = useUnitSign({ long: true })
+  const viewUnits = useUnitSign({ long: true })
+  const rawUnits = useUnitSign({ withoutConversion: true, long: true })
   const name = useName()
   const isMinimal = useIsMinimal()
   const contextScope = useAttributeValue("contextScope")
+
+  const unitsText = useMemo(() => {
+    if (isMinimal || (!rawUnits && !viewUnits)) return null
+    return (
+      <TextSmall color="textLite" whiteSpace="nowrap">
+        • {rawUnits && `[${rawUnits}]`}
+        {viewUnits && viewUnits !== rawUnits && ` scaled to [${viewUnits}]`}
+      </TextSmall>
+    )
+  }, [rawUnits, viewUnits, isMinimal])
 
   return (
     <Flex
@@ -38,11 +49,7 @@ export const Title = props => {
           </TextSmall>
         </CopyToClipboard>
       )}
-      {!!units && !isMinimal && (
-        <TextSmall color="textLite" whiteSpace="nowrap">
-          • [{units}]
-        </TextSmall>
-      )}
+      {unitsText}
     </Flex>
   )
 }
