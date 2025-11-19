@@ -18,7 +18,7 @@ export const Title = props => {
   const contextScope = useAttributeValue("contextScope")
 
   const unitsText = useMemo(() => {
-    if (isMinimal || (!rawUnits && !viewUnits)) return null
+    if (isMinimal || !rawUnits) return null
     return (
       <TextSmall color="textLite" whiteSpace="nowrap">
         • {rawUnits && `[${rawUnits}]`}
