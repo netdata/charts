@@ -8,6 +8,9 @@ import {
   useIsMinimal,
   useAttributeValue,
 } from "@/components/provider"
+import { withTooltip } from "@/components/tooltip"
+
+const TextWithTooltip = withTooltip(TextSmall)
 
 export const Title = props => {
   const title = useTitle()
@@ -39,9 +42,14 @@ export const Title = props => {
         </CopyToClipboard>
       )}
       {!!units && !isMinimal && (
-        <TextSmall color="textLite" whiteSpace="nowrap">
+        <TextWithTooltip
+          color="textLite"
+          whiteSpace="nowrap"
+          title="Source unit (alerts)"
+          tooltipProps={{ align: "top" }}
+        >
           • [{units}]
-        </TextSmall>
+        </TextWithTooltip>
       )}
     </Flex>
   )
