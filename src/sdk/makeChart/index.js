@@ -9,6 +9,7 @@ import makeFilterControllers from "./filters/makeControllers"
 import makeDataFetch from "./makeDataFetch"
 import makeGetUnitSign from "./makeGetUnitSign"
 import makeWeights from "./makeWeights"
+import getAggregateMethod from "./filters/getAggregateMethod"
 
 const themeIndex = {
   default: 0,
@@ -28,7 +29,12 @@ export default ({
 } = {}) => {
   const executeLatest = makeExecuteLatest()
 
-  let node = makeNode({ sdk, parent, attributes })
+  let node = makeNode({
+    sdk,
+    parent,
+    attributes,
+  })
+
   node.getChart = getChart
 
   let fetchTimeoutId = null
@@ -379,6 +385,8 @@ export default ({
 
     return count === 1 ? en[key]?.one || key : en[key]?.other || (pluralize ? `${key}s` : key)
   }
+
+  node.setAttribute("aggregationMethod", attributes.aggregationMethod || getAggregateMethod(node))
 
   return {
     ...node,

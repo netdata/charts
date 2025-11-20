@@ -14,6 +14,6 @@ export default chart => {
   return {
     aggregationMethod,
     selectedDimensions: getDimensions(chart),
-    initializedFilters: !!dimensionIds.length,
+    initializedFilters: !!dimensionIds?.length,
   }
 }
