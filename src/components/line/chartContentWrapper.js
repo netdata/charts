@@ -1,7 +1,7 @@
 import React from "react"
 import styled, { css } from "styled-components"
 import { Flex } from "@netdata/netdata-ui"
-import { useInitialLoading, useEmpty, useAttributeValue } from "@/components/provider"
+import { useInitialLoading, useAttributeValue } from "@/components/provider"
 import { useHovered } from "@/components/useHover"
 import ChartContainer from "@/components/chartContainer"
 import Popover from "./popover"
@@ -79,7 +79,6 @@ const ChartContentWrapper = ({ uiName }) => {
       !node || (!node.closest(`[data-toolbox="${id}"]`) && !node.closest(`[data-chartid="${id}"]`)),
   })
   const initialLoading = useInitialLoading()
-  const empty = useEmpty()
   const hasToolbox = useAttributeValue("hasToolbox")
   const hasHoverPopover = useAttributeValue("hasHoverPopover")
   const processing = useAttributeValue("processing")
@@ -89,7 +88,7 @@ const ChartContentWrapper = ({ uiName }) => {
       {!initialLoading && <ChartContainer />}
       {!initialLoading && <Overlays uiName={uiName} />}
       {initialLoading && <Skeleton />}
-      {hasToolbox && hovered && !empty && <NavigationToolbox />}
+      {hasToolbox && hovered && <NavigationToolbox />}
       {processing && <Processing />}
       {hasHoverPopover && <Popover uiName={uiName} />}
     </Container>
