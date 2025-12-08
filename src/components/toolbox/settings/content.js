@@ -4,6 +4,7 @@ import { useAttributeValue } from "@/components/provider"
 import ValueRange from "./valueRange"
 import NumberFormat from "./numberFormat"
 import ChartElements from "./chartElements"
+import PointsToFetch from "./pointsToFetch"
 
 const SettingsContent = ({ chart, onClose }) => {
   const currentStaticValueRange = useAttributeValue("staticValueRange")
@@ -12,6 +13,7 @@ const SettingsContent = ({ chart, onClose }) => {
   const currentEnabledYAxis = useAttributeValue("enabledYAxis")
   const currentEnabledXAxis = useAttributeValue("enabledXAxis")
   const currentLegend = useAttributeValue("legend")
+  const currentPoints = useAttributeValue("points")
 
   const [formState, setFormState] = useState({
     staticValueRange: null,
@@ -20,6 +22,7 @@ const SettingsContent = ({ chart, onClose }) => {
     enabledYAxis: true,
     enabledXAxis: true,
     legend: true,
+    points: null,
   })
 
   useEffect(() => {
@@ -30,6 +33,7 @@ const SettingsContent = ({ chart, onClose }) => {
       enabledYAxis: currentEnabledYAxis,
       enabledXAxis: currentEnabledXAxis,
       legend: currentLegend,
+      points: currentPoints,
     })
   }, [
     currentStaticValueRange,
@@ -38,6 +42,7 @@ const SettingsContent = ({ chart, onClose }) => {
     currentEnabledYAxis,
     currentEnabledXAxis,
     currentLegend,
+    currentPoints,
   ])
 
   const handleChange = useCallback(changes => {
@@ -45,13 +50,18 @@ const SettingsContent = ({ chart, onClose }) => {
   }, [])
 
   const handleApply = useCallback(() => {
+    const pointsChanged = formState.points !== currentPoints
     chart.updateAttributes(formState)
 
     onClose()
     chart.trigger("yAxisChange")
-  }, [formState, chart, onClose])
+    if (pointsChanged) {
+      chart.trigger("fetch", { processing: true })
+    }
+  }, [formState, chart, onClose, currentPoints])
 
   const handleReset = useCallback(() => {
+    const pointsChanged = currentPoints !== null
     const resetState = {
       staticValueRange: null,
       desiredUnits: ["auto"],
@@ -59,18 +69,23 @@ const SettingsContent = ({ chart, onClose }) => {
       enabledYAxis: true,
       enabledXAxis: true,
       legend: true,
+      points: null,
     }
     setFormState(resetState)
     Object.entries(resetState).forEach(([key, value]) => {
       chart.updateAttribute(key, value)
     })
     onClose()
-  }, [chart, onClose])
+    if (pointsChanged) {
+      chart.trigger("fetch", { processing: true })
+    }
+  }, [chart, onClose, currentPoints])
 
   return (
     <Flex column gap={3} padding={[3]} width={{ min: "220px" }}>
       <ValueRange formState={formState} onChange={handleChange} />
       <NumberFormat formState={formState} onChange={handleChange} />
+      <PointsToFetch formState={formState} onChange={handleChange} />
       <ChartElements formState={formState} onChange={handleChange} />
       <Flex gap={1} justifyContent="end">
         <UIButton label="Reset" onClick={handleReset} neutral small />

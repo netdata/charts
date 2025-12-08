@@ -24,13 +24,14 @@ const Button = styled.button.attrs(({ icon, hoverIndicator = true, padding = 0, 
   background: ${({ theme, active }) =>
     active ? getColor("borderSecondary")({ theme }) : "initial"};
   ${cursor}
-  color: ${({ active, disabled, theme }) => getColor(color({ active, disabled }))({ theme })};
+  color: ${({ active, disabled, defaultColor, theme }) =>
+    getColor(color({ active, disabled, defaultColor }))({ theme })};
 
   svg {
-    fill: ${({ active, disabled, theme, stroked }) =>
-      stroked ? "none" : getColor(color({ active, disabled }))({ theme })};
-    stroke: ${({ active, disabled, theme, stroked }) =>
-      stroked ? getColor(color({ active, disabled }))({ theme }) : "none"};
+    fill: ${({ active, disabled, defaultColor, theme, stroked }) =>
+      stroked ? "none" : getColor(color({ active, disabled, defaultColor }))({ theme })};
+    stroke: ${({ active, disabled, defaultColor, theme, stroked }) =>
+      stroked ? getColor(color({ active, disabled, defaultColor }))({ theme }) : "none"};
   }
 
   ${({ active, hoverIndicator }) =>
@@ -43,12 +44,13 @@ const Button = styled.button.attrs(({ icon, hoverIndicator = true, padding = 0, 
     ${({ theme, hoverIndicator, disabled }) =>
       hoverIndicator && !disabled && `background: ${getColor("mainChartTboxHover")({ theme })};`};
 
-    color: ${({ active, disabled, theme }) => getColor(color({ active, disabled }))({ theme })};
+    color: ${({ active, disabled, defaultColor, theme }) =>
+      getColor(color({ active, disabled, defaultColor }))({ theme })};
     svg {
-      fill: ${({ theme, stroked, disabled }) =>
-        stroked ? "none" : getColor(color({ defaultColor: "text", disabled }))({ theme })};
-      stroke: ${({ theme, stroked, disabled }) =>
-        stroked ? getColor(color({ defaultColor: "text", disabled }))({ theme }) : "none"};
+      fill: ${({ theme, stroked, disabled, defaultColor }) =>
+        stroked ? "none" : getColor(color({ defaultColor, disabled }))({ theme })};
+      stroke: ${({ theme, stroked, disabled, defaultColor }) =>
+        stroked ? getColor(color({ defaultColor, disabled }))({ theme }) : "none"};
     }
   }
 `

@@ -4,11 +4,13 @@ import settings from "@netdata/netdata-ui/dist/components/icon/assets/settings.s
 import Icon, { Button } from "@/components/icon"
 import { useChart } from "@/components/provider"
 import SettingsContent from "./content"
+import { usePointsExceedsMax } from "./pointsToFetch"
 
 const Settings = ({ disabled }) => {
   const ref = useRef()
   const chart = useChart()
   const [isOpen, setIsOpen] = useState(false)
+  const pointsExceedsMax = usePointsExceedsMax()
 
   return (
     <>
@@ -17,6 +19,7 @@ const Settings = ({ disabled }) => {
         icon={<Icon svg={settings} size="16px" />}
         title="Settings"
         disabled={disabled}
+        defaultColor={pointsExceedsMax ? "warning" : "textLite"}
         data-testid="chartHeaderToolbox-settings"
         onClick={() => setIsOpen(prev => !prev)}
         data-track={chart.track("settings")}
