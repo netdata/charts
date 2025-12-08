@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react"
 import { Flex, TextSmall, TextMicro, TextInput } from "@netdata/netdata-ui"
+import information from "@netdata/netdata-ui/dist/components/icon/assets/information.svg"
 import { useAttributeValue } from "@/components/provider"
+import { pointMultiplierByChartType } from "@/sdk/makeChart/api/helpers"
+import Tooltip from "@/components/tooltip"
+import Icon from "@/components/icon"
 
 export const useMaxPoints = () => {
   const after = useAttributeValue("after")
@@ -24,8 +28,32 @@ export const usePointsExceedsMax = () => {
   return maxPoints !== null && points !== null && points > maxPoints
 }
 
+const useAutoPoints = () => {
+  const containerWidth = useAttributeValue("containerWidth")
+  const pixelsPerPoint = useAttributeValue("pixelsPerPoint") || 3
+  const chartType = useAttributeValue("chartType")
+  const chartLibrary = useAttributeValue("chartLibrary")
+
+  return useMemo(() => {
+    if (!containerWidth) return null
+
+    const multiplier =
+      pointMultiplierByChartType[chartType] ||
+      pointMultiplierByChartType[chartLibrary] ||
+      pointMultiplierByChartType.default
+
+    const points = Math.round((containerWidth / pixelsPerPoint) * multiplier)
+
+    if (isNaN(points)) return null
+
+    return points
+  }, [containerWidth, pixelsPerPoint, chartType, chartLibrary])
+}
+
 const PointsToFetch = ({ formState, onChange }) => {
   const [pointsValue, setPointsValue] = useState(formState.points ?? "")
+
+  const autoPoints = useAutoPoints()
 
   const updateEvery = useAttributeValue("updateEvery")
   const maxPoints = useMaxPoints()
@@ -42,18 +70,22 @@ const PointsToFetch = ({ formState, onChange }) => {
     onChange({ points })
   }
 
+  const placeholder = autoPoints ? `Auto (${autoPoints} data points)` : "Auto"
+
   return (
     <Flex column gap={2}>
-      <TextSmall color="textNoFocus" strong>
-        Data resolution
-      </TextSmall>
+      <Flex alignItems="center" gap={1}>
+        <TextSmall strong>Data resolution</TextSmall>
+        <Tooltip content="Number of data points to fetch from the server. Higher values provide more detail but may impact performance. Auto calculates optimal points based on chart width.">
+          <Icon svg={information} size="12px" color="textLite" />
+        </Tooltip>
+      </Flex>
       <Flex column gap={1}>
         <TextInput
-          label="Points to fetch"
           type="number"
           value={pointsValue}
           onChange={handleChange}
-          placeholder="Auto"
+          placeholder={placeholder}
           min="1"
         />
         {exceedsMax && (
