@@ -18,7 +18,7 @@ export default {
   title: null,
   min: 0,
   max: 0,
-  forcePlay: false,
+  autofetchOnHovering: false,
 
   pristineStaticValueRange: undefined,
   valueRange: null,

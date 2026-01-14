@@ -38,7 +38,7 @@ const Popover = ({ uiName }) => {
     return unregister(
       chart.getUI(uiName).on("mousemove", event => {
         if (
-          chart.sdk.getRoot().getAttribute("forcePlay") ||
+          chart.sdk.getRoot().getAttribute("autofetchOnHovering") ||
           chart.getAttribute("panning") ||
           chart.getAttribute("highlighting")
         )
