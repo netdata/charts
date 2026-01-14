@@ -96,7 +96,7 @@ export default ({
 
     if (!autofetch || loading || !active) return
 
-    if (node.getRoot().getAttribute("paused")) return
+    if (node.getRoot().getAttribute("paused") && !sdk.getRoot().getAttribute("forcePlay")) return
 
     if (fetchStartedAt === 0) {
       node.trigger("fetch")
@@ -219,6 +219,7 @@ export default ({
   }
 
   node.stopAutofetch = (force = true) => {
+    if (sdk.getRoot().getAttribute("forcePlay")) return
     clearTimeout(fetchTimeoutId)
 
     if (!node || !force) return

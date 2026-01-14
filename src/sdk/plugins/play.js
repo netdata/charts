@@ -2,13 +2,15 @@ export default sdk => {
   let timeoutId
 
   const getNext = () => {
-    if (!sdk.getRoot().getAttribute("paused") && sdk.getRoot().getAttribute("after") < 0)
+    const notPaused =
+      sdk.getRoot().getAttribute("forcePlay") || !sdk.getRoot().getAttribute("paused")
+
+    if (notPaused && sdk.getRoot().getAttribute("after") < 0)
       sdk.getRoot().setAttribute("fetchAt", Date.now())
 
     sdk
       .getNodes(
-        (node, { loaded, active }) =>
-          node.type === "chart" && loaded && active && !sdk.getRoot().getAttribute("paused")
+        (node, { loaded, active }) => node.type === "chart" && loaded && active && notPaused
       )
       .forEach(node => node.trigger("render"))
 
@@ -18,7 +20,8 @@ export default sdk => {
   const toggleRender = enable => {
     clearTimeout(timeoutId)
     timeoutId = null
-    if (enable) getNext()
+    const shouldGetNext = enable || sdk.getRoot().getAttribute("forcePlay")
+    if (shouldGetNext) getNext()
   }
 
   const autofetchIfActive = (chart, { now = new Date(), force = false } = {}) => {
@@ -28,7 +31,7 @@ export default sdk => {
       (!sdk.getRoot().getAttribute("autofetchOnWindowBlur") &&
         sdk.getRoot().getAttribute("blurred")) ||
       sdk.getRoot().getAttribute("paused")
-    let autofetch = after < 0 && !hovering && !paused
+    let autofetch = after < 0 && (sdk.getRoot().getAttribute("forcePlay") || (!hovering && !paused))
 
     if (chart.type === "container") return chart.updateAttribute("autofetch", autofetch)
 

@@ -12,7 +12,12 @@ export default sdk => {
     })
     .on("hoverChart", chart => {
       chart.getApplicableNodes({ syncHover: true }).forEach(node => {
-        if (node.getAttribute("hovering") || chart.getRoot().getAttribute("paused")) return
+        if (
+          sdk.getRoot().getAttribute("forcePlay") ||
+          node.getAttribute("hovering") ||
+          chart.getRoot().getAttribute("paused")
+        )
+          return
 
         node.updateAttributes({
           hovering: true,
