@@ -18,8 +18,7 @@ export default sdk => {
   const toggleRender = enable => {
     clearTimeout(timeoutId)
     timeoutId = null
-    const shouldGetNext = enable || sdk.getRoot().getAttribute("autofetchOnHovering")
-    if (shouldGetNext) getNext()
+    if (enable) getNext()
   }
 
   const autofetchIfActive = (chart, { now = new Date(), force = false } = {}) => {
