@@ -219,7 +219,6 @@ export default ({
   }
 
   node.stopAutofetch = (force = true) => {
-    if (sdk.getRoot().getAttribute("autofetchOnHovering")) return
     clearTimeout(fetchTimeoutId)
 
     if (!node || !force) return
