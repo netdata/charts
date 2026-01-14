@@ -96,8 +96,7 @@ export default ({
 
     if (!autofetch || loading || !active) return
 
-    if (node.getRoot().getAttribute("paused") && !sdk.getRoot().getAttribute("autofetchOnHovering"))
-      return
+    if (node.getRoot().getAttribute("paused")) return
 
     if (fetchStartedAt === 0) {
       node.trigger("fetch")
