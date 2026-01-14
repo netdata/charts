@@ -37,7 +37,12 @@ const Popover = ({ uiName }) => {
   useEffect(() => {
     return unregister(
       chart.getUI(uiName).on("mousemove", event => {
-        if (chart.getAttribute("panning") || chart.getAttribute("highlighting")) return
+        if (
+          chart.sdk.getRoot().getAttribute("autofetchOnHovering") ||
+          chart.getAttribute("panning") ||
+          chart.getAttribute("highlighting")
+        )
+          return
 
         const offsetX = event.offsetX || event.layerX
         const offsetY = event.offsetY || event.layerY

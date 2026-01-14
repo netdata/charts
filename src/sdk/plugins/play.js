@@ -25,10 +25,11 @@ export default sdk => {
     const { after, hovering, active, loaded, fetchStartedAt } = chart.getAttributes()
 
     const paused =
+      (!sdk.getRoot().getAttribute("autofetchOnHovering") && hovering) ||
       (!sdk.getRoot().getAttribute("autofetchOnWindowBlur") &&
         sdk.getRoot().getAttribute("blurred")) ||
       sdk.getRoot().getAttribute("paused")
-    let autofetch = after < 0 && !hovering && !paused
+    let autofetch = after < 0 && !paused
 
     if (chart.type === "container") return chart.updateAttribute("autofetch", autofetch)
 
@@ -82,14 +83,14 @@ export default sdk => {
     .on("active", chart => {
       toggleRender(
         chart.getAttribute("after") < 0 &&
-          !chart.getAttribute("hovering") &&
+          (!chart.getAttribute("hovering") || sdk.getRoot().getAttribute("autofetchOnHovering")) &&
           !sdk.getRoot().getAttribute("paused")
       )
 
       autofetchIfActive(chart, { force: true })
     })
     .on("play:hoverChart", chart => {
-      toggleRender(false)
+      toggleRender(sdk.getRoot().getAttribute("autofetchOnHovering"))
 
       if (sdk.getRoot().getAttribute("paused")) return
 
