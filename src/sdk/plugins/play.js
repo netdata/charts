@@ -83,8 +83,7 @@ export default sdk => {
     .on("active", chart => {
       toggleRender(
         chart.getAttribute("after") < 0 &&
-          !chart.getAttribute("hovering") &&
-          !sdk.getRoot().getAttribute("autofetchOnHovering") &&
+          (!chart.getAttribute("hovering") || sdk.getRoot().getAttribute("autofetchOnHovering")) &&
           !sdk.getRoot().getAttribute("paused")
       )
 
