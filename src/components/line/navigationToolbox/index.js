@@ -60,7 +60,7 @@ const NavigationToolbox = props => {
 
   const highlighting = useAttributeValue("highlighting")
   const panning = useAttributeValue("panning")
-  if (highlighting || panning) return null
+  if (chart.sdk.getRoot().getAttribute("forcePlay") || highlighting || panning) return null
 
   const log = makeLog(chart)
 
