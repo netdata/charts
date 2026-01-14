@@ -116,6 +116,7 @@ export default {
 
   autofetch: false,
   autofetchOnWindowBlur: false,
+  autofetchOnHovering: false,
   paused: false,
   pixelsPerPoint: 3,
   points: null,
