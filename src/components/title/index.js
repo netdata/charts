@@ -45,7 +45,7 @@ export const Title = props => {
         <TextWithTooltip
           color="textLite"
           whiteSpace="nowrap"
-          title="Source unit (alerts)"
+          title="Source unit"
           tooltipProps={{ align: "top" }}
         >
           • [{units}]
