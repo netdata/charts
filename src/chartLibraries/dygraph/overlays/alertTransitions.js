@@ -1,10 +1,13 @@
 import { trigger } from "./helpers"
 
 const fillColorMap = {
-  WARNING: "rgba(255, 195, 0, 0.3)",
-  CRITICAL: "rgba(255, 65, 54, 0.3)",
-  CLEAR: "rgba(0, 171, 68, 0.3)",
+  WARNING: "#FFC300",
+  CRITICAL: "#FF4136",
+  CLEAR: "#00AB44",
 }
+
+const OVERLAY_ALPHA = 0.3
+const GRADIENT_WIDTH = 20
 
 const getArea = (dygraph, startMs, endMs) => {
   const [viewStart, viewEnd] = dygraph.xAxisRange()
@@ -42,16 +45,19 @@ export default (chartUI, id) => {
   )
 
   ctx.save()
+  ctx.globalAlpha = OVERLAY_ALPHA
 
   sortedTransitions.forEach((transition, index) => {
-    const startMs = parseTimestamp(transition.timestamp)
+    const prevTransition = sortedTransitions[index - 1]
     const nextTransition = sortedTransitions[index + 1]
+
+    const startMs = parseTimestamp(transition.timestamp)
     const endMs = nextTransition ? parseTimestamp(nextTransition.timestamp) : viewEnd
 
-    const state = transition.to.toUpperCase()
-    const fillColor = fillColorMap[state]
+    const toState = transition.to.toUpperCase()
+    const toColor = fillColorMap[toState]
 
-    if (!fillColor) return
+    if (!toColor) return
 
     const area = getArea(dygraph, startMs, endMs)
 
@@ -59,9 +65,36 @@ export default (chartUI, id) => {
 
     const { from, width } = area
 
+    if (prevTransition) {
+      const prevState = prevTransition.to.toUpperCase()
+      const prevColor = fillColorMap[prevState]
+      const gradientWidth = Math.min(GRADIENT_WIDTH, width)
+
+      if (prevColor && gradientWidth > 0) {
+        const gradient = ctx.createLinearGradient(from, 0, from + gradientWidth, 0)
+        gradient.addColorStop(0, prevColor)
+        gradient.addColorStop(1, toColor)
+
+        ctx.beginPath()
+        ctx.rect(from, 0, gradientWidth, h)
+        ctx.fillStyle = gradient
+        ctx.fill()
+        ctx.closePath()
+
+        if (width > gradientWidth) {
+          ctx.beginPath()
+          ctx.rect(from + gradientWidth, 0, width - gradientWidth, h)
+          ctx.fillStyle = toColor
+          ctx.fill()
+          ctx.closePath()
+        }
+        return
+      }
+    }
+
     ctx.beginPath()
     ctx.rect(from, 0, width, h)
-    ctx.fillStyle = fillColor
+    ctx.fillStyle = toColor
     ctx.fill()
     ctx.closePath()
   })
