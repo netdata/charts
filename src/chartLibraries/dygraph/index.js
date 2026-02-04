@@ -57,9 +57,7 @@ export default (sdk, chart) => {
       ),
       unhighlightCallback: executeLatest.add(() => chartUI.trigger("unhighlightCallback")),
       drawCallback: (...args) => chartUI.trigger("drawCallback", ...args),
-      underlayCallback: executeLatest.add((...args) =>
-        chartUI.trigger("underlayCallback", ...args)
-      ),
+      underlayCallback: (...args) => chartUI.trigger("underlayCallback", ...args),
       interactionModel: {
         willDestroyContextMyself: true,
         mouseout: (...args) => chartUI.trigger("mouseout", ...args),

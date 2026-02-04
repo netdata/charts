@@ -217,6 +217,94 @@ export const AlertInTimeWindow = () => {
   )
 }
 
+export const AlertTransitions = () => {
+  const sdk = makeDefaultSDK()
+  const now = Math.floor(Date.now() / 1000)
+
+  const chart = sdk.makeChart({
+    getChart,
+    attributes: {
+      overlays: {
+        alertTransitions: {
+          type: "alertTransitions",
+          alertTransitions: [
+            {
+              timestamp: now - 12 * 60,
+              from: "CLEAR",
+              to: "WARNING",
+              value: 75.5,
+            },
+            {
+              timestamp: now - 9 * 60,
+              from: "WARNING",
+              to: "CRITICAL",
+              value: 92.3,
+            },
+            {
+              timestamp: now - 6 * 60,
+              from: "CRITICAL",
+              to: "WARNING",
+              value: 78.1,
+            },
+            {
+              timestamp: now - 3 * 60,
+              from: "WARNING",
+              to: "CLEAR",
+              value: 45.0,
+            },
+          ],
+        },
+      },
+    },
+  })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      <Line chart={chart} height="315px" />
+    </ThemeProvider>
+  )
+}
+
+export const AlertTransitionsDark = () => {
+  const sdk = makeDefaultSDK({ attributes: { theme: "dark" } })
+  const now = Math.floor(Date.now() / 1000)
+
+  const chart = sdk.makeChart({
+    getChart,
+    attributes: {
+      overlays: {
+        alertTransitions: {
+          type: "alertTransitions",
+          alertTransitions: [
+            {
+              timestamp: now - 10 * 60,
+              from: "CLEAR",
+              to: "CRITICAL",
+              value: 95.0,
+            },
+            {
+              timestamp: now - 5 * 60,
+              from: "CRITICAL",
+              to: "CLEAR",
+              value: 30.0,
+            },
+          ],
+        },
+      },
+    },
+  })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DarkTheme}>
+      <Flex background="mainBackground">
+        <Line chart={chart} height="315px" />
+      </Flex>
+    </ThemeProvider>
+  )
+}
+
 export const HighlightInTimeWindow = () => {
   const sdk = makeDefaultSDK()
 
