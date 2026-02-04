@@ -355,6 +355,16 @@ export default ({
     return [...new Set([...selectedNodes, ...nodeIdsForHostLabels])]
   }
 
+  node.getFilteredAvailableNodeIds = () => {
+    const selectedNodes = node.getFilteredNodeIds()
+    const dataNodes = node.getAttribute("nodes") || {}
+    const dataNodeIds = Object.keys(dataNodes)
+
+    if (!selectedNodes?.length) return dataNodeIds.length ? dataNodeIds : undefined
+
+    return selectedNodes.filter(nodeId => dataNodeIds.includes(nodeId))
+  }
+
   const destroy = () => {
     if (!node) return
 

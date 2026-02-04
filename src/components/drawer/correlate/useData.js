@@ -37,6 +37,17 @@ const useData = () => {
     const baselineAfter = after - windowDuration * 4
     const baselineBefore = after
 
+    if (after < 0) {
+      const { renderedAt, fetchStartedAt } = chart.getAttributes()
+      const now = Math.ceil((renderedAt || fetchStartedAt || Date.now()) / 1000)
+      return {
+        highlightAfter: now + after,
+        highlightBefore: now + before,
+        baselineAfter: now + baselineAfter,
+        baselineBefore: now + baselineBefore,
+      }
+    }
+
     return {
       highlightAfter: after,
       highlightBefore: before,
@@ -47,6 +58,7 @@ const useData = () => {
 
   const fetchWeights = async signal => {
     const timeRange = getTimeRange()
+    const nodesScope = chart.getFilteredAvailableNodeIds()
 
     try {
       const response = await fetchChartWeights(chart, {
@@ -57,7 +69,7 @@ const useData = () => {
           options: dataType ? [dataType] : [],
           groupBy: ["node", "instance", "dimension"],
           contextScope: [],
-          nodesScope: [],
+          nodesScope,
         },
         signal,
       })

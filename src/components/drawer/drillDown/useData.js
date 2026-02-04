@@ -12,7 +12,8 @@ const fetch = async (chart, signal) => {
   chart.updateAttribute("drilldown.loading", true)
   chart.updateAttribute("drilldown.error", null)
 
-  const attrs = { groupBy, groupByLabel, method: "value" }
+  const nodesScope = chart.getFilteredAvailableNodeIds()
+  const attrs = { groupBy, groupByLabel, method: "value", nodesScope }
 
   if (drawerTab === "selectedArea" && overlays?.highlight?.range) {
     const [highlightAfter, highlightBefore] = overlays.highlight.range
