@@ -36,11 +36,14 @@ export const isMetric = (u = "") =>
   typeof u === "string" ? getUnitConfig(u)?.is_metric : u?.is_metric
 export const isBinary = (u = "") =>
   typeof u === "string" ? getUnitConfig(u)?.is_binary : u?.is_binary
+export const isChronos = (u = "") =>
+  typeof u === "string" ? getUnitConfig(u)?.is_chronos : u?.is_chronos
 export const isBit = (u = "") => (typeof u === "string" ? getUnitConfig(u)?.is_bit : u?.is_bit)
 
 export const getScales = u => {
   if (!isScalable(u)) return [[], {}]
 
+  if (isChronos(u)) return [[...keys.chronos], scalableUnits.chronos]
   if (isBinary(u)) return [[...keys.binary], scalableUnits.binary]
   if (isBit(u)) return [[...keys.bit], scalableUnits.num]
 
@@ -57,6 +60,8 @@ const labelify = (base, config, long) => {
 
 export const getUnitsString = (u, prefix = "", base = "", long) => {
   if (!isScalable(u)) return labelify(base, u, long).trim()
+
+  if (isChronos(u)) labelify(base, u, long)
 
   if (isMetric(u) || isBinary(u) || isBit(u))
     return `${labelify(prefix, allUnits.prefixes[prefix], long)}${labelify(base, u, long)}`.trim()
