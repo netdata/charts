@@ -227,7 +227,7 @@ export const AlertTransitions = () => {
       overlays: {
         alertTransitions: {
           type: "alertTransitions",
-          alertTransitions: [
+          transitions: [
             {
               timestamp: now - 12 * 60,
               from: "CLEAR",
@@ -276,7 +276,7 @@ export const AlertTransitionsDark = () => {
       overlays: {
         alertTransitions: {
           type: "alertTransitions",
-          alertTransitions: [
+          transitions: [
             {
               timestamp: now - 10 * 60,
               from: "CLEAR",

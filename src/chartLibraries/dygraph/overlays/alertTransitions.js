@@ -31,16 +31,16 @@ const parseTimestamp = timestamp => {
 
 export default (chartUI, id) => {
   const overlays = chartUI.chart.getAttribute("overlays")
-  const { alertTransitions = [] } = overlays[id]
+  const { transitions = [] } = overlays[id]
 
-  if (!alertTransitions.length) return trigger(chartUI, id)
+  if (!transitions.length) return trigger(chartUI, id)
 
   const dygraph = chartUI.getDygraph()
   const { h } = dygraph.getArea()
   const { hidden_ctx_: ctx } = dygraph
   const [, viewEnd] = dygraph.xAxisRange()
 
-  const sortedTransitions = [...alertTransitions].sort(
+  const sortedTransitions = [...transitions].sort(
     (a, b) => parseTimestamp(a.timestamp) - parseTimestamp(b.timestamp)
   )
 
