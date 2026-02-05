@@ -520,3 +520,24 @@ export const useLatestConvertedValue = (id, options = {}) =>
   useConvertedValue(id, "latest", { allowNull: true, dimensionId: id, ...options })
 
 export const useIsMinimal = () => useAttributeValue("designFlavour") === "minimal"
+
+export const usePlotArea = (uiName = "default") => {
+  const chart = useChart()
+  const forceUpdate = useForceUpdate()
+
+  useImmediateListener(
+    () =>
+      unregister(
+        chart.on("mountChartUI", () => setTimeout(forceUpdate, 300)),
+        chart.getUI(uiName)?.on("rendered", forceUpdate).on("resize", forceUpdate)
+      ),
+    [uiName, chart]
+  )
+
+  const area = chart.getUI(uiName)?.getDygraph?.()?.getArea()
+
+  return {
+    left: area?.x ?? 0,
+    width: area?.w ?? 0,
+  }
+}

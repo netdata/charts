@@ -2,6 +2,8 @@ import React, { useMemo, useState } from "react"
 import { ThemeProvider } from "styled-components"
 import { Button, Flex, DefaultTheme, DarkTheme } from "@netdata/netdata-ui"
 import Line from "@/components/line"
+import AlertTimeline from "@/components/alertTimeline"
+import HeadlessChart from "@/components/headlessChart"
 import makeMockPayload from "@/helpers/makeMockPayload"
 import { useAttribute, useAttributeValue, useChart, withChartProvider } from "@/components/provider"
 import makeDefaultSDK from "./makeDefaultSDK"
@@ -299,6 +301,47 @@ export const AlertTransitionsDark = () => {
   return (
     <ThemeProvider theme={DarkTheme}>
       <Flex background="mainBackground">
+        <Line chart={chart} height="315px" />
+      </Flex>
+    </ThemeProvider>
+  )
+}
+
+const alertTransitionsData = [
+  { timestamp: -12 * 60, from: "CLEAR", to: "WARNING", value: 75.5 },
+  { timestamp: -9 * 60, from: "WARNING", to: "CRITICAL", value: 92.3 },
+  { timestamp: -6 * 60, from: "CRITICAL", to: "WARNING", value: 78.1 },
+  { timestamp: -3 * 60, from: "WARNING", to: "CLEAR", value: 45.0 },
+]
+
+export const AlertTransitionsWithTimeline = () => {
+  const sdk = makeDefaultSDK({ attributes: { theme: "dark", syncHover: true } })
+  const now = Math.floor(Date.now() / 1000)
+
+  const transitions = alertTransitionsData.map(t => ({
+    ...t,
+    timestamp: now + t.timestamp,
+  }))
+
+  const chart = sdk.makeChart({
+    getChart,
+    attributes: {
+      overlays: {
+        alertTransitions: {
+          type: "alertTransitions",
+          transitions,
+        },
+      },
+    },
+  })
+  sdk.appendChild(chart)
+
+  return (
+    <ThemeProvider theme={DarkTheme}>
+      <Flex background="mainBackground" column width="600px">
+        <HeadlessChart chart={chart}>
+          <AlertTimeline />
+        </HeadlessChart>
         <Line chart={chart} height="315px" />
       </Flex>
     </ThemeProvider>
