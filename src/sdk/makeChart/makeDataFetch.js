@@ -208,17 +208,6 @@ export default chart => {
     const options = {
       params,
       signal,
-      ...((chart.getAttribute("bearer") || chart.getAttribute("xNetdataBearer")) && {
-        headers: {
-          ...(chart.getAttribute("bearer")
-            ? {
-                Authorization: `Bearer ${chart.getAttribute("bearer")}`,
-              }
-            : {
-                "X-Netdata-Auth": `Bearer ${chart.getAttribute("xNetdataBearer")}`,
-              }),
-        },
-      }),
     }
 
     return chart
