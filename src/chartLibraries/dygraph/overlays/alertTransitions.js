@@ -31,7 +31,7 @@ const parseTimestamp = timestamp => {
 
 export default (chartUI, id) => {
   const overlays = chartUI.chart.getAttribute("overlays")
-  const { transitions = [] } = overlays[id]
+  const { transitions = [], showCleared = true } = overlays[id]
 
   if (!transitions.length) return trigger(chartUI, id)
 
@@ -58,6 +58,7 @@ export default (chartUI, id) => {
     const toColor = fillColorMap[toState]
 
     if (!toColor) return
+    if (!showCleared && toState === "CLEAR") return
 
     const area = getArea(dygraph, startMs, endMs)
 
@@ -69,8 +70,9 @@ export default (chartUI, id) => {
       const prevState = prevTransition.to.toUpperCase()
       const prevColor = fillColorMap[prevState]
       const gradientWidth = Math.min(GRADIENT_WIDTH, width)
+      const skipGradient = !showCleared && prevState === "CLEAR"
 
-      if (prevColor && gradientWidth > 0) {
+      if (prevColor && gradientWidth > 0 && !skipGradient) {
         const gradient = ctx.createLinearGradient(from, 0, from + gradientWidth, 0)
         gradient.addColorStop(0, prevColor)
         gradient.addColorStop(1, toColor)
