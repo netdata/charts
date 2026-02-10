@@ -54,20 +54,6 @@ export default (chart, { attrs, ...options } = {}) => {
 
   const query = new URLSearchParams(payload).toString()
   const url = `${host}/data?${query}`
-  options = {
-    ...options,
-    ...((chart.getAttribute("bearer") || chart.getAttribute("xNetdataBearer")) && {
-      headers: {
-        ...(chart.getAttribute("bearer")
-          ? {
-              Authorization: `Bearer ${chart.getAttribute("bearer")}`,
-            }
-          : {
-              "X-Netdata-Auth": `Bearer ${chart.getAttribute("xNetdataBearer")}`,
-            }),
-      },
-    }),
-  }
 
   return fetch(url, options).then(response => response.json())
 }
