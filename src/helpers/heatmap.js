@@ -40,7 +40,7 @@ export const makeGetColor = (chart, opacity = 1) => {
     .domain(Array.from({ length: colors.length - 1 }, (_, i) => i * step))
     .range(colors)
 
-  return value => (!value ? "transparent" : getLinearColor(value))
+  return value => (value == null ? "transparent" : getLinearColor(value))
 }
 
 export const useGetColor = (opacity = 1) => {

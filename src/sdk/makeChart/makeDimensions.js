@@ -361,6 +361,8 @@ export default (chart, sdk) => {
           incrementable: false,
           allowNull,
         }) || 0)
+
+      if (value === 0) return null
     }
 
     return value
@@ -373,12 +375,16 @@ export default (chart, sdk) => {
     return chart.getRowDimensionValue(id, pointData, options)
   }
 
-  chart.getAggregatedDimensionValue = (dimensionIds, index, { aggregationMethod = "sum", ...options } = {}) => {
+  chart.getAggregatedDimensionValue = (
+    dimensionIds,
+    index,
+    { aggregationMethod = "sum", ...options } = {}
+  ) => {
     const { all } = chart.getPayload()
     const pointData = all[index]
-    
+
     let targetDimensionIds = dimensionIds
-    
+
     if (!Array.isArray(dimensionIds) || dimensionIds.length === 0) {
       const visibleIds = chart.getVisibleDimensionIds()
       targetDimensionIds = visibleIds.length > 0 ? visibleIds : chart.getDimensionIds()
