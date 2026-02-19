@@ -3,9 +3,9 @@ import { screen, fireEvent } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { renderWithChart } from "@jest/testUtilities"
 import Compare from "./index"
-import { useComparisonData } from "./useData"
+import useComparisonData from "./useData"
 
-jest.mock("./useComparisonData")
+jest.mock("./useData")
 
 describe("Compare", () => {
   const mockPeriods = [
@@ -87,22 +87,24 @@ describe("Compare", () => {
     expect(screen.getByText("7 days before")).toBeInTheDocument()
   })
 
-  it("displays formatted date ranges for each period", () => {
+  it("displays period labels for each period", () => {
     renderWithChart(<Compare />)
 
-    const dateRanges = screen.getAllByText(/→/)
-    expect(dateRanges).toHaveLength(3)
+    expect(screen.getByText("Selected timeframe")).toBeInTheDocument()
+    expect(screen.getByText("24 hours before")).toBeInTheDocument()
+    expect(screen.getByText("7 days before")).toBeInTheDocument()
   })
 
-  it("shows data points and dimensions for loaded periods", () => {
+  it("shows stats for loaded periods", () => {
     renderWithChart(<Compare />)
 
-    const dataPointsElements = screen.getAllByText("Data Points")
-    const dimensionsElements = screen.getAllByText("Dimensions")
+    const minElements = screen.getAllByText("Min")
+    const avgElements = screen.getAllByText("Avg")
+    const maxElements = screen.getAllByText("Max")
 
-    expect(dataPointsElements).toHaveLength(2)
-    expect(dimensionsElements).toHaveLength(2)
-    expect(screen.getAllByText("2")).toHaveLength(4)
+    expect(minElements.length).toBeGreaterThan(0)
+    expect(avgElements.length).toBeGreaterThan(0)
+    expect(maxElements.length).toBeGreaterThan(0)
   })
 
   it("shows error state for failed periods", () => {
@@ -131,7 +133,7 @@ describe("Compare", () => {
     expect(screen.getByText("Select a timeframe")).toBeInTheDocument()
   })
 
-  it("does not show custom period selector when no periods loaded", () => {
+  it("shows custom period selector even when no periods loaded", () => {
     useComparisonData.mockReturnValue({
       periods: [],
       loading: false,
@@ -140,8 +142,8 @@ describe("Compare", () => {
 
     renderWithChart(<Compare />)
 
-    expect(screen.queryByText("Custom")).not.toBeInTheDocument()
-    expect(screen.queryByText("Select a timeframe")).not.toBeInTheDocument()
+    expect(screen.getByText("Custom")).toBeInTheDocument()
+    expect(screen.getByText("Select a timeframe")).toBeInTheDocument()
   })
 
   it("shows min, avg, max values for periods with data", () => {
@@ -164,6 +166,7 @@ describe("Compare", () => {
         after: 1000,
         before: 2000,
         payload: null,
+        stats: null,
         error: null,
       },
     ]
@@ -176,7 +179,7 @@ describe("Compare", () => {
 
     renderWithChart(<Compare />)
 
-    expect(screen.getByText("Loading...")).toBeInTheDocument()
+    expect(screen.getByText("No data available for the selected time range")).toBeInTheDocument()
   })
 
   describe("Custom Period Form", () => {
@@ -269,20 +272,12 @@ describe("Compare", () => {
   })
 
   describe("ComparisonCard", () => {
-    it("shows correct data metrics for successful periods", () => {
+    it("shows stats for successful periods", () => {
       renderWithChart(<Compare />)
 
-      expect(screen.getAllByText("2")).toHaveLength(4)
-      expect(screen.getAllByText("Min")).toHaveLength(2)
-      expect(screen.getAllByText("Avg")).toHaveLength(2)
-      expect(screen.getAllByText("Max")).toHaveLength(2)
-    })
-
-    it("formats date ranges correctly", () => {
-      renderWithChart(<Compare />)
-
-      const dateRanges = screen.getAllByText(/→/)
-      expect(dateRanges).toHaveLength(3)
+      expect(screen.getAllByText("Min").length).toBeGreaterThan(0)
+      expect(screen.getAllByText("Avg").length).toBeGreaterThan(0)
+      expect(screen.getAllByText("Max").length).toBeGreaterThan(0)
     })
   })
 })

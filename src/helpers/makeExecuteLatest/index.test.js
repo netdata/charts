@@ -17,10 +17,10 @@ describe("makeExecuteLatest", () => {
     const execute = executeLatest.add(callback)
 
     execute("arg1", "arg2")
-    expect(callback).not.toBeCalled()
+    expect(callback).not.toHaveBeenCalled()
 
     jest.runAllTimers()
-    expect(callback).toBeCalledWith("arg1", "arg2")
+    expect(callback).toHaveBeenCalledWith("arg1", "arg2")
   })
 
   it("cancels previous timeout when called again", () => {
@@ -31,8 +31,8 @@ describe("makeExecuteLatest", () => {
     execute("second")
 
     jest.runAllTimers()
-    expect(callback).toBeCalledTimes(1)
-    expect(callback).toBeCalledWith("second")
+    expect(callback).toHaveBeenCalledTimes(1)
+    expect(callback).toHaveBeenCalledWith("second")
   })
 
   it("handles multiple execute functions", () => {
@@ -45,8 +45,8 @@ describe("makeExecuteLatest", () => {
     execute2("second")
 
     jest.runAllTimers()
-    expect(callback1).toBeCalledWith("first")
-    expect(callback2).toBeCalledWith("second")
+    expect(callback1).toHaveBeenCalledWith("first")
+    expect(callback2).toHaveBeenCalledWith("second")
   })
 
   it("clears all pending timeouts", () => {
@@ -61,8 +61,8 @@ describe("makeExecuteLatest", () => {
     executeLatest.clear()
     jest.runAllTimers()
 
-    expect(callback1).not.toBeCalled()
-    expect(callback2).not.toBeCalled()
+    expect(callback1).not.toHaveBeenCalled()
+    expect(callback2).not.toHaveBeenCalled()
   })
 
   it("clears previous timeout before setting new one", () => {
@@ -75,7 +75,7 @@ describe("makeExecuteLatest", () => {
     execute("second")
     jest.runAllTimers()
 
-    expect(callback).toBeCalledTimes(1)
-    expect(callback).toBeCalledWith("second")
+    expect(callback).toHaveBeenCalledTimes(1)
+    expect(callback).toHaveBeenCalledWith("second")
   })
 })

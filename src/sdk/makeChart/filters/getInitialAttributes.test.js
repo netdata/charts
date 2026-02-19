@@ -31,8 +31,7 @@ describe("getInitialAttributes", () => {
     expect(result).toHaveProperty("selectedDimensions")
     expect(result).toHaveProperty("initializedFilters", true)
 
-    // Default aggregation method for percentage units should be "avg"
-    expect(result.aggregationMethod).toBe("sum")
+    expect(result.aggregationMethod).toBe("avg")
   })
 
   it("uses provided aggregationMethod when available", () => {

@@ -118,12 +118,15 @@ describe("heatmap utilities", () => {
       expect(typeof getColor).toBe("function")
     })
 
-    it("returns transparent for zero/falsy values", () => {
+    it("returns transparent for null/undefined values", () => {
       const getColor = makeGetColor(mockChart)
-      expect(getColor(0)).toBe("transparent")
       expect(getColor(null)).toBe("transparent")
       expect(getColor(undefined)).toBe("transparent")
-      expect(getColor(false)).toBe("transparent")
+    })
+
+    it("returns color for zero value", () => {
+      const getColor = makeGetColor(mockChart)
+      expect(getColor(0)).toMatch(/rgb/)
     })
 
     it("returns color for valid values", () => {

@@ -36,8 +36,8 @@ describe("makeChartUI", () => {
       chartUI.mount(mockElement)
 
       expect(chartUI.getElement()).toBe(mockElement)
-      expect(mockSDK.trigger).toBeCalledWith("mountChartUI", mockChart)
-      expect(mockChart.trigger).toBeCalledWith("mountChartUI")
+      expect(mockSDK.trigger).toHaveBeenCalledWith("mountChartUI", mockChart)
+      expect(mockChart.trigger).toHaveBeenCalledWith("mountChartUI")
     })
   })
 
@@ -50,8 +50,8 @@ describe("makeChartUI", () => {
       chartUI.unmount()
 
       expect(chartUI.getElement()).toBeNull()
-      expect(mockSDK.trigger).toBeCalledWith("unmountChartUI", mockChart)
-      expect(mockChart.trigger).toBeCalledWith("unmountChartUI")
+      expect(mockSDK.trigger).toHaveBeenCalledWith("unmountChartUI", mockChart)
+      expect(mockChart.trigger).toHaveBeenCalledWith("unmountChartUI")
     })
   })
 
@@ -91,7 +91,7 @@ describe("makeChartUI", () => {
     })
 
     it("registers for chart events", () => {
-      expect(mockChart.on).toBeCalledWith("visibleDimensionsChanged", expect.any(Function))
+      expect(mockChart.on).toHaveBeenCalledWith("visibleDimensionsChanged", expect.any(Function))
     })
   })
 })

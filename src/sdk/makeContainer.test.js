@@ -40,9 +40,9 @@ describe("makeContainer", () => {
 
       container.appendChild(mockChild)
 
-      expect(mockChild.setParent).toBeCalledWith(container, { inherit: true })
-      expect(mockSDK.trigger).toBeCalledWith("nodeAdded", container, mockChild)
-      expect(mockSDK.trigger).toBeCalledWith("chartAdded", container, mockChild)
+      expect(mockChild.setParent).toHaveBeenCalledWith(container, { inherit: true })
+      expect(mockSDK.trigger).toHaveBeenCalledWith("nodeAdded", container, mockChild)
+      expect(mockSDK.trigger).toHaveBeenCalledWith("chartAdded", container, mockChild)
     })
 
     it("respects inherit option", () => {
@@ -53,7 +53,7 @@ describe("makeContainer", () => {
 
       container.appendChild(mockChild, { inherit: false })
 
-      expect(mockChild.setParent).toBeCalledWith(container, { inherit: false })
+      expect(mockChild.setParent).toHaveBeenCalledWith(container, { inherit: false })
     })
   })
 
@@ -146,7 +146,7 @@ describe("makeContainer", () => {
 
       expect(color1).toBe("#ff0000")
       expect(color2).toBe("#ff0000")
-      expect(mockGetNext).toBeCalledTimes(1)
+      expect(mockGetNext).toHaveBeenCalledTimes(1)
     })
 
     it("returns different colors for different ids", () => {
@@ -157,7 +157,7 @@ describe("makeContainer", () => {
 
       expect(color1).toBe("#ff0000")
       expect(color2).toBe("#00ff00")
-      expect(mockGetNext).toBeCalledTimes(2)
+      expect(mockGetNext).toHaveBeenCalledTimes(2)
     })
   })
 
@@ -172,7 +172,7 @@ describe("makeContainer", () => {
       container.appendChild(mockChild)
       container.destroy()
 
-      expect(mockChild.destroy).toBeCalled()
+      expect(mockChild.destroy).toHaveBeenCalled()
       expect(container.getChildren()).toEqual([])
     })
 

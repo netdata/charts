@@ -41,6 +41,7 @@ describe("makeDataFetch", () => {
       startAutofetch: jest.fn(),
       backoff: jest.fn(),
       invalidateClosestRowCache: jest.fn(),
+      getFilteredNodeIds: jest.fn(() => []),
     }
 
     global.Date.now = jest.fn(() => 1000000000)

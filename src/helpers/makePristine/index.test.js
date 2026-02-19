@@ -19,26 +19,26 @@ describe("makePristine", () => {
     it("stores original value when property changes", () => {
       pristine.updatePristine(resource, "name", "Jane")
 
-      expect(mockDispatch).toBeCalledWith({ pristine: { name: "John" } }, resource)
+      expect(mockDispatch).toHaveBeenCalledWith({ pristine: { name: "John" } }, resource)
     })
 
     it("ignores properties not in keys set", () => {
       pristine.updatePristine(resource, "email", "john@example.com")
 
-      expect(mockDispatch).not.toBeCalled()
+      expect(mockDispatch).not.toHaveBeenCalled()
     })
 
     it("ignores when resource has no pristine property", () => {
       delete resource.pristine
       pristine.updatePristine(resource, "name", "Jane")
 
-      expect(mockDispatch).not.toBeCalled()
+      expect(mockDispatch).not.toHaveBeenCalled()
     })
 
     it("ignores when value hasn't changed", () => {
       pristine.updatePristine(resource, "name", "John")
 
-      expect(mockDispatch).not.toBeCalled()
+      expect(mockDispatch).not.toHaveBeenCalled()
     })
 
     it("removes pristine entry when value reverts to original", () => {
@@ -46,7 +46,7 @@ describe("makePristine", () => {
 
       pristine.updatePristine(resource, "name", "John")
 
-      expect(mockDispatch).toBeCalledWith({ pristine: {} }, resource)
+      expect(mockDispatch).toHaveBeenCalledWith({ pristine: {} }, resource)
     })
 
     it("preserves other pristine values when removing one", () => {
@@ -54,7 +54,7 @@ describe("makePristine", () => {
 
       pristine.updatePristine(resource, "name", "John")
 
-      expect(mockDispatch).toBeCalledWith({ pristine: { age: 30 } }, resource)
+      expect(mockDispatch).toHaveBeenCalledWith({ pristine: { age: 30 } }, resource)
     })
 
     it("doesn't store pristine if property already in pristine and value different", () => {
@@ -62,7 +62,7 @@ describe("makePristine", () => {
 
       pristine.updatePristine(resource, "name", "Jane")
 
-      expect(mockDispatch).not.toBeCalled()
+      expect(mockDispatch).not.toHaveBeenCalled()
     })
 
     it("returns previous pristine value when updating", () => {
@@ -81,7 +81,7 @@ describe("makePristine", () => {
 
       pristine.resetPristine(resource)
 
-      expect(mockDispatch).toBeCalledWith({ name: "Original", age: 25, pristine: {} }, resource)
+      expect(mockDispatch).toHaveBeenCalledWith({ name: "Original", age: 25, pristine: {} }, resource)
     })
   })
 

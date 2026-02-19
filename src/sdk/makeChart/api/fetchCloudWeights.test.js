@@ -19,7 +19,6 @@ describe("fetchCloudWeights", () => {
         host: "https://api.netdata.cloud",
         groupBy: ["dimension"],
         groupByLabel: [],
-        aggregationMethod: "sum",
         selectedContexts: ["system.cpu"],
         selectedInstances: [],
         selectedDimensions: [],
@@ -33,6 +32,7 @@ describe("fetchCloudWeights", () => {
     })
 
     chart = testChart
+    chart.updateAttribute("aggregationMethod", "sum")
   })
 
   it("uses chart attributes as defaults", async () => {
@@ -89,10 +89,10 @@ describe("fetchCloudWeights", () => {
 
     const payload = JSON.parse(global.fetch.mock.calls[0][1].body)
 
-    expect(payload.window.after).toBe(1000)
-    expect(payload.window.before).toBe(2000)
-    expect(payload.window.baseline.after).toBe(1500)
-    expect(payload.window.baseline.before).toBe(1800)
+    expect(payload.window.after).toBe(1500)
+    expect(payload.window.before).toBe(1800)
+    expect(payload.window.baseline.after).toBe(1000)
+    expect(payload.window.baseline.before).toBe(2000)
   })
 
   it("falls back to main range when no highlight provided", async () => {

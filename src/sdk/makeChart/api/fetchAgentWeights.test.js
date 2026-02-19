@@ -19,7 +19,6 @@ describe("fetchAgentWeights", () => {
         host: "http://localhost:19999",
         groupBy: ["dimension"],
         groupByLabel: [],
-        aggregationMethod: "sum",
         selectedContexts: ["system.cpu"],
         selectedInstances: [],
         selectedDimensions: [],
@@ -33,6 +32,7 @@ describe("fetchAgentWeights", () => {
     })
 
     chart = testChart
+    chart.updateAttribute("aggregationMethod", "sum")
   })
 
   it("uses chart attributes as defaults", async () => {

@@ -118,7 +118,7 @@ describe("scalableUnits", () => {
     })
 
     it("contains only expected scale types", () => {
-      const expectedKeys = ["binary", "decimal", "num"]
+      const expectedKeys = ["binary", "decimal", "chronos", "num"]
       expect(Object.keys(scalableUnits)).toEqual(expectedKeys)
     })
 

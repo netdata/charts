@@ -33,7 +33,7 @@ describe("makeIntls", () => {
     const intls = makeIntls()
 
     expect(() => intls.update("UTC")).not.toThrow()
-    expect(global.Intl.DateTimeFormat).toBeCalled()
+    expect(global.Intl.DateTimeFormat).toHaveBeenCalled()
   })
 
   it("formats time", () => {

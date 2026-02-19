@@ -24,7 +24,7 @@ export default ({
   sdk,
   parent,
   getChart = fetchChartData,
-  attributes,
+  attributes = {},
   makeTrack = defaultMakeTrack,
 } = {}) => {
   const executeLatest = makeExecuteLatest()

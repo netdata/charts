@@ -474,7 +474,7 @@ export const getValueByPeriod = {
     return dimValue
   },
   window: ({ chart, id, ...options }) => calculateStats(chart, id, "window", options),
-  highlight: ({ chart, id, options }) => calculateStats(chart, id, "highlight", options),
+  highlight: ({ chart, id, ...options }) => calculateStats(chart, id, "highlight", options),
 }
 
 export const useValue = (

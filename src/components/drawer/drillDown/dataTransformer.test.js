@@ -1,5 +1,9 @@
 import { transformWeightsData, buildHierarchicalTree } from "./dataTransformer"
 
+const mockChart = {
+  getAttribute: jest.fn(() => []),
+}
+
 const mockWeightsResponse = {
   result: [
     {
@@ -32,14 +36,14 @@ const mockWeightsResponse = {
 describe("dataTransformer", () => {
   describe("transformWeightsData", () => {
     it("returns empty array when no data", () => {
-      expect(transformWeightsData(null, ["dimension"])).toEqual([])
-      expect(transformWeightsData({ result: [] }, ["dimension"])).toEqual([])
-      expect(transformWeightsData(mockWeightsResponse, [])).toEqual([])
+      expect(transformWeightsData(null, ["dimension"], mockChart)).toEqual([])
+      expect(transformWeightsData({ result: [] }, ["dimension"], mockChart)).toEqual([])
+      expect(transformWeightsData(mockWeightsResponse, [], mockChart)).toEqual([])
     })
 
     it("transforms weights response to flat data", () => {
       const groupBy = ["dimension", "context", "node"]
-      const result = transformWeightsData(mockWeightsResponse, groupBy)
+      const result = transformWeightsData(mockWeightsResponse, groupBy, mockChart)
 
       expect(result).toHaveLength(3)
 
@@ -57,7 +61,7 @@ describe("dataTransformer", () => {
 
     it("maps weight statistics correctly", () => {
       const groupBy = ["dimension", "context", "node"]
-      const result = transformWeightsData(mockWeightsResponse, groupBy)
+      const result = transformWeightsData(mockWeightsResponse, groupBy, mockChart)
 
       const firstItem = result[0]
       expect(firstItem.weight).toEqual({
@@ -71,7 +75,7 @@ describe("dataTransformer", () => {
 
     it("maps timeframe statistics correctly", () => {
       const groupBy = ["dimension", "context", "node"]
-      const result = transformWeightsData(mockWeightsResponse, groupBy)
+      const result = transformWeightsData(mockWeightsResponse, groupBy, mockChart)
 
       const firstItem = result[0]
       expect(firstItem.timeframe).toEqual({
@@ -86,7 +90,7 @@ describe("dataTransformer", () => {
 
     it("calculates anomaly rate correctly", () => {
       const groupBy = ["dimension", "context", "node"]
-      const result = transformWeightsData(mockWeightsResponse, groupBy)
+      const result = transformWeightsData(mockWeightsResponse, groupBy, mockChart)
 
       expect(result[0].anomalyRate).toBe(0)
 
@@ -103,13 +107,13 @@ describe("dataTransformer", () => {
         ],
       }
 
-      const resultWithAnomalies = transformWeightsData(mockWithAnomalies, groupBy)
+      const resultWithAnomalies = transformWeightsData(mockWithAnomalies, groupBy, mockChart)
       expect(resultWithAnomalies[0].anomalyRate).toBe(10)
     })
 
     it("handles different groupBy orders", () => {
       const groupBy = ["node", "dimension", "context"]
-      const result = transformWeightsData(mockWeightsResponse, groupBy)
+      const result = transformWeightsData(mockWeightsResponse, groupBy, mockChart)
 
       const firstItem = result[0]
       expect(firstItem.label).toBe("load1")
@@ -129,7 +133,7 @@ describe("dataTransformer", () => {
 
     it("builds hierarchical tree structure", () => {
       const groupBy = ["dimension", "context", "node"]
-      const flatData = transformWeightsData(mockWeightsResponse, groupBy)
+      const flatData = transformWeightsData(mockWeightsResponse, groupBy, mockChart)
       const tree = buildHierarchicalTree(flatData, groupBy)
 
       expect(tree).toHaveLength(2)
@@ -145,7 +149,7 @@ describe("dataTransformer", () => {
 
     it("creates proper parent-child relationships", () => {
       const groupBy = ["dimension", "context", "node"]
-      const flatData = transformWeightsData(mockWeightsResponse, groupBy)
+      const flatData = transformWeightsData(mockWeightsResponse, groupBy, mockChart)
       const tree = buildHierarchicalTree(flatData, groupBy)
 
       const load1Group = tree.find(item => item.label === "load1")
@@ -164,7 +168,7 @@ describe("dataTransformer", () => {
 
     it("handles single level grouping", () => {
       const groupBy = ["dimension"]
-      const flatData = transformWeightsData(mockWeightsResponse, groupBy)
+      const flatData = transformWeightsData(mockWeightsResponse, groupBy, mockChart)
       const tree = buildHierarchicalTree(flatData, groupBy)
 
       expect(tree).toHaveLength(2)

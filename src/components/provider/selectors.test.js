@@ -172,6 +172,10 @@ describe("Chart Provider Selectors", () => {
       jest.spyOn(chart, "getDimensionIndex").mockReturnValue(0)
       jest.spyOn(chart, "isDimensionVisible").mockReturnValue(true)
       jest.spyOn(chart, "getVisibleDimensionIds").mockReturnValue(["dim1"])
+      jest.spyOn(chart, "getRowDimensionValue").mockImplementation((id, row) => {
+        const dimIndex = chart.getDimensionIndex(id)
+        return row[dimIndex + 1]
+      })
     })
 
     describe("highlight period", () => {

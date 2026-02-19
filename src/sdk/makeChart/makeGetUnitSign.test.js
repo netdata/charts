@@ -21,12 +21,12 @@ describe("makeGetUnitSign", () => {
   it("returns unit string with conversion", () => {
     const result = mockChart.getUnitSign({ dimensionId: "test" })
     expect(typeof result).toBe("string")
-    expect(mockChart.getUnitAttributes).toBeCalledWith("test", "units")
+    expect(mockChart.getUnitAttributes).toHaveBeenCalledWith("test", "units")
   })
 
   it("uses custom key parameter", () => {
     mockChart.getUnitSign({ dimensionId: "test", key: "customUnits" })
-    expect(mockChart.getUnitAttributes).toBeCalledWith("test", "customUnits")
+    expect(mockChart.getUnitAttributes).toHaveBeenCalledWith("test", "customUnits")
   })
 
   it("returns unit name without conversion when requested", () => {
@@ -55,7 +55,7 @@ describe("makeGetUnitSign", () => {
 
   it("uses default parameters", () => {
     mockChart.getUnitSign()
-    expect(mockChart.getUnitAttributes).toBeCalledWith(undefined, "units")
+    expect(mockChart.getUnitAttributes).toHaveBeenCalledWith(undefined, "units")
   })
 
   it("handles missing base unit", () => {

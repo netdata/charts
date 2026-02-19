@@ -12,8 +12,8 @@ describe("makeListeners", () => {
     listeners.on("ring", spy)
     listeners.trigger("ring", "phone")
 
-    expect(spy).toBeCalledTimes(1)
-    expect(spy).toBeCalledWith("phone", "ring")
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy).toHaveBeenCalledWith("phone", "ring")
   })
 
   it("triggers multiple listeners for same event", () => {
@@ -24,8 +24,8 @@ describe("makeListeners", () => {
     listeners.on("test", spy2)
     listeners.trigger("test", "data")
 
-    expect(spy1).toBeCalledWith("data", "test")
-    expect(spy2).toBeCalledWith("data", "test")
+    expect(spy1).toHaveBeenCalledWith("data", "test")
+    expect(spy2).toHaveBeenCalledWith("data", "test")
   })
 
   it("removes listener with off", () => {
@@ -34,7 +34,7 @@ describe("makeListeners", () => {
     listeners.off("test", spy)
     listeners.trigger("test", "data")
 
-    expect(spy).not.toBeCalled()
+    expect(spy).not.toHaveBeenCalled()
   })
 
   it("returns remove function from on", () => {
@@ -44,7 +44,7 @@ describe("makeListeners", () => {
     remove()
     listeners.trigger("test", "data")
 
-    expect(spy).not.toBeCalled()
+    expect(spy).not.toHaveBeenCalled()
   })
 
   it("supports chaining with returned remove function", () => {
@@ -57,15 +57,15 @@ describe("makeListeners", () => {
     listeners.trigger("test1", "data1")
     listeners.trigger("test2", "data2")
 
-    expect(spy1).toBeCalledWith("data1", "test1")
-    expect(spy2).toBeCalledWith("data2", "test2")
+    expect(spy1).toHaveBeenCalledWith("data1", "test1")
+    expect(spy2).toHaveBeenCalledWith("data2", "test2")
 
     remove()
     listeners.trigger("test1", "data1")
     listeners.trigger("test2", "data2")
 
-    expect(spy1).toBeCalledTimes(1)
-    expect(spy2).toBeCalledTimes(1)
+    expect(spy1).toHaveBeenCalledTimes(1)
+    expect(spy2).toHaveBeenCalledTimes(1)
   })
 
   it("supports once listeners", () => {
@@ -75,8 +75,8 @@ describe("makeListeners", () => {
     listeners.trigger("test", "data1")
     listeners.trigger("test", "data2")
 
-    expect(spy).toBeCalledTimes(1)
-    expect(spy).toBeCalledWith("data1", "test")
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy).toHaveBeenCalledWith("data1", "test")
   })
 
   it("removes once listener with returned function", () => {
@@ -86,7 +86,7 @@ describe("makeListeners", () => {
     remove()
     listeners.trigger("test", "data")
 
-    expect(spy).not.toBeCalled()
+    expect(spy).not.toHaveBeenCalled()
   })
 
   it("removes all listeners with offAll", () => {
@@ -100,8 +100,8 @@ describe("makeListeners", () => {
     listeners.trigger("test1", "data")
     listeners.trigger("test2", "data")
 
-    expect(spy1).not.toBeCalled()
-    expect(spy2).not.toBeCalled()
+    expect(spy1).not.toHaveBeenCalled()
+    expect(spy2).not.toHaveBeenCalled()
   })
 
   it("passes multiple arguments to listeners", () => {
@@ -109,6 +109,6 @@ describe("makeListeners", () => {
     listeners.on("test", spy)
     listeners.trigger("test", "arg1", "arg2", "arg3")
 
-    expect(spy).toBeCalledWith("arg1", "arg2", "arg3", "test")
+    expect(spy).toHaveBeenCalledWith("arg1", "arg2", "arg3", "test")
   })
 })

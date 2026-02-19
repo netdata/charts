@@ -42,7 +42,7 @@ const CustomPeriodForm = ({ onSubmit, onCancel, initialValues }) => {
     if (!finalLabel) return
 
     const customPeriod = {
-      id: initialValues.id || `custom_${Date.now()}`,
+      id: initialValues?.id || `custom_${Date.now()}`,
       label: finalLabel,
       offsetSeconds,
     }
