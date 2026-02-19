@@ -21,7 +21,7 @@ const preview = {
       },
     },
     layout: "centered",
-    backgrounds: { disable: true },
+    backgrounds: { disabled: true },
   },
 
   decorators: [

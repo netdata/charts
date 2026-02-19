@@ -12,7 +12,7 @@ module.exports = {
   setupFilesAfterEnv: ["<rootDir>/jest/setupForEach.js"],
   verbose: true,
   transformIgnorePatterns: [
-    "node_modules/(?!d3|d3-array|internmap|delaunator|robust-predicates|.?netdata|dygraphs)",
+    "node_modules/(?!d3|d3-array|internmap|delaunator|robust-predicates|.?netdata|dygraphs|uuid)",
   ],
   moduleDirectories: ["node_modules", "src", "jest"],
   roots: ["src/"],
