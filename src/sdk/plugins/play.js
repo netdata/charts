@@ -101,7 +101,7 @@ export default sdk => {
       toggleRender(chart.getAttribute("after") < 0 && !isRenderingPaused(chart))
 
       chart.getApplicableNodes({ syncPanning: true }).forEach(node => {
-        node.setAttributes({ viewUpdateEvery: 0, updateEvery: 0 })
+        node.setAttributes({ viewUpdateEvery: 0, updateEvery: 0, fetchStartedAt: 0 })
         autofetchIfActive(node)
       })
     })
