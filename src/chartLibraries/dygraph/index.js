@@ -197,6 +197,7 @@ export default (sdk, chart) => {
     ].filter(Boolean)
 
     overlays.toggle()
+    dygraph.renderGraph_(false)
 
     chartUI.render()
   }
