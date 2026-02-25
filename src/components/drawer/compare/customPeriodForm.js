@@ -1,5 +1,6 @@
 import React, { useState } from "react"
 import { Flex, TextSmall, TextMicro, Button } from "@netdata/netdata-ui"
+import { useAttributeValue } from "@/components/provider"
 
 const normalizeInitialValues = initialValues => {
   const { label = "", offsetSeconds = 0 } = initialValues || {}
@@ -9,8 +10,8 @@ const normalizeInitialValues = initialValues => {
   return { label, days: days ? days.toString() : "", hours: hours ? hours.toString() : "" }
 }
 
-const generateLabel = (days, hours) => {
-  const rtf = new Intl.RelativeTimeFormat("en", { numeric: "always" })
+const generateLabel = (days, hours, locale) => {
+  const rtf = new Intl.RelativeTimeFormat(locale || "en", { numeric: "always" })
 
   if (days > 0 && hours === 0) {
     return rtf.format(-days, "day")
@@ -26,6 +27,7 @@ const generateLabel = (days, hours) => {
 
 const CustomPeriodForm = ({ onSubmit, onCancel, initialValues }) => {
   const normalizedValues = normalizeInitialValues(initialValues)
+  const locale = useAttributeValue("locale")
 
   const [label, setLabel] = useState(normalizedValues.label)
   const [offsetDays, setOffsetDays] = useState(normalizedValues.days)
@@ -38,7 +40,7 @@ const CustomPeriodForm = ({ onSubmit, onCancel, initialValues }) => {
 
     if (offsetSeconds <= 0) return
 
-    const finalLabel = label.trim() || generateLabel(days, hours)
+    const finalLabel = label.trim() || generateLabel(days, hours, locale)
     if (!finalLabel) return
 
     const customPeriod = {

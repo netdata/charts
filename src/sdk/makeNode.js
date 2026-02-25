@@ -121,7 +121,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
       ...attributes,
       overlays: { ...parentAttributes.overlays, ...attributes.overlays },
     }
-    updateIntls(attributes.timezone)
+    updateIntls(attributes.timezone, attributes.locale)
   }
 
   const moveY = (min, max) => {
@@ -175,8 +175,9 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     moveX(-900)
   }
 
-  updateIntls(getAttribute("timezone"))
-  onAttributeChange("timezone", updateIntls)
+  updateIntls(getAttribute("timezone"), getAttribute("locale"))
+  onAttributeChange("timezone", tz => updateIntls(tz, getAttribute("locale")))
+  onAttributeChange("locale", locale => updateIntls(getAttribute("timezone"), locale))
 
   const destroy = () => {
     if (parent) parent.removeChild(getId())

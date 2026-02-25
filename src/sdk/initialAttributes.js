@@ -111,6 +111,7 @@ export default {
   temperature: "celsius",
   secondsAsTime: true,
   timezone: undefined,
+  locale: undefined,
   syncTimezone: true,
 
   dimensionsSort: "default", // default | nameAsc | nameDesc | valueAsc | valueDesc

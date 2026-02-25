@@ -152,7 +152,7 @@ export default ({
 
     fractionDigits = fractionDigits ?? node.getAttribute("staticFractionDigits")
 
-    return Intl.NumberFormat(undefined, {
+    return Intl.NumberFormat(node.getAttribute("locale") || undefined, {
       useGrouping: true,
       minimumFractionDigits: isNaN(fractionDigits) || fractionDigits < 0 ? 0 : fractionDigits,
       maximumFractionDigits:

@@ -24,10 +24,11 @@ export default () => {
   let dateIntlAxisX
   let dateIntl
 
-  const makeIntlFormatters = timeZone => {
-    timeIntl = new Intl.DateTimeFormat(navigator.language, { ...timeIntlOptions, timeZone })
-    dateIntl = new Intl.DateTimeFormat(navigator.language, { ...dateIntlOptions, timeZone })
-    dateIntlAxisX = new Intl.DateTimeFormat(navigator.language, {
+  const makeIntlFormatters = (timeZone, locale) => {
+    const resolvedLocale = locale || navigator.language
+    timeIntl = new Intl.DateTimeFormat(resolvedLocale, { ...timeIntlOptions, timeZone })
+    dateIntl = new Intl.DateTimeFormat(resolvedLocale, { ...dateIntlOptions, timeZone })
+    dateIntlAxisX = new Intl.DateTimeFormat(resolvedLocale, {
       ...dateIntlAxisXOptions,
       timeZone,
     })
@@ -44,9 +45,9 @@ export default () => {
     }
   }
 
-  const update = timeZone => {
+  const update = (timeZone, locale) => {
     try {
-      makeIntlFormatters(timeZone)
+      makeIntlFormatters(timeZone, locale)
     } catch (e) {
       makeNativeFormatters()
     }
