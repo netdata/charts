@@ -192,6 +192,9 @@ export default {
   themeGaugePointer: ["#8F9EAA", "#536775"],
   themeGaugeStroke: ["#DBE1E1", "#353F3F"],
 
+  gaugeLineWidth: 0.1,
+  gaugeGradient: true,
+
   themeD3pieSmallColor: ["#536775", "#CFD5DA"],
   themeD3pieStroke: ["#DBE1E1", "#353F3F"],
   themeInnerLabelColor: ["#F7F8F8", "#282827"],

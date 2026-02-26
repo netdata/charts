@@ -2,6 +2,27 @@ import Gauge from "./library"
 import makeChartUI from "@/sdk/makeChartUI"
 import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
+import lightenColor from "./makeGradientColors"
+
+const makeGradientFillStyle = (lightColor, fullColor) => g => {
+  if (!g.ctx.createConicGradient) return fullColor
+
+  const w = g.canvas.width / 2
+  const h =
+    g.canvas.height * g.paddingTop +
+    g.availableHeight -
+    (g.radius + g.lineWidth / 2) * g.extraPadding
+
+  const arcStart = (1 + g.options.angle) * Math.PI
+  const displayedAngle = g.getAngle(g.displayedValue)
+  const fraction = Math.max((displayedAngle - arcStart) / (2 * Math.PI), 0.001)
+
+  const gradient = g.ctx.createConicGradient(arcStart, w, h)
+  gradient.addColorStop(0, lightColor)
+  gradient.addColorStop(fraction, fullColor)
+
+  return gradient
+}
 
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
@@ -17,12 +38,13 @@ export default (sdk, chart) => {
     chartUI.mount(element)
 
     const { color, strokeColor } = makeThemingOptions()
-    const { staticZones } = chart.getAttributes()
+    const { staticZones, gaugeLineWidth, gaugeGradient } = chart.getAttributes()
+    const dimensionColor = chart.selectDimensionColor()
 
     const makeGaugeOptions = () => ({
-      angle: -0.2, // The span of the gauge arc
-      lineWidth: 0.2, // The line thickness
-      radiusScale: 1, // Relative radius
+      angle: -0.2,
+      lineWidth: gaugeLineWidth,
+      radiusScale: 1,
       pointer: {
         length: 0.6,
         strokeWidth: 0.035,
@@ -31,9 +53,12 @@ export default (sdk, chart) => {
       strokeColor,
       limitMax: false,
       limitMin: false,
-      colorStart: chart.selectDimensionColor(), // Colors
+      colorStart: dimensionColor,
       generateGradient: true,
-      highDpiSupport: true, // High resolution support
+      highDpiSupport: true,
+      ...(gaugeGradient && {
+        customFillStyle: makeGradientFillStyle(lightenColor(dimensionColor), dimensionColor),
+      }),
       ...(staticZones && {
         staticZones: [{ strokeStyle: strokeColor, min: 0, max: 100, height: 1 }, ...staticZones],
       }),
@@ -70,7 +95,17 @@ export default (sdk, chart) => {
       !loaded && chart.onceAttributeChange("loaded", render),
       chart.onAttributeChange("theme", () => {
         const { color, strokeColor } = makeThemingOptions()
-        gauge.setOptions({ strokeColor, pointer: { color } })
+        const updatedDimensionColor = chart.selectDimensionColor()
+        gauge.setOptions({
+          strokeColor,
+          pointer: { color },
+          ...(gaugeGradient && {
+            customFillStyle: makeGradientFillStyle(
+              lightenColor(updatedDimensionColor),
+              updatedDimensionColor
+            ),
+          }),
+        })
       })
     )
 

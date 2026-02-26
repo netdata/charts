@@ -40,6 +40,9 @@ const { updatePristine, resetPristine } = makePristine(pristineKey, [
   "expanded",
   "staticZones",
 
+  "gaugeLineWidth",
+  "gaugeGradient",
+
   "showPostAggregations",
   "selectedNodeLabelsFilter",
 ])
