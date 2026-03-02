@@ -61,7 +61,7 @@ const labelify = (base, config, long) => {
 export const getUnitsString = (u, prefix = "", base = "", long) => {
   if (!isScalable(u)) return labelify(base, u, long).trim()
 
-  if (isChronos(u)) labelify(base, u, long)
+  if (isChronos(u)) return labelify(base, u, long)
 
   if (isMetric(u) || isBinary(u) || isBit(u))
     return `${labelify(prefix, allUnits.prefixes[prefix], long)}${labelify(base, u, long)}`.trim()

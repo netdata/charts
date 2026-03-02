@@ -4114,5 +4114,7 @@ export default {
     Mbps: "Mibit/s",
     RPM: "{rotation}/min",
     pps: "{packet}/s",
+    "ms^2": "ms²",
+    ms__: "ms²",
   },
 }
