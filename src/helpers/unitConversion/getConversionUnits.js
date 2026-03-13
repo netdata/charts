@@ -2,31 +2,39 @@ import conversableUnits, {
   makeConversableKey,
   keys as conversableKeys,
 } from "@/helpers/units/conversableUnits"
-import convert, { getScales, getUnitConfig, isScalable } from "@/helpers/units"
+import convert, { getScales, getUnitConfig, isScalable, getExponent } from "@/helpers/units"
+
+const selfOrExponent = (u, scaleByKey) => {
+  const exponent = getExponent(u)
+  if (!exponent) return scaleByKey[u] || 1
+
+  return Math.pow(scaleByKey[u], exponent)
+}
 
 const scalable = (units, delta, desiredUnits) => {
   const [scaleKeys, scaleByKey] = getScales(units)
 
   const { base_unit: base = units, prefix_symbol: prefix } = getUnitConfig(units)
+  const prefixScale = selfOrExponent(prefix, scaleByKey)
 
   if (desiredUnits && desiredUnits !== "auto" && desiredUnits !== "original") {
     if (scaleByKey[desiredUnits] !== undefined) {
       return [
         "adjust",
-        value => (value * (scaleByKey[prefix] || 1)) / (scaleByKey[desiredUnits] || 1),
+        value => (value * prefixScale) / selfOrExponent(desiredUnits, scaleByKey),
         desiredUnits === "1" ? "" : desiredUnits,
         base,
       ]
     }
   }
 
-  delta = delta * (scaleByKey[prefix] || 1)
-  const scale = [...scaleKeys].reverse().find(scale => delta >= (scaleByKey[scale] || 1))
+  delta = delta * prefixScale
+  const scale = [...scaleKeys].reverse().find(scale => delta >= selfOrExponent(scale, scaleByKey))
 
   return scale
     ? [
         "adjust",
-        value => (value * (scaleByKey[prefix] || 1)) / (scaleByKey[scale] || 1),
+        value => (value * prefixScale) / selfOrExponent(scale, scaleByKey),
         scale === "1" ? "" : scale,
         base,
       ]
@@ -62,8 +70,8 @@ const getMethod = (chart, units, min, max) => {
   const allUnits = chart.getAttribute("units")
   const desiredUnitsArray = chart.getAttribute("desiredUnits") || ["auto"]
   const unitIndex = allUnits.indexOf(units)
-  const desiredUnits = unitIndex >= 0 ? (desiredUnitsArray[unitIndex] || "auto") : "auto"
-  
+  const desiredUnits = unitIndex >= 0 ? desiredUnitsArray[unitIndex] || "auto" : "auto"
+
   if (desiredUnits === "original") {
     return ["original"]
   }

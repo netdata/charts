@@ -38,7 +38,11 @@ export const isBinary = (u = "") =>
   typeof u === "string" ? getUnitConfig(u)?.is_binary : u?.is_binary
 export const isChronos = (u = "") =>
   typeof u === "string" ? getUnitConfig(u)?.is_chronos : u?.is_chronos
+
 export const isBit = (u = "") => (typeof u === "string" ? getUnitConfig(u)?.is_bit : u?.is_bit)
+
+export const getExponent = (u = "") =>
+  typeof u === "string" ? getUnitConfig(u)?.exponent : u?.exponent
 
 export const getScales = u => {
   if (!isScalable(u)) return [[], {}]
