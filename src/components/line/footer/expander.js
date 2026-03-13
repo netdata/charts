@@ -29,7 +29,7 @@ const actionDescriptions = {
 const Expander = () => {
   const chart = useChart()
   const expanded = useAttributeValue("expanded")
-  const drawerAction = useAttributeValue("drawer.action", "values")
+  const drawerAction = useAttributeValue("drawer.action", "compare")
 
   const expandTooltip = expanded
     ? "Collapse to hide chart analysis tools"
@@ -53,7 +53,7 @@ const Expander = () => {
         <TextSmall color="textLite">
           {expanded
             ? "Collapse"
-            : `Expand - ${drawerAction === "values" ? "Chart Analysis" : drawerAction === "drillDown" ? "Drill Down" : drawerAction === "compare" ? "Compare Periods" : "Find Correlations"}`}
+            : `Expand - ${drawerAction === "compare" ? "Compare Periods" : drawerAction === "values" ? "Chart Analysis" : drawerAction === "drillDown" ? "Drill Down" : "Find Correlations"}`}
         </TextSmall>
         <Icon
           svg={chevronExpand}

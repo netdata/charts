@@ -16,22 +16,20 @@ describe("calculations", () => {
       const result = calculateStats(payload)
 
       expect(result).toEqual({
-        min: 10,
-        avg: 35,
-        max: 60,
+        min: 30,
+        avg: 70,
+        max: 110,
         points: 3,
         dimensions: 2,
-        value: 60,
-        arp: 0,
-        cv: 48.79500364742666,
-        median: 35,
-        stddev: 17.07825127659933,
-        p25: 22.5,
-        p75: 47.5,
-        p95: 57.5,
-        range: 50,
-        count: 6,
-        volume: 210,
+        cv: 46.656947481584346,
+        median: 70,
+        stddev: 32.65986323710904,
+        p25: 50,
+        p75: 90,
+        p95: 106,
+        range: 80,
+        count: 3,
+        volume: 420,
       })
     })
 
@@ -51,22 +49,20 @@ describe("calculations", () => {
       const result = calculateStats(payload, [1500, 3500])
 
       expect(result).toEqual({
-        min: 30,
-        avg: 45,
-        max: 60,
+        min: 70,
+        avg: 90,
+        max: 110,
         points: 2,
         dimensions: 2,
-        value: 60,
-        arp: 0,
-        cv: 24.845199749997665,
-        median: 45,
-        stddev: 11.180339887498949,
-        p25: 37.5,
-        p75: 52.5,
-        p95: 58.5,
-        range: 30,
-        count: 4,
-        volume: 180,
+        cv: 22.22222222222222,
+        median: 90,
+        stddev: 20,
+        p25: 80,
+        p75: 100,
+        p95: 108,
+        range: 40,
+        count: 2,
+        volume: 360,
       })
     })
 
@@ -103,8 +99,6 @@ describe("calculations", () => {
         max: 60,
         points: 3,
         dimensions: 2,
-        value: 60,
-        arp: 0,
         cv: 40.8248290463863,
         median: 40,
         stddev: 16.32993161855452,

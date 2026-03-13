@@ -16,14 +16,16 @@ export const calculateStats = (payload, highlightRange = null) => {
 
   if (!filteredData.length) return null
 
-  const values = filteredData.flatMap(row =>
-    row.slice(1).filter(val => val !== null && !isNaN(val) && isFinite(val))
-  )
+  const values = filteredData.reduce((acc, row) => {
+    const dims = row.slice(1).filter(val => val !== null && !isNaN(val) && isFinite(val))
+    if (dims.length) acc.push(dims.reduce((a, b) => a + Math.abs(b), 0))
+    return acc
+  }, [])
 
   if (!values.length) return null
 
   const dimensions = filteredData[0]?.length - 1 || 0
-  const stats = calculateAllStats(values, filteredData.length, viewUpdateEvery)
+  const stats = calculateAllStats(values, values.length, viewUpdateEvery)
 
   return {
     ...stats,

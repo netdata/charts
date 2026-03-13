@@ -262,7 +262,7 @@ export default {
   alerts: {},
 
   drawer: {
-    action: "values",
+    action: "compare",
     tab: "window",
     showAdvancedStats: false,
   },

@@ -41,7 +41,7 @@ export const calculateAdvancedStats = (values, basicStats = {}, points = 0, upda
     p95: calculatePercentile(values, 95),
     range: Math.max(...values) - Math.min(...values),
     count: values.length,
-    volume: points > 0 ? avg * points * updateEvery : values.reduce((sum, val) => sum + Math.abs(val), 0),
+    volume: avg ? avg * values.length * updateEvery : 0,
     cv: avg && stddev ? (stddev / Math.abs(avg)) * 100 : null,
   }
 }
@@ -54,8 +54,6 @@ export const calculateAllStats = (values, points = 0, updateEvery = 1) => {
     min: Math.min(...values),
     avg: sum / values.length,
     max: Math.max(...values),
-    value: values[values.length - 1],
-    arp: 0,
   }
 
   const advancedStats = calculateAdvancedStats(values, basicStats, points, updateEvery)

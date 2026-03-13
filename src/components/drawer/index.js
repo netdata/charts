@@ -20,7 +20,7 @@ const Drawer = () => {
   const action = useAttributeValue("drawer.action")
 
   const Component = useMemo(() => {
-    return componentsByAction[action] || componentsByAction.values
+    return componentsByAction[action] || componentsByAction.compare
   }, [action])
 
   return (
