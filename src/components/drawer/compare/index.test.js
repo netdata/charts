@@ -1,5 +1,5 @@
 import React from "react"
-import { screen, fireEvent } from "@testing-library/react"
+import { screen, fireEvent, act } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { renderWithChart } from "@jest/testUtilities"
 import Compare from "./index"
@@ -278,6 +278,53 @@ describe("Compare", () => {
       expect(screen.getAllByText("Min").length).toBeGreaterThan(0)
       expect(screen.getAllByText("Avg").length).toBeGreaterThan(0)
       expect(screen.getAllByText("Max").length).toBeGreaterThan(0)
+    })
+  })
+
+  describe("Volume visibility", () => {
+    const periodsWithVolume = [
+      {
+        id: "selected",
+        label: "Selected timeframe",
+        after: 1645459425,
+        before: 1645459485,
+        isBase: true,
+        payload: { data: [[1, 50, 30]], dimensions: ["a", "b"] },
+        stats: { min: 30, avg: 45, max: 60, volume: 900 },
+        error: null,
+      },
+    ]
+
+    beforeEach(() => {
+      useComparisonData.mockReturnValue({
+        periods: periodsWithVolume,
+        loading: false,
+        error: null,
+      })
+    })
+
+    it("shows volume for rate units ending with /s", () => {
+      const { chart } = renderWithChart(<Compare />, {
+        attributes: { units: ["kilobits/s"], drawer: { action: "compare", tab: "window", showAdvancedStats: true } },
+      })
+
+      expect(screen.getByText("Volume")).toBeInTheDocument()
+    })
+
+    it("hides volume for non-rate units", () => {
+      renderWithChart(<Compare />, {
+        attributes: { units: ["%"], drawer: { action: "compare", tab: "window", showAdvancedStats: true } },
+      })
+
+      expect(screen.queryByText("Volume")).not.toBeInTheDocument()
+    })
+
+    it("hides volume when units is empty", () => {
+      renderWithChart(<Compare />, {
+        attributes: { units: [""], drawer: { action: "compare", tab: "window", showAdvancedStats: true } },
+      })
+
+      expect(screen.queryByText("Volume")).not.toBeInTheDocument()
     })
   })
 })

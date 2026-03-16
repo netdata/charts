@@ -111,6 +111,27 @@ describe("calculations", () => {
       })
     })
 
+    it("uses absolute values for dimension aggregation", () => {
+      const payload = {
+        data: [
+          [1, -500, 100],
+          [2, -300, 200],
+          [3, -100, 50],
+        ],
+        dimensions: ["received", "sent"],
+        viewUpdateEvery: 1,
+      }
+
+      const result = calculateStats(payload)
+
+      expect(result.min).toBe(150)
+      expect(result.avg).toBeCloseTo(416.67, 1)
+      expect(result.max).toBe(600)
+      expect(result.median).toBe(500)
+      expect(result.volume).toBeCloseTo(1250, 0)
+      expect(result.range).toBe(450)
+    })
+
     it("returns null for empty or invalid payload", () => {
       expect(calculateStats(null)).toBeNull()
       expect(calculateStats({})).toBeNull()
