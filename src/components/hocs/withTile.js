@@ -115,7 +115,7 @@ export const HeadWrapper = ({ children, customChildren, hasFilters = true, ...re
         {leftHeaderElements.map((Element, index) => (
           <Element key={index} plain />
         ))}
-        {width < 400 && (
+        {hasFilters && width < 400 && (
           <Flex column width={5}>
             <FilterToolbox
               column
