@@ -15,7 +15,6 @@ const Container = props => (
     alignItems="center"
     flex
     data-testid="chartHeaderToolbox"
-    zIndex={100}
     {...props}
   />
 )
