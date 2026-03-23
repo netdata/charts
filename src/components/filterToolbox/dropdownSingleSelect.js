@@ -107,6 +107,7 @@ const DropdownSingleSelect = ({ labelProps, ...rest }) => {
         align: { top: "bottom", left: "left" },
         "data-toolbox": id,
         width: "460px",
+        zIndex: 100,
       }}
       dropdownProps={{ padding: [0, 0, 2, 0], height: { max: "60vh" } }}
       {...rest}

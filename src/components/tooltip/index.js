@@ -25,6 +25,7 @@ const Tooltip = ({ content, Content = DefaultContent, ...rest }) =>
       content={<Content {...rest}>{content}</Content>}
       {...rest}
       dropProps={{ "data-toolbox": rest["data-toolbox"] }}
+      zIndex={100}
     />
   ) : (
     rest.children

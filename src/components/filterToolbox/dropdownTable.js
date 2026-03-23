@@ -219,6 +219,7 @@ const DropdownTable = ({
         "data-toolbox": id,
         keepHorizontal: true,
         stretch: null,
+        zIndex: 100,
       }}
       dropdownProps={{
         height: { max: "60vh" },

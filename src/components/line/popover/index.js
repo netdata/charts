@@ -84,6 +84,7 @@ const Popover = ({ uiName }) => {
           column
           data-testid="drop"
           sx={{ pointerEvents: "none" }}
+          zIndex={101}
         >
           <Dimensions uiName={uiName} data-testid="chartPopover" />
         </DropContainer>,
