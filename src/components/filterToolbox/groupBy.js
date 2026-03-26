@@ -14,7 +14,7 @@ import {
   maxColumn,
 } from "./columns"
 
-const useDefaultItems = (chart, { groupByKey, contextScope }) =>
+const useDefaultItems = (chart, { groupByKey, contextScope, showPostAggregations }) =>
   useMemo(() => {
     const hasMultipleContexts = contextScope.length > 1
     return [
@@ -27,7 +27,7 @@ const useDefaultItems = (chart, { groupByKey, contextScope }) =>
         key: "instances",
       },
       { nm: "dimension", id: "dimension", key: "dimensions" },
-      "drilldown.groupBy" === groupByKey && {
+      (showPostAggregations || "drilldown.groupBy" === groupByKey) && {
         nm: `percentage of ${chart.intl("instance")}`,
         id: "percentage-of-instance",
         key: "instances",
@@ -67,10 +67,11 @@ const GroupBy = ({
   const groupBy = useAttributeValue(groupByKey)
   const groupByLabel = useAttributeValue(groupByLabelKey)
   const contextScope = useAttributeValue("contextScope")
+  const showPostAggregations = useAttributeValue("showPostAggregations")
 
   let label = "everything"
 
-  const defaultItems = useDefaultItems(chart, { groupByKey, contextScope })
+  const defaultItems = useDefaultItems(chart, { groupByKey, contextScope, showPostAggregations })
 
   const getOptions = useCallback(() => {
     const attributes = chart.getAttributes()
