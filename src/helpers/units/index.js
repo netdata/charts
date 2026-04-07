@@ -59,6 +59,13 @@ export const getScales = u => {
 const labelify = (base, config, long) => {
   if (!config) return base
 
+  if (typeof config === "string") {
+    const resolved = getUnitConfig(config)
+    const display = long ? resolved.name : resolved.print_symbol
+    if (display === "") return ""
+    return base || display
+  }
+
   if (long) return typeof config.name === "undefined" ? base : config.name
   return typeof config.print_symbol === "undefined" ? base : config.print_symbol
 }
