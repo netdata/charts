@@ -8,3 +8,5 @@ dist
 coverage
 storybook-static
 CLAUDE.md
+.superpowers
+docs/superpowers

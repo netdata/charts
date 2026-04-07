@@ -164,6 +164,165 @@ The render prop function receives the same object as the `useHeadlessChart` hook
 
 See `headlessChart.stories.js` and `agentv2.stories.js` for complete examples.
 
+---
+
+# BreakdownChart & useGroupedChart
+
+A single chart context with `groupBy` split into N groups — one per instance or label value. Renders multiple gauges/pies/custom UI from a single data fetch.
+
+## Imports
+
+```js
+import { BreakdownChart, useGroupedChart, HeadlessChart } from "@netdata/charts"
+```
+
+## Usage Option 1: BreakdownChart with renderFunction
+
+`BreakdownChart` wraps `HeadlessChart` internally. Pass it the same props you'd pass `HeadlessChart`, plus an optional `renderFunction` for full control.
+
+```jsx
+<BreakdownChart
+  sdk={sdk}
+  contextScope={["httpcheck.responsetime"]}
+  host="https://your-netdata-host/api/v3"
+  agent={true}
+  chartLibrary="gauge"
+  groupBy={["instance"]}
+  renderFunction={(groups, { chart, helpers, state }) => {
+    if (state.loading && !state.loaded) return <Text>Loading...</Text>
+    if (!groups.length) return <Text>No groups</Text>
+
+    return (
+      <Flex flexWrap gap={3}>
+        {groups.map(group => (
+          <Flex key={group.key} column padding={[3]} basis="200px">
+            <Text strong>{group.label}</Text>
+            <Text variant="h3">{Math.round(group.value)} ms</Text>
+            <Text variant="caption">
+              Range: {Math.round(group.min)} - {Math.round(group.max)}
+            </Text>
+          </Flex>
+        ))}
+      </Flex>
+    )
+  }}
+/>
+```
+
+If you omit `renderFunction`, it renders a default grid showing each group's label and aggregated value.
+
+## Usage Option 2: HeadlessChart + useGroupedChart hook
+
+For more control, use `HeadlessChart` directly and call the `useGroupedChart` hook inside a child component.
+
+```jsx
+const MyGauges = () => {
+  const { groups, state } = useGroupedChart()
+
+  if (state.loading && !state.loaded) return <Text>Loading...</Text>
+  if (!groups.length) return <Text>No groups</Text>
+
+  return (
+    <Flex flexWrap gap={4}>
+      {groups.map(group => (
+        <MyGaugeCard key={group.key} group={group} />
+      ))}
+    </Flex>
+  )
+}
+
+<HeadlessChart
+  sdk={sdk}
+  contextScope={["httpcheck.responsetime"]}
+  host="https://your-netdata-host/api/v3"
+  agent={true}
+  chartLibrary="gauge"
+  groupBy={["instance"]}
+>
+  <MyGauges />
+</HeadlessChart>
+```
+
+## BreakdownChart Props
+
+All `HeadlessChart` props are forwarded, plus:
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `renderFunction` | `(groups, { chart, helpers, state }) => ReactNode` | `undefined` | Custom render function. Receives groups array and chart context. If omitted, renders default grid. |
+| `sharedMinMax` | `boolean` | `false` | When true, all groups share the same min/max range (for visual comparability). When false, each group has independent min/max. |
+| `children` | `ReactNode` | `undefined` | If provided, renders children instead of GroupedRenderer (escape hatch). |
+
+## useGroupedChart API
+
+```js
+const { groups, chart, helpers, state } = useGroupedChart({ sharedMinMax: false })
+```
+
+Must be called inside a `HeadlessChart` or `BreakdownChart` (needs chart context).
+
+### `groups` — Array of group objects
+
+Each group object:
+
+```js
+{
+  key: "httpcheck_website-a",     // unique group identifier (tree key)
+  label: "httpcheck_website-a",   // display label (same as key)
+  dimensionIds: [                  // full dimension IDs belonging to this group
+    "responsetime,httpcheck_website-a,node-001,httpcheck.responsetime"
+  ],
+  value: 42,                       // aggregated sum of all dimensions in this group
+  dimensions: [                    // per-dimension breakdown
+    {
+      id: "responsetime,httpcheck_website-a,node-001,httpcheck.responsetime",
+      value: 42,                   // raw value
+      convertedValue: "42 ms",     // formatted with units
+      color: "#5470c6",            // chart color
+      name: "responsetime,...",    // dimension name
+    }
+  ],
+  min: 42,                         // min value across this group's dimensions
+  max: 42,                         // max value across this group's dimensions
+}
+```
+
+### `chart`, `helpers`, `state` — Passthrough from useHeadlessChart
+
+- `chart` — the SDK chart instance (all chart methods available)
+- `helpers` — `{ updateAttribute, getAttribute, getDimensionValue, formatTime, selectDimensionColor, ... }`
+- `state` — `{ loading, empty, loaded, error, showingInfo, focused }`
+
+## Key Chart Attributes
+
+These are passed as props to `BreakdownChart` or `HeadlessChart`:
+
+| Attribute | Example | Description |
+|-----------|---------|-------------|
+| `contextScope` | `["httpcheck.responsetime"]` | The metric context to query |
+| `groupBy` | `["instance"]` | How to group dimensions. Options: `"instance"`, `"dimension"`, `"node"`, `"context"`, `"label"` |
+| `groupByLabel` | `["site"]` | When groupBy includes `"label"`, specifies which label key to group by |
+| `chartLibrary` | `"gauge"` | Chart type. Used by default renderer to infer component type |
+| `host` | `"https://host/api/v3"` | Netdata API endpoint |
+| `agent` | `true` | Use agent API mode |
+| `aggregationMethod` | `"avg"` | How to aggregate: `"sum"`, `"avg"`, `"min"`, `"max"` |
+
+## How Grouping Works
+
+1. The SDK fetches data with `groupBy` — the API returns dimension labels in comma-separated format: `"dimension,instance,nodeId,context"`
+2. `camelizePayload` builds a nested tree from these labels
+3. `useGroupedChart` finds the branching level in the tree (skips single-child nodes) and treats each branch as a group
+4. Each group gets its leaf dimension IDs, resolved values, colors, and aggregated totals
+
+## Storybook
+
+See `breakdownChart.stories.js` for complete examples:
+
+- **Default** — gauge breakdown with default grid rendering
+- **WithRenderFunction** — custom styled cards via renderFunction
+- **PieBreakdown** — same data rendered as d3pie
+- **WithHook** — HeadlessChart + useGroupedChart direct usage
+
 ## Testing
 
 Run tests with:

@@ -53,5 +53,7 @@ const HeadlessChart = ({
 }
 
 export { default as useHeadlessChart } from "./useHeadlessChart"
+export { default as useGroupedChart } from "./useGroupedChart"
+export { default as BreakdownChart } from "./breakdownChart"
 
 export default HeadlessChart
