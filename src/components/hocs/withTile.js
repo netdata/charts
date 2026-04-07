@@ -103,6 +103,7 @@ export const HeadWrapper = ({ children, customChildren, hasFilters = true, ...re
             boxShadow: `0px 1px 5px 0px ${shadowColor};`,
           }}
           overflow="hidden"
+          zIndex={5}
         >
           {hasFilters && width > 400 && (
             <Box width="100%">
