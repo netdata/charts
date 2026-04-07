@@ -313,7 +313,22 @@ describe("units helpers", () => {
 
     it("trims whitespace correctly", () => {
       const result = getUnitsString("unknown", "", "")
+      expect(result).toBe("unknown")
+    })
+
+    it("hides units with empty print_symbol like {boolean}", () => {
+      const result = getUnitsString("{boolean}", "", "{boolean}")
       expect(result).toBe("")
+    })
+
+    it("shows non-scalable units like percentage when base is empty", () => {
+      const result = getUnitsString("%", "", "")
+      expect(result).toBe("%")
+    })
+
+    it("uses base over print_symbol for scaled units", () => {
+      const result = getUnitsString("By", "Mi", "B")
+      expect(result).toBe("MiB")
     })
   })
 
