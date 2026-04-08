@@ -54,6 +54,18 @@ describe("getConversionUnits", () => {
       expect(result).toHaveProperty("unit", "By")
     })
 
+    it("uses print_symbol for base when base_unit is not defined", () => {
+      const result = getConversionAttributes(chart, "{entropy}", { min: 0, max: 256 })
+
+      expect(result.base).toBe("entropy")
+    })
+
+    it("preserves empty print_symbol for base when base_unit is not defined", () => {
+      const result = getConversionAttributes(chart, "{state}", { min: 0, max: 1 })
+
+      expect(result.base).toBe("")
+    })
+
     it("handles negative values", () => {
       const result = getConversionAttributes(chart, "By", { min: -1000, max: 1000 })
 

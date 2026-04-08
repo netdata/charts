@@ -14,7 +14,9 @@ const selfOrExponent = (u, scaleByKey) => {
 const scalable = (units, delta, desiredUnits) => {
   const [scaleKeys, scaleByKey] = getScales(units)
 
-  const { base_unit: base = units, prefix_symbol: prefix } = getUnitConfig(units)
+  const config = getUnitConfig(units)
+  const base = config.base_unit ?? config.print_symbol ?? units
+  const prefix = config.prefix_symbol
   const prefixScale = selfOrExponent(prefix, scaleByKey)
 
   if (desiredUnits && desiredUnits !== "auto" && desiredUnits !== "original") {
