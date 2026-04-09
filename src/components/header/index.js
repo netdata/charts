@@ -29,6 +29,7 @@ export const Container = props => {
 const Header = ({ hasFilters }) => {
   const isMinimal = useIsMinimal()
   const leftHeaderElements = useAttributeValue("leftHeaderElements")
+  const hasToolbox = useAttributeValue("hasToolbox")
   const focused = useAttributeValue("focused")
 
   return (
@@ -41,7 +42,7 @@ const Header = ({ hasFilters }) => {
       ))}
       <Title />
       {isMinimal && hasFilters && <FilterToolbox opacity={focused ? 1 : 0.7} />}
-      <Toolbox />
+      {hasToolbox && <Toolbox />}
     </Container>
   )
 }
