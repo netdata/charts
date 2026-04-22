@@ -352,7 +352,10 @@ export default (sdk, chart) => {
       },
       ylabel:
         chart.getAttribute("hasYlabel") &&
-        chart.getUnitSign({ long: true, withoutConversion: isHeatmap(chartType) }),
+        chart.getUnitSign({
+          withoutConversion: isHeatmap(chartType),
+          dimensionId: chart.getVisibleDimensionIds()?.[0],
+        }),
     }
   }
 
