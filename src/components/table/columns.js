@@ -13,6 +13,7 @@ import {
   useUnitSign,
 } from "@/components/provider"
 import Tooltip from "@/components/tooltip"
+import sanitizeId from "@/helpers/sanitizeId"
 import Label from "@/components/filterToolbox/label"
 import { getValue } from "@/helpers/crud"
 
@@ -121,7 +122,7 @@ export const valueColumn = (chart, { dimensionLabel = "Value", dimensionId, keys
   const keysStr = keys.length ? keys.join("|") : ""
 
   return {
-    id: `value${keysStr}`,
+    id: sanitizeId(`value${keysStr}`),
     name: dimensionLabel,
     header: () => {
       return (

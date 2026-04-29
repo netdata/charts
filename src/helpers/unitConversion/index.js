@@ -9,14 +9,6 @@ const baseConvert = (chart, unitsKey = "units", min, max) => {
     divider,
   } = getConversionUnits(chart, unitsKey, { min, max })
 
-  chart.updateAttributes({
-    [`${unitsKey}ConversionMethod`]: method,
-    [`${unitsKey}ConversionPrefix`]: prefix,
-    [`${unitsKey}ConversionBase`]: base,
-    [`${unitsKey}ConversionFractionDigits`]: fractionDigits,
-    [`${unitsKey}ConversionDivider`]: divider,
-  })
-
   const unitsStsByContext = chart.getAttribute(`${unitsKey}StsByContext`)
 
   chart.updateAttribute(
@@ -29,6 +21,14 @@ const baseConvert = (chart, unitsKey = "units", min, max) => {
       return h
     }, {})
   )
+
+  chart.updateAttributes({
+    [`${unitsKey}ConversionMethod`]: method,
+    [`${unitsKey}ConversionPrefix`]: prefix,
+    [`${unitsKey}ConversionBase`]: base,
+    [`${unitsKey}ConversionFractionDigits`]: fractionDigits,
+    [`${unitsKey}ConversionDivider`]: divider,
+  })
 }
 
 export default chart => {

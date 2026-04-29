@@ -97,7 +97,12 @@ export default (sdk, chart) => {
       maxNumberWidth: 8,
       highlightSeriesBackgroundAlpha: 1,
       drawGapEdgePoints: true,
-      ylabel: chart.getAttribute("hasYlabel") && chart.getUnitSign({ long: true }),
+      ylabel:
+        chart.getAttribute("hasYlabel") &&
+        chart.getUnitSign({
+          withoutConversion: isHeatmap(chart.getAttribute("chartType")),
+          dimensionId: chart.getVisibleDimensionIds()?.[0],
+        }),
       digitsAfterDecimal:
         chart.getAttribute("unitsConversionFractionDigits")[0] < 0
           ? 0
@@ -164,6 +169,15 @@ export default (sdk, chart) => {
         if (chart.getAttribute("processing")) return
 
         dygraph.updateOptions(makeChartTypeOptions())
+      }),
+      chart.onAttributeChange("unitsConversionPrefix", () => {
+        dygraph.updateOptions({
+          ...makeChartTypeOptions(),
+          digitsAfterDecimal:
+            chart.getAttribute("unitsConversionFractionDigits")[0] < 0
+              ? 0
+              : chart.getAttribute("unitsConversionFractionDigits")[0],
+        })
       }),
       chart.onAttributeChange("selectedLegendDimensions", () => {
         if (chart.getAttribute("processing")) return

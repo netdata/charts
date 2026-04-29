@@ -7,6 +7,7 @@ import { useChart, useAttributeValue } from "@/components/provider"
 import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
 import Toolbox from "@/components/toolbox"
+import sanitizeId from "@/helpers/sanitizeId"
 import useTableMatrix from "./useTableMatrix"
 import useTableColumns from "./useTableColumns"
 
@@ -27,14 +28,15 @@ const Dimensions = () => {
   })
 
   const sortBy = useMemo(() => {
-    if (!tableSortBy || tableSortBy.length > 1 || !contextGroups) return tableSortBy
+    if (!tableSortBy || tableSortBy.length > 1 || !contextGroups)
+      return tableSortBy.map(s => ({ ...s, id: sanitizeId(s.id) }))
 
     const [first] = tableSortBy
     if (!first || !contextGroups[first.id] || !Object.keys(contextGroups[first.id]))
-      return tableSortBy
+      return tableSortBy.map(s => ({ ...s, id: sanitizeId(s.id) }))
 
     return Object.keys(contextGroups[first.id]).map(id => ({
-      id: `value${first.id}${id}`,
+      id: sanitizeId(`value${first.id}|${id}`),
       desc: first.desc,
     }))
   }, [tableSortBy, contextGroups])
