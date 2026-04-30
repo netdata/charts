@@ -29,7 +29,7 @@ const Dimensions = () => {
 
   const sortBy = useMemo(() => {
     if (!tableSortBy || tableSortBy.length > 1 || !contextGroups)
-      return tableSortBy.map(s => ({ ...s, id: sanitizeId(s.id) }))
+      return tableSortBy?.map(s => ({ ...s, id: sanitizeId(s.id) }))
 
     const [first] = tableSortBy
     if (!first || !contextGroups[first.id] || !Object.keys(contextGroups[first.id]))
