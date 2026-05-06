@@ -43,6 +43,7 @@ export default chart => {
       showPostAggregations,
       agent,
       host,
+      nulls2zero,
     } = chart.getAttributes()
     const selectedNodes = chart.getFilteredNodeIds()
 
@@ -67,6 +68,7 @@ export default chart => {
       showPostAggregations,
       agent,
       host,
+      nulls2zero,
     })
   }
 

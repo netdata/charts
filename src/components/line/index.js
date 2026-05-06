@@ -40,7 +40,10 @@ export const Line = ({
   })
 
   const focused = useAttributeValue("focused")
+  const filterToolboxMode = useAttributeValue("filterToolboxMode") || "fixed"
   const isMinimal = useIsMinimal()
+  const showFilters = !isMinimal && hasFilters
+  const isFloating = filterToolboxMode === "floating"
 
   return (
     <Container
@@ -50,8 +53,9 @@ export const Line = ({
       {...(isMinimal && { border: 0 })}
     >
       {hasHeader && <Header hasFilters={hasFilters} />}
-      {!isMinimal && hasFilters && <FilterToolbox opacity={focused ? 1 : 0.7} />}
+      {showFilters && !isFloating && <FilterToolbox opacity={focused ? 1 : 0.7} />}
       <ContentWrapper>
+        {showFilters && isFloating && <FilterToolbox opacity={focused ? 1 : 0.7} />}
         {showingInfo ? <Details /> : <ChartContentWrapper uiName={uiName} />}
       </ContentWrapper>
       {hasFooter && <Footer />}

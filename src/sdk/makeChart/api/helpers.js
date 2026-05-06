@@ -4,13 +4,19 @@ const defaultUrlOptionsByLibrary = {
 }
 
 export const getChartURLOptions = chart => {
-  const { eliminateZeroDimensions, urlOptions = [], chartLibrary } = chart.getAttributes()
+  const {
+    eliminateZeroDimensions,
+    urlOptions = [],
+    chartLibrary,
+    nulls2zero,
+  } = chart.getAttributes()
   const opts = defaultUrlOptionsByLibrary[chartLibrary] || defaultUrlOptionsByLibrary.default
 
   return [
     ...urlOptions,
     "jsonwrap",
     chartLibrary !== "table" && eliminateZeroDimensions && "nonzero",
+    nulls2zero && "null2zero",
     "flip",
     "ms",
     "jw-anomaly-rates",

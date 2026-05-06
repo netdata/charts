@@ -1,8 +1,6 @@
-import ChartType from "@/components/toolbox/chartType"
 import Fullscreen from "@/components/toolbox/fullscreen"
-import Information from "@/components/toolbox/information"
-import Download from "@/components/toolbox/download"
 import Settings from "@/components/toolbox/settings"
+import { DisplayTab, DataTab, InfoTab, DownloadTab } from "@/components/toolbox/settings/tabs"
 
 import Status from "@/components/status"
 
@@ -224,8 +222,11 @@ export default {
 
   agent: true,
 
-  toolboxElements: [Settings, Information, ChartType, Fullscreen, Download],
+  toolboxElements: [Settings, Fullscreen],
   toolboxProps: {},
+  settingsTabs: [DisplayTab, DataTab, InfoTab, DownloadTab],
+  nulls2zero: false,
+  filterToolboxMode: "fixed",
   leftHeaderElements: [Status],
 
   expanded: false,
