@@ -179,11 +179,46 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   onAttributeChange("timezone", tz => updateIntls(tz, getAttribute("locale")))
   onAttributeChange("locale", locale => updateIntls(getAttribute("timezone"), locale))
 
+  // Multi-consumer pause registry. Each independent caller (a UI
+  // hover handler, an open modal, a long-running export, etc.) can
+  // register a reason id when it wants the SDK to hold updates and
+  // unregister it when done. The `paused` attribute is recomputed as
+  // the union of all reasons + the blur fallback, so consumers
+  // compose without overwriting each other's intent. Without this,
+  // every caller writing `paused` directly on its own intent could
+  // clobber another caller's still-active pause (e.g., a hover-end
+  // releasing the pause while a modal is still open).
+  const pauseReasons = new Set()
+  const computeAggregatePaused = () => {
+    const blurReason = !getAttribute("autofetchOnWindowBlur") && getAttribute("blurred")
+    return Boolean(blurReason) || pauseReasons.size > 0
+  }
+  const applyAggregatePaused = () => {
+    updateAttribute("paused", computeAggregatePaused())
+  }
+  const addPauseReason = reasonId => {
+    if (!reasonId) return
+    pauseReasons.add(reasonId)
+    applyAggregatePaused()
+  }
+  const removePauseReason = reasonId => {
+    if (!reasonId) return
+    if (!pauseReasons.delete(reasonId)) return
+    applyAggregatePaused()
+  }
+  // The aggregate also reacts to blur-source attribute changes
+  // automatically — callers that have already registered a reason
+  // don't have to subscribe separately to recompute when window
+  // focus flips.
+  onAttributeChange("blurred", applyAggregatePaused)
+  onAttributeChange("autofetchOnWindowBlur", applyAggregatePaused)
+
   const destroy = () => {
     if (parent) parent.removeChild(getId())
 
     listeners.offAll()
     attributeListeners.offAll()
+    pauseReasons.clear()
     setTimeout(() => (parent = null), 2000)
     destroyIntls()
   }
@@ -220,6 +255,8 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     formatTime,
     formatDate,
     formatXAxis,
+    addPauseReason,
+    removePauseReason,
   }
 
   return instance

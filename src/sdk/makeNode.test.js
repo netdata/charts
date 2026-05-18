@@ -238,6 +238,77 @@ describe("makeNode", () => {
     })
   })
 
+  describe("pause reasons", () => {
+    it("starts with no reasons and paused=false (assuming blur is off)", () => {
+      expect(node.getAttribute("paused")).toBeUndefined()
+    })
+
+    it("addPauseReason flips paused to true", () => {
+      node.addPauseReason("hover")
+      expect(node.getAttribute("paused")).toBe(true)
+    })
+
+    it("removePauseReason after the only reason flips paused back to false", () => {
+      node.addPauseReason("hover")
+      node.removePauseReason("hover")
+      expect(node.getAttribute("paused")).toBe(false)
+    })
+
+    it("composes multiple reasons — removing one keeps paused true while others remain", () => {
+      node.addPauseReason("hover")
+      node.addPauseReason("modal")
+      expect(node.getAttribute("paused")).toBe(true)
+      node.removePauseReason("hover")
+      // The bug this fix targets: hover-end MUST NOT clobber the
+      // still-active modal pause. Without the multi-consumer
+      // aggregate this would have flipped to false here.
+      expect(node.getAttribute("paused")).toBe(true)
+      node.removePauseReason("modal")
+      expect(node.getAttribute("paused")).toBe(false)
+    })
+
+    it("is idempotent — same reason id added twice acts as one", () => {
+      node.addPauseReason("hover")
+      node.addPauseReason("hover")
+      node.removePauseReason("hover")
+      expect(node.getAttribute("paused")).toBe(false)
+    })
+
+    it("ignores empty/missing reason ids", () => {
+      node.addPauseReason("")
+      node.addPauseReason(null)
+      node.addPauseReason(undefined)
+      expect(node.getAttribute("paused")).toBeUndefined()
+    })
+
+    it("recomputes when the blur attributes flip — window blur fires pause without an explicit reason", () => {
+      // autofetchOnWindowBlur=false means blur should pause; setting
+      // blurred=true should make the aggregate true.
+      node.updateAttribute("autofetchOnWindowBlur", false)
+      node.updateAttribute("blurred", true)
+      expect(node.getAttribute("paused")).toBe(true)
+      node.updateAttribute("blurred", false)
+      expect(node.getAttribute("paused")).toBe(false)
+    })
+
+    it("blur and explicit reasons combine — un-blurring keeps paused true if a reason is still registered", () => {
+      node.updateAttribute("autofetchOnWindowBlur", false)
+      node.updateAttribute("blurred", true)
+      node.addPauseReason("modal")
+      expect(node.getAttribute("paused")).toBe(true)
+      node.updateAttribute("blurred", false)
+      expect(node.getAttribute("paused")).toBe(true)
+      node.removePauseReason("modal")
+      expect(node.getAttribute("paused")).toBe(false)
+    })
+
+    it("autofetchOnWindowBlur=true disables the blur reason — paused stays false while blurred", () => {
+      node.updateAttribute("autofetchOnWindowBlur", true)
+      node.updateAttribute("blurred", true)
+      expect(node.getAttribute("paused")).toBe(false)
+    })
+  })
+
   describe("inheritance", () => {
     it("inherits parent attributes", () => {
       mockParent.getAttributes.mockReturnValue({
