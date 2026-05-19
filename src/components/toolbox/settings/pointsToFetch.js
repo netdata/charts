@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react"
 import { Flex, TextSmall, TextMicro, TextInput } from "@netdata/netdata-ui"
 import information from "@netdata/netdata-ui/dist/components/icon/assets/information.svg"
-import { useAttributeValue } from "@/components/provider"
+import { useAttributeValue, useChart } from "@/components/provider"
 import { pointMultiplierByChartType } from "@/sdk/makeChart/api/helpers"
 import Tooltip from "@/components/tooltip"
 import Icon from "@/components/icon"
@@ -50,8 +50,10 @@ const useAutoPoints = () => {
   }, [containerWidth, pixelsPerPoint, chartType, chartLibrary])
 }
 
-const PointsToFetch = ({ formState, onChange }) => {
-  const [pointsValue, setPointsValue] = useState(formState.points ?? "")
+const PointsToFetch = () => {
+  const chart = useChart()
+  const pointsAttr = useAttributeValue("points")
+  const [pointsValue, setPointsValue] = useState(pointsAttr ?? "")
 
   const autoPoints = useAutoPoints()
 
@@ -60,14 +62,15 @@ const PointsToFetch = ({ formState, onChange }) => {
   const exceedsMax = maxPoints !== null && pointsValue !== "" && Number(pointsValue) > maxPoints
 
   useEffect(() => {
-    setPointsValue(formState.points ?? "")
-  }, [formState.points])
+    setPointsValue(pointsAttr ?? "")
+  }, [pointsAttr])
 
   const handleChange = e => {
     const value = e.target.value
     setPointsValue(value)
     const points = value === "" ? null : Number(value)
-    onChange({ points })
+    chart.updateAttributes({ points })
+    chart.trigger("fetch", { processing: true })
   }
 
   const placeholder = autoPoints ? `Auto (${autoPoints} data points)` : "Auto"

@@ -1,20 +1,31 @@
 import React from "react"
 import { Flex } from "@netdata/netdata-ui"
-import DisplayChartType from "./displayChartType"
+import ChartType from "./chartType"
 import ChartElements from "../chartElements"
 import ValueRange from "../valueRange"
 import NumberFormat from "../numberFormat"
 
-const DisplayBody = ({ formState, onChange }) => (
+const DisplayBody = () => (
   <Flex column gap={3} padding={[3]} width={{ min: "260px" }}>
-    <DisplayChartType
-      value={{ chartLibrary: formState.chartLibrary, chartType: formState.chartType }}
-      onChange={onChange}
-    />
-    <ChartElements formState={formState} onChange={onChange} />
-    <ValueRange formState={formState} onChange={onChange} />
-    <NumberFormat formState={formState} onChange={onChange} />
+    <ChartType />
+    <ChartElements />
+    <ValueRange />
+    <NumberFormat />
   </Flex>
 )
 
-export default { id: "display", label: "Display", Component: DisplayBody }
+export default {
+  id: "display",
+  label: "Display",
+  Component: DisplayBody,
+  resetKeys: [
+    "chartType",
+    "chartLibrary",
+    "enabledYAxis",
+    "enabledXAxis",
+    "legend",
+    "staticValueRange",
+    "desiredUnits",
+    "staticFractionDigits",
+  ],
+}

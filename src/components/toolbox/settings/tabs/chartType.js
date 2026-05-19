@@ -14,17 +14,7 @@ import valueChart from "@netdata/netdata-ui/dist/components/icon/assets/value.sv
 import tableChart from "@netdata/netdata-ui/dist/components/icon/assets/chart_bars.svg"
 import groupBoxesChart from "@netdata/netdata-ui/dist/components/icon/assets/container.svg"
 import Icon from "@/components/icon"
-import { useChart } from "@/components/provider"
-
-const dygraphChartTypes = new Set([
-  "line",
-  "stacked",
-  "area",
-  "stackedBar",
-  "multiBar",
-  "table",
-  "heatmap",
-])
+import { useChart, useAttributeValue } from "@/components/provider"
 
 const useOptions = chart =>
   useMemo(
@@ -138,10 +128,19 @@ const formatOptionLabel = option => (
   </Flex>
 )
 
-const DisplayChartType = ({ value: rawValue, onChange }) => {
+const selectStyles = {
+  option: (styles, state) => ({
+    ...styles,
+    opacity: state.isDisabled ? 0.4 : 1,
+    cursor: state.isDisabled ? "not-allowed" : "pointer",
+    pointerEvents: state.isDisabled ? "none" : "auto",
+  }),
+}
+
+const ChartType = () => {
   const chart = useChart()
-  const chartLibrary = rawValue?.chartLibrary || "dygraph"
-  const chartType = rawValue?.chartType || "line"
+  const chartLibrary = useAttributeValue("chartLibrary") || "dygraph"
+  const chartType = useAttributeValue("chartType") || "line"
   const value = chartLibrary === "dygraph" ? chartType : chartLibrary
 
   const options = useOptions(chart)
@@ -150,11 +149,7 @@ const DisplayChartType = ({ value: rawValue, onChange }) => {
 
   const handleChange = option => {
     if (!option) return
-    if (dygraphChartTypes.has(option.value)) {
-      onChange({ chartLibrary: "dygraph", chartType: option.value })
-    } else {
-      onChange({ chartLibrary: option.value })
-    }
+    chart.updateChartTypeAttribute(option.value)
   }
 
   return (
@@ -167,10 +162,11 @@ const DisplayChartType = ({ value: rawValue, onChange }) => {
         options={grouped}
         onChange={handleChange}
         formatOptionLabel={formatOptionLabel}
-        data-testid="chartSettings-displayChartType"
+        styles={selectStyles}
+        data-testid="chartSettings-chartType"
       />
     </Flex>
   )
 }
 
-export default memo(DisplayChartType)
+export default memo(ChartType)

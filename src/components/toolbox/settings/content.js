@@ -1,11 +1,11 @@
-import React, { useCallback, useState, useEffect, useMemo } from "react"
+import React, { useCallback, useState, useMemo } from "react"
 import { Flex, Button as UIButton, Tabs, Tab } from "@netdata/netdata-ui"
-import { useAttributeValue } from "@/components/provider"
+import { useAttributeValue, useChart } from "@/components/provider"
 
-const FORM_DEFAULTS = {
-  chartType: undefined,
-  chartLibrary: undefined,
-  groupingMethod: undefined,
+const RESET_DEFAULTS = {
+  chartType: "line",
+  chartLibrary: "dygraph",
+  groupingMethod: "average",
   enabledYAxis: true,
   enabledXAxis: true,
   legend: true,
@@ -16,114 +16,92 @@ const FORM_DEFAULTS = {
   nulls2zero: false,
 }
 
-const FORM_KEYS = Object.keys(FORM_DEFAULTS)
+const FETCH_KEYS = new Set(["points", "nulls2zero", "groupingMethod"])
 
 const tabsHasFooter = id => id === "display" || id === "data"
 
-const SettingsContent = ({ chart, onClose }) => {
-  const settingsTabs = useAttributeValue("settingsTabs") || []
+const useCurrentValues = keys => {
+  const values = {}
+  keys.forEach(key => {
+    values[key] = useAttributeValue(key)
+  })
+  return values
+}
 
-  const currentChartType = useAttributeValue("chartType")
-  const currentChartLibrary = useAttributeValue("chartLibrary")
-  const currentGroupingMethod = useAttributeValue("groupingMethod")
-  const currentStaticValueRange = useAttributeValue("staticValueRange")
-  const currentDesiredUnits = useAttributeValue("desiredUnits") || ["auto"]
-  const currentStaticFractionDigits = useAttributeValue("staticFractionDigits")
-  const currentEnabledYAxis = useAttributeValue("enabledYAxis")
-  const currentEnabledXAxis = useAttributeValue("enabledXAxis")
-  const currentLegend = useAttributeValue("legend")
-  const currentPoints = useAttributeValue("points")
-  const currentNulls2zero = useAttributeValue("nulls2zero")
+const ResetFooter = ({ resetKeys, onReset }) => {
+  const current = useCurrentValues(resetKeys)
+  const pristine = useAttributeValue("pristine") || {}
 
-  const committed = useMemo(
-    () => ({
-      chartType: currentChartType,
-      chartLibrary: currentChartLibrary,
-      groupingMethod: currentGroupingMethod,
-      staticValueRange: currentStaticValueRange,
-      desiredUnits: currentDesiredUnits,
-      staticFractionDigits: currentStaticFractionDigits,
-      enabledYAxis: currentEnabledYAxis,
-      enabledXAxis: currentEnabledXAxis,
-      legend: currentLegend,
-      points: currentPoints,
-      nulls2zero: currentNulls2zero,
-    }),
-    [
-      currentChartType,
-      currentChartLibrary,
-      currentGroupingMethod,
-      currentStaticValueRange,
-      currentDesiredUnits,
-      currentStaticFractionDigits,
-      currentEnabledYAxis,
-      currentEnabledXAxis,
-      currentLegend,
-      currentPoints,
-      currentNulls2zero,
-    ]
+  const disabled = useMemo(() => {
+    return resetKeys.every(key => {
+      const target = key in pristine ? pristine[key] : RESET_DEFAULTS[key]
+      return JSON.stringify(current[key]) === JSON.stringify(target)
+    })
+  }, [resetKeys, current, pristine])
+
+  return (
+    <Flex
+      gap={1}
+      justifyContent="end"
+      alignItems="center"
+      padding={[2, 3]}
+      border={{ side: "top" }}
+    >
+      <UIButton
+        label="Reset defaults"
+        onClick={onReset}
+        flavour="borderless"
+        small
+        disabled={disabled}
+      />
+    </Flex>
   )
+}
 
-  const [formState, setFormState] = useState(committed)
+const SettingsContent = ({ onClose }) => {
+  const chart = useChart()
+  const settingsTabs = useAttributeValue("settingsTabs") || []
   const [activeIndex, setActiveIndex] = useState(0)
 
-  useEffect(() => {
-    setFormState(committed)
-  }, [committed])
-
-  const handleChange = useCallback(changes => {
-    setFormState(prev => ({ ...prev, ...changes }))
-  }, [])
-
-  const draftAttributes = useMemo(() => {
-    const draft = {}
-    FORM_KEYS.forEach(key => {
-      if (formState[key] !== committed[key]) draft[key] = formState[key]
-    })
-    return draft
-  }, [formState, committed])
-
-  const hasPendingChanges = Object.keys(draftAttributes).length > 0
-
-  const commitDraft = useCallback(() => {
-    if (!hasPendingChanges) return
-    const needsFetch =
-      formState.points !== committed.points || formState.nulls2zero !== committed.nulls2zero
-    chart.updateAttributes(draftAttributes)
-    chart.trigger("yAxisChange")
-    if (needsFetch) chart.trigger("fetch", { processing: true })
-  }, [
-    chart,
-    draftAttributes,
-    hasPendingChanges,
-    formState.points,
-    formState.nulls2zero,
-    committed.points,
-    committed.nulls2zero,
-  ])
-
-  const handleApply = useCallback(() => {
-    commitDraft()
-    onClose()
-  }, [commitDraft, onClose])
+  const activeTab = settingsTabs[activeIndex] || settingsTabs[0]
+  const resetKeys = activeTab?.resetKeys || []
 
   const handleReset = useCallback(() => {
     const pristine = chart.getAttribute("pristine") || {}
-    const resetState = {}
-    Object.entries(FORM_DEFAULTS).forEach(([key, sdkDefault]) => {
-      if (key in pristine) resetState[key] = pristine[key]
-      else if (sdkDefault !== undefined) resetState[key] = sdkDefault
+    const targets = {}
+    resetKeys.forEach(key => {
+      targets[key] = key in pristine ? pristine[key] : RESET_DEFAULTS[key]
     })
-    setFormState(prev => ({ ...prev, ...resetState }))
-    chart.updateAttributes(resetState)
-    chart.trigger("yAxisChange")
+
+    const hasChartTypeReset = "chartType" in targets || "chartLibrary" in targets
+    let triggerFetch = false
+    let triggerYAxis = false
+    const plainUpdates = {}
+
+    resetKeys.forEach(key => {
+      if (key === "chartType" || key === "chartLibrary") return
+      plainUpdates[key] = targets[key]
+      if (FETCH_KEYS.has(key)) triggerFetch = true
+      else triggerYAxis = true
+    })
+
+    if (Object.keys(plainUpdates).length) chart.updateAttributes(plainUpdates)
+    if (triggerYAxis) chart.trigger("yAxisChange")
+    if (triggerFetch) chart.trigger("fetch", { processing: true })
+
+    if (hasChartTypeReset) {
+      const library =
+        "chartLibrary" in targets ? targets.chartLibrary : chart.getAttribute("chartLibrary")
+      const type = "chartType" in targets ? targets.chartType : chart.getAttribute("chartType")
+      const selected = library === "dygraph" ? type : library
+      chart.updateChartTypeAttribute(selected)
+    }
+
     onClose()
-    chart.trigger("fetch", { processing: true })
-  }, [chart, onClose])
+  }, [chart, resetKeys, onClose])
 
   if (!settingsTabs.length) return null
 
-  const activeTab = settingsTabs[activeIndex] || settingsTabs[0]
   const showFooter = tabsHasFooter(activeTab.id)
 
   return (
@@ -139,31 +117,14 @@ const SettingsContent = ({ chart, onClose }) => {
           return (
             <Tab key={tab.id} label={tab.label}>
               <Flex column overflow={{ vertical: "auto" }} height="100%">
-                <TabComponent
-                  chart={chart}
-                  onClose={onClose}
-                  formState={formState}
-                  onChange={handleChange}
-                  draftAttributes={draftAttributes}
-                  hasPendingChanges={hasPendingChanges}
-                  commitDraft={commitDraft}
-                />
+                <TabComponent chart={chart} onClose={onClose} />
               </Flex>
             </Tab>
           )
         })}
       </Tabs>
       {showFooter && (
-        <Flex
-          gap={1}
-          justifyContent="between"
-          alignItems="center"
-          padding={[2, 3]}
-          border={{ side: "top" }}
-        >
-          <UIButton label="Reset defaults" onClick={handleReset} flavour="borderless" small />
-          <UIButton label="Apply" onClick={handleApply} primary small />
-        </Flex>
+        <ResetFooter key={activeTab.id} resetKeys={resetKeys} onReset={handleReset} />
       )}
     </Flex>
   )

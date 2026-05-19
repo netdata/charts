@@ -1,5 +1,6 @@
 import React from "react"
 import { Flex, TextSmall, Select } from "@netdata/netdata-ui"
+import { useAttributeValue, useChart } from "@/components/provider"
 import TimeAggregation from "./timeAggregation"
 import PointsToFetch from "../pointsToFetch"
 
@@ -8,9 +9,17 @@ const nullHandlingOptions = [
   { value: true, label: "Treat as zero" },
 ]
 
-const NullHandling = ({ formState, onChange }) => {
+const NullHandling = () => {
+  const chart = useChart()
+  const nulls2zero = useAttributeValue("nulls2zero")
   const current =
-    nullHandlingOptions.find(o => o.value === !!formState.nulls2zero) || nullHandlingOptions[0]
+    nullHandlingOptions.find(o => o.value === !!nulls2zero) || nullHandlingOptions[0]
+
+  const handleChange = option => {
+    chart.updateAttributes({ nulls2zero: !!option?.value })
+    chart.trigger("fetch", { processing: true })
+  }
+
   return (
     <Flex column gap={2}>
       <TextSmall color="textNoFocus" strong>
@@ -18,7 +27,7 @@ const NullHandling = ({ formState, onChange }) => {
       </TextSmall>
       <Select
         value={current}
-        onChange={option => onChange({ nulls2zero: !!option?.value })}
+        onChange={handleChange}
         options={nullHandlingOptions}
         data-testid="chartSettings-nullHandling"
       />
@@ -26,15 +35,17 @@ const NullHandling = ({ formState, onChange }) => {
   )
 }
 
-const DataBody = ({ formState, onChange }) => (
+const DataBody = () => (
   <Flex column gap={3} padding={[3]} width={{ min: "260px" }}>
-    <TimeAggregation
-      value={formState.groupingMethod}
-      onChange={value => onChange({ groupingMethod: value })}
-    />
-    <NullHandling formState={formState} onChange={onChange} />
-    <PointsToFetch formState={formState} onChange={onChange} />
+    <TimeAggregation />
+    <NullHandling />
+    <PointsToFetch />
   </Flex>
 )
 
-export default { id: "data", label: "Data", Component: DataBody }
+export default {
+  id: "data",
+  label: "Data",
+  Component: DataBody,
+  resetKeys: ["groupingMethod", "nulls2zero", "points"],
+}

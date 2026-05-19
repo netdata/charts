@@ -1,26 +1,28 @@
 import React, { useMemo, useState, useEffect } from "react"
 import { Flex, TextSmall, TextInput, Select } from "@netdata/netdata-ui"
-import { useAttributeValue } from "@/components/provider"
+import { useAttributeValue, useChart } from "@/components/provider"
 import { getScales, isScalable } from "@/helpers/units"
 import conversableUnits, { keys as conversableKeys } from "@/helpers/units/conversableUnits"
 
-const NumberFormat = ({ formState, onChange }) => {
+const NumberFormat = () => {
+  const chart = useChart()
   const units = useAttributeValue("units")
+  const desiredUnitsAttr = useAttributeValue("desiredUnits") || ["auto"]
+  const staticFractionDigitsAttr = useAttributeValue("staticFractionDigits")
+
   const [selectedUnitIndex, setSelectedUnitIndex] = useState(0)
 
   const availableUnits = units?.filter(unit => unit && unit !== "") || []
   const selectedUnit = availableUnits[selectedUnitIndex] || ""
 
-  const currentDesiredUnits = formState.desiredUnits[selectedUnitIndex] || "auto"
+  const currentDesiredUnits = desiredUnitsAttr[selectedUnitIndex] || "auto"
   const [desiredUnits, setDesiredUnits] = useState(currentDesiredUnits)
-  const [staticFractionDigits, setStaticFractionDigits] = useState(formState.staticFractionDigits)
+  const [staticFractionDigits, setStaticFractionDigits] = useState(staticFractionDigitsAttr)
 
-  const unitOptions = useMemo(() => {
-    return availableUnits.map((unit, index) => ({
-      value: index,
-      label: unit,
-    }))
-  }, [availableUnits])
+  const unitOptions = useMemo(
+    () => availableUnits.map((unit, index) => ({ value: index, label: unit })),
+    [availableUnits]
+  )
 
   const scaleOptions = useMemo(() => {
     const options = [
@@ -49,27 +51,28 @@ const NumberFormat = ({ formState, onChange }) => {
   }, [selectedUnit])
 
   useEffect(() => {
-    const currentDesiredUnits = formState.desiredUnits[selectedUnitIndex] || "auto"
-    setDesiredUnits(currentDesiredUnits)
-    setStaticFractionDigits(formState.staticFractionDigits)
-  }, [formState.desiredUnits, formState.staticFractionDigits, selectedUnitIndex])
+    setDesiredUnits(desiredUnitsAttr[selectedUnitIndex] || "auto")
+    setStaticFractionDigits(staticFractionDigitsAttr)
+  }, [desiredUnitsAttr, staticFractionDigitsAttr, selectedUnitIndex])
+
+  const update = changes => {
+    chart.updateAttributes(changes)
+    chart.trigger("yAxisChange")
+  }
 
   const handleDesiredUnitsChange = option => {
-    setDesiredUnits(option?.value || "auto")
-    const newDesiredUnitsArray = Array.isArray(formState.desiredUnits)
-      ? [...formState.desiredUnits]
-      : []
-    while (newDesiredUnitsArray.length < availableUnits.length) {
-      newDesiredUnitsArray.push("auto")
-    }
-    newDesiredUnitsArray[selectedUnitIndex] = option?.value || "auto"
-    onChange({ desiredUnits: newDesiredUnitsArray })
+    const value = option?.value || "auto"
+    setDesiredUnits(value)
+    const next = Array.isArray(desiredUnitsAttr) ? [...desiredUnitsAttr] : []
+    while (next.length < availableUnits.length) next.push("auto")
+    next[selectedUnitIndex] = value
+    update({ desiredUnits: next })
   }
 
   const handleFractionDigitsChange = e => {
     const value = e.target.value === "" ? null : Number(e.target.value)
     setStaticFractionDigits(value)
-    onChange({ staticFractionDigits: value })
+    update({ staticFractionDigits: value })
   }
 
   return (

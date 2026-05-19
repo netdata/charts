@@ -1,17 +1,16 @@
 import React from "react"
 import { Flex, TextSmall, Checkbox } from "@netdata/netdata-ui"
+import { useAttributeValue, useChart } from "@/components/provider"
 
-const ChartElements = ({ formState, onChange }) => {
-  const handleYAxisChange = checked => {
-    onChange({ enabledYAxis: checked })
-  }
+const ChartElements = () => {
+  const chart = useChart()
+  const enabledYAxis = useAttributeValue("enabledYAxis")
+  const enabledXAxis = useAttributeValue("enabledXAxis")
+  const legend = useAttributeValue("legend")
 
-  const handleXAxisChange = checked => {
-    onChange({ enabledXAxis: checked })
-  }
-
-  const handleLegendChange = checked => {
-    onChange({ legend: checked })
+  const update = changes => {
+    chart.updateAttributes(changes)
+    chart.trigger("yAxisChange")
   }
 
   return (
@@ -22,15 +21,19 @@ const ChartElements = ({ formState, onChange }) => {
       <Flex column gap={1} alignItems="start">
         <Checkbox
           label="Show Y-Axis"
-          checked={formState.enabledYAxis}
-          onChange={handleYAxisChange}
+          checked={enabledYAxis}
+          onChange={checked => update({ enabledYAxis: checked })}
         />
         <Checkbox
           label="Show X-Axis"
-          checked={formState.enabledXAxis}
-          onChange={handleXAxisChange}
+          checked={enabledXAxis}
+          onChange={checked => update({ enabledXAxis: checked })}
         />
-        <Checkbox label="Show Legend" checked={formState.legend} onChange={handleLegendChange} />
+        <Checkbox
+          label="Show Legend"
+          checked={legend}
+          onChange={checked => update({ legend: checked })}
+        />
       </Flex>
     </Flex>
   )

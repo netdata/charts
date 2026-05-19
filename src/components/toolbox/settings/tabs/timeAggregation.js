@@ -266,9 +266,10 @@ const toMethodAndAlias = groupingMethod => {
 export const composeGroupingMethod = ({ method, alias }) =>
   alias ? `${method}${alias}` : method
 
-const TimeAggregation = ({ value, onChange }) => {
+const TimeAggregation = () => {
   const chart = useChart()
-  const { method, alias } = toMethodAndAlias(value || "")
+  const groupingMethod = useAttributeValue("groupingMethod") || ""
+  const { method, alias } = toMethodAndAlias(groupingMethod)
 
   const viewUpdateEvery = useAttributeValue("viewUpdateEvery")
   const perTier = useAttributeValue("perTier")
@@ -294,11 +295,11 @@ const TimeAggregation = ({ value, onChange }) => {
   const handleMethodChange = option => {
     const nextMethod = option?.value
     const nextAlias = defaultAliases[nextMethod] || ""
-    onChange(composeGroupingMethod({ method: nextMethod, alias: nextAlias }))
+    chart.updateTimeAggregationMethodAttribute({ method: nextMethod, alias: nextAlias })
   }
 
   const handleAliasChange = option => {
-    onChange(composeGroupingMethod({ method, alias: option?.value || "" }))
+    chart.updateTimeAggregationMethodAttribute({ method, alias: option?.value || "" })
   }
 
   return (

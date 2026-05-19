@@ -51,7 +51,7 @@ export const Unit = () => {
 
 export const Bound = ({ empty, index, uiName, ...rest }) => {
   const chart = useChart()
-  const minMax = chart.getUI(uiName).getMinMax()
+  const minMax = chart.getUI(uiName).getMinMax?.()
 
   return (
     <Label color="textLite" fontSize="1.3em" {...rest}>
