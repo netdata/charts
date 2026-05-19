@@ -7,6 +7,7 @@ import { useChart, useAttributeValue } from "@/components/provider"
 import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
 import Toolbox from "@/components/toolbox"
+import Status from "@/components/status"
 import sanitizeId from "@/helpers/sanitizeId"
 import useTableMatrix from "./useTableMatrix"
 import useTableColumns from "./useTableColumns"
@@ -76,6 +77,7 @@ const Dimensions = () => {
       onSearch={q => chart.updateAttribute("searchQuery", q)}
       // bulkActions={bulkActions}
       // rowActions={rowActions}
+      title={<Status />}
       headerChildren={<Toolbox />}
     />
   )
