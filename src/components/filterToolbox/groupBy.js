@@ -12,6 +12,7 @@ import {
   minColumn,
   avgColumn,
   maxColumn,
+  rangeColumn,
 } from "./columns"
 
 const useDefaultItems = (chart, { groupByKey, contextScope, showPostAggregations }) =>
@@ -50,6 +51,7 @@ const columns = [
   minColumn(),
   avgColumn(),
   maxColumn(),
+  rangeColumn(),
 ]
 
 const GroupBy = ({

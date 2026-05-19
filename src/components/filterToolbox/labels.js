@@ -11,6 +11,7 @@ import {
   minColumn,
   avgColumn,
   maxColumn,
+  rangeColumn,
 } from "./columns"
 
 const tooltipProps = {
@@ -27,6 +28,7 @@ const columns = [
   minColumn(),
   avgColumn(),
   maxColumn(),
+  rangeColumn(),
 ]
 
 const Labels = ({ labelProps, ...rest }) => {
