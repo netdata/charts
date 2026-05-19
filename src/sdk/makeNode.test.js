@@ -259,9 +259,6 @@ describe("makeNode", () => {
       node.addPauseReason("modal")
       expect(node.getAttribute("paused")).toBe(true)
       node.removePauseReason("hover")
-      // The bug this fix targets: hover-end MUST NOT clobber the
-      // still-active modal pause. Without the multi-consumer
-      // aggregate this would have flipped to false here.
       expect(node.getAttribute("paused")).toBe(true)
       node.removePauseReason("modal")
       expect(node.getAttribute("paused")).toBe(false)
@@ -282,8 +279,6 @@ describe("makeNode", () => {
     })
 
     it("recomputes when the blur attributes flip — window blur fires pause without an explicit reason", () => {
-      // autofetchOnWindowBlur=false means blur should pause; setting
-      // blurred=true should make the aggregate true.
       node.updateAttribute("autofetchOnWindowBlur", false)
       node.updateAttribute("blurred", true)
       expect(node.getAttribute("paused")).toBe(true)
