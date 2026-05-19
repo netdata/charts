@@ -179,11 +179,33 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   onAttributeChange("timezone", tz => updateIntls(tz, getAttribute("locale")))
   onAttributeChange("locale", locale => updateIntls(getAttribute("timezone"), locale))
 
+  const pauseReasons = new Set()
+  const computeAggregatePaused = () => {
+    const blurReason = !getAttribute("autofetchOnWindowBlur") && getAttribute("blurred")
+    return Boolean(blurReason) || pauseReasons.size > 0
+  }
+  const applyAggregatePaused = () => {
+    updateAttribute("paused", computeAggregatePaused())
+  }
+  const addPauseReason = reasonId => {
+    if (!reasonId) return
+    pauseReasons.add(reasonId)
+    applyAggregatePaused()
+  }
+  const removePauseReason = reasonId => {
+    if (!reasonId) return
+    if (!pauseReasons.delete(reasonId)) return
+    applyAggregatePaused()
+  }
+  onAttributeChange("blurred", applyAggregatePaused)
+  onAttributeChange("autofetchOnWindowBlur", applyAggregatePaused)
+
   const destroy = () => {
     if (parent) parent.removeChild(getId())
 
     listeners.offAll()
     attributeListeners.offAll()
+    pauseReasons.clear()
     setTimeout(() => (parent = null), 2000)
     destroyIntls()
   }
@@ -220,6 +242,8 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     formatTime,
     formatDate,
     formatXAxis,
+    addPauseReason,
+    removePauseReason,
   }
 
   return instance
