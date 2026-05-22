@@ -111,6 +111,39 @@ describe("Chart Provider Selectors", () => {
 
       expect(result.current).toBe("Test Chart Title")
     })
+
+    it("prefers explicit title over chartTitleByContextMap value", () => {
+      const { result } = renderHookWithChart(() => useTitle(), {
+        attributes: {
+          title: "Web 01",
+          contextScope: ["fping.latency"],
+        },
+      })
+
+      expect(result.current).toBe("Web 01")
+    })
+
+    it("falls back to chartTitleByContextMap when title is empty", () => {
+      const { result } = renderHookWithChart(() => useTitle(), {
+        attributes: {
+          title: "",
+          contextScope: ["fping.latency"],
+        },
+      })
+
+      expect(result.current).toBe("FPing Latency")
+    })
+
+    it("returns explicit title when context is not in the map", () => {
+      const { result } = renderHookWithChart(() => useTitle(), {
+        attributes: {
+          title: "My Custom",
+          contextScope: ["system.cpu"],
+        },
+      })
+
+      expect(result.current).toBe("My Custom")
+    })
   })
 
   describe("useName", () => {

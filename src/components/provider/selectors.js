@@ -142,8 +142,9 @@ export const useTitle = () => {
   const title = useAttributeValue("title")
   const contextScope = useAttributeValue("contextScope")
 
-  const titleByContext = contextScope.length === 1 && chartTitleByContextMap[contextScope[0]]
+  if (title) return title
 
+  const titleByContext = contextScope.length === 1 && chartTitleByContextMap[contextScope[0]]
   if (titleByContext) return titleByContext
 
   return title
