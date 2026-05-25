@@ -12,6 +12,7 @@ import {
   minColumn,
   avgColumn,
   maxColumn,
+  rangeColumn,
 } from "./columns"
 
 const useTooltipProps = chart =>
@@ -38,6 +39,7 @@ const columns = [
   minColumn(),
   avgColumn(),
   maxColumn(),
+  rangeColumn(),
 ]
 
 const Instances = ({ labelProps, ...rest }) => {

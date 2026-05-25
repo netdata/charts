@@ -34,6 +34,7 @@ export const getStats = (
     min: getValueOrZero(obj.sts, "min"),
     avg: getValueOrZero(obj.sts, "avg"),
     max: getValueOrZero(obj.sts, "max"),
+    range: getValueOrZero(obj.sts, "max") - getValueOrZero(obj.sts, "min"),
     alerts: getAlertsCount(obj.al),
     info: obj,
     selected: getIsSelected?.(obj) || false,

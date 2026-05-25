@@ -12,6 +12,7 @@ import {
   minColumn,
   avgColumn,
   maxColumn,
+  rangeColumn,
 } from "./columns"
 
 const useDefaultItems = chart =>
@@ -52,6 +53,7 @@ const columns = [
   minColumn(),
   avgColumn(),
   maxColumn(),
+  rangeColumn(),
 ]
 
 const GroupBy = ({ labelProps, ...rest }) => {

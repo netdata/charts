@@ -143,6 +143,24 @@ export const maxColumn = () => ({
   sortingFn: "basic",
 })
 
+export const rangeColumn = () => ({
+  id: "range",
+  header: (
+    <TextMicro strong>
+      Range <Units visible />
+    </TextMicro>
+  ),
+  size: 60,
+  minSize: 30,
+  maxSize: 300,
+  fullWidth: true,
+  cell: ({ getValue }) => {
+    const value = useConverted(getValue())
+    return <TextSmall color="textLite">{value}</TextSmall>
+  },
+  sortingFn: "basic",
+})
+
 export const instancesColumn = () => ({
   id: "instances",
   header: <TextMicro strong>Instances</TextMicro>,
