@@ -53,6 +53,26 @@ export const calculatePercentageChange = (current, base) => {
   }
 }
 
+const SYNTHETIC_LABELS = new Set(["ANOMALY_RATE", "ANNOTATIONS"])
+
+export const extractDimensionValues = (payload, rowIndex = -1) => {
+  if (!payload?.data?.length || !Array.isArray(payload.labels)) return null
+  const { data, labels } = payload
+  const idx = rowIndex < 0 ? data.length + rowIndex : rowIndex
+  const row = data[idx]
+  if (!row) return null
+
+  const bag = {}
+  for (let i = 1; i < labels.length; i++) {
+    const label = labels[i]
+    if (SYNTHETIC_LABELS.has(label)) continue
+    const value = row[i]
+    if (value == null) continue
+    bag[label] = Number(value) || 0
+  }
+  return bag
+}
+
 export const calculateComparisons = periods => {
   const base = periods.find(p => p.isBase)
   if (!base?.stats) return periods

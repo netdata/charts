@@ -1,4 +1,9 @@
-import { calculateStats, calculatePercentageChange, calculateComparisons } from "./calculations"
+import {
+  calculateStats,
+  calculatePercentageChange,
+  calculateComparisons,
+  extractDimensionValues,
+} from "./calculations"
 
 describe("calculations", () => {
   describe("calculateStats", () => {
@@ -225,6 +230,71 @@ describe("calculations", () => {
 
       const result = calculateComparisons(periodsWithoutBase)
       expect(result).toEqual(periodsWithoutBase)
+    })
+  })
+
+  describe("extractDimensionValues", () => {
+    it("returns null when payload is null or undefined", () => {
+      expect(extractDimensionValues(null)).toBeNull()
+      expect(extractDimensionValues(undefined)).toBeNull()
+    })
+
+    it("returns null when payload.data is empty", () => {
+      expect(
+        extractDimensionValues({ data: [], labels: ["time", "in", "ANOMALY_RATE", "ANNOTATIONS"] })
+      ).toBeNull()
+    })
+
+    it("returns null when payload.labels is missing or not an array", () => {
+      expect(extractDimensionValues({ data: [[1, 10]] })).toBeNull()
+      expect(extractDimensionValues({ data: [[1, 10]], labels: "nope" })).toBeNull()
+    })
+
+    it("returns a label -> value bag for a bare camelized payload", () => {
+      const payload = {
+        labels: ["time", "in", "out", "ANOMALY_RATE", "ANNOTATIONS"],
+        data: [[1000, 100, 200, null, null]],
+      }
+
+      expect(extractDimensionValues(payload)).toEqual({ in: 100, out: 200 })
+    })
+
+    it("skips synthetic ANOMALY_RATE and ANNOTATIONS labels", () => {
+      const payload = {
+        labels: ["time", "in", "ANOMALY_RATE", "out", "ANNOTATIONS"],
+        data: [[1000, 100, 0.5, 200, "x"]],
+      }
+
+      expect(extractDimensionValues(payload)).toEqual({ in: 100, out: 200 })
+    })
+
+    it("picks the requested row when rowIndex is provided", () => {
+      const payload = {
+        labels: ["time", "in", "out", "ANOMALY_RATE", "ANNOTATIONS"],
+        data: [
+          [1000, 10, 20, null, null],
+          [2000, 30, 40, null, null],
+          [3000, 50, 60, null, null],
+        ],
+      }
+
+      expect(extractDimensionValues(payload, 0)).toEqual({ in: 10, out: 20 })
+      expect(extractDimensionValues(payload, 1)).toEqual({ in: 30, out: 40 })
+    })
+
+    it("counts from end for negative rowIndex", () => {
+      const payload = {
+        labels: ["time", "in", "out", "ANOMALY_RATE", "ANNOTATIONS"],
+        data: [
+          [1000, 10, 20, null, null],
+          [2000, 30, 40, null, null],
+          [3000, 50, 60, null, null],
+        ],
+      }
+
+      expect(extractDimensionValues(payload)).toEqual({ in: 50, out: 60 })
+      expect(extractDimensionValues(payload, -1)).toEqual({ in: 50, out: 60 })
+      expect(extractDimensionValues(payload, -2)).toEqual({ in: 30, out: 40 })
     })
   })
 })

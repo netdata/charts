@@ -34,7 +34,7 @@ export const labelColumn = (chart, { fallbackExpandKey, partIndex, header = "Nam
   header: () => <TextSmall strong>{header}</TextSmall>,
   sortingFn: (rowA, rowB) => {
     return (chart.getDimensionName(rowA.original.ids?.[0], partIndex) || "-").localeCompare(
-      chart.getDimensionName((rowB.original.ids?.[0], partIndex) || "-"),
+      chart.getDimensionName(rowB.original.ids?.[0], partIndex) || "-",
       undefined,
       {
         sensitivity: "accent",
