@@ -8,7 +8,7 @@ import Label from "./label"
 const Container = styled(Flex).attrs(props => ({
   round: true,
   border: { side: "all", color: "elementBackground" },
-  width: { min: "196px", max: props.maxWidth ? `${props.maxWidth}px` : "80vw" },
+  width: { min: "300px", max: props.maxWidth ? `${props.maxWidth}px` : "80vw" },
   background: "dropdown",
   column: true,
   padding: [4],
@@ -30,7 +30,7 @@ const ColorBackground = styled(BaseColorBar).attrs({
 const Grid = styled.div`
   display: grid;
   width: 100%;
-  grid-template-columns: auto 2fr;
+  grid-template-columns: minmax(0, max-content) minmax(0, 2fr);
   column-gap: 8px;
   align-items: center;
 `
