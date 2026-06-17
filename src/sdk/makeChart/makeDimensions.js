@@ -169,16 +169,17 @@ export default (chart, sdk) => {
 
   const getNextColor = () => {
     const colorsAttribute = chart.getAttribute("colors", [])
-    const index = colorCursor++ % (colorsAttribute.length + dimensionColors.length)
+    const positional = Array.isArray(colorsAttribute) ? colorsAttribute : []
+    const index = colorCursor++ % (positional.length + dimensionColors.length)
 
     const nextColor =
-      index < colorsAttribute.length
-        ? typeof colorsAttribute[index] === "number"
-          ? dimensionColors[colorsAttribute[index]]
-          : !colorsAttribute[index]
+      index < positional.length
+        ? typeof positional[index] === "number"
+          ? dimensionColors[positional[index]]
+          : !positional[index]
             ? dimensionColors[colorCursor % dimensionColors.length]
-            : colorsAttribute[index]
-        : dimensionColors[index - colorsAttribute.length]
+            : positional[index]
+        : dimensionColors[index - positional.length]
 
     return nextColor
   }
@@ -249,15 +250,23 @@ export default (chart, sdk) => {
     const sparkline = chart.isSparkline()
     if (sparkline && Array.isArray(colorsAttr)) return colorsAttr[0]
 
+    const keyedColors = colorsAttr && !Array.isArray(colorsAttr) ? colorsAttr : null
+
     const isSelected = id === "selected"
     id = !id || isSelected ? chart.getAttribute("selectedDimensions")[0] || id : id
 
     if (!isNaN(partIndex)) id = id.split(",")?.[partIndex] || id
 
-    const color =
-      isSelected && colorsAttr?.length
-        ? colorsAttr[0]
-        : sdk.getRoot().getNextColor(getNextColor, key, id)
+    let color
+    if (keyedColors && id in keyedColors) {
+      const value = keyedColors[id]
+      color = typeof value === "number" ? dimensionColors[value] : value
+    } else {
+      color =
+        isSelected && Array.isArray(colorsAttr) && colorsAttr.length
+          ? colorsAttr[0]
+          : sdk.getRoot().getNextColor(getNextColor, key, id)
+    }
 
     const index = chart.getThemeIndex()
     return typeof color === "string" ? color : color[index]
@@ -532,7 +541,7 @@ export default (chart, sdk) => {
     let dimensionIds = chart.getAttribute("dimensionIds")
     if (!dimensionIds.length) return
 
-    const keys = chart.isSparkline() ? sparklineDimensions : dimensionIds
+    const keys = chart.isSparkline() ? sparklineDimensions : [...dimensionIds].sort()
 
     keys.forEach(id => chart.selectDimensionColor(id))
   }

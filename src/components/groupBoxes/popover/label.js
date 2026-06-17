@@ -10,8 +10,12 @@ const GridRow = styled(Flex).attrs({
 
 const Label = ({ label, value }) => (
   <GridRow>
-    <TextMicro padding={[1, 0]}>{label}</TextMicro>
-    <TextSmall strong>{value?.join(", ") || "-"}</TextSmall>
+    <TextMicro padding={[1, 0]} wordBreak="break-word">
+      {label}
+    </TextMicro>
+    <TextSmall strong wordBreak="break-word">
+      {value?.join(", ") || "-"}
+    </TextSmall>
   </GridRow>
 )
 
