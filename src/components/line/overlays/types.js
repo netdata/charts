@@ -66,13 +66,13 @@ const LatestTimeOverlay = props => (
 )
 
 const AnnotationOverlay = ({ id, ...rest }) => (
-  <Container id={id} align={alignment.elementRight} top="25px" right={-5} {...rest}>
+  <Container id={id} align={alignment.elementRight} top="60px" right={-5} {...rest}>
     <Annotation id={id} />
   </Container>
 )
 
 const DraftAnnotationOverlay = ({ id, ...rest }) => (
-  <Container id={id} align={alignment.elementRight} top="25px" right={-5} {...rest}>
+  <Container id={id} align={alignment.elementRight} top="60px" right={-5} {...rest}>
     <DraftAnnotation />
   </Container>
 )

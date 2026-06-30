@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { mergeRefs } from "@netdata/netdata-ui"
-import shorten from "@/helpers/shorten"
+import { shortenToWidth } from "@/helpers/shorten"
 import Tooltip from "@/components/tooltip"
 
 const Shortener = ({ text, Component = "div", noTooltip, ref: forwardedRef, ...rest }) => {
@@ -12,14 +12,12 @@ const Shortener = ({ text, Component = "div", noTooltip, ref: forwardedRef, ...r
     if (!ref) return
 
     const containerWidth = ref.offsetWidth
-    let round = 0
+    const contentWidth = ref.scrollWidth
 
-    while (ref.scrollWidth > containerWidth) {
-      ref.textContent = shorten(ref.textContent, round)
-      round = round + 1
-    }
+    const next = shortenToWidth(text, contentWidth, containerWidth)
 
-    if (ref.textContent !== text) {
+    if (next !== text) {
+      ref.textContent = next
       setShortenText(text)
     }
   }, [text, ref])

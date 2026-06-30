@@ -1,35 +1,15 @@
 import deepEqual from "@/helpers/deepEqual"
 import pristine, { pristineKey } from "@/sdk/pristine"
-import getInitialFilterAttributes, { stackedAggregations } from "./getInitialAttributes"
+import getInitialFilterAttributes from "./getInitialAttributes"
 import { isHeatmap } from "@/helpers/heatmap"
 import makeLog from "@/sdk/makeLog"
 
 export default chart => {
-  const chartType = chart.getAttribute("chartType")
-  let prevChartType = chartType
-
   const log = ({ value, ...rest }) =>
     makeLog(chart)({
       ...rest,
       value: value && typeof value !== "string" ? JSON.stringify(value) : value,
     })
-
-  const onGroupChange = groupBy => {
-    chart.updateAttribute("selectedLegendDimensions", [])
-    if (chart.getAttribute("selectedChartType")) return
-
-    if (groupBy.length > 1 || groupBy[0] !== "dimension") {
-      prevChartType = prevChartType || chart.getAttribute("chartType")
-      const aggregationMethod = chart.getAttribute("aggregationMethod")
-      return chart.updateAttribute(
-        "chartType",
-        stackedAggregations[aggregationMethod] ? "stacked" : chartType
-      )
-    } else {
-      chart.updateAttributes({ chartType: prevChartType, processing: true })
-    }
-    prevChartType = chartType
-  }
 
   const allowedGroupByValues = {
     node: true,
@@ -85,8 +65,9 @@ export default chart => {
     const changed = baseUpdateGroupBy(selected, {})
     if (!changed) return
 
+    chart.updateAttribute("selectedLegendDimensions", [])
     chart.updateAttributes(getInitialFilterAttributes(chart))
-    chart.fetch({ processing: true }).then(() => onGroupChange(chart.getAttribute("groupBy")))
+    chart.fetch({ processing: true })
 
     log({
       chartAction: "chart-groupby-change",

@@ -1,4 +1,5 @@
 import { heatmapOrChartType } from "@/helpers/heatmap"
+import { isStateUnits } from "@/helpers/stepped"
 import { getAlias } from "@/helpers/units"
 import normalizeSelectedInstances from "@/helpers/normalizeSelectedInstances"
 
@@ -231,15 +232,18 @@ export default (payload, chart) => {
     contextsArray
   )
 
+  const aliasedUnits = Array.isArray(units) ? units.map(getAlias) : [getAlias(units)]
+
   const details = {
     viewDimensions: {
       ...viewDimensions,
       contexts: dimContexts,
       grouped,
     },
-    units: Array.isArray(units) ? units.map(getAlias) : [getAlias(units)],
+    units: aliasedUnits,
     unitsStsByContext,
     chartType: heatmapOrChartType(viewDimensions.ids, chartType),
+    stepPlot: isStateUnits(aliasedUnits),
     title,
     tiers,
     perTier,

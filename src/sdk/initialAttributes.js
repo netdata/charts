@@ -64,6 +64,7 @@ export default {
   active: false,
   sparkline: false,
   chartType: "",
+  stepPlot: false,
   selectedLegendDimensions: [],
 
   contextItems: [],

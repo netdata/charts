@@ -1,7 +1,8 @@
-import React, { memo, useRef, useEffect } from "react"
+import React, { useRef, useEffect, useState } from "react"
 import styled from "styled-components"
 import { debounce } from "throttle-debounce"
-import { Flex, useNavigationArrows } from "@netdata/netdata-ui"
+import { useVirtualizer } from "@tanstack/react-virtual"
+import { Box, Flex } from "@netdata/netdata-ui"
 import navLeft from "@netdata/netdata-ui/dist/components/icon/assets/nav_left.svg"
 import navRight from "@netdata/netdata-ui/dist/components/icon/assets/nav_right.svg"
 import {
@@ -27,17 +28,10 @@ const Container = styled(Flex).attrs(props => ({
   overflow-x: overlay;
   overflow-y: hidden;
 
-  ::-webkit-scrollbar {
-    height: 6px;
+  &::-webkit-scrollbar {
+    height: 0;
   }
 `
-
-const getPositions = el => {
-  if (!el) return { x: 0 }
-  return {
-    x: el.scrollLeft,
-  }
-}
 
 const skeletonDimensions = Array.from(Array(5))
 
@@ -49,23 +43,34 @@ const SkeletonDimensions = () => (
   </Fragment>
 )
 
-const Dimensions = memo(({ lastItemRef }) => {
-  const dimensionIds = useDimensionIds()
+const VirtualItem = styled(Flex).attrs({
+  alignItems: "center",
+  padding: [0, 0.5, 0, 0],
+})`
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+`
 
-  if (!dimensionIds) return null
+const VirtualDimensions = ({ virtualizer, dimensionIds }) => (
+  <Box position="relative" flex={false} height="100%" width={`${virtualizer.getTotalSize()}px`}>
+    {virtualizer.getVirtualItems().map(virtualItem => {
+      const id = dimensionIds[virtualItem.index]
 
-  return (
-    <Fragment>
-      {dimensionIds.map((id, index) => (
-        <Dimension
-          {...(index === dimensionIds.length - 1 && { ref: lastItemRef })}
+      return (
+        <VirtualItem
           key={id}
-          id={id}
-        />
-      ))}
-    </Fragment>
-  )
-})
+          data-index={virtualItem.index}
+          ref={virtualizer.measureElement}
+          style={{ transform: `translateX(${virtualItem.start}px)` }}
+        >
+          <Dimension id={id} />
+        </VirtualItem>
+      )
+    })}
+  </Box>
+)
 
 const Legend = props => {
   const dimensionIds = useDimensionIds()
@@ -75,14 +80,27 @@ const Legend = props => {
   const active = useAttributeValue("active")
 
   const legendRef = useRef(null)
-  const lastItemRef = useRef()
 
-  const [arrowLeft, arrowRight, onScroll] = useNavigationArrows(
-    legendRef,
-    lastItemRef,
-    dimensionIds.length,
-    true
-  )
+  const [arrowLeft, setArrowLeft] = useState(false)
+  const [arrowRight, setArrowRight] = useState(false)
+
+  const virtualizer = useVirtualizer({
+    horizontal: true,
+    count: dimensionIds?.length || 0,
+    getScrollElement: () => legendRef.current,
+    estimateSize: () => 200,
+    overscan: 5,
+  })
+
+  const totalSize = virtualizer.getTotalSize()
+
+  const updateArrows = () => {
+    const el = legendRef.current
+    if (!el) return
+
+    setArrowLeft(el.scrollLeft > 20)
+    setArrowRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 20)
+  }
 
   useEffect(() => {
     if (legendRef.current && active) {
@@ -90,11 +108,15 @@ const Legend = props => {
     }
   }, [legendRef.current, active])
 
+  useEffect(updateArrows, [totalSize])
+
   useEffect(() => {
     const scroll = () => {
-      const { x } = getPositions(legendRef.current)
-      chart.updateAttribute("legendScroll", x)
-      onScroll()
+      const el = legendRef.current
+      if (!el) return
+
+      chart.updateAttribute("legendScroll", el.scrollLeft)
+      updateArrows()
     }
 
     scroll()
@@ -134,7 +156,7 @@ const Legend = props => {
   }
 
   return (
-    <Flex overflow="hidden" position="relative">
+    <Flex overflow="hidden" position="relative" height="100%">
       {arrowLeft && (
         <Flex
           data-testid="filterTray-arrowLeft"
@@ -151,7 +173,9 @@ const Legend = props => {
         </Flex>
       )}
       <Container ref={legendRef} {...props} data-track={chart.track("legend")}>
-        {!initialLoading && !empty && <Dimensions lastItemRef={lastItemRef} />}
+        {!initialLoading && !empty && dimensionIds && (
+          <VirtualDimensions virtualizer={virtualizer} dimensionIds={dimensionIds} />
+        )}
         {initialLoading && <SkeletonDimensions />}
         {!initialLoading && empty && <EmptyDimension />}
       </Container>

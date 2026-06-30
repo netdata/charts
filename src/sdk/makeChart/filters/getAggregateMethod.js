@@ -1,3 +1,5 @@
+import { stateUnits } from "@/helpers/stepped"
+
 const averageUnits = new Set([
   "%",
   "percentage",
@@ -52,8 +54,6 @@ const averageUnits = new Set([
   "[degF]",
 ])
 
-const sumUnits = new Set(["state", "{state}", "status", "{status}"])
-
 const averageRegex = /(%|\/operation|\/run| run|\/request)/
 
 export default chart => {
@@ -66,7 +66,7 @@ export default chart => {
   let lowerUnit = unit.toLowerCase()
   if (averageUnits.has(unit) || averageRegex.test(lowerUnit)) return "avg"
 
-  if (sumUnits.has(unit) || sumUnits.has(lowerUnit)) return "sum"
+  if (stateUnits.has(unit) || stateUnits.has(lowerUnit)) return "sum"
 
   return "avg"
 }

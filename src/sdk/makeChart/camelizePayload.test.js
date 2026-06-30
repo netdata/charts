@@ -50,6 +50,27 @@ describe("camelizePayload", () => {
     expect(result.title).toBe("Test Chart")
     expect(result.chartType).toBe("line")
     expect(result.units).toEqual(["By"])
+    expect(result.stepPlot).toBe(false)
+  })
+
+  it("derives stepPlot for state units", () => {
+    const payload = {
+      view: {
+        title: "Connection State",
+        chart_type: "line",
+        units: "state",
+      },
+      result: {
+        data: [],
+        labels: [],
+        point: { value: 0 },
+      },
+    }
+
+    const result = camelizePayload(payload)
+
+    expect(result.stepPlot).toBe(true)
+    expect(result.chartType).toBe("line")
   })
 
   it("handles summary data", () => {

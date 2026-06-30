@@ -1,11 +1,6 @@
 import getAggregateMethod from "./getAggregateMethod"
 import getDimensions from "./getDimensions"
 
-export const stackedAggregations = {
-  avg: true,
-  sum: true,
-}
-
 export default chart => {
   const dimensionIds = chart.getAttribute("dimensionIds")
   const aggregationMethodAttr = chart.getAttribute("aggregationMethod")

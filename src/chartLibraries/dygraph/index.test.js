@@ -219,6 +219,50 @@ describe("dygraphChart", () => {
     expect(instance.getChartHeight()).toBe(400)
   })
 
+  it("enables dygraph stepPlot when the stepPlot attribute is set", () => {
+    const { sdk, chart } = makeTestChart({
+      attributes: { theme: "dark", chartType: "line", stepPlot: true },
+    })
+
+    chart.getPayload = () => ({ data: [[1617946860000, 1]], labels: ["time", "value"] })
+    chart.getDateWindow = () => [1617946860000, 1617947750000]
+    chart.formatXAxis = x => x.toString()
+    chart.getThemeAttribute = () => "#333"
+    chart.getUnitSign = () => ""
+
+    const instance = dygraphChart(sdk, chart)
+    instance.mount(document.createElement("div"))
+
+    const Dygraph = require("dygraphs")
+    expect(Dygraph).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.any(Array),
+      expect.objectContaining({ stepPlot: true })
+    )
+  })
+
+  it("does not enable dygraph stepPlot by default", () => {
+    const { sdk, chart } = makeTestChart({
+      attributes: { theme: "dark", chartType: "line" },
+    })
+
+    chart.getPayload = () => ({ data: [[1617946860000, 10]], labels: ["time", "value"] })
+    chart.getDateWindow = () => [1617946860000, 1617947750000]
+    chart.formatXAxis = x => x.toString()
+    chart.getThemeAttribute = () => "#333"
+    chart.getUnitSign = () => ""
+
+    const instance = dygraphChart(sdk, chart)
+    instance.mount(document.createElement("div"))
+
+    const Dygraph = require("dygraphs")
+    expect(Dygraph).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.any(Array),
+      expect.objectContaining({ stepPlot: false })
+    )
+  })
+
   it("returns axis range from dygraph", () => {
     const { sdk, chart } = makeTestChart()
 
