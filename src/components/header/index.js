@@ -30,6 +30,7 @@ const Header = ({ hasFilters }) => {
   const isMinimal = useIsMinimal()
   const leftHeaderElements = useAttributeValue("leftHeaderElements")
   const hasToolbox = useAttributeValue("hasToolbox")
+  const hideTitle = useAttributeValue("hideTitle")
   const focused = useAttributeValue("focused")
 
   return (
@@ -40,7 +41,7 @@ const Header = ({ hasFilters }) => {
           {arr[index + 1] ? <Separator /> : null}
         </Fragment>
       ))}
-      <Title />
+      {!hideTitle && <Title />}
       {isMinimal && hasFilters && <FilterToolbox opacity={focused ? 1 : 0.7} />}
       {hasToolbox && <Toolbox />}
     </Container>

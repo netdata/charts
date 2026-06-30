@@ -137,6 +137,9 @@ export default {
   enabledXAxis: true,
 
   hasToolbox: true,
+  hideTitle: false,
+  hideName: false,
+  hideUnits: false,
   hasHoverPopover: true,
   expandable: true,
   showAnnotations: true,
