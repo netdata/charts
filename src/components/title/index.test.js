@@ -160,4 +160,33 @@ describe("Title component", () => {
     // TextSmall component should have truncate prop
     expect(titleElement).toBeInTheDocument()
   })
+
+  it("hides the context name when hideName is true", () => {
+    renderWithChart(<Title />, {
+      attributes: {
+        title: "CPU Usage",
+        name: "system.cpu",
+        isMinimal: false,
+        hideName: true,
+      },
+    })
+
+    expect(screen.getByText("CPU Usage")).toBeInTheDocument()
+    expect(screen.queryByText(/system\.cpu/)).not.toBeInTheDocument()
+  })
+
+  it("hides the units when hideUnits is true", () => {
+    renderWithChart(<Title />, {
+      attributes: {
+        title: "Memory Usage",
+        name: "system.memory",
+        isMinimal: false,
+        units: ["%"],
+        hideUnits: true,
+      },
+    })
+
+    expect(screen.getByText("Memory Usage")).toBeInTheDocument()
+    expect(screen.queryByText(/\[.*\]/)).not.toBeInTheDocument()
+  })
 })

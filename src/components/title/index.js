@@ -18,6 +18,8 @@ export const Title = props => {
   const name = useName()
   const isMinimal = useIsMinimal()
   const contextScope = useAttributeValue("contextScope")
+  const hideName = useAttributeValue("hideName")
+  const hideUnits = useAttributeValue("hideUnits")
 
   return (
     <Flex
@@ -31,7 +33,7 @@ export const Title = props => {
       <TextSmall color="textDescription" truncate>
         {title}
       </TextSmall>
-      {!!name && (!isMinimal || !title) && (
+      {!!name && !hideName && (!isMinimal || !title) && (
         <CopyToClipboard
           text={contextScope && contextScope.length ? contextScope.join(", ") : name}
         >
@@ -41,7 +43,7 @@ export const Title = props => {
           </TextSmall>
         </CopyToClipboard>
       )}
-      {!!units && !isMinimal && (
+      {!!units && !hideUnits && !isMinimal && (
         <TextWithTooltip
           color="textLite"
           whiteSpace="nowrap"

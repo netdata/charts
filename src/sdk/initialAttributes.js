@@ -64,6 +64,7 @@ export default {
   active: false,
   sparkline: false,
   chartType: "",
+  stepPlot: false,
   selectedLegendDimensions: [],
 
   contextItems: [],
@@ -137,6 +138,9 @@ export default {
   enabledXAxis: true,
 
   hasToolbox: true,
+  hideTitle: false,
+  hideName: false,
+  hideUnits: false,
   hasHoverPopover: true,
   expandable: true,
   showAnnotations: true,

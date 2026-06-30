@@ -36,7 +36,7 @@ const Footer = () => {
       {!showingInfo && legend && (
         <>
           {isHeatmap && <HeatmapColors />}
-          <Flex alignItems="center" padding={isMinimal ? [2] : [0]}>
+          <Flex alignItems="center" height={isMinimal ? "20px" : "36px"}>
             {!isMinimal && !isHeatmap && <DimensionSort />}
             <Legend padding={isHeatmap ? [0, 2] : undefined} />
           </Flex>

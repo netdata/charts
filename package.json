@@ -1,6 +1,6 @@
 {
   "name": "@netdata/charts",
-  "version": "6.10.6",
+  "version": "6.10.7",
   "description": "Netdata frontend SDK and chart utilities",
   "main": "dist/index.js",
   "module": "dist/es6/index.js",
@@ -80,6 +80,7 @@
     "svgo-loader": "^4.0.0"
   },
   "dependencies": {
+    "@tanstack/react-virtual": "^3.13.18",
     "d3": "^7.9.0",
     "d3-scale": "^4.0.2",
     "dygraphs": "^2.2.1",

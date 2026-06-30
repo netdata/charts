@@ -1,4 +1,4 @@
-import shorten, { shortForLength } from "."
+import shorten, { shortForLength, shortenToWidth } from "."
 
 describe("shorten", () => {
   it("returns string as-is for non-string inputs", () => {
@@ -83,5 +83,42 @@ describe("shortForLength", () => {
 
     expect(result.length).toBeLessThanOrEqual(10)
     expect(result).toContain("...")
+  })
+
+  it("terminates instead of hanging for maxLength below the ellipsis floor", () => {
+    expect(shortForLength("systemd-journald-eu-west-1b", 0)).toBe("...")
+    expect(shortForLength("systemd-journald-eu-west-1b", 1)).toBe("...")
+    expect(shortForLength("systemd-journald-eu-west-1b", 2)).toBe("...")
+  })
+})
+
+describe("shortenToWidth", () => {
+  it("returns text as-is for non-string inputs", () => {
+    expect(shortenToWidth(null, 100, 50)).toBeNull()
+    expect(shortenToWidth(undefined, 100, 50)).toBeUndefined()
+    expect(shortenToWidth("", 100, 50)).toBe("")
+  })
+
+  it("returns text unchanged when it already fits", () => {
+    expect(shortenToWidth("nginx", 40, 100)).toBe("nginx")
+    expect(shortenToWidth("nginx", 100, 100)).toBe("nginx")
+  })
+
+  it("returns text unchanged when content has no measurable width", () => {
+    expect(shortenToWidth("systemd-journald-eu-west-1b", 0, 0)).toBe("systemd-journald-eu-west-1b")
+  })
+
+  it("shortens text that overflows its container", () => {
+    const text = "systemd-journald-audit.service@cgroup_pod_1234567890-eu-west-1b"
+    const result = shortenToWidth(text, 600, 150)
+
+    expect(result.length).toBeLessThan(text.length)
+    expect(result).toContain("...")
+  })
+
+  it("never produces output shorter than the ellipsis floor", () => {
+    const result = shortenToWidth("systemd-journald-eu-west-1b", 600, 1)
+
+    expect(result).toBe("...")
   })
 })

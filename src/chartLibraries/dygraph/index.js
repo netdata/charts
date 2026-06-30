@@ -308,10 +308,12 @@ export default (sdk, chart) => {
 
   const makeChartTypeOptions = () => {
     const { labels } = chart.getPayload()
-    const { chartType, includeZero, enabledXAxis, enabledYAxis, yAxisLabelWidth } =
+    const { chartType, includeZero, enabledXAxis, enabledYAxis, yAxisLabelWidth, stepPlot } =
       chart.getAttributes()
 
-    const plotter = plotterByChartType[chartType] || plotterByChartType.default
+    const plotter = stepPlot
+      ? plotterByChartType.default
+      : plotterByChartType[chartType] || plotterByChartType.default
 
     const {
       strokeWidth,
@@ -346,6 +348,7 @@ export default (sdk, chart) => {
         (forceIncludeZero && dimensionIds.length > 1 && selectedLegendDimensions.length > 1),
       stackedGraphNaNFill: "none",
       plotter,
+      stepPlot,
       errorBars,
       axes: {
         x: enabledXAxis

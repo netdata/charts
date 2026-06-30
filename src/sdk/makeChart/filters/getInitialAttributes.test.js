@@ -1,4 +1,4 @@
-import getInitialAttributes, { stackedAggregations } from "./getInitialAttributes"
+import getInitialAttributes from "./getInitialAttributes"
 import { makeTestChart } from "@jest/testUtilities"
 
 describe("getInitialAttributes", () => {
@@ -15,13 +15,6 @@ describe("getInitialAttributes", () => {
       },
     })
     chart = testChart.chart
-  })
-
-  it("exports stackedAggregations constant", () => {
-    expect(stackedAggregations).toEqual({
-      avg: true,
-      sum: true,
-    })
   })
 
   it("returns correct initial attributes with no aggregationMethod", () => {
