@@ -277,6 +277,12 @@ export default ({
     node.invalidateClosestRowCache()
   })
 
+  node.onAttributeChange("fullscreen", fullscreen => {
+    if (!node) return
+
+    sdk.trigger("fullscreen", node, fullscreen)
+  })
+
   node.makeChartUI = (uiName, chartLibrary = node.getAttribute("chartLibrary"), force = false) => {
     if (!(chartLibrary in sdk.ui))
       console.error(
