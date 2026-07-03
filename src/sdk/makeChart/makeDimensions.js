@@ -427,6 +427,7 @@ export default (chart, sdk) => {
   const applyGroupByRecursively = (obj, groupByRegex) => {
     if (Array.isArray(obj)) {
       return groupBy(obj, value => {
+        if (value === "OTHERS") return value
         const [, ...matches] = value.match(groupByRegex)
         return matches.join(",")
       })
@@ -464,6 +465,7 @@ export default (chart, sdk) => {
 
     if (isEmpty(result)) {
       result = groupBy(ids, value => {
+        if (value === "OTHERS") return value
         const [, ...matches] = value.match(groupByRegex)
         return matches.join(",")
       })
@@ -501,6 +503,7 @@ export default (chart, sdk) => {
     )
 
     const baseGroup = groupBy(dimensionIds, value => {
+      if (value === "OTHERS") return value
       const [, ...matches] = value.match(groupByRegex)
       return matches.join(",")
     })
