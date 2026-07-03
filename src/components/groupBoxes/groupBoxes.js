@@ -26,7 +26,7 @@ export const SkeletonIcon = () => {
 }
 
 const GroupBoxWrapper = ({ uiName, subTree, data, label, groupedBy, hasMore }) => {
-  const dimensions = Object.values(subTree)
+  const dimensions = subTree === "OTHERS" ? [subTree] : Object.values(subTree)
 
   const [first, ...rest] = groupedBy
   const bg = useColor("themeBackground")
@@ -57,7 +57,7 @@ const GroupBoxWrapper = ({ uiName, subTree, data, label, groupedBy, hasMore }) =
           {data.length > 3 && <span>({dimensions.length})</span>}
         </TextMicro>
       </Box>
-      {rest.length ? (
+      {rest.length && subTree !== "OTHERS" ? (
         Object.keys(subTree).map(key => (
           <GroupBoxWrapper
             key={key}
