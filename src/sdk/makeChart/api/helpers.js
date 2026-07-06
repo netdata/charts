@@ -49,6 +49,7 @@ export const getChartPayload = (chart, attrs = {}) => {
     pixelsPerPoint,
     chartLibrary,
     points: customPoints,
+    viewUpdateEvery,
   } = { ...chart.getAttributes(), ...attrs }
 
   const pointsMultiplier =
@@ -62,10 +63,15 @@ export const getChartPayload = (chart, attrs = {}) => {
   const afterBefore =
     after > 0
       ? { after, before }
-      : {
-          after: fetchOn + after,
-          before: fetchOn,
-        }
+      : viewUpdateEvery && viewUpdateEvery > Math.abs(after)
+        ? {
+            after,
+            before: 0,
+          }
+        : {
+            after: fetchOn + after,
+            before: fetchOn,
+          }
 
   const points = customPoints || Math.round((width / pixelsPerPoint) * pointsMultiplier)
 
