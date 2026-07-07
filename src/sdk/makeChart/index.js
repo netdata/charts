@@ -67,16 +67,24 @@ export default ({
   let cachedDateWindow = null
   let prevAfter = null
   let prevRenderedAt = null
+  let prevLiveAnchor = null
   let prevNow = null
   node.getDateWindow = () => {
-    const { after, before, renderedAt } = node.getAttributes()
+    const { after, before, renderedAt, liveAnchor } = node.getAttributes()
     const now = sdk.getRoot().getAttribute("fetchAt", Date.now())
+    const anchor = liveAnchor ?? now
 
-    if (prevAfter === after && prevRenderedAt === renderedAt && prevNow === now)
+    if (
+      prevAfter === after &&
+      prevRenderedAt === renderedAt &&
+      prevLiveAnchor === liveAnchor &&
+      prevNow === now
+    )
       return cachedDateWindow
 
     prevAfter = after
     prevRenderedAt = renderedAt
+    prevLiveAnchor = liveAnchor
     prevNow = now
 
     cachedDateWindow =
@@ -84,7 +92,7 @@ export default ({
         ? [after * 1000, before * 1000]
         : renderedAt
           ? [renderedAt + after * 1000, renderedAt]
-          : [now + after * 1000, now]
+          : [anchor + after * 1000, anchor]
 
     return cachedDateWindow
   }

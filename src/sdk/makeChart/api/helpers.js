@@ -33,6 +33,19 @@ export const pointMultiplierByChartType = {
   default: 0.7,
 }
 
+export const getLiveFetchBefore = ({
+  after,
+  renderedAt,
+  hovering,
+  fetchStartedAt,
+  viewUpdateEvery,
+}) => {
+  if (after > 0) return null
+  if (viewUpdateEvery && viewUpdateEvery > Math.abs(after)) return null
+
+  return hovering && renderedAt ? Math.ceil(renderedAt / 1000) : Math.ceil(fetchStartedAt / 1000)
+}
+
 export const getChartPayload = (chart, attrs = {}) => {
   const ui = chart.getUI()
   const width = chart.getAttribute("containerWidth", ui.getChartWidth())
@@ -57,20 +70,25 @@ export const getChartPayload = (chart, attrs = {}) => {
     pointMultiplierByChartType[chartLibrary] ||
     pointMultiplierByChartType.default
 
-  const fetchOn =
-    hovering && renderedAt ? Math.ceil(renderedAt / 1000) : Math.ceil(fetchStartedAt / 1000)
+  const fetchBefore = getLiveFetchBefore({
+    after,
+    renderedAt,
+    hovering,
+    fetchStartedAt,
+    viewUpdateEvery,
+  })
 
   const afterBefore =
     after > 0
       ? { after, before }
-      : viewUpdateEvery && viewUpdateEvery > Math.abs(after)
+      : fetchBefore === null
         ? {
             after,
             before: 0,
           }
         : {
-            after: fetchOn + after,
-            before: fetchOn,
+            after: fetchBefore + after,
+            before: fetchBefore,
           }
 
   const points = customPoints || Math.round((width / pixelsPerPoint) * pointsMultiplier)

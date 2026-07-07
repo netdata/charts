@@ -492,3 +492,92 @@ testing rules). Pure function input/output assertions.
 2. Prefix spacing — compact labels are chosen: `"5m"`, `"1.5k"`, `"1Mi"`.
    This is shorter and fits better in narrow y-axis space. Confirmed by user.
 3. Decimal count — up to 2 decimal places, stripping trailing zeros.
+
+## Follow-up Scope: Live Heatmap X-Axis Synchronization
+
+### User-approved decision
+
+**Decision:** A — test-first surgical fix.
+
+The user reported that in PLAY mode the x-axis and heatmap sometimes advance
+on alternating seconds:
+
+- PLAY tick advances the x-axis by one second while the heatmap stays in place.
+- Fetch completion advances the heatmap by one second while the x-axis stays in
+  place.
+- The effect can alternate on odd/even seconds or catch up within the same
+  second depending on fetch timing.
+
+### Evidence
+
+- PLAY mode updates `root.fetchAt` from `Date.now()` and triggers render once
+  per second (`src/sdk/plugins/play.js`).
+- `chart.getDateWindow()` uses `root.fetchAt` for relative live windows
+  (`src/sdk/makeChart/index.js`).
+- API payload windows use `fetchStartedAt`, rounded with
+  `Math.ceil(fetchStartedAt / 1000)` (`src/sdk/makeChart/api/helpers.js`).
+- Successful fetch processing is deferred with `setTimeout(..., 0)` before it
+  triggers render (`src/sdk/makeChart/makeDataFetch.js`).
+- Heatmap cell x positions come from payload row timestamps, copied through
+  `camelizePayload.js` and rendered by the Dygraph heatmap plotter.
+
+### Working theory
+
+The heatmap renderer itself is not asynchronous. The visible dancing is caused
+by two different live clocks:
+
+- x-axis clock: `root.fetchAt`
+- payload clock: `fetchStartedAt` rounded to seconds
+
+These clocks can diverge by about one second. Heatmaps make the mismatch
+obvious because they render hard-edged cells across the full plot area.
+
+### Requirements
+
+- Add a failing test that reproduces the one-second divergence before changing
+  implementation.
+- Apply the smallest fix that makes live relative date windows and fetched
+  payload windows use the same effective timestamp.
+- Preserve absolute windows (`after > 0`) and hover/frozen rendered windows.
+- Keep the change global only if necessary; do not add a heatmap-only timing
+  workaround unless the source-level evidence requires it.
+
+### Implementation
+
+- Added `liveAnchor` as a chart attribute. `chart.getDateWindow()` uses it for
+  live relative windows when present, instead of advancing from the root
+  `fetchAt` clock between payload updates.
+- Extracted `getLiveFetchBefore()` from the API payload helper so API payload
+  windows and chart render windows share the same live anchor calculation.
+- Bound the live anchor to the specific fetch response closure. This avoids a
+  race where a second fetch with different attributes could otherwise affect a
+  queued `doneFetch()` callback from a previous response.
+- Preserved absolute windows and `viewUpdateEvery` windows that the API keeps
+  relative (`before: 0`).
+
+### Verification
+
+- Added a regression test proving `getDateWindow()` stays anchored while
+  `root.fetchAt` advances between payload updates.
+- Added helper tests for live relative, hover-rendered, absolute, and
+  `viewUpdateEvery` request windows.
+- Added fetch lifecycle tests proving successful fetches store the same live
+  request anchor used by the API payload window.
+- Added an async race test proving queued fetch responses keep their own live
+  anchor when another fetch starts before the queued callback runs.
+- Passed focused SDK tests:
+  `yarn test src/sdk/makeChart/index.test.js src/sdk/makeChart/makeDataFetch.test.js src/sdk/makeChart/api/helpers.test.js --coverage=false --runInBand`
+- Passed focused heatmap/dygraph tests:
+  `yarn test src/helpers/heatmapScale.test.js src/sdk/makeChart/makeDimensions.test.js src/chartLibraries/dygraph/plotters/heatmap.test.js src/chartLibraries/dygraph/tickers/heatmap.test.js src/chartLibraries/dygraph/index.test.js src/sdk/makeChart/index.test.js src/sdk/makeChart/makeDataFetch.test.js src/sdk/makeChart/api/helpers.test.js --coverage=false --runInBand`
+- Passed full tests:
+  `yarn test --coverage=false --runInBand`
+- Passed build:
+  `yarn build`
+- Passed package copy to cloud-frontend:
+  `yarn to-cloud`
+- Passed cloud-frontend consuming build after the copy:
+  `ENV=production yarn build:dev` from `../cloud-frontend`
+- Passed scoped lint on changed source/test files:
+  `./node_modules/.bin/eslint src/sdk/initialAttributes.js src/sdk/makeChart/api/helpers.js src/sdk/makeChart/api/helpers.test.js src/sdk/makeChart/index.js src/sdk/makeChart/index.test.js src/sdk/makeChart/makeDataFetch.js src/sdk/makeChart/makeDataFetch.test.js`
+- Repo-wide lint was also checked with `yarn lint`; it still fails on
+  unrelated existing errors outside this change.

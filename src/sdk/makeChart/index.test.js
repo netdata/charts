@@ -1,4 +1,3 @@
-import makeChart from "./index"
 import { makeTestChart } from "@jest/testUtilities"
 
 describe("makeChart", () => {
@@ -70,6 +69,22 @@ describe("makeChart", () => {
 
     const result = chart.getUpdateEvery()
     expect(result).toBe(0)
+  })
+
+  it("keeps live relative date window anchored between payload updates", () => {
+    chart.updateAttributes({
+      after: -300,
+      before: 0,
+      renderedAt: null,
+      liveAnchor: 1000000,
+    })
+    sdk.getRoot().setAttribute("fetchAt", 1000500)
+
+    expect(chart.getDateWindow()).toEqual([700000, 1000000])
+
+    sdk.getRoot().setAttribute("fetchAt", 1001500)
+
+    expect(chart.getDateWindow()).toEqual([700000, 1000000])
   })
 
   it("getThemeIndex returns correct index for theme", () => {

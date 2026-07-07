@@ -1,24 +1,47 @@
 import makeDataFetch from "./makeDataFetch"
+import { makeTestChart } from "@jest/testUtilities"
+import makeDefaultSDK from "@/makeDefaultSDK"
+
+const rawPayload = {
+  result: {
+    data: [
+      [1000, [10]],
+      [2000, [20]],
+    ],
+    labels: ["time", "value"],
+    point: {
+      value: 0,
+    },
+  },
+}
 
 describe("makeDataFetch", () => {
   let mockChart
 
   beforeEach(() => {
+    const attributes = {
+      after: -300,
+      before: 0,
+      firstEntry: 1000000,
+      selectedChartType: null,
+      chartType: "line",
+      title: null,
+      loaded: false,
+      initializedFilters: true,
+    }
+
     mockChart = {
-      getAttribute: jest.fn(),
-      getAttributes: jest.fn(() => ({
-        after: -300,
-        before: 0,
-        firstEntry: 1000000,
-        selectedChartType: null,
-        chartType: "line",
-        title: null,
-        loaded: false,
-        initializedFilters: false,
-      })),
-      updateAttribute: jest.fn(),
-      updateAttributes: jest.fn(),
-      setAttributes: jest.fn(),
+      getAttribute: jest.fn((name, fallback) => attributes[name] ?? fallback),
+      getAttributes: jest.fn(() => attributes),
+      updateAttribute: jest.fn((name, value) => {
+        attributes[name] = value
+      }),
+      updateAttributes: jest.fn(nextAttributes => {
+        Object.assign(attributes, nextAttributes)
+      }),
+      setAttributes: jest.fn(nextAttributes => {
+        Object.assign(attributes, nextAttributes)
+      }),
       trigger: jest.fn(),
       on: jest.fn(),
       getParent: jest.fn(() => ({
@@ -27,21 +50,13 @@ describe("makeDataFetch", () => {
       getRoot: jest.fn(() => ({
         trigger: jest.fn(),
       })),
-      getChart: jest.fn(() =>
-        Promise.resolve({
-          result: {
-            data: [
-              [1000, 10],
-              [2000, 20],
-            ],
-          },
-        })
-      ),
+      getChart: jest.fn(() => Promise.resolve(rawPayload)),
       updateDimensions: jest.fn(),
       startAutofetch: jest.fn(),
       backoff: jest.fn(),
       invalidateClosestRowCache: jest.fn(),
       getFilteredNodeIds: jest.fn(() => []),
+      getUnits: jest.fn(() => "value"),
     }
 
     global.Date.now = jest.fn(() => 1000000000)
@@ -152,5 +167,64 @@ describe("makeDataFetch", () => {
     mockChart.fetch()
 
     expect(mockChart.trigger).toHaveBeenCalledWith("startFetch")
+  })
+
+  it("stores the live request anchor after a successful fetch", async () => {
+    global.Date.now.mockReturnValue(1000500)
+    const { chart } = makeTestChart({
+      attributes: {
+        after: -300,
+        before: 0,
+        renderedAt: null,
+        hovering: false,
+        viewUpdateEvery: 0,
+      },
+    })
+
+    await chart.fetch()
+    await new Promise(resolve => setTimeout(resolve, 0))
+
+    expect(chart.getAttribute("liveAnchor")).toBe(1001000)
+    expect(chart.getDateWindow()).toEqual([701000, 1001000])
+  })
+
+  it("keeps the live request anchor bound to its own fetch response", async () => {
+    const resolves = []
+    const getChart = jest.fn(
+      () =>
+        new Promise(resolve => {
+          resolves.push(resolve)
+        })
+    )
+    const sdk = makeDefaultSDK({
+      attributes: {
+        after: -300,
+        before: 0,
+        renderedAt: null,
+        hovering: false,
+        viewUpdateEvery: 0,
+      },
+    })
+    const chart = sdk.makeChart({ getChart })
+    sdk.appendChild(chart)
+
+    global.Date.now.mockReturnValue(1000500)
+    const firstFetch = chart.fetch()
+    resolves[0](rawPayload)
+    await firstFetch
+
+    chart.updateAttribute("selectedDimensions", ["value"])
+    global.Date.now.mockReturnValue(1001500)
+    const secondFetch = chart.fetch()
+
+    await new Promise(resolve => setTimeout(resolve, 0))
+
+    expect(chart.getAttribute("liveAnchor")).toBe(1001000)
+
+    resolves[1](rawPayload)
+    await secondFetch
+    await new Promise(resolve => setTimeout(resolve, 0))
+
+    expect(chart.getAttribute("liveAnchor")).toBe(1002000)
   })
 })
