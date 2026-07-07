@@ -581,3 +581,57 @@ obvious because they render hard-edged cells across the full plot area.
   `./node_modules/.bin/eslint src/sdk/initialAttributes.js src/sdk/makeChart/api/helpers.js src/sdk/makeChart/api/helpers.test.js src/sdk/makeChart/index.js src/sdk/makeChart/index.test.js src/sdk/makeChart/makeDataFetch.js src/sdk/makeChart/makeDataFetch.test.js`
 - Repo-wide lint was also checked with `yarn lint`; it still fails on
   unrelated existing errors outside this change.
+
+## Follow-up Scope: Heatmap Nonzero API Option
+
+### User-approved requirement
+
+The `nonzero` API option must not be sent for heatmaps. The option removes
+dimensions that contain only zero values, but heatmaps depend on all bucket
+dimensions being present. When `nonzero` is applied to heatmap data, the chart
+can collapse into a single remaining bucket.
+
+### Evidence
+
+- `eliminateZeroDimensions` defaults to true
+  (`src/sdk/initialAttributes.js`).
+- `getChartURLOptions()` currently adds `nonzero` for all non-table chart
+  libraries (`src/sdk/makeChart/api/helpers.js`).
+- Heatmaps are rendered through the dygraph chart library, so the existing
+  `chartLibrary !== "table"` guard still allows `nonzero` for heatmaps.
+
+### Requirements
+
+- Keep `nonzero` for normal non-table, non-heatmap charts.
+- Keep excluding `nonzero` for table charts.
+- Exclude `nonzero` when `chartType` is `heatmap`.
+- Exclude `nonzero` when `selectedChartType` is `heatmap`, so explicit heatmap
+  state is protected before the rendered chart type catches up.
+
+### Implementation
+
+- `getChartURLOptions()` now computes an effective chart type from
+  `selectedChartType || chartType`.
+- `nonzero` is only added when zero-dimension elimination is enabled and the
+  chart is neither a table nor a heatmap.
+
+### Verification
+
+- Added failing-first tests proving `nonzero` was still present for
+  `chartType: "heatmap"` and `selectedChartType: "heatmap"`.
+- Passed helper regression tests:
+  `yarn test src/sdk/makeChart/api/helpers.test.js --coverage=false --runInBand`
+- Passed focused API and heatmap tests:
+  `yarn test src/sdk/makeChart/api src/helpers/heatmap.test.js src/helpers/heatmapScale.test.js src/sdk/makeChart/makeDimensions.test.js src/chartLibraries/dygraph/plotters/heatmap.test.js src/chartLibraries/dygraph/tickers/heatmap.test.js src/chartLibraries/dygraph/index.test.js --coverage=false --runInBand`
+- Passed full tests:
+  `yarn test --coverage=false --runInBand`
+- Passed build:
+  `yarn build`
+- Passed scoped lint on changed source/test files:
+  `./node_modules/.bin/eslint src/sdk/makeChart/api/helpers.js src/sdk/makeChart/api/helpers.test.js`
+- Passed package copy to cloud-frontend:
+  `yarn to-cloud`
+- Passed cloud-frontend consuming build after the copy:
+  `ENV=production yarn build:dev` from `../cloud-frontend`
+- Repo-wide lint was checked with `yarn lint`; it still fails on unrelated
+  existing errors outside this change.

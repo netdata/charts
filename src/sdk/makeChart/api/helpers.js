@@ -8,14 +8,18 @@ export const getChartURLOptions = chart => {
     eliminateZeroDimensions,
     urlOptions = [],
     chartLibrary,
+    chartType,
+    selectedChartType,
     nulls2zero,
   } = chart.getAttributes()
   const opts = defaultUrlOptionsByLibrary[chartLibrary] || defaultUrlOptionsByLibrary.default
+  const effectiveChartType = selectedChartType || chartType
+  const canEliminateZeroDimensions = chartLibrary !== "table" && effectiveChartType !== "heatmap"
 
   return [
     ...urlOptions,
     "jsonwrap",
-    chartLibrary !== "table" && eliminateZeroDimensions && "nonzero",
+    canEliminateZeroDimensions && eliminateZeroDimensions && "nonzero",
     nulls2zero && "null2zero",
     "flip",
     "ms",

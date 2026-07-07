@@ -65,6 +65,37 @@ describe("API helpers", () => {
       expect(result).not.toContain("nonzero")
     })
 
+    it("excludes nonzero for heatmap chart type", () => {
+      const { chart } = makeTestChart({
+        attributes: {
+          eliminateZeroDimensions: true,
+          urlOptions: [],
+          chartLibrary: "dygraph",
+          chartType: "heatmap",
+        },
+      })
+
+      const result = getChartURLOptions(chart)
+
+      expect(result).not.toContain("nonzero")
+    })
+
+    it("excludes nonzero for selected heatmap chart type", () => {
+      const { chart } = makeTestChart({
+        attributes: {
+          eliminateZeroDimensions: true,
+          urlOptions: [],
+          chartLibrary: "dygraph",
+          chartType: "line",
+          selectedChartType: "heatmap",
+        },
+      })
+
+      const result = getChartURLOptions(chart)
+
+      expect(result).not.toContain("nonzero")
+    })
+
     it("includes group-by-labels for groupBoxes library", () => {
       const { chart } = makeTestChart({
         attributes: {
