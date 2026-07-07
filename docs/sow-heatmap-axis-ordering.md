@@ -635,3 +635,74 @@ can collapse into a single remaining bucket.
   `ENV=production yarn build:dev` from `../cloud-frontend`
 - Repo-wide lint was checked with `yarn lint`; it still fails on unrelated
   existing errors outside this change.
+
+## Follow-up Scope: Heatmap Edge Zero Cropping
+
+### User-approved requirement
+
+Heatmaps should visually crop zero-only buckets only at the bottom and top
+edges. Interior zero buckets must remain visible. The crop must keep at least
+5 buckets visible when there is any non-zero bucket. The crop must also retain
+one zero-only bucket below the non-zero span and one zero-only bucket above the
+non-zero span when such buckets exist; this gives users visual context that the
+data does not occupy the whole scale. This does not change the minimum from 5
+to 7. If all buckets are zero, the full bucket scale must remain visible so
+users can still see the scale.
+
+This aligns with the Netdata `nonzero` behavior: when all dimensions are zero,
+all dimensions remain visible.
+
+### Evidence
+
+- Heatmap bucket order already has a dedicated sorted-id path in
+  `src/sdk/makeChart/makeDimensions.js`.
+- The heatmap y-axis already asks `getVisibleHeatmapIds()` for labels in
+  `src/chartLibraries/dygraph/index.js`.
+- The heatmap plotter uses `getHeatmapYIndex()` to map each bucket id to its
+  row in `src/chartLibraries/dygraph/plotters/heatmap.js`.
+- Incremental heatmap values depend on `isDimensionVisible()` when subtracting
+  previous bucket values in `src/sdk/makeChart/makeDimensions.js`.
+
+### Requirements
+
+- Do not remove dimensions from the API response.
+- Do not alter global dimension visibility for the crop, because that can break
+  incremental heatmap bucket math.
+- Apply cropping only to the heatmap-visible id list used by y-axis labels,
+  heatmap row mapping, and heatmap value range.
+- Crop only leading and trailing zero-only buckets.
+- Preserve interior zero-only buckets.
+- Preserve the full scale when all visible buckets are zero-only.
+- Keep at least 5 buckets visible when there is any non-zero bucket.
+- Keep one zero-only bucket below and one zero-only bucket above the non-zero
+  span when those buckets exist and would otherwise be hidden.
+
+### Implementation
+
+- Added a pure `cropHeatmapZeroEdges()` helper in `src/helpers/heatmap.js`.
+- `chart.getVisibleHeatmapIds()` now crops only the heatmap-visible bucket id
+  list. It does not change global dimension visibility.
+- `chart.getHeatmapYIndex()` returns `-1` for cropped heatmap buckets so the
+  plotter skips those rows.
+- Dygraph heatmap `valueRange` now uses the cropped heatmap bucket count, so
+  the y-axis range and rendered rows stay aligned.
+- Added a shared real raw heatmap payload test helper under
+  `jest/testUtilities/heatmapPayload.js` so crop tests use `doneFetch()` and
+  the same internal payload state production uses.
+
+### Verification
+
+- Passed focused heatmap tests:
+  `yarn test src/helpers/heatmap.test.js src/helpers/heatmapScale.test.js src/sdk/makeChart/makeDimensions.test.js src/chartLibraries/dygraph/index.test.js src/chartLibraries/dygraph/plotters/heatmap.test.js src/chartLibraries/dygraph/tickers/heatmap.test.js --coverage=false --runInBand`
+- Passed full tests:
+  `yarn test --coverage=false --runInBand`
+- Passed build:
+  `yarn build`
+- Passed scoped lint on changed files:
+  `./node_modules/.bin/eslint jest/testUtilities/heatmapPayload.js jest/testUtilities/index.js src/helpers/heatmap.js src/helpers/heatmap.test.js src/sdk/makeChart/makeDimensions.js src/sdk/makeChart/makeDimensions.test.js src/chartLibraries/dygraph/index.js src/chartLibraries/dygraph/index.test.js`
+- Passed package copy to cloud-frontend:
+  `yarn to-cloud`
+- Passed cloud-frontend consuming build after the copy:
+  `ENV=production yarn build:dev` from `../cloud-frontend`
+- Repo-wide lint was checked with `yarn lint`; it still fails on unrelated
+  existing errors outside this change.

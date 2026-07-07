@@ -1,6 +1,12 @@
 import dimensionColors from "./theme/dimensionColors"
 import deepEqual, { setsAreEqual } from "@/helpers/deepEqual"
-import { heatmapTypes, isHeatmap, isIncremental, withoutPrefix } from "@/helpers/heatmap"
+import {
+  cropHeatmapZeroEdges,
+  heatmapTypes,
+  isHeatmap,
+  isIncremental,
+  withoutPrefix,
+} from "@/helpers/heatmap"
 import { detectHeatmapScale, sortHeatmapValues } from "@/helpers/heatmapScale"
 import groupBy from "lodash/groupBy"
 import isEmpty from "lodash/isEmpty"
@@ -15,6 +21,9 @@ export default (chart, sdk) => {
   let visibleDimensionSet = new Set()
   let heatmapSortedIds = null
   let heatmapScale = null
+  let heatmapVisiblePayload = null
+  let heatmapVisibleKey = null
+  let heatmapVisibleIds = null
   let colorCursor = 0
 
   const sparklineDimensions = ["sum"]
@@ -242,8 +251,34 @@ export default (chart, sdk) => {
 
   chart.getHeatmapSortedIds = () => heatmapSortedIds
 
-  chart.getVisibleHeatmapIds = () =>
+  const getBaseVisibleHeatmapIds = () =>
     heatmapSortedIds ? heatmapSortedIds.filter(id => visibleDimensionSet.has(id)) : visibleDimensionIds
+
+  const isZeroOnlyHeatmapBucket = id => {
+    const { all = [] } = chart.getPayload()
+    if (!all.length) return false
+
+    return all.every(row => {
+      const value = chart.getRowDimensionValue(id, row, { allowNull: true })
+      return value === null || value === 0
+    })
+  }
+
+  chart.getVisibleHeatmapIds = () => {
+    const ids = getBaseVisibleHeatmapIds()
+    if (!isHeatmap(chart)) return ids
+
+    const payload = chart.getPayload()
+    const key = ids.join("\u0000")
+
+    if (payload === heatmapVisiblePayload && key === heatmapVisibleKey) return heatmapVisibleIds
+
+    heatmapVisiblePayload = payload
+    heatmapVisibleKey = key
+    heatmapVisibleIds = cropHeatmapZeroEdges(ids, isZeroOnlyHeatmapBucket)
+
+    return heatmapVisibleIds
+  }
 
   chart.getHeatmapScale = () => heatmapScale
 
@@ -252,6 +287,7 @@ export default (chart, sdk) => {
     const heatmapIndex = visibleHeatmapIds.findIndex(visibleId => visibleId === id)
 
     if (heatmapIndex !== -1) return heatmapIndex
+    if (isHeatmap(chart)) return -1
 
     const index = chart.getDimensionIndex(id)
 

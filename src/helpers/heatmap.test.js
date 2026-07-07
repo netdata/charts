@@ -5,6 +5,7 @@ import {
   heatmapOrChartType,
   makeGetColor,
   withoutPrefix,
+  cropHeatmapZeroEdges,
 } from "./heatmap"
 
 describe("heatmap utilities", () => {
@@ -162,6 +163,76 @@ describe("heatmap utilities", () => {
 
     it("handles empty string", () => {
       expect(withoutPrefix("")).toBe("")
+    })
+  })
+
+  describe("cropHeatmapZeroEdges", () => {
+    const makeIsZeroOnly = zeroIds => id => zeroIds.includes(id)
+
+    it("crops only zero buckets from the bottom and top edges", () => {
+      const ids = ["0", "1", "2", "3", "4", "5", "6"]
+
+      expect(cropHeatmapZeroEdges(ids, makeIsZeroOnly(["0", "1", "6"]))).toEqual([
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+      ])
+    })
+
+    it("keeps interior zero buckets", () => {
+      const ids = ["0", "1", "2", "3", "4", "5", "6", "7", "8"]
+
+      expect(cropHeatmapZeroEdges(ids, makeIsZeroOnly(["0", "1", "3", "7", "8"]))).toEqual([
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+      ])
+    })
+
+    it("keeps one zero bucket below and above a five-bucket non-zero span", () => {
+      const ids = ["0", "1", "2", "3", "4", "5", "6", "7", "8"]
+
+      expect(cropHeatmapZeroEdges(ids, makeIsZeroOnly(["0", "1", "7", "8"]))).toEqual([
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+      ])
+    })
+
+    it("expands around a narrow non-zero range to keep at least five buckets", () => {
+      const ids = ["0", "1", "2", "3", "4", "5", "6", "7", "8"]
+      const zeroIds = ["0", "1", "2", "4", "5", "6", "7", "8"]
+
+      expect(cropHeatmapZeroEdges(ids, makeIsZeroOnly(zeroIds))).toEqual(["1", "2", "3", "4", "5"])
+    })
+
+    it("keeps the full scale when all buckets are zero", () => {
+      const ids = ["0", "1", "2", "3", "4", "5", "6"]
+
+      expect(cropHeatmapZeroEdges(ids, makeIsZeroOnly(ids))).toEqual(ids)
+    })
+
+    it("does not crop when there are fewer than the minimum visible buckets", () => {
+      const ids = ["0", "1", "2"]
+
+      expect(cropHeatmapZeroEdges(ids, makeIsZeroOnly(["0", "2"]))).toEqual(ids)
+    })
+
+    it("does not crop without a zero-only predicate", () => {
+      const ids = ["0", "1", "2", "3", "4", "5"]
+
+      expect(cropHeatmapZeroEdges(ids)).toEqual(ids)
     })
   })
 })

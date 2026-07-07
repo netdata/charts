@@ -51,3 +51,35 @@ export const useGetColor = (opacity = 1) => {
 
 export const withoutPrefix = label =>
   label ? label.replace(/.+_(\d+?\.?(\d+)?|\+[Ii]nf)$/, "$1") : label
+
+export const cropHeatmapZeroEdges = (ids, isZeroOnly, minVisible = 5) => {
+  if (!Array.isArray(ids) || typeof isZeroOnly !== "function" || ids.length <= minVisible)
+    return ids
+
+  const zeroOnly = ids.map(isZeroOnly)
+  const firstNonZero = zeroOnly.findIndex(isZero => !isZero)
+
+  if (firstNonZero === -1) return ids
+
+  let lastNonZero = zeroOnly.length - 1
+  while (lastNonZero >= 0 && zeroOnly[lastNonZero]) lastNonZero--
+
+  let first = firstNonZero > 0 ? firstNonZero - 1 : firstNonZero
+  let last = lastNonZero < ids.length - 1 ? lastNonZero + 1 : lastNonZero
+  const targetLength = Math.min(minVisible, ids.length)
+
+  while (last - first + 1 < targetLength) {
+    const bottomDistance = firstNonZero - first
+    const topDistance = last - lastNonZero
+
+    if (first > 0 && (last === ids.length - 1 || bottomDistance <= topDistance)) {
+      first--
+    } else if (last < ids.length - 1) {
+      last++
+    } else {
+      break
+    }
+  }
+
+  return ids.slice(first, last + 1)
+}

@@ -409,6 +409,7 @@ export default (sdk, chart) => {
     const { data, labels } = chart.getPayload()
     const dateWindow = chart.getDateWindow()
     const isEmpty = outOfLimits || data.length === 0
+    const heatmapIds = isHeatmap(chartType) ? chart.getVisibleHeatmapIds() : null
 
     return {
       file: isEmpty ? [[0]] : data,
@@ -417,7 +418,7 @@ export default (sdk, chart) => {
       valueRange: staticValueRange
         ? staticValueRange
         : isHeatmap(chartType)
-          ? [0, chart.getVisibleDimensionIds().length]
+          ? [0, heatmapIds.length]
           : getValueRange(chart, { dygraph: true }),
     }
   }

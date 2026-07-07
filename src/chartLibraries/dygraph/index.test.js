@@ -1,4 +1,4 @@
-import { makeTestChart } from "@jest/testUtilities"
+import { loadHeatmapPayload, makeTestChart } from "@jest/testUtilities"
 import dygraphChart from "./index"
 
 const mockDygraph = {
@@ -302,6 +302,41 @@ describe("dygraphChart", () => {
     expect(formatter("1k")).toBe("1k")
     expect(formatter("+Inf")).toBe("+Inf")
     expect(formatter("0.005")).toBe(0.005)
+  })
+
+  it("uses cropped heatmap bucket count for y-axis range", async () => {
+    const ids = ["0", "1", "2", "3", "4", "5", "6"]
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        chartType: "heatmap",
+        groupBy: ["dimension"],
+        selectedLegendDimensions: [],
+        viewDimensions: {
+          ids,
+          names: ids,
+          priorities: ids.map((_, index) => index),
+          units: ids.map(() => ""),
+          contexts: ids.map(() => ""),
+          grouped: ["dimension"],
+        },
+      },
+    })
+
+    await loadHeatmapPayload(chart, ids, [[0, 0, 1, 0, 2, 0, 0]], {
+      timestamp: 1617946860000,
+    })
+    chart.getDateWindow = () => [1617946860000, 1617947750000]
+    chart.formatXAxis = x => x.toString()
+    chart.getThemeAttribute = () => "#333"
+    chart.getUnitSign = () => ""
+
+    const instance = dygraphChart(sdk, chart)
+    instance.mount(document.createElement("div"))
+
+    const Dygraph = require("dygraphs")
+    const options = Dygraph.mock.calls[Dygraph.mock.calls.length - 1][2]
+
+    expect(options.valueRange).toEqual([0, 5])
   })
 
   it("returns axis range from dygraph", () => {

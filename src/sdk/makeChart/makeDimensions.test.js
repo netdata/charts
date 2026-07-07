@@ -1,5 +1,5 @@
 import makeDimensions from "./makeDimensions"
-import { makeTestChart } from "@jest/testUtilities"
+import { loadHeatmapPayload, makeTestChart } from "@jest/testUtilities"
 
 describe("makeDimensions", () => {
   let mockChart
@@ -813,5 +813,71 @@ describe("makeDimensions heatmap bucket ordering", () => {
     expect(chart.getVisibleHeatmapIds()).toEqual(["2", "+Inf"])
     expect(chart.getHeatmapYIndex("2")).toBe(0)
     expect(chart.getHeatmapYIndex("+Inf")).toBe(1)
+  })
+
+  it("crops zero-only buckets from heatmap edges without changing dimension visibility", async () => {
+    const ids = ["0", "1", "2", "3", "4", "5", "6"]
+    const chart = makeHeatmapChart(ids)
+
+    await loadHeatmapPayload(chart, ids, [
+      [0, 0, 1, 0, 2, 0, 0],
+      [0, 0, 0, 0, 2, 0, 0],
+    ])
+
+    expect(chart.getAttribute("chartType")).toBe("heatmap")
+    expect(chart.getHeatmapSortedIds()).toEqual(ids)
+    expect(chart.getDimensionIds()).toEqual(ids)
+    expect(chart.getRowDimensionValue("0", chart.getPayload().all[0])).toBe(0)
+    expect(chart.getRowDimensionValue("2", chart.getPayload().all[0])).toBe(1)
+    expect(chart.getRowDimensionValue("6", chart.getPayload().all[0])).toBe(0)
+    expect(chart.getVisibleHeatmapIds()).toEqual(["1", "2", "3", "4", "5"])
+    expect(chart.getVisibleDimensionIds()).toEqual(ids)
+    expect(chart.getHeatmapYIndex("0")).toBe(-1)
+    expect(chart.getHeatmapYIndex("2")).toBe(1)
+    expect(chart.getHeatmapYIndex("6")).toBe(-1)
+  })
+
+  it("crops incremental heatmap edges using displayed bucket deltas", async () => {
+    const ids = [
+      "bucket_0",
+      "bucket_1",
+      "bucket_2",
+      "bucket_3",
+      "bucket_4",
+      "bucket_5",
+      "bucket_6",
+    ]
+    const chart = makeHeatmapChart(ids)
+
+    await loadHeatmapPayload(chart, ids, [
+      [0, 0, 1, 1, 3, 3, 3],
+      [0, 0, 0, 0, 3, 3, 3],
+    ])
+
+    expect(chart.getAttribute("heatmapType")).toBe("incremental")
+    expect(chart.getVisibleHeatmapIds()).toEqual([
+      "bucket_1",
+      "bucket_2",
+      "bucket_3",
+      "bucket_4",
+      "bucket_5",
+    ])
+    expect(chart.getHeatmapYIndex("bucket_0")).toBe(-1)
+    expect(chart.getHeatmapYIndex("bucket_2")).toBe(1)
+    expect(chart.getHeatmapYIndex("bucket_6")).toBe(-1)
+  })
+
+  it("keeps the full heatmap scale when all buckets are zero", async () => {
+    const ids = ["0", "1", "2", "3", "4", "5", "6"]
+    const chart = makeHeatmapChart(ids)
+
+    await loadHeatmapPayload(chart, ids, [
+      [0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0],
+    ])
+
+    expect(chart.getVisibleHeatmapIds()).toEqual(ids)
+    expect(chart.getHeatmapYIndex("0")).toBe(0)
+    expect(chart.getHeatmapYIndex("6")).toBe(6)
   })
 })
