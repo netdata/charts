@@ -636,6 +636,142 @@ can collapse into a single remaining bucket.
 - Repo-wide lint was checked with `yarn lint`; it still fails on unrelated
   existing errors outside this change.
 
+## Follow-up Scope: Heatmap Popover Axis Order
+
+### User-approved requirement
+
+Heatmap popovers must not be value sorted. Value sorting is misleading for
+bucketed heatmaps because the popover order stops matching the bucket scale.
+Heatmap popovers must use the same bucket ordering and label formatting model
+as the heatmap y-axis, including the 5 + 1 + 1 zero-edge crop. Cropping is
+necessary because bucket counts can be large and the popover must stay readable.
+
+Non-heatmap popovers must not be affected.
+
+### Evidence
+
+- The generic line popover requests `valueDesc` for normal value rows.
+- Heatmaps need bucket-scale ordering, not value ranking, because each row is a
+  bucket boundary on the y-axis scale.
+- `chart.getVisibleHeatmapIds()` applies `cropHeatmapZeroEdges()` and is the
+  list already used by the rendered heatmap y-axis.
+- The base heatmap id list can be too large for popovers when many buckets are
+  present.
+- Heatmap label formatting is already centralized through
+  `chart.getDimensionName()` after the prior label-formatting change.
+
+### Requirements
+
+- Heatmap popovers must ignore requested value/anomaly/annotation sort methods.
+- Heatmap popovers must return cropped heatmap bucket order:
+  numeric bucket order when available, otherwise normal visible dimension order,
+  after applying the 5 + 1 + 1 zero-edge crop.
+- Heatmap labels must remain scaled exactly like y-axis labels.
+- Non-heatmap `onHoverSortDimensions()` behavior must remain unchanged.
+
+### Implementation
+
+- `src/sdk/makeChart/makeDimensions.js` now returns
+  `chart.getVisibleHeatmapIds()` directly for heatmap hover popovers.
+- This means heatmap popovers ignore the generic line-popover `valueDesc`
+  request and stay in bucket-scale order.
+- Because `chart.getVisibleHeatmapIds()` is the cropped heatmap list, heatmap
+  popovers stay decluttered when the source has many buckets.
+- Non-heatmap popovers still call the existing requested sort method with
+  `chart.getVisibleDimensionIds()`.
+- Scaled heatmap label formatting remains in `chart.getDimensionName()`.
+
+### Verification
+
+- Updated regression tests proving:
+  - heatmap popovers ignore `valueDesc`;
+  - heatmap popovers use cropped y-axis bucket order;
+  - non-heatmap popovers remain value-sorted.
+- Passed focused makeDimensions tests:
+  `yarn test src/sdk/makeChart/makeDimensions.test.js --coverage=false --runInBand`
+- Passed broader heatmap/chart tests:
+  `yarn test src/sdk/makeChart/makeDimensions.test.js src/helpers/heatmap.test.js src/helpers/heatmapScale.test.js src/chartLibraries/dygraph/hoverX.test.js src/chartLibraries/dygraph/plotters/heatmap.test.js src/chartLibraries/dygraph/tickers/heatmap.test.js src/chartLibraries/dygraph/index.test.js --coverage=false --runInBand`
+- Passed full tests:
+  `yarn test --coverage=false --runInBand`
+- Passed build:
+  `yarn build`
+- Passed scoped lint on changed source/test files:
+  `./node_modules/.bin/eslint src/sdk/makeChart/makeDimensions.js src/sdk/makeChart/makeDimensions.test.js src/chartLibraries/dygraph/hoverX.js src/chartLibraries/dygraph/hoverX.test.js src/chartLibraries/dygraph/plotters/heatmap.js src/chartLibraries/dygraph/plotters/heatmap.test.js`
+- Passed package copy to cloud-frontend:
+  `yarn to-cloud`
+- Passed cloud-frontend rebuild and install:
+  `sudo ./agent.sh`
+- Passed cloud-frontend final install copy:
+  `sudo ./agent.sh install`
+- Repo-wide lint was checked with `yarn lint`; it still fails on unrelated
+  existing errors outside this change.
+
+## Follow-up Scope: Heatmap Popover List Windowing
+
+### User-approved requirement
+
+Heatmap popovers must keep the heatmap bucket crop, because bucket counts can be
+large and zero-only scale edges should be removed. After that heatmap-specific
+crop is applied, the popover must show all remaining heatmap buckets. It must
+not apply the generic popover window that hides rows behind `+N more values`.
+
+Non-heatmap popovers must keep the existing generic popover windowing behavior.
+
+### Evidence
+
+- `chart.getVisibleHeatmapIds()` already returns the heatmap-specific cropped
+  bucket list.
+- `src/components/line/popover/dimensions.js` then applies a second generic
+  row window with `getFrom()`, `getTo()`, and `dimensionIds.slice(from, to)`.
+- That generic window is what renders `↑N more values` and `↓N more values`.
+- Applying both crops to heatmaps hides buckets that already survived the
+  heatmap-specific crop.
+
+### Requirements
+
+- Heatmap popovers must still get ids through `chart.onHoverSortDimensions()`,
+  which returns the cropped heatmap bucket list.
+- Heatmap popovers must render that returned list in full.
+- Heatmap popovers must not render `more values` indicators.
+- Non-heatmap popovers must still apply the generic row window and `more values`
+  indicators.
+
+### Implementation
+
+- `src/components/line/popover/dimensions.js` now detects heatmap charts before
+  applying the generic popover row window.
+- For heatmaps, the popover renders the full id list returned by
+  `chart.onHoverSortDimensions()`. That list is already the cropped heatmap
+  bucket list.
+- For non-heatmaps, the existing `getFrom()`, `getTo()`, `slice()`, and
+  `more values` behavior is unchanged.
+
+### Verification
+
+- Added rendered popover regression tests proving:
+  - heatmaps render all buckets that survived the heatmap bucket crop;
+  - heatmaps do not render `more values` indicators;
+  - non-heatmap popovers still render the generic `more values` indicator when
+    there are more than 10 dimensions.
+- Passed focused popover tests:
+  `yarn test src/components/line/popover/dimensions.test.js --coverage=false --runInBand`
+- Passed broader heatmap/chart/popover tests:
+  `yarn test src/components/line/popover/dimensions.test.js src/sdk/makeChart/makeDimensions.test.js src/helpers/heatmap.test.js src/helpers/heatmapScale.test.js src/chartLibraries/dygraph/hoverX.test.js src/chartLibraries/dygraph/plotters/heatmap.test.js src/chartLibraries/dygraph/tickers/heatmap.test.js src/chartLibraries/dygraph/index.test.js --coverage=false --runInBand`
+- Passed full tests:
+  `yarn test --coverage=false --runInBand`
+- Passed build:
+  `yarn build`
+- Passed scoped lint on changed source/test files:
+  `./node_modules/.bin/eslint src/components/line/popover/dimensions.js src/components/line/popover/dimensions.test.js src/sdk/makeChart/makeDimensions.js src/sdk/makeChart/makeDimensions.test.js src/chartLibraries/dygraph/hoverX.js src/chartLibraries/dygraph/hoverX.test.js src/chartLibraries/dygraph/plotters/heatmap.js src/chartLibraries/dygraph/plotters/heatmap.test.js`
+- Passed package copy to cloud-frontend:
+  `yarn to-cloud`
+- Passed cloud-frontend rebuild and install:
+  `sudo ./agent.sh`
+- Passed cloud-frontend final install copy:
+  `sudo ./agent.sh install`
+- Repo-wide lint was checked with `yarn lint`; it still fails on unrelated
+  existing errors outside this change.
+
 ## Follow-up Scope: Heatmap Edge Zero Cropping
 
 ### User-approved requirement
@@ -704,5 +840,169 @@ all dimensions remain visible.
   `yarn to-cloud`
 - Passed cloud-frontend consuming build after the copy:
   `ENV=production yarn build:dev` from `../cloud-frontend`
+- Repo-wide lint was checked with `yarn lint`; it still fails on unrelated
+  existing errors outside this change.
+
+## Follow-up Scope: Heatmap Hover Row Alignment
+
+### User-approved requirement
+
+Heatmap hover must show the value for the cell under the hairline. The rendered
+cell color, selected timestamp row, highlighted y bucket, and popover value
+must all refer to the same payload row and bucket. The fix is surgical: do not
+change API data, Dygraph x-axis behavior, bucket ordering, or zero-edge
+cropping behavior.
+
+### Evidence
+
+- Dygraph points carry `idx`, the original payload row index. The point-array
+  loop index is only the index inside Dygraph's current visible point set.
+- Dygraph can slice points to the visible date window, making point-array index
+  and payload row index diverge.
+- The heatmap plotter painted each cell at `p.canvasx` but read the color value
+  with the loop index, so a rendered cell could be colored from the previous or
+  next payload row.
+- Hover bucket selection asked Dygraph for the closest x/y point and used only
+  the returned series name. The row returned by that nearest-point search was
+  ignored, while the hairline and popover continued to use the selected x
+  timestamp row.
+- Heatmap y geometry is custom: the plotter positions buckets with
+  `getHeatmapYIndex()`, not with Dygraph's point y-value. Therefore Dygraph's
+  generic nearest-point y search is not authoritative for heatmap bucket
+  selection.
+
+### Requirements
+
+- Heatmap rendering must read values using `point.idx` when Dygraph provides it.
+- Fallback to the loop index only when a point has no numeric `idx`, preserving
+  defensive behavior for tests or unexpected Dygraph shapes.
+- Heatmap hover must derive the y bucket from the cursor's y position and the
+  current visible heatmap bucket list.
+- Heatmap hover must keep the x timestamp supplied by Dygraph's selected row;
+  only the bucket selection logic changes.
+- Non-heatmap hover behavior must remain unchanged.
+- Add regression tests for both mismatches.
+
+### Implementation
+
+- `src/chartLibraries/dygraph/plotters/heatmap.js` now uses `p.idx` for value
+  lookup when available and falls back to the point-array loop index.
+- `src/chartLibraries/dygraph/hoverX.js` now maps heatmap cursor y to
+  `chart.getVisibleHeatmapIds()` via `dygraph.toDomYCoord(index)` bucket
+  centers, instead of using `findClosestPoint()`.
+- Non-heatmap hover paths still use the existing Dygraph nearest-point or
+  stacked-point logic.
+
+### Verification
+
+- Added failing-first regression tests proving:
+  - heatmap renderer uses `p.idx` instead of the point-array index;
+  - heatmap hover ignores a neighboring `findClosestPoint()` result and selects
+    the bucket under the cursor.
+- Passed focused regressions:
+  `yarn test src/chartLibraries/dygraph/plotters/heatmap.test.js src/chartLibraries/dygraph/hoverX.test.js --coverage=false --runInBand`
+- Passed broader heatmap/chart tests:
+  `yarn test src/chartLibraries/dygraph/hoverX.test.js src/chartLibraries/dygraph/plotters/heatmap.test.js src/chartLibraries/dygraph/index.test.js src/helpers/heatmap.test.js src/helpers/heatmapScale.test.js src/sdk/makeChart/makeDimensions.test.js src/chartLibraries/dygraph/tickers/heatmap.test.js --coverage=false --runInBand`
+- Passed full tests:
+  `yarn test --coverage=false --runInBand`
+- Passed build:
+  `yarn build`
+- Passed scoped lint on changed source/test files:
+  `./node_modules/.bin/eslint src/chartLibraries/dygraph/hoverX.js src/chartLibraries/dygraph/hoverX.test.js src/chartLibraries/dygraph/plotters/heatmap.js src/chartLibraries/dygraph/plotters/heatmap.test.js`
+- Passed package copy to cloud-frontend:
+  `yarn to-cloud`
+- Passed cloud-frontend rebuild and install:
+  `sudo ./agent.sh`
+- Passed final cloud-frontend install copy:
+  `sudo ./agent.sh install`
+- Repo-wide lint was checked with `yarn lint`; it still fails on unrelated
+  existing errors outside this change.
+
+## Superseded Follow-up Scope: Heatmap Popover Sorting and Labels
+
+This section records the earlier value-sorted heatmap popover approach. It is
+superseded by `Follow-up Scope: Heatmap Popover Axis Order` above.
+
+### Superseded requirement
+
+Heatmap popovers must be value-sorted like normal chart popovers. The heatmap
+popover labels must use the same scaled bucket formatting as the heatmap y-axis.
+Non-heatmap popovers must not be affected.
+
+### Evidence
+
+- The line popover asks for value sorting by passing `valueDesc` for normal
+  value rows.
+- `chart.onHoverSortDimensions()` overrides all heatmap popover sorting to the
+  default dimension sort, so heatmaps do not honor the requested value sort.
+- The default sort falls back to `getDimensionName(...).localeCompare(...)`,
+  which creates lexicographic ordering when priorities do not dominate.
+- Heatmap y-axis labels already use `formatHeatmapLabel(..., scale)`.
+- Popover labels use `chart.getDimensionName()`, and the heatmap branch only
+  strips prefixes. It does not apply heatmap scale formatting.
+- The rendered heatmap uses `getVisibleHeatmapIds()`, while the popover uses
+  `getVisibleDimensionIds()`. After edge cropping, this can let the popover
+  include buckets not currently visible on the heatmap.
+
+### Requirements
+
+- Heatmap popovers must sort by the requested hover sort method, especially
+  `valueDesc`.
+- Heatmap popovers must use `getVisibleHeatmapIds()` so cropped buckets do not
+  appear in the popover list.
+- Heatmap popover labels must use `formatHeatmapLabel()` with the chart's
+  detected heatmap scale.
+- Non-heatmap `onHoverSortDimensions()` behavior must remain unchanged.
+- Add regression tests for heatmap value sorting, heatmap scaled labels, cropped
+  heatmap popover ids, and non-heatmap value sorting.
+
+### Implementation Plan
+
+- Update `chart.onHoverSortDimensions()` to select the visible id source based
+  on chart type:
+  - heatmap: `chart.getVisibleHeatmapIds()`
+  - non-heatmap: `chart.getVisibleDimensionIds()`
+- Let heatmaps use the requested sort method instead of forcing default sort.
+- Update heatmap `chart.getDimensionName()` to use `formatHeatmapLabel()` after
+  prefix stripping, using `chart.getHeatmapScale()`.
+
+### Implementation
+
+- `src/sdk/makeChart/makeDimensions.js` now lets heatmaps use the requested
+  hover sort method instead of forcing the default dimension sort.
+- Heatmap hover popovers now read ids from `chart.getVisibleHeatmapIds()`, so
+  buckets cropped from the rendered heatmap are not shown in the popover.
+- Non-heatmap hover popovers still read ids from `chart.getVisibleDimensionIds()`
+  and still use the requested hover sort method.
+- Heatmap `chart.getDimensionName()` now formats bucket labels with
+  `formatHeatmapLabel(withoutPrefix(...), chart.getHeatmapScale())`, matching
+  the y-axis label formatter.
+- Legend selection compatibility for prefixed heatmap buckets is preserved by
+  matching the raw stripped bucket label as well as the displayed formatted
+  label.
+
+### Verification
+
+- Added failing-first regression tests proving:
+  - heatmap hover popovers use value sorting and cropped visible heatmap ids;
+  - heatmap popover labels use scaled formatting;
+  - raw prefixed bucket legend selection still works after label formatting;
+  - non-heatmap hover popovers remain value-sorted.
+- Passed focused makeDimensions tests:
+  `yarn test src/sdk/makeChart/makeDimensions.test.js --coverage=false --runInBand`
+- Passed broader heatmap/chart tests:
+  `yarn test src/sdk/makeChart/makeDimensions.test.js src/helpers/heatmap.test.js src/helpers/heatmapScale.test.js src/chartLibraries/dygraph/hoverX.test.js src/chartLibraries/dygraph/plotters/heatmap.test.js src/chartLibraries/dygraph/tickers/heatmap.test.js src/chartLibraries/dygraph/index.test.js --coverage=false --runInBand`
+- Passed full tests:
+  `yarn test --coverage=false --runInBand`
+- Passed build:
+  `yarn build`
+- Passed scoped lint on changed source/test files:
+  `./node_modules/.bin/eslint src/sdk/makeChart/makeDimensions.js src/sdk/makeChart/makeDimensions.test.js src/chartLibraries/dygraph/hoverX.js src/chartLibraries/dygraph/hoverX.test.js src/chartLibraries/dygraph/plotters/heatmap.js src/chartLibraries/dygraph/plotters/heatmap.test.js`
+- Passed package copy to cloud-frontend:
+  `yarn to-cloud`
+- Passed cloud-frontend rebuild and install:
+  `sudo ./agent.sh`
+- Passed cloud-frontend final install copy:
+  `sudo ./agent.sh install`
 - Repo-wide lint was checked with `yarn lint`; it still fails on unrelated
   existing errors outside this change.

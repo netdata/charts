@@ -7,7 +7,7 @@ import {
   isIncremental,
   withoutPrefix,
 } from "@/helpers/heatmap"
-import { detectHeatmapScale, sortHeatmapValues } from "@/helpers/heatmapScale"
+import { detectHeatmapScale, formatHeatmapLabel, sortHeatmapValues } from "@/helpers/heatmapScale"
 import groupBy from "lodash/groupBy"
 import isEmpty from "lodash/isEmpty"
 
@@ -144,13 +144,13 @@ export default (chart, sdk) => {
 
   const updateVisibleDimensions = () => {
     const selectedLegendDimensions = chart.getAttribute("selectedLegendDimensions")
+    const matchesSelectedLegendDimension = id =>
+      selectedLegendDimensions.includes(id) ||
+      selectedLegendDimensions.includes(chart.getDimensionName(id)) ||
+      (isHeatmap(chart) && selectedLegendDimensions.includes(withoutPrefix(id)))
 
     visibleDimensionIds = selectedLegendDimensions.length
-      ? sortedDimensionIds.filter(
-          id =>
-            selectedLegendDimensions.includes(id) ||
-            selectedLegendDimensions.includes(chart.getDimensionName(id))
-        )
+      ? sortedDimensionIds.filter(matchesSelectedLegendDimension)
       : sortedDimensionIds
 
     const prevDimensionSet = visibleDimensionSet
@@ -173,9 +173,10 @@ export default (chart, sdk) => {
   }
 
   chart.onHoverSortDimensions = (x, dimensionsSort = chart.getAttribute("dimensionsSort")) => {
-    const sort = isHeatmap(chart)
-      ? bySortMethod.default
-      : bySortMethod[dimensionsSort] || bySortMethod.default
+    if (isHeatmap(chart)) return [...chart.getVisibleHeatmapIds()]
+
+    const sort = bySortMethod[dimensionsSort] || bySortMethod.default
+
     return sort(() => [...chart.getVisibleDimensionIds()], x)
   }
 
@@ -341,7 +342,7 @@ export default (chart, sdk) => {
 
     if (!isNaN(partIndex)) dimName = dimName.split(",")?.[partIndex] ?? dimName
 
-    if (isHeatmap(chart)) return withoutPrefix(dimName)
+    if (isHeatmap(chart)) return formatHeatmapLabel(withoutPrefix(dimName), heatmapScale)
 
     return dimName
   }

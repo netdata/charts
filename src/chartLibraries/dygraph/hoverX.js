@@ -1,4 +1,5 @@
 import getOffsets from "@/helpers/eventOffset"
+import { isHeatmap } from "@/helpers/heatmap"
 
 const shouldFindMaxValue = {
   stacked: true,
@@ -6,6 +7,28 @@ const shouldFindMaxValue = {
 }
 
 export default chartUI => {
+  const getClosestHeatmapDimension = offsetY => {
+    const ids = chartUI.chart.getVisibleHeatmapIds?.()
+    if (!ids?.length) return
+
+    const dygraph = chartUI.getDygraph()
+    let closestId
+    let closestDistance = Infinity
+
+    ids.forEach((id, index) => {
+      const y = dygraph.toDomYCoord(index)
+      if (!Number.isFinite(y)) return
+
+      const distance = Math.abs(y - offsetY)
+      if (distance < closestDistance) {
+        closestId = id
+        closestDistance = distance
+      }
+    })
+
+    return closestId
+  }
+
   const findClosest = (event, points) => {
     if (!Array.isArray(points)) return {}
 
@@ -15,6 +38,11 @@ export default chartUI => {
 
     if (offsetY > _dygraph.getArea().h - 10) return { seriesName: "ANNOTATIONS" }
     if (offsetY < 15) return { seriesName: "ANOMALY_RATE" }
+
+    if (isHeatmap(chartUI.chart)) {
+      const dimensionId = getClosestHeatmapDimension(offsetY)
+      return dimensionId ? { dimensionId } : {}
+    }
 
     if (shouldFindMaxValue[chartUI.chart.getAttribute("chartType")]) {
       let closestPoint = _dygraph.findStackedPoint(offsetX, offsetY)
@@ -42,7 +70,9 @@ export default chartUI => {
   let lastTimestamp
 
   const getDimension = (event, points) => {
-    const { seriesName } = findClosest(event, points)
+    const { seriesName, dimensionId } = findClosest(event, points)
+
+    if (dimensionId) return dimensionId
 
     if (!seriesName) return
 

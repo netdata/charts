@@ -1,5 +1,5 @@
 import makeDimensions from "./makeDimensions"
-import { loadHeatmapPayload, makeTestChart } from "@jest/testUtilities"
+import { loadHeatmapPayload, makeHeatmapPayload, makeTestChart } from "@jest/testUtilities"
 
 describe("makeDimensions", () => {
   let mockChart
@@ -755,6 +755,32 @@ describe("makeDimensions heatmap bucket ordering", () => {
     return chart
   }
 
+  const loadLinePayload = async (chart, ids, rows) => {
+    const payload = makeHeatmapPayload(ids, rows)
+
+    payload.view.chart_type = "line"
+    payload.view.dimensions.grouped_by = []
+
+    chart.doneFetch(payload)
+    await new Promise(resolve => setTimeout(resolve, 0))
+  }
+
+  const makeLineChart = async (ids, rows, attributes = {}) => {
+    const { chart } = makeTestChart({
+      attributes: {
+        chartType: "line",
+        dimensionsSort: "default",
+        groupBy: [],
+        selectedLegendDimensions: [],
+        ...attributes,
+      },
+    })
+
+    await loadLinePayload(chart, ids, rows)
+
+    return chart
+  }
+
   it("sorts pure numeric Prometheus bucket ids without changing payload index", () => {
     const ids = ["+Inf", "0.3", "10", "120", "15", "2", "2.5"]
     const chart = makeHeatmapChart(ids)
@@ -813,6 +839,15 @@ describe("makeDimensions heatmap bucket ordering", () => {
     expect(chart.getVisibleHeatmapIds()).toEqual(["2", "+Inf"])
     expect(chart.getHeatmapYIndex("2")).toBe(0)
     expect(chart.getHeatmapYIndex("+Inf")).toBe(1)
+  })
+
+  it("keeps prefixed heatmap visibility selection by raw bucket label", () => {
+    const chart = makeHeatmapChart(["bucket_1024", "bucket_2048", "bucket_+Inf"], {
+      selectedLegendDimensions: ["1024"],
+    })
+
+    expect(chart.getDimensionName("bucket_1024")).toBe("1Ki")
+    expect(chart.getVisibleDimensionIds()).toEqual(["bucket_1024"])
   })
 
   it("crops zero-only buckets from heatmap edges without changing dimension visibility", async () => {
@@ -879,5 +914,39 @@ describe("makeDimensions heatmap bucket ordering", () => {
     expect(chart.getVisibleHeatmapIds()).toEqual(ids)
     expect(chart.getHeatmapYIndex("0")).toBe(0)
     expect(chart.getHeatmapYIndex("6")).toBe(6)
+  })
+
+  it("uses cropped y-axis bucket order for heatmap hover popovers", async () => {
+    const ids = ["0", "1", "2", "3", "4", "5", "6"]
+    const chart = makeHeatmapChart(ids)
+
+    await loadHeatmapPayload(chart, ids, [[0, 0, 0, 9, 0, 0, 0]])
+
+    const croppedIds = ["1", "2", "3", "4", "5"]
+
+    expect(chart.getVisibleHeatmapIds()).toEqual(croppedIds)
+
+    const sorted = chart.onHoverSortDimensions(0, "valueDesc")
+
+    expect(sorted).toEqual(croppedIds)
+  })
+
+  it("formats heatmap dimension names with the detected heatmap scale", () => {
+    const siChart = makeHeatmapChart(["0.005", "0.01", "+Inf"])
+    const binaryChart = makeHeatmapChart(["bucket_1024", "bucket_2048", "bucket_+Inf"])
+
+    expect(siChart.getDimensionName("0.005")).toBe("5m")
+    expect(siChart.getDimensionName("+Inf")).toBe("+Inf")
+    expect(binaryChart.getDimensionName("bucket_1024")).toBe("1Ki")
+  })
+
+  it("keeps non-heatmap hover popovers value sorted", async () => {
+    const chart = await makeLineChart(["cpu", "memory", "disk"], [[1, 9, 4]])
+
+    expect(chart.getAttribute("chartType")).toBe("line")
+
+    const sorted = chart.onHoverSortDimensions(0, "valueDesc")
+
+    expect(sorted).toEqual(["memory", "disk", "cpu"])
   })
 })

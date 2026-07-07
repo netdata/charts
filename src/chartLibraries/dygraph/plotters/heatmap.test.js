@@ -124,6 +124,22 @@ describe("heatmap plotter", () => {
     expect(chartUI.chart.getDimensionValue).toHaveBeenCalledWith("2", 0, { allowNull: true })
   })
 
+  it("reads values by dygraph payload row index when points are clipped", () => {
+    plotter.allSeriesPoints = [
+      [
+        { canvasx: 10, idx: 4 },
+        { canvasx: 20, idx: 5 },
+      ],
+    ]
+    plotter.dygraph.layout_.setNames = ["dim1"]
+
+    const plotterFunc = heatmapPlotter(chartUI)
+    plotterFunc(plotter)
+
+    expect(chartUI.chart.getDimensionValue).toHaveBeenCalledWith("dim1", 4, { allowNull: true })
+    expect(chartUI.chart.getDimensionValue).toHaveBeenCalledWith("dim1", 5, { allowNull: true })
+  })
+
   it("uses color based on dimension value", () => {
     const plotterFunc = heatmapPlotter(chartUI)
     plotterFunc(plotter)

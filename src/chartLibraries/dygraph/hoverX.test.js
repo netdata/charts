@@ -174,6 +174,53 @@ describe("hoverX", () => {
     expect(chartUI.sdk.trigger).toHaveBeenCalledWith("highlightHover", chart, 1640995200000, "test")
   })
 
+  it("selects heatmap bucket from cursor y instead of dygraph nearest point", () => {
+    const visibleHeatmapIds = ["low", "mid", "high"]
+    const findClosestPoint = jest.fn(() => ({ seriesName: "low", row: 0 }))
+
+    chart.getAttribute = jest.fn(key => {
+      if (key === "chartType") return "heatmap"
+      if (key === "overlays") return {}
+      return null
+    })
+    chart.getVisibleHeatmapIds = jest.fn(() => visibleHeatmapIds)
+    chart.getPayloadDimensionIds = jest.fn(() => visibleHeatmapIds)
+
+    chartUI.getDygraph = jest.fn(() => ({
+      getArea: jest.fn(() => ({ h: 200 })),
+      findClosestPoint,
+      getPropertiesForSeries: jest.fn(seriesName => ({
+        column: visibleHeatmapIds.findIndex(id => id === seriesName) + 1,
+      })),
+      toDomYCoord: jest.fn(index => {
+        const positions = [150, 100, 50]
+        return positions[index]
+      }),
+    }))
+
+    hoverXInstance.toggle(true)
+
+    const highlightHandler = chartUI.on.mock.calls.find(call => call[0] === "highlightCallback")[1]
+
+    highlightHandler(
+      {
+        clientX: 100,
+        clientY: 100,
+        target: { getBoundingClientRect: () => ({ left: 0, top: 0 }) },
+      },
+      1640995200000,
+      []
+    )
+
+    expect(findClosestPoint).not.toHaveBeenCalled()
+    expect(chartUI.sdk.trigger).toHaveBeenCalledWith(
+      "highlightHover",
+      chart,
+      1640995200000,
+      "mid"
+    )
+  })
+
   it("handles destroy method", () => {
     hoverXInstance.toggle(true)
     hoverXInstance.destroy()

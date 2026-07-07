@@ -33,7 +33,8 @@ export default chartUI => plotter => {
     )
 
     sets[j].forEach((p, i) => {
-      const value = chartUI.chart.getDimensionValue(seriesName, i, { allowNull: true })
+      const rowIndex = Number.isInteger(p.idx) ? p.idx : i
+      const value = chartUI.chart.getDimensionValue(seriesName, rowIndex, { allowNull: true })
 
       ctx.fillStyle = getColor(value)
       ctx.fillRect(p.canvasx - barWidth / 2, g.toDomYCoord(index) - height / 2, barWidth, height)
