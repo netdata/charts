@@ -18,6 +18,7 @@ const componentsByAction = {
 const Drawer = () => {
   const expandedHeight = useAttributeValue("expandedHeight")
   const action = useAttributeValue("drawer.action")
+  const isValuesAction = action === actions.values
 
   const Component = useMemo(() => {
     return componentsByAction[action] || componentsByAction.compare
@@ -32,7 +33,15 @@ const Drawer = () => {
       background="mainChartBg"
     >
       <Header padding={[0, 2, 2, 2]} />
-      <Flex flex column padding={[0, 2, 3, 2]} overflow={{ vertical: "scroll" }} height="100%">
+      <Flex
+        flex
+        column
+        padding={[0, 2, 3, 2]}
+        overflow={{ vertical: isValuesAction ? "hidden" : "scroll" }}
+        height="100%"
+        style={{ minHeight: 0 }}
+        data-testid="drawer-content"
+      >
         <Component />
       </Flex>
     </Flex>
