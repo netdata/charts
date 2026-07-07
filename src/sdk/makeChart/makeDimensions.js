@@ -1,6 +1,13 @@
 import dimensionColors from "./theme/dimensionColors"
 import deepEqual, { setsAreEqual } from "@/helpers/deepEqual"
-import { heatmapTypes, isHeatmap, isIncremental, withoutPrefix } from "@/helpers/heatmap"
+import {
+  cropHeatmapZeroEdges,
+  heatmapTypes,
+  isHeatmap,
+  isIncremental,
+  withoutPrefix,
+} from "@/helpers/heatmap"
+import { detectHeatmapScale, formatHeatmapLabel, sortHeatmapValues } from "@/helpers/heatmapScale"
 import groupBy from "lodash/groupBy"
 import isEmpty from "lodash/isEmpty"
 
@@ -12,6 +19,11 @@ export default (chart, sdk) => {
   let sortedDimensionIds = []
   let visibleDimensionIds = []
   let visibleDimensionSet = new Set()
+  let heatmapSortedIds = null
+  let heatmapScale = null
+  let heatmapVisiblePayload = null
+  let heatmapVisibleKey = null
+  let heatmapVisibleIds = null
   let colorCursor = 0
 
   const sparklineDimensions = ["sum"]
@@ -132,13 +144,13 @@ export default (chart, sdk) => {
 
   const updateVisibleDimensions = () => {
     const selectedLegendDimensions = chart.getAttribute("selectedLegendDimensions")
+    const matchesSelectedLegendDimension = id =>
+      selectedLegendDimensions.includes(id) ||
+      selectedLegendDimensions.includes(chart.getDimensionName(id)) ||
+      (isHeatmap(chart) && selectedLegendDimensions.includes(withoutPrefix(id)))
 
     visibleDimensionIds = selectedLegendDimensions.length
-      ? sortedDimensionIds.filter(
-          id =>
-            selectedLegendDimensions.includes(id) ||
-            selectedLegendDimensions.includes(chart.getDimensionName(id))
-        )
+      ? sortedDimensionIds.filter(matchesSelectedLegendDimension)
       : sortedDimensionIds
 
     const prevDimensionSet = visibleDimensionSet
@@ -161,9 +173,10 @@ export default (chart, sdk) => {
   }
 
   chart.onHoverSortDimensions = (x, dimensionsSort = chart.getAttribute("dimensionsSort")) => {
-    const sort = isHeatmap(chart)
-      ? bySortMethod.default
-      : bySortMethod[dimensionsSort] || bySortMethod.default
+    if (isHeatmap(chart)) return [...chart.getVisibleHeatmapIds()]
+
+    const sort = bySortMethod[dimensionsSort] || bySortMethod.default
+
     return sort(() => [...chart.getVisibleDimensionIds()], x)
   }
 
@@ -222,6 +235,9 @@ export default (chart, sdk) => {
     else if (/latency/.test(chart.getAttribute("context")))
       chart.setAttribute("heatmapType", heatmapTypes.default)
 
+    heatmapSortedIds = isHeatmap(chart) ? sortHeatmapValues(dimensionIds) : null
+    heatmapScale = isHeatmap(chart) ? detectHeatmapScale(dimensionIds) : null
+
     chart.sortDimensions()
     chart.updateColors()
   }
@@ -233,6 +249,51 @@ export default (chart, sdk) => {
   chart.getVisibleDimensionIds = () => visibleDimensionIds
 
   chart.isDimensionVisible = id => visibleDimensionSet.has(id)
+
+  chart.getHeatmapSortedIds = () => heatmapSortedIds
+
+  const getBaseVisibleHeatmapIds = () =>
+    heatmapSortedIds ? heatmapSortedIds.filter(id => visibleDimensionSet.has(id)) : visibleDimensionIds
+
+  const isZeroOnlyHeatmapBucket = id => {
+    const { all = [] } = chart.getPayload()
+    if (!all.length) return false
+
+    return all.every(row => {
+      const value = chart.getRowDimensionValue(id, row, { allowNull: true })
+      return value === null || value === 0
+    })
+  }
+
+  chart.getVisibleHeatmapIds = () => {
+    const ids = getBaseVisibleHeatmapIds()
+    if (!isHeatmap(chart)) return ids
+
+    const payload = chart.getPayload()
+    const key = ids.join("\u0000")
+
+    if (payload === heatmapVisiblePayload && key === heatmapVisibleKey) return heatmapVisibleIds
+
+    heatmapVisiblePayload = payload
+    heatmapVisibleKey = key
+    heatmapVisibleIds = cropHeatmapZeroEdges(ids, isZeroOnlyHeatmapBucket)
+
+    return heatmapVisibleIds
+  }
+
+  chart.getHeatmapScale = () => heatmapScale
+
+  chart.getHeatmapYIndex = id => {
+    const visibleHeatmapIds = chart.getVisibleHeatmapIds()
+    const heatmapIndex = visibleHeatmapIds.findIndex(visibleId => visibleId === id)
+
+    if (heatmapIndex !== -1) return heatmapIndex
+    if (isHeatmap(chart)) return -1
+
+    const index = chart.getDimensionIndex(id)
+
+    return index === undefined ? -1 : index
+  }
 
   let memKey = null
   const getMemKey = () => {
@@ -281,7 +342,7 @@ export default (chart, sdk) => {
 
     if (!isNaN(partIndex)) dimName = dimName.split(",")?.[partIndex] ?? dimName
 
-    if (isHeatmap(chart)) return withoutPrefix(dimName)
+    if (isHeatmap(chart)) return formatHeatmapLabel(withoutPrefix(dimName), heatmapScale)
 
     return dimName
   }

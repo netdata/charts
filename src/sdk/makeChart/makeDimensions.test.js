@@ -1,4 +1,5 @@
 import makeDimensions from "./makeDimensions"
+import { loadHeatmapPayload, makeHeatmapPayload, makeTestChart } from "@jest/testUtilities"
 
 describe("makeDimensions", () => {
   let mockChart
@@ -660,7 +661,7 @@ describe("makeDimensions", () => {
       mockChart.getRowDimensionValue = jest.fn().mockReturnValueOnce(30).mockReturnValueOnce(10)
 
       const pointData = [1000, 10, 20, 30]
-      const value = mockChart.getRowDimensionValue("disk", pointData, { incrementable: true })
+      mockChart.getRowDimensionValue("disk", pointData, { incrementable: true })
 
       expect(mockChart.getRowDimensionValue).toHaveBeenCalled()
     })
@@ -725,5 +726,227 @@ describe("makeDimensions", () => {
       mockChart.updateDimensions()
       expect(sortDimensionsSpy).toHaveBeenCalled()
     })
+  })
+})
+
+describe("makeDimensions heatmap bucket ordering", () => {
+  const makeHeatmapChart = (ids, attributes = {}) => {
+    const { chart } = makeTestChart({
+      attributes: {
+        chartType: "heatmap",
+        context: "prometheus.test.histogram",
+        dimensionsSort: "default",
+        groupBy: ["dimension"],
+        selectedLegendDimensions: [],
+        viewDimensions: {
+          ids,
+          names: ids,
+          priorities: ids.map((_, index) => index),
+          units: ids.map(() => ""),
+          contexts: ids.map(() => ""),
+          grouped: ["dimension"],
+        },
+        ...attributes,
+      },
+    })
+
+    chart.updateDimensions()
+
+    return chart
+  }
+
+  const loadLinePayload = async (chart, ids, rows) => {
+    const payload = makeHeatmapPayload(ids, rows)
+
+    payload.view.chart_type = "line"
+    payload.view.dimensions.grouped_by = []
+
+    chart.doneFetch(payload)
+    await new Promise(resolve => setTimeout(resolve, 0))
+  }
+
+  const makeLineChart = async (ids, rows, attributes = {}) => {
+    const { chart } = makeTestChart({
+      attributes: {
+        chartType: "line",
+        dimensionsSort: "default",
+        groupBy: [],
+        selectedLegendDimensions: [],
+        ...attributes,
+      },
+    })
+
+    await loadLinePayload(chart, ids, rows)
+
+    return chart
+  }
+
+  it("sorts pure numeric Prometheus bucket ids without changing payload index", () => {
+    const ids = ["+Inf", "0.3", "10", "120", "15", "2", "2.5"]
+    const chart = makeHeatmapChart(ids)
+
+    expect(chart.getHeatmapSortedIds()).toEqual(["0.3", "2", "2.5", "10", "15", "120", "+Inf"])
+    expect(chart.getHeatmapScale()).toBe("num")
+    expect(chart.getHeatmapYIndex("0.3")).toBe(0)
+    expect(chart.getHeatmapYIndex("+Inf")).toBe(6)
+
+    expect(chart.getDimensionIndex("+Inf")).toBe(0)
+    expect(chart.getDimensionIndex("2")).toBe(5)
+    expect(chart.getRowDimensionValue("2", [1000, 7, 1, 2, 3, 4, 5, 6])).toBe(5)
+  })
+
+  it("places a runtime-added numeric bucket before +Inf", () => {
+    const chart = makeHeatmapChart(["1", "2", "5", "10", "+Inf"])
+    const nextIds = ["1", "2", "5", "10", "+Inf", "3"]
+
+    chart.setAttribute("viewDimensions", {
+      ids: nextIds,
+      names: nextIds,
+      priorities: nextIds.map((_, index) => index),
+      units: nextIds.map(() => ""),
+      contexts: nextIds.map(() => ""),
+      grouped: ["dimension"],
+    })
+    chart.updateDimensions()
+
+    expect(chart.getHeatmapSortedIds()).toEqual(["1", "2", "3", "5", "10", "+Inf"])
+    expect(chart.getHeatmapYIndex("3")).toBe(2)
+    expect(chart.getHeatmapYIndex("+Inf")).toBe(5)
+  })
+
+  it("sorts prefixed compatibility bucket ids", () => {
+    const chart = makeHeatmapChart(["bucket_+Inf", "bucket_1024", "bucket_2048"])
+
+    expect(chart.getHeatmapSortedIds()).toEqual(["bucket_1024", "bucket_2048", "bucket_+Inf"])
+    expect(chart.getHeatmapScale()).toBe("binary")
+    expect(chart.getHeatmapYIndex("bucket_1024")).toBe(0)
+    expect(chart.getDimensionIndex("bucket_1024")).toBe(1)
+  })
+
+  it("falls back to payload order for non-numeric heatmaps", () => {
+    const chart = makeHeatmapChart(["low", "high", "+Inf"])
+
+    expect(chart.getHeatmapSortedIds()).toBe(null)
+    expect(chart.getHeatmapScale()).toBe(null)
+    expect(chart.getHeatmapYIndex("high")).toBe(1)
+  })
+
+  it("uses sorted visible heatmap ids for y positions", () => {
+    const chart = makeHeatmapChart(["+Inf", "1", "5", "2"], {
+      selectedLegendDimensions: ["2", "+Inf"],
+    })
+
+    expect(chart.getVisibleHeatmapIds()).toEqual(["2", "+Inf"])
+    expect(chart.getHeatmapYIndex("2")).toBe(0)
+    expect(chart.getHeatmapYIndex("+Inf")).toBe(1)
+  })
+
+  it("keeps prefixed heatmap visibility selection by raw bucket label", () => {
+    const chart = makeHeatmapChart(["bucket_1024", "bucket_2048", "bucket_+Inf"], {
+      selectedLegendDimensions: ["1024"],
+    })
+
+    expect(chart.getDimensionName("bucket_1024")).toBe("1Ki")
+    expect(chart.getVisibleDimensionIds()).toEqual(["bucket_1024"])
+  })
+
+  it("crops zero-only buckets from heatmap edges without changing dimension visibility", async () => {
+    const ids = ["0", "1", "2", "3", "4", "5", "6"]
+    const chart = makeHeatmapChart(ids)
+
+    await loadHeatmapPayload(chart, ids, [
+      [0, 0, 1, 0, 2, 0, 0],
+      [0, 0, 0, 0, 2, 0, 0],
+    ])
+
+    expect(chart.getAttribute("chartType")).toBe("heatmap")
+    expect(chart.getHeatmapSortedIds()).toEqual(ids)
+    expect(chart.getDimensionIds()).toEqual(ids)
+    expect(chart.getRowDimensionValue("0", chart.getPayload().all[0])).toBe(0)
+    expect(chart.getRowDimensionValue("2", chart.getPayload().all[0])).toBe(1)
+    expect(chart.getRowDimensionValue("6", chart.getPayload().all[0])).toBe(0)
+    expect(chart.getVisibleHeatmapIds()).toEqual(["1", "2", "3", "4", "5"])
+    expect(chart.getVisibleDimensionIds()).toEqual(ids)
+    expect(chart.getHeatmapYIndex("0")).toBe(-1)
+    expect(chart.getHeatmapYIndex("2")).toBe(1)
+    expect(chart.getHeatmapYIndex("6")).toBe(-1)
+  })
+
+  it("crops incremental heatmap edges using displayed bucket deltas", async () => {
+    const ids = [
+      "bucket_0",
+      "bucket_1",
+      "bucket_2",
+      "bucket_3",
+      "bucket_4",
+      "bucket_5",
+      "bucket_6",
+    ]
+    const chart = makeHeatmapChart(ids)
+
+    await loadHeatmapPayload(chart, ids, [
+      [0, 0, 1, 1, 3, 3, 3],
+      [0, 0, 0, 0, 3, 3, 3],
+    ])
+
+    expect(chart.getAttribute("heatmapType")).toBe("incremental")
+    expect(chart.getVisibleHeatmapIds()).toEqual([
+      "bucket_1",
+      "bucket_2",
+      "bucket_3",
+      "bucket_4",
+      "bucket_5",
+    ])
+    expect(chart.getHeatmapYIndex("bucket_0")).toBe(-1)
+    expect(chart.getHeatmapYIndex("bucket_2")).toBe(1)
+    expect(chart.getHeatmapYIndex("bucket_6")).toBe(-1)
+  })
+
+  it("keeps the full heatmap scale when all buckets are zero", async () => {
+    const ids = ["0", "1", "2", "3", "4", "5", "6"]
+    const chart = makeHeatmapChart(ids)
+
+    await loadHeatmapPayload(chart, ids, [
+      [0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0],
+    ])
+
+    expect(chart.getVisibleHeatmapIds()).toEqual(ids)
+    expect(chart.getHeatmapYIndex("0")).toBe(0)
+    expect(chart.getHeatmapYIndex("6")).toBe(6)
+  })
+
+  it("uses cropped y-axis bucket order for heatmap hover popovers", async () => {
+    const ids = ["0", "1", "2", "3", "4", "5", "6"]
+    const chart = makeHeatmapChart(ids)
+
+    await loadHeatmapPayload(chart, ids, [[0, 0, 0, 9, 0, 0, 0]])
+
+    const croppedIds = ["1", "2", "3", "4", "5"]
+
+    expect(chart.getVisibleHeatmapIds()).toEqual(croppedIds)
+
+    const sorted = chart.onHoverSortDimensions(0, "valueDesc")
+
+    expect(sorted).toEqual(croppedIds)
+  })
+
+  it("formats heatmap dimension names with the detected heatmap scale", () => {
+    const siChart = makeHeatmapChart(["0.005", "0.01", "+Inf"])
+    const binaryChart = makeHeatmapChart(["bucket_1024", "bucket_2048", "bucket_+Inf"])
+
+    expect(siChart.getDimensionName("0.005")).toBe("5m")
+    expect(siChart.getDimensionName("+Inf")).toBe("+Inf")
+    expect(binaryChart.getDimensionName("bucket_1024")).toBe("1Ki")
+  })
+
+  it("keeps non-heatmap hover popovers value sorted", async () => {
+    const chart = await makeLineChart(["cpu", "memory", "disk"], [[1, 9, 4]])
+
+    expect(chart.getAttribute("chartType")).toBe("line")
+
+    const sorted = chart.onHoverSortDimensions(0, "valueDesc")
+
+    expect(sorted).toEqual(["memory", "disk", "cpu"])
   })
 })

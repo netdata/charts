@@ -4,18 +4,15 @@ const defaultUrlOptionsByLibrary = {
 }
 
 export const getChartURLOptions = chart => {
-  const {
-    eliminateZeroDimensions,
-    urlOptions = [],
-    chartLibrary,
-    nulls2zero,
-  } = chart.getAttributes()
+  const { eliminateZeroDimensions, urlOptions = [], chartLibrary, chartType, nulls2zero } =
+    chart.getAttributes()
   const opts = defaultUrlOptionsByLibrary[chartLibrary] || defaultUrlOptionsByLibrary.default
+  const canEliminateZeroDimensions = chartLibrary !== "table" && chartType !== "heatmap"
 
   return [
     ...urlOptions,
     "jsonwrap",
-    chartLibrary !== "table" && eliminateZeroDimensions && "nonzero",
+    canEliminateZeroDimensions && eliminateZeroDimensions && "nonzero",
     nulls2zero && "null2zero",
     "flip",
     "ms",
@@ -31,6 +28,19 @@ export const pointMultiplierByChartType = {
   table: 0.1,
   heatmap: 0.7,
   default: 0.7,
+}
+
+export const getLiveFetchBefore = ({
+  after,
+  renderedAt,
+  hovering,
+  fetchStartedAt,
+  viewUpdateEvery,
+}) => {
+  if (after > 0) return null
+  if (viewUpdateEvery && viewUpdateEvery > Math.abs(after)) return null
+
+  return hovering && renderedAt ? Math.ceil(renderedAt / 1000) : Math.ceil(fetchStartedAt / 1000)
 }
 
 export const getChartPayload = (chart, attrs = {}) => {
@@ -57,20 +67,25 @@ export const getChartPayload = (chart, attrs = {}) => {
     pointMultiplierByChartType[chartLibrary] ||
     pointMultiplierByChartType.default
 
-  const fetchOn =
-    hovering && renderedAt ? Math.ceil(renderedAt / 1000) : Math.ceil(fetchStartedAt / 1000)
+  const fetchBefore = getLiveFetchBefore({
+    after,
+    renderedAt,
+    hovering,
+    fetchStartedAt,
+    viewUpdateEvery,
+  })
 
   const afterBefore =
     after > 0
       ? { after, before }
-      : viewUpdateEvery && viewUpdateEvery > Math.abs(after)
+      : fetchBefore === null
         ? {
             after,
             before: 0,
           }
         : {
-            after: fetchOn + after,
-            before: fetchOn,
+            after: fetchBefore + after,
+            before: fetchBefore,
           }
 
   const points = customPoints || Math.round((width / pixelsPerPoint) * pointsMultiplier)

@@ -1,4 +1,5 @@
 import { errorCodesToMessage } from "./api"
+import { getLiveFetchBefore } from "./api/helpers"
 import makeGetClosestRow from "./makeGetClosestRow"
 import getInitialFilterAttributes from "./filters/getInitialAttributes"
 import camelizePayload from "./camelizePayload"
@@ -8,6 +9,13 @@ const initialPayload = {
   data: [],
   all: [],
   tree: {},
+}
+
+const getLiveAnchor = payload => {
+  const lastRow = payload?.data?.[payload.data.length - 1]
+  const lastTimestamp = lastRow?.[0]
+
+  return typeof lastTimestamp === "number" && isFinite(lastTimestamp) ? lastTimestamp : null
 }
 
 export default chart => {
@@ -88,7 +96,7 @@ export default chart => {
     return data?.length || 0
   }
 
-  chart.doneFetch = nextRawPayload => {
+  chart.doneFetch = (nextRawPayload, { liveAnchor } = {}) => {
     chart.backoffMs = 0
 
     setTimeout(() => {
@@ -110,7 +118,7 @@ export default chart => {
       const attributes = chart.getAttributes()
 
       chart.setAttributes({
-        chartType: attributes.selectedChartType || attributes.chartType || chartType,
+        chartType: attributes.chartType || chartType,
         title: attributes.title === null ? title : attributes.title,
       })
 
@@ -118,6 +126,7 @@ export default chart => {
         loaded: true,
         loading: false,
         processing: false,
+        liveAnchor: liveAnchor ?? getLiveAnchor(nextPayload),
         updatedAt: Date.now(),
         outOfLimits: !dataLength,
         ...restPayload,
@@ -233,11 +242,25 @@ export default chart => {
       return Promise.resolve()
     }
 
+    const fetchStartedAt = Date.now()
+
     chart.updateAttributes({
       processing,
       loading: true,
-      fetchStartedAt: Date.now(),
+      fetchStartedAt,
     })
+    const { after, hovering, renderedAt, viewUpdateEvery } = chart.getAttributes()
+    const fetchBefore = getLiveFetchBefore({
+      after,
+      hovering,
+      renderedAt,
+      fetchStartedAt,
+      viewUpdateEvery,
+    })
+    const liveAnchor =
+      typeof fetchBefore === "number" && isFinite(fetchBefore) && fetchBefore > 0
+        ? fetchBefore * 1000
+        : null
 
     chart.cancelFetch()
     chart.trigger("startFetch")
@@ -249,7 +272,7 @@ export default chart => {
     abortController = new AbortController()
 
     return chart.baseFetch({
-      doneFetch: chart.doneFetch,
+      doneFetch: data => chart.doneFetch(data, { liveAnchor }),
       failFetch: chart.failFetch,
       signal: abortController.signal,
     })

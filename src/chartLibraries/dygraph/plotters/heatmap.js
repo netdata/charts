@@ -6,8 +6,6 @@ export default chartUI => plotter => {
   // We need to handle all the series simultaneously.
   if (plotter.seriesIndex !== 0) return
 
-  const dimensionIds = chartUI.chart.getVisibleDimensionIds()
-
   const g = plotter.dygraph
   const ctx = plotter.drawingContext
   const sets = plotter.allSeriesPoints
@@ -24,7 +22,7 @@ export default chartUI => plotter => {
   const getColor = makeGetColor(chartUI.chart)
 
   series.forEach((seriesName, j) => {
-    const index = chartUI.chart.getDimensionIndex(seriesName)
+    const index = chartUI.chart.getHeatmapYIndex(seriesName)
 
     if (index === -1) return
 
@@ -35,7 +33,8 @@ export default chartUI => plotter => {
     )
 
     sets[j].forEach((p, i) => {
-      const value = chartUI.chart.getDimensionValue(dimensionIds[index], i, { allowNull: true })
+      const rowIndex = Number.isInteger(p.idx) ? p.idx : i
+      const value = chartUI.chart.getDimensionValue(seriesName, rowIndex, { allowNull: true })
 
       ctx.fillStyle = getColor(value)
       ctx.fillRect(p.canvasx - barWidth / 2, g.toDomYCoord(index) - height / 2, barWidth, height)

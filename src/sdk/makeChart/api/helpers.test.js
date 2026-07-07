@@ -1,6 +1,7 @@
 import {
   getChartURLOptions,
   pointMultiplierByChartType,
+  getLiveFetchBefore,
   getChartPayload,
   errorCodesToMessage,
 } from "./helpers"
@@ -64,6 +65,21 @@ describe("API helpers", () => {
       expect(result).not.toContain("nonzero")
     })
 
+    it("excludes nonzero for heatmap chart type", () => {
+      const { chart } = makeTestChart({
+        attributes: {
+          eliminateZeroDimensions: true,
+          urlOptions: [],
+          chartLibrary: "dygraph",
+          chartType: "heatmap",
+        },
+      })
+
+      const result = getChartURLOptions(chart)
+
+      expect(result).not.toContain("nonzero")
+    })
+
     it("includes group-by-labels for groupBoxes library", () => {
       const { chart } = makeTestChart({
         attributes: {
@@ -101,6 +117,56 @@ describe("API helpers", () => {
         heatmap: 0.7,
         default: 0.7,
       })
+    })
+  })
+
+  describe("getLiveFetchBefore", () => {
+    it("rounds the live request anchor from fetchStartedAt", () => {
+      const result = getLiveFetchBefore({
+        after: -300,
+        renderedAt: null,
+        hovering: false,
+        fetchStartedAt: 1000500,
+        viewUpdateEvery: 0,
+      })
+
+      expect(result).toBe(1001)
+    })
+
+    it("uses renderedAt when the chart is hovering", () => {
+      const result = getLiveFetchBefore({
+        after: -300,
+        renderedAt: 1000000,
+        hovering: true,
+        fetchStartedAt: 1001500,
+        viewUpdateEvery: 0,
+      })
+
+      expect(result).toBe(1000)
+    })
+
+    it("does not anchor absolute windows", () => {
+      const result = getLiveFetchBefore({
+        after: 1000,
+        renderedAt: null,
+        hovering: false,
+        fetchStartedAt: 1000500,
+        viewUpdateEvery: 0,
+      })
+
+      expect(result).toBe(null)
+    })
+
+    it("does not anchor view update windows kept relative for the API", () => {
+      const result = getLiveFetchBefore({
+        after: -300,
+        renderedAt: null,
+        hovering: false,
+        fetchStartedAt: 1000500,
+        viewUpdateEvery: 600,
+      })
+
+      expect(result).toBe(null)
     })
   })
 
@@ -199,6 +265,30 @@ describe("API helpers", () => {
 
       expect(result.after).toBe(1000)
       expect(result.before).toBe(2000)
+    })
+
+    it("uses the same live request anchor as getLiveFetchBefore", () => {
+      const { chart } = makeTestChart({
+        attributes: {
+          after: -300,
+          before: 0,
+          groupingMethod: "average",
+          groupingTime: "auto",
+          renderedAt: null,
+          hovering: false,
+          fetchStartedAt: 1000500,
+          chartType: "line",
+          pixelsPerPoint: 4,
+          chartLibrary: "dygraph",
+        },
+      })
+
+      chart.getUI().getChartWidth = () => 800
+
+      const result = getChartPayload(chart)
+
+      expect(result.after).toBe(701)
+      expect(result.before).toBe(1001)
     })
 
     it("uses different multiplier for multiBar", () => {

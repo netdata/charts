@@ -274,6 +274,7 @@ export default {
 
   renderedAt: null,
   fetchAt: null,
+  liveAnchor: null,
 
   dimensionsOnNonDimensionGrouping: null,
 

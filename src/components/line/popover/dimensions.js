@@ -77,6 +77,7 @@ const rowSorting = {
 const Dimensions = () => {
   const chart = useChart()
   const [x, row] = useAttributeValue("hoverX") || emptyArray
+  const isHeatmap = chart.getAttribute("chartType") === "heatmap"
 
   const [from, to, total, ids] = useMemo(() => {
     const index = chart.getClosestRow(x)
@@ -91,12 +92,14 @@ const Dimensions = () => {
     const rowIndex = dimensionIds.findIndex(id => id === row)
 
     const total = dimensionIds.length
+    if (isHeatmap) return [0, total, total, dimensionIds]
+
     const from = Math.floor(getFrom(total, rowIndex))
     const to = Math.ceil(getTo(total, rowIndex))
     const ids = dimensionIds.slice(from, to)
 
     return [from, to, total, ids]
-  }, [chart, row, x])
+  }, [chart, isHeatmap, row, x])
 
   const rowFlavour = rowFlavours[row] || rowFlavours.default
 
