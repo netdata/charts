@@ -23,7 +23,6 @@ describe("makeDataFetch", () => {
       after: -300,
       before: 0,
       firstEntry: 1000000,
-      selectedChartType: null,
       chartType: "line",
       title: null,
       loaded: false,

@@ -126,7 +126,6 @@ export default chart => {
     if (!chartLibraries[selected]) {
       chart.updateAttributes({
         chartLibrary: "dygraph",
-        selectedChartType: selected,
         chartType: selected,
         processing: true,
       })

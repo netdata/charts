@@ -4,17 +4,10 @@ const defaultUrlOptionsByLibrary = {
 }
 
 export const getChartURLOptions = chart => {
-  const {
-    eliminateZeroDimensions,
-    urlOptions = [],
-    chartLibrary,
-    chartType,
-    selectedChartType,
-    nulls2zero,
-  } = chart.getAttributes()
+  const { eliminateZeroDimensions, urlOptions = [], chartLibrary, chartType, nulls2zero } =
+    chart.getAttributes()
   const opts = defaultUrlOptionsByLibrary[chartLibrary] || defaultUrlOptionsByLibrary.default
-  const effectiveChartType = selectedChartType || chartType
-  const canEliminateZeroDimensions = chartLibrary !== "table" && effectiveChartType !== "heatmap"
+  const canEliminateZeroDimensions = chartLibrary !== "table" && chartType !== "heatmap"
 
   return [
     ...urlOptions,

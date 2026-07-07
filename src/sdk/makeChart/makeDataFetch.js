@@ -118,7 +118,7 @@ export default chart => {
       const attributes = chart.getAttributes()
 
       chart.setAttributes({
-        chartType: attributes.selectedChartType || attributes.chartType || chartType,
+        chartType: attributes.chartType || chartType,
         title: attributes.title === null ? title : attributes.title,
       })
 
