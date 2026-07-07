@@ -8,6 +8,7 @@ import { useChart, useVisibleDimensionId } from "@/components/provider"
 import { labels as annotationLabels } from "@/helpers/annotations"
 import { useIsHeatmap } from "@/helpers/heatmap"
 import { rowFlavours } from "./dimensions"
+import { popoverGridColumns } from "./layout"
 
 const GridRow = styled(Flex).attrs({
   position: "relative",
@@ -24,6 +25,31 @@ const ColorBackground = styled(ColorBar).attrs({
   backgroundOpacity: 0.4,
   round: 0.5,
 })``
+
+const getInfoColumnWidth = rowFlavour =>
+  rowFlavour === rowFlavours.ANNOTATIONS
+    ? popoverGridColumns.annotationsInfo
+    : popoverGridColumns.info
+
+const DimensionNameCell = styled.div.attrs({
+  "data-testid": "chartPopover-dimensionNameCell",
+})`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.constants.SIZE_SUB_UNIT}px;
+  position: relative;
+  min-width: 0;
+  max-width: calc(
+    80vw - 32px - ${popoverGridColumns.value} - ${popoverGridColumns.anomaly} -
+      ${({ $rowFlavour }) => getInfoColumnWidth($rowFlavour)}
+  );
+  overflow: hidden;
+
+  [data-testid="chartDimensions-name"] {
+    min-width: 0;
+    max-width: 100%;
+  }
+`
 
 const rowValueKeys = {
   ANOMALY_RATE: "arp",
@@ -73,7 +99,7 @@ const Dimension = ({ id, strong, rowFlavour }) => {
 
   return (
     <GridRow opacity={visible ? null : "weak"}>
-      <Flex alignItems="center" gap={1} position="relative">
+      <DimensionNameCell $rowFlavour={rowFlavour}>
         <ColorBackground
           id={id}
           valueKey={rowValueKeys[rowFlavour] || rowValueKeys.default}
@@ -89,7 +115,7 @@ const Dimension = ({ id, strong, rowFlavour }) => {
           noTooltip
           color={strong ? "textFocus" : "text"}
         />
-      </Flex>
+      </DimensionNameCell>
       <Value
         id={id}
         strong={strong}

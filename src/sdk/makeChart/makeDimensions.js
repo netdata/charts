@@ -221,7 +221,7 @@ export default (chart, sdk) => {
         )
 
         if (prefix === newPrefix)
-          chart.setAttribute("heatmapType", heatmapTypes[prefix] || heatmapTypes.incremental)
+          chart.setAttribute("heatmapType", heatmapTypes[prefix] || heatmapTypes.default)
 
         prefix = newPrefix
       }
@@ -414,7 +414,7 @@ export default (chart, sdk) => {
     value = value !== null && typeof value === "object" ? value[valueKey] : value
     value = allowNull && value === null ? value : abs ? Math.abs(value) : value
 
-    if (incrementable && isIncremental(chart)) {
+    if (valueKey === "value" && incrementable && isIncremental(chart)) {
       let index = chart.getDimensionIds().findIndex(dimId => dimId === id)
 
       if (index === -1) return value

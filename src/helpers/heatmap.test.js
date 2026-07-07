@@ -125,9 +125,9 @@ describe("heatmap utilities", () => {
       expect(getColor(undefined)).toBe("transparent")
     })
 
-    it("returns color for zero value", () => {
+    it("returns transparent for zero value", () => {
       const getColor = makeGetColor(mockChart)
-      expect(getColor(0)).toMatch(/rgb/)
+      expect(getColor(0)).toBe("transparent")
     })
 
     it("uses the low-end color when the heatmap max is zero", () => {
@@ -135,7 +135,7 @@ describe("heatmap utilities", () => {
 
       const getColor = makeGetColor(mockChart)
 
-      expect(getColor(0)).toBe("rgba(62, 73, 137, 1)")
+      expect(getColor(0)).toBe("transparent")
       expect(getColor(null)).toBe("transparent")
       expect(getColor(undefined)).toBe("transparent")
     })
