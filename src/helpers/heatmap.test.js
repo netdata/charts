@@ -130,6 +130,16 @@ describe("heatmap utilities", () => {
       expect(getColor(0)).toMatch(/rgb/)
     })
 
+    it("uses the low-end color when the heatmap max is zero", () => {
+      mockChart.getAttribute = jest.fn(() => 0)
+
+      const getColor = makeGetColor(mockChart)
+
+      expect(getColor(0)).toBe("rgba(62, 73, 137, 1)")
+      expect(getColor(null)).toBe("transparent")
+      expect(getColor(undefined)).toBe("transparent")
+    })
+
     it("returns color for valid values", () => {
       const getColor = makeGetColor(mockChart)
       const color = getColor(100)

@@ -706,6 +706,63 @@ Non-heatmap popovers must not be affected.
 - Repo-wide lint was checked with `yarn lint`; it still fails on unrelated
   existing errors outside this change.
 
+## Follow-up Scope: All-Zero Heatmap Color
+
+### Requirement
+
+When a heatmap's entire visible data range is zero, the heatmap must render
+zero cells with the low-end color, not the high-end highlighted color. Missing
+cells must remain transparent. Positive-max heatmaps must keep the existing
+gradient behavior.
+
+### Evidence
+
+- `makeGetColor()` builds a D3 linear scale from the chart `max`
+  (`src/helpers/heatmap.js:35-43`).
+- When `max` is `0`, the generated domain collapses to repeated zero values.
+  D3's linear scale then maps `0` to the high end of the range, making an
+  all-zero heatmap look highlighted instead of empty/dim.
+- The existing tests only asserted that zero returned some RGB color; they did
+  not assert which end of the heatmap palette zero maps to
+  (`src/helpers/heatmap.test.js:128-130`).
+
+### Design Decision
+
+Use a surgical guard in `makeGetColor()`: if the chart max is not a positive
+finite number, return the first palette color for real cells and keep
+`transparent` for `null`/`undefined`. This avoids a degenerate D3 scale while
+leaving all positive-max heatmaps on the existing gradient path.
+
+### Implementation
+
+- `src/helpers/heatmap.js` now converts the chart max to a number before
+  building the scale.
+- If the max is not a positive finite value, `makeGetColor()` returns the
+  first heatmap palette color for real values and keeps missing values
+  transparent.
+- Positive-max heatmaps still use the existing D3 linear color scale.
+
+### Verification
+
+- Added a failing-first regression test proving `max = 0` previously mapped
+  `value = 0` to a highlighted color instead of the low-end color.
+- Passed focused regression:
+  `yarn test src/helpers/heatmap.test.js --coverage=false --runInBand`
+- Passed broader heatmap/chart/popover tests:
+  `yarn test src/helpers/heatmap.test.js src/helpers/heatmapScale.test.js src/sdk/makeChart/makeDimensions.test.js src/chartLibraries/dygraph/index.test.js src/chartLibraries/dygraph/plotters/heatmap.test.js src/chartLibraries/dygraph/tickers/heatmap.test.js src/chartLibraries/dygraph/hoverX.test.js src/components/line/popover/dimensions.test.js --coverage=false --runInBand`
+- Passed full tests:
+  `yarn test --coverage=false --runInBand`
+- Passed build:
+  `yarn build`
+- Passed scoped lint on changed files:
+  `./node_modules/.bin/eslint src/helpers/heatmap.js src/helpers/heatmap.test.js`
+- Passed package copy to cloud-frontend:
+  `yarn to-cloud`
+- Passed cloud-frontend final install copy:
+  `sudo ./agent.sh install`
+- Repo-wide lint was checked with `yarn lint`; it still fails on unrelated
+  existing errors outside this change.
+
 ## Follow-up Scope: Heatmap Popover List Windowing
 
 ### User-approved requirement
