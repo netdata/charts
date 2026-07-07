@@ -1,5 +1,4 @@
 import heatmapTicker from "./heatmap"
-import { withoutPrefix } from "@/helpers/heatmap"
 
 describe("heatmapTicker", () => {
   let mockOpts
@@ -67,6 +66,39 @@ describe("heatmapTicker", () => {
     heatmapTicker(0, 100, 200, mockOpts, mockDygraph, null, { labels: defaultLabels })
 
     expect(mockFormatter).toHaveBeenCalled()
+  })
+
+  it("formats SI heatmap bucket labels compactly", () => {
+    const defaultLabels = ["0.005", "1000", "+Inf"]
+    const ticks = heatmapTicker(0, 100, 300, mockOpts, mockDygraph, null, {
+      labels: defaultLabels,
+      scale: "num",
+    })
+
+    const labels = ticks.filter(tick => tick.v !== undefined).map(tick => tick.label)
+    expect(labels).toEqual(["label_5m", "label_1k", "label_+Inf"])
+  })
+
+  it("formats binary heatmap bucket labels compactly", () => {
+    const defaultLabels = ["512", "1024", "1048576", "+Inf"]
+    const ticks = heatmapTicker(0, 100, 300, mockOpts, mockDygraph, null, {
+      labels: defaultLabels,
+      scale: "binary",
+    })
+
+    const labels = ticks.filter(tick => tick.v !== undefined).map(tick => tick.label)
+    expect(labels).toEqual(["label_512", "label_1Ki", "label_1Mi", "label_+Inf"])
+  })
+
+  it("uses raw prefix-stripped labels when scale is null", () => {
+    const defaultLabels = ["bucket_0.005", "bucket_+Inf"]
+    const ticks = heatmapTicker(0, 100, 200, mockOpts, mockDygraph, null, {
+      labels: defaultLabels,
+      scale: null,
+    })
+
+    const labels = ticks.filter(tick => tick.v !== undefined).map(tick => tick.label)
+    expect(labels).toEqual(["label_0.005", "label_+Inf"])
   })
 
   it("calculates hidden step to reduce label density", () => {

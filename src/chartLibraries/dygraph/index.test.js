@@ -263,6 +263,47 @@ describe("dygraphChart", () => {
     )
   })
 
+  it("preserves compact scaled heatmap y-axis labels", () => {
+    const ids = ["0.005", "1000", "+Inf"]
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        chartType: "heatmap",
+        groupBy: ["dimension"],
+        selectedLegendDimensions: [],
+        viewDimensions: {
+          ids,
+          names: ids,
+          priorities: ids.map((_, index) => index),
+          units: ids.map(() => ""),
+          contexts: ids.map(() => ""),
+          grouped: ["dimension"],
+        },
+      },
+    })
+
+    chart.updateDimensions()
+    chart.getPayload = () => ({
+      data: [[1617946860000, 1, 2, 3]],
+      labels: ["time", "0.005", "1000", "+Inf"],
+    })
+    chart.getDateWindow = () => [1617946860000, 1617947750000]
+    chart.formatXAxis = x => x.toString()
+    chart.getThemeAttribute = () => "#333"
+    chart.getUnitSign = () => ""
+
+    const instance = dygraphChart(sdk, chart)
+    instance.mount(document.createElement("div"))
+
+    const Dygraph = require("dygraphs")
+    const options = Dygraph.mock.calls[Dygraph.mock.calls.length - 1][2]
+    const formatter = options.axes.y.axisLabelFormatter
+
+    expect(formatter("5m")).toBe("5m")
+    expect(formatter("1k")).toBe("1k")
+    expect(formatter("+Inf")).toBe("+Inf")
+    expect(formatter("0.005")).toBe(0.005)
+  })
+
   it("returns axis range from dygraph", () => {
     const { sdk, chart } = makeTestChart()
 

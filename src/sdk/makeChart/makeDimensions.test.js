@@ -1,4 +1,5 @@
 import makeDimensions from "./makeDimensions"
+import { makeTestChart } from "@jest/testUtilities"
 
 describe("makeDimensions", () => {
   let mockChart
@@ -660,7 +661,7 @@ describe("makeDimensions", () => {
       mockChart.getRowDimensionValue = jest.fn().mockReturnValueOnce(30).mockReturnValueOnce(10)
 
       const pointData = [1000, 10, 20, 30]
-      const value = mockChart.getRowDimensionValue("disk", pointData, { incrementable: true })
+      mockChart.getRowDimensionValue("disk", pointData, { incrementable: true })
 
       expect(mockChart.getRowDimensionValue).toHaveBeenCalled()
     })
@@ -725,5 +726,92 @@ describe("makeDimensions", () => {
       mockChart.updateDimensions()
       expect(sortDimensionsSpy).toHaveBeenCalled()
     })
+  })
+})
+
+describe("makeDimensions heatmap bucket ordering", () => {
+  const makeHeatmapChart = (ids, attributes = {}) => {
+    const { chart } = makeTestChart({
+      attributes: {
+        chartType: "heatmap",
+        context: "prometheus.test.histogram",
+        dimensionsSort: "default",
+        groupBy: ["dimension"],
+        selectedLegendDimensions: [],
+        viewDimensions: {
+          ids,
+          names: ids,
+          priorities: ids.map((_, index) => index),
+          units: ids.map(() => ""),
+          contexts: ids.map(() => ""),
+          grouped: ["dimension"],
+        },
+        ...attributes,
+      },
+    })
+
+    chart.updateDimensions()
+
+    return chart
+  }
+
+  it("sorts pure numeric Prometheus bucket ids without changing payload index", () => {
+    const ids = ["+Inf", "0.3", "10", "120", "15", "2", "2.5"]
+    const chart = makeHeatmapChart(ids)
+
+    expect(chart.getHeatmapSortedIds()).toEqual(["0.3", "2", "2.5", "10", "15", "120", "+Inf"])
+    expect(chart.getHeatmapScale()).toBe("num")
+    expect(chart.getHeatmapYIndex("0.3")).toBe(0)
+    expect(chart.getHeatmapYIndex("+Inf")).toBe(6)
+
+    expect(chart.getDimensionIndex("+Inf")).toBe(0)
+    expect(chart.getDimensionIndex("2")).toBe(5)
+    expect(chart.getRowDimensionValue("2", [1000, 7, 1, 2, 3, 4, 5, 6])).toBe(5)
+  })
+
+  it("places a runtime-added numeric bucket before +Inf", () => {
+    const chart = makeHeatmapChart(["1", "2", "5", "10", "+Inf"])
+    const nextIds = ["1", "2", "5", "10", "+Inf", "3"]
+
+    chart.setAttribute("viewDimensions", {
+      ids: nextIds,
+      names: nextIds,
+      priorities: nextIds.map((_, index) => index),
+      units: nextIds.map(() => ""),
+      contexts: nextIds.map(() => ""),
+      grouped: ["dimension"],
+    })
+    chart.updateDimensions()
+
+    expect(chart.getHeatmapSortedIds()).toEqual(["1", "2", "3", "5", "10", "+Inf"])
+    expect(chart.getHeatmapYIndex("3")).toBe(2)
+    expect(chart.getHeatmapYIndex("+Inf")).toBe(5)
+  })
+
+  it("sorts prefixed compatibility bucket ids", () => {
+    const chart = makeHeatmapChart(["bucket_+Inf", "bucket_1024", "bucket_2048"])
+
+    expect(chart.getHeatmapSortedIds()).toEqual(["bucket_1024", "bucket_2048", "bucket_+Inf"])
+    expect(chart.getHeatmapScale()).toBe("binary")
+    expect(chart.getHeatmapYIndex("bucket_1024")).toBe(0)
+    expect(chart.getDimensionIndex("bucket_1024")).toBe(1)
+  })
+
+  it("falls back to payload order for non-numeric heatmaps", () => {
+    const chart = makeHeatmapChart(["low", "high", "+Inf"])
+
+    expect(chart.getHeatmapSortedIds()).toBe(null)
+    expect(chart.getHeatmapScale()).toBe(null)
+    expect(chart.getHeatmapYIndex("high")).toBe(1)
+  })
+
+  it("uses sorted visible heatmap ids for y positions", () => {
+    const chart = makeHeatmapChart(["+Inf", "1", "5", "2"], {
+      selectedLegendDimensions: ["2", "+Inf"],
+    })
+
+    expect(chart.getVisibleHeatmapIds()).toEqual(["2", "+Inf"])
+    expect(chart.getHeatmapYIndex("2")).toBe(0)
+    expect(chart.getHeatmapYIndex("+Inf")).toBe(1)
   })
 })

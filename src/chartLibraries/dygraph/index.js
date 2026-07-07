@@ -292,7 +292,8 @@ export default (sdk, chart) => {
           prevMax = max
           chart.trigger("yAxisChange", min, max)
         }
-        const value = parseFloat(parseFloat(y).toFixed(5))
+        const parsed = Number(y)
+        const value = isFinite(parsed) ? parseFloat(parsed.toFixed(5)) : NaN
         return isNaN(value) ? y : value
       },
       makeYTicker:
@@ -330,7 +331,11 @@ export default (sdk, chart) => {
 
     const yAxisLabelFormatter = makeYAxisLabelFormatter(labels)
     const yTicker = makeYTicker
-      ? makeYTicker({ labels: chart.getVisibleDimensionIds(), units: chart.getUnits() })
+      ? makeYTicker({
+          labels: chart.getVisibleHeatmapIds?.() || chart.getVisibleDimensionIds(),
+          scale: chart.getHeatmapScale?.(),
+          units: chart.getUnits(),
+        })
       : null
 
     const { selectedLegendDimensions } = chart.getAttributes()

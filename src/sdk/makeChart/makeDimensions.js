@@ -1,6 +1,7 @@
 import dimensionColors from "./theme/dimensionColors"
 import deepEqual, { setsAreEqual } from "@/helpers/deepEqual"
 import { heatmapTypes, isHeatmap, isIncremental, withoutPrefix } from "@/helpers/heatmap"
+import { detectHeatmapScale, sortHeatmapValues } from "@/helpers/heatmapScale"
 import groupBy from "lodash/groupBy"
 import isEmpty from "lodash/isEmpty"
 
@@ -12,6 +13,8 @@ export default (chart, sdk) => {
   let sortedDimensionIds = []
   let visibleDimensionIds = []
   let visibleDimensionSet = new Set()
+  let heatmapSortedIds = null
+  let heatmapScale = null
   let colorCursor = 0
 
   const sparklineDimensions = ["sum"]
@@ -222,6 +225,9 @@ export default (chart, sdk) => {
     else if (/latency/.test(chart.getAttribute("context")))
       chart.setAttribute("heatmapType", heatmapTypes.default)
 
+    heatmapSortedIds = isHeatmap(chart) ? sortHeatmapValues(dimensionIds) : null
+    heatmapScale = isHeatmap(chart) ? detectHeatmapScale(dimensionIds) : null
+
     chart.sortDimensions()
     chart.updateColors()
   }
@@ -233,6 +239,24 @@ export default (chart, sdk) => {
   chart.getVisibleDimensionIds = () => visibleDimensionIds
 
   chart.isDimensionVisible = id => visibleDimensionSet.has(id)
+
+  chart.getHeatmapSortedIds = () => heatmapSortedIds
+
+  chart.getVisibleHeatmapIds = () =>
+    heatmapSortedIds ? heatmapSortedIds.filter(id => visibleDimensionSet.has(id)) : visibleDimensionIds
+
+  chart.getHeatmapScale = () => heatmapScale
+
+  chart.getHeatmapYIndex = id => {
+    const visibleHeatmapIds = chart.getVisibleHeatmapIds()
+    const heatmapIndex = visibleHeatmapIds.findIndex(visibleId => visibleId === id)
+
+    if (heatmapIndex !== -1) return heatmapIndex
+
+    const index = chart.getDimensionIndex(id)
+
+    return index === undefined ? -1 : index
+  }
 
   let memKey = null
   const getMemKey = () => {
