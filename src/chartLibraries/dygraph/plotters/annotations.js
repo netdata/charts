@@ -1,5 +1,7 @@
 import { enums, parts, check, colors, priorities } from "@/helpers/annotations"
 
+const annotationLineAlpha = 0.45
+
 export default chartUI => plotter => {
   if (!chartUI) return
 
@@ -50,12 +52,17 @@ export default chartUI => plotter => {
       ctx.fillRect(center_x - bar_width / 2, h - 4, bar_width, h)
       ctx.strokeRect(center_x - bar_width / 2, h - 4, bar_width, h)
 
+      const previousAlpha = ctx.globalAlpha ?? 1
+      ctx.globalAlpha = annotationLineAlpha
+
       values.forEach(val => {
         ctx.strokeStyle = ctx.fillStyle = colors[val] || "transparent"
 
         ctx.fillRect(center_x - bar_width / 2, h - 4, bar_width, h)
         ctx.strokeRect(center_x - bar_width / 2, h - 4, bar_width, h)
       })
+
+      ctx.globalAlpha = previousAlpha
     })
   }
 }
