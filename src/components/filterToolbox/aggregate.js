@@ -30,6 +30,15 @@ const useItems = chart =>
         "data-track": chart.track("sum"),
       },
       {
+        value: "percentage",
+        label: "Percentage",
+        description:
+          "For each point presented, express the metrics contributing to it as a percentage of their group total.",
+        short: "PCT()",
+        icon: <TextMicro color="textLite">%</TextMicro>,
+        "data-track": chart.track("percentage"),
+      },
+      {
         value: "min",
         label: "Minimum",
         description:
