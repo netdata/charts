@@ -37,7 +37,7 @@ export const makeGetColor = (chart, opacity = 1) => {
   const colors = getColors(opacity)
 
   if (!Number.isFinite(max) || max <= 0) {
-    return value => (value == null ? "transparent" : colors[0])
+    return value => (value == null || value === 0 ? "transparent" : colors[0])
   }
 
   const step = max / (colors.length - 1)
@@ -45,7 +45,7 @@ export const makeGetColor = (chart, opacity = 1) => {
     .domain(Array.from({ length: colors.length - 1 }, (_, i) => i * step))
     .range(colors)
 
-  return value => (value == null ? "transparent" : getLinearColor(value))
+  return value => (value == null || value === 0 ? "transparent" : getLinearColor(value))
 }
 
 export const useGetColor = (opacity = 1) => {

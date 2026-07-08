@@ -818,6 +818,7 @@ describe("makeDimensions heatmap bucket ordering", () => {
     const chart = makeHeatmapChart(["bucket_+Inf", "bucket_1024", "bucket_2048"])
 
     expect(chart.getHeatmapSortedIds()).toEqual(["bucket_1024", "bucket_2048", "bucket_+Inf"])
+    expect(chart.getAttribute("heatmapType")).toBe("default")
     expect(chart.getHeatmapScale()).toBe("binary")
     expect(chart.getHeatmapYIndex("bucket_1024")).toBe(0)
     expect(chart.getDimensionIndex("bucket_1024")).toBe(1)
@@ -872,7 +873,37 @@ describe("makeDimensions heatmap bucket ordering", () => {
     expect(chart.getHeatmapYIndex("6")).toBe(-1)
   })
 
-  it("crops incremental heatmap edges using displayed bucket deltas", async () => {
+  it("keeps non-monotonic prefixed heatmap buckets as raw values", async () => {
+    const ids = ["bucket_0.025", "bucket_0.05"]
+    const chart = makeHeatmapChart(ids)
+
+    await loadHeatmapPayload(chart, ids, [[0.0212577, 0]])
+
+    const row = chart.getPayload().all[0]
+
+    expect(chart.getAttribute("heatmapType")).toBe("default")
+    expect(chart.getRowDimensionValue("bucket_0.025", row, { allowNull: true })).toBe(0.0212577)
+    expect(chart.getRowDimensionValue("bucket_0.05", row, { allowNull: true })).toBe(0)
+  })
+
+  it("does not subtract anomaly rates for explicit incremental heatmaps", async () => {
+    const ids = ["bucket_1", "bucket_2"]
+    const chart = makeHeatmapChart(ids)
+    const payload = makeHeatmapPayload(ids, [[10, 15]])
+    payload.result.data[0][1] = [10, 5, 0]
+    payload.result.data[0][2] = [15, 2, 0]
+
+    chart.doneFetch(payload)
+    await new Promise(resolve => setTimeout(resolve, 0))
+    chart.setAttribute("heatmapType", "incremental")
+
+    const row = chart.getPayload().all[0]
+
+    expect(chart.getRowDimensionValue("bucket_2", row)).toBe(5)
+    expect(chart.getRowDimensionValue("bucket_2", row, { valueKey: "arp" })).toBe(2)
+  })
+
+  it("crops prefixed heatmap edges using raw bucket values", async () => {
     const ids = [
       "bucket_0",
       "bucket_1",
@@ -885,11 +916,11 @@ describe("makeDimensions heatmap bucket ordering", () => {
     const chart = makeHeatmapChart(ids)
 
     await loadHeatmapPayload(chart, ids, [
-      [0, 0, 1, 1, 3, 3, 3],
-      [0, 0, 0, 0, 3, 3, 3],
+      [0, 0, 1, 0, 3, 0, 0],
+      [0, 0, 0, 0, 3, 0, 0],
     ])
 
-    expect(chart.getAttribute("heatmapType")).toBe("incremental")
+    expect(chart.getAttribute("heatmapType")).toBe("default")
     expect(chart.getVisibleHeatmapIds()).toEqual([
       "bucket_1",
       "bucket_2",

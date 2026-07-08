@@ -6,15 +6,18 @@ import Units from "@/components/line/dimensions/units"
 import UpdateEvery from "./updateEvery"
 import Timestamp from "./timestamp"
 import Dimension from "./dimension"
+import { popoverGridColumns } from "./layout"
 
 const Container = styled(Flex).attrs({
   round: true,
-  width: { min: "196px", max: "80vw" },
+  width: { min: "300px", max: "80vw" },
   background: "dropdown",
   column: true,
   padding: [4],
   gap: 1,
 })`
+  box-sizing: border-box;
+  width: fit-content;
   box-shadow:
     0px 8px 12px rgba(9, 30, 66, 0.15),
     0px 0px 1px rgba(9, 30, 66, 0.31);
@@ -23,10 +26,12 @@ const Container = styled(Flex).attrs({
 const Grid = styled.div`
   display: grid;
   width: 100%;
-  grid-template-columns: minmax(200px, 2fr) minmax(80px, 1.5fr) minmax(80px, 1fr) minmax(
-      80px,
-      0.5fr
-    );
+  max-width: 100%;
+  grid-template-columns: minmax(0, auto) ${popoverGridColumns.value} ${popoverGridColumns.anomaly}
+    ${({ $rowFlavour }) =>
+      $rowFlavour === rowFlavours.ANNOTATIONS
+        ? popoverGridColumns.annotationsInfo
+        : popoverGridColumns.info};
   align-items: center;
 `
 
@@ -112,7 +117,7 @@ const Dimensions = () => {
       <Flex flex={false} height={3}>
         {from > 0 && <TextNano color="textLite">↑{from} more values</TextNano>}
       </Flex>
-      <Grid gap={1} column>
+      <Grid data-testid="chartPopover-grid" $rowFlavour={rowFlavour}>
         <GridHeader>
           <TextMicro strong>Dimension</TextMicro>
           <TextMicro
