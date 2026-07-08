@@ -48,4 +48,17 @@ describe("Dimensions", () => {
     expect(screen.getByText("Avg")).toBeInTheDocument()
     expect(screen.getByText("Max")).toBeInTheDocument()
   })
+
+  it("constrains the table viewport for virtualization", () => {
+    renderWithChart(<Dimensions />)
+
+    const container = screen.getByTestId("chart-values-table-container")
+
+    expect(container).toHaveAttribute("height", "100%")
+    expect(container).toHaveStyle({
+      flexDirection: "column",
+      minHeight: "0",
+      overflow: "hidden",
+    })
+  })
 })

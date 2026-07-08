@@ -4,39 +4,42 @@ import styled from "styled-components"
 import Color, { ColorBar } from "@/components/line/dimensions/color"
 import Name from "@/components/line/dimensions/name"
 import Units, { Value as UnitsText } from "@/components/line/dimensions/units"
-import Value, { Value as ValuePart } from "@/components/line/dimensions/value"
+import { Value as ValuePart } from "@/components/line/dimensions/value"
 import {
   useChart,
   useAttributeValue,
   useVisibleDimensionId,
   getValueByPeriod,
   convert,
+  useConverted,
 } from "@/components/provider"
 import Label from "@/components/filterToolbox/label"
 import { rowFlavours } from "@/components/line/popover/dimensions"
 
-const makeNumberSortingFn =
-  (chart, { key, period, objKey }) =>
+const getCachedValue = (chart, valueCache, id, { key, period, objKey, allowNull = true }) => {
+  if (!objKey && valueCache) return valueCache.get(id, key, { period })
+
+  return (getValueByPeriod[period] || getValueByPeriod.latest)({
+    chart,
+    id,
+    valueKey: key,
+    objKey,
+    allowNull,
+  })
+}
+
+export const makeNumberSortingFn =
+  (chart, { key, period, objKey, valueCache }) =>
   (rowA, rowB) => {
     const aId = rowA.original
     const bId = rowB.original
 
-    const aValue = getValueByPeriod[period]({
-      chart,
-      id: aId,
-      valueKey: key,
-      objKey,
-    })
-    const bValue = getValueByPeriod[period]({
-      chart,
-      id: bId,
-      valueKey: key,
-      objKey,
-    })
+    const aValue = getCachedValue(chart, valueCache, aId, { key, period, objKey })
+    const bValue = getCachedValue(chart, valueCache, bId, { key, period, objKey })
 
     const result = aValue - bValue
 
-    if (!result)
+    if (!result || isNaN(result))
       return aId.localeCompare(bId, undefined, {
         sensitivity: "accent",
         ignorePunctuation: true,
@@ -148,7 +151,48 @@ const ValueOnDot = ({ children, fractionDigits = 0, ...rest }) => {
   )
 }
 
-export const valueColumn = chart => ({
+const CachedValue = ({
+  id,
+  visible,
+  valueKey = "value",
+  period = "latest",
+  objKey,
+  unitsKey,
+  valueCache,
+  Component = ValuePart,
+  fractionDigits,
+  ...rest
+}) => {
+  const chart = useChart()
+  const value = getCachedValue(chart, valueCache, id, {
+    key: valueKey,
+    period,
+    objKey,
+  })
+  const convertedValue = useConverted(value, { valueKey, fractionDigits, dimensionId: id, unitsKey })
+
+  if (!visible) return null
+
+  return <Component {...rest}>{convertedValue}</Component>
+}
+
+const renderValueString = (
+  chart,
+  row,
+  { key = "value", period = "latest", objKey, unitsKey, valueCache, fractionDigits }
+) =>
+  convert(
+    chart,
+    getCachedValue(chart, valueCache, row.original, { key, period, objKey }),
+    {
+      valueKey: key,
+      fractionDigits,
+      dimensionId: row.original,
+      unitsKey,
+    }
+  )
+
+export const valueColumn = (chart, { valueCache } = {}) => ({
   id: "value",
   header: (
     <Flex column>
@@ -160,9 +204,9 @@ export const valueColumn = chart => ({
   size: 60,
   minSize: 60,
   renderString: row =>
-    convert(chart, getValueByPeriod.latest({ chart, id: row.original }), {
+    renderValueString(chart, row, {
+      valueCache,
       fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
-      dimensionId: row.original,
     }),
   cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
@@ -170,19 +214,20 @@ export const valueColumn = chart => ({
     const chart = useChart()
 
     return (
-      <Value
+      <CachedValue
         period="latest"
         id={id}
         visible={visible}
+        valueCache={valueCache}
         Component={ValueOnDot}
         fractionDigits={chart.getAttribute("unitsConversionFractionDigits")}
       />
     )
   },
-  sortingFn: "basic",
+  sortingFn: makeNumberSortingFn(chart, { key: "value", period: "latest", valueCache }),
 })
 
-export const anomalyColumn = (chart, { period, objKey }) => ({
+export const anomalyColumn = (chart, { period, objKey, valueCache }) => ({
   id: objKey ? `${objKey}-arp` : "arp",
   header: (
     <Flex column>
@@ -194,42 +239,35 @@ export const anomalyColumn = (chart, { period, objKey }) => ({
   size: 60,
   minSize: 60,
   renderString: row =>
-    convert(
-      chart,
-      getValueByPeriod[period]({
-        chart,
-        id: row.original,
-        valueKey: "arp",
-
-        objKey,
-      }),
-      {
-        valueKey: "arp",
-        fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
-        dimensionId: row.original,
-      }
-    ),
+    renderValueString(chart, row, {
+      key: "arp",
+      period,
+      objKey,
+      valueCache,
+      fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
+    }),
   cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
 
     return (
-      <Value
+      <CachedValue
         period={period}
         objKey={objKey}
         textAlign="right"
         id={id}
         visible={visible}
         valueKey="arp"
+        valueCache={valueCache}
         Component={ValueOnDot}
         fractionDigits={chart.getAttribute("unitsConversionFractionDigits")}
         color="anomalyTextFocus"
       />
     )
   },
-  sortingFn: "basic",
+  sortingFn: makeNumberSortingFn(chart, { key: "arp", period, objKey, valueCache }),
 })
 
-export const minColumn = (chart, { period, objKey }) => ({
+export const minColumn = (chart, { period, objKey, valueCache }) => ({
   id: objKey ? `${objKey}-min` : "min",
   header: (
     <Flex column>
@@ -241,40 +279,34 @@ export const minColumn = (chart, { period, objKey }) => ({
   size: 60,
   minSize: 60,
   renderString: row =>
-    convert(
-      chart,
-      getValueByPeriod[period]({
-        chart,
-        id: row.original,
-        valueKey: "min",
-        objKey,
-      }),
-      {
-        valueKey: "min",
-        fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
-        dimensionId: row.original,
-      }
-    ),
+    renderValueString(chart, row, {
+      key: "min",
+      period,
+      objKey,
+      valueCache,
+      fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
+    }),
   cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
 
     return (
-      <Value
+      <CachedValue
         period={period}
         objKey={objKey}
         textAlign="right"
         id={id}
         visible={visible}
         valueKey="min"
+        valueCache={valueCache}
         Component={ValueOnDot}
         fractionDigits={chart.getAttribute("unitsConversionFractionDigits")}
       />
     )
   },
-  sortingFn: makeNumberSortingFn(chart, { key: "min", period, objKey }),
+  sortingFn: makeNumberSortingFn(chart, { key: "min", period, objKey, valueCache }),
 })
 
-export const avgColumn = (chart, { period, objKey }) => ({
+export const avgColumn = (chart, { period, objKey, valueCache }) => ({
   id: objKey ? `${objKey}-avg` : "avg",
   header: (
     <Flex column>
@@ -286,41 +318,34 @@ export const avgColumn = (chart, { period, objKey }) => ({
   size: 60,
   minSize: 60,
   renderString: row =>
-    convert(
-      chart,
-      getValueByPeriod[period]({
-        chart,
-        id: row.original,
-        valueKey: "avg",
-
-        objKey,
-      }),
-      {
-        valueKey: "avg",
-        fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
-        dimensionId: row.original,
-      }
-    ),
+    renderValueString(chart, row, {
+      key: "avg",
+      period,
+      objKey,
+      valueCache,
+      fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
+    }),
   cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
 
     return (
-      <Value
+      <CachedValue
         period={period}
         objKey={objKey}
         textAlign="right"
         id={id}
         visible={visible}
         valueKey="avg"
+        valueCache={valueCache}
         Component={ValueOnDot}
         fractionDigits={chart.getAttribute("unitsConversionFractionDigits")}
       />
     )
   },
-  sortingFn: makeNumberSortingFn(chart, { key: "avg", period, objKey }),
+  sortingFn: makeNumberSortingFn(chart, { key: "avg", period, objKey, valueCache }),
 })
 
-export const maxColumn = (chart, { period, objKey }) => ({
+export const maxColumn = (chart, { period, objKey, valueCache }) => ({
   id: objKey ? `${objKey}-max` : "max",
   header: (
     <Flex column>
@@ -332,41 +357,34 @@ export const maxColumn = (chart, { period, objKey }) => ({
   size: 60,
   minSize: 60,
   renderString: row =>
-    convert(
-      chart,
-      getValueByPeriod[period]({
-        chart,
-        id: row.original,
-        valueKey: "max",
-
-        objKey,
-      }),
-      {
-        valueKey: "max",
-        fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
-        dimensionId: row.original,
-      }
-    ),
+    renderValueString(chart, row, {
+      key: "max",
+      period,
+      objKey,
+      valueCache,
+      fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
+    }),
   cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
 
     return (
-      <Value
+      <CachedValue
         period={period}
         objKey={objKey}
         textAlign="right"
         id={id}
         visible={visible}
         valueKey="max"
+        valueCache={valueCache}
         Component={ValueOnDot}
         fractionDigits={chart.getAttribute("unitsConversionFractionDigits")}
       />
     )
   },
-  sortingFn: makeNumberSortingFn(chart, { key: "max", period, objKey }),
+  sortingFn: makeNumberSortingFn(chart, { key: "max", period, objKey, valueCache }),
 })
 
-export const medianColumn = (chart, { period, objKey }) => ({
+export const medianColumn = (chart, { period, objKey, valueCache }) => ({
   id: objKey ? `${objKey}-median` : "median",
   header: (
     <Flex column>
@@ -378,40 +396,34 @@ export const medianColumn = (chart, { period, objKey }) => ({
   size: 60,
   minSize: 60,
   renderString: row =>
-    convert(
-      chart,
-      getValueByPeriod[period]({
-        chart,
-        id: row.original,
-        valueKey: "median",
-        objKey,
-      }),
-      {
-        valueKey: "median",
-        fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
-        dimensionId: row.original,
-      }
-    ),
+    renderValueString(chart, row, {
+      key: "median",
+      period,
+      objKey,
+      valueCache,
+      fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
+    }),
   cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
 
     return (
-      <Value
+      <CachedValue
         period={period}
         objKey={objKey}
         textAlign="right"
         id={id}
         visible={visible}
         valueKey="median"
+        valueCache={valueCache}
         Component={ValueOnDot}
         fractionDigits={chart.getAttribute("unitsConversionFractionDigits")}
       />
     )
   },
-  sortingFn: makeNumberSortingFn(chart, { key: "median", period, objKey }),
+  sortingFn: makeNumberSortingFn(chart, { key: "median", period, objKey, valueCache }),
 })
 
-export const stdDevColumn = (chart, { period, objKey }) => ({
+export const stdDevColumn = (chart, { period, objKey, valueCache }) => ({
   id: objKey ? `${objKey}-stddev` : "stddev",
   header: (
     <Flex column>
@@ -423,40 +435,34 @@ export const stdDevColumn = (chart, { period, objKey }) => ({
   size: 60,
   minSize: 60,
   renderString: row =>
-    convert(
-      chart,
-      getValueByPeriod[period]({
-        chart,
-        id: row.original,
-        valueKey: "stddev",
-        objKey,
-      }),
-      {
-        valueKey: "stddev",
-        fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
-        dimensionId: row.original,
-      }
-    ),
+    renderValueString(chart, row, {
+      key: "stddev",
+      period,
+      objKey,
+      valueCache,
+      fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
+    }),
   cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
 
     return (
-      <Value
+      <CachedValue
         period={period}
         objKey={objKey}
         textAlign="right"
         id={id}
         visible={visible}
         valueKey="stddev"
+        valueCache={valueCache}
         Component={ValueOnDot}
         fractionDigits={chart.getAttribute("unitsConversionFractionDigits")}
       />
     )
   },
-  sortingFn: makeNumberSortingFn(chart, { key: "stddev", period, objKey }),
+  sortingFn: makeNumberSortingFn(chart, { key: "stddev", period, objKey, valueCache }),
 })
 
-export const p95Column = (chart, { period, objKey }) => ({
+export const p95Column = (chart, { period, objKey, valueCache }) => ({
   id: objKey ? `${objKey}-p95` : "p95",
   header: (
     <Flex column>
@@ -468,40 +474,34 @@ export const p95Column = (chart, { period, objKey }) => ({
   size: 60,
   minSize: 60,
   renderString: row =>
-    convert(
-      chart,
-      getValueByPeriod[period]({
-        chart,
-        id: row.original,
-        valueKey: "p95",
-        objKey,
-      }),
-      {
-        valueKey: "p95",
-        fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
-        dimensionId: row.original,
-      }
-    ),
+    renderValueString(chart, row, {
+      key: "p95",
+      period,
+      objKey,
+      valueCache,
+      fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
+    }),
   cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
 
     return (
-      <Value
+      <CachedValue
         period={period}
         objKey={objKey}
         textAlign="right"
         id={id}
         visible={visible}
         valueKey="p95"
+        valueCache={valueCache}
         Component={ValueOnDot}
         fractionDigits={chart.getAttribute("unitsConversionFractionDigits")}
       />
     )
   },
-  sortingFn: makeNumberSortingFn(chart, { key: "p95", period, objKey }),
+  sortingFn: makeNumberSortingFn(chart, { key: "p95", period, objKey, valueCache }),
 })
 
-export const rangeColumn = (chart, { period, objKey }) => ({
+export const rangeColumn = (chart, { period, objKey, valueCache }) => ({
   id: objKey ? `${objKey}-range` : "range",
   header: (
     <Flex column>
@@ -513,40 +513,34 @@ export const rangeColumn = (chart, { period, objKey }) => ({
   size: 60,
   minSize: 60,
   renderString: row =>
-    convert(
-      chart,
-      getValueByPeriod[period]({
-        chart,
-        id: row.original,
-        valueKey: "range",
-        objKey,
-      }),
-      {
-        valueKey: "range",
-        fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
-        dimensionId: row.original,
-      }
-    ),
+    renderValueString(chart, row, {
+      key: "range",
+      period,
+      objKey,
+      valueCache,
+      fractionDigits: chart.getAttribute("unitsConversionFractionDigits"),
+    }),
   cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
 
     return (
-      <Value
+      <CachedValue
         period={period}
         objKey={objKey}
         textAlign="right"
         id={id}
         visible={visible}
         valueKey="range"
+        valueCache={valueCache}
         Component={ValueOnDot}
         fractionDigits={chart.getAttribute("unitsConversionFractionDigits")}
       />
     )
   },
-  sortingFn: makeNumberSortingFn(chart, { key: "range", period, objKey }),
+  sortingFn: makeNumberSortingFn(chart, { key: "range", period, objKey, valueCache }),
 })
 
-export const volumeColumn = (chart, { period, objKey }) => ({
+export const volumeColumn = (chart, { period, objKey, valueCache }) => ({
   id: objKey ? `${objKey}-volume` : "volume",
   header: (
     <Flex column>
@@ -558,31 +552,29 @@ export const volumeColumn = (chart, { period, objKey }) => ({
   size: 60,
   minSize: 60,
   renderString: row =>
-    convert(
-      chart,
-      getValueByPeriod[period]({
-        chart,
-        id: row.original,
-        valueKey: "volume",
-        objKey,
-      }),
-      { valueKey: "volume", fractionDigits: 1, dimensionId: row.original }
-    ),
+    renderValueString(chart, row, {
+      key: "volume",
+      period,
+      objKey,
+      valueCache,
+      fractionDigits: 1,
+    }),
   cell: ({ row: { original: id } }) => {
     const visible = useVisibleDimensionId(id)
 
     return (
-      <Value
+      <CachedValue
         period={period}
         objKey={objKey}
         textAlign="right"
         id={id}
         visible={visible}
         valueKey="volume"
+        valueCache={valueCache}
         Component={ValueOnDot}
         fractionDigits={1}
       />
     )
   },
-  sortingFn: makeNumberSortingFn(chart, { key: "volume", period, objKey }),
+  sortingFn: makeNumberSortingFn(chart, { key: "volume", period, objKey, valueCache }),
 })

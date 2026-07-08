@@ -16,6 +16,7 @@ import {
   rangeColumn,
   volumeColumn,
 } from "./columns"
+import useDimensionValueCache from "./useDimensionValueCache"
 
 const noop = () => {}
 
@@ -25,7 +26,6 @@ const useColumns = (period, options = {}) => {
 
   return useMemo(() => {
     const columnOptions = { period, ...options }
-    const dbOptions = { ...columnOptions, objKey: "dbDimensions", unitsKey: "dbUnits" }
 
     return [
       {
@@ -33,7 +33,7 @@ const useColumns = (period, options = {}) => {
         header: () => <TextSmall>Dimension ({hover ? "hovering" : "latest"} value)</TextSmall>,
         headerString: () => "",
         fullWidth: true,
-        columns: [labelColumn(chart), valueColumn(chart)],
+        columns: [labelColumn(chart), valueColumn(chart, columnOptions)],
       },
       {
         id: "visible",
@@ -68,7 +68,7 @@ const useColumns = (period, options = {}) => {
       //   ],
       // },
     ]
-  }, [period, !!hover])
+  }, [period, !!hover, options.valueCache])
 }
 
 const meta = (row, cell, index) => ({
@@ -87,9 +87,10 @@ const Dimensions = () => {
 
   const tab = useAttributeValue("drawer.tab")
   const period = tab === "selectedArea" ? "highlight" : "window"
-  const columns = useColumns(period)
 
   const showAdvancedStats = useAttributeValue("drawer.showAdvancedStats", false)
+  const valueCache = useDimensionValueCache(period, { includeAdvancedStats: showAdvancedStats })
+  const columns = useColumns(period, { valueCache })
 
   const chart = useChart()
   useMemo(() => chart.makeChartUI("custom", "bars"), [])
@@ -118,7 +119,15 @@ const Dimensions = () => {
   }, [chart])
 
   return (
-    <Flex gap={2}>
+    <Flex
+      flex
+      column
+      gap={2}
+      height="100%"
+      overflow="hidden"
+      style={{ minHeight: 0 }}
+      data-testid="chart-values-table-container"
+    >
       <Table
         key={period}
         enableSorting
