@@ -31,19 +31,18 @@ const getInfoColumnWidth = rowFlavour =>
     ? popoverGridColumns.annotationsInfo
     : popoverGridColumns.info
 
-const DimensionNameCell = styled.div.attrs({
+const DimensionNameCell = styled(Flex).attrs({
   "data-testid": "chartPopover-dimensionNameCell",
+  alignItems: "center",
+  gap: 1,
+  position: "relative",
+  overflow: "hidden",
+  width: { min: 0 },
 })`
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.constants.SIZE_SUB_UNIT}px;
-  position: relative;
-  min-width: 0;
   max-width: calc(
     80vw - 32px - ${popoverGridColumns.value} - ${popoverGridColumns.anomaly} -
-      ${({ $rowFlavour }) => getInfoColumnWidth($rowFlavour)}
+      ${({ rowFlavour }) => getInfoColumnWidth(rowFlavour)}
   );
-  overflow: hidden;
 
   [data-testid="chartDimensions-name"] {
     min-width: 0;
@@ -99,7 +98,7 @@ const Dimension = ({ id, strong, rowFlavour }) => {
 
   return (
     <GridRow opacity={visible ? null : "weak"}>
-      <DimensionNameCell $rowFlavour={rowFlavour}>
+      <DimensionNameCell rowFlavour={rowFlavour}>
         <ColorBackground
           id={id}
           valueKey={rowValueKeys[rowFlavour] || rowValueKeys.default}
