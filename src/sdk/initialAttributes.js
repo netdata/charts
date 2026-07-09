@@ -146,7 +146,7 @@ export default {
   showAnnotations: true,
 
   hasYlabel: true,
-  yAxisLabelWidth: 60,
+  yAxisLabelWidth: 68,
   axisLabelFontSize: 10,
 
   outOfLimits: false,
