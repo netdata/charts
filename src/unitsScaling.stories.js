@@ -568,6 +568,149 @@ const CloudChartCase = ({
 
 const GiB = 1024 ** 3
 const MiB = 1024 ** 2
+const KiB = 1024
+
+const makeUnitDisplayPayload = ({ title, unit, dimensions }) =>
+  makePayload({
+    title,
+    unit,
+    dimensions: dimensions.map(({ id, name, min, max, seed, cycles = 3.2, jitter = 0.08 }) => ({
+      id,
+      name,
+      values: makeNoisySeries({ min, max, seed, cycles, jitter }),
+    })),
+  })
+
+const unitDisplayCaseDefinitions = [
+  {
+    id: "source-kib",
+    title: "Source unit: KiB",
+    purpose:
+      "Raw values are already in KiB; legend and popover can move down to B or up to MiB/GiB.",
+    unit: "KiB",
+    dimensions: [
+      { id: "kib-subunit", name: "fractional KiB", min: 0.04, max: 0.82, seed: 171 },
+      { id: "kib-middle", name: "tens of KiB", min: 18, max: 92, seed: 173 },
+      { id: "kib-large", name: "many KiB", min: 2400, max: 12200, seed: 179 },
+    ],
+  },
+  {
+    id: "source-bytes",
+    title: "Source unit: bytes",
+    purpose: "Raw byte values span B/KiB/MiB/GiB labels.",
+    unit: "bytes",
+    dimensions: [
+      { id: "bytes-small", name: "raw bytes", min: 18, max: 840, seed: 181 },
+      { id: "bytes-middle", name: "KiB-sized bytes", min: 8 * KiB, max: 96 * KiB, seed: 191 },
+      { id: "bytes-large", name: "GiB-sized bytes", min: 0.8 * GiB, max: 4.6 * GiB, seed: 193 },
+    ],
+  },
+  {
+    id: "source-kbps-literal",
+    title: "Source unit: kbps",
+    purpose:
+      "Literal kbps is not an alias today, so it is treated as a generic scalable unit and shows scale-only suffixes.",
+    unit: "kbps",
+    dimensions: [
+      { id: "kbps-literal-small", name: "literal small kbps", min: 0.4, max: 4.5, seed: 197 },
+      { id: "kbps-literal-middle", name: "literal thousands", min: 900, max: 1800, seed: 199 },
+      { id: "kbps-literal-large", name: "literal millions", min: 1.2e6, max: 8.8e6, seed: 211 },
+    ],
+  },
+  {
+    id: "source-kilobits-per-second",
+    title: "Source unit: kilobits/s",
+    purpose:
+      "Supported kbps-style bit rate; title uses the source unit while labels scale as bit/s, kbit/s, Mbit/s, or Gbit/s.",
+    unit: "kilobits/s",
+    dimensions: [
+      { id: "kbits-small", name: "sub-kilobit rate", min: 0.08, max: 0.92, seed: 223 },
+      { id: "kbits-middle", name: "kilobit rate", min: 48, max: 920, seed: 227 },
+      { id: "kbits-large", name: "gigabit-scale rate", min: 1.4e6, max: 7.2e6, seed: 229 },
+    ],
+  },
+  {
+    id: "source-seconds",
+    title: "Source unit: seconds",
+    purpose:
+      "Seconds use duration-aware scaling, including compact duration values with no separate unit suffix.",
+    unit: "seconds",
+    dimensions: [
+      { id: "seconds-ns", name: "nanosecond latency", min: 25e-9, max: 95e-9, seed: 233 },
+      { id: "seconds-ms", name: "millisecond latency", min: 0.002, max: 0.018, seed: 239 },
+      { id: "seconds-hours", name: "multi-hour duration", min: 2 * 3600, max: 11 * 3600, seed: 241 },
+    ],
+  },
+  {
+    id: "source-percentage",
+    title: "Source unit: percentage",
+    purpose: "Percent is non-scalable, so labels keep percent even for tiny fractional values.",
+    unit: "percentage",
+    dimensions: [
+      { id: "percent-tiny", name: "tiny percentage", min: 0.00012, max: 0.00092, seed: 251 },
+      { id: "percent-middle", name: "middle percentage", min: 34, max: 68, seed: 257 },
+      { id: "percent-high", name: "high percentage", min: 96.2, max: 99.95, seed: 263 },
+    ],
+  },
+  {
+    id: "source-requests-per-second",
+    title: "Source unit: requests/s",
+    purpose:
+      "Request rates use scale-only labels, so k/M/G are shown without repeating requests/s.",
+    unit: "requests/s",
+    dimensions: [
+      { id: "requests-small", name: "few requests", min: 0.2, max: 8, seed: 269 },
+      { id: "requests-middle", name: "borderline requests", min: 840, max: 1600, seed: 271 },
+      { id: "requests-large", name: "millions of requests", min: 1.4e6, max: 7.8e6, seed: 277 },
+    ],
+  },
+  {
+    id: "source-operations-per-second",
+    title: "Source unit: operations/s",
+    purpose:
+      "Operations per second are generic scalable rates; legend and popover show only the scale designator.",
+    unit: "operations/s",
+    dimensions: [
+      { id: "operations-small", name: "few operations", min: 12, max: 95, seed: 281 },
+      { id: "operations-middle", name: "thousands of operations", min: 12000, max: 88000, seed: 283 },
+      { id: "operations-large", name: "billions of operations", min: 1.2e9, max: 8.4e9, seed: 293 },
+    ],
+  },
+  {
+    id: "source-kib-per-second",
+    title: "Source unit: KiB/s",
+    purpose:
+      "Raw values are already in KiB/s; labels can move down to B/s or up to MiB/s.",
+    unit: "KiB/s",
+    dimensions: [
+      { id: "kibps-small", name: "fractional KiB/s", min: 0.05, max: 0.95, seed: 307 },
+      { id: "kibps-middle", name: "hundreds of KiB/s", min: 24, max: 420, seed: 311 },
+      { id: "kibps-large", name: "many KiB/s", min: 24000, max: 180000, seed: 313 },
+    ],
+  },
+  {
+    id: "source-mib-per-second",
+    title: "Source unit: MiB/s",
+    purpose:
+      "Raw values are already in MiB/s; labels can move down to KiB/s or up to GiB/s.",
+    unit: "MiB/s",
+    dimensions: [
+      { id: "mibps-small", name: "fractional MiB/s", min: 0.01, max: 0.86, seed: 317 },
+      { id: "mibps-middle", name: "tens of MiB/s", min: 24, max: 128, seed: 331 },
+      { id: "mibps-large", name: "many MiB/s", min: 2400, max: 14200, seed: 337 },
+    ],
+  },
+]
+
+const unitDisplayCases = unitDisplayCaseDefinitions.map(({ title, unit, dimensions, ...rest }) => ({
+  ...rest,
+  title,
+  payload: makeUnitDisplayPayload({
+    title,
+    unit,
+    dimensions,
+  }),
+}))
 
 const happyPathPayload = makePayload({
   title: "Happy path: bytes scale clearly",
@@ -1279,6 +1422,27 @@ export const TimeMagnitudes = () => (
 )
 
 TimeMagnitudes.parameters = {
+  netdataTheme: "dark",
+}
+
+export const UnitDisplayMatrix = () => (
+  <Page>
+    {unitDisplayCases.map(item => (
+      <CloudChartCase
+        key={item.id}
+        id={`units-display-${item.id}`}
+        title={`Cloud room overview, ${item.title}`}
+        purpose={item.purpose}
+        payload={item.payload}
+        attributes={cloudRoomOverviewAttributes}
+        rootAttributes={cloudRoomOverviewRootAttributes}
+        height="320px"
+      />
+    ))}
+  </Page>
+)
+
+UnitDisplayMatrix.parameters = {
   netdataTheme: "dark",
 }
 
