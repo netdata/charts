@@ -265,10 +265,16 @@ export const useUnitSign = ({ key = "units", ...options } = {}) => {
 
   const forceUpdate = useForceUpdate()
 
-  useImmediateListener(
-    () => chart.onAttributeChange(`${key}ConversionPrefix`, forceUpdate),
-    [chart, key]
-  )
+  useImmediateListener(() => {
+    const offListeners = [
+      chart.onAttributeChange(`${key}ConversionPrefix`, forceUpdate),
+      chart.onAttributeChange(`${key}ConversionBase`, forceUpdate),
+      chart.onAttributeChange(`${key}ByContext`, forceUpdate),
+      chart.onAttributeChange(`${key}ByDimension`, forceUpdate),
+    ]
+
+    return () => offListeners.forEach(off => off())
+  }, [chart, key])
 
   return chart.getUnitSign({ key, ...options })
 }
@@ -314,7 +320,7 @@ const formatByType = {
 export const convert = (
   chart,
   value,
-  { valueKey, fractionDigits, dimensionId, unitsKey = "units" } = {}
+  { valueKey, fractionDigits, dimensionId, unitsKey = "units", scaleByValue, unitAttributes } = {}
 ) => {
   if (value === null || value === "-") return "-"
 
@@ -323,19 +329,92 @@ export const convert = (
     return formatter(value, { fractionDigits, dimensionId, unitsKey })
   }
 
-  return chart.getConvertedValue(value, { fractionDigits, key: unitsKey, dimensionId })
+  const attrs =
+    unitAttributes ||
+    (scaleByValue && typeof value !== "undefined"
+      ? chart.getUnitAttributesForValue(value, { dimensionId, key: unitsKey })
+      : undefined)
+
+  return chart.getConvertedValue(value, {
+    fractionDigits,
+    key: unitsKey,
+    dimensionId,
+    unitAttributes: attrs,
+  })
+}
+
+export const useValueUnitAttributes = (
+  value,
+  { valueKey, dimensionId, unitsKey = "units", scaleByValue } = {}
+) => {
+  const chart = useChart()
+  const units = useAttributeValue(unitsKey)
+  const desiredUnits = useAttributeValue("desiredUnits")
+  const secondsAsTime = useAttributeValue("secondsAsTime")
+  const viewDimensions = useAttributeValue("viewDimensions")
+
+  return useMemo(() => {
+    if (!scaleByValue || value === null || value === "-" || typeof value === "undefined") {
+      return undefined
+    }
+
+    if (formatByType[valueKey]) return undefined
+
+    return chart.getUnitAttributesForValue(value, { dimensionId, key: unitsKey })
+  }, [
+    chart,
+    value,
+    valueKey,
+    dimensionId,
+    unitsKey,
+    scaleByValue,
+    units,
+    desiredUnits,
+    secondsAsTime,
+    viewDimensions,
+  ])
 }
 
 export const useConverted = (
   value,
-  { valueKey, fractionDigits, dimensionId, unitsKey = "units" } = {}
+  { valueKey, fractionDigits, dimensionId, unitsKey = "units", scaleByValue } = {}
 ) => {
   const chart = useChart()
   const unitsConversionPrefix = useAttributeValue(`${unitsKey}ConversionPrefix`)
+  const unitsConversionBase = useAttributeValue(`${unitsKey}ConversionBase`)
+  const unitsByContext = useAttributeValue(`${unitsKey}ByContext`)
+  const unitsByDimension = useAttributeValue(`${unitsKey}ByDimension`)
+  const unitAttributes = useValueUnitAttributes(value, {
+    valueKey,
+    dimensionId,
+    unitsKey,
+    scaleByValue,
+  })
 
   return useMemo(
-    () => convert(chart, value, { valueKey, fractionDigits, dimensionId, unitsKey }),
-    [chart, value, valueKey, unitsConversionPrefix]
+    () =>
+      convert(chart, value, {
+        valueKey,
+        fractionDigits,
+        dimensionId,
+        unitsKey,
+        scaleByValue,
+        unitAttributes,
+      }),
+    [
+      chart,
+      value,
+      valueKey,
+      fractionDigits,
+      dimensionId,
+      unitsKey,
+      unitsConversionPrefix,
+      unitsConversionBase,
+      unitsByContext,
+      unitsByDimension,
+      scaleByValue,
+      unitAttributes,
+    ]
   )
 }
 

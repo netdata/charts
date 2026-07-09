@@ -2,51 +2,50 @@ import zeropad from "@/helpers/zeropad"
 
 export const makeConversableKey = (unit, scale) => `${unit}-${scale}`
 
+export const compactDurationUnitKeys = [
+  "a:mo:d",
+  "mo:d:h",
+  "d:h:mm",
+  "h:mm:ss",
+  "mm:ss",
+  "dHH:MM:ss",
+]
+
+export const isCompactDurationUnit = unit => compactDurationUnitKeys.includes(unit)
+
 const seconds2time = (seconds, maxTimeUnit, minTimeUnit = "MS") => {
-  // todo maybe we should resign from MS, if we're only showing zeroes. we just need to properly
-  // annotate units in this case (not to show "HH:MM:SS.ms")
-  let secondsReturn = Math.abs(seconds)
+  const precision = minTimeUnit === "MS" ? 100 : 1
+  const durationUnits = [
+    ["YEARS", "yr", 86_400 * 365],
+    ["MONTHS", "mo", 86_400 * 30],
+    ["DAYS", "d", 86_400],
+    ["HOURS", "h", 3_600],
+    ["MINUTES", "m", 60],
+  ]
+  const startIndex = durationUnits.findIndex(([unit]) => unit === maxTimeUnit)
+  const selectedUnits = durationUnits.slice(startIndex === -1 ? durationUnits.length : startIndex)
+  const sign = seconds < 0 ? "-" : ""
+  let ticks = Math.round(Math.abs(seconds) * precision)
+  const parts = []
 
-  const years = Math.floor(secondsReturn / (86_400 * 365))
-  const yearsString = `${years}yr`
+  selectedUnits.forEach(([, suffix, secondsPerUnit]) => {
+    const unitTicks = secondsPerUnit * precision
+    const value = Math.floor(ticks / unitTicks)
 
-  secondsReturn -= years * (86_400 * 365)
+    ticks -= value * unitTicks
 
-  const months = Math.floor(secondsReturn / (86_400 * 30))
-  const monthsString = `${months}mo`
+    if (value) parts.push(`${value}${suffix}`)
+  })
 
-  secondsReturn -= months * (86_400 * 30)
+  const wholeSeconds = Math.floor(ticks / precision)
+  const fraction = ticks - wholeSeconds * precision
+  const secondsString = fraction
+    ? `${wholeSeconds}s.${fraction.toString().padStart(2, "0")}`
+    : `${wholeSeconds}s`
 
-  const days = Math.floor(secondsReturn / 86_400)
-  const daysString = `${days}d`
+  if (secondsString !== "0s" || !parts.length) parts.push(secondsString)
 
-  if (maxTimeUnit === "YEARS") return `${yearsString}:${monthsString}:${daysString}`
-
-  secondsReturn -= days * 86_400
-
-  const hours = Math.floor(secondsReturn / 3_600)
-  const hoursString = zeropad(hours)
-
-  if (maxTimeUnit === "MONTHS") return `${monthsString}:${daysString} ${hoursString}h`
-
-  secondsReturn -= hours * 3_600
-
-  const minutes = Math.floor(secondsReturn / 60)
-  const minutesString = zeropad(minutes)
-
-  if (maxTimeUnit === "DAYS") return `${daysString} ${hoursString}:${minutesString}`
-
-  secondsReturn -= minutes * 60
-
-  const secondsString = zeropad(
-    minTimeUnit === "MS" ? secondsReturn.toFixed(2) : Math.round(secondsReturn)
-  )
-
-  if (maxTimeUnit === "HOURS") return `${hoursString}:${minutesString}:${secondsString}`
-
-  if (maxTimeUnit === "MINUTES") return `${minutesString}:${secondsString}`
-
-  return `${secondsString}s`
+  return `${sign}${parts.join("")}`
 }
 
 const twoFixed =
@@ -57,8 +56,8 @@ const twoFixed =
 export const keys = {
   Cel: ["[degF]"],
   ns: ["ns", "us", "ms", "s"],
-  ms: ["us", "ms", "s", "a:mo:d", "mo:d:h", "d:h:mm", "h:mm:ss", "mm:ss"],
-  s: ["us", "ms", "s", "a:mo:d", "mo:d:h", "d:h:mm", "h:mm:ss", "mm:ss", "dHH:MM:ss"],
+  ms: ["ns", "us", "ms", "s", "a:mo:d", "mo:d:h", "d:h:mm", "h:mm:ss", "mm:ss"],
+  s: ["ns", "us", "ms", "s", "a:mo:d", "mo:d:h", "d:h:mm", "h:mm:ss", "mm:ss", "dHH:MM:ss"],
 }
 
 export default {
@@ -123,8 +122,13 @@ export default {
     },
   },
   ms: {
+    ns: {
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max < 0.001,
+      convert: twoFixed(1_000_000),
+    },
     us: {
-      check: (chart, max) => chart.getAttribute("secondsAsTime") && max < 1,
+      check: (chart, max) =>
+        chart.getAttribute("secondsAsTime") && max >= 0.001 && max < 1,
       convert: twoFixed(1_000),
     },
     ms: {
@@ -159,8 +163,13 @@ export default {
     },
   },
   s: {
+    ns: {
+      check: (chart, max) => chart.getAttribute("secondsAsTime") && max < 0.000_001,
+      convert: twoFixed(1_000_000_000),
+    },
     us: {
-      check: (chart, max) => chart.getAttribute("secondsAsTime") && max < 0.001,
+      check: (chart, max) =>
+        chart.getAttribute("secondsAsTime") && max >= 0.000_001 && max < 0.001,
       convert: twoFixed(1000_000),
     },
     ms: {

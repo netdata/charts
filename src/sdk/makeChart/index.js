@@ -7,7 +7,7 @@ import { fetchChartData } from "./api"
 import makeDimensions from "./makeDimensions"
 import makeFilterControllers from "./filters/makeControllers"
 import makeDataFetch from "./makeDataFetch"
-import makeGetUnitSign from "./makeGetUnitSign"
+import makeGetUnitSign, { makeGetUnitAttributesForValue } from "./makeGetUnitSign"
 import makeWeights from "./makeWeights"
 import getAggregateMethod from "./filters/getAggregateMethod"
 
@@ -143,7 +143,10 @@ export default ({
   node.on("render", render)
   unitConversion(node)
 
-  node.getConvertedValue = (value, { fractionDigits, key = "units", dimensionId } = {}) => {
+  node.getConvertedValue = (
+    value,
+    { fractionDigits, key = "units", dimensionId, unitAttributes } = {}
+  ) => {
     if (!node) return
 
     if (value === null) return "-"
@@ -152,7 +155,7 @@ export default ({
       method,
       fractionDigits: unitsConversionFractionDigits,
       divider,
-    } = node.getUnitAttributes(dimensionId, key)
+    } = unitAttributes || node.getUnitAttributes(dimensionId, key)
 
     const converted = convert(node, method, value, divider)
 
@@ -170,6 +173,22 @@ export default ({
             : unitsConversionFractionDigits
           : fractionDigits,
     }).format(converted)
+  }
+
+  node.getConvertedValueWithUnit = (
+    value,
+    { fractionDigits, key = "units", dimensionId, unitAttributes } = {}
+  ) => {
+    const attrs = unitAttributes || node.getUnitAttributes(dimensionId, key)
+    const convertedValue = node.getConvertedValue(value, {
+      fractionDigits,
+      key,
+      dimensionId,
+      unitAttributes: attrs,
+    })
+    const unit = node.getUnitSign({ key, dimensionId, unitAttributes: attrs })
+
+    return unit ? `${convertedValue} ${unit}` : convertedValue
   }
 
   node.focus = event => {
@@ -245,6 +264,7 @@ export default ({
   makeWeights(node, sdk)
 
   node.type = "chart"
+  makeGetUnitAttributesForValue(node)
   makeGetUnitSign(node)
 
   node.track = makeTrack(node)

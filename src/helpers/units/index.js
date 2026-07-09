@@ -1,5 +1,9 @@
 import allUnits from "./all"
-import conversableUnits, { makeConversableKey, keys as conversableKeys } from "./conversableUnits"
+import conversableUnits, {
+  isCompactDurationUnit,
+  makeConversableKey,
+  keys as conversableKeys,
+} from "./conversableUnits"
 import scalableUnits, { keys } from "./scalableUnits"
 
 export const unitsMissing = u => typeof allUnits.units[u] === "undefined"
@@ -56,11 +60,28 @@ export const getScales = u => {
   return [[...keys.decimal], scalableUnits.decimal]
 }
 
+export const unitLabelModes = {
+  auto: "auto",
+  full: "full",
+  scale: "scale",
+}
+
+export const getUnitLabelMode = u => {
+  if (!isScalable(u)) return unitLabelModes.full
+  if (isChronos(u) || isMetric(u) || isBinary(u) || isBit(u)) return unitLabelModes.full
+
+  return unitLabelModes.scale
+}
+
 const labelify = (base, config, long) => {
   if (!config) return base
 
   if (typeof config === "string") {
     const resolved = getUnitConfig(config)
+    const resolvedBase = allUnits.units[base]
+
+    if (resolvedBase) return long ? resolvedBase.name : resolvedBase.print_symbol
+
     const display = long ? resolved.name : resolved.print_symbol
     if (display === "") return ""
     return base || display
@@ -70,10 +91,19 @@ const labelify = (base, config, long) => {
   return typeof config.print_symbol === "undefined" ? base : config.print_symbol
 }
 
-export const getUnitsString = (u, prefix = "", base = "", long) => {
+const resolveUnitLabelMode = (u, mode) =>
+  mode && mode !== unitLabelModes.auto ? mode : getUnitLabelMode(u)
+
+export const getUnitsString = (u, prefix = "", base = "", long, { mode } = {}) => {
+  if (isCompactDurationUnit(base)) return ""
+
   if (!isScalable(u)) return labelify(base, u, long).trim()
 
   if (isChronos(u)) return labelify(base, u, long)
+
+  if (resolveUnitLabelMode(u, mode) === unitLabelModes.scale) {
+    return labelify(prefix, allUnits.decimal_prefixes[prefix], long).trim()
+  }
 
   if (isMetric(u) || isBinary(u) || isBit(u))
     return `${labelify(prefix, allUnits.prefixes[prefix], long)}${labelify(base, u, long)}`.trim()

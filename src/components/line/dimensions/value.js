@@ -14,9 +14,16 @@ const ValueComponent = ({
   objKey,
   Component = Value,
   fractionDigits,
+  scaleByValue,
   ...rest
 }) => {
-  const value = useConvertedValue(id, period, { valueKey, objKey, allowNull: true, fractionDigits })
+  const value = useConvertedValue(id, period, {
+    valueKey,
+    objKey,
+    allowNull: true,
+    fractionDigits,
+    scaleByValue,
+  })
 
   if (!visible) return null
 

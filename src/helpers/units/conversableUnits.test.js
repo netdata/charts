@@ -31,11 +31,22 @@ describe("conversableUnits", () => {
     })
 
     it("contains correct millisecond conversion options", () => {
-      expect(keys.ms).toEqual(["us", "ms", "s", "a:mo:d", "mo:d:h", "d:h:mm", "h:mm:ss", "mm:ss"])
+      expect(keys.ms).toEqual([
+        "ns",
+        "us",
+        "ms",
+        "s",
+        "a:mo:d",
+        "mo:d:h",
+        "d:h:mm",
+        "h:mm:ss",
+        "mm:ss",
+      ])
     })
 
     it("contains correct second conversion options", () => {
       expect(keys.s).toEqual([
+        "ns",
         "us",
         "ms",
         "s",
@@ -144,8 +155,17 @@ describe("conversableUnits", () => {
       }
     })
 
+    it("converts to nanoseconds for values < 1us", () => {
+      const converter = conversableUnits.ms.ns
+      expect(converter.check(mockChart, 0.0005)).toBe(true)
+      expect(converter.check(mockChart, 0.001)).toBe(false)
+
+      expect(converter.convert(0.000025)).toBe(25)
+    })
+
     it("converts to microseconds for values < 1", () => {
       const converter = conversableUnits.ms.us
+      expect(converter.check(mockChart, 0.001)).toBe(true)
       expect(converter.check(mockChart, 0.5)).toBe(true)
       expect(converter.check(mockChart, 1)).toBe(false)
 
@@ -179,6 +199,7 @@ describe("conversableUnits", () => {
 
       const result = converter.convert(90000) // 1.5 minutes
       expect(typeof result).toBe("string")
+      expect(result).toBe("1m30s")
     })
 
     it("converts to h:mm:ss for values 1h-23h", () => {
@@ -189,6 +210,7 @@ describe("conversableUnits", () => {
 
       const result = converter.convert(7200000) // 2 hours
       expect(typeof result).toBe("string")
+      expect(result).toBe("2h")
     })
 
     it("converts to longer time formats for larger values", () => {
@@ -212,8 +234,17 @@ describe("conversableUnits", () => {
       }
     })
 
+    it("converts to nanoseconds for values below 1us", () => {
+      const converter = conversableUnits.s.ns
+      expect(converter.check(mockChart, 25e-9)).toBe(true)
+      expect(converter.check(mockChart, 1e-6)).toBe(false)
+
+      expect(converter.convert(25e-9)).toBe(25)
+    })
+
     it("converts to microseconds for very small values", () => {
       const converter = conversableUnits.s.us
+      expect(converter.check(mockChart, 1e-6)).toBe(true)
       expect(converter.check(mockChart, 0.0005)).toBe(true)
       expect(converter.check(mockChart, 0.001)).toBe(false)
 
@@ -246,6 +277,7 @@ describe("conversableUnits", () => {
 
       const result = mmssConverter.convert(90) // 1.5 minutes
       expect(typeof result).toBe("string")
+      expect(result).toBe("1m30s")
     })
 
     it("has dHH:MM:ss format that never auto-selects", () => {
@@ -254,13 +286,12 @@ describe("conversableUnits", () => {
 
       const result = converter.convert(90061) // > 1 day
       expect(typeof result).toBe("string")
+      expect(result).toBe("1d1h1m1s")
     })
   })
 
   describe("conversion function behavior", () => {
     it("handles edge cases in time conversion", () => {
-      const mockChart = { getAttribute: jest.fn(() => true) }
-
       // Test mm:ss conversion
       const mmssConverter = conversableUnits.s["mm:ss"]
       const result = mmssConverter.convert(125) // 2:05
@@ -270,14 +301,14 @@ describe("conversableUnits", () => {
       const hmmssConverter = conversableUnits.s["h:mm:ss"]
       const hourResult = hmmssConverter.convert(3725) // 1:02:05
       expect(typeof hourResult).toBe("string")
+      expect(hourResult).toBe("1h2m5s")
+      expect(hmmssConverter.convert(33820.22)).toBe("9h23m40s.22")
     })
 
     it("applies multipliers correctly", () => {
-      const mockChart = { getAttribute: jest.fn(() => true) }
-
       // Test microsecond conversion (multiplier = 1000000)
       const usConverter = conversableUnits.s.us
-      const result = usConverter.convert(0.001) // 1ms = 1000μs
+      const result = usConverter.convert(0.001) // 1ms = 1000µs
       expect(result).toBe(1000)
 
       // Test millisecond conversion (multiplier = 1000)

@@ -3,8 +3,13 @@ import styled from "styled-components"
 import { Flex } from "@netdata/netdata-ui"
 import Color, { ColorBar } from "@/components/line/dimensions/color"
 import Name from "@/components/line/dimensions/name"
+import Units from "@/components/line/dimensions/units"
 import Value, { Value as ValuePart } from "@/components/line/dimensions/value"
-import { useChart, useVisibleDimensionId } from "@/components/provider"
+import {
+  useLatestValue,
+  useValueUnitAttributes,
+  useVisibleDimensionId,
+} from "@/components/provider"
 import { labels as annotationLabels } from "@/helpers/annotations"
 import { useIsHeatmap } from "@/helpers/heatmap"
 import { rowFlavours } from "./dimensions"
@@ -26,11 +31,6 @@ const ColorBackground = styled(ColorBar).attrs({
   round: 0.5,
 })``
 
-const getInfoColumnWidth = rowFlavour =>
-  rowFlavour === rowFlavours.ANNOTATIONS
-    ? popoverGridColumns.annotationsInfo
-    : popoverGridColumns.info
-
 const DimensionNameCell = styled(Flex).attrs({
   "data-testid": "chartPopover-dimensionNameCell",
   alignItems: "center",
@@ -39,10 +39,7 @@ const DimensionNameCell = styled(Flex).attrs({
   overflow: "hidden",
   width: { min: 0 },
 })`
-  max-width: calc(
-    80vw - 32px - ${popoverGridColumns.value} - ${popoverGridColumns.anomaly} -
-      ${({ rowFlavour }) => getInfoColumnWidth(rowFlavour)}
-  );
+  min-width: ${popoverGridColumns.dimensionMin};
 
   [data-testid="chartDimensions-name"] {
     min-width: 0;
@@ -55,19 +52,41 @@ const rowValueKeys = {
   default: "value",
 }
 
-const ValueOnDot = ({ children, fractionDigits = 0, ...rest }) => {
-  const [first, last] = children.toString().split(".")
+const PlainValue = props => <ValuePart {...props} textAlign="right" whiteSpace="nowrap" />
+
+const UnitCell = styled(Flex).attrs({
+  "data-testid": "chartPopover-dimensionUnitCell",
+  alignItems: "center",
+  overflow: "hidden",
+  width: { min: 0 },
+})`
+  box-sizing: border-box;
+  padding-left: 6px;
+`
+
+const ValueWithUnits = ({ id, visible, children, ...rest }) => {
+  const isHeatmap = useIsHeatmap()
+  const value = useLatestValue(id, { allowNull: true })
+  const unitAttributes = useValueUnitAttributes(value, {
+    dimensionId: id,
+    scaleByValue: true,
+  })
 
   return (
-    <Flex alignItems="center" justifyContent="end">
-      <ValuePart {...rest} textAlign="right">
-        {first}
-      </ValuePart>
-      {typeof last !== "undefined" && <ValuePart {...rest}>.</ValuePart>}
-      <ValuePart as={Flex} flex={false} width={fractionDigits * 1.6} {...rest} textAlign="left">
-        {last}
-      </ValuePart>
-    </Flex>
+    <>
+      <PlainValue {...rest}>{children}</PlainValue>
+      <UnitCell>
+        {!isHeatmap && (
+          <Units
+            visible={visible}
+            dimensionId={id}
+            value={value}
+            unitAttributes={unitAttributes}
+            scaleByValue
+          />
+        )}
+      </UnitCell>
+    </>
   )
 }
 
@@ -91,14 +110,11 @@ const AnnotationsValue = ({ children: annotations, showFull, ...rest }) => (
 
 const Dimension = ({ id, strong, rowFlavour }) => {
   const visible = useVisibleDimensionId(id)
-
-  const chart = useChart()
-  const fractionDigits = chart.getAttribute("unitsConversionFractionDigits")
   const isHeatmap = useIsHeatmap()
 
   return (
     <GridRow opacity={visible ? null : "weak"}>
-      <DimensionNameCell rowFlavour={rowFlavour}>
+      <DimensionNameCell>
         <ColorBackground
           id={id}
           valueKey={rowValueKeys[rowFlavour] || rowValueKeys.default}
@@ -119,8 +135,8 @@ const Dimension = ({ id, strong, rowFlavour }) => {
         id={id}
         strong={strong}
         visible={visible}
-        Component={ValueOnDot}
-        fractionDigits={fractionDigits}
+        Component={props => <ValueWithUnits id={id} visible={visible} {...props} />}
+        scaleByValue
         color={rowFlavour === rowFlavours.default ? (strong ? "textFocus" : "text") : "textLite"}
       />
       <Value
@@ -128,7 +144,7 @@ const Dimension = ({ id, strong, rowFlavour }) => {
         strong={strong}
         visible={visible}
         valueKey="arp"
-        Component={ValueOnDot}
+        Component={PlainValue}
         fractionDigits={2}
         color={rowFlavour === rowFlavours.ANOMALY_RATE ? "anomalyTextFocus" : "anomalyText"}
       />

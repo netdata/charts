@@ -81,6 +81,38 @@ describe("getConversionUnits", () => {
       // Should use Ki prefix for binary units
       expect(result.prefix).toContain("Ki")
     })
+
+    it("uses a smaller conversable scale before excessive fractional digits", () => {
+      chart.updateAttributes({
+        units: ["s"],
+        desiredUnits: ["auto"],
+        secondsAsTime: true,
+      })
+
+      const result = getConversionAttributes(chart, "s", {
+        min: 0.00512000001,
+        max: 0.00512000009,
+      })
+
+      expect(result.method).toBe("s-us")
+      expect(result.fractionDigits).toBe(5)
+    })
+
+    it("allows high precision when no smaller scale is available", () => {
+      chart.updateAttributes({
+        units: ["{operation}/s"],
+        desiredUnits: ["auto"],
+      })
+
+      const result = getConversionAttributes(chart, "{operation}/s", {
+        min: 5.12000001,
+        max: 5.12000009,
+      })
+
+      expect(result.method).toBe("adjust")
+      expect(result.prefix).toBe("")
+      expect(result.fractionDigits).toBe(8)
+    })
   })
 
   describe("getConversionUnits", () => {

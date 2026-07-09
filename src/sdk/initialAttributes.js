@@ -249,12 +249,14 @@ export default {
   units: [""],
   unitsStsByContext: {},
   unitsByContext: {},
+  unitsByDimension: {},
   viewUpdateEvery: 0, // view.update_every
 
   // db
   dbUnits: [""],
   dbUnitsStsByContext: {},
   dbUnitsByContext: {},
+  dbUnitsByDimension: {},
   updateEvery: 0,
   firstEntry: 0,
   lastEntry: 0,

@@ -8,13 +8,29 @@ import {
   renderWithChart,
 } from "@jest/testUtilities"
 import Dimensions, { rowFlavours } from "./dimensions"
-import { popoverGridColumns } from "./layout"
+import {
+  getPopoverDimensionColumnWidth,
+  getPopoverWidth,
+  popoverGridColumns,
+} from "./layout"
 
-const loadLinePayload = async (chart, ids, rows) => {
+const getExpectedLayout = (names, infoColumn) => {
+  const dimensionColumnWidth = getPopoverDimensionColumnWidth(names, { infoColumn })
+
+  return {
+    dimensionColumnWidth,
+    gridColumns: `${dimensionColumnWidth}px ${popoverGridColumns.value} ${popoverGridColumns.unit} ${popoverGridColumns.anomaly} ${infoColumn}`,
+    popoverWidth: getPopoverWidth(dimensionColumnWidth, infoColumn),
+  }
+}
+
+const loadLinePayload = async (chart, ids, rows, { units = "requests/s" } = {}) => {
   const payload = makeHeatmapPayload(ids, rows)
 
   payload.view.chart_type = "line"
+  payload.view.units = units
   payload.view.dimensions.grouped_by = []
+  payload.view.dimensions.units = ids.map(() => units)
 
   chart.doneFetch(payload)
   await new Promise(resolve => setTimeout(resolve, 0))
@@ -86,20 +102,42 @@ describe("line popover Dimensions", () => {
 
     renderWithChart(<Dimensions />, { chart })
 
+    const layout = getExpectedLayout(ids, popoverGridColumns.info)
+
     expect(screen.getByTestId("chartPopover-grid")).toHaveStyle(
-      [
-        "grid-template-columns:",
-        `minmax(0,auto) ${popoverGridColumns.value} ${popoverGridColumns.anomaly}`,
-        popoverGridColumns.info,
-      ].join(" ")
+      `grid-template-columns: ${layout.gridColumns}`
+    )
+    expect(screen.getByTestId("chartPopover-dimensions")).toHaveStyle(
+      `width: ${layout.popoverWidth}px`
     )
     expect(screen.getByTestId("chartPopover-dimensionNameCell")).toHaveStyle(
-      [
-        "max-width:",
-        `calc( 80vw - 32px - ${popoverGridColumns.value} - ${popoverGridColumns.anomaly} -`,
-        `${popoverGridColumns.info} )`,
-      ].join(" ")
+      `min-width: ${popoverGridColumns.dimensionMin}`
     )
+  })
+
+  it("renders the formatted value and unit in separate popover cells", async () => {
+    const ids = ["bytes"]
+    const { chart } = makeTestChart({
+      attributes: {
+        chartType: "line",
+        groupBy: [],
+        selectedDimensions: [],
+        selectedLegendDimensions: [],
+      },
+    })
+
+    await loadLinePayload(chart, ids, [[1024]], { units: "By" })
+    chart.updateAttribute("hoverX", [1000, ids[0]])
+
+    renderWithChart(<Dimensions />, { chart })
+
+    const valueCell = screen.getAllByTestId("chartDimensions-value")[0]
+    const unitCell = screen.getByTestId("chartPopover-dimensionUnitCell")
+    const unit = screen.getByTestId("chartDimensions-units")
+
+    expect(valueCell).toHaveTextContent("1")
+    expect(unit).toHaveTextContent("KiB")
+    expect(unitCell).toContainElement(unit)
   })
 
   it("uses the wider fixed info column for annotation popovers", async () => {
@@ -118,19 +156,13 @@ describe("line popover Dimensions", () => {
 
     renderWithChart(<Dimensions />, { chart })
 
+    const layout = getExpectedLayout(ids, popoverGridColumns.annotationsInfo)
+
     expect(screen.getByTestId("chartPopover-grid")).toHaveStyle(
-      [
-        "grid-template-columns:",
-        `minmax(0,auto) ${popoverGridColumns.value} ${popoverGridColumns.anomaly}`,
-        popoverGridColumns.annotationsInfo,
-      ].join(" ")
+      `grid-template-columns: ${layout.gridColumns}`
     )
-    expect(screen.getByTestId("chartPopover-dimensionNameCell")).toHaveStyle(
-      [
-        "max-width:",
-        `calc( 80vw - 32px - ${popoverGridColumns.value} - ${popoverGridColumns.anomaly} -`,
-        `${popoverGridColumns.annotationsInfo} )`,
-      ].join(" ")
+    expect(screen.getByTestId("chartPopover-dimensions")).toHaveStyle(
+      `width: ${layout.popoverWidth}px`
     )
   })
 })

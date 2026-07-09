@@ -9,7 +9,6 @@ import unitConverter, {
   getScales,
   getUnitsString,
 } from "."
-import allUnits from "./all"
 import scalableUnits from "./scalableUnits"
 
 describe("units helpers", () => {
@@ -52,6 +51,12 @@ describe("units helpers", () => {
       expect(config.name).toBe("seconds")
     })
 
+    it("uses the micro sign for microsecond display labels", () => {
+      const config = getUnitConfig("us")
+      expect(config.print_symbol).toBe("\u00b5s")
+      expect(config.print_symbol).not.toBe("\u03bcs")
+    })
+
     it("returns default config for unknown units", () => {
       const config = getUnitConfig("unknown_unit")
       expect(config).toEqual({
@@ -88,6 +93,11 @@ describe("units helpers", () => {
       expect(getAlias("% of time working")).toBe("%")
       expect(getAlias("seconds")).toBe("s")
       expect(getAlias("bytes")).toBe("By")
+    })
+
+    it("accepts both microsecond characters as aliases", () => {
+      expect(getAlias("\u00b5s")).toBe("us")
+      expect(getAlias("\u03bcs")).toBe("us")
     })
 
     it("returns original unit if no alias exists but unit is known", () => {
@@ -296,8 +306,18 @@ describe("units helpers", () => {
       expect(result).toBe("kbit")
     })
 
-    it("uses decimal prefix format for other units", () => {
+    it("uses scale-only format for counted scalable units", () => {
       const result = getUnitsString("unknown_scalable", "K", "items")
+      expect(result).toBe("K")
+    })
+
+    it("uses scale-only format for request rate units", () => {
+      const result = getUnitsString("{request}/s", "M", "requests/s")
+      expect(result).toBe("M")
+    })
+
+    it("can force full decimal prefix format for counted scalable units", () => {
+      const result = getUnitsString("unknown_scalable", "K", "items", false, { mode: "full" })
       expect(result).toBe("K items")
     })
 
@@ -306,13 +326,18 @@ describe("units helpers", () => {
       expect(result).toBe("s")
     })
 
+    it("hides unit labels for compact duration values", () => {
+      const result = getUnitsString("s", "", "h:mm:ss")
+      expect(result).toBe("")
+    })
+
     it("handles long format for prefixes", () => {
       const result = getUnitsString("s", "k", "seconds", true)
       expect(result).toBe("kiloseconds")
     })
 
     it("trims whitespace correctly", () => {
-      const result = getUnitsString("unknown", "", "")
+      const result = getUnitsString("unknown", "", "", false, { mode: "full" })
       expect(result).toBe("unknown")
     })
 

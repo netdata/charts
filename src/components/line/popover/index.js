@@ -12,7 +12,7 @@ const leftTopAlign = { right: "left", bottom: "top" }
 const leftBottomAlign = { right: "left", top: "bottom" }
 const rightTopAlign = { left: "right", bottom: "top" }
 const rightBottomAlign = { left: "right", top: "bottom" }
-const stretch = "width"
+const canHideTarget = false
 
 const getAlign = (left, top) => {
   if (left && top) return leftTopAlign
@@ -32,7 +32,13 @@ const Popover = ({ uiName }) => {
   const [align, setAlign] = useState(rightBottomAlign)
 
   targetRef.current = target
-  updatePositionRef.current = useMakeUpdatePosition(target, dropRef, align, stretch)
+  updatePositionRef.current = useMakeUpdatePosition(
+    target,
+    dropRef,
+    align,
+    undefined,
+    canHideTarget
+  )
 
   useEffect(() => {
     return unregister(
@@ -99,7 +105,6 @@ const Popover = ({ uiName }) => {
             data-toolbox={chart.getId()}
             margin={[align.top ? 2 : -2, align.right ? -2 : 2]}
             ref={dropRef}
-            width={{ max: "100%" }}
             column
             data-testid="drop"
             sx={{ pointerEvents: "none" }}

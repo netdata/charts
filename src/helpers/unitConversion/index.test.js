@@ -102,6 +102,39 @@ describe("unitConversion", () => {
     cleanup()
   })
 
+  it("stores conversion attributes per dimension", () => {
+    chart.updateAttributes({
+      units: ["By"],
+      viewDimensions: {
+        ids: ["small", "large"],
+        names: ["small", "large"],
+        units: ["By", "By"],
+        contexts: ["small", "large"],
+      },
+      dimensionIds: ["small", "large"],
+      visibleDimensionIds: ["small", "large"],
+    })
+
+    chart.getPayload = () => ({
+      byDimension: {
+        small: { min: 1, max: 512 },
+        large: { min: 1024 ** 3, max: 2 * 1024 ** 3 },
+      },
+    })
+    chart.updateDimensions()
+
+    const cleanup = unitConversion(chart)
+
+    chart.trigger("visibleDimensionsChanged")
+
+    const unitsByDimension = chart.getAttribute("unitsByDimension")
+
+    expect(unitsByDimension.small.prefix).toBe("")
+    expect(unitsByDimension.large.prefix).toBe("Gi")
+
+    cleanup()
+  })
+
   it("handles context-specific units", () => {
     chart.updateAttribute("unitsStsByContext", {
       cpu: { units: ["%"], min: 0, max: 100 },

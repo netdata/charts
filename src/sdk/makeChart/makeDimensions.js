@@ -253,7 +253,9 @@ export default (chart, sdk) => {
   chart.getHeatmapSortedIds = () => heatmapSortedIds
 
   const getBaseVisibleHeatmapIds = () =>
-    heatmapSortedIds ? heatmapSortedIds.filter(id => visibleDimensionSet.has(id)) : visibleDimensionIds
+    heatmapSortedIds
+      ? heatmapSortedIds.filter(id => visibleDimensionSet.has(id))
+      : visibleDimensionIds
 
   const isZeroOnlyHeatmapBucket = id => {
     const { all = [] } = chart.getPayload()
@@ -373,6 +375,12 @@ export default (chart, sdk) => {
   }
 
   chart.getUnitAttributes = (id, key = "units") => {
+    const unitsByDimension = chart.getAttribute(`${key}ByDimension`) || {}
+
+    if (id && unitsByDimension[id]) {
+      return unitsByDimension[id]
+    }
+
     const context = chart.getDimensionContext(id)
 
     if (context) {

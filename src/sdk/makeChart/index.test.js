@@ -159,6 +159,64 @@ describe("makeChart", () => {
     expect(units).toBe("GB")
   })
 
+  it("formats seconds below one microsecond as nanoseconds", () => {
+    chart.updateAttributes({
+      units: ["s"],
+      desiredUnits: ["auto"],
+      secondsAsTime: true,
+    })
+
+    const unitAttributes = chart.getUnitAttributesForValue(25e-9)
+
+    expect(unitAttributes.method).toBe("s-ns")
+    expect(chart.getConvertedValueWithUnit(25e-9, { unitAttributes })).toBe("25 ns")
+  })
+
+  it("formats seconds below one millisecond with the micro sign", () => {
+    chart.updateAttributes({
+      units: ["s"],
+      desiredUnits: ["auto"],
+      secondsAsTime: true,
+    })
+
+    const unitAttributes = chart.getUnitAttributesForValue(5e-6)
+
+    expect(unitAttributes.method).toBe("s-us")
+    expect(chart.getUnitSign({ unitAttributes })).toBe("\u00b5s")
+    expect(chart.getConvertedValueWithUnit(5e-6, { unitAttributes })).toBe("5 \u00b5s")
+  })
+
+  it("formats hour-range seconds as compact duration without a unit suffix", () => {
+    chart.updateAttributes({
+      units: ["s"],
+      desiredUnits: ["auto"],
+      secondsAsTime: true,
+    })
+
+    const unitAttributes = chart.getUnitAttributesForValue(33820.22)
+
+    expect(unitAttributes.method).toBe("s-h:mm:ss")
+    expect(chart.getUnitSign({ unitAttributes })).toBe("")
+    expect(chart.getConvertedValueWithUnit(33820.22, { unitAttributes })).toBe("9h23m40s.22")
+  })
+
+  it("keeps high-precision latency values distinguishable by using a smaller scale", () => {
+    chart.updateAttributes({
+      units: ["s"],
+      desiredUnits: ["auto"],
+      secondsAsTime: true,
+    })
+
+    const min = 0.00512000001
+    const max = 0.00512000009
+    const unitAttributes = chart.getUnitAttributesForValue(min, { min, max })
+
+    expect(unitAttributes.method).toBe("s-us")
+    expect(unitAttributes.fractionDigits).toBe(5)
+    expect(chart.getConvertedValueWithUnit(min, { unitAttributes })).toBe("5,120.00001 \u00b5s")
+    expect(chart.getConvertedValueWithUnit(max, { unitAttributes })).toBe("5,120.00009 \u00b5s")
+  })
+
   it("intl returns fallback when no translation", () => {
     const result = chart.intl("test.key", { fallback: "Default Text" })
     expect(result).toBe("Default Text")

@@ -2,22 +2,24 @@ import React, { useMemo, memo } from "react"
 import styled from "styled-components"
 import { Flex, TextMicro, TextNano } from "@netdata/netdata-ui"
 import { useChart, useAttributeValue } from "@/components/provider"
-import Units from "@/components/line/dimensions/units"
 import UpdateEvery from "./updateEvery"
 import Timestamp from "./timestamp"
 import Dimension from "./dimension"
-import { popoverGridColumns } from "./layout"
+import {
+  getPopoverDimensionColumnWidth,
+  getPopoverWidth,
+  popoverGridColumns,
+} from "./layout"
 
 const Container = styled(Flex).attrs({
   round: true,
-  width: { min: "300px", max: "80vw" },
   background: "dropdown",
   column: true,
   padding: [4],
   gap: 1,
 })`
   box-sizing: border-box;
-  width: fit-content;
+  width: ${({ $popoverWidth }) => $popoverWidth}px;
   box-shadow:
     0px 8px 12px rgba(9, 30, 66, 0.15),
     0px 0px 1px rgba(9, 30, 66, 0.31);
@@ -27,16 +29,18 @@ const Grid = styled.div`
   display: grid;
   width: 100%;
   max-width: 100%;
-  grid-template-columns: minmax(0, auto) ${popoverGridColumns.value} ${popoverGridColumns.anomaly}
-    ${({ $rowFlavour }) =>
-      $rowFlavour === rowFlavours.ANNOTATIONS
-        ? popoverGridColumns.annotationsInfo
-        : popoverGridColumns.info};
+  grid-template-columns: ${({ $dimensionColumnWidth, $infoColumn }) =>
+    `${$dimensionColumnWidth}px ${popoverGridColumns.value} ${popoverGridColumns.unit} ${popoverGridColumns.anomaly} ${$infoColumn}`};
   align-items: center;
 `
 
 const GridHeader = styled.div`
   display: contents;
+`
+
+const UnitHeader = styled(TextMicro)`
+  box-sizing: border-box;
+  padding-left: 6px;
 `
 
 const emptyArray = [null, null]
@@ -107,9 +111,22 @@ const Dimensions = () => {
   }, [chart, isHeatmap, row, x])
 
   const rowFlavour = rowFlavours[row] || rowFlavours.default
+  const infoColumn =
+    rowFlavour === rowFlavours.ANNOTATIONS
+      ? popoverGridColumns.annotationsInfo
+      : popoverGridColumns.info
+  const dimensionNames = useMemo(() => ids.map(id => chart.getDimensionName(id) || ""), [
+    chart,
+    ids,
+  ])
+  const dimensionColumnWidth = useMemo(
+    () => getPopoverDimensionColumnWidth(dimensionNames, { infoColumn }),
+    [dimensionNames, infoColumn]
+  )
+  const popoverWidth = getPopoverWidth(dimensionColumnWidth, infoColumn)
 
   return (
-    <Container data-testid="chartPopover-dimensions" gap={2}>
+    <Container data-testid="chartPopover-dimensions" gap={2} $popoverWidth={popoverWidth}>
       <Flex column gap={1}>
         {x && <Timestamp value={x} />}
         <UpdateEvery />
@@ -117,7 +134,11 @@ const Dimensions = () => {
       <Flex flex={false} height={3}>
         {from > 0 && <TextNano color="textLite">↑{from} more values</TextNano>}
       </Flex>
-      <Grid data-testid="chartPopover-grid" $rowFlavour={rowFlavour}>
+      <Grid
+        data-testid="chartPopover-grid"
+        $dimensionColumnWidth={dimensionColumnWidth}
+        $infoColumn={infoColumn}
+      >
         <GridHeader>
           <TextMicro strong>Dimension</TextMicro>
           <TextMicro
@@ -125,17 +146,8 @@ const Dimensions = () => {
             textAlign="right"
           >
             Value
-            {chart.getAttribute("chartType") !== "heatmap" && (
-              <>
-                {" "}
-                <Units
-                  visible
-                  strong={rowFlavour === rowFlavours.default}
-                  color={rowFlavour === rowFlavours.default ? "text" : "textLite"}
-                />
-              </>
-            )}
           </TextMicro>
+          <UnitHeader color="textLite">{!isHeatmap && "Unit"}</UnitHeader>
           <TextMicro
             strong={rowFlavour === rowFlavours.ANOMALY_RATE}
             color={rowFlavour === rowFlavours.ANOMALY_RATE ? "text" : "textLite"}
