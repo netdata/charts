@@ -1,6 +1,24 @@
-import React, { Fragment } from "react"
-import { Flex, TextMicro } from "@netdata/netdata-ui"
+import React from "react"
+import styled from "styled-components"
+import { TextMicro } from "@netdata/netdata-ui"
 import { useAttributeValue } from "@/components/provider"
+
+const Container = styled.div`
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-width: 0;
+`
+
+const Item = styled.div.attrs({
+  "data-testid": "chartPopover-collection",
+})`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+`
 
 const UpdateEvery = () => {
   const viewUpdateEvery = useAttributeValue("viewUpdateEvery")
@@ -9,20 +27,20 @@ const UpdateEvery = () => {
   const groupingMethod = useAttributeValue("groupingMethod")
 
   return (
-    <Fragment>
-      <Flex gap={1} data-testid="chartPopover-collection">
+    <Container>
+      <Item>
         <TextMicro color="textLite">Granularity:</TextMicro>
-        <TextMicro color="textDescription">{updateEvery}s</TextMicro>
-      </Flex>
+        <TextMicro color="text">{updateEvery}s</TextMicro>
+      </Item>
       {viewUpdateEvery !== updateEvery && (
-        <Flex gap={1} data-testid="chartPopover-collection">
+        <Item>
           <TextMicro color="textLite">View point:</TextMicro>
-          <TextMicro color="textDescription">
+          <TextMicro color="text">
             {groupingMethod} {viewUpdateEvery}s
           </TextMicro>
-        </Flex>
+        </Item>
       )}
-    </Fragment>
+    </Container>
   )
 }
 

@@ -2,8 +2,7 @@ import React, { useMemo, memo } from "react"
 import styled from "styled-components"
 import { Flex, TextMicro, TextNano } from "@netdata/netdata-ui"
 import { useChart, useAttributeValue } from "@/components/provider"
-import UpdateEvery from "./updateEvery"
-import Timestamp from "./timestamp"
+import Header from "./header"
 import Dimension from "./dimension"
 import {
   getPopoverDimensionColumnWidth,
@@ -127,10 +126,7 @@ const Dimensions = () => {
 
   return (
     <Container data-testid="chartPopover-dimensions" gap={2} $popoverWidth={popoverWidth}>
-      <Flex column gap={1}>
-        {x && <Timestamp value={x} />}
-        <UpdateEvery />
-      </Flex>
+      <Header timestamp={x} />
       <Flex flex={false} height={3}>
         {from > 0 && <TextNano color="textLite">↑{from} more values</TextNano>}
       </Flex>

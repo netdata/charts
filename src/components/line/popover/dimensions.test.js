@@ -140,6 +140,43 @@ describe("line popover Dimensions", () => {
     expect(unitCell).toContainElement(unit)
   })
 
+  it("renders context, source units, timestamp, and both granularities in the header", async () => {
+    const ids = ["latency"]
+    const context = "storybook.units_scaling.really.long.context"
+    const { chart } = makeTestChart({
+      attributes: {
+        chartType: "line",
+        contextScope: [context],
+        groupingMethod: "avg",
+        groupBy: [],
+        selectedDimensions: [],
+        selectedLegendDimensions: [],
+      },
+    })
+    const payload = makeHeatmapPayload(ids, [[1]], { timestamp: 1000 })
+
+    payload.db.update_every = 5
+    payload.view.chart_type = "line"
+    payload.view.update_every = 60
+    payload.view.units = "%"
+    payload.view.dimensions.grouped_by = []
+    payload.view.dimensions.units = ids.map(() => "%")
+
+    chart.doneFetch(payload)
+    await new Promise(resolve => setTimeout(resolve, 0))
+    chart.updateAttribute("hoverX", [1000, ids[0]])
+
+    renderWithChart(<Dimensions />, { chart })
+
+    expect(screen.getByTestId("chartPopover-context")).toHaveTextContent(context)
+    expect(screen.getByTestId("chartPopover-sourceUnits")).toHaveTextContent("[percent]")
+    expect(screen.getByTestId("chartPopover-timestamp")).not.toBeEmptyDOMElement()
+    expect(screen.getByText("Granularity:")).toBeInTheDocument()
+    expect(screen.getByText("5s")).toBeInTheDocument()
+    expect(screen.getByText("View point:")).toBeInTheDocument()
+    expect(screen.getByText("avg 60s")).toBeInTheDocument()
+  })
+
   it("uses the wider fixed info column for annotation popovers", async () => {
     const ids = ["dim0"]
     const { chart } = makeTestChart({

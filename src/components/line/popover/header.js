@@ -1,0 +1,154 @@
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import styled from "styled-components"
+import { TextMicro } from "@netdata/netdata-ui"
+import { useAttributeValue, useUnitSign } from "@/components/provider"
+import Timestamp from "./timestamp"
+import UpdateEvery from "./updateEvery"
+
+const contextMaxFontSize = 12
+const contextMinFontSize = 9
+
+let measureCanvas
+
+const HeaderContainer = styled.div.attrs({
+  "data-testid": "chartPopover-header",
+})`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  width: 100%;
+`
+
+const ContextText = styled(TextMicro).attrs({
+  "data-testid": "chartPopover-context",
+})`
+  display: block;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: ${({ $fontSize }) => $fontSize}px;
+  font-weight: 700;
+  line-height: 14px;
+`
+
+const MetaRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  width: 100%;
+`
+
+const TimestampCell = styled.div`
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+`
+
+const SourceUnits = styled(TextMicro).attrs({
+  color: "textLite",
+  "data-testid": "chartPopover-sourceUnits",
+})`
+  flex: 0 0 auto;
+  white-space: nowrap;
+`
+
+const getMeasureContext = () => {
+  if (typeof document === "undefined") return null
+
+  if (!measureCanvas) measureCanvas = document.createElement("canvas")
+
+  return measureCanvas.getContext("2d")
+}
+
+const getMeasuredFont = (element, fontSize) => {
+  const style = window.getComputedStyle(element)
+
+  return `${style.fontStyle} ${style.fontVariant} ${style.fontWeight} ${fontSize}px ${style.fontFamily}`
+}
+
+const getContextFontSize = (element, text) => {
+  if (!element || !text) return contextMaxFontSize
+
+  const width = element.getBoundingClientRect().width
+  const context = getMeasureContext()
+
+  if (!width || !context) return contextMaxFontSize
+
+  context.font = getMeasuredFont(element, contextMaxFontSize)
+
+  const textWidth = context.measureText(text).width
+  if (!textWidth || textWidth <= width) return contextMaxFontSize
+
+  const next = Math.floor((width / textWidth) * contextMaxFontSize * 10) / 10
+
+  return Math.max(contextMinFontSize, Math.min(contextMaxFontSize, next))
+}
+
+const useContextFontSize = text => {
+  const ref = useRef()
+  const [fontSize, setFontSize] = useState(contextMaxFontSize)
+
+  const update = useCallback(() => {
+    const next = getContextFontSize(ref.current, text)
+    setFontSize(prev => (prev === next ? prev : next))
+  }, [text])
+
+  useLayoutEffect(update, [update])
+
+  useEffect(() => {
+    if (!ref.current) return
+
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", update)
+      return () => window.removeEventListener("resize", update)
+    }
+
+    const observer = new ResizeObserver(update)
+    observer.observe(ref.current)
+
+    return () => observer.disconnect()
+  }, [update])
+
+  return [ref, fontSize]
+}
+
+const Context = () => {
+  const contextScope = useAttributeValue("contextScope")
+  const name = useAttributeValue("name")
+  const context = useMemo(
+    () => (contextScope && contextScope.length ? contextScope.join(", ") : name || ""),
+    [contextScope, name]
+  )
+  const [ref, fontSize] = useContextFontSize(context)
+
+  if (!context) return null
+
+  return (
+    <ContextText ref={ref} title={context} $fontSize={fontSize}>
+      {context}
+    </ContextText>
+  )
+}
+
+const Header = ({ timestamp }) => {
+  const sourceUnits = useUnitSign({ withoutConversion: true, long: true })
+
+  return (
+    <HeaderContainer>
+      <Context />
+      <MetaRow>
+        <TimestampCell>{timestamp && <Timestamp value={timestamp} />}</TimestampCell>
+        {!!sourceUnits && <SourceUnits>[{sourceUnits}]</SourceUnits>}
+      </MetaRow>
+      <UpdateEvery />
+    </HeaderContainer>
+  )
+}
+
+export default Header
