@@ -159,6 +159,19 @@ describe("makeChart", () => {
     expect(units).toBe("GB")
   })
 
+  it("keeps grouped notation while raw values remain readable", () => {
+    chart.updateAttribute("units", ["raw-events"])
+
+    expect(chart.getConvertedValue(9999999999999)).toBe("9,999,999,999,999")
+  })
+
+  it("uses exponential notation for unreadably large raw values", () => {
+    chart.updateAttribute("units", ["raw-events"])
+
+    expect(chart.getConvertedValue(6.999e99)).toBe("6.999e+99")
+    expect(chart.getConvertedValueWithUnit(6.999e99)).toBe("6.999e+99")
+  })
+
   it("formats seconds below one microsecond as nanoseconds", () => {
     chart.updateAttributes({
       units: ["s"],
