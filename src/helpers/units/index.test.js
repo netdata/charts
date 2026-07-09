@@ -25,6 +25,8 @@ describe("units helpers", () => {
       expect(unitsMissing("s")).toBe(false)
       expect(unitsMissing("%")).toBe(false)
       expect(unitsMissing("requests/s")).toBe(false)
+      expect(unitsMissing("unknown")).toBe(false)
+      expect(unitsMissing("m3/min")).toBe(false)
     })
 
     it("returns boolean for any input", () => {
@@ -157,6 +159,14 @@ describe("units helpers", () => {
     })
 
     it("aliases the additional verified Netdata unit strings", () => {
+      expect(getAlias("scopes")).toBe("{scope}")
+      expect(getAlias("values")).toBe("{value}")
+      expect(getAlias("fields")).toBe("{field}")
+      expect(getAlias("buckets")).toBe("{bucket}")
+      expect(getAlias("buckets/s")).toBe("{bucket}/s")
+      expect(getAlias("count/s")).toBe("{count}/s")
+      expect(getAlias("unknown")).toBe("unknown")
+      expect(getAlias("m3/min")).toBe("m3/min")
       expect(getAlias("dimensions")).toBe("{dimension}")
       expect(getAlias("models")).toBe("{model}")
       expect(getAlias("profile_units")).toBe("{profile unit}")
@@ -255,6 +265,8 @@ describe("units helpers", () => {
 
     it("returns false for non-scalable units", () => {
       expect(isScalable("%")).toBe(false)
+      expect(isScalable("unknown")).toBe(false)
+      expect(isScalable("m3/min")).toBe(false)
       // Most units default to scalable, find actual non-scalable ones
       const config = getUnitConfig("%")
       expect(config.is_scalable).toBe(false)
@@ -467,6 +479,16 @@ describe("units helpers", () => {
     it("uses scale-only format for raw alias request rate units", () => {
       const result = getUnitsString("requests/s", "M", "requests/s")
       expect(result).toBe("M")
+    })
+
+    it("uses scale-only format for verified count rate aliases", () => {
+      expect(getUnitsString("buckets/s", "M", "buckets/s")).toBe("M")
+      expect(getUnitsString("count/s", "M", "count/s")).toBe("M")
+    })
+
+    it("keeps verified literal units non-scaled", () => {
+      expect(getUnitsString("unknown", "M", "unknown")).toBe("unknown")
+      expect(getUnitsString("m3/min", "K", "m3/min")).toBe("m3/min")
     })
 
     it("can force full decimal prefix format for counted scalable units", () => {

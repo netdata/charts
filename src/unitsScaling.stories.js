@@ -1151,6 +1151,66 @@ const unitDisplayCaseDefinitions = [
     ],
   },
   {
+    id: "source-buckets-per-second",
+    title: "Source unit: buckets/s",
+    purpose:
+      "Rust journal charts use buckets/s; it follows the generic rate path and shows only scale labels.",
+    unit: "buckets/s",
+    dimensions: [
+      { id: "buckets-small", name: "few buckets", min: 0.2, max: 8, seed: 1249 },
+      { id: "buckets-middle", name: "thousands of buckets", min: 1400, max: 8800, seed: 1259 },
+      { id: "buckets-large", name: "millions of buckets", min: 1.4e6, max: 7.8e6, seed: 1277 },
+    ],
+  },
+  {
+    id: "source-count-per-second",
+    title: "Source unit: count/s",
+    purpose:
+      "Rust OTel signal charts use singular count/s; it maps to the existing generic count-rate scale.",
+    unit: "count/s",
+    dimensions: [
+      { id: "count-small", name: "single count", min: 0.2, max: 8, seed: 1283 },
+      { id: "count-middle", name: "thousands of count", min: 1200, max: 9800, seed: 1289 },
+      { id: "count-large", name: "millions of count", min: 1.2e6, max: 8.8e6, seed: 1291 },
+    ],
+  },
+  {
+    id: "source-fields",
+    title: "Source unit: fields",
+    purpose:
+      "Rust netflow charts use simple count-like labels such as fields, scopes, and values.",
+    unit: "fields",
+    dimensions: [
+      { id: "fields-small", name: "few fields", min: 4, max: 80, seed: 1297 },
+      { id: "fields-middle", name: "thousands of fields", min: 1200, max: 9800, seed: 1301 },
+      { id: "fields-large", name: "millions of fields", min: 1.2e6, max: 8.8e6, seed: 1303 },
+    ],
+  },
+  {
+    id: "source-m3-per-minute",
+    title: "Source unit: m3/min",
+    purpose:
+      "SNMP airflow uses m3/min; the library has no volume-flow scale, so the literal unit is preserved.",
+    unit: "m3/min",
+    dimensions: [
+      { id: "m3min-small", name: "low airflow", min: 0.02, max: 0.86, seed: 1307 },
+      { id: "m3min-middle", name: "normal airflow", min: 12, max: 95, seed: 1319 },
+      { id: "m3min-large", name: "high airflow", min: 1200, max: 8800, seed: 1321 },
+    ],
+  },
+  {
+    id: "source-unknown",
+    title: "Source unit: unknown",
+    purpose:
+      "plugins.d can emit unknown as a fallback unit; it is explicit and non-scalable to avoid misleading prefixes.",
+    unit: "unknown",
+    dimensions: [
+      { id: "unknown-small", name: "small unknown", min: 0.02, max: 0.86, seed: 1327 },
+      { id: "unknown-middle", name: "middle unknown", min: 12, max: 95, seed: 1361 },
+      { id: "unknown-large", name: "large unknown", min: 1200, max: 8800, seed: 1367 },
+    ],
+  },
+  {
     id: "source-kib-per-second",
     title: "Source unit: KiB/s",
     purpose:
