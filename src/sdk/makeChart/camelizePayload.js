@@ -147,6 +147,16 @@ const getStsByContext = (groups, units, dimensions, contextsArray) => {
   ]
 }
 
+const aliasUnits = units => (Array.isArray(units) ? units.map(getAlias) : [getAlias(units)])
+
+const aliasDimensionUnits = dimensions =>
+  Array.isArray(dimensions?.units)
+    ? {
+        ...dimensions,
+        units: aliasUnits(dimensions.units),
+      }
+    : dimensions
+
 export default (payload, chart) => {
   const {
     summary: {
@@ -218,25 +228,28 @@ export default (payload, chart) => {
 
   const grouped = viewDimensions?.grouped_by
 
+  const aliasedViewDimensions = aliasDimensionUnits(viewDimensions)
+  const aliasedDbDimensions = aliasDimensionUnits(dbDimensions)
+
   const [dimContexts, unitsStsByContext] = getStsByContext(
     grouped,
     units,
-    viewDimensions,
+    aliasedViewDimensions,
     contextsArray
   )
 
   const [dbDimContexts, dbUnitsStsByContext] = getStsByContext(
     grouped,
     dbUnits,
-    dbDimensions,
+    aliasedDbDimensions,
     contextsArray
   )
 
-  const aliasedUnits = Array.isArray(units) ? units.map(getAlias) : [getAlias(units)]
+  const aliasedUnits = aliasUnits(units)
 
   const details = {
     viewDimensions: {
-      ...viewDimensions,
+      ...aliasedViewDimensions,
       contexts: dimContexts,
       grouped,
     },
@@ -261,10 +274,10 @@ export default (payload, chart) => {
       return h
     }, {}),
     dbDimensions: {
-      ...dbDimensions,
+      ...aliasedDbDimensions,
       contexts: dbDimContexts,
     },
-    dbUnits: Array.isArray(dbUnits) ? dbUnits.map(getAlias) : [getAlias(dbUnits)],
+    dbUnits: aliasUnits(dbUnits),
     dbUnitsStsByContext,
   }
 

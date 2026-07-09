@@ -53,6 +53,47 @@ describe("camelizePayload", () => {
     expect(result.stepPlot).toBe(false)
   })
 
+  it("aliases chart and dimension units before they are stored", () => {
+    const payload = {
+      view: {
+        chart_type: "line",
+        units: ["KiB", "seconds", "milliseconds", "percent", "percentage", "kilobits/s"],
+        dimensions: {
+          grouped_by: ["dimension"],
+          ids: ["bytes", "duration", "latency", "percent", "percentage", "traffic"],
+          units: ["KiB", "seconds", "milliseconds", "percent", "percentage", "kilobits/s"],
+          sts: {
+            min: [0, 0, 0, 0, 0, 0],
+            max: [1, 1, 1, 1, 1, 1],
+          },
+        },
+      },
+      db: {
+        units: ["KiB", "seconds", "milliseconds", "percent", "percentage", "kilobits/s"],
+        dimensions: {
+          ids: ["bytes", "duration", "latency", "percent", "percentage", "traffic"],
+          units: ["KiB", "seconds", "milliseconds", "percent", "percentage", "kilobits/s"],
+          sts: {
+            min: [0, 0, 0, 0, 0, 0],
+            max: [1, 1, 1, 1, 1, 1],
+          },
+        },
+      },
+      result: {
+        data: [],
+        labels: ["time", "bytes", "duration", "latency", "percent", "percentage", "traffic"],
+        point: { value: 0 },
+      },
+    }
+
+    const result = camelizePayload(payload)
+
+    expect(result.units).toEqual(["KiBy", "s", "ms", "%", "%", "Kibit/s"])
+    expect(result.viewDimensions.units).toEqual(["KiBy", "s", "ms", "%", "%", "Kibit/s"])
+    expect(result.dbUnits).toEqual(["KiBy", "s", "ms", "%", "%", "Kibit/s"])
+    expect(result.dbDimensions.units).toEqual(["KiBy", "s", "ms", "%", "%", "Kibit/s"])
+  })
+
   it("derives stepPlot for state units", () => {
     const payload = {
       view: {

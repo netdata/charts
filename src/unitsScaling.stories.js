@@ -642,10 +642,28 @@ const unitDisplayCaseDefinitions = [
     ],
   },
   {
-    id: "source-percentage",
-    title: "Source unit: percentage",
+    id: "source-milliseconds",
+    title: "Source unit: milliseconds",
+    purpose:
+      "Milliseconds also use duration-aware scaling, including sub-millisecond and hour-scale values.",
+    unit: "milliseconds",
+    dimensions: [
+      { id: "milliseconds-us", name: "microsecond latency", min: 0.003, max: 0.08, seed: 243 },
+      { id: "milliseconds-ms", name: "millisecond latency", min: 2, max: 18, seed: 247 },
+      {
+        id: "milliseconds-hours",
+        name: "multi-hour duration",
+        min: 2 * 3600 * 1000,
+        max: 11 * 3600 * 1000,
+        seed: 249,
+      },
+    ],
+  },
+  {
+    id: "source-percent",
+    title: "Source unit: percent",
     purpose: "Percent is non-scalable, so labels keep percent even for tiny fractional values.",
-    unit: "percentage",
+    unit: "percent",
     dimensions: [
       { id: "percent-tiny", name: "tiny percentage", min: 0.00012, max: 0.00092, seed: 251 },
       { id: "percent-middle", name: "middle percentage", min: 34, max: 68, seed: 257 },
