@@ -67,6 +67,8 @@ export const SimpleDark = () => {
   )
 }
 
+SimpleDark.parameters = { netdataTheme: "dark" }
+
 export const NoData = () => {
   const sdk = makeDefaultSDK()
   const chart = sdk.makeChart({
@@ -307,6 +309,8 @@ export const AlertTransitionsDark = () => {
   )
 }
 
+AlertTransitionsDark.parameters = { netdataTheme: "dark" }
+
 const alertTransitionsData = [
   { timestamp: -12 * 60, from: "CLEAR", to: "WARNING", value: 75.5 },
   { timestamp: -9 * 60, from: "WARNING", to: "CRITICAL", value: 92.3 },
@@ -347,6 +351,8 @@ export const AlertTransitionsWithTimeline = () => {
     </ThemeProvider>
   )
 }
+
+AlertTransitionsWithTimeline.parameters = { netdataTheme: "dark" }
 
 export const HighlightInTimeWindow = () => {
   const sdk = makeDefaultSDK()
