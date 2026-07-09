@@ -607,10 +607,22 @@ const unitDisplayCaseDefinitions = [
     ],
   },
   {
+    id: "source-kilobytes-per-operation",
+    title: "Source unit: kilobytes per operation",
+    purpose:
+      "Prometheus text form kilobytes per operation follows the decimal byte-per-operation path.",
+    unit: "kilobytes per operation",
+    dimensions: [
+      { id: "kbop-small", name: "fractional KB/operation", min: 0.04, max: 0.86, seed: 1207 },
+      { id: "kbop-middle", name: "tens of KB/operation", min: 18, max: 92, seed: 1213 },
+      { id: "kbop-large", name: "many KB/operation", min: 2400, max: 12200, seed: 1217 },
+    ],
+  },
+  {
     id: "source-kb",
     title: "Source unit: KB",
     purpose:
-      "Agent KB values are treated as byte-scale source values and chart units normalize to bytes.",
+      "Agent KB values are treated as decimal byte source values and chart units normalize to bytes.",
     unit: "KB",
     dimensions: [
       { id: "kb-small", name: "fractional KB", min: 0.04, max: 0.82, seed: 677 },
@@ -634,7 +646,7 @@ const unitDisplayCaseDefinitions = [
     id: "source-mb",
     title: "Source unit: MB",
     purpose:
-      "Agent MB values are treated as byte-scale source values and chart units normalize to bytes.",
+      "Agent MB values are treated as decimal byte source values and chart units normalize to bytes.",
     unit: "MB",
     dimensions: [
       { id: "mb-small", name: "fractional MB", min: 0.02, max: 0.86, seed: 727 },
@@ -658,12 +670,60 @@ const unitDisplayCaseDefinitions = [
     id: "source-gigabytes",
     title: "Source unit: gigabytes",
     purpose:
-      "Long-form gigabytes are normalized through the same byte-scale path as GiB.",
+      "Long-form gigabytes are normalized through the decimal byte-scale path.",
     unit: "gigabytes",
     dimensions: [
       { id: "gigabytes-small", name: "fractional gigabytes", min: 0.04, max: 0.92, seed: 379 },
       { id: "gigabytes-middle", name: "several gigabytes", min: 3, max: 32, seed: 383 },
       { id: "gigabytes-large", name: "many gigabytes", min: 1800, max: 9200, seed: 389 },
+    ],
+  },
+  {
+    id: "source-tb",
+    title: "Source unit: TB",
+    purpose:
+      "Agent TB values are treated as decimal byte source values and chart units normalize to bytes.",
+    unit: "TB",
+    dimensions: [
+      { id: "tb-small", name: "fractional TB", min: 0.02, max: 0.86, seed: 995 },
+      { id: "tb-middle", name: "several TB", min: 2.5, max: 24, seed: 997 },
+      { id: "tb-large", name: "many TB", min: 1200, max: 6800, seed: 1009 },
+    ],
+  },
+  {
+    id: "source-pb",
+    title: "Source unit: PB",
+    purpose:
+      "Agent PB values are treated as decimal byte source values and chart units normalize to bytes.",
+    unit: "PB",
+    dimensions: [
+      { id: "pb-small", name: "fractional PB", min: 0.02, max: 0.86, seed: 1013 },
+      { id: "pb-middle", name: "several PB", min: 2.5, max: 24, seed: 1019 },
+      { id: "pb-large", name: "many PB", min: 120, max: 860, seed: 1021 },
+    ],
+  },
+  {
+    id: "source-tib",
+    title: "Source unit: TiB",
+    purpose:
+      "Raw values are already in TiB; chart units normalize to bytes and labels stay on the binary byte scale.",
+    unit: "TiB",
+    dimensions: [
+      { id: "tib-small", name: "fractional TiB", min: 0.02, max: 0.86, seed: 1027 },
+      { id: "tib-middle", name: "several TiB", min: 2.5, max: 24, seed: 1031 },
+      { id: "tib-large", name: "many TiB", min: 1200, max: 6800, seed: 1033 },
+    ],
+  },
+  {
+    id: "source-pib",
+    title: "Source unit: PiB",
+    purpose:
+      "Raw values are already in PiB; chart units normalize to bytes and labels stay on the binary byte scale.",
+    unit: "PiB",
+    dimensions: [
+      { id: "pib-small", name: "fractional PiB", min: 0.02, max: 0.86, seed: 1039 },
+      { id: "pib-middle", name: "several PiB", min: 2.5, max: 24, seed: 1049 },
+      { id: "pib-large", name: "many PiB", min: 120, max: 860, seed: 1051 },
     ],
   },
   {
@@ -675,18 +735,6 @@ const unitDisplayCaseDefinitions = [
       { id: "bytes-small", name: "raw bytes", min: 18, max: 840, seed: 181 },
       { id: "bytes-middle", name: "KiB-sized bytes", min: 8 * KiB, max: 96 * KiB, seed: 191 },
       { id: "bytes-large", name: "GiB-sized bytes", min: 0.8 * GiB, max: 4.6 * GiB, seed: 193 },
-    ],
-  },
-  {
-    id: "source-kbps-literal",
-    title: "Source unit: kbps",
-    purpose:
-      "Literal kbps is not an alias today, so it is treated as a generic scalable unit and shows scale-only suffixes.",
-    unit: "kbps",
-    dimensions: [
-      { id: "kbps-literal-small", name: "literal small kbps", min: 0.4, max: 4.5, seed: 197 },
-      { id: "kbps-literal-middle", name: "literal thousands", min: 900, max: 1800, seed: 199 },
-      { id: "kbps-literal-large", name: "literal millions", min: 1.2e6, max: 8.8e6, seed: 211 },
     ],
   },
   {
@@ -714,6 +762,30 @@ const unitDisplayCaseDefinitions = [
     ],
   },
   {
+    id: "source-bits",
+    title: "Source unit: bits",
+    purpose:
+      "Plural bits normalizes to the bit scale and labels can move to kbit, Mbit, or Gbit.",
+    unit: "bits",
+    dimensions: [
+      { id: "bits-small", name: "bit count", min: 24, max: 920, seed: 1219 },
+      { id: "bits-middle", name: "kilobit count", min: 2400, max: 180000, seed: 1223 },
+      { id: "bits-large", name: "megabit count", min: 1.4e6, max: 7.2e6, seed: 1229 },
+    ],
+  },
+  {
+    id: "source-bits-per-second",
+    title: "Source unit: bits/s",
+    purpose:
+      "Plural bits/s normalizes to bits per second and labels can move to kbit/s, Mbit/s, or Gbit/s.",
+    unit: "bits/s",
+    dimensions: [
+      { id: "bitsps-small", name: "bit/s rate", min: 24, max: 920, seed: 1231 },
+      { id: "bitsps-middle", name: "kilobit/s rate", min: 2400, max: 180000, seed: 1237 },
+      { id: "bitsps-large", name: "megabit/s rate", min: 1.4e6, max: 7.2e6, seed: 1249 },
+    ],
+  },
+  {
     id: "source-mbps",
     title: "Source unit: Mbps",
     purpose:
@@ -735,6 +807,18 @@ const unitDisplayCaseDefinitions = [
       { id: "mhz-small", name: "fractional MHz", min: 0.03, max: 0.92, seed: 761 },
       { id: "mhz-middle", name: "hundreds of MHz", min: 160, max: 950, seed: 769 },
       { id: "mhz-large", name: "many MHz", min: 3200, max: 6800, seed: 773 },
+    ],
+  },
+  {
+    id: "source-hz",
+    title: "Source unit: Hz",
+    purpose:
+      "Raw values are in hertz; labels can scale upward to kHz, MHz, or GHz without changing the source unit.",
+    unit: "Hz",
+    dimensions: [
+      { id: "hz-small", name: "hertz", min: 24, max: 920, seed: 1053 },
+      { id: "hz-middle", name: "kilohertz range", min: 2400, max: 18000, seed: 1061 },
+      { id: "hz-large", name: "megahertz range", min: 1.2e6, max: 8.6e6, seed: 1063 },
     ],
   },
   {
@@ -768,6 +852,18 @@ const unitDisplayCaseDefinitions = [
     ],
   },
   {
+    id: "source-millisecond",
+    title: "Source unit: millisecond",
+    purpose:
+      "Singular duration-parser unit millisecond follows the same normalized seconds path as milliseconds.",
+    unit: "millisecond",
+    dimensions: [
+      { id: "millisecond-us", name: "microsecond latency", min: 0.003, max: 0.08, seed: 1069 },
+      { id: "millisecond-ms", name: "millisecond latency", min: 2, max: 18, seed: 1087 },
+      { id: "millisecond-hours", name: "multi-hour duration", min: 2 * 3600 * 1000, max: 11 * 3600 * 1000, seed: 1091 },
+    ],
+  },
+  {
     id: "source-microseconds",
     title: "Source unit: microseconds",
     purpose:
@@ -777,6 +873,30 @@ const unitDisplayCaseDefinitions = [
       { id: "microseconds-ns", name: "sub-microsecond latency", min: 0.02, max: 0.86, seed: 419 },
       { id: "microseconds-us", name: "microsecond latency", min: 2, max: 180, seed: 421 },
       { id: "microseconds-ms", name: "millisecond latency", min: 2400, max: 18000, seed: 431 },
+    ],
+  },
+  {
+    id: "source-nanoseconds",
+    title: "Source unit: nanoseconds",
+    purpose:
+      "Nanosecond source values normalize to seconds while labels can scale up to microseconds, milliseconds, or seconds.",
+    unit: "nanoseconds",
+    dimensions: [
+      { id: "nanoseconds-ns", name: "nanosecond latency", min: 24, max: 920, seed: 1093 },
+      { id: "nanoseconds-us", name: "microsecond latency", min: 2400, max: 180000, seed: 1097 },
+      { id: "nanoseconds-ms", name: "millisecond latency", min: 2.4e6, max: 18e6, seed: 1103 },
+    ],
+  },
+  {
+    id: "source-microsecond",
+    title: "Source unit: microsecond",
+    purpose:
+      "Singular duration-parser unit microsecond follows the same normalized seconds path as microseconds.",
+    unit: "microsecond",
+    dimensions: [
+      { id: "microsecond-ns", name: "sub-microsecond latency", min: 0.02, max: 0.86, seed: 1109 },
+      { id: "microsecond-us", name: "microsecond latency", min: 2, max: 180, seed: 1117 },
+      { id: "microsecond-ms", name: "millisecond latency", min: 2400, max: 18000, seed: 1123 },
     ],
   },
   {
@@ -804,6 +924,102 @@ const unitDisplayCaseDefinitions = [
     ],
   },
   {
+    id: "source-minutes",
+    title: "Source unit: minutes",
+    purpose:
+      "Raw values are already in minutes; chart units normalize to seconds and labels use compact duration formatting.",
+    unit: "minutes",
+    dimensions: [
+      { id: "minutes-small", name: "sub-minute duration", min: 0.02, max: 0.8, seed: 863 },
+      { id: "minutes-middle", name: "several minutes", min: 4, max: 45, seed: 877 },
+      { id: "minutes-large", name: "many minutes", min: 120, max: 600, seed: 881 },
+    ],
+  },
+  {
+    id: "source-sec",
+    title: "Source unit: sec",
+    purpose:
+      "Duration-parser shorthand sec follows the same normalized seconds path as seconds.",
+    unit: "sec",
+    dimensions: [
+      { id: "sec-ms", name: "millisecond latency", min: 0.002, max: 0.018, seed: 1129 },
+      { id: "sec-minutes", name: "minute duration", min: 90, max: 420, seed: 1151 },
+      { id: "sec-hours", name: "multi-hour duration", min: 2 * 3600, max: 11 * 3600, seed: 1153 },
+    ],
+  },
+  {
+    id: "source-hours",
+    title: "Source unit: hours",
+    purpose:
+      "Raw values are already in hours; chart units normalize to seconds and labels use compact duration formatting.",
+    unit: "hours",
+    dimensions: [
+      { id: "hours-small", name: "fractional hours", min: 0.05, max: 0.8, seed: 883 },
+      { id: "hours-middle", name: "same-day hours", min: 2, max: 22, seed: 887 },
+      { id: "hours-large", name: "multi-day hours", min: 48, max: 240, seed: 907 },
+    ],
+  },
+  {
+    id: "source-hr",
+    title: "Source unit: hr",
+    purpose:
+      "Duration-parser shorthand hr normalizes to seconds and uses compact duration formatting.",
+    unit: "hr",
+    dimensions: [
+      { id: "hr-small", name: "fractional hours", min: 0.05, max: 0.8, seed: 1163 },
+      { id: "hr-middle", name: "same-day hours", min: 2, max: 22, seed: 1171 },
+      { id: "hr-large", name: "multi-day hours", min: 48, max: 240, seed: 1181 },
+    ],
+  },
+  {
+    id: "source-days",
+    title: "Source unit: days",
+    purpose:
+      "Raw values are already in days; chart units normalize to seconds and labels use compact duration formatting.",
+    unit: "days",
+    dimensions: [
+      { id: "days-small", name: "fractional days", min: 0.1, max: 0.9, seed: 911 },
+      { id: "days-middle", name: "several days", min: 2, max: 20, seed: 919 },
+      { id: "days-large", name: "long-running days", min: 60, max: 730, seed: 929 },
+    ],
+  },
+  {
+    id: "source-weeks",
+    title: "Source unit: weeks",
+    purpose:
+      "Raw values are already in weeks; chart units normalize to seconds and labels use compact duration formatting.",
+    unit: "weeks",
+    dimensions: [
+      { id: "weeks-small", name: "fractional weeks", min: 0.1, max: 0.9, seed: 937 },
+      { id: "weeks-middle", name: "several weeks", min: 2, max: 12, seed: 941 },
+      { id: "weeks-large", name: "long-running weeks", min: 80, max: 160, seed: 947 },
+    ],
+  },
+  {
+    id: "source-months",
+    title: "Source unit: months",
+    purpose:
+      "Raw values are already in months; chart units normalize to seconds and labels use compact duration formatting.",
+    unit: "months",
+    dimensions: [
+      { id: "months-small", name: "fractional months", min: 0.1, max: 0.9, seed: 953 },
+      { id: "months-middle", name: "several months", min: 2, max: 12, seed: 967 },
+      { id: "months-large", name: "multi-year months", min: 36, max: 96, seed: 971 },
+    ],
+  },
+  {
+    id: "source-years",
+    title: "Source unit: years",
+    purpose:
+      "Raw values are already in years; chart units normalize to seconds and labels use compact duration formatting.",
+    unit: "years",
+    dimensions: [
+      { id: "years-small", name: "fractional years", min: 0.1, max: 0.9, seed: 977 },
+      { id: "years-middle", name: "several years", min: 2, max: 12, seed: 983 },
+      { id: "years-large", name: "many years", min: 30, max: 80, seed: 991 },
+    ],
+  },
+  {
     id: "source-ms-request",
     title: "Source unit: milliseconds/request",
     purpose:
@@ -825,18 +1041,6 @@ const unitDisplayCaseDefinitions = [
       { id: "msop-us", name: "microseconds per operation", min: 0.004, max: 0.08, seed: 449 },
       { id: "msop-ms", name: "milliseconds per operation", min: 2, max: 18, seed: 457 },
       { id: "msop-s", name: "seconds per operation", min: 2800, max: 12800, seed: 461 },
-    ],
-  },
-  {
-    id: "source-ms-run",
-    title: "Source unit: milliseconds/run",
-    purpose:
-      "Per-run latency keeps the denominator while normalizing the scale to seconds per run.",
-    unit: "milliseconds/run",
-    dimensions: [
-      { id: "msrun-us", name: "microseconds per run", min: 0.004, max: 0.08, seed: 463 },
-      { id: "msrun-ms", name: "milliseconds per run", min: 2, max: 18, seed: 467 },
-      { id: "msrun-s", name: "seconds per run", min: 2800, max: 12800, seed: 479 },
     ],
   },
   {
@@ -950,7 +1154,7 @@ const unitDisplayCaseDefinitions = [
     id: "source-kilobytes-per-second",
     title: "Source unit: kilobytes/s",
     purpose:
-      "Long-form kilobytes per second follows the same normalized byte-rate path as KiB/s.",
+      "Long-form kilobytes per second follows the decimal byte-rate path.",
     unit: "kilobytes/s",
     dimensions: [
       { id: "kilobytesps-small", name: "fractional kilobytes/s", min: 0.05, max: 0.95, seed: 557 },
@@ -971,15 +1175,27 @@ const unitDisplayCaseDefinitions = [
     ],
   },
   {
-    id: "source-gib-per-second",
-    title: "Source unit: GiB/s",
+    id: "source-mb-per-second",
+    title: "Source unit: MB/s",
     purpose:
-      "Raw values are already in GiB/s; chart units normalize to bytes per second and labels can move down or up from GiB/s.",
-    unit: "GiB/s",
+      "Raw values are already in MB/s; chart units normalize to bytes per second on the decimal byte-rate path.",
+    unit: "MB/s",
     dimensions: [
-      { id: "gibps-small", name: "fractional GiB/s", min: 0.01, max: 0.86, seed: 571 },
-      { id: "gibps-middle", name: "tens of GiB/s", min: 24, max: 128, seed: 577 },
-      { id: "gibps-large", name: "many GiB/s", min: 2400, max: 14200, seed: 587 },
+      { id: "mbps-bytes-small", name: "fractional MB/s", min: 0.01, max: 0.86, seed: 571 },
+      { id: "mbps-bytes-middle", name: "tens of MB/s", min: 24, max: 128, seed: 577 },
+      { id: "mbps-bytes-large", name: "many MB/s", min: 2400, max: 14200, seed: 587 },
+    ],
+  },
+  {
+    id: "source-gb-per-second",
+    title: "Source unit: GB/s",
+    purpose:
+      "Raw values are already in GB/s; chart units normalize to bytes per second on the decimal byte-rate path.",
+    unit: "GB/s",
+    dimensions: [
+      { id: "gbps-bytes-small", name: "fractional GB/s", min: 0.01, max: 0.86, seed: 1187 },
+      { id: "gbps-bytes-middle", name: "tens of GB/s", min: 24, max: 128, seed: 1193 },
+      { id: "gbps-bytes-large", name: "many GB/s", min: 2400, max: 14200, seed: 1201 },
     ],
   },
   {
@@ -995,11 +1211,11 @@ const unitDisplayCaseDefinitions = [
     ],
   },
   {
-    id: "source-milliamps",
-    title: "Source unit: milliamps",
+    id: "source-ma",
+    title: "Source unit: mA",
     purpose:
       "Raw values are in milliamps; chart units normalize to amperes and labels scale from mA to A/kA.",
-    unit: "milliamps",
+    unit: "mA",
     dimensions: [
       { id: "milliamps-small", name: "fractional amps", min: 20, max: 920, seed: 607 },
       { id: "milliamps-middle", name: "several amps", min: 1800, max: 12000, seed: 613 },
@@ -1007,11 +1223,11 @@ const unitDisplayCaseDefinitions = [
     ],
   },
   {
-    id: "source-millivolts",
-    title: "Source unit: millivolts",
+    id: "source-mv",
+    title: "Source unit: mV",
     purpose:
       "Raw values are in millivolts; chart units normalize to volts and labels scale from mV to V/kV.",
-    unit: "millivolts",
+    unit: "mV",
     dimensions: [
       { id: "millivolts-small", name: "fractional volts", min: 20, max: 920, seed: 619 },
       { id: "millivolts-middle", name: "several volts", min: 1800, max: 12000, seed: 631 },

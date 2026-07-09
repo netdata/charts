@@ -53,11 +53,74 @@ const twoFixed =
   value =>
     value * multiplier
 
+const secondConverters = {
+  ns: {
+    check: (chart, max) => chart.getAttribute("secondsAsTime") && max < 0.000_001,
+    convert: twoFixed(1_000_000_000),
+  },
+  us: {
+    check: (chart, max) =>
+      chart.getAttribute("secondsAsTime") && max >= 0.000_001 && max < 0.001,
+    convert: twoFixed(1000_000),
+  },
+  ms: {
+    check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 0.001 && max < 1,
+    convert: twoFixed(1000),
+  },
+  s: {
+    check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 1 && max < 60,
+    convert: twoFixed(1),
+  },
+  "mm:ss": {
+    check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 60 && max < 3_600,
+    convert: value => seconds2time(value, "MINUTES"),
+  },
+  "h:mm:ss": {
+    check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 3_600 && max < 86_400,
+    convert: value => seconds2time(value, "HOURS"),
+  },
+  "d:h:mm": {
+    check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400,
+    convert: value => seconds2time(value, "DAYS"),
+  },
+  "mo:d:h": {
+    check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400 * 30,
+    convert: value => seconds2time(value, "MONTHS"),
+  },
+  "a:mo:d": {
+    check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400 * 365,
+    convert: value => seconds2time(value, "YEARS"),
+  },
+  "dHH:MM:ss": {
+    check: () => false,
+    convert: value => seconds2time(value, "DAYS", "SECONDS"),
+  },
+}
+
+const makeSecondSourceConverters = multiplier =>
+  Object.entries(secondConverters).reduce((acc, [key, converter]) => {
+    acc[key] = {
+      check: (chart, max) => converter.check(chart, max * multiplier),
+      convert: (value, chart) => converter.convert(value * multiplier, chart),
+    }
+
+    return acc
+  }, {})
+
+const millisecondKeys = ["ns", "us", "ms", "s", "a:mo:d", "mo:d:h", "d:h:mm", "h:mm:ss", "mm:ss"]
+const secondKeys = [...millisecondKeys, "dHH:MM:ss"]
+
 export const keys = {
   Cel: ["[degF]"],
   ns: ["ns", "us", "ms", "s"],
-  ms: ["ns", "us", "ms", "s", "a:mo:d", "mo:d:h", "d:h:mm", "h:mm:ss", "mm:ss"],
-  s: ["ns", "us", "ms", "s", "a:mo:d", "mo:d:h", "d:h:mm", "h:mm:ss", "mm:ss", "dHH:MM:ss"],
+  ms: millisecondKeys,
+  s: secondKeys,
+  min: secondKeys,
+  h: secondKeys,
+  d: secondKeys,
+  wk: secondKeys,
+  mo: secondKeys,
+  a: secondKeys,
 }
 
 export default {
@@ -162,47 +225,11 @@ export default {
       convert: value => seconds2time(value / 1_000, "YEARS"),
     },
   },
-  s: {
-    ns: {
-      check: (chart, max) => chart.getAttribute("secondsAsTime") && max < 0.000_001,
-      convert: twoFixed(1_000_000_000),
-    },
-    us: {
-      check: (chart, max) =>
-        chart.getAttribute("secondsAsTime") && max >= 0.000_001 && max < 0.001,
-      convert: twoFixed(1000_000),
-    },
-    ms: {
-      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 0.001 && max < 1,
-      convert: twoFixed(1000),
-    },
-    s: {
-      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 1 && max < 60,
-      convert: twoFixed(1),
-    },
-    "mm:ss": {
-      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 60 && max < 3_600,
-      convert: value => seconds2time(value, "MINUTES"),
-    },
-    "h:mm:ss": {
-      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 3_600 && max < 86_400,
-      convert: value => seconds2time(value, "HOURS"),
-    },
-    "d:h:mm": {
-      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400,
-      convert: value => seconds2time(value, "DAYS"),
-    },
-    "mo:d:h": {
-      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400 * 30,
-      convert: value => seconds2time(value, "MONTHS"),
-    },
-    "a:mo:d": {
-      check: (chart, max) => chart.getAttribute("secondsAsTime") && max >= 86_400 * 365,
-      convert: value => seconds2time(value, "YEARS"),
-    },
-    "dHH:MM:ss": {
-      check: () => false, // only accepting desiredUnits
-      convert: value => seconds2time(value, "DAYS", "SECONDS"),
-    },
-  },
+  s: secondConverters,
+  min: makeSecondSourceConverters(60),
+  h: makeSecondSourceConverters(3_600),
+  d: makeSecondSourceConverters(86_400),
+  wk: makeSecondSourceConverters(604_800),
+  mo: makeSecondSourceConverters(86_400 * 30),
+  a: makeSecondSourceConverters(86_400 * 365),
 }

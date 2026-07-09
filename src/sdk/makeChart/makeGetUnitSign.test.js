@@ -74,6 +74,21 @@ describe("makeGetUnitSign", () => {
     expect(result).toBe("decibel milliwatts")
   })
 
+  it("normalizes source duration units to seconds", () => {
+    mockChart.getUnitAttributes.mockReturnValue({
+      base: "d:h:mm",
+      prefix: "",
+      unit: "h",
+    })
+
+    const result = mockChart.getUnitSign({
+      dimensionId: "test",
+      withoutConversion: true,
+    })
+
+    expect(result).toBe("seconds")
+  })
+
   it("handles long format", () => {
     const result = mockChart.getUnitSign({
       dimensionId: "test",

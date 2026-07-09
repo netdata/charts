@@ -6,6 +6,8 @@ describe("axis tick planner", () => {
   it("identifies duration axes only when all units are duration units", () => {
     expect(isDurationAxis({ secondsAsTime: true, units: ["s"] })).toBe(true)
     expect(isDurationAxis({ secondsAsTime: true, units: ["s", "s"] })).toBe(true)
+    expect(isDurationAxis({ secondsAsTime: true, units: ["h"] })).toBe(true)
+    expect(isDurationAxis({ secondsAsTime: true, units: ["d"] })).toBe(true)
     expect(isDurationAxis({ secondsAsTime: true, units: ["s", "ms"] })).toBe(false)
     expect(isDurationAxis({ secondsAsTime: false, units: ["s"] })).toBe(false)
     expect(isDurationAxis({ secondsAsTime: true, units: ["s", "By"] })).toBe(false)
@@ -82,6 +84,21 @@ describe("axis tick planner", () => {
         })
       )
     ).toEqual([0, 600000, 1200000, 1800000, 2400000, 3000000, 3600000])
+  })
+
+  it("uses duration ticks when source values are hours", () => {
+    expect(
+      values(
+        makeAxisTicks({
+          min: 0,
+          max: 26,
+          pixels: 300,
+          pixelsPerTick: 15,
+          units: ["h"],
+          secondsAsTime: true,
+        })
+      )
+    ).toEqual([0, 4, 8, 12, 16, 20, 24, 28])
   })
 
   it("uses year-aligned ticks for year-scale duration axes", () => {

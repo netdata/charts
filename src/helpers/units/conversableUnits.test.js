@@ -20,6 +20,8 @@ describe("conversableUnits", () => {
       expect(keys).toHaveProperty("ns")
       expect(keys).toHaveProperty("ms")
       expect(keys).toHaveProperty("s")
+      expect(keys).toHaveProperty("h")
+      expect(keys).toHaveProperty("d")
     })
 
     it("contains correct Celsius conversion options", () => {
@@ -57,6 +59,15 @@ describe("conversableUnits", () => {
         "mm:ss",
         "dHH:MM:ss",
       ])
+    })
+
+    it("uses the second conversion options for larger source duration units", () => {
+      expect(keys.min).toEqual(keys.s)
+      expect(keys.h).toEqual(keys.s)
+      expect(keys.d).toEqual(keys.s)
+      expect(keys.wk).toEqual(keys.s)
+      expect(keys.mo).toEqual(keys.s)
+      expect(keys.a).toEqual(keys.s)
     })
   })
 
@@ -287,6 +298,29 @@ describe("conversableUnits", () => {
       const result = converter.convert(90061) // > 1 day
       expect(typeof result).toBe("string")
       expect(result).toBe("1d1h1m1s")
+    })
+  })
+
+  describe("larger source duration conversions", () => {
+    const mockChart = {
+      getAttribute: jest.fn(() => true),
+    }
+
+    it("converts source minutes through the seconds formatter", () => {
+      expect(conversableUnits.min["h:mm:ss"].check(mockChart, 90)).toBe(true)
+      expect(conversableUnits.min["h:mm:ss"].convert(90)).toBe("1h30m")
+    })
+
+    it("converts source hours through the seconds formatter", () => {
+      expect(conversableUnits.h["d:h:mm"].check(mockChart, 26)).toBe(true)
+      expect(conversableUnits.h["d:h:mm"].convert(26)).toBe("1d2h")
+    })
+
+    it("converts source days, weeks, months, and years through the same path", () => {
+      expect(conversableUnits.d["d:h:mm"].convert(2)).toBe("2d")
+      expect(conversableUnits.wk["d:h:mm"].convert(2)).toBe("14d")
+      expect(conversableUnits.mo["mo:d:h"].convert(2)).toBe("2mo")
+      expect(conversableUnits.a["a:mo:d"].convert(2)).toBe("2yr")
     })
   })
 

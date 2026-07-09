@@ -8,6 +8,7 @@ import unitConverter, {
   isMetric,
   isBinary,
   isBit,
+  isDecimalByte,
   getScales,
   getUnitsString,
 } from "."
@@ -103,18 +104,49 @@ describe("units helpers", () => {
     })
 
     it("aliases source-scaled Agent units without losing their denominator", () => {
-      expect(getAlias("KB")).toBe("KiBy")
+      expect(getAlias("KB")).toBe("KBy")
       expect(getAlias("MiB")).toBe("MiBy")
-      expect(getAlias("MB")).toBe("MiBy")
+      expect(getAlias("MB")).toBe("MBy")
+      expect(getAlias("GB")).toBe("GBy")
+      expect(getAlias("TB")).toBe("TBy")
+      expect(getAlias("PB")).toBe("PBy")
+      expect(getAlias("GBy")).toBe("GBy")
+      expect(getAlias("TiB")).toBe("TiBy")
+      expect(getAlias("PiB")).toBe("PiBy")
+      expect(getAlias("MB/s")).toBe("MBy/s")
+      expect(getAlias("GB/s")).toBe("GBy/s")
+      expect(getAlias("kilobytes/s")).toBe("KBy/s")
+      expect(getAlias("kilobytes per operation")).toBe("KBy/{operation}")
+      expect(getAlias("bits")).toBe("bit")
+      expect(getAlias("bits/s")).toBe("bit/s")
       expect(getAlias("kilobits")).toBe("Kibit")
+      expect(getAlias("kbit/s")).toBe("Kibit/s")
+      expect(getAlias("megabits")).toBe("Mibit")
       expect(getAlias("Mbps")).toBe("Mibit/s")
       expect(getAlias("MHz")).toBe("MHz")
+      expect(getAlias("microsecond")).toBe("us")
+      expect(getAlias("millisecond")).toBe("ms")
+      expect(getAlias("nanosecond")).toBe("ns")
+      expect(getAlias("nanoseconds")).toBe("ns")
+      expect(getAlias("second")).toBe("s")
+      expect(getAlias("sec")).toBe("s")
+      expect(getAlias("secs")).toBe("s")
+      expect(getAlias("hr")).toBe("h")
+      expect(getAlias("hrs")).toBe("h")
+      expect(getAlias("Celcius")).toBe("Cel")
+      expect(getAlias("Joules")).toBe("J")
+      expect(getAlias("pcent")).toBe("%")
+      expect(getAlias("minutes")).toBe("min")
+      expect(getAlias("hours")).toBe("h")
+      expect(getAlias("weeks")).toBe("wk")
+      expect(getAlias("months")).toBe("mo")
+      expect(getAlias("years")).toBe("a")
       expect(getAlias("KiB/operation")).toBe("KiBy/{operation}")
       expect(getAlias("milliseconds/request")).toBe("ms/{request}")
       expect(getAlias("milliseconds/run")).toBe("ms/{run}")
       expect(getAlias("milliseconds/operation")).toBe("ms/{operation}")
       expect(getAlias("usec/s")).toBe("us/s")
-      expect(getAlias("gigabytes")).toBe("GiBy")
+      expect(getAlias("gigabytes")).toBe("GBy")
       expect(getAlias("GiB/s")).toBe("GiBy/s")
       expect(getAlias("millicpu")).toBe("m[CPU]")
       expect(getAlias("milliamps")).toBe("mA")
@@ -155,11 +187,26 @@ describe("units helpers", () => {
       expect(getNormalizedUnit("KiBy/{operation}")).toBe("By/{operation}")
       expect(getNormalizedUnit("GiBy")).toBe("By")
       expect(getNormalizedUnit("GiBy/s")).toBe("By/s")
+      expect(getNormalizedUnit("TiBy")).toBe("By")
+      expect(getNormalizedUnit("PiBy")).toBe("By")
+      expect(getNormalizedUnit("KBy")).toBe("By")
+      expect(getNormalizedUnit("MBy")).toBe("By")
+      expect(getNormalizedUnit("GBy")).toBe("By")
+      expect(getNormalizedUnit("TBy")).toBe("By")
+      expect(getNormalizedUnit("PBy")).toBe("By")
+      expect(getNormalizedUnit("GBy/s")).toBe("By/s")
+      expect(getNormalizedUnit("KBy/{operation}")).toBe("By/{operation}")
       expect(getNormalizedUnit("ms")).toBe("s")
       expect(getNormalizedUnit("ms/{request}")).toBe("s/{request}")
       expect(getNormalizedUnit("Mibit/s")).toBe("bit/s")
       expect(getNormalizedUnit("MHz")).toBe("Hz")
       expect(getNormalizedUnit("m[CPU]")).toBe("[CPU]")
+      expect(getNormalizedUnit("min")).toBe("s")
+      expect(getNormalizedUnit("h")).toBe("s")
+      expect(getNormalizedUnit("d")).toBe("s")
+      expect(getNormalizedUnit("wk")).toBe("s")
+      expect(getNormalizedUnit("mo")).toBe("s")
+      expect(getNormalizedUnit("a")).toBe("s")
       expect(getNormalizedUnit("mA")).toBe("Ampere")
       expect(getNormalizedUnit("mW")).toBe("W")
     })
@@ -284,6 +331,26 @@ describe("units helpers", () => {
     })
   })
 
+  describe("isDecimalByte", () => {
+    it("returns true for decimal byte units", () => {
+      expect(isDecimalByte("KBy")).toBe(true)
+      expect(isDecimalByte("MBy")).toBe(true)
+      expect(isDecimalByte("GBy")).toBe(true)
+      expect(isDecimalByte("TBy")).toBe(true)
+      expect(isDecimalByte("PBy")).toBe(true)
+      expect(isDecimalByte("MBy/s")).toBe(true)
+      expect(isDecimalByte("KBy/{operation}")).toBe(true)
+    })
+
+    it("returns false for binary byte units", () => {
+      expect(isDecimalByte("KiBy")).toBe(false)
+      expect(isDecimalByte("MiBy")).toBe(false)
+      expect(isDecimalByte("GiBy")).toBe(false)
+      expect(isDecimalByte("TiBy")).toBe(false)
+      expect(isDecimalByte("PiBy")).toBe(false)
+    })
+  })
+
   describe("getScales", () => {
     it("returns empty arrays for non-scalable units", () => {
       const [keys, values] = getScales("%")
@@ -297,6 +364,13 @@ describe("units helpers", () => {
       expect(keys).toContain("Ki")
       expect(keys).toContain("Mi")
       expect(values).toBe(scalableUnits.binary)
+    })
+
+    it("returns decimal byte scales for decimal byte units", () => {
+      const [keys, values] = getScales("MBy")
+      expect(keys).toContain("K")
+      expect(keys).toContain("G")
+      expect(values).toBe(scalableUnits.decimalBytes)
     })
 
     it("returns num scales for bit units", () => {
@@ -408,6 +482,9 @@ describe("units helpers", () => {
 
     it("shows the prefix once for pre-scaled units with normalized base units", () => {
       expect(getUnitsString("KiBy/{operation}", "Mi", "By/{operation}")).toBe("MiB/operation")
+      expect(getUnitsString("MBy", "G", "By")).toBe("GB")
+      expect(getUnitsString("MBy/s", "K", "By/s")).toBe("KB/s")
+      expect(getUnitsString("KBy/{operation}", "M", "By/{operation}")).toBe("MB/operation")
       expect(getUnitsString("ms/{request}", "u", "s/{request}")).toBe("\u00b5s/request")
       expect(getUnitsString("mA", "k", "Ampere")).toBe("kA")
     })

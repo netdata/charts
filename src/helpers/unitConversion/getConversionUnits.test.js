@@ -98,6 +98,22 @@ describe("getConversionUnits", () => {
       expect(result.fractionDigits).toBe(5)
     })
 
+    it("converts source hours through duration-aware scales", () => {
+      chart.updateAttributes({
+        units: ["h"],
+        desiredUnits: ["auto"],
+        secondsAsTime: true,
+      })
+
+      const result = getConversionAttributes(chart, "h", {
+        min: 0,
+        max: 26,
+      })
+
+      expect(result.method).toBe("h-d:h:mm")
+      expect(result.base).toBe("d:h:mm")
+    })
+
     it("allows high precision when no smaller scale is available", () => {
       chart.updateAttributes({
         units: ["{operation}/s"],

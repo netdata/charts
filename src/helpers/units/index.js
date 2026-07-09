@@ -38,6 +38,10 @@ export const getNormalizedUnit = u => {
   const alias = getAlias(u)
   const config = getUnitConfig(alias)
 
+  if (config.normalized_unit) {
+    return config.normalized_unit
+  }
+
   if (config.is_scalable && config.base_unit && config.prefix_symbol) {
     return config.base_unit
   }
@@ -57,6 +61,8 @@ export const isChronos = (u = "") =>
   typeof u === "string" ? getUnitConfig(u)?.is_chronos : u?.is_chronos
 
 export const isBit = (u = "") => (typeof u === "string" ? getUnitConfig(u)?.is_bit : u?.is_bit)
+export const isDecimalByte = (u = "") =>
+  !!(typeof u === "string" ? getUnitConfig(u)?.is_decimal_byte : u?.is_decimal_byte)
 
 export const getExponent = (u = "") =>
   typeof u === "string" ? getUnitConfig(u)?.exponent : u?.exponent
@@ -66,6 +72,7 @@ export const getScales = u => {
 
   if (isChronos(u)) return [[...keys.chronos], scalableUnits.chronos]
   if (isBinary(u)) return [[...keys.binary], scalableUnits.binary]
+  if (isDecimalByte(u)) return [[...keys.decimalBytes], scalableUnits.decimalBytes]
   if (isBit(u)) return [[...keys.bit], scalableUnits.num]
 
   if (isMetric(u)) return [[...keys.num], scalableUnits.num]
@@ -81,7 +88,8 @@ export const unitLabelModes = {
 
 export const getUnitLabelMode = u => {
   if (!isScalable(u)) return unitLabelModes.full
-  if (isChronos(u) || isMetric(u) || isBinary(u) || isBit(u)) return unitLabelModes.full
+  if (isChronos(u) || isMetric(u) || isBinary(u) || isDecimalByte(u) || isBit(u))
+    return unitLabelModes.full
 
   return unitLabelModes.scale
 }
@@ -117,6 +125,9 @@ export const getUnitsString = (u, prefix = "", base = "", long, { mode } = {}) =
   if (resolveUnitLabelMode(u, mode) === unitLabelModes.scale) {
     return labelify(prefix, allUnits.decimal_prefixes[prefix], long).trim()
   }
+
+  if (isDecimalByte(u))
+    return `${labelify(prefix, allUnits.prefixes[prefix] || allUnits.decimal_prefixes[prefix], long)}${labelify(base, u, long)}`.trim()
 
   if (isMetric(u) || isBinary(u) || isBit(u))
     return `${labelify(prefix, allUnits.prefixes[prefix], long)}${labelify(base, u, long)}`.trim()
