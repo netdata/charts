@@ -158,9 +158,9 @@ describe("line popover Dimensions", () => {
     payload.db.update_every = 5
     payload.view.chart_type = "line"
     payload.view.update_every = 60
-    payload.view.units = "%"
+    payload.view.units = "KiB"
     payload.view.dimensions.grouped_by = []
-    payload.view.dimensions.units = ids.map(() => "%")
+    payload.view.dimensions.units = ids.map(() => "KiB")
 
     chart.doneFetch(payload)
     await new Promise(resolve => setTimeout(resolve, 0))
@@ -169,7 +169,7 @@ describe("line popover Dimensions", () => {
     renderWithChart(<Dimensions />, { chart })
 
     expect(screen.getByTestId("chartPopover-context")).toHaveTextContent(context)
-    expect(screen.getByTestId("chartPopover-sourceUnits")).toHaveTextContent("[percent]")
+    expect(screen.getByTestId("chartPopover-sourceUnits")).toHaveTextContent("[bytes]")
     expect(screen.getByTestId("chartPopover-timestamp")).not.toBeEmptyDOMElement()
     expect(screen.getByText("Granularity:")).toBeInTheDocument()
     expect(screen.getByText("5s")).toBeInTheDocument()

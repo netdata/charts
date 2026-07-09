@@ -1,6 +1,8 @@
 import unitConverter, {
   unitsMissing,
   getUnitConfig,
+  getNormalizedUnit,
+  getNormalizedUnitConfig,
   getAlias,
   isScalable,
   isMetric,
@@ -100,6 +102,27 @@ describe("units helpers", () => {
       expect(getAlias("\u03bcs")).toBe("us")
     })
 
+    it("aliases source-scaled Agent units without losing their denominator", () => {
+      expect(getAlias("KB")).toBe("KiBy")
+      expect(getAlias("MiB")).toBe("MiBy")
+      expect(getAlias("MB")).toBe("MiBy")
+      expect(getAlias("kilobits")).toBe("Kibit")
+      expect(getAlias("Mbps")).toBe("Mibit/s")
+      expect(getAlias("MHz")).toBe("MHz")
+      expect(getAlias("KiB/operation")).toBe("KiBy/{operation}")
+      expect(getAlias("milliseconds/request")).toBe("ms/{request}")
+      expect(getAlias("milliseconds/run")).toBe("ms/{run}")
+      expect(getAlias("milliseconds/operation")).toBe("ms/{operation}")
+      expect(getAlias("usec/s")).toBe("us/s")
+      expect(getAlias("gigabytes")).toBe("GiBy")
+      expect(getAlias("GiB/s")).toBe("GiBy/s")
+      expect(getAlias("millicpu")).toBe("m[CPU]")
+      expect(getAlias("milliamps")).toBe("mA")
+      expect(getAlias("millivolts")).toBe("mV")
+      expect(getAlias("mJ/s")).toBe("mW")
+      expect(getAlias("dBm")).toBe("dB[mW]")
+    })
+
     it("returns original unit if no alias exists but unit is known", () => {
       expect(getAlias("By")).toBe("By")
       expect(getAlias("s")).toBe("s")
@@ -122,6 +145,33 @@ describe("units helpers", () => {
 
     it("returns original unit if no match found", () => {
       expect(getAlias("completely_unknown")).toBe("completely_unknown")
+    })
+  })
+
+  describe("getNormalizedUnit", () => {
+    it("returns the base unit for pre-scaled binary and metric units", () => {
+      expect(getNormalizedUnit("KiBy")).toBe("By")
+      expect(getNormalizedUnit("KiBy/s")).toBe("By/s")
+      expect(getNormalizedUnit("KiBy/{operation}")).toBe("By/{operation}")
+      expect(getNormalizedUnit("GiBy")).toBe("By")
+      expect(getNormalizedUnit("GiBy/s")).toBe("By/s")
+      expect(getNormalizedUnit("ms")).toBe("s")
+      expect(getNormalizedUnit("ms/{request}")).toBe("s/{request}")
+      expect(getNormalizedUnit("Mibit/s")).toBe("bit/s")
+      expect(getNormalizedUnit("MHz")).toBe("Hz")
+      expect(getNormalizedUnit("m[CPU]")).toBe("[CPU]")
+      expect(getNormalizedUnit("mA")).toBe("Ampere")
+      expect(getNormalizedUnit("mW")).toBe("W")
+    })
+
+    it("keeps non-scalable special units in their source unit", () => {
+      expect(getNormalizedUnit("dB[mW]")).toBe("dB[mW]")
+    })
+
+    it("returns normalized unit config labels", () => {
+      expect(getNormalizedUnitConfig("KiBy").name).toBe("bytes")
+      expect(getNormalizedUnitConfig("ms/{request}").name).toBe("seconds per request")
+      expect(getNormalizedUnitConfig("dB[mW]").name).toBe("decibel milliwatts")
     })
   })
 
@@ -354,6 +404,12 @@ describe("units helpers", () => {
     it("uses base over print_symbol for scaled units", () => {
       const result = getUnitsString("By", "Mi", "B")
       expect(result).toBe("MiB")
+    })
+
+    it("shows the prefix once for pre-scaled units with normalized base units", () => {
+      expect(getUnitsString("KiBy/{operation}", "Mi", "By/{operation}")).toBe("MiB/operation")
+      expect(getUnitsString("ms/{request}", "u", "s/{request}")).toBe("\u00b5s/request")
+      expect(getUnitsString("mA", "k", "Ampere")).toBe("kA")
     })
   })
 

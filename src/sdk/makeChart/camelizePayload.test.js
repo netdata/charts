@@ -54,44 +54,134 @@ describe("camelizePayload", () => {
   })
 
   it("aliases chart and dimension units before they are stored", () => {
+    const sourceUnits = [
+      "KiB",
+      "KB",
+      "MiB",
+      "MB",
+      "seconds",
+      "milliseconds",
+      "ms",
+      "us",
+      "percent",
+      "percentage",
+      "kilobits",
+      "kilobits/s",
+      "Mbps",
+      "MHz",
+      "KiB/operation",
+      "milliseconds/request",
+      "milliseconds/run",
+      "milliseconds/operation",
+      "milliseconds/s",
+      "ms/s",
+      "usec/s",
+      "gigabytes",
+      "GiB/s",
+      "millicpu",
+      "mA",
+      "millivolts",
+      "mJ/s",
+      "dBm",
+    ]
+    const expectedUnits = [
+      "KiBy",
+      "KiBy",
+      "MiBy",
+      "MiBy",
+      "s",
+      "ms",
+      "ms",
+      "us",
+      "%",
+      "%",
+      "Kibit",
+      "Kibit/s",
+      "Mibit/s",
+      "MHz",
+      "KiBy/{operation}",
+      "ms/{request}",
+      "ms/{run}",
+      "ms/{operation}",
+      "ms/s",
+      "ms/s",
+      "us/s",
+      "GiBy",
+      "GiBy/s",
+      "m[CPU]",
+      "mA",
+      "mV",
+      "mW",
+      "dB[mW]",
+    ]
+    const ids = [
+      "bytes",
+      "shortBytes",
+      "mebibytes",
+      "megabytes",
+      "duration",
+      "latency",
+      "shortLatency",
+      "microLatency",
+      "percent",
+      "percentage",
+      "trafficBits",
+      "traffic",
+      "megabitTraffic",
+      "frequency",
+      "bytesPerOperation",
+      "requestLatency",
+      "runLatency",
+      "operationLatency",
+      "latencyPerSecond",
+      "shortLatencyPerSecond",
+      "legacyLatencyPerSecond",
+      "capacity",
+      "capacityRate",
+      "cpu",
+      "current",
+      "voltage",
+      "powerRate",
+      "wirelessSignal",
+    ]
     const payload = {
       view: {
         chart_type: "line",
-        units: ["KiB", "seconds", "milliseconds", "percent", "percentage", "kilobits/s"],
+        units: sourceUnits,
         dimensions: {
           grouped_by: ["dimension"],
-          ids: ["bytes", "duration", "latency", "percent", "percentage", "traffic"],
-          units: ["KiB", "seconds", "milliseconds", "percent", "percentage", "kilobits/s"],
+          ids,
+          units: sourceUnits,
           sts: {
-            min: [0, 0, 0, 0, 0, 0],
-            max: [1, 1, 1, 1, 1, 1],
+            min: ids.map(() => 0),
+            max: ids.map(() => 1),
           },
         },
       },
       db: {
-        units: ["KiB", "seconds", "milliseconds", "percent", "percentage", "kilobits/s"],
+        units: sourceUnits,
         dimensions: {
-          ids: ["bytes", "duration", "latency", "percent", "percentage", "traffic"],
-          units: ["KiB", "seconds", "milliseconds", "percent", "percentage", "kilobits/s"],
+          ids,
+          units: sourceUnits,
           sts: {
-            min: [0, 0, 0, 0, 0, 0],
-            max: [1, 1, 1, 1, 1, 1],
+            min: ids.map(() => 0),
+            max: ids.map(() => 1),
           },
         },
       },
       result: {
         data: [],
-        labels: ["time", "bytes", "duration", "latency", "percent", "percentage", "traffic"],
+        labels: ["time", ...ids],
         point: { value: 0 },
       },
     }
 
     const result = camelizePayload(payload)
 
-    expect(result.units).toEqual(["KiBy", "s", "ms", "%", "%", "Kibit/s"])
-    expect(result.viewDimensions.units).toEqual(["KiBy", "s", "ms", "%", "%", "Kibit/s"])
-    expect(result.dbUnits).toEqual(["KiBy", "s", "ms", "%", "%", "Kibit/s"])
-    expect(result.dbDimensions.units).toEqual(["KiBy", "s", "ms", "%", "%", "Kibit/s"])
+    expect(result.units).toEqual(expectedUnits)
+    expect(result.viewDimensions.units).toEqual(expectedUnits)
+    expect(result.dbUnits).toEqual(expectedUnits)
+    expect(result.dbDimensions.units).toEqual(expectedUnits)
   })
 
   it("derives stepPlot for state units", () => {

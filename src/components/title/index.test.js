@@ -36,6 +36,23 @@ describe("Title component", () => {
     expect(screen.getByText(/\[.*\]/)).toBeInTheDocument() // Units in brackets
   })
 
+  it("shows the normalized base unit for pre-scaled source units", () => {
+    renderWithChart(<Title />, {
+      attributes: {
+        title: "Memory Usage",
+        name: "system.memory",
+        isMinimal: false,
+        units: ["KiBy"],
+        unitsCurrent: ["KiBy"],
+        unitsConversionBase: ["By"],
+        unitsConversionPrefix: ["Ki"],
+      },
+    })
+
+    expect(screen.getByText(/\[bytes\]/)).toBeInTheDocument()
+    expect(screen.queryByText(/\[kibibytes\]/)).not.toBeInTheDocument()
+  })
+
   it("hides name and units when isMinimal is true", () => {
     renderWithChart(<Title />, {
       attributes: {

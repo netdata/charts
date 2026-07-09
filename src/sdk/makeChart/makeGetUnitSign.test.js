@@ -29,11 +29,11 @@ describe("makeGetUnitSign", () => {
     expect(mockChart.getUnitAttributes).toHaveBeenCalledWith("test", "customUnits")
   })
 
-  it("returns unit name without conversion when requested", () => {
+  it("returns normalized unit name without conversion when requested", () => {
     mockChart.getUnitAttributes.mockReturnValue({
-      base: "bytes",
+      base: "By",
       prefix: "M",
-      unit: "bytes",
+      unit: "KiBy",
     })
 
     const result = mockChart.getUnitSign({
@@ -41,7 +41,37 @@ describe("makeGetUnitSign", () => {
       withoutConversion: true,
     })
 
-    expect(typeof result).toBe("string")
+    expect(result).toBe("bytes")
+  })
+
+  it("keeps the denominator when normalizing pre-scaled source units", () => {
+    mockChart.getUnitAttributes.mockReturnValue({
+      base: "s/{request}",
+      prefix: "u",
+      unit: "ms/{request}",
+    })
+
+    const result = mockChart.getUnitSign({
+      dimensionId: "test",
+      withoutConversion: true,
+    })
+
+    expect(result).toBe("seconds per request")
+  })
+
+  it("does not normalize non-scalable special units", () => {
+    mockChart.getUnitAttributes.mockReturnValue({
+      base: "dB[mW]",
+      prefix: "",
+      unit: "dB[mW]",
+    })
+
+    const result = mockChart.getUnitSign({
+      dimensionId: "test",
+      withoutConversion: true,
+    })
+
+    expect(result).toBe("decibel milliwatts")
   })
 
   it("handles long format", () => {

@@ -34,6 +34,19 @@ const findCurly = u => {
 
 export const getAlias = u => allUnits.aliases[u] || (allUnits.units[u] ? u : findCurly(u))
 
+export const getNormalizedUnit = u => {
+  const alias = getAlias(u)
+  const config = getUnitConfig(alias)
+
+  if (config.is_scalable && config.base_unit && config.prefix_symbol) {
+    return config.base_unit
+  }
+
+  return alias
+}
+
+export const getNormalizedUnitConfig = u => getUnitConfig(getNormalizedUnit(u))
+
 export const isScalable = (u = "") =>
   typeof u === "string" ? getUnitConfig(u)?.is_scalable : u?.is_scalable
 export const isMetric = (u = "") =>

@@ -1,4 +1,4 @@
-import { getUnitConfig, getUnitsString } from "@/helpers/units"
+import { getNormalizedUnitConfig, getUnitsString } from "@/helpers/units"
 import { getConversionAttributes } from "@/helpers/unitConversion/getConversionUnits"
 
 export default chart =>
@@ -16,7 +16,7 @@ export default chart =>
         ? chart.getUnitAttributes(dimensionId, key)
         : chart.getUnitAttributesForValue(value, { dimensionId, key }))
 
-    if (withoutConversion) return getUnitConfig(unit).name
+    if (withoutConversion) return getNormalizedUnitConfig(unit).name
 
     return getUnitsString(unit, prefix, base, long)
   })
