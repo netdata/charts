@@ -6,19 +6,28 @@ import conversableUnits, {
 } from "./conversableUnits"
 import scalableUnits, { keys } from "./scalableUnits"
 
-export const unitsMissing = u => typeof allUnits.units[u] === "undefined"
+export const unitsMissing = u => {
+  const alias = allUnits.aliases[u] || u
+
+  return typeof allUnits.units[alias] === "undefined"
+}
 
 const unitOrEmpty = u => (u === null || typeof u === "undefined" ? "" : u)
 
-export const getUnitConfig = u =>
-  allUnits.units[u] || {
-    is_scalable: true,
-    is_metric: false,
-    is_binary: false,
-    is_bit: false,
-    print_symbol: unitOrEmpty(u),
-    name: unitOrEmpty(u),
-  }
+export const getUnitConfig = u => {
+  const alias = allUnits.aliases[u] || u
+
+  return (
+    allUnits.units[alias] || {
+      is_scalable: true,
+      is_metric: false,
+      is_binary: false,
+      is_bit: false,
+      print_symbol: unitOrEmpty(alias),
+      name: unitOrEmpty(alias),
+    }
+  )
+}
 
 const findCurly = u => {
   if (allUnits.units[`{${u}}`]) return `{${u}}`
@@ -82,17 +91,48 @@ export const getScales = u => {
 
 export const unitLabelModes = {
   auto: "auto",
+  compact: "compact",
   full: "full",
   scale: "scale",
 }
 
+const compactDenominators = {
+  operation: "op",
+  request: "req",
+  run: "run",
+}
+
+const compactDenominatorPattern = new RegExp(
+  `/\\{(${Object.keys(compactDenominators).join("|")})\\}`
+)
+
+const hasCompactDenominator = u => {
+  const config = typeof u === "string" ? getUnitConfig(u) : u || {}
+  const unit = typeof u === "string" ? u : config.symbol || ""
+
+  return (
+    compactDenominatorPattern.test(unit) || compactDenominatorPattern.test(config.base_unit || "")
+  )
+}
+
 export const getUnitLabelMode = u => {
   if (!isScalable(u)) return unitLabelModes.full
+  if (hasCompactDenominator(u)) return unitLabelModes.compact
   if (isChronos(u) || isMetric(u) || isBinary(u) || isDecimalByte(u) || isBit(u))
     return unitLabelModes.full
 
   return unitLabelModes.scale
 }
+
+const compactCompoundUnit = label =>
+  label.replace(/\/(operation|request|run)\b/g, (match, denominator) => {
+    const compact = compactDenominators[denominator]
+
+    return compact ? `/${compact}` : match
+  })
+
+const applyUnitLabelMode = (label, mode, long) =>
+  !long && mode === unitLabelModes.compact ? compactCompoundUnit(label) : label
 
 const labelify = (base, config, long) => {
   if (!config) return base
@@ -122,17 +162,53 @@ export const getUnitsString = (u, prefix = "", base = "", long, { mode } = {}) =
 
   if (isChronos(u)) return labelify(base, u, long)
 
-  if (resolveUnitLabelMode(u, mode) === unitLabelModes.scale) {
+  const resolvedMode = resolveUnitLabelMode(u, mode)
+
+  if (resolvedMode === unitLabelModes.scale) {
     return labelify(prefix, allUnits.decimal_prefixes[prefix], long).trim()
   }
 
+  if (base === "[CPU]" && !long) {
+    if (prefix === "m" || prefix === "c") return `${prefix}CPU`
+
+    return `${labelify(prefix, allUnits.prefixes[prefix], long)}${labelify(
+      base,
+      u,
+      long
+    )}`.trim()
+  }
+
   if (isDecimalByte(u))
-    return `${labelify(prefix, allUnits.prefixes[prefix] || allUnits.decimal_prefixes[prefix], long)}${labelify(base, u, long)}`.trim()
+    return applyUnitLabelMode(
+      `${labelify(
+        prefix,
+        allUnits.prefixes[prefix] || allUnits.decimal_prefixes[prefix],
+        long
+      )}${labelify(base, u, long)}`.trim(),
+      resolvedMode,
+      long
+    )
 
   if (isMetric(u) || isBinary(u) || isBit(u))
-    return `${labelify(prefix, allUnits.prefixes[prefix], long)}${labelify(base, u, long)}`.trim()
+    return applyUnitLabelMode(
+      `${labelify(prefix, allUnits.prefixes[prefix], long)}${labelify(
+        base,
+        u,
+        long
+      )}`.trim(),
+      resolvedMode,
+      long
+    )
 
-  return `${labelify(prefix, allUnits.decimal_prefixes[prefix], long)} ${labelify(base, u, long)}`.trim()
+  return applyUnitLabelMode(
+    `${labelify(prefix, allUnits.decimal_prefixes[prefix], long)} ${labelify(
+      base,
+      u,
+      long
+    )}`.trim(),
+    resolvedMode,
+    long
+  )
 }
 
 const converts = Object.keys(conversableKeys).reduce((acc, unit) => {

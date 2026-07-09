@@ -59,6 +59,54 @@ describe("makeGetUnitSign", () => {
     expect(result).toBe("seconds per request")
   })
 
+  it("uses compact denominators for compound unit labels", () => {
+    mockChart.getUnitAttributes.mockReturnValue({
+      base: "By/{operation}",
+      prefix: "Mi",
+      unit: "KiBy/{operation}",
+    })
+
+    const result = mockChart.getUnitSign({ dimensionId: "test" })
+
+    expect(result).toBe("MiB/op")
+  })
+
+  it("uses compact denominators for latency per request labels", () => {
+    mockChart.getUnitAttributes.mockReturnValue({
+      base: "s/{request}",
+      prefix: "u",
+      unit: "ms/{request}",
+    })
+
+    const result = mockChart.getUnitSign({ dimensionId: "test" })
+
+    expect(result).toBe("\u00b5s/req")
+  })
+
+  it("labels whole CPU-core scale as cores", () => {
+    mockChart.getUnitAttributes.mockReturnValue({
+      base: "[CPU]",
+      prefix: "",
+      unit: "m[CPU]",
+    })
+
+    const result = mockChart.getUnitSign({ dimensionId: "test" })
+
+    expect(result).toBe("core")
+  })
+
+  it("keeps milliCPU for sub-core scale", () => {
+    mockChart.getUnitAttributes.mockReturnValue({
+      base: "[CPU]",
+      prefix: "m",
+      unit: "m[CPU]",
+    })
+
+    const result = mockChart.getUnitSign({ dimensionId: "test" })
+
+    expect(result).toBe("mCPU")
+  })
+
   it("does not normalize non-scalable special units", () => {
     mockChart.getUnitAttributes.mockReturnValue({
       base: "dB[mW]",

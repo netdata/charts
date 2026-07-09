@@ -165,12 +165,13 @@ describe("getConversionUnits", () => {
       expect(result.prefix).toHaveLength(1)
     })
 
-    it("uses unitsCurrent when available", () => {
+    it("normalizes unitsCurrent source-scaled units when available", () => {
       chart.updateAttribute("unitsCurrent", ["KiB", "KiB"])
 
       const result = getConversionUnits(chart, "unitsCurrent", { min: 0, max: 1000 })
 
-      expect(result.base).toContain("KiB")
+      expect(result.base).toEqual(["By", "By"])
+      expect(result.prefix).toEqual(["Ki", "Ki"])
     })
 
     it("falls back to units when unitsCurrent not set", () => {

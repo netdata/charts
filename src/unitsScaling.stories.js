@@ -598,7 +598,7 @@ const unitDisplayCaseDefinitions = [
     id: "source-kib-per-operation",
     title: "Source unit: KiB/operation",
     purpose:
-      "Raw values are already in KiB/operation; chart units normalize to bytes per operation without double-prefix labels.",
+      "Raw values are already in KiB/operation; chart units normalize to bytes per operation and compact display labels to /op.",
     unit: "KiB/operation",
     dimensions: [
       { id: "kibop-small", name: "fractional KiB/operation", min: 0.04, max: 0.86, seed: 347 },
@@ -610,7 +610,7 @@ const unitDisplayCaseDefinitions = [
     id: "source-kilobytes-per-operation",
     title: "Source unit: kilobytes per operation",
     purpose:
-      "Prometheus text form kilobytes per operation follows the decimal byte-per-operation path.",
+      "Prometheus text form kilobytes per operation follows the decimal byte-per-operation path and compact display labels to /op.",
     unit: "kilobytes per operation",
     dimensions: [
       { id: "kbop-small", name: "fractional KB/operation", min: 0.04, max: 0.86, seed: 1207 },
@@ -747,6 +747,18 @@ const unitDisplayCaseDefinitions = [
       { id: "kbits-small", name: "sub-kilobit rate", min: 0.08, max: 0.92, seed: 223 },
       { id: "kbits-middle", name: "kilobit rate", min: 48, max: 920, seed: 227 },
       { id: "kbits-large", name: "gigabit-scale rate", min: 1.4e6, max: 7.2e6, seed: 229 },
+    ],
+  },
+  {
+    id: "source-kb-per-second",
+    title: "Source unit: kb/s",
+    purpose:
+      "StatsD k6 data uses kb/s; it follows the bit-rate path and does not treat b as bytes.",
+    unit: "kb/s",
+    dimensions: [
+      { id: "kbps-small", name: "sub-kilobit kb/s", min: 0.08, max: 0.92, seed: 1223 },
+      { id: "kbps-middle", name: "kilobit kb/s", min: 48, max: 920, seed: 1229 },
+      { id: "kbps-large", name: "gigabit-scale kb/s", min: 1.4e6, max: 7.2e6, seed: 1231 },
     ],
   },
   {
@@ -1023,7 +1035,7 @@ const unitDisplayCaseDefinitions = [
     id: "source-ms-request",
     title: "Source unit: milliseconds/request",
     purpose:
-      "Per-request latency keeps the denominator while normalizing the scale to seconds per request.",
+      "Per-request latency keeps the denominator semantics while compact display labels use /req.",
     unit: "milliseconds/request",
     dimensions: [
       { id: "msreq-us", name: "microseconds per request", min: 0.004, max: 0.08, seed: 433 },
@@ -1035,7 +1047,7 @@ const unitDisplayCaseDefinitions = [
     id: "source-ms-operation",
     title: "Source unit: milliseconds/operation",
     purpose:
-      "Per-operation latency keeps the denominator while normalizing the scale to seconds per operation.",
+      "Per-operation latency keeps the denominator semantics while compact display labels use /op.",
     unit: "milliseconds/operation",
     dimensions: [
       { id: "msop-us", name: "microseconds per operation", min: 0.004, max: 0.08, seed: 449 },
@@ -1202,12 +1214,12 @@ const unitDisplayCaseDefinitions = [
     id: "source-millicpu",
     title: "Source unit: millicpu",
     purpose:
-      "Raw values are in milliCPU; chart units normalize to CPU and labels should not show duplicate milli prefixes.",
+      "Raw values are in milliCPU; chart units normalize to CPU cores while sub-core labels stay in mCPU.",
     unit: "millicpu",
     dimensions: [
-      { id: "millicpu-small", name: "fractional CPU", min: 80, max: 950, seed: 593 },
-      { id: "millicpu-middle", name: "several CPU", min: 1400, max: 8200, seed: 599 },
-      { id: "millicpu-large", name: "many CPU", min: 24000, max: 94000, seed: 601 },
+      { id: "millicpu-small", name: "fractional core", min: 80, max: 950, seed: 593 },
+      { id: "millicpu-middle", name: "several cores", min: 1400, max: 8200, seed: 599 },
+      { id: "millicpu-large", name: "many cores", min: 24000, max: 94000, seed: 601 },
     ],
   },
   {
