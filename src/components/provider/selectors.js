@@ -377,19 +377,20 @@ export const useValueUnitAttributes = (
 
 export const useConverted = (
   value,
-  { valueKey, fractionDigits, dimensionId, unitsKey = "units", scaleByValue } = {}
+  { valueKey, fractionDigits, dimensionId, unitsKey = "units", scaleByValue, unitAttributes } = {}
 ) => {
   const chart = useChart()
   const unitsConversionPrefix = useAttributeValue(`${unitsKey}ConversionPrefix`)
   const unitsConversionBase = useAttributeValue(`${unitsKey}ConversionBase`)
   const unitsByContext = useAttributeValue(`${unitsKey}ByContext`)
   const unitsByDimension = useAttributeValue(`${unitsKey}ByDimension`)
-  const unitAttributes = useValueUnitAttributes(value, {
+  const derivedUnitAttributes = useValueUnitAttributes(unitAttributes ? undefined : value, {
     valueKey,
     dimensionId,
     unitsKey,
     scaleByValue,
   })
+  const attrs = unitAttributes || derivedUnitAttributes
 
   return useMemo(
     () =>
@@ -399,7 +400,7 @@ export const useConverted = (
         dimensionId,
         unitsKey,
         scaleByValue,
-        unitAttributes,
+        unitAttributes: attrs,
       }),
     [
       chart,
@@ -413,9 +414,32 @@ export const useConverted = (
       unitsByContext,
       unitsByDimension,
       scaleByValue,
-      unitAttributes,
+      attrs,
     ]
   )
+}
+
+export const useValueWithUnit = (
+  value,
+  { valueKey, fractionDigits, dimensionId, unitsKey = "units", scaleByValue } = {}
+) => {
+  const unitAttributes = useValueUnitAttributes(value, {
+    valueKey,
+    dimensionId,
+    unitsKey,
+    scaleByValue,
+  })
+  const convertedValue = useConverted(value, {
+    valueKey,
+    fractionDigits,
+    dimensionId,
+    unitsKey,
+    scaleByValue,
+    unitAttributes,
+  })
+  const convertedUnit = useUnitSign({ key: unitsKey, dimensionId, unitAttributes })
+
+  return { convertedValue, convertedUnit, unitAttributes }
 }
 
 export const useLatestRowValue = (options = {}) => {

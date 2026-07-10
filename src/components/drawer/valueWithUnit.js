@@ -1,7 +1,7 @@
 import React from "react"
 import styled from "styled-components"
 import { Flex, TextMicro, TextSmall, getSizeBy } from "@netdata/netdata-ui"
-import { useConverted, useUnitSign, useValueUnitAttributes } from "@/components/provider"
+import { useValueWithUnit } from "@/components/provider"
 
 const Container = styled(Flex).attrs({
   alignItems: "center",
@@ -71,23 +71,12 @@ const ValueWithUnit = ({
   color,
   strong,
 }) => {
-  const unitAttributes = useValueUnitAttributes(value, {
-    valueKey,
-    dimensionId,
-    unitsKey,
-    scaleByValue: true,
-  })
-  const convertedValue = useConverted(value, {
+  const { convertedValue, convertedUnit } = useValueWithUnit(value, {
     valueKey,
     fractionDigits,
     dimensionId,
     unitsKey,
     scaleByValue: true,
-  })
-  const convertedUnit = useUnitSign({
-    dimensionId,
-    key: unitsKey,
-    unitAttributes,
   })
 
   if (!visible) return null
