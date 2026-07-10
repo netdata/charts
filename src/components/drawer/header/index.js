@@ -30,21 +30,22 @@ const SelectedAreaButton = ({ chart, selected }) => {
   )
 }
 
-const Header = ({ onClick, ...rest }) => {
+const Header = rest => {
   const chart = useChart()
   const action = useAttributeValue("drawer.action", "compare")
   const tab = useAttributeValue("drawer.tab", "window")
   const showAdvancedStats = useAttributeValue("drawer.showAdvancedStats", false)
 
   return (
-    <Flex justifyContent="between" data-noprint {...rest}>
-      <Flex gap={6}>
-        <Flex gap={1}>
+    <Flex justifyContent="between" gap={1} flexWrap data-noprint {...rest}>
+      <Flex gap={6} flexWrap>
+        <Flex gap={1} flexWrap>
           <Tooltip content="Compare - Compare current data with different time periods or baselines">
             <Button
               tiny
               neutral={actions.compare !== action}
               icon="weights_compare"
+              label="Compare"
               onClick={() => chart.updateAttribute("drawer.action", actions.compare)}
             />
           </Tooltip>
@@ -53,6 +54,7 @@ const Header = ({ onClick, ...rest }) => {
               tiny
               neutral={actions.values !== action}
               icon="line_chart"
+              label="Values"
               onClick={() => chart.updateAttribute("drawer.action", actions.values)}
             />
           </Tooltip>
@@ -61,6 +63,7 @@ const Header = ({ onClick, ...rest }) => {
               tiny
               neutral={actions.drillDown !== action}
               icon="weights_drill_down"
+              label="Drill Down"
               onClick={() => chart.updateAttribute("drawer.action", actions.drillDown)}
             />
           </Tooltip>
@@ -69,6 +72,7 @@ const Header = ({ onClick, ...rest }) => {
               tiny
               neutral={actions.correlate !== action}
               icon="correlation_inv"
+              label="Correlate"
               onClick={() => chart.updateAttribute("drawer.action", actions.correlate)}
             />
           </Tooltip>
