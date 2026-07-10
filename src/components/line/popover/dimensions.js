@@ -37,12 +37,6 @@ const GridHeader = styled.div`
   display: contents;
 `
 
-const UnitHeader = styled(TextMicro).attrs({
-  padding: [0, 0, 0, 2],
-})`
-  box-sizing: border-box;
-`
-
 const emptyArray = [null, null]
 
 const getMaxDimensions = () => {
@@ -144,7 +138,7 @@ const Dimensions = () => {
           >
             Value
           </TextMicro>
-          <UnitHeader color="textLite">{!isHeatmap && "Unit"}</UnitHeader>
+          <span aria-hidden="true" />
           <TextMicro
             strong={rowFlavour === rowFlavours.ANOMALY_RATE}
             color={rowFlavour === rowFlavours.ANOMALY_RATE ? "text" : "textLite"}

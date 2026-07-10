@@ -44,6 +44,17 @@ describe("getConversionUnits", () => {
       expect(typeof result.divider).toBe("function")
     })
 
+    it("uses the normalized base unit when a scaled value needs exponential notation", () => {
+      chart.updateAttributes({ units: ["KiBy"], desiredUnits: ["auto"] })
+
+      const result = getConversionAttributes(chart, "KiBy", { min: 6.999e99, max: 6.999e99 })
+
+      expect(result).toMatchObject({ base: "By", prefix: "" })
+      expect(chart.getConvertedValueWithUnit(6.999e99, { unitAttributes: result })).toBe(
+        "7.167e+102 B"
+      )
+    })
+
     it("handles zero range", () => {
       const result = getConversionAttributes(chart, "By", { min: 100, max: 100 })
 

@@ -1,5 +1,6 @@
 import makeKeyboardListener from "@/helpers/makeKeyboardListener"
 import makeExecuteLatest from "@/helpers/makeExecuteLatest"
+import formatNumber from "@/helpers/formatNumber"
 import convert from "@/helpers/units"
 import unitConversion from "@/helpers/unitConversion"
 import makeNode from "../makeNode"
@@ -17,31 +18,6 @@ const themeIndex = {
 }
 
 const maxBackoffMs = 30 * 1000
-const maxRegularNumberLength = 18
-
-const formatExponential = value =>
-  value
-    .toExponential(3)
-    .replace(/(\.\d*?)0+e/, "$1e")
-    .replace(/\.e/, "e")
-
-const formatNumber = (node, converted, fractionDigits, unitsConversionFractionDigits) => {
-  const formatted = Intl.NumberFormat(node.getAttribute("locale") || undefined, {
-    useGrouping: true,
-    minimumFractionDigits: isNaN(fractionDigits) || fractionDigits < 0 ? 0 : fractionDigits,
-    maximumFractionDigits:
-      fractionDigits === null || isNaN(fractionDigits) || fractionDigits < 0
-        ? unitsConversionFractionDigits === -1
-          ? 4
-          : unitsConversionFractionDigits
-        : fractionDigits,
-  }).format(converted)
-
-  if (!Number.isFinite(converted) || formatted.length <= maxRegularNumberLength) return formatted
-
-  return formatExponential(converted)
-}
-
 const defaultMakeTrack = () => value => value
 
 export default ({

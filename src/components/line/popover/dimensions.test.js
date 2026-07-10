@@ -138,6 +138,7 @@ describe("line popover Dimensions", () => {
     expect(valueCell).toHaveTextContent("1")
     expect(unit).toHaveTextContent("KiB")
     expect(unitCell).toContainElement(unit)
+    expect(screen.queryByText("Unit", { exact: true })).not.toBeInTheDocument()
   })
 
   it("renders context, source units, timestamp, and both granularities in the header", async () => {
