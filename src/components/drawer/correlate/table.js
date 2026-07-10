@@ -90,7 +90,7 @@ const CorrelationTable = ({ data }) => {
     input?.focus()
     input?.setSelectionRange(input.value.length, input.value.length)
     restoreSearchFocusRef.current = false
-  }, [displayData.length, searching])
+  }, [searching])
 
   return (
     <Flex
@@ -101,7 +101,7 @@ const CorrelationTable = ({ data }) => {
       ref={containerRef}
     >
       <Table
-        key={searching ? `search-${displayData.length}` : "browse"}
+        key={searching ? "search" : "browse"}
         title={`Found ${dimensionCount} correlated dimensions across ${contextCount} contexts`}
         headerChildren={
           <Button

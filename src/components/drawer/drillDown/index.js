@@ -94,7 +94,7 @@ const DrillDown = () => {
     input?.focus()
     input?.setSelectionRange(input.value.length, input.value.length)
     restoreSearchFocusRef.current = false
-  }, [displayData.length, searching])
+  }, [searching])
 
   if (error) {
     return (
@@ -127,7 +127,7 @@ const DrillDown = () => {
       ref={containerRef}
     >
       <Table
-        key={searching ? `search-${displayData.length}` : "browse"}
+        key={searching ? "search" : "browse"}
         enableSorting
         enableCustomSearch
         dataColumns={columns}
