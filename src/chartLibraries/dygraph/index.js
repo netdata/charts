@@ -5,6 +5,7 @@ import makeExecuteLatest from "@/helpers/makeExecuteLatest"
 import { isHeatmap } from "@/helpers/heatmap"
 import {
   makeLinePlotter,
+  makeStackedAreaPlotter,
   makeStackedBarPlotter,
   makeMultiColumnBarPlotter,
   makeHeatmapPlotter,
@@ -16,11 +17,13 @@ import makeNavigation from "./navigation"
 import makeHoverX from "./hoverX"
 import makeOverlays from "./overlays"
 import crosshair from "./crosshair"
+import { makeDivergingStackedDataHandler } from "./divergingStack"
 
 const touchEvents = ["touchstart", "touchmove", "touchend"]
 
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
+  const DivergingStackedDataHandler = makeDivergingStackedDataHandler(chart)
   let dygraph = null
   let listeners = []
   let navigation = null
@@ -213,6 +216,7 @@ export default (sdk, chart) => {
 
   const plotterByChartType = {
     line: makeLinePlotter(chartUI),
+    stacked: makeStackedAreaPlotter(chartUI),
     stackedBar: makeStackedBarPlotter(chartUI),
     multiBar: makeMultiColumnBarPlotter(chartUI),
     heatmap: makeHeatmapPlotter(chartUI),
@@ -230,6 +234,7 @@ export default (sdk, chart) => {
     stackedGraph: false,
     forceIncludeZero: false,
     errorBars: false,
+    dataHandler: null,
     makeYAxisLabelFormatter: () => (y, granularity, opts, d) => {
       const dataMin = chart.getAttribute("min")
       const dataMax = chart.getAttribute("max")
@@ -272,9 +277,10 @@ export default (sdk, chart) => {
       ...defaultOptions,
       strokeWidth: 0.1,
       fillAlpha: 0.8,
-      fillGraph: true,
-      stackedGraph: true,
+      fillGraph: false,
+      stackedGraph: false,
       forceIncludeZero: true,
+      dataHandler: DivergingStackedDataHandler,
     },
     area: {
       ...defaultOptions,
@@ -283,8 +289,9 @@ export default (sdk, chart) => {
     },
     stackedBar: {
       ...defaultOptions,
-      stackedGraph: true,
+      stackedGraph: false,
       forceIncludeZero: true,
+      dataHandler: DivergingStackedDataHandler,
     },
     heatmap: {
       ...defaultOptions,
@@ -317,7 +324,7 @@ export default (sdk, chart) => {
     const { chartType, includeZero, enabledXAxis, enabledYAxis, yAxisLabelWidth, stepPlot } =
       chart.getAttributes()
 
-    const plotter = stepPlot
+    const plotter = stepPlot && chartType === "line"
       ? plotterByChartType.default
       : plotterByChartType[chartType] || plotterByChartType.default
 
@@ -332,6 +339,7 @@ export default (sdk, chart) => {
       makeYTicker,
       highlightCircleSize,
       yRangePad,
+      dataHandler,
     } = optionsByChartType[chartType] || optionsByChartType.default
 
     const yAxisLabelFormatter = makeYAxisLabelFormatter(labels)
@@ -361,6 +369,7 @@ export default (sdk, chart) => {
       plotter,
       stepPlot,
       errorBars,
+      dataHandler,
       axes: {
         x: enabledXAxis
           ? {
