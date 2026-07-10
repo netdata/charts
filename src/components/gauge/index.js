@@ -4,11 +4,11 @@ import { Flex, Text, getColor } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
 import {
   useChart,
-  useUnitSign,
   useAttributeValue,
   useOnResize,
-  useLatestConvertedValue,
-  useDimensionIds,
+  useLatestDisplayValueWithUnit,
+  useValueWithUnit,
+  useVisibleDimensionIds,
 } from "@/components/provider"
 import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
@@ -30,7 +30,8 @@ const StrokeLabel = styled(Label)`
 `
 
 export const Value = () => {
-  const value = useLatestConvertedValue("selected")
+  const [dimensionId] = useVisibleDimensionIds()
+  const { convertedValue: value } = useLatestDisplayValueWithUnit(dimensionId)
 
   return (
     <StrokeLabel flex="2" color="text" fontSize="2em" strong>
@@ -40,8 +41,8 @@ export const Value = () => {
 }
 
 export const Unit = () => {
-  const [firstDimId] = useDimensionIds()
-  const unit = useUnitSign({ dimensionId: firstDimId })
+  const [dimensionId] = useVisibleDimensionIds()
+  const { convertedUnit: unit } = useLatestDisplayValueWithUnit(dimensionId)
   return (
     <Label color="textLite" fontSize="1em">
       {unit}
@@ -51,12 +52,24 @@ export const Unit = () => {
 
 export const Bound = ({ empty, index, uiName, ...rest }) => {
   const chart = useChart()
+  const [dimensionId] = useVisibleDimensionIds()
   const minMax = chart.getUI(uiName).getMinMax?.()
+  const { convertedValue, convertedUnit } = useValueWithUnit(minMax?.[index], {
+    dimensionId,
+    scaleByValue: true,
+  })
 
   return (
-    <Label color="textLite" fontSize="1.3em" {...rest}>
-      {empty ? "-" : chart.getConvertedValue(minMax[index])}
-    </Label>
+    <Flex alignItems="center" gap={1} {...rest}>
+      <Label color="textLite" fontSize="1.3em">
+        {empty ? "-" : convertedValue}
+      </Label>
+      {!empty && !!convertedUnit && (
+        <Label color="textLite" fontSize="1em">
+          {convertedUnit}
+        </Label>
+      )}
+    </Flex>
   )
 }
 

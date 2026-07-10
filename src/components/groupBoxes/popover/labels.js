@@ -1,7 +1,7 @@
 import React, { memo } from "react"
 import styled from "styled-components"
 import { Flex, TextMicro } from "@netdata/netdata-ui"
-import { useChart, useConverted, useAttributeValue, useUnitSign } from "@/components/provider"
+import { useChart, useAttributeValue, useValueWithUnit } from "@/components/provider"
 import { BaseColorBar } from "@/components/line/dimensions/color"
 import Label from "./label"
 
@@ -45,8 +45,11 @@ const Labels = ({ label, groupLabel, data, id, ref }) => {
 
   const chartWidth = chart.getUI().getChartWidth() * 0.9
   const value = chart.getRowDimensionValue(id, data)
-  const convertedValue = useConverted(value)
-  const unitSign = useUnitSign()
+  const displayValue = chart.getRowDimensionValue(id, data, { abs: false })
+  const { convertedValue, convertedUnit } = useValueWithUnit(displayValue, {
+    dimensionId: id,
+    scaleByValue: true,
+  })
 
   return (
     <Container data-testid="chartPopover-labels" maxWidth={chartWidth} gap={2} ref={ref}>
@@ -62,7 +65,7 @@ const Labels = ({ label, groupLabel, data, id, ref }) => {
             height="18px"
           />
           <TextMicro padding={[1.5, 2]} strong>
-            {convertedValue} {convertedValue !== "-" && unitSign}
+            {convertedValue} {convertedValue !== "-" && convertedUnit}
           </TextMicro>
         </Flex>
       </Flex>

@@ -141,6 +141,26 @@ describe("line popover Dimensions", () => {
     expect(screen.queryByText("Unit", { exact: true })).not.toBeInTheDocument()
   })
 
+  it("preserves the sign while scaling a popover value by magnitude", async () => {
+    const ids = ["bytes"]
+    const { chart } = makeTestChart({
+      attributes: {
+        chartType: "line",
+        groupBy: [],
+        selectedDimensions: [],
+        selectedLegendDimensions: [],
+      },
+    })
+
+    await loadLinePayload(chart, ids, [[-1536]], { units: "By" })
+    chart.updateAttribute("hoverX", [1000, ids[0]])
+
+    renderWithChart(<Dimensions />, { chart })
+
+    expect(screen.getAllByTestId("chartDimensions-value")[0]).toHaveTextContent("-1.5")
+    expect(screen.getByTestId("chartDimensions-units")).toHaveTextContent("KiB")
+  })
+
   it("renders context, source units, timestamp, and both granularities in the header", async () => {
     const ids = ["latency"]
     const context = "storybook.units_scaling.really.long.context"

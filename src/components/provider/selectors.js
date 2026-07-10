@@ -260,6 +260,22 @@ export const useDimensionIds = () => {
   return chart.getDimensionIds()
 }
 
+export const useVisibleDimensionIds = () => {
+  const chart = useChart()
+  const forceUpdate = useForceUpdate()
+
+  useImmediateListener(
+    () =>
+      unregister(
+        chart.on("dimensionChanged", forceUpdate),
+        chart.on("visibleDimensionsChanged", forceUpdate)
+      ),
+    [chart]
+  )
+
+  return chart.getVisibleDimensionIds()
+}
+
 export const useUnitSign = ({ key = "units", ...options } = {}) => {
   const chart = useChart()
 
@@ -607,12 +623,18 @@ export const useValue = (
       chart.onAttributeChange(`${unitsKey}Conversion`, () => setState(getValue())),
       chart.on("render", () => setState(getValue()))
     )
-  }, [chart, id, valueKey, period, unitsKey])
+  }, [chart, id, valueKey, period, unitsKey, abs, allowNull])
 
   return value
 }
 
 export const useLatestValue = (id, options = {}) => useValue(id, "latest", options)
+
+export const useDisplayValue = (id, period = "latest", options = {}) =>
+  useValue(id, period, { ...options, abs: false })
+
+export const useLatestDisplayValue = (id, options = {}) =>
+  useDisplayValue(id, "latest", options)
 
 export const useConvertedValue = (id, period = "latest", options = {}) => {
   const value = useValue(id, period, options)
@@ -620,8 +642,28 @@ export const useConvertedValue = (id, period = "latest", options = {}) => {
   return useConverted(value, { ...options, dimensionId: id })
 }
 
+export const useDisplayConvertedValue = (id, period = "latest", options = {}) => {
+  const value = useDisplayValue(id, period, options)
+
+  return useConverted(value, { ...options, dimensionId: id })
+}
+
 export const useLatestConvertedValue = (id, options = {}) =>
   useConvertedValue(id, "latest", { allowNull: true, dimensionId: id, ...options })
+
+export const useLatestDisplayConvertedValue = (id, options = {}) =>
+  useDisplayConvertedValue(id, "latest", { allowNull: true, dimensionId: id, ...options })
+
+export const useLatestDisplayValueWithUnit = (id, options = {}) => {
+  const value = useLatestDisplayValue(id, { allowNull: true, ...options })
+  const converted = useValueWithUnit(value, {
+    ...options,
+    dimensionId: id,
+    scaleByValue: true,
+  })
+
+  return { value, ...converted }
+}
 
 export const useIsMinimal = () => useAttributeValue("designFlavour") === "minimal"
 

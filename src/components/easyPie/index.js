@@ -3,11 +3,10 @@ import styled, { keyframes } from "styled-components"
 import { Flex, Text } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
 import {
-  useUnitSign,
   useAttributeValue,
-  useLatestConvertedValue,
+  useLatestDisplayValueWithUnit,
   useOnResize,
-  useDimensionIds,
+  useVisibleDimensionIds,
 } from "@/components/provider"
 import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
@@ -20,7 +19,8 @@ export const Label = styled(Text)`
 `
 
 export const Value = () => {
-  const value = useLatestConvertedValue("selected")
+  const [dimensionId] = useVisibleDimensionIds()
+  const { convertedValue: value } = useLatestDisplayValueWithUnit(dimensionId)
 
   return (
     <Label color="text" fontSize="3em" strong>
@@ -30,8 +30,8 @@ export const Value = () => {
 }
 
 export const Unit = () => {
-  const [firstDimId] = useDimensionIds()
-  const unit = useUnitSign({ dimensionId: firstDimId })
+  const [dimensionId] = useVisibleDimensionIds()
+  const { convertedUnit: unit } = useLatestDisplayValueWithUnit(dimensionId)
   return (
     <Label color="textLite" fontSize="1.5em">
       {unit}

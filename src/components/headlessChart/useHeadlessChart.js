@@ -53,7 +53,7 @@ export const useHeadlessChart = () => {
       const isCurrentRow = rowIndex === currentRowIndex
 
       const dimensions = visibleDimensionIds.map(dimensionId => {
-        const value = chart.getDimensionValue(dimensionId, rowIndex)
+        const value = chart.getDimensionValue(dimensionId, rowIndex, { abs: false })
         return {
           id: dimensionId,
           value,

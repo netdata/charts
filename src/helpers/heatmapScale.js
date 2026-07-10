@@ -1,8 +1,8 @@
 import scalableUnits, { keys as scalableUnitKeys } from "@/helpers/units/scalableUnits"
 
-const heatmapValueRegex = /^\d*\.?\d+$/
+const heatmapValueRegex = /^-?\d*\.?\d+$/
 const heatmapInfRegex = /^\+inf$/i
-const heatmapPrefixRegex = /^.+_(\d*\.?\d+|\+[Ii]nf)$/
+const heatmapPrefixRegex = /^.+_(-?\d*\.?\d+|\+[Ii]nf)$/
 
 const getHeatmapValueLabel = value => {
   if (typeof value !== "string") return value
@@ -59,7 +59,9 @@ const getScaleEntries = scale =>
   }))
 
 const formatNumber = value => {
-  if (value > 0 && value < 0.01) return parseFloat(value.toPrecision(3)).toString()
+  const magnitude = Math.abs(value)
+
+  if (magnitude > 0 && magnitude < 0.01) return parseFloat(value.toPrecision(3)).toString()
 
   return parseFloat(value.toFixed(2)).toString()
 }
@@ -68,9 +70,10 @@ export const formatScaledValue = (value, scale) => {
   if (!value) return "0"
 
   const entries = getScaleEntries(scale)
+  const magnitude = Math.abs(value)
   const entry = entries.reduce(
     (selected, candidate) =>
-      candidate.divider <= value && candidate.divider > selected.divider ? candidate : selected,
+      candidate.divider <= magnitude && candidate.divider > selected.divider ? candidate : selected,
     { prefix: "", divider: 0 }
   )
 

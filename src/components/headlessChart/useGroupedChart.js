@@ -37,7 +37,7 @@ const useGroupedChart = ({ sharedMinMax = false } = {}) => {
       const groupDimensionIds = flattenTree(subTree)
 
       const dimensions = groupDimensionIds.map(id => {
-        const value = chart.getDimensionValue(id, rowIndex)
+        const value = chart.getDimensionValue(id, rowIndex, { abs: false })
         return {
           id,
           value,

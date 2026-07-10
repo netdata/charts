@@ -1,5 +1,5 @@
 import { renderHook, act } from "@testing-library/react"
-import { renderHookWithChart, makeTestChart } from "@jest/testUtilities"
+import { makeHeatmapPayload, renderHookWithChart, makeTestChart } from "@jest/testUtilities"
 import {
   useChart,
   useAttributeValue,
@@ -8,6 +8,9 @@ import {
   useTitle,
   useName,
   useIsMinimal,
+  useLatestDisplayValue,
+  useLatestDisplayValueWithUnit,
+  useLatestValue,
   getValueByPeriod,
 } from "./selectors"
 
@@ -302,6 +305,41 @@ describe("Chart Provider Selectors", () => {
 
         expect(result).toBe(52.5)
       })
+    })
+  })
+
+  describe("display values", () => {
+    it("keeps magnitude retrieval separate from signed atomic presentation", async () => {
+      const payload = makeHeatmapPayload(["bytes"], [[-1536]])
+      payload.view.chart_type = "line"
+      payload.view.units = "By"
+      payload.view.dimensions.grouped_by = []
+      payload.view.dimensions.units = ["By"]
+
+      const { chart } = makeTestChart({
+        attributes: {
+          groupBy: [],
+          selectedDimensions: [],
+          selectedLegendDimensions: [],
+        },
+      })
+
+      chart.doneFetch(payload)
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      const { result } = renderHookWithChart(
+        () => ({
+          magnitude: useLatestValue("bytes", { allowNull: true }),
+          display: useLatestDisplayValue("bytes", { allowNull: true }),
+          formatted: useLatestDisplayValueWithUnit("bytes"),
+        }),
+        { chart }
+      )
+
+      expect(result.current.magnitude).toBe(1536)
+      expect(result.current.display).toBe(-1536)
+      expect(result.current.formatted.convertedValue).toBe("-1.5")
+      expect(result.current.formatted.convertedUnit).toBe("KiB")
     })
   })
 })

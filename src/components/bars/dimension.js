@@ -1,10 +1,14 @@
 import React from "react"
 import styled from "styled-components"
-import { Flex } from "@netdata/netdata-ui"
+import { Flex, TextMicro } from "@netdata/netdata-ui"
 import Color, { ColorBar } from "@/components/line/dimensions/color"
 import Name from "@/components/line/dimensions/name"
 import Value, { Value as ValuePart } from "@/components/line/dimensions/value"
-import { useChart, useVisibleDimensionId } from "@/components/provider"
+import {
+  useLatestDisplayValue,
+  useValueWithUnit,
+  useVisibleDimensionId,
+} from "@/components/provider"
 import { labels as annotationLabels } from "@/helpers/annotations"
 import Tooltip from "@/components/tooltip"
 import { rowFlavours } from "./dimensions"
@@ -30,21 +34,28 @@ const rowValueKeys = {
   default: "value",
 }
 
-const ValueOnDot = ({ children, fractionDigits = 0, ...rest }) => {
-  const [first, last] = children.toString().split(".")
+const DisplayValue = ({ id, strong, visible, color }) => {
+  const value = useLatestDisplayValue(id, { allowNull: true })
+  const { convertedValue, convertedUnit } = useValueWithUnit(value, {
+    dimensionId: id,
+    scaleByValue: true,
+  })
 
   return (
-    <Flex alignItems="center" justifyContent="end" padding={[0, 0.5]}>
-      <ValuePart {...rest} textAlign="right">
-        {first}
+    <Flex alignItems="center" justifyContent="end" gap={1} padding={[0, 1]}>
+      <ValuePart strong={strong} color={color} fontSize="1.1em" textAlign="right">
+        {visible ? convertedValue : null}
       </ValuePart>
-      {typeof last !== "undefined" && <ValuePart {...rest}>.</ValuePart>}
-      <ValuePart as={Flex} flex={false} width={fractionDigits * 1.8} {...rest} textAlign="left">
-        {last}
-      </ValuePart>
+      {visible && !!convertedUnit && (
+        <TextMicro color="textDescription" whiteSpace="nowrap">
+          {convertedUnit}
+        </TextMicro>
+      )}
     </Flex>
   )
 }
+
+const PlainValue = props => <ValuePart {...props} textAlign="right" />
 
 const AnnotationsValue = ({ children: annotations, ...rest }) => (
   <Flex gap={1} justifyContent="end">
@@ -68,9 +79,7 @@ const AnnotationsValue = ({ children: annotations, ...rest }) => (
 
 const Dimension = ({ id, strong, rowFlavour, fullCols }) => {
   const visible = useVisibleDimensionId(id)
-
-  const chart = useChart()
-  const fractionDigits = chart.getAttribute("unitsConversionFractionDigits")
+  const color = rowFlavour === rowFlavours.default ? "text" : "textLite"
 
   return (
     <GridRow opacity={visible ? null : "weak"}>
@@ -84,14 +93,11 @@ const Dimension = ({ id, strong, rowFlavour, fullCols }) => {
         </ColorBackground>
         <Name padding={[0.5, 1.5]} flex id={id} strong={strong} fontSize="1.1em" />
       </Flex>
-      <Value
+      <DisplayValue
         id={id}
         strong={strong}
         visible={visible}
-        Component={ValueOnDot}
-        fractionDigits={fractionDigits}
-        color={rowFlavour === rowFlavours.default ? "text" : "textLite"}
-        fontSize="1.1em"
+        color={color}
       />
       {fullCols && (
         <>
@@ -100,7 +106,7 @@ const Dimension = ({ id, strong, rowFlavour, fullCols }) => {
             strong={strong}
             visible={visible}
             valueKey="arp"
-            Component={ValueOnDot}
+            Component={PlainValue}
             fractionDigits={2}
             color={rowFlavour === rowFlavours.ANOMALY_RATE ? "anomalyTextFocus" : "anomalyText"}
             fontSize="1.1em"

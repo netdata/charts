@@ -11,6 +11,18 @@ import useGroupedChart from "./useGroupedChart"
 
 const TestWrapper = ({ children }) => <ThemeProvider theme={DefaultTheme}>{children}</ThemeProvider>
 
+const signedGroupedGauge = {
+  ...groupedGauge[0],
+  result: {
+    ...groupedGauge[0].result,
+    data: groupedGauge[0].result.data.map(([timestamp, first, ...rest]) => [
+      timestamp,
+      [-Math.abs(first[0]), ...first.slice(1)],
+      ...rest,
+    ]),
+  },
+}
+
 const TestGroupedComponent = ({ sharedMinMax }) => {
   const { groups, chart, helpers, state } = useGroupedChart({ sharedMinMax })
 
@@ -26,6 +38,7 @@ const TestGroupedComponent = ({ sharedMinMax }) => {
       <div data-testid="group-values">
         {groups.map(g => g.value).join(",")}
       </div>
+      <div data-testid="first-dimension-value">{groups[0]?.dimensions[0]?.value}</div>
       <div data-testid="group-dimension-counts">
         {groups.map(g => g.dimensionIds.length).join(",")}
       </div>
@@ -150,5 +163,22 @@ describe("useGroupedChart", () => {
     })
 
     expect(screen.getByTestId("shared-min-max")).toHaveTextContent("yes")
+  })
+
+  it("preserves signs in render-ready grouped values", async () => {
+    render(
+      <HeadlessChart
+        getChart={makeMockPayload(signedGroupedGauge, { delay: 0 })}
+        contextScope={["httpcheck.responsetime"]}
+        chartLibrary="gauge"
+      >
+        <TestGroupedComponent />
+      </HeadlessChart>,
+      { wrapper: TestWrapper }
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId("first-dimension-value")).toHaveTextContent(/^-/)
+    })
   })
 })

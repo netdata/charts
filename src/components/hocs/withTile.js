@@ -10,6 +10,8 @@ import {
   useChart,
   useAttributeValue,
   useTitle,
+  useUnitSign,
+  useIsMinimal,
   useOnResize,
   useDimensionIds,
   useColor,
@@ -40,6 +42,9 @@ const ChartHeadWrapper = styled(Flex).attrs(({ size, ...rest }) => ({
 export const Title = () => {
   const chart = useChart()
   const title = useTitle()
+  const units = useUnitSign({ withoutConversion: true, long: true })
+  const hideUnits = useAttributeValue("hideUnits")
+  const isMinimal = useIsMinimal()
 
   const onClick = event => {
     event.preventDefault()
@@ -47,17 +52,27 @@ export const Title = () => {
   }
 
   return (
-    <Label
-      fontSize="1em"
-      textAlign="center"
-      color="sectionDescription"
+    <Flex
+      alignItems="center"
+      justifyContent="center"
+      gap={1}
       width="80%"
       onClick={onClick}
       cursor="pointer"
       padding={[2, 0, 0]}
+      overflow="hidden"
     >
-      {title}
-    </Label>
+      <Label fontSize="1em" textAlign="center" color="sectionDescription" truncate>
+        {title}
+      </Label>
+      {!!units && !hideUnits && !isMinimal && (
+        <Tooltip content="Source unit">
+          <Label fontSize="1em" color="textLite" whiteSpace="nowrap">
+            • [{units}]
+          </Label>
+        </Tooltip>
+      )}
+    </Flex>
   )
 }
 

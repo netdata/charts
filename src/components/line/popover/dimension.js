@@ -6,7 +6,7 @@ import Name from "@/components/line/dimensions/name"
 import Units from "@/components/line/dimensions/units"
 import Value, { Value as ValuePart } from "@/components/line/dimensions/value"
 import {
-  useLatestValue,
+  useLatestDisplayValue,
   useValueUnitAttributes,
   useVisibleDimensionId,
 } from "@/components/provider"
@@ -66,7 +66,7 @@ const UnitCell = styled(Flex).attrs({
 
 const ValueWithUnits = ({ id, visible, children, ...rest }) => {
   const isHeatmap = useIsHeatmap()
-  const value = useLatestValue(id, { allowNull: true })
+  const value = useLatestDisplayValue(id, { allowNull: true })
   const unitAttributes = useValueUnitAttributes(value, {
     dimensionId: id,
     scaleByValue: true,

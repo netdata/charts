@@ -9,6 +9,7 @@ import Units from "@/components/line/dimensions/units"
 import {
   useVisibleDimensionId,
   useChart,
+  useLatestDisplayValue,
   useLatestValue,
   useUnitSign,
   useIsMinimal,
@@ -76,7 +77,7 @@ const TooltipContent = props => <Flex {...tooltipStyleProps} {...props} column g
 
 const TooltipValue = ({ id, name }) => {
   const units = useUnitSign({ long: true, dimensionId: id, withoutConversion: true })
-  const value = useLatestValue(id)
+  const value = useLatestDisplayValue(id)
 
   return (
     <>
@@ -93,7 +94,7 @@ const TooltipValue = ({ id, name }) => {
 const Dimension = ({ id, ref }) => {
   const visible = useVisibleDimensionId(id)
   const chart = useChart()
-  const value = useLatestValue(id, { allowNull: true })
+  const value = useLatestDisplayValue(id, { allowNull: true })
 
   const name = chart.getDimensionName(id)
 
