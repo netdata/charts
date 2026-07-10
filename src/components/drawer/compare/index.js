@@ -1,13 +1,14 @@
 import React, { useState } from "react"
-import { Flex, TextSmall, TextMicro, Text, Button } from "@netdata/netdata-ui"
+import { Flex, TextSmall, TextMicro, Button } from "@netdata/netdata-ui"
 import styled from "styled-components"
 import Tooltip from "@/components/tooltip"
 import Icon, { Button as IconButton } from "@/components/icon"
 import useData from "./useData"
-import { useChart, convert, useAttributeValue } from "@/components/provider"
+import { useChart, useAttributeValue } from "@/components/provider"
 import pencilIcon from "@netdata/netdata-ui/dist/components/icon/assets/pencil_outline.svg"
 import ChangeIndicator from "./changeIndicator"
 import CustomPeriodForm from "./customPeriodForm"
+import StatValue from "./statValue"
 
 const GridContainer = styled(Flex)`
   display: grid;
@@ -22,15 +23,12 @@ const formatDateRange = (chart, after, before) => {
 }
 
 const StatRow = ({ label, value, change, valueKey = "value", tab, tooltip, prominent }) => {
-  const chart = useChart()
-  const formattedValue = convert(chart, value, { valueKey, fractionDigits: 2 })
-
   if (prominent) {
     return (
       <Tooltip content={tooltip}>
         <Flex column gap={0.5} flex="1 1 0">
           <TextMicro color="textLite">{label}</TextMicro>
-          <Text strong>{formattedValue}</Text>
+          <StatValue value={value} valueKey={valueKey} prominent />
           <ChangeIndicator change={change} tab={tab} />
         </Flex>
       </Tooltip>
@@ -43,9 +41,7 @@ const StatRow = ({ label, value, change, valueKey = "value", tab, tooltip, promi
         <TextMicro color="textLite">{label}</TextMicro>
       </Tooltip>
       <Flex alignItems="center" gap={1} flex="1 1 auto" justifyContent="end">
-        <TextSmall strong textAlign="right">
-          {formattedValue}
-        </TextSmall>
+        <StatValue value={value} valueKey={valueKey} justifyContent="end" />
         <ChangeIndicator change={change} tab={tab} />
       </Flex>
     </Flex>
