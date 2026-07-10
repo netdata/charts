@@ -1,5 +1,4 @@
 import numericTicker from "./numeric"
-import { isBinary } from "@/helpers/units"
 
 describe("numericTicker", () => {
   let mockOpts
@@ -72,6 +71,49 @@ describe("numericTicker", () => {
     }
   })
 
+  it("uses duration-aware ticks when seconds are formatted as time", () => {
+    mockOpts.mockImplementation(key => {
+      if (key === "axisLabelFormatter") return jest.fn(v => `${v}`)
+      if (key === "pixelsPerLabel") return 15
+    })
+
+    const ticks = numericTicker(0, 35000, 300, mockOpts, mockDygraph, null, {
+      secondsAsTime: true,
+      units: ["s"],
+    })
+
+    const dataTicks = ticks.filter(tick => tick.v !== undefined && !tick.label_v).map(t => t.v)
+    expect(dataTicks).toEqual([0, 5400, 10800, 16200, 21600, 27000, 32400, 37800])
+  })
+
+  it("formats the zero tick without a duration unit", () => {
+    const formatter = jest.fn(v => `${v} ns`)
+    mockOpts.mockImplementation(key => {
+      if (key === "axisLabelFormatter") return formatter
+      if (key === "pixelsPerLabel") return 15
+    })
+
+    const ticks = numericTicker(0, 35000, 300, mockOpts, mockDygraph, null, {
+      secondsAsTime: true,
+      units: ["s"],
+    })
+    const zeroTick = ticks.find(tick => tick.v === 0)
+
+    expect(zeroTick.label).toBe("0")
+    expect(zeroTick.label).not.toContain("ns")
+  })
+
+  it("keeps numeric ticks for seconds when time formatting is disabled", () => {
+    const ticks = numericTicker(0, 35000, 300, mockOpts, mockDygraph, null, {
+      secondsAsTime: false,
+      units: ["s"],
+    })
+
+    const dataTicks = ticks.filter(tick => tick.v !== undefined && !tick.label_v).map(t => t.v)
+    expect(dataTicks).toContain(10000)
+    expect(dataTicks).not.toContain(10800)
+  })
+
   it("calculates appropriate number of ticks based on pixels", () => {
     const pixels = 500
     const pixelsPerLabel = 50
@@ -100,6 +142,29 @@ describe("numericTicker", () => {
 
     expect(mockFormatter).toHaveBeenCalled()
     expect(mockFormatter).toHaveBeenCalledWith(expect.any(Number), 0, mockOpts, mockDygraph)
+  })
+
+  it("passes generated tick spacing to the formatter", () => {
+    const mockFormatter = jest.fn(value => `${value}`)
+    mockOpts.mockImplementation(key => {
+      if (key === "axisLabelFormatter") return mockFormatter
+      if (key === "pixelsPerLabel") return 50
+    })
+
+    const ticks = numericTicker(5.12000001, 5.12000009, 400, mockOpts, mockDygraph, null, {
+      units: [""],
+    })
+
+    expect(mockFormatter).toHaveBeenCalledWith(
+      expect.any(Number),
+      expect.any(Number),
+      mockOpts,
+      mockDygraph
+    )
+
+    const dataTicks = ticks.filter(tick => tick.v !== undefined && !tick.label_v).map(t => t.v)
+    expect(dataTicks.length).toBeGreaterThan(1)
+    expect(dataTicks[1] - dataTicks[0]).toBeGreaterThan(0)
   })
 
   it("includes anomaly SVG in first tick", () => {

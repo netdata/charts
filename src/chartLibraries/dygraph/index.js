@@ -97,17 +97,12 @@ export default (sdk, chart) => {
       maxNumberWidth: 8,
       highlightSeriesBackgroundAlpha: 1,
       drawGapEdgePoints: true,
-      ylabel:
-        chart.getAttribute("hasYlabel") &&
-        chart.getUnitSign({
-          withoutConversion: isHeatmap(chart.getAttribute("chartType")),
-          dimensionId: chart.getVisibleDimensionIds()?.[0],
-        }),
+      ylabel: undefined,
       digitsAfterDecimal:
         chart.getAttribute("unitsConversionFractionDigits")[0] < 0
           ? 0
           : chart.getAttribute("unitsConversionFractionDigits")[0],
-      yLabelWidth: 12,
+      yLabelWidth: 0,
       yRangePad: 15,
       labelsSeparateLines: true,
       rightGap: -5,
@@ -248,7 +243,17 @@ export default (sdk, chart) => {
         prevMax = max
         chart.trigger("yAxisChange", min, max)
       }
-      return chart.getConvertedValue(y) // TODO Pass { dimensionId: context.id } when multiple contexts with different units
+      const dimensionId = chart.getVisibleDimensionIds()?.[0]
+      const tickStep = Math.abs(Number(granularity)) || 0
+      const range = tickStep
+        ? {
+            min: Math.min(y, y + tickStep),
+            max: Math.max(y, y + tickStep),
+          }
+        : {}
+      const unitAttributes = chart.getUnitAttributesForValue(y, { dimensionId, ...range })
+
+      return chart.getConvertedValueWithUnit(y, { dimensionId, unitAttributes })
     },
     makeYTicker:
       (options = {}) =>
@@ -330,13 +335,14 @@ export default (sdk, chart) => {
     } = optionsByChartType[chartType] || optionsByChartType.default
 
     const yAxisLabelFormatter = makeYAxisLabelFormatter(labels)
-    const yTicker = makeYTicker
-      ? makeYTicker({
-          labels: chart.getVisibleHeatmapIds?.() || chart.getVisibleDimensionIds(),
-          scale: chart.getHeatmapScale?.(),
-          units: chart.getUnits(),
-        })
-      : null
+      const yTicker = makeYTicker
+        ? makeYTicker({
+            labels: chart.getVisibleHeatmapIds?.() || chart.getVisibleDimensionIds(),
+            scale: chart.getHeatmapScale?.(),
+            secondsAsTime: chart.getAttribute("secondsAsTime"),
+            units: chart.getVisibleDimensionIds().map(id => chart.getDimensionUnit(id)),
+          })
+        : null
 
     const { selectedLegendDimensions } = chart.getAttributes()
     const dimensionIds = chart.getPayloadDimensionIds()
@@ -372,12 +378,8 @@ export default (sdk, chart) => {
             }
           : { drawAxis: false },
       },
-      ylabel:
-        chart.getAttribute("hasYlabel") &&
-        chart.getUnitSign({
-          withoutConversion: isHeatmap(chartType),
-          dimensionId: chart.getVisibleDimensionIds()?.[0],
-        }),
+      ylabel: undefined,
+      yLabelWidth: 0,
     }
   }
 

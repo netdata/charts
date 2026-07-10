@@ -1,7 +1,7 @@
 import React from "react"
 import { Flex, TextMicro } from "@netdata/netdata-ui"
 
-const ChangeIndicator = ({ change, tab = "window" }) => {
+const ChangeIndicator = ({ change }) => {
   if (!change) return null
 
   const color =
@@ -13,7 +13,7 @@ const ChangeIndicator = ({ change, tab = "window" }) => {
   const arrow = change.direction === "neutral" ? "=" : change.direction === "up" ? "↑" : "↓"
 
   return (
-    <Flex alignItems="center" gap={0.5}>
+    <Flex alignItems="center" gap={1}>
       <TextMicro color={color} whiteSpace="nowrap">
         {change.formatted} {arrow}
       </TextMicro>

@@ -1,10 +1,8 @@
 import React from "react"
-import { Flex, Button } from "@netdata/netdata-ui"
-import Icon, { Button as IconButton } from "@/components/icon"
+import { Flex, Button, IconButton } from "@netdata/netdata-ui"
 import Tooltip from "@/components/tooltip"
 import { useChart, useAttributeValue } from "@/components/provider"
 import { actions, tabs } from "../constants"
-import metricsIcon from "@netdata/netdata-ui/dist/components/icon/assets/metrics.svg"
 
 const supportsAdvancedStats = {
   values: true,
@@ -20,7 +18,6 @@ const SelectedAreaButton = ({ chart, selected }) => {
   return (
     <Tooltip content={range ? "Selected Area - Analyze data for the highlighted time range" : "Select an area on the chart to enable this option"}>
       <Button
-        tiny
         neutral={!selected}
         label="Selected area"
         disabled={!range}
@@ -30,45 +27,45 @@ const SelectedAreaButton = ({ chart, selected }) => {
   )
 }
 
-const Header = ({ onClick, ...rest }) => {
+const Header = rest => {
   const chart = useChart()
   const action = useAttributeValue("drawer.action", "compare")
   const tab = useAttributeValue("drawer.tab", "window")
   const showAdvancedStats = useAttributeValue("drawer.showAdvancedStats", false)
 
   return (
-    <Flex justifyContent="between" data-noprint {...rest}>
-      <Flex gap={6}>
-        <Flex gap={1}>
+    <Flex justifyContent="between" gap={1} flexWrap data-noprint {...rest}>
+      <Flex gap={6} flexWrap>
+        <Flex gap={1} flexWrap>
           <Tooltip content="Compare - Compare current data with different time periods or baselines">
             <Button
-              tiny
               neutral={actions.compare !== action}
               icon="weights_compare"
+              label="Compare"
               onClick={() => chart.updateAttribute("drawer.action", actions.compare)}
             />
           </Tooltip>
           <Tooltip content="Chart Values - View dimension values, statistics, and time ranges">
             <Button
-              tiny
               neutral={actions.values !== action}
               icon="line_chart"
+              label="Values"
               onClick={() => chart.updateAttribute("drawer.action", actions.values)}
             />
           </Tooltip>
           <Tooltip content="Drill Down - Explore related metrics and child contexts using weights analysis">
             <Button
-              tiny
               neutral={actions.drillDown !== action}
               icon="weights_drill_down"
+              label="Drill Down"
               onClick={() => chart.updateAttribute("drawer.action", actions.drillDown)}
             />
           </Tooltip>
           <Tooltip content="Correlate - Find metrics that correlate with the current chart's behavior">
             <Button
-              tiny
               neutral={actions.correlate !== action}
               icon="correlation_inv"
+              label="Correlate"
               onClick={() => chart.updateAttribute("drawer.action", actions.correlate)}
             />
           </Tooltip>
@@ -76,7 +73,6 @@ const Header = ({ onClick, ...rest }) => {
         <Flex gap={1}>
           <Tooltip content="Window - Analyze data for the entire visible time window">
             <Button
-              tiny
               neutral={tabs.window !== tab}
               label="Window"
               onClick={() => chart.updateAttribute("drawer.tab", tabs.window)}
@@ -84,7 +80,6 @@ const Header = ({ onClick, ...rest }) => {
           </Tooltip>
           <SelectedAreaButton chart={chart} selected={tabs.selectedArea === tab} />
           {/*<Button
-            tiny
             neutral={tabs.point !== tab}
             label="Point"
             disabled
@@ -95,8 +90,14 @@ const Header = ({ onClick, ...rest }) => {
       {supportsAdvancedStats[action] && (
         <Flex>
           <IconButton
-            icon={<Icon svg={metricsIcon} size="16px" />}
-            title={showAdvancedStats ? "Hide advanced statistics - Click to show only basic stats" : "Show advanced statistics - Click to display detailed metrics including min, max, avg, and more"}
+            icon="metrics"
+            width="16px"
+            height="16px"
+            tooltip={
+              showAdvancedStats
+                ? "Hide advanced statistics - Click to show only basic stats"
+                : "Show advanced statistics - Click to display detailed metrics including min, max, avg, and more"
+            }
             active={showAdvancedStats}
             onClick={() => chart.updateAttribute("drawer.showAdvancedStats", !showAdvancedStats)}
             data-testid="drawer-header-advanced-stats"

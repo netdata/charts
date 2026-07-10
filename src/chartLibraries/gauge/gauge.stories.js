@@ -129,6 +129,8 @@ export const DarkMode = () => {
   )
 }
 
+DarkMode.parameters = { netdataTheme: "dark" }
+
 export default {
   title: "Charts/Gauge",
   component: Default,

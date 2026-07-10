@@ -9,12 +9,13 @@ export default () => {
   const loading = useAttributeValue("compareLoading")
   const error = useAttributeValue("compareError")
 
-  const after = useAttributeValue("after")
-  const before = useAttributeValue("before")
   const drawerAction = useAttributeValue("drawer.action")
   const tab = useAttributeValue("drawer.tab")
   const overlays = useAttributeValue("overlays")
   const customPeriods = useAttributeValue("customPeriods", [])
+  const mainLoaded = useAttributeValue("loaded")
+  const mainLoading = useAttributeValue("loading")
+  const mainError = useAttributeValue("error")
 
   const periods = useMemo(() => {
     if (!rawPeriods?.length) return []
@@ -46,21 +47,23 @@ export default () => {
     if (!chart) return
 
     const fetchData = async () => {
+      if (!chart.getAttribute("loaded")) return
+      if (chart.getAttribute("loading") || chart.getAttribute("error")) return
+
       try {
         await fetchComparisonData(chart)
       } catch (err) {
+        if (err.name === "AbortError") return
         console.error("Failed to fetch comparison data:", err)
       }
     }
 
-    fetchData()
+    if (mainLoaded && !mainLoading && !mainError) fetchData()
 
-    const unsubscribe = chart.on("fetch", fetchData)
+    const unsubscribe = chart.on("successFetch", fetchData)
 
-    return () => {
-      unsubscribe()
-    }
-  }, [after, before, drawerAction, customPeriods])
+    return unsubscribe
+  }, [drawerAction, customPeriods, mainLoaded, mainLoading, mainError])
 
   return { periods, loading, error }
 }

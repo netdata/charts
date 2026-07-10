@@ -3,7 +3,7 @@ import scalableUnits, { keys } from "./scalableUnits"
 describe("scalableUnits", () => {
   describe("keys export", () => {
     it("contains binary scale keys", () => {
-      expect(keys.binary).toEqual(["1", "Ki", "Mi", "Gi", "Ti"])
+      expect(keys.binary).toEqual(["1", "Ki", "Mi", "Gi", "Ti", "Pi"])
     })
 
     it("contains bit scale keys", () => {
@@ -12,6 +12,10 @@ describe("scalableUnits", () => {
 
     it("contains decimal scale keys", () => {
       expect(keys.decimal).toEqual(["1", "K", "M", "B", "T"])
+    })
+
+    it("contains decimal byte scale keys", () => {
+      expect(keys.decimalBytes).toEqual(["1", "K", "M", "G", "T", "P", "E", "Z", "Y"])
     })
 
     it("contains num scale keys", () => {
@@ -43,6 +47,7 @@ describe("scalableUnits", () => {
       expect(scalableUnits.binary.Mi).toBe(1048576)
       expect(scalableUnits.binary.Gi).toBe(1073741824)
       expect(scalableUnits.binary.Ti).toBe(1099511627776)
+      expect(scalableUnits.binary.Pi).toBe(1125899906842624)
     })
 
     it("uses powers of 1024", () => {
@@ -50,6 +55,7 @@ describe("scalableUnits", () => {
       expect(scalableUnits.binary.Mi).toBe(Math.pow(1024, 2))
       expect(scalableUnits.binary.Gi).toBe(Math.pow(1024, 3))
       expect(scalableUnits.binary.Ti).toBe(Math.pow(1024, 4))
+      expect(scalableUnits.binary.Pi).toBe(Math.pow(1024, 5))
     })
   })
 
@@ -66,6 +72,15 @@ describe("scalableUnits", () => {
       expect(scalableUnits.decimal.M).toBe(Math.pow(1000, 2))
       expect(scalableUnits.decimal.B).toBe(Math.pow(1000, 3))
       expect(scalableUnits.decimal.T).toBe(Math.pow(1000, 4))
+    })
+  })
+
+  describe("decimal byte scales", () => {
+    it("contains SI byte multipliers", () => {
+      expect(scalableUnits.decimalBytes.K).toBe(1000)
+      expect(scalableUnits.decimalBytes.M).toBe(1000000)
+      expect(scalableUnits.decimalBytes.G).toBe(1000000000)
+      expect(scalableUnits.decimalBytes.T).toBe(1000000000000)
     })
   })
 
@@ -118,7 +133,7 @@ describe("scalableUnits", () => {
     })
 
     it("contains only expected scale types", () => {
-      const expectedKeys = ["binary", "decimal", "chronos", "num"]
+      const expectedKeys = ["binary", "decimal", "decimalBytes", "chronos", "num"]
       expect(Object.keys(scalableUnits)).toEqual(expectedKeys)
     })
 

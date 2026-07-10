@@ -90,65 +90,75 @@ const aggregateStats = (statsArray, statType) => {
 export const buildHierarchicalTree = (flatData, groupByOrder) => {
   if (!groupByOrder?.length) return flatData
 
-  const nodesByKey = {}
-  const allLeafItems = []
+  const nodesByKey = Object.create(null)
+  const groupItemsByNode = new WeakMap()
+  const groupPathIndex = new Map()
+  const lastLevel = groupByOrder.length - 1
 
   flatData.forEach(item => {
     const { groupedBy, groupedByNames } = item
+    const pathGroupedBy = {}
+    const pathGroupedByNames = {}
+    let childrenByValue = groupPathIndex
+    let canAggregatePath = true
+    let nodeKey = ""
+    let parentKey = null
 
     groupByOrder.forEach((field, level) => {
-      const pathValues = groupByOrder.slice(0, level + 1).map(f => groupedBy[f])
-      const nodeKey = pathValues.join("|")
-      const parentKey = level > 0 ? pathValues.slice(0, -1).join("|") : null
+      const fieldValue = groupedBy[field]
+      const isGroupNode = level < lastLevel
+      parentKey = level > 0 ? nodeKey : null
+      nodeKey = `${level > 0 ? `${nodeKey}|` : ""}${[fieldValue].join("")}`
+      pathGroupedBy[field] = fieldValue
+      pathGroupedByNames[field] = groupedByNames[field]
+
+      let groupItems
+      if (isGroupNode) {
+        let pathEntry = childrenByValue.get(fieldValue)
+
+        if (!pathEntry) {
+          pathEntry = { childrenByValue: new Map(), items: [] }
+          childrenByValue.set(fieldValue, pathEntry)
+        }
+
+        canAggregatePath = canAggregatePath && !Number.isNaN(fieldValue)
+        if (canAggregatePath) pathEntry.items.push(item)
+
+        childrenByValue = pathEntry.childrenByValue
+        groupItems = pathEntry.items
+      }
 
       if (!nodesByKey[nodeKey]) {
-        nodesByKey[nodeKey] = {
+        const node = {
           id: nodeKey,
           nm: nodeKey,
           label: groupedByNames[field],
           level,
           parentId: parentKey,
           children: [],
-          isGroupNode: level < groupByOrder.length - 1,
-          groupedBy: groupByOrder.slice(0, level + 1).reduce((acc, f, idx) => {
-            acc[f] = pathValues[idx]
-            return acc
-          }, {}),
-          groupedByNames: groupByOrder.slice(0, level + 1).reduce((acc, f, idx) => {
-            acc[f] = idx === level ? groupedByNames[field] : item.groupedByNames[f]
-            return acc
-          }, {}),
+          isGroupNode,
+          groupedBy: { ...pathGroupedBy },
+          groupedByNames: { ...pathGroupedByNames },
         }
+
+        nodesByKey[nodeKey] = node
+        if (isGroupNode) groupItemsByNode.set(node, groupItems)
       }
     })
 
-    const leafKey = groupByOrder.map(f => item.groupedBy[f]).join("|")
-    nodesByKey[leafKey] = {
+    nodesByKey[nodeKey] = {
       ...item,
-      id: leafKey,
-      label: item.groupedByNames[groupByOrder[groupByOrder.length - 1]] || item.label,
-      level: groupByOrder.length - 1,
-      parentId:
-        groupByOrder.length > 1
-          ? groupByOrder
-              .slice(0, -1)
-              .map(f => item.groupedBy[f])
-              .join("|")
-          : null,
+      id: nodeKey,
+      label: item.groupedByNames[groupByOrder[lastLevel]] || item.label,
+      level: lastLevel,
+      parentId: lastLevel > 0 ? parentKey : null,
       isGroupNode: false,
     }
-    allLeafItems.push(item)
   })
 
   Object.values(nodesByKey).forEach(node => {
     if (node.isGroupNode) {
-      const belongingItems = allLeafItems.filter(item => {
-        return groupByOrder.slice(0, node.level + 1).every((field, idx) => {
-          const nodeValue = node.groupedBy[field]
-          const itemValue = item.groupedBy[field]
-          return nodeValue === itemValue
-        })
-      })
+      const belongingItems = groupItemsByNode.get(node) || []
 
       if (belongingItems.length > 0) {
         const weightStats = aggregateStats(

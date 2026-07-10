@@ -1,6 +1,34 @@
 import getConversionUnits, { getConversionAttributes } from "./getConversionUnits"
 
+const getDimensionStats = (chart, result, dimensionId) => {
+  const byDimension = result?.byDimension
+  if (!byDimension) return null
+
+  const dimensionName = chart.getDimensionName(dimensionId)
+
+  return byDimension[dimensionId] || byDimension[dimensionName] || null
+}
+
+const getDimensionUnit = (chart, unitsKey, dimensionId) =>
+  unitsKey === "units" ? chart.getDimensionUnit(dimensionId) : chart.getAttribute(unitsKey)?.[0]
+
+const getUnitsByDimension = (chart, unitsKey, result, min, max) =>
+  (chart.getDimensionIds?.() || []).reduce((h, dimensionId) => {
+    const dimSts = getDimensionStats(chart, result, dimensionId)
+    const unit = getDimensionUnit(chart, unitsKey, dimensionId)
+
+    if (!dimSts || !unit) return h
+
+    h[dimensionId] = getConversionAttributes(chart, unit, {
+      min: dimSts.min ?? min,
+      max: dimSts.max ?? max,
+    })
+
+    return h
+  }, {})
+
 const baseConvert = (chart, unitsKey = "units", min, max) => {
+  const result = chart.getPayload()
   const {
     method,
     fractionDigits,
@@ -23,6 +51,7 @@ const baseConvert = (chart, unitsKey = "units", min, max) => {
   )
 
   chart.updateAttributes({
+    [`${unitsKey}ByDimension`]: getUnitsByDimension(chart, unitsKey, result, min, max),
     [`${unitsKey}ConversionMethod`]: method,
     [`${unitsKey}ConversionPrefix`]: prefix,
     [`${unitsKey}ConversionBase`]: base,

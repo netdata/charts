@@ -10,6 +10,7 @@ import {
 import { detectHeatmapScale, formatHeatmapLabel, sortHeatmapValues } from "@/helpers/heatmapScale"
 import groupBy from "lodash/groupBy"
 import isEmpty from "lodash/isEmpty"
+import { getPointValue } from "./getPointValue"
 
 const noop = () => {}
 
@@ -253,7 +254,9 @@ export default (chart, sdk) => {
   chart.getHeatmapSortedIds = () => heatmapSortedIds
 
   const getBaseVisibleHeatmapIds = () =>
-    heatmapSortedIds ? heatmapSortedIds.filter(id => visibleDimensionSet.has(id)) : visibleDimensionIds
+    heatmapSortedIds
+      ? heatmapSortedIds.filter(id => visibleDimensionSet.has(id))
+      : visibleDimensionIds
 
   const isZeroOnlyHeatmapBucket = id => {
     const { all = [] } = chart.getPayload()
@@ -373,6 +376,12 @@ export default (chart, sdk) => {
   }
 
   chart.getUnitAttributes = (id, key = "units") => {
+    const unitsByDimension = chart.getAttribute(`${key}ByDimension`) || {}
+
+    if (id && unitsByDimension[id]) {
+      return unitsByDimension[id]
+    }
+
     const context = chart.getDimensionContext(id)
 
     if (context) {
@@ -408,10 +417,10 @@ export default (chart, sdk) => {
     pointData,
     { valueKey = "value", abs = true, incrementable = true, allowNull = false } = {}
   ) => {
-    let value = pointData?.[dimensionsById[id] + 1]
+    const cell = pointData?.[dimensionsById[id] + 1]
+    let value = getPointValue(cell, chart.getPayload().point, valueKey)
     if (typeof value === "undefined") return null
 
-    value = value !== null && typeof value === "object" ? value[valueKey] : value
     value = allowNull && value === null ? value : abs ? Math.abs(value) : value
 
     if (valueKey === "value" && incrementable && isIncremental(chart)) {

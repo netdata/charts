@@ -146,7 +146,7 @@ export default {
   showAnnotations: true,
 
   hasYlabel: true,
-  yAxisLabelWidth: 60,
+  yAxisLabelWidth: 68,
   axisLabelFontSize: 10,
 
   outOfLimits: false,
@@ -176,8 +176,21 @@ export default {
     error: null,
     sortBy: [],
     expanded: {},
+    search: "",
     groupBySortBy: [],
     groupByExpanded: {},
+  },
+
+  correlate: {
+    data: null,
+    loading: false,
+    error: null,
+    method: "volume",
+    aggregation: "average",
+    dataType: "",
+    threshold: 0.01,
+    expanded: {},
+    search: "",
   },
 
   pristine: {},
@@ -249,12 +262,14 @@ export default {
   units: [""],
   unitsStsByContext: {},
   unitsByContext: {},
+  unitsByDimension: {},
   viewUpdateEvery: 0, // view.update_every
 
   // db
   dbUnits: [""],
   dbUnitsStsByContext: {},
   dbUnitsByContext: {},
+  dbUnitsByDimension: {},
   updateEvery: 0,
   firstEntry: 0,
   lastEntry: 0,
@@ -270,6 +285,7 @@ export default {
     action: "compare",
     tab: "window",
     showAdvancedStats: false,
+    valuesSearch: "",
   },
 
   renderedAt: null,

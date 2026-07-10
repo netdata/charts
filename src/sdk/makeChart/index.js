@@ -7,7 +7,7 @@ import { fetchChartData } from "./api"
 import makeDimensions from "./makeDimensions"
 import makeFilterControllers from "./filters/makeControllers"
 import makeDataFetch from "./makeDataFetch"
-import makeGetUnitSign from "./makeGetUnitSign"
+import makeGetUnitSign, { makeGetUnitAttributesForValue } from "./makeGetUnitSign"
 import makeWeights from "./makeWeights"
 import getAggregateMethod from "./filters/getAggregateMethod"
 
@@ -17,6 +17,30 @@ const themeIndex = {
 }
 
 const maxBackoffMs = 30 * 1000
+const maxRegularNumberLength = 18
+
+const formatExponential = value =>
+  value
+    .toExponential(3)
+    .replace(/(\.\d*?)0+e/, "$1e")
+    .replace(/\.e/, "e")
+
+const formatNumber = (node, converted, fractionDigits, unitsConversionFractionDigits) => {
+  const formatted = Intl.NumberFormat(node.getAttribute("locale") || undefined, {
+    useGrouping: true,
+    minimumFractionDigits: isNaN(fractionDigits) || fractionDigits < 0 ? 0 : fractionDigits,
+    maximumFractionDigits:
+      fractionDigits === null || isNaN(fractionDigits) || fractionDigits < 0
+        ? unitsConversionFractionDigits === -1
+          ? 4
+          : unitsConversionFractionDigits
+        : fractionDigits,
+  }).format(converted)
+
+  if (!Number.isFinite(converted) || formatted.length <= maxRegularNumberLength) return formatted
+
+  return formatExponential(converted)
+}
 
 const defaultMakeTrack = () => value => value
 
@@ -143,7 +167,10 @@ export default ({
   node.on("render", render)
   unitConversion(node)
 
-  node.getConvertedValue = (value, { fractionDigits, key = "units", dimensionId } = {}) => {
+  node.getConvertedValue = (
+    value,
+    { fractionDigits, key = "units", dimensionId, unitAttributes } = {}
+  ) => {
     if (!node) return
 
     if (value === null) return "-"
@@ -152,7 +179,7 @@ export default ({
       method,
       fractionDigits: unitsConversionFractionDigits,
       divider,
-    } = node.getUnitAttributes(dimensionId, key)
+    } = unitAttributes || node.getUnitAttributes(dimensionId, key)
 
     const converted = convert(node, method, value, divider)
 
@@ -160,16 +187,23 @@ export default ({
 
     fractionDigits = fractionDigits ?? node.getAttribute("staticFractionDigits")
 
-    return Intl.NumberFormat(node.getAttribute("locale") || undefined, {
-      useGrouping: true,
-      minimumFractionDigits: isNaN(fractionDigits) || fractionDigits < 0 ? 0 : fractionDigits,
-      maximumFractionDigits:
-        fractionDigits === null || isNaN(fractionDigits) || fractionDigits < 0
-          ? unitsConversionFractionDigits === -1
-            ? 4
-            : unitsConversionFractionDigits
-          : fractionDigits,
-    }).format(converted)
+    return formatNumber(node, converted, fractionDigits, unitsConversionFractionDigits)
+  }
+
+  node.getConvertedValueWithUnit = (
+    value,
+    { fractionDigits, key = "units", dimensionId, unitAttributes } = {}
+  ) => {
+    const attrs = unitAttributes || node.getUnitAttributes(dimensionId, key)
+    const convertedValue = node.getConvertedValue(value, {
+      fractionDigits,
+      key,
+      dimensionId,
+      unitAttributes: attrs,
+    })
+    const unit = node.getUnitSign({ key, dimensionId, unitAttributes: attrs })
+
+    return unit ? `${convertedValue} ${unit}` : convertedValue
   }
 
   node.focus = event => {
@@ -245,6 +279,7 @@ export default ({
   makeWeights(node, sdk)
 
   node.type = "chart"
+  makeGetUnitAttributesForValue(node)
   makeGetUnitSign(node)
 
   node.track = makeTrack(node)
@@ -394,8 +429,6 @@ export default ({
       uiInstances = null
       node = null
     }, 2000)
-
-    node.destroy()
   }
 
   node.intl = (key, { count = 1, pluralize = true, fallback = "" } = {}) => {

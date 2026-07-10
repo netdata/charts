@@ -12,7 +12,18 @@ describe("Drawer", () => {
     })
 
     expect(screen.getByTestId("drawer-content")).toHaveStyle({
-      minHeight: "0",
+      minHeight: "0px",
+      overflowY: "hidden",
+    })
+  })
+
+  it("lets the drill-down table own vertical scrolling", () => {
+    renderWithChart(<Drawer />, {
+      attributes: { drawer: { action: actions.drillDown } },
+    })
+
+    expect(screen.getByTestId("drawer-content")).toHaveStyle({
+      minHeight: "0px",
       overflowY: "hidden",
     })
   })
@@ -23,7 +34,7 @@ describe("Drawer", () => {
     })
 
     expect(screen.getByTestId("drawer-content")).toHaveStyle({
-      minHeight: "0",
+      minHeight: "0px",
       overflowY: "scroll",
     })
   })

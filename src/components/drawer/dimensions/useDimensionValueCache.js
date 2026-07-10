@@ -1,7 +1,13 @@
 import { useMemo, useReducer } from "react"
 import { calculateMedian, calculatePercentile, calculateStdDev } from "@/helpers/statistics"
 import { isIncremental } from "@/helpers/heatmap"
-import { useAttributeValue, useChart, useImmediateListener, usePayload } from "@/components/provider"
+import {
+  useAttributeValue,
+  useChart,
+  useImmediateListener,
+  usePayload,
+} from "@/components/provider"
+import { getPointValue } from "@/sdk/makeChart/getPointValue"
 
 const nextVersion = version => version + 1
 
@@ -60,10 +66,9 @@ const getDirectRowDimensionValue = (
     return chart.getRowDimensionValue(id, row, { valueKey, abs, allowNull })
   }
 
-  let value = row?.[dimensionIndex + 1]
+  let value = getPointValue(row?.[dimensionIndex + 1], chart.getPayload().point, valueKey)
   if (typeof value === "undefined") return null
 
-  value = value !== null && typeof value === "object" ? value[valueKey] : value
   value = allowNull && value === null ? value : abs ? Math.abs(value) : value
 
   return value
@@ -86,12 +91,7 @@ const getPeriodRows = (chart, payload, period) => {
   })
 }
 
-const calculateDimensionStats = (
-  chart,
-  id,
-  rows,
-  { abs, includeAdvancedStats, requestedKey }
-) => {
+const calculateDimensionStats = (chart, id, rows, { abs, includeAdvancedStats, requestedKey }) => {
   if (!rows?.length) return null
 
   id = getVisibleDimensionId(chart, id)

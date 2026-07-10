@@ -11,7 +11,65 @@ const selfOrExponent = (u, scaleByKey) => {
   return Math.pow(scaleByKey[u], exponent)
 }
 
-const scalable = (units, delta, desiredUnits) => {
+const precisionSoftMax = 5
+const precisionHardMax = 10
+
+const getRangeDelta = (min, max) => {
+  const absMin = Math.abs(min)
+  const absMax = Math.abs(max)
+
+  return absMin > absMax ? absMin : absMax
+}
+
+const getFractionDigits = value => {
+  if (!isFinite(value) || value <= 0) return -1
+
+  if (value > 1000) return 0
+  if (value > 100) return 1
+  if (value > 10) return 2
+  if (value >= 1) return 4
+
+  return Math.ceil(-Math.log10(value))
+}
+
+const getCandidateFractionDigits = (chart, [method, divider], min, max, maxDecimals) => {
+  const cMin = convert(chart, method, min, divider)
+  const cMax = convert(chart, method, max, divider)
+
+  if (typeof cMin !== "number" || typeof cMax !== "number") return -1
+
+  const delta = Math.abs(cMin === cMax ? cMin : cMax - cMin)
+  const fractionDigits = getFractionDigits(delta)
+
+  if (fractionDigits === -1) return -1
+
+  return Math.min(fractionDigits, maxDecimals)
+}
+
+const makeScalableCandidate = (scale, scaleByKey, prefixScale, base) => [
+  "adjust",
+  value => (value * prefixScale) / selfOrExponent(scale, scaleByKey),
+  scale === "1" ? "" : scale,
+  base,
+]
+
+const choosePrecisionCandidate = (chart, candidates, min, max, maxDecimals) => {
+  const [firstCandidate] = candidates
+  const firstDigits = getCandidateFractionDigits(chart, firstCandidate, min, max, maxDecimals)
+
+  if (firstDigits === -1) return firstCandidate
+  if (firstDigits >= 0 && firstDigits <= precisionSoftMax) return firstCandidate
+
+  const softerCandidate = candidates.find(candidate => {
+    const digits = getCandidateFractionDigits(chart, candidate, min, max, maxDecimals)
+
+    return digits >= 0 && digits <= precisionSoftMax
+  })
+
+  return softerCandidate || firstCandidate
+}
+
+const scalable = (chart, units, min, max, desiredUnits, maxDecimals) => {
   const [scaleKeys, scaleByKey] = getScales(units)
 
   const config = getUnitConfig(units)
@@ -21,29 +79,22 @@ const scalable = (units, delta, desiredUnits) => {
 
   if (desiredUnits && desiredUnits !== "auto" && desiredUnits !== "original") {
     if (scaleByKey[desiredUnits] !== undefined) {
-      return [
-        "adjust",
-        value => (value * prefixScale) / selfOrExponent(desiredUnits, scaleByKey),
-        desiredUnits === "1" ? "" : desiredUnits,
-        base,
-      ]
+      return makeScalableCandidate(desiredUnits, scaleByKey, prefixScale, base)
     }
   }
 
-  delta = delta * prefixScale
+  const delta = getRangeDelta(min, max) * prefixScale
   const scale = [...scaleKeys].reverse().find(scale => delta >= selfOrExponent(scale, scaleByKey))
+  const scaleIndex = Math.max(scaleKeys.indexOf(scale), 0)
+  const candidateKeys = scaleKeys.slice(0, scaleIndex + 1).reverse()
+  const candidates = candidateKeys.map(scale =>
+    makeScalableCandidate(scale, scaleByKey, prefixScale, base)
+  )
 
-  return scale
-    ? [
-        "adjust",
-        value => (value * prefixScale) / selfOrExponent(scale, scaleByKey),
-        scale === "1" ? "" : scale,
-        base,
-      ]
-    : ["original"]
+  return choosePrecisionCandidate(chart, candidates, min, max, maxDecimals)
 }
 
-const conversable = (chart, units, delta, desiredUnits) => {
+const conversable = (chart, units, min, max, desiredUnits, maxDecimals) => {
   const scales = conversableUnits[units]
 
   if (desiredUnits && desiredUnits !== "auto" && desiredUnits !== "original") {
@@ -56,17 +107,21 @@ const conversable = (chart, units, delta, desiredUnits) => {
     return ["original"]
   }
 
+  const delta = getRangeDelta(min, max)
   const scaleKeys = conversableKeys[units] || Object.keys(scales)
   const scaleIndex = scaleKeys.findIndex(scale => (scales[scale] || 1).check(chart, delta))
 
   if (scaleIndex === -1) return ["original"]
 
-  const key = scaleKeys[scaleIndex]
+  const candidates = scaleKeys
+    .slice(0, scaleIndex + 1)
+    .reverse()
+    .map(key => [makeConversableKey(units, key), null, "", key])
 
-  return [makeConversableKey(units, key), null, "", key]
+  return choosePrecisionCandidate(chart, candidates, min, max, maxDecimals)
 }
 
-const getMethod = (chart, units, min, max) => {
+const getMethod = (chart, units, min, max, maxDecimals) => {
   if (!isScalable(units)) return ["original"]
 
   const allUnits = chart.getAttribute("units")
@@ -78,25 +133,13 @@ const getMethod = (chart, units, min, max) => {
     return ["original"]
   }
 
-  const absMin = Math.abs(min)
-  const absMax = Math.abs(max)
-  const delta = absMin > absMax ? absMin : absMax
+  if (conversableUnits[units]) return conversable(chart, units, min, max, desiredUnits, maxDecimals)
 
-  if (conversableUnits[units]) return conversable(chart, units, delta, desiredUnits)
-
-  return scalable(units, delta, desiredUnits)
+  return scalable(chart, units, min, max, desiredUnits, maxDecimals)
 }
 
-const decimals = [1000, 100, 10, 1, 0.1, 0.01, 0.001]
-
-const getFractionDigits = value => {
-  const index = decimals.findIndex(d => value > d)
-  const digits = index === -1 ? decimals.length - 1 : index
-  return digits === 3 ? 4 : digits
-}
-
-export const getConversionAttributes = (chart, unit, { min, max, maxDecimals = 5 }) => {
-  const [method, divider, prefix = "", base = ""] = getMethod(chart, unit, min, max)
+export const getConversionAttributes = (chart, unit, { min, max, maxDecimals = precisionHardMax }) => {
+  const [method, divider, prefix = "", base = ""] = getMethod(chart, unit, min, max, maxDecimals)
 
   const cMin = convert(chart, method, min, divider)
   const cMax = convert(chart, method, max, divider)

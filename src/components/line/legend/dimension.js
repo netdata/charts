@@ -93,6 +93,7 @@ const TooltipValue = ({ id, name }) => {
 const Dimension = ({ id, ref }) => {
   const visible = useVisibleDimensionId(id)
   const chart = useChart()
+  const value = useLatestValue(id, { allowNull: true })
 
   const name = chart.getDimensionName(id)
 
@@ -124,8 +125,8 @@ const Dimension = ({ id, ref }) => {
 
           {!isMinimal && (
             <Flex gap={1} alignItems="end" data-testid="chartLegendDimension-valueContainer" flex>
-              <Value id={id} strong visible={visible} Component={TextBig} />
-              <Units visible={visible} dimensionId={id} />
+              <Value id={id} strong visible={visible} Component={TextBig} scaleByValue />
+              <Units visible={visible} dimensionId={id} value={value} scaleByValue />
             </Flex>
           )}
         </Flex>

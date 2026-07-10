@@ -1,6 +1,6 @@
 {
   "name": "@netdata/charts",
-  "version": "6.11.0",
+  "version": "6.12.0",
   "description": "Netdata frontend SDK and chart utilities",
   "main": "dist/index.js",
   "module": "dist/es6/index.js",
@@ -33,7 +33,7 @@
     "charts"
   ],
   "peerDependencies": {
-    "@netdata/netdata-ui": ">=5.0.1",
+    "@netdata/netdata-ui": ">=5.4.17",
     "react": ">=18.2.0",
     "react-dom": ">=18.2.0",
     "styled-components": ">=5.3.9"
@@ -47,7 +47,7 @@
     "@babel/preset-env": "^7.29.0",
     "@babel/preset-react": "^7.28.5",
     "@eslint/js": "^10.0.1",
-    "@netdata/netdata-ui": "^5.3.0",
+    "@netdata/netdata-ui": "^5.4.17",
     "@storybook/addon-docs": "^10.2.10",
     "@storybook/addon-links": "^10.2.10",
     "@storybook/addon-onboarding": "^10.2.10",
