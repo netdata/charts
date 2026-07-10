@@ -21,6 +21,11 @@ const UnitCell = styled(Flex).attrs({
   padding-left: 6px;
 `
 
+const HeaderLabel = styled(TextMicro)`
+  grid-column: 1 / -1;
+  text-align: center;
+`
+
 export const ValueUnitGrid = ({ value, unit, color = "text", strong }) => (
   <Container data-testid="drawer-value-unit-grid">
     <TextSmall color={color} strong={strong} textAlign="right" whiteSpace="nowrap">
@@ -38,12 +43,7 @@ export const ValueUnitGrid = ({ value, unit, color = "text", strong }) => (
 
 export const ValueUnitHeader = ({ label, strong = true }) => (
   <Container>
-    <TextMicro strong={strong} textAlign="right">
-      {label}
-    </TextMicro>
-    <UnitCell>
-      <TextMicro strong={strong}>Unit</TextMicro>
-    </UnitCell>
+    <HeaderLabel strong={strong}>{label}</HeaderLabel>
   </Container>
 )
 

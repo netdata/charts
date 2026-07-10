@@ -71,7 +71,8 @@ describe("Dimensions", () => {
     const search = screen.getByPlaceholderText("Search")
     const header = screen.getByTestId("netdata-table").querySelector('[data-index="0"]')
 
-    expect(header).toHaveTextContent("ValueUnit")
+    expect(header).toHaveTextContent("Value")
+    expect(header).not.toHaveTextContent("Unit")
     expect(header).not.toHaveTextContent("load")
 
     await user.type(search, "load5")

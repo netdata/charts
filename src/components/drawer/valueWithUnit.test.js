@@ -5,11 +5,11 @@ import { makeTestChart, renderWithChart } from "@jest/testUtilities"
 import ValueWithUnit, { ValueUnitHeader } from "./valueWithUnit"
 
 describe("ValueWithUnit", () => {
-  it("aligns the semantic value and unit subcolumn headers", () => {
+  it("renders one header for the value and unit subcolumns", () => {
     renderWithChart(<ValueUnitHeader label="Value" />)
 
     expect(screen.getByText("Value")).toBeInTheDocument()
-    expect(screen.getByText("Unit")).toBeInTheDocument()
+    expect(screen.queryByText("Unit")).not.toBeInTheDocument()
   })
 
   it("scales each value independently and renders its unit in a separate cell", () => {
