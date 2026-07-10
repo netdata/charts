@@ -15,7 +15,7 @@ module.exports = {
     "node_modules/(?!d3|d3-array|internmap|delaunator|robust-predicates|.?netdata|dygraphs|uuid)",
   ],
   moduleDirectories: ["node_modules", "src", "jest"],
-  roots: ["src/"],
+  roots: ["src/", ".storybook/"],
   collectCoverage: true,
   coverageDirectory: "<rootDir>/coverage",
   coveragePathIgnorePatterns: ["/node_modules/", "/jest/"],

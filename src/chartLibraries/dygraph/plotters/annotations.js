@@ -1,4 +1,5 @@
 import { enums, parts, check, colors, priorities } from "@/helpers/annotations"
+import { getRowPointValue } from "@/sdk/makeChart/getPointValue"
 
 const annotationLineAlpha = 0.45
 
@@ -29,19 +30,19 @@ export default chartUI => plotter => {
       return h
     }, new Set())
 
-    const { all } = chartUI.chart.getPayload()
+    const { all, point } = chartUI.chart.getPayload()
 
     points.forEach(p => {
       const center_x = p.canvasx
 
       const row = chartUI.chart.getClosestRow(p.xval)
-      const [, ...annotations] = all[row]
-      const valueSet = annotations.reduce((selected, { pa }, index) => {
-        if (selectedIdsSet.has(index) && !!pa)
-          parts.forEach(a => check(pa, enums[a]) && selected.add(a))
+      const pointData = all[row]
+      const valueSet = new Set()
 
-        return selected
-      }, new Set())
+      selectedIdsSet.forEach(index => {
+        const annotation = getRowPointValue(pointData, index + 1, point, "pa")
+        if (annotation) parts.forEach(a => check(annotation, enums[a]) && valueSet.add(a))
+      })
 
       const values = [...valueSet].sort((a, b) => priorities[a] < priorities[b])
 

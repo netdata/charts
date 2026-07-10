@@ -19,6 +19,58 @@ describe("camelizePayload", () => {
     expect(result.result.labels).toContain("ANNOTATIONS")
   })
 
+  it("keeps raw JSON2 cells instead of allocating per-point objects", () => {
+    const data = [
+      [1000, [10, 2, 4], [20, 3, 8]],
+      [2000, [30, 5, 16], [40, 7, 32]],
+    ]
+    const point = { value: 0, arp: 1, pa: 2 }
+    const payload = {
+      result: {
+        data,
+        labels: ["time", "cpu", "memory"],
+        point,
+      },
+    }
+
+    const result = camelizePayload(payload).result
+
+    expect(result.all).toBe(data)
+    expect(result.all[0][1]).toBe(data[0][1])
+    expect(result.point).toBe(point)
+    expect(result.data).toEqual([
+      [1000, 10, 20, null, null],
+      [2000, 30, 40, null, null],
+    ])
+    expect(result.byDimension).toEqual({
+      cpu: { min: 10, max: 30 },
+      memory: { min: 20, max: 40 },
+    })
+  })
+
+  it("preserves the compact shape for thousands of dimensions", () => {
+    const dimensionCount = 5256
+    const labels = ["time", ...Array.from({ length: dimensionCount }, (_, index) => `d${index}`)]
+    const data = Array.from({ length: 3 }, (_, rowIndex) => [
+      rowIndex * 1000,
+      ...Array.from({ length: dimensionCount }, (_, dimensionIndex) => [
+        dimensionIndex + rowIndex,
+        0,
+        0,
+      ]),
+    ])
+    const payload = {
+      result: { data, labels, point: { value: 0, arp: 1, pa: 2 } },
+    }
+
+    const result = camelizePayload(payload).result
+
+    expect(result.all).toBe(data)
+    expect(result.data).toHaveLength(3)
+    expect(result.data[0]).toHaveLength(dimensionCount + 3)
+    expect(result.all[2][dimensionCount][0]).toBe(dimensionCount + 1)
+  })
+
   it("handles empty payload", () => {
     const payload = {
       result: {

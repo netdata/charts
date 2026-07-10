@@ -30,7 +30,7 @@ export const Title = props => {
       justifyContent="start"
       {...props}
     >
-      <TextSmall color="textDescription" truncate>
+      <TextSmall color="text" strong truncate>
         {title}
       </TextSmall>
       {!!name && !hideName && (!isMinimal || !title) && (

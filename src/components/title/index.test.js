@@ -1,6 +1,7 @@
 import React from "react"
 import { screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
+import { DarkTheme, DefaultTheme } from "@netdata/netdata-ui"
 import { renderWithChart } from "@jest/testUtilities"
 import { Title } from "./index"
 
@@ -15,7 +16,10 @@ describe("Title component", () => {
       },
     })
 
-    expect(screen.getByText("CPU Usage")).toBeInTheDocument()
+    expect(screen.getByText("CPU Usage")).toHaveStyle({
+      color: DefaultTheme.colors.text,
+      fontWeight: "bold",
+    })
     expect(screen.getByText(/system\.cpu/)).toBeInTheDocument()
   })
 
@@ -36,6 +40,20 @@ describe("Title component", () => {
     expect(screen.getByText(/\[.*\]/)).toBeInTheDocument() // Units in brackets
   })
 
+  it("uses the strong chart-title color in the dark theme", () => {
+    renderWithChart(<Title />, {
+      theme: DarkTheme,
+      attributes: {
+        title: "CPU Usage",
+      },
+    })
+
+    expect(screen.getByText("CPU Usage")).toHaveStyle({
+      color: DarkTheme.colors.text,
+      fontWeight: "bold",
+    })
+  })
+
   it("shows the normalized base unit for pre-scaled source units", () => {
     renderWithChart(<Title />, {
       attributes: {
@@ -51,6 +69,20 @@ describe("Title component", () => {
 
     expect(screen.getByText(/\[bytes\]/)).toBeInTheDocument()
     expect(screen.queryByText(/\[kibibytes\]/)).not.toBeInTheDocument()
+  })
+
+  it("shows items for the unknown source-unit sentinel", () => {
+    renderWithChart(<Title />, {
+      attributes: {
+        title: "Generic Count",
+        name: "system.generic_count",
+        isMinimal: false,
+        units: ["unknown"],
+      },
+    })
+
+    expect(screen.getByText(/\[items\]/)).toBeInTheDocument()
+    expect(screen.queryByText(/\[unknown\]/)).not.toBeInTheDocument()
   })
 
   it("hides name and units when isMinimal is true", () => {

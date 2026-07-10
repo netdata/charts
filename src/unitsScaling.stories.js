@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from "react"
 import styled from "styled-components"
-import { Flex, TextMicro, TextSmall } from "@netdata/netdata-ui"
+import { Button, Flex, TextMicro, TextSmall, getSizeBy } from "@netdata/netdata-ui"
 import Status from "@/components/status"
 import Fullscreen from "@/components/toolbox/fullscreen"
 import Settings from "@/components/toolbox/settings"
@@ -24,103 +24,46 @@ const Page = styled(Flex).attrs({
   column: true,
   gap: 4,
   padding: [4],
+  width: { min: "0px", max: 360, base: "100%" },
 })`
   box-sizing: border-box;
-  min-width: 0;
-  width: 100%;
-  max-width: 1440px;
-
-  && [data-testid="chartHeaderStatus-title"] > span:first-child {
-    color: ${({ theme }) => theme.colors.text};
-    font-weight: 700;
-  }
-`
-
-const CloudCaseShell = styled(Flex).attrs({
-  column: true,
-  gap: 2,
-})`
-  min-width: 0;
-  width: 100%;
-`
-
-const CloudCaseHeader = styled(Flex).attrs({
-  column: true,
-  gap: 1,
-})``
-
-const CaseTitle = styled(TextSmall).attrs({
-  color: "text",
-  strong: true,
-})`
-  font-weight: 700;
 `
 
 const CloudCardSurface = styled(Flex).attrs(({ height }) => ({
   column: true,
-  width: "100%",
+  width: { min: "0px", base: "100%" },
   height,
   background: "tableRowBg",
   position: "relative",
   round: true,
 }))`
   box-sizing: border-box;
-  min-width: 0;
 `
 
-const CaseShell = styled(Flex).attrs({
-  column: true,
-  gap: 2,
+const DiagnosticsGrid = styled(Flex).attrs({
+  border: "all",
+  overflow: { horizontal: "auto" },
+  width: "100%",
 })`
-  border: 1px solid #dbe1e1;
-  border-radius: 6px;
-`
-
-const CaseHeader = styled(Flex).attrs({
-  column: true,
-  gap: 1,
-  padding: [2, 3],
-})`
-  background: #f7f8f8;
-  border-bottom: 1px solid #dbe1e1;
-`
-
-const DiagnosticsGrid = styled.div`
   display: grid;
-  grid-template-columns: minmax(120px, 1.2fr) repeat(6, minmax(80px, 1fr));
-  gap: 1px;
-  background: #dbe1e1;
-  overflow-x: auto;
+  grid-template-columns:
+    minmax(${getSizeBy(15)}, 1.2fr)
+    repeat(6, minmax(${getSizeBy(10)}, 1fr));
 `
 
-const DiagnosticCell = styled(TextMicro).attrs({
-  padding: [1, 1.5],
-})`
-  background: #fff;
-  white-space: nowrap;
-`
-
-const DiagnosticHead = styled(DiagnosticCell).attrs({
-  strong: true,
-})`
-  background: #f7f8f8;
-`
-
-const Button = styled.button`
-  appearance: none;
-  border: 1px solid #cfd5da;
-  border-radius: 4px;
-  background: ${({ active }) => (active ? "#00ab44" : "#fff")};
-  color: ${({ active }) => (active ? "#fff" : "#35414a")};
-  cursor: pointer;
-  font-size: 12px;
-  line-height: 18px;
-  padding: 2px 8px;
-
-  &:hover {
-    border-color: #00ab44;
-  }
-`
+const DiagnosticCell = ({ children, head = false, ...rest }) => (
+  <Flex
+    alignItems="center"
+    background={head ? "mainBackground" : "elementBackgroundHover"}
+    border={{ side: ["right", "bottom"], color: "border" }}
+    padding={[1, 2]}
+    {...rest}
+  >
+    <TextMicro strong={head} whiteSpace="nowrap">
+      {children}
+    </TextMicro>
+  </Flex>
+)
 
 const range = values => ({
   min: Math.min(...values),
@@ -433,13 +376,13 @@ const Diagnostics = withChartProvider(() => {
 
   return (
     <DiagnosticsGrid>
-      <DiagnosticHead>dimension</DiagnosticHead>
-      <DiagnosticHead>raw latest</DiagnosticHead>
-      <DiagnosticHead>shown latest</DiagnosticHead>
-      <DiagnosticHead>unit</DiagnosticHead>
-      <DiagnosticHead>range</DiagnosticHead>
-      <DiagnosticHead>prefix/base</DiagnosticHead>
-      <DiagnosticHead>digits</DiagnosticHead>
+      <DiagnosticCell head>dimension</DiagnosticCell>
+      <DiagnosticCell head>raw latest</DiagnosticCell>
+      <DiagnosticCell head>shown latest</DiagnosticCell>
+      <DiagnosticCell head>unit</DiagnosticCell>
+      <DiagnosticCell head>range</DiagnosticCell>
+      <DiagnosticCell head>prefix/base</DiagnosticCell>
+      <DiagnosticCell head>digits</DiagnosticCell>
       {ids.map(id => {
         const raw = chart.getRowDimensionValue(id, lastRow, { allowNull: true, abs: false })
         const unitAttributes = chart.getUnitAttributesForValue(raw, { dimensionId: id })
@@ -495,19 +438,25 @@ const DimensionSelector = withChartProvider(() => {
     <Flex gap={1} flexWrap>
       <Button
         active={!selected.length}
+        neutral={Boolean(selected.length)}
+        label="all"
+        textTransform="none"
         onClick={() => chart.updateAttribute("selectedLegendDimensions", [])}
-      >
-        all
-      </Button>
-      {ids.map(id => (
-        <Button
-          key={id}
-          active={selected.length === 1 && selected[0] === id}
-          onClick={() => chart.updateAttribute("selectedLegendDimensions", [id])}
-        >
-          {chart.getDimensionName(id) || id}
-        </Button>
-      ))}
+      />
+      {ids.map(id => {
+        const active = selected.length === 1 && selected[0] === id
+
+        return (
+          <Button
+            key={id}
+            active={active}
+            neutral={!active}
+            label={chart.getDimensionName(id) || id}
+            textTransform="none"
+            onClick={() => chart.updateAttribute("selectedLegendDimensions", [id])}
+          />
+        )
+      })}
     </Flex>
   )
 })
@@ -521,17 +470,25 @@ const ChartCase = ({ id, title, purpose, payload, selectedLegendDimensions, attr
   useEffect(() => () => chart.destroy(), [chart])
 
   return (
-    <CaseShell>
-      <CaseHeader>
-        <CaseTitle>{title}</CaseTitle>
+    <Flex column gap={2} border="all" round>
+      <Flex
+        column
+        gap={1}
+        padding={[2, 3]}
+        background="mainBackground"
+        border={{ side: "bottom", color: "border" }}
+      >
+        <TextSmall color="text" strong>
+          {title}
+        </TextSmall>
         <TextMicro color="textDescription">{purpose}</TextMicro>
         <DimensionSelector chart={chart} />
-      </CaseHeader>
+      </Flex>
       <Flex padding={[0, 2]}>
         <Line chart={chart} height="260px" />
       </Flex>
       <Diagnostics chart={chart} />
-    </CaseShell>
+    </Flex>
   )
 }
 
@@ -554,15 +511,17 @@ const CloudChartCase = ({
   useEffect(() => () => chart.destroy(), [chart])
 
   return (
-    <CloudCaseShell>
-      <CloudCaseHeader>
-        <CaseTitle>{title}</CaseTitle>
+    <Flex column gap={2} width={{ min: "0px", base: "100%" }}>
+      <Flex column gap={1}>
+        <TextSmall color="text" strong>
+          {title}
+        </TextSmall>
         <TextMicro color="textDescription">{purpose}</TextMicro>
-      </CloudCaseHeader>
+      </Flex>
       <CloudCardSurface height={height}>
         <Line chart={chart} height={height} width="100%" {...lineProps} />
       </CloudCardSurface>
-    </CloudCaseShell>
+    </Flex>
   )
 }
 
@@ -1202,12 +1161,12 @@ const unitDisplayCaseDefinitions = [
     id: "source-unknown",
     title: "Source unit: unknown",
     purpose:
-      "plugins.d can emit unknown as a fallback unit; it is explicit and non-scalable to avoid misleading prefixes.",
+      "plugins.d emits unknown when units are omitted; the UI treats it as a generic item count, with scale-only labels for K/M/G.",
     unit: "unknown",
     dimensions: [
-      { id: "unknown-small", name: "small unknown", min: 0.02, max: 0.86, seed: 1327 },
-      { id: "unknown-middle", name: "middle unknown", min: 12, max: 95, seed: 1361 },
-      { id: "unknown-large", name: "large unknown", min: 1200, max: 8800, seed: 1367 },
+      { id: "unknown-small", name: "fractional items", min: 0.02, max: 0.86, seed: 1327 },
+      { id: "unknown-middle", name: "tens of items", min: 12, max: 95, seed: 1361 },
+      { id: "unknown-large", name: "thousands of items", min: 1200, max: 8800, seed: 1367 },
     ],
   },
   {

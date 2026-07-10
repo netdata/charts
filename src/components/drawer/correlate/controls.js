@@ -44,7 +44,6 @@ const Controls = () => {
           options={methodOptions}
           value={selectedMethod}
           onChange={({ value }) => chart.updateAttribute("correlate.method", value)}
-          styles={{ size: "tiny" }}
         />
 
         <Tooltip content="How to aggregate data points within the time period.\nAffects how metrics are summarized before correlation calculation.">
@@ -56,7 +55,6 @@ const Controls = () => {
           options={aggregationOptions}
           value={selectedAggregation}
           onChange={({ value }) => chart.updateAttribute("correlate.aggregation", value)}
-          styles={{ size: "tiny" }}
         />
 
         <Tooltip content="Type of data to correlate.\nMetrics: Actual metric values\nAnomaly Rate: Anomaly detection patterns">
@@ -68,7 +66,6 @@ const Controls = () => {
           options={dataTypeOptions}
           value={selectedDataType}
           onChange={({ value }) => chart.updateAttribute("correlate.dataType", value)}
-          styles={{ size: "tiny" }}
         />
       </Flex>
 

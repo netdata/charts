@@ -7,6 +7,7 @@ node_modules
 dist
 coverage
 storybook-static
+/.local/
 CLAUDE.md
 .superpowers
 docs/superpowers
