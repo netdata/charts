@@ -1,3 +1,5 @@
+import { getPointValue } from "@/sdk/makeChart/getPointValue"
+
 const comparisonRequests = new WeakMap()
 const syntheticLabels = ["ANOMALY_RATE", "ANNOTATIONS"]
 
@@ -28,13 +30,12 @@ export const getComparisonPeriods = ({ after, before }, customPeriods = []) => {
   return [basePeriod, ...comparisonPeriods]
 }
 
-const getScalarValue = (cell, pointValue) => {
-  if (cell === null || typeof cell === "number") return cell
-  if (typeof cell !== "object" || !Number.isInteger(pointValue) || !(pointValue in cell))
-    throw new Error("Invalid comparison data point")
+const getComparisonValue = (cell, point) => {
+  const value = getPointValue(cell, point)
 
-  const value = cell[pointValue]
+  if (typeof value === "undefined") throw new Error("Invalid comparison data point")
   if (value !== null && typeof value !== "number") throw new Error("Invalid comparison data value")
+
   return value
 }
 
@@ -46,7 +47,6 @@ export const normalizeComparisonPayload = rawPayload => {
     throw new Error("Invalid comparison response")
 
   const labels = result.labels
-  const pointValue = result.point?.value
   const missingSyntheticLabels = syntheticLabels.filter(label => !labels.includes(label))
   const data = result.data.map(row => {
     if (!Array.isArray(row) || row.length !== labels.length || typeof row[0] !== "number")
@@ -56,7 +56,7 @@ export const normalizeComparisonPayload = rawPayload => {
     normalizedRow[0] = row[0]
 
     for (let index = 1; index < labels.length; index++)
-      normalizedRow[index] = getScalarValue(row[index], pointValue)
+      normalizedRow[index] = getComparisonValue(row[index], result.point)
 
     normalizedRow.fill(null, labels.length)
     return normalizedRow
