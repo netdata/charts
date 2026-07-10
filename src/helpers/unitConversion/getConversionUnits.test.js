@@ -60,6 +60,18 @@ describe("getConversionUnits", () => {
       expect(result.base).toBe("entropy")
     })
 
+    it("scales the unknown sentinel as a generic item count", () => {
+      chart.updateAttributes({ units: ["unknown"], desiredUnits: ["auto"] })
+
+      const unscaled = getConversionAttributes(chart, "unknown", { min: 0, max: 999 })
+      const scaled = getConversionAttributes(chart, "unknown", { min: 0, max: 12000 })
+
+      expect(unscaled).toMatchObject({ base: "items", prefix: "" })
+      expect(scaled).toMatchObject({ base: "items", prefix: "K" })
+      expect(chart.getConvertedValueWithUnit(95, { unitAttributes: unscaled })).toBe("95")
+      expect(chart.getConvertedValueWithUnit(12000, { unitAttributes: scaled })).toBe("12 K")
+    })
+
     it("preserves empty print_symbol for base when base_unit is not defined", () => {
       const result = getConversionAttributes(chart, "{state}", { min: 0, max: 1 })
 

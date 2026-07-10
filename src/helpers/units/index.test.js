@@ -165,7 +165,7 @@ describe("units helpers", () => {
       expect(getAlias("buckets")).toBe("{bucket}")
       expect(getAlias("buckets/s")).toBe("{bucket}/s")
       expect(getAlias("count/s")).toBe("{count}/s")
-      expect(getAlias("unknown")).toBe("unknown")
+      expect(getAlias("unknown")).toBe("{item}")
       expect(getAlias("m3/min")).toBe("m3/min")
       expect(getAlias("dimensions")).toBe("{dimension}")
       expect(getAlias("models")).toBe("{model}")
@@ -242,6 +242,7 @@ describe("units helpers", () => {
       expect(getNormalizedUnit("a")).toBe("s")
       expect(getNormalizedUnit("mA")).toBe("Ampere")
       expect(getNormalizedUnit("mW")).toBe("W")
+      expect(getNormalizedUnit("unknown")).toBe("{item}")
     })
 
     it("keeps non-scalable special units in their source unit", () => {
@@ -253,6 +254,7 @@ describe("units helpers", () => {
       expect(getNormalizedUnitConfig("ms/{request}").name).toBe("seconds per request")
       expect(getNormalizedUnitConfig("m[CPU]").name).toBe("cores")
       expect(getNormalizedUnitConfig("dB[mW]").name).toBe("decibel milliwatts")
+      expect(getNormalizedUnitConfig("unknown").name).toBe("items")
     })
   })
 
@@ -261,11 +263,11 @@ describe("units helpers", () => {
       expect(isScalable("By")).toBe(true)
       expect(isScalable("s")).toBe(true)
       expect(isScalable("bit")).toBe(true)
+      expect(isScalable("unknown")).toBe(true)
     })
 
     it("returns false for non-scalable units", () => {
       expect(isScalable("%")).toBe(false)
-      expect(isScalable("unknown")).toBe(false)
       expect(isScalable("m3/min")).toBe(false)
       // Most units default to scalable, find actual non-scalable ones
       const config = getUnitConfig("%")
@@ -486,8 +488,12 @@ describe("units helpers", () => {
       expect(getUnitsString("count/s", "M", "count/s")).toBe("M")
     })
 
+    it("treats the unknown sentinel as a generic scalable item count", () => {
+      expect(getUnitsString("unknown", "", "items")).toBe("")
+      expect(getUnitsString("unknown", "M", "items")).toBe("M")
+    })
+
     it("keeps verified literal units non-scaled", () => {
-      expect(getUnitsString("unknown", "M", "unknown")).toBe("unknown")
       expect(getUnitsString("m3/min", "K", "m3/min")).toBe("m3/min")
     })
 
@@ -511,9 +517,9 @@ describe("units helpers", () => {
       expect(result).toBe("kiloseconds")
     })
 
-    it("trims whitespace correctly", () => {
+    it("uses the generic item label when full units are requested", () => {
       const result = getUnitsString("unknown", "", "", false, { mode: "full" })
-      expect(result).toBe("unknown")
+      expect(result).toBe("items")
     })
 
     it("hides units with empty print_symbol like {boolean}", () => {

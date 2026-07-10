@@ -53,6 +53,20 @@ describe("Title component", () => {
     expect(screen.queryByText(/\[kibibytes\]/)).not.toBeInTheDocument()
   })
 
+  it("shows items for the unknown source-unit sentinel", () => {
+    renderWithChart(<Title />, {
+      attributes: {
+        title: "Generic Count",
+        name: "system.generic_count",
+        isMinimal: false,
+        units: ["unknown"],
+      },
+    })
+
+    expect(screen.getByText(/\[items\]/)).toBeInTheDocument()
+    expect(screen.queryByText(/\[unknown\]/)).not.toBeInTheDocument()
+  })
+
   it("hides name and units when isMinimal is true", () => {
     renderWithChart(<Title />, {
       attributes: {

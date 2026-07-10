@@ -1202,12 +1202,12 @@ const unitDisplayCaseDefinitions = [
     id: "source-unknown",
     title: "Source unit: unknown",
     purpose:
-      "plugins.d can emit unknown as a fallback unit; it is explicit and non-scalable to avoid misleading prefixes.",
+      "plugins.d emits unknown when units are omitted; the UI treats it as a generic item count, with scale-only labels for K/M/G.",
     unit: "unknown",
     dimensions: [
-      { id: "unknown-small", name: "small unknown", min: 0.02, max: 0.86, seed: 1327 },
-      { id: "unknown-middle", name: "middle unknown", min: 12, max: 95, seed: 1361 },
-      { id: "unknown-large", name: "large unknown", min: 1200, max: 8800, seed: 1367 },
+      { id: "unknown-small", name: "fractional items", min: 0.02, max: 0.86, seed: 1327 },
+      { id: "unknown-middle", name: "tens of items", min: 12, max: 95, seed: 1361 },
+      { id: "unknown-large", name: "thousands of items", min: 1200, max: 8800, seed: 1367 },
     ],
   },
   {
