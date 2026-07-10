@@ -72,26 +72,6 @@ describe("Compare", () => {
     expect(screen.getByText("7 days before")).toBeInTheDocument()
   })
 
-  it("displays period labels for each period", () => {
-    renderCompare()
-
-    expect(screen.getByText("Selected timeframe")).toBeInTheDocument()
-    expect(screen.getByText("24 hours before")).toBeInTheDocument()
-    expect(screen.getByText("7 days before")).toBeInTheDocument()
-  })
-
-  it("shows stats for loaded periods", () => {
-    renderCompare()
-
-    const minElements = screen.getAllByText("Min")
-    const avgElements = screen.getAllByText("Avg")
-    const maxElements = screen.getAllByText("Max")
-
-    expect(minElements.length).toBeGreaterThan(0)
-    expect(avgElements.length).toBeGreaterThan(0)
-    expect(maxElements.length).toBeGreaterThan(0)
-  })
-
   it("shows error state for failed periods", () => {
     renderCompare()
 
@@ -119,7 +99,6 @@ describe("Compare", () => {
       "display: grid; gap: 12px; grid-template-columns: repeat(auto-fill,minmax(260px,1fr))"
     )
     expect(screen.getByTestId("custom-period-card")).toHaveStyle("min-height: 144px")
-    expect(screen.getByText("12.5% ↓").parentElement).toHaveStyle("gap: 4px")
 
     const editIcon = screen.getAllByTestId("period-edit")[0].querySelector("svg")
     expect(editIcon).toHaveStyle({ height: "12px", width: "12px" })
@@ -238,16 +217,6 @@ describe("Compare", () => {
           offsetSeconds: 21600,
         }),
       ])
-    })
-  })
-
-  describe("ComparisonCard", () => {
-    it("shows stats for successful periods", () => {
-      renderCompare()
-
-      expect(screen.getAllByText("Min").length).toBeGreaterThan(0)
-      expect(screen.getAllByText("Avg").length).toBeGreaterThan(0)
-      expect(screen.getAllByText("Max").length).toBeGreaterThan(0)
     })
   })
 

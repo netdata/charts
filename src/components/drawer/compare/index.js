@@ -15,8 +15,9 @@ import ChangeIndicator from "./changeIndicator"
 import CustomPeriodForm from "./customPeriodForm"
 import StatValue from "./statValue"
 
-const GridContainer = styled(Flex).attrs({ gap: 3 })`
+const GridContainer = styled(Flex)`
   display: grid;
+  gap: ${getSizeBy(1.5)};
   grid-template-columns: repeat(auto-fill, minmax(${getSizeBy(32.5)}, 1fr));
 `
 
