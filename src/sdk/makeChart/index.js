@@ -429,8 +429,6 @@ export default ({
       uiInstances = null
       node = null
     }, 2000)
-
-    node.destroy()
   }
 
   node.intl = (key, { count = 1, pluralize = true, fallback = "" } = {}) => {

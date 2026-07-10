@@ -1,192 +1,186 @@
 import React from "react"
-import { renderHook, waitFor } from "@testing-library/react"
+import { act, renderHook, waitFor } from "@testing-library/react"
 import useData from "./useData"
 import { makeTestChart } from "@jest/testUtilities"
-import { fetchComparisonData } from "./dataFetcher"
 import ChartProvider from "@/components/provider"
 
-jest.mock("./dataFetcher")
+const periods = [
+  {
+    id: "selected",
+    label: "Selected timeframe",
+    after: 1000,
+    before: 2000,
+    isBase: true,
+    payload: { data: [[1, 50]], labels: ["time", "cpu"] },
+  },
+  {
+    id: "24h",
+    label: "24 hours before",
+    after: 1000 - 86400,
+    before: 2000 - 86400,
+    payload: { data: [[1, 45]], labels: ["time", "cpu"] },
+  },
+]
+
+const makeRawPayload = () => ({
+  result: {
+    labels: ["time", "cpu"],
+    point: { value: 0 },
+    data: [[1000, [50]]],
+  },
+  view: { update_every: 5 },
+})
+
+const loadChart = chart =>
+  new Promise(resolve => {
+    const unsubscribe = chart.on("successFetch", () => {
+      unsubscribe()
+      resolve()
+    })
+    chart.fetch()
+  })
 
 describe("useData", () => {
   let chart
   let wrapper
 
-  const mockPeriods = [
-    {
-      id: "selected",
-      label: "Selected timeframe",
-      after: 1000,
-      before: 2000,
-      isBase: true,
-      payload: { data: [[1, 50]], dimensions: ["cpu"] },
-    },
-    {
-      id: "24h",
-      label: "24 hours before",
-      after: 1000 - 86400,
-      before: 2000 - 86400,
-      payload: { data: [[1, 45]], dimensions: ["cpu"] },
-    },
-  ]
-
   beforeEach(() => {
-    jest.clearAllMocks()
-
-    const { chart: testChart } = makeTestChart({
+    chart = makeTestChart({
       attributes: {
         after: 1000,
         before: 2000,
-        drawer: { action: "compare" },
-        comparePeriods: mockPeriods,
+        drawer: { action: "values" },
+        comparePeriods: periods,
         compareLoading: false,
         compareError: null,
       },
-    })
+    }).chart
 
-    chart = testChart
     wrapper = ({ children }) => <ChartProvider chart={chart}>{children}</ChartProvider>
   })
 
-  it("returns periods from chart attributes", () => {
+  it("returns comparison statistics from chart attributes", () => {
     const { result } = renderHook(() => useData(), { wrapper })
 
     expect(result.current.periods).toHaveLength(2)
     expect(result.current.periods[0]).toMatchObject({
       id: "selected",
       isBase: true,
-      stats: expect.objectContaining({
+      stats: {
         min: 50,
         avg: 50,
         max: 50,
         points: 1,
         dimensions: 1,
-      }),
+      },
     })
     expect(result.current.periods[1]).toMatchObject({
       id: "24h",
-      stats: expect.objectContaining({
-        min: 45,
-        avg: 45,
-        max: 45,
-        points: 1,
-        dimensions: 1,
-      }),
-      changes: expect.objectContaining({
-        avg: expect.objectContaining({
-          direction: "down",
-          value: 10,
-        }),
-      }),
+      stats: { min: 45, avg: 45, max: 45, points: 1, dimensions: 1 },
+      changes: {
+        avg: { direction: "down", value: 10, formatted: "10.0%" },
+      },
     })
     expect(result.current.loading).toBe(false)
     expect(result.current.error).toBeNull()
   })
 
-  it("returns loading state from chart attributes", () => {
-    chart.updateAttribute("compareLoading", true)
+  it("returns loading and error state from chart attributes", () => {
+    chart.updateAttributes({ compareLoading: true, compareError: "Network error" })
 
     const { result } = renderHook(() => useData(), { wrapper })
 
     expect(result.current.loading).toBe(true)
+    expect(result.current.error).toBe("Network error")
   })
 
-  it("returns error state from chart attributes", () => {
-    const error = "Network error"
-    chart.updateAttribute("compareError", error)
+  it("does not request comparisons before the initial main-chart success", async () => {
+    chart.updateAttribute("drawer.action", "compare")
+    const getChart = chart.getChart
+    let calls = 0
+    chart.getChart = (...args) => {
+      calls++
+      return getChart(...args)
+    }
 
-    const { result } = renderHook(() => useData(), { wrapper })
+    renderHook(() => useData(), { wrapper })
+    await new Promise(resolve => setTimeout(resolve, 10))
+    expect(calls).toBe(0)
 
-    expect(result.current.error).toBe(error)
+    await act(() => loadChart(chart))
+    await waitFor(() => expect(calls).toBe(2))
   })
 
-  it("fetches data when drawer action is compare", async () => {
-    fetchComparisonData.mockResolvedValue([])
+  it("loads only historical periods when Compare opens on a loaded chart", async () => {
+    await loadChart(chart)
+    chart.updateAttribute("drawer.action", "compare")
+    const getChart = chart.getChart
+    let calls = 0
+    chart.getChart = (...args) => {
+      calls++
+      return getChart(...args)
+    }
 
     renderHook(() => useData(), { wrapper })
 
-    await waitFor(() => {
-      expect(fetchComparisonData).toHaveBeenCalledWith(chart)
-    })
+    await waitFor(() => expect(chart.getAttribute("comparePeriods")).toHaveLength(3))
+    expect(calls).toBe(2)
+    expect(chart.getAttribute("comparePeriods")[0].payload.data).toBe(chart.getPayload().data)
   })
 
-  it("does not fetch data when drawer action is not compare", async () => {
-    chart.updateAttribute("drawer.action", "values")
+  it("does not load comparison data for another drawer action", async () => {
+    chart.updateAttribute("comparePeriods", [])
 
     renderHook(() => useData(), { wrapper })
 
-    await waitFor(() => {
-      expect(fetchComparisonData).not.toHaveBeenCalled()
-    })
+    await new Promise(resolve => setTimeout(resolve, 10))
+    expect(chart.getAttribute("comparePeriods")).toEqual([])
   })
 
-  it("refetches data when time range changes", async () => {
-    fetchComparisonData.mockResolvedValue([])
+  it("keeps a shared request alive when one hook consumer unmounts", async () => {
+    await loadChart(chart)
+    chart.updateAttribute("drawer.action", "compare")
+    const resolvers = []
+    let calls = 0
+    let aborts = 0
+    chart.getChart = (requestChart, { signal }) =>
+      new Promise((resolve, reject) => {
+        if (requestChart !== chart) throw new Error("Unexpected comparison chart")
+        calls++
+        signal.addEventListener("abort", () => {
+          aborts++
+          const error = new Error("Aborted")
+          error.name = "AbortError"
+          reject(error)
+        })
+        resolvers.push(resolve)
+      })
 
-    const { rerender } = renderHook(() => useData(), { wrapper })
+    const first = renderHook(() => useData(), { wrapper })
+    const second = renderHook(() => useData(), { wrapper })
+    await waitFor(() => expect(calls).toBe(2))
 
-    chart.updateAttribute("after", 2000)
-    chart.updateAttribute("before", 3000)
-    rerender()
+    first.unmount()
+    expect(aborts).toBe(0)
+    resolvers.forEach(resolve => resolve(makeRawPayload()))
 
-    await waitFor(() => {
-      expect(fetchComparisonData).toHaveBeenCalledTimes(2)
-    })
+    await waitFor(() => expect(chart.getAttribute("comparePeriods")).toHaveLength(3))
+    expect(aborts).toBe(0)
+    second.unmount()
   })
 
-  it("handles fetch errors without throwing", async () => {
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation()
-    fetchComparisonData.mockRejectedValue(new Error("Fetch failed"))
-
-    renderHook(() => useData(), { wrapper })
-
-    await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith("Failed to fetch comparison data:", expect.any(Error))
-    })
-
-    consoleSpy.mockRestore()
-  })
-
-  it("does not fetch when chart is not available", async () => {
-    const { chart: testChart } = makeTestChart({
-      attributes: {
-        after: 1000,
-        before: 2000,
-        drawer: { action: "compare" },
-        comparePeriods: [],
-        compareLoading: false,
-        compareError: null,
-      },
-    })
-
-    const noChartWrapper = ({ children }) => (
-      <ChartProvider chart={testChart}>{children}</ChartProvider>
-    )
-    testChart.getAttribute = jest.fn().mockReturnValue(undefined)
-
-    renderHook(() => useData(), { wrapper: noChartWrapper })
-
-    await waitFor(() => {
-      expect(fetchComparisonData).not.toHaveBeenCalled()
-    })
-  })
-
-  it("recalculates stats when switching to selectedArea tab", () => {
+  it("recalculates statistics for the selected area without fetching", () => {
     chart.updateAttribute("overlays", {
       highlight: {
         range: [10, 20],
       },
     })
 
-    const { result, rerender } = renderHook(() => useData(), { wrapper })
+    const { result } = renderHook(() => useData(), { wrapper })
+    expect(result.current.periods[0].stats.points).toBe(1)
 
-    const windowStats = result.current.periods[0].stats
-    expect(windowStats.points).toBe(1)
+    act(() => chart.updateAttribute("drawer.tab", "selectedArea"))
 
-    chart.updateAttribute("drawer.tab", "selectedArea")
-    rerender()
-
-    const highlightStats = result.current.periods[0].stats
-
-    expect(highlightStats).toBeNull()
+    expect(result.current.periods[0].stats).toBeNull()
   })
 })

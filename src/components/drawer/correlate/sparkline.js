@@ -1,48 +1,87 @@
-import React, { memo, useMemo } from "react"
-import HeadlessChart from "@/components/headlessChart"
-import { Line } from "@/components/line"
-import { useChart, useAttributeValue } from "@/components/provider"
+import React, { memo, useEffect, useMemo, useState } from "react"
+import { Flex } from "@netdata/netdata-ui"
+import { useAttributeValue, useChart } from "@/components/provider"
+import { getConversionAttributes } from "@/helpers/unitConversion/getConversionUnits"
 import dimensionColors from "@/sdk/makeChart/theme/dimensionColors"
+import { ValueUnitGrid } from "@/components/drawer/valueWithUnit"
+import SparklineCanvas from "./sparklineCanvas"
+import {
+  getSparklineBatchAttributes,
+  getSparklineBatchDimensions,
+  getSparklineDataFetcher,
+} from "./sparklineData"
 
-const Sparkline = memo(({ dimension, contextName }) => {
+const valueWidth = 144
+
+const Sparkline = memo(({ dimension, dimensions }) => {
   const after = useAttributeValue("after")
   const before = useAttributeValue("before")
-  const overlays = useAttributeValue("overlays")
-  const host = useAttributeValue("host")
   const points = useAttributeValue("points")
+  const renderedAt = useAttributeValue("renderedAt")
+  const liveAnchor = useAttributeValue("liveAnchor")
+  const aggregationMethod = useAttributeValue("correlate.aggregation", "average")
+  const theme = useAttributeValue("theme")
   const chart = useChart()
+  const getData = useMemo(() => getSparklineDataFetcher(chart), [chart])
+  const batchDimensions = useMemo(
+    () => getSparklineBatchDimensions(dimension, dimensions),
+    [dimension, dimensions]
+  )
+  const attrs = useMemo(
+    () =>
+      getSparklineBatchAttributes(chart, batchDimensions, {
+        after,
+        before,
+        points,
+        renderedAt,
+        liveAnchor,
+        aggregationMethod,
+      }),
+    [after, aggregationMethod, batchDimensions, before, chart, liveAnchor, points, renderedAt]
+  )
+  const [series, setSeries] = useState(null)
+
+  useEffect(() => {
+    const controller = new AbortController()
+    setSeries(null)
+
+    getData(attrs, { signal: controller.signal })
+      .then(seriesByDimension => setSeries(seriesByDimension.get(dimension.dimension) || null))
+      .catch(error => {
+        if (error.name !== "AbortError") setSeries(null)
+      })
+
+    return () => controller.abort()
+  }, [attrs, dimension.dimension, getData])
+
+  const formatted = useMemo(() => {
+    if (!series || series.latest === null) return { value: "-", unit: "" }
+
+    const unitAttributes = getConversionAttributes(chart, series.unit, {
+      min: series.latest,
+      max: series.latest,
+    })
+
+    return {
+      value: chart.getConvertedValue(series.latest, { unitAttributes }),
+      unit: chart.getUnitSign({ unitAttributes }),
+    }
+  }, [chart, series])
+  const color = useMemo(() => dimensionColors[11][chart.getThemeIndex()], [chart, theme])
 
   return (
-    <HeadlessChart
-      contextScope={useMemo(() => [contextName], [contextName])}
-      dimensions={useMemo(() => [dimension.dimensionName], [dimension.dimensionName])}
-      nodesScope={useMemo(() => [dimension.nodeId], [dimension.nodeId])}
-      after={after}
-      before={before}
-      sdk={chart.sdk}
-      height={40}
-      sparkline
-      host={host}
-      points={points}
-      hasToolbox={false}
-      hasHoverPopover={false}
-      expandable={false}
-      chartType="stacked"
-      showAnomalies={false}
-      showAnnotations={false}
-      colors={dimensionColors[11]}
-      overlays={useMemo(
-        () => ({
-          ...(!!overlays?.highlight && { highlight: overlays?.highlight }),
-          latestValue: { type: "latestValue" },
-        }),
-        [overlays]
-      )}
-    >
-      {({ chart }) => (
-        <Line chart={chart} height="40px" hasHeader={false} hasFooter={false} hasFilters={false} />
-      )}
-    </HeadlessChart>
+    <Flex alignItems="center" gap={1} width="100%" minWidth={0}>
+      <Flex
+        width={`${valueWidth}px`}
+        style={{ flex: `0 0 ${valueWidth}px` }}
+        title={[formatted.value, formatted.unit].filter(Boolean).join(" ")}
+      >
+        <ValueUnitGrid value={formatted.value} unit={formatted.unit} strong />
+      </Flex>
+      <Flex flex minWidth={0}>
+        <SparklineCanvas values={series?.values || []} color={color} />
+      </Flex>
+    </Flex>
   )
 })
 

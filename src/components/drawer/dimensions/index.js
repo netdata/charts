@@ -1,4 +1,4 @@
-import React, { useMemo } from "react"
+import React, { useCallback, useMemo } from "react"
 import { Flex, Table, TextSmall, downloadCsvAction } from "@netdata/netdata-ui"
 import { uppercase } from "@/helpers/objectTransform"
 import { useChart, useDimensionIds, useAttributeValue } from "@/components/provider/selectors"
@@ -17,8 +17,7 @@ import {
   volumeColumn,
 } from "./columns"
 import useDimensionValueCache from "./useDimensionValueCache"
-
-const noop = () => {}
+import { matchesSearch } from "@/components/drawer/search"
 
 const useColumns = (period, options = {}) => {
   const chart = useChart()
@@ -93,6 +92,16 @@ const Dimensions = () => {
   const columns = useColumns(period, { valueCache })
 
   const chart = useChart()
+  const search = useAttributeValue("drawer.valuesSearch", "")
+  const onSearch = useCallback(
+    query => chart.updateAttribute("drawer.valuesSearch", query),
+    [chart]
+  )
+  const filteredDimensionIds = useMemo(
+    () =>
+      dimensionIds.filter(id => matchesSearch([chart.getDimensionName(id)], search)),
+    [chart, dimensionIds, search]
+  )
   useMemo(() => chart.makeChartUI("custom", "bars"), [])
 
   const columnVisibility = useMemo(
@@ -134,10 +143,12 @@ const Dimensions = () => {
         enableColumnVisibility
         columnVisibility={columnVisibility}
         // enableSelection
+        enableCustomSearch
         dataColumns={columns}
-        data={dimensionIds}
+        data={filteredDimensionIds}
         // onRowSelected={onItemClick}
-        onSearch={noop}
+        globalFilter={search}
+        onSearch={onSearch}
         meta={meta}
         // sortBy={sortBy}
         // rowSelection={rowSelection}

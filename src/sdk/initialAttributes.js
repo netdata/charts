@@ -176,8 +176,21 @@ export default {
     error: null,
     sortBy: [],
     expanded: {},
+    search: "",
     groupBySortBy: [],
     groupByExpanded: {},
+  },
+
+  correlate: {
+    data: null,
+    loading: false,
+    error: null,
+    method: "volume",
+    aggregation: "average",
+    dataType: "",
+    threshold: 0.01,
+    expanded: {},
+    search: "",
   },
 
   pristine: {},
@@ -272,6 +285,7 @@ export default {
     action: "compare",
     tab: "window",
     showAdvancedStats: false,
+    valuesSearch: "",
   },
 
   renderedAt: null,

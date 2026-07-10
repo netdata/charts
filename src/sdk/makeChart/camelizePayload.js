@@ -2,34 +2,30 @@ import { heatmapOrChartType } from "@/helpers/heatmap"
 import { isStateUnits } from "@/helpers/stepped"
 import { getAlias } from "@/helpers/units"
 import normalizeSelectedInstances from "@/helpers/normalizeSelectedInstances"
+import { getPointValue } from "./getPointValue"
 
-const transformDataRow = (row, point, labels, byDimension) =>
-  row.reduce(
-    (h, dim, i) => {
-      h.values.push(i === 0 ? dim : dim[point.value])
-      h.all.push(
-        i === 0
-          ? { value: dim }
-          : Object.keys(point).reduce((p, k) => {
-              p[k] = dim[point[k]]
-              return p
-            }, {})
-      )
+const transformDataRow = (row, point, labels, byDimension) => {
+  const values = new Array(row.length + 2)
+  values[0] = row[0]
 
-      if (i === row.length - 1) {
-        h.values = [...h.values, null, null]
-        h.all = [...h.all, {}, {}]
-      }
+  for (let index = 1; index < row.length; index++) {
+    const value = getPointValue(row[index], point)
+    const label = labels[index]
+    let stats = byDimension[label]
 
-      const label = labels[i]
-      if (!byDimension[label]) byDimension[label] = { min: Infinity, max: -Infinity }
-      if (dim[point.value] <= byDimension[label].min) byDimension[label].min = dim[point.value]
-      if (dim[point.value] >= byDimension[label].max) byDimension[label].max = dim[point.value]
+    values[index] = value
+    if (!stats) {
+      stats = { min: Infinity, max: -Infinity }
+      byDimension[label] = stats
+    }
+    if (value <= stats.min) stats.min = value
+    if (value >= stats.max) stats.max = value
+  }
 
-      return h
-    },
-    { values: [], all: [] }
-  )
+  values[row.length] = null
+  values[row.length + 1] = null
+  return values
+}
 
 const buildTree = (h, keys, id) => {
   const [key, ...subKeys] = keys
@@ -46,17 +42,9 @@ const buildTree = (h, keys, id) => {
 }
 
 const transformResult = result => {
-  const enhancedData = result.data.reduce(
-    (h, row) => {
-      const enhancedRow = transformDataRow(row, result.point, result.labels, h.byDimension)
-
-      h.data.push(enhancedRow.values)
-      h.all.push(enhancedRow.all)
-
-      return h
-    },
-    { data: [], all: [], byDimension: {} }
-  )
+  const all = result.data
+  const byDimension = {}
+  const data = all.map(row => transformDataRow(row, result.point, result.labels, byDimension))
 
   const tree = result.labels.reduce((h, id, i) => {
     if (i === 0) return h
@@ -68,7 +56,10 @@ const transformResult = result => {
 
   return {
     labels: [...result.labels, "ANOMALY_RATE", "ANNOTATIONS"],
-    ...enhancedData,
+    data,
+    all,
+    byDimension,
+    point: result.point,
     tree,
   }
 }

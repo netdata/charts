@@ -18,7 +18,8 @@ const componentsByAction = {
 const Drawer = () => {
   const expandedHeight = useAttributeValue("expandedHeight")
   const action = useAttributeValue("drawer.action")
-  const isValuesAction = action === actions.values
+  const hasManagedOverflow =
+    action === actions.values || action === actions.drillDown || action === actions.correlate
 
   const Component = useMemo(() => {
     return componentsByAction[action] || componentsByAction.compare
@@ -37,7 +38,7 @@ const Drawer = () => {
         flex
         column
         padding={[0, 2, 3, 2]}
-        overflow={{ vertical: isValuesAction ? "hidden" : "scroll" }}
+        overflow={{ vertical: hasManagedOverflow ? "hidden" : "scroll" }}
         height="100%"
         style={{ minHeight: 0 }}
         data-testid="drawer-content"

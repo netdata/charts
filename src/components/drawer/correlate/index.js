@@ -5,15 +5,29 @@ import Table from "./table"
 import useData from "./useData"
 
 const Correlate = () => {
-  const { error, data } = useData()
+  const { loading, error, data } = useData()
 
   return (
-    <Flex column gap={2}>
-      <Controls />
+    <Flex flex column gap={2} height="100%" overflow="hidden" style={{ minHeight: 0 }}>
+      <Flex flex={false}>
+        <Controls />
+      </Flex>
 
       {error && (
         <Flex justifyContent="center" padding={[2, 0]}>
           <Text color="error">Error: {error}</Text>
+        </Flex>
+      )}
+
+      {loading && !data?.length && (
+        <Flex justifyContent="center" padding={[2, 0]}>
+          <Text color="textLite">Loading correlations...</Text>
+        </Flex>
+      )}
+
+      {!loading && !error && data?.length === 0 && (
+        <Flex justifyContent="center" padding={[4, 0]}>
+          <Text color="textLite">No correlations found</Text>
         </Flex>
       )}
 

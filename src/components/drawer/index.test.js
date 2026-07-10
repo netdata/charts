@@ -17,6 +17,17 @@ describe("Drawer", () => {
     })
   })
 
+  it("lets the drill-down table own vertical scrolling", () => {
+    renderWithChart(<Drawer />, {
+      attributes: { drawer: { action: actions.drillDown } },
+    })
+
+    expect(screen.getByTestId("drawer-content")).toHaveStyle({
+      minHeight: "0",
+      overflowY: "hidden",
+    })
+  })
+
   it("keeps drawer scrolling for non-table actions", () => {
     renderWithChart(<Drawer />, {
       attributes: { drawer: { action: actions.compare } },

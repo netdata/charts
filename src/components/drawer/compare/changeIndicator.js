@@ -1,7 +1,7 @@
 import React from "react"
 import { Flex, TextMicro } from "@netdata/netdata-ui"
 
-const ChangeIndicator = ({ change, tab = "window" }) => {
+const ChangeIndicator = ({ change }) => {
   if (!change) return null
 
   const color =

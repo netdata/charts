@@ -43,7 +43,9 @@ const StatRow = ({ label, value, change, valueKey = "value", tab, tooltip, promi
         <TextMicro color="textLite">{label}</TextMicro>
       </Tooltip>
       <Flex alignItems="center" gap={1} flex="1 1 auto" justifyContent="end">
-        <TextSmall strong textAlign="right">{formattedValue}</TextSmall>
+        <TextSmall strong textAlign="right">
+          {formattedValue}
+        </TextSmall>
         <ChangeIndicator change={change} tab={tab} />
       </Flex>
     </Flex>
@@ -139,12 +141,7 @@ const ComparisonCard = ({ period, showAdvanced, showVolume, tab }) => {
           </Flex>
 
           {showAdvanced && (
-            <Flex
-              column
-              gap={1}
-              padding={[2, 0, 0]}
-              border={{ side: "top", color: "separator" }}
-            >
+            <Flex column gap={1} padding={[2, 0, 0]} border={{ side: "top", color: "separator" }}>
               {advancedStats.map(stat => (
                 <StatRow
                   key={stat.key}
@@ -176,7 +173,7 @@ const ComparisonCard = ({ period, showAdvanced, showVolume, tab }) => {
 
 const Compare = () => {
   const chart = useChart()
-  const { periods, loading, error } = useData()
+  const { periods, error } = useData()
   const [showCustomForm, setShowCustomForm] = useState(false)
   const showAllStats = useAttributeValue("drawer.showAdvancedStats", false)
   const tab = useAttributeValue("drawer.tab", "window")
@@ -201,7 +198,13 @@ const Compare = () => {
     <Flex column gap={3}>
       <GridContainer>
         {periods.map(period => (
-          <ComparisonCard key={period.id} period={period} showAdvanced={showAllStats} showVolume={showVolume} tab={tab} />
+          <ComparisonCard
+            key={period.id}
+            period={period}
+            showAdvanced={showAllStats}
+            showVolume={showVolume}
+            tab={tab}
+          />
         ))}
 
         {!showCustomForm ? (

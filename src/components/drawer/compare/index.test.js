@@ -1,5 +1,5 @@
 import React from "react"
-import { screen, fireEvent, act } from "@testing-library/react"
+import { screen, fireEvent } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { renderWithChart } from "@jest/testUtilities"
 import Compare from "./index"
@@ -304,8 +304,11 @@ describe("Compare", () => {
     })
 
     it("shows volume for rate units ending with /s", () => {
-      const { chart } = renderWithChart(<Compare />, {
-        attributes: { units: ["kilobits/s"], drawer: { action: "compare", tab: "window", showAdvancedStats: true } },
+      renderWithChart(<Compare />, {
+        attributes: {
+          units: ["kilobits/s"],
+          drawer: { action: "compare", tab: "window", showAdvancedStats: true },
+        },
       })
 
       expect(screen.getByText("Volume")).toBeInTheDocument()
@@ -313,7 +316,10 @@ describe("Compare", () => {
 
     it("hides volume for non-rate units", () => {
       renderWithChart(<Compare />, {
-        attributes: { units: ["%"], drawer: { action: "compare", tab: "window", showAdvancedStats: true } },
+        attributes: {
+          units: ["%"],
+          drawer: { action: "compare", tab: "window", showAdvancedStats: true },
+        },
       })
 
       expect(screen.queryByText("Volume")).not.toBeInTheDocument()
@@ -321,7 +327,10 @@ describe("Compare", () => {
 
     it("hides volume when units is empty", () => {
       renderWithChart(<Compare />, {
-        attributes: { units: [""], drawer: { action: "compare", tab: "window", showAdvancedStats: true } },
+        attributes: {
+          units: [""],
+          drawer: { action: "compare", tab: "window", showAdvancedStats: true },
+        },
       })
 
       expect(screen.queryByText("Volume")).not.toBeInTheDocument()

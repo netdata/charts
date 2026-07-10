@@ -10,10 +10,10 @@ const getPostAggregatedData = (postAggregatedData, index) => {
 }
 
 export default (payload, { delay = 0 } = {}) =>
-  async chart => {
+  async (chart, { attrs = {} } = {}) => {
     await new Promise(r => setTimeout(r, delay))
 
-    const { after, before } = chart.getAttributes()
+    const { after, before } = { ...chart.getAttributes(), ...attrs }
 
     const now = Date.now()
 

@@ -3,6 +3,28 @@ import { useChart, useAttributeValue } from "@/components/provider"
 import { fetchChartWeights } from "@/sdk/makeChart/api"
 import { transformCorrelationData, groupByContext } from "./dataTransformer"
 
+export const getCorrelationQueryAttributes = ({
+  timeRange,
+  method,
+  aggregation,
+  dataType,
+  nodesScope,
+}) => ({
+  ...timeRange,
+  method,
+  aggregationMethod: aggregation,
+  options: dataType ? [dataType] : [],
+  groupBy: ["node", "context", "dimension"],
+  groupByLabel: [],
+  contextScope: [],
+  nodesScope,
+  selectedContexts: [],
+  selectedNodes: [],
+  selectedInstances: [],
+  selectedDimensions: [],
+  selectedLabels: [],
+})
+
 const useData = () => {
   const chart = useChart()
   const abortControllerRef = useRef(null)
@@ -62,15 +84,13 @@ const useData = () => {
 
     try {
       const response = await fetchChartWeights(chart, {
-        attrs: {
-          ...timeRange,
+        attrs: getCorrelationQueryAttributes({
+          timeRange,
           method,
-          aggregationMethod: aggregation,
-          options: dataType ? [dataType] : [],
-          groupBy: ["node", "instance", "dimension"],
-          contextScope: [],
+          aggregation,
+          dataType,
           nodesScope,
-        },
+        }),
         signal,
       })
 

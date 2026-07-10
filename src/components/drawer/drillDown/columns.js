@@ -1,9 +1,12 @@
 import React, { useMemo } from "react"
-import { Flex, ProgressBar, TextSmall, TextMicro } from "@netdata/netdata-ui"
+import { Flex, ProgressBar, TextSmall } from "@netdata/netdata-ui"
 import Color from "@/components/line/dimensions/color"
-import Units from "@/components/line/dimensions/units"
-import { useChart, useConverted } from "@/components/provider"
+import { useChart } from "@/components/provider"
 import Label from "@/components/filterToolbox/label"
+import ValueWithUnit, { ValueUnitHeader } from "@/components/drawer/valueWithUnit"
+
+const valueColumnSize = 144
+const valueColumnMinSize = 120
 
 const useMetricsByValue = chart =>
   useMemo(
@@ -23,6 +26,7 @@ export const labelColumn = (groupByOrder = []) => ({
   header: () => <TextSmall strong>Name</TextSmall>,
   headerString: () => "Name",
   accessorKey: "label",
+  enableGlobalFilter: true,
   size: 200,
   minSize: 60,
   maxSize: 800,
@@ -42,7 +46,7 @@ export const labelColumn = (groupByOrder = []) => ({
       <Flex
         justifyContent="between"
         alignItems="center"
-        padding={[0, 0, 0, row.depth * 3]}
+        padding={[0, 0, 0, (row.original.searchDepth ?? row.depth) * 3]}
         width="100%"
       >
         <Flex gap={1}>
@@ -53,7 +57,7 @@ export const labelColumn = (groupByOrder = []) => ({
               e.preventDefault()
               e.stopPropagation()
               row.getToggleExpandedHandler?.()?.(e)
-              setTimeout(() => e.target.scrollIntoView({ behavior: "smooth", block: "nearest" }))
+              setTimeout(() => e.target?.scrollIntoView?.({ behavior: "smooth", block: "nearest" }))
             }}
             cursor={row.original.disabled ? "default" : "pointer"}
             whiteSpace="normal"
@@ -69,7 +73,7 @@ export const labelColumn = (groupByOrder = []) => ({
               e.preventDefault()
               e.stopPropagation()
               row.getToggleExpandedHandler?.()(e)
-              setTimeout(() => e.target.scrollIntoView({ behavior: "smooth", block: "nearest" }))
+              setTimeout(() => e.target?.scrollIntoView?.({ behavior: "smooth", block: "nearest" }))
             }}
             iconRotate={row.getIsExpanded?.() ? 2 : null}
             textProps={{ fontSize: "10px", color: "textLite" }}
@@ -83,11 +87,12 @@ export const labelColumn = (groupByOrder = []) => ({
 
 export const contributionColumn = () => ({
   id: "contribution",
-  header: <TextMicro strong>Vol %</TextMicro>,
-  headerString: () => "Vol %",
+  header: <ValueUnitHeader label="Volume" />,
+  headerString: () => "Volume",
   accessorKey: "contribution",
-  size: 60,
-  minSize: 30,
+  enableGlobalFilter: false,
+  size: valueColumnSize,
+  minSize: valueColumnMinSize,
   maxSize: 300,
   fullWidth: true,
   cell: ({ getValue }) => {
@@ -96,7 +101,7 @@ export const contributionColumn = () => ({
 
     return (
       <Flex flex column gap={0.5}>
-        <TextSmall color="primary">{percentage}%</TextSmall>
+        <ValueWithUnit value={percentage} valueKey="percent" unit="%" color="primary" />
         <ProgressBar
           background="progressBg"
           color={["green", "deyork"]}
@@ -113,11 +118,12 @@ export const contributionColumn = () => ({
 
 export const anomalyRateColumn = () => ({
   id: "anomalyRate",
-  header: <TextMicro strong>Anomaly%</TextMicro>,
-  headerString: () => "Anomaly%",
+  header: <ValueUnitHeader label="Anomaly" />,
+  headerString: () => "Anomaly",
   accessorKey: "anomalyRate",
-  size: 60,
-  minSize: 30,
+  enableGlobalFilter: false,
+  size: valueColumnSize,
+  minSize: valueColumnMinSize,
   maxSize: 300,
   fullWidth: true,
   cell: ({ getValue }) => {
@@ -126,7 +132,7 @@ export const anomalyRateColumn = () => ({
 
     return (
       <Flex flex column gap={0.5}>
-        <TextSmall color="textLite">{percentage}%</TextSmall>
+        <ValueWithUnit value={percentage} valueKey="percent" unit="%" color="textLite" />
         <ProgressBar
           background="progressBg"
           color="anomalyText"
@@ -141,62 +147,62 @@ export const anomalyRateColumn = () => ({
   sortingFn: "basic",
 })
 
-export const minColumn = chart => ({
+export const minColumn = () => ({
   id: "min",
-  header: (
-    <TextMicro strong>
-      Min <Units visible />
-    </TextMicro>
-  ),
-  headerString: () => `Min  (${chart.getUnitSign({ key: "units" })})`,
+  header: <ValueUnitHeader label="Min" />,
+  headerString: () => "Min",
   accessorFn: row => row.timeframe?.min,
-  size: 60,
-  minSize: 30,
+  enableGlobalFilter: false,
+  size: valueColumnSize,
+  minSize: valueColumnMinSize,
   maxSize: 300,
   fullWidth: true,
-  cell: ({ getValue }) => {
-    const value = useConverted(getValue())
-    return <TextSmall color="textLite">{value}</TextSmall>
-  },
+  cell: ({ getValue, row }) => (
+    <ValueWithUnit
+      value={getValue()}
+      dimensionId={row.original.groupedBy?.dimension}
+      color="textLite"
+    />
+  ),
   sortingFn: "basic",
 })
 
-export const avgColumn = chart => ({
+export const avgColumn = () => ({
   id: "avg",
-  header: (
-    <TextMicro strong>
-      Avg <Units visible />
-    </TextMicro>
-  ),
-  headerString: () => `Avg  (${chart.getUnitSign({ key: "units" })})`,
+  header: <ValueUnitHeader label="Avg" />,
+  headerString: () => "Avg",
   accessorFn: row => row.timeframe?.avg,
-  size: 60,
-  minSize: 30,
+  enableGlobalFilter: false,
+  size: valueColumnSize,
+  minSize: valueColumnMinSize,
   maxSize: 300,
   fullWidth: true,
-  cell: ({ getValue }) => {
-    const value = useConverted(getValue())
-    return <TextSmall color="textLite">{value}</TextSmall>
-  },
+  cell: ({ getValue, row }) => (
+    <ValueWithUnit
+      value={getValue()}
+      dimensionId={row.original.groupedBy?.dimension}
+      color="textLite"
+    />
+  ),
   sortingFn: "basic",
 })
 
-export const maxColumn = chart => ({
+export const maxColumn = () => ({
   id: "max",
-  header: (
-    <TextMicro strong>
-      Max <Units visible />
-    </TextMicro>
-  ),
-  headerString: () => `Max  (${chart.getUnitSign({ key: "units" })})`,
+  header: <ValueUnitHeader label="Max" />,
+  headerString: () => "Max",
   accessorFn: row => row.timeframe?.max,
-  size: 60,
-  minSize: 30,
+  enableGlobalFilter: false,
+  size: valueColumnSize,
+  minSize: valueColumnMinSize,
   maxSize: 300,
   fullWidth: true,
-  cell: ({ getValue }) => {
-    const value = useConverted(getValue())
-    return <TextSmall color="textLite">{value}</TextSmall>
-  },
+  cell: ({ getValue, row }) => (
+    <ValueWithUnit
+      value={getValue()}
+      dimensionId={row.original.groupedBy?.dimension}
+      color="textLite"
+    />
+  ),
   sortingFn: "basic",
 })
