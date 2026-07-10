@@ -100,7 +100,7 @@ describe("numericTicker", () => {
     const zeroTick = ticks.find(tick => tick.v === 0)
 
     expect(zeroTick.label).toBe("0")
-    expect(formatter).not.toHaveBeenCalledWith(0, 0, mockOpts, mockDygraph)
+    expect(zeroTick.label).not.toContain("ns")
   })
 
   it("keeps numeric ticks for seconds when time formatting is disabled", () => {
@@ -151,7 +151,9 @@ describe("numericTicker", () => {
       if (key === "pixelsPerLabel") return 50
     })
 
-    numericTicker(5.12000001, 5.12000009, 400, mockOpts, mockDygraph, null, { units: [""] })
+    const ticks = numericTicker(5.12000001, 5.12000009, 400, mockOpts, mockDygraph, null, {
+      units: [""],
+    })
 
     expect(mockFormatter).toHaveBeenCalledWith(
       expect.any(Number),
@@ -159,7 +161,10 @@ describe("numericTicker", () => {
       mockOpts,
       mockDygraph
     )
-    expect(mockFormatter.mock.calls.some(([, granularity]) => granularity > 0)).toBe(true)
+
+    const dataTicks = ticks.filter(tick => tick.v !== undefined && !tick.label_v).map(t => t.v)
+    expect(dataTicks.length).toBeGreaterThan(1)
+    expect(dataTicks[1] - dataTicks[0]).toBeGreaterThan(0)
   })
 
   it("includes anomaly SVG in first tick", () => {

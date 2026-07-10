@@ -1,6 +1,31 @@
 import unitConversion from "./index"
 import { makeTestChart } from "@jest/testUtilities"
 
+const bytesRawPayload = {
+  view: {
+    units: ["By"],
+    dimensions: {
+      ids: ["small", "large"],
+      names: ["small", "large"],
+      units: ["By", "By"],
+    },
+  },
+  result: {
+    labels: ["time", "small", "large"],
+    point: { value: 0, arp: 1, pa: 2 },
+    data: [
+      [1, 1, 1024 ** 3],
+      [2, 512, 2 * 1024 ** 3],
+    ],
+  },
+}
+
+const loadPayload = (chart, rawPayload) =>
+  new Promise(resolve => {
+    chart.on("successFetch", () => resolve())
+    chart.doneFetch(rawPayload)
+  })
+
 describe("unitConversion", () => {
   let chart
 
@@ -29,8 +54,11 @@ describe("unitConversion", () => {
   it("sets up unit conversion attributes", () => {
     unitConversion(chart)
 
-    expect(chart.getAttribute("unitsConversionMethod")).toBeDefined()
-    expect(chart.getAttribute("dbUnitsConversionMethod")).toBeDefined()
+    chart.trigger("yAxisChange", 0, 5000)
+
+    expect(chart.getAttribute("unitsConversionMethod")).toEqual(["adjust"])
+    expect(chart.getAttribute("unitsConversionPrefix")).toEqual(["Ki"])
+    expect(chart.getAttribute("dbUnitsConversionMethod")).toEqual(["adjust"])
   })
 
   it("handles static value range", () => {
@@ -44,13 +72,21 @@ describe("unitConversion", () => {
     expect(chart.getAttribute("max")).toBe(100)
   })
 
-  it("updates conversion when visible dimensions change", () => {
+  it("updates conversion when visible dimensions change", async () => {
+    await loadPayload(chart, bytesRawPayload)
+
     const cleanup = unitConversion(chart)
 
-    chart.updateAttribute("visibleDimensionIds", ["cpu"])
     chart.trigger("visibleDimensionsChanged")
 
-    expect(chart.getAttribute("unitsConversionMethod")).toBeDefined()
+    expect(chart.getAttribute("unitsConversionPrefix")).toEqual(["Gi"])
+    expect(chart.getAttribute("max")).toBe(2 * 1024 ** 3)
+
+    chart.updateAttribute("selectedLegendDimensions", ["small"])
+    chart.sortDimensions()
+
+    expect(chart.getAttribute("unitsConversionPrefix")).toEqual([""])
+    expect(chart.getAttribute("max")).toBe(512)
 
     cleanup()
   })
@@ -82,22 +118,19 @@ describe("unitConversion", () => {
     cleanup()
   })
 
-  it("uses dimension min/max when available", () => {
-    const mockPayload = {
-      byDimension: {
-        cpu: { min: 20, max: 80 },
-        memory: { min: 10, max: 90 },
-      },
-    }
-    chart.getPayload = () => mockPayload
+  it("uses dimension min/max when available", async () => {
+    await loadPayload(chart, bytesRawPayload)
 
     const cleanup = unitConversion(chart)
 
     chart.trigger("visibleDimensionsChanged")
 
-    // The implementation handles min/max conversion logic
-    expect(typeof chart.getAttribute("min")).toBe("number")
-    expect(typeof chart.getAttribute("max")).toBe("number")
+    expect(chart.getAttribute("min")).toBe(1)
+    expect(chart.getAttribute("max")).toBe(2 * 1024 ** 3)
+
+    const unitsByDimension = chart.getAttribute("unitsByDimension")
+    expect(unitsByDimension.small.prefix).toBe("")
+    expect(unitsByDimension.large.prefix).toBe("Gi")
 
     cleanup()
   })
@@ -137,27 +170,35 @@ describe("unitConversion", () => {
 
   it("handles context-specific units", () => {
     chart.updateAttribute("unitsStsByContext", {
-      cpu: { units: ["%"], min: 0, max: 100 },
-      memory: { units: ["By"], min: 0, max: 1024 },
+      ctxPercent: { units: "%", min: 0, max: 100 },
+      ctxBytes: { units: "By", min: 0, max: 1024 },
     })
 
     unitConversion(chart)
 
+    chart.trigger("yAxisChange", 0, 100)
+
     const unitsByContext = chart.getAttribute("unitsByContext")
-    expect(unitsByContext).toBeDefined()
-    expect(typeof unitsByContext).toBe("object")
+    expect(unitsByContext.ctxPercent.method).toBe("original")
+    expect(unitsByContext.ctxPercent.prefix).toBe("")
+    expect(unitsByContext.ctxBytes.method).toBe("adjust")
+    expect(unitsByContext.ctxBytes.prefix).toBe("Ki")
   })
 
   it("processes both units and dbUnits", () => {
+    chart.updateAttribute("dbUnits", ["ms"])
     chart.updateAttribute("dbUnitsStsByContext", {
-      cpu: { units: ["ms"] },
+      ctxMs: { units: "ms", min: 0, max: 100 },
     })
 
     unitConversion(chart)
 
-    expect(chart.getAttribute("unitsConversionMethod")).toBeDefined()
-    expect(chart.getAttribute("dbUnitsConversionMethod")).toBeDefined()
-    expect(chart.getAttribute("dbUnitsByContext")).toBeDefined()
+    chart.trigger("yAxisChange", 0, 5000)
+
+    expect(chart.getAttribute("unitsConversionMethod")).toEqual(["adjust"])
+    expect(chart.getAttribute("dbUnitsConversionMethod")).toEqual(["ms-s"])
+    expect(chart.getAttribute("dbUnitsByContext").ctxMs.method).toBe("ms-ms")
+    expect(chart.getAttribute("dbUnitsByContext").ctxMs.base).toBe("ms")
   })
 
   it("respects chart state on initialization", () => {
@@ -168,7 +209,10 @@ describe("unitConversion", () => {
 
     unitConversion(chart)
 
-    const method = chart.getAttribute("unitsConversionMethod")
-    expect(method).toBeDefined()
+    chart.trigger("yAxisChange", 50, 150)
+
+    expect(chart.getAttribute("unitsConversionMethod")).toEqual(["original"])
+    expect(chart.getAttribute("min")).toBe(0)
+    expect(chart.getAttribute("max")).toBe(100)
   })
 })

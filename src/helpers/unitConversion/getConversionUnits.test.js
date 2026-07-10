@@ -39,19 +39,18 @@ describe("getConversionUnits", () => {
     it("uses proper scale for large values", () => {
       const result = getConversionAttributes(chart, "By", { min: 0, max: 10000000 })
 
-      expect(result.prefix).toBeTruthy()
-      if (result.method === "adjust") {
-        expect(typeof result.divider).toBe("function")
-      } else if (result.method === "divide") {
-        expect(result.divider).toBeGreaterThan(1)
-      }
+      expect(result.method).toBe("adjust")
+      expect(result.prefix).toBe("Mi")
+      expect(typeof result.divider).toBe("function")
     })
 
     it("handles zero range", () => {
       const result = getConversionAttributes(chart, "By", { min: 100, max: 100 })
 
-      expect(result).toHaveProperty("method")
-      expect(result).toHaveProperty("unit", "By")
+      expect(result.method).toBe("adjust")
+      expect(result.prefix).toBe("")
+      expect(result.base).toBe("B")
+      expect(result.unit).toBe("By")
     })
 
     it("uses print_symbol for base when base_unit is not defined", () => {
@@ -81,8 +80,9 @@ describe("getConversionUnits", () => {
     it("handles negative values", () => {
       const result = getConversionAttributes(chart, "By", { min: -1000, max: 1000 })
 
-      expect(result).toHaveProperty("method")
-      expect(result).toHaveProperty("divider")
+      expect(result.method).toBe("adjust")
+      expect(result.prefix).toBe("")
+      expect(typeof result.divider).toBe("function")
     })
 
     it("respects desired units setting", () => {
@@ -145,14 +145,7 @@ describe("getConversionUnits", () => {
 
   describe("getConversionUnits", () => {
     it("returns arrays of conversion parameters for dimensions", () => {
-      // Set up chart with multiple dimensions
       chart.updateAttribute("visibleDimensionIds", ["dim1", "dim2"])
-      chart.payload = {
-        byDimension: {
-          dim1: { min: 0, max: 1000 },
-          dim2: { min: 0, max: 2000 },
-        },
-      }
 
       const result = getConversionUnits(chart, "units", { min: 0, max: 2000 })
 
