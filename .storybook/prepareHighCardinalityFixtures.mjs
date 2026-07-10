@@ -1,5 +1,6 @@
 import fs from "node:fs"
 import path from "node:path"
+import { randomUUID } from "node:crypto"
 
 export const highCardinalityFixtureNames = [
   "streaming-by-instance-percentage",
@@ -141,8 +142,10 @@ export const assertSanitizedPayload = payload => {
 
 export const prepareHighCardinalityFixtures = ({ sourceDir, outputDir }) => {
   const anonymizeString = makeStringAnonymizer()
+  const expectedOutputFiles = new Set(
+    highCardinalityFixtureNames.map(name => `${name}.json`)
+  )
 
-  fs.rmSync(outputDir, { recursive: true, force: true })
   fs.mkdirSync(outputDir, { recursive: true })
 
   highCardinalityFixtureNames.forEach(name => {
@@ -155,9 +158,22 @@ export const prepareHighCardinalityFixtures = ({ sourceDir, outputDir }) => {
     const sanitized = anonymizeHighCardinalityPayload(payload, anonymizeString)
     assertSanitizedPayload(sanitized)
     const outputPath = path.join(outputDir, `${name}.json`)
-    const temporaryPath = `${outputPath}.tmp`
+    const temporaryPath = path.join(
+      outputDir,
+      `.${name}.${process.pid}.${randomUUID()}.tmp`
+    )
 
-    fs.writeFileSync(temporaryPath, JSON.stringify(sanitized))
-    fs.renameSync(temporaryPath, outputPath)
+    try {
+      fs.writeFileSync(temporaryPath, JSON.stringify(sanitized))
+      fs.renameSync(temporaryPath, outputPath)
+    } finally {
+      fs.rmSync(temporaryPath, { force: true })
+    }
+  })
+
+  fs.readdirSync(outputDir).forEach(file => {
+    if (file.endsWith(".json") && !expectedOutputFiles.has(file)) {
+      fs.rmSync(path.join(outputDir, file), { force: true })
+    }
   })
 }
