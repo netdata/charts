@@ -54,4 +54,22 @@ describe("Comparison StatValue", () => {
     expect(screen.getByTestId("comparison-stat-unit")).toHaveTextContent("MiB")
     expect(screen.queryByText("MiB/s")).not.toBeInTheDocument()
   })
+
+  it("normalizes pre-scaled rates before rendering integrated units", () => {
+    const chart = makeUnitChart("KiB/s")
+
+    renderWithChart(<StatValue value={1024} valueKey="volume" />, { chart })
+
+    expect(screen.getByTestId("comparison-stat-value")).toHaveTextContent("1MiB")
+    expect(screen.getByTestId("comparison-stat-unit")).toHaveTextContent("MiB")
+  })
+
+  it("preserves scale-only units for integrated operation rates", () => {
+    const chart = makeUnitChart("requests/s")
+
+    renderWithChart(<StatValue value={1000000} valueKey="volume" />, { chart })
+
+    expect(screen.getByTestId("comparison-stat-value")).toHaveTextContent("1M")
+    expect(screen.getByTestId("comparison-stat-unit")).toHaveTextContent("M")
+  })
 })
