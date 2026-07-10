@@ -1,27 +1,24 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import styled from "styled-components"
-import { TextMicro } from "@netdata/netdata-ui"
+import { Flex, TextMicro } from "@netdata/netdata-ui"
 import { useAttributeValue, useUnitSign } from "@/components/provider"
+import { measureTextWidth } from "@/helpers/canvas"
 import Timestamp from "./timestamp"
 import UpdateEvery from "./updateEvery"
 
 const contextMaxFontSize = 12
 const contextMinFontSize = 9
 
-let measureCanvas
-
-const HeaderContainer = styled.div.attrs({
+const HeaderContainer = styled(Flex).attrs({
   "data-testid": "chartPopover-header",
-})`
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-  width: 100%;
-`
+  column: true,
+  gap: 1,
+  width: { min: "0px", base: "100%" },
+})``
 
 const ContextText = styled(TextMicro).attrs({
   "data-testid": "chartPopover-context",
+  strong: true,
 })`
   display: block;
   min-width: 0;
@@ -31,24 +28,19 @@ const ContextText = styled(TextMicro).attrs({
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: ${({ $fontSize }) => $fontSize}px;
-  font-weight: 700;
-  line-height: 14px;
 `
 
-const MetaRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-width: 0;
-  width: 100%;
-`
+const MetaRow = styled(Flex).attrs({
+  alignItems: "center",
+  justifyContent: "between",
+  gap: 3,
+  width: { min: "0px", base: "100%" },
+})``
 
-const TimestampCell = styled.div`
-  display: flex;
-  min-width: 0;
-  overflow: hidden;
-`
+const TimestampCell = styled(Flex).attrs({
+  overflow: "hidden",
+  width: { min: "0px" },
+})``
 
 const SourceUnits = styled(TextMicro).attrs({
   color: "textLite",
@@ -57,14 +49,6 @@ const SourceUnits = styled(TextMicro).attrs({
   flex: 0 0 auto;
   white-space: nowrap;
 `
-
-const getMeasureContext = () => {
-  if (typeof document === "undefined") return null
-
-  if (!measureCanvas) measureCanvas = document.createElement("canvas")
-
-  return measureCanvas.getContext("2d")
-}
 
 const getMeasuredFont = (element, fontSize) => {
   const style = window.getComputedStyle(element)
@@ -76,13 +60,9 @@ const getContextFontSize = (element, text) => {
   if (!element || !text) return contextMaxFontSize
 
   const width = element.getBoundingClientRect().width
-  const context = getMeasureContext()
+  if (!width) return contextMaxFontSize
 
-  if (!width || !context) return contextMaxFontSize
-
-  context.font = getMeasuredFont(element, contextMaxFontSize)
-
-  const textWidth = context.measureText(text).width
+  const textWidth = measureTextWidth(text, getMeasuredFont(element, contextMaxFontSize))
   if (!textWidth || textWidth <= width) return contextMaxFontSize
 
   const next = Math.floor((width / textWidth) * contextMaxFontSize * 10) / 10

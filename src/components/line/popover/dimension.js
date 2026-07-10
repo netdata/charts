@@ -59,9 +59,9 @@ const UnitCell = styled(Flex).attrs({
   alignItems: "center",
   overflow: "hidden",
   width: { min: 0 },
+  padding: [0, 0, 0, 2],
 })`
   box-sizing: border-box;
-  padding-left: 6px;
 `
 
 const ValueWithUnits = ({ id, visible, children, ...rest }) => {

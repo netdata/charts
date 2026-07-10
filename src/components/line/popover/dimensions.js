@@ -37,9 +37,10 @@ const GridHeader = styled.div`
   display: contents;
 `
 
-const UnitHeader = styled(TextMicro)`
+const UnitHeader = styled(TextMicro).attrs({
+  padding: [0, 0, 0, 2],
+})`
   box-sizing: border-box;
-  padding-left: 6px;
 `
 
 const emptyArray = [null, null]

@@ -5,9 +5,6 @@ import { useChart } from "@/components/provider"
 
 const TimestampText = styled(TextMicro)`
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 `
 
 const Timestamp = ({ value }) => {
@@ -15,7 +12,7 @@ const Timestamp = ({ value }) => {
   const text = useMemo(() => `${chart.formatDate(value)} • ${chart.formatTime(value)}`, [value])
 
   return (
-    <TimestampText color="text" data-testid="chartPopover-timestamp">
+    <TimestampText truncate color="text" data-testid="chartPopover-timestamp">
       {text}
     </TimestampText>
   )

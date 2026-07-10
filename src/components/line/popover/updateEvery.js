@@ -1,24 +1,21 @@
 import React from "react"
 import styled from "styled-components"
-import { TextMicro } from "@netdata/netdata-ui"
+import { Flex, TextMicro } from "@netdata/netdata-ui"
 import { useAttributeValue } from "@/components/provider"
 
-const Container = styled.div`
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  min-width: 0;
-`
+const Container = styled(Flex).attrs({
+  alignItems: "center",
+  flexWrap: true,
+  gap: 3,
+  width: { min: "0px" },
+})``
 
-const Item = styled.div.attrs({
+const Item = styled(Flex).attrs({
+  alignItems: "center",
+  gap: 1,
+  width: { min: "0px" },
   "data-testid": "chartPopover-collection",
-})`
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  min-width: 0;
-`
+})``
 
 const UpdateEvery = () => {
   const viewUpdateEvery = useAttributeValue("viewUpdateEvery")
