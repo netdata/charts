@@ -1,3 +1,5 @@
+import { measureTextWidth } from "@/helpers/canvas"
+
 export const popoverGridColumns = {
   dimensionMin: "120px",
   value: "156px",
@@ -22,31 +24,11 @@ const toPixels = value => Number.parseFloat(value) || 0
 const getViewportWidth = () =>
   typeof window === "undefined" ? popoverLayout.fallbackViewportWidth : window.innerWidth
 
-let textMeasureContext
-
-const getTextMeasureContext = () => {
-  if (typeof document === "undefined") return null
-  if (typeof navigator !== "undefined" && /jsdom/i.test(navigator.userAgent)) return null
-
-  try {
-    if (!textMeasureContext) {
-      textMeasureContext = document.createElement("canvas").getContext("2d")
-    }
-  } catch {
-    return null
-  }
-
-  return textMeasureContext
-}
-
-const measureTextWidth = text => {
+const measureDimensionName = text => {
   const value = text || ""
-  const context = getTextMeasureContext()
+  const width = measureTextWidth(value, popoverLayout.dimensionNameFont)
 
-  if (!context) return Array.from(value).length * popoverLayout.fallbackCharacterWidth
-
-  context.font = popoverLayout.dimensionNameFont
-  return context.measureText(value).width
+  return width === null ? Array.from(value).length * popoverLayout.fallbackCharacterWidth : width
 }
 
 export const getPopoverFixedWidth = infoColumn =>
@@ -64,7 +46,7 @@ export const getPopoverDimensionColumnWidth = (names, { infoColumn, viewportWidt
     Math.floor((viewportWidth || getViewportWidth()) * popoverLayout.maxWidthRatio - fixedWidth)
   )
   const contentWidth =
-    Math.ceil(Math.max(0, ...names.map(measureTextWidth))) +
+    Math.ceil(Math.max(0, ...names.map(measureDimensionName))) +
     popoverLayout.dimensionNamePaddingX
 
   return Math.min(Math.max(minWidth, contentWidth), maxWidth)
