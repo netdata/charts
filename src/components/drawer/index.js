@@ -39,8 +39,7 @@ const Drawer = () => {
         column
         padding={[0, 2, 3, 2]}
         overflow={{ vertical: hasManagedOverflow ? "hidden" : "scroll" }}
-        height="100%"
-        style={{ minHeight: 0 }}
+        height={{ min: "0px", base: "100%" }}
         data-testid="drawer-content"
       >
         <Component />

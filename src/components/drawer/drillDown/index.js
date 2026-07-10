@@ -1,5 +1,5 @@
 import React, { useCallback, useLayoutEffect, useMemo, useRef } from "react"
-import { Flex, Table } from "@netdata/netdata-ui"
+import { Flex, Table, Text, TextBig } from "@netdata/netdata-ui"
 import { useChart, useAttributeValue } from "@/components/provider/selectors"
 import useData from "./useData"
 import updateDrilldownGroupBy from "./updateGroupBy"
@@ -107,12 +107,12 @@ const DrillDown = () => {
   if (!loading && (!hierarchicalData || hierarchicalData.length === 0)) {
     return (
       <Flex padding={[3]} justifyContent="center" alignItems="center" column gap={2}>
-        <Flex color="textLite" fontSize="14px">
+        <TextBig color="textLite">
           No data available for the selected time range
-        </Flex>
-        <Flex color="textLite" fontSize="12px">
+        </TextBig>
+        <Text color="textLite">
           Try adjusting the time range or chart settings
-        </Flex>
+        </Text>
       </Flex>
     )
   }
@@ -121,16 +121,14 @@ const DrillDown = () => {
     <Flex
       flex
       column
-      height="100%"
+      height={{ min: "0px", base: "100%" }}
       overflow="hidden"
-      style={{ minHeight: 0 }}
       data-testid="chart-drilldown-table-container"
       ref={containerRef}
     >
       <Table
         key={searching ? `search-${displayData.length}` : "browse"}
         enableSorting
-        enableExpanding
         enableCustomSearch
         dataColumns={columns}
         data={displayData}

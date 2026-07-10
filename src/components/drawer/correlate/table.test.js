@@ -1,6 +1,7 @@
 import React from "react"
 import { fireEvent, screen, waitFor } from "@testing-library/react"
 import "@testing-library/jest-dom"
+import { Box } from "@netdata/netdata-ui"
 import { makeTestChart, renderWithChart } from "@jest/testUtilities"
 import CorrelationTable from "./table"
 
@@ -34,9 +35,9 @@ describe("CorrelationTable", () => {
   it("virtualizes high-cardinality rows and persists expansion in chart attributes", async () => {
     const data = makeData(1000)
     const { chart, user } = renderWithChart(
-      <div style={{ height: 400 }}>
+      <Box height="400px">
         <CorrelationTable data={data} />
-      </div>,
+      </Box>,
       {
         attributes: {
           correlate: { expanded: {} },
@@ -100,9 +101,9 @@ describe("CorrelationTable", () => {
       }
     }
     const { user } = renderWithChart(
-      <div style={{ height: 400 }}>
+      <Box height="400px">
         <CorrelationTable data={data} />
-      </div>,
+      </Box>,
       { chart }
     )
 
@@ -157,9 +158,9 @@ describe("CorrelationTable", () => {
       },
     ]
     const { chart, user } = renderWithChart(
-      <div style={{ height: 400 }}>
+      <Box height="400px">
         <CorrelationTable data={data} />
-      </div>,
+      </Box>,
       {
         attributes: {
           correlate: { expanded: originalExpanded, search: "" },

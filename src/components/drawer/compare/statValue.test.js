@@ -40,6 +40,7 @@ describe("Comparison StatValue", () => {
     const units = screen.getAllByTestId("comparison-stat-unit")
 
     expect(values[0]).toHaveTextContent("1B")
+    expect(values[0]).toHaveStyle("min-width: 0px")
     expect(units[0]).toHaveTextContent("B")
     expect(values[1]).toHaveTextContent("1KiB")
     expect(units[1]).toHaveTextContent("KiB")

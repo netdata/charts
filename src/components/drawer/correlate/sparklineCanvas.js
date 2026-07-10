@@ -1,8 +1,9 @@
 import React, { memo, useCallback, useLayoutEffect, useRef } from "react"
+import { Box } from "@netdata/netdata-ui"
 
 const defaultWidth = 120
-const defaultHeight = 25
-const linePadding = 2
+const defaultHeight = 24
+const linePadding = 4
 
 export const getSparklinePoints = (values, width, height) => {
   const finiteValues = values.filter(Number.isFinite)
@@ -45,7 +46,7 @@ export const drawSparkline = (context, values, width, height, color) => {
   })
 
   context.strokeStyle = color
-  context.lineWidth = 1.25
+  context.lineWidth = 1
   context.lineJoin = "round"
   context.lineCap = "round"
   context.stroke()
@@ -92,13 +93,13 @@ const SparklineCanvas = ({ values, color, height = defaultHeight }) => {
   }, [draw])
 
   return (
-    <canvas
+    <Box
+      as="canvas"
       ref={canvasRef}
-      width={defaultWidth}
-      height={height}
+      width="100%"
+      height={`${height}px`}
       role="img"
       aria-label="Metric trend"
-      style={{ display: "block", width: "100%", height: `${height}px` }}
     />
   )
 }

@@ -1,36 +1,37 @@
 import React from "react"
 import styled from "styled-components"
-import { Flex, TextMicro, TextSmall } from "@netdata/netdata-ui"
+import { Flex, TextMicro, TextSmall, getSizeBy } from "@netdata/netdata-ui"
 import { useConverted, useUnitSign, useValueUnitAttributes } from "@/components/provider"
 
-const unitColumnWidth = "44px"
-
-const Container = styled.div`
+const Container = styled(Flex).attrs({
+  alignItems: "center",
+  width: "100%",
+})`
   display: grid;
-  grid-template-columns: minmax(0, 1fr) ${unitColumnWidth};
-  align-items: center;
-  width: 100%;
+  grid-template-columns: minmax(0, 1fr) ${getSizeBy(5.5)};
 `
 
 const UnitCell = styled(Flex).attrs({
   alignItems: "center",
   overflow: "hidden",
-  width: { min: 0 },
+  padding: [0, 0, 0, 2],
+  width: { min: "0px" },
 })`
   box-sizing: border-box;
-  padding-left: 6px;
 `
 
-const HeaderLabel = styled(TextMicro)`
+const HeaderLabel = styled(TextMicro).attrs({
+  textAlign: "center",
+})`
   grid-column: 1 / -1;
-  text-align: center;
 `
 
-const ValueDetail = styled(TextMicro)`
+const ValueDetail = styled(TextMicro).attrs({
+  margin: [1, 0, 0],
+  textAlign: "right",
+})`
   grid-column: 1;
   grid-row: 2;
-  margin-top: 2px;
-  text-align: right;
 `
 
 export const ValueUnitGrid = ({ value, unit, detail, color = "text", strong }) => (

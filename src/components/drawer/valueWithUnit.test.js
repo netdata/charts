@@ -8,7 +8,7 @@ describe("ValueWithUnit", () => {
   it("renders one header for the value and unit subcolumns", () => {
     renderWithChart(<ValueUnitHeader label="Value" />)
 
-    expect(screen.getByText("Value")).toBeInTheDocument()
+    expect(screen.getByText("Value")).toHaveStyle("grid-column: 1/-1; text-align: center")
     expect(screen.queryByText("Unit")).not.toBeInTheDocument()
   })
 
@@ -44,9 +44,11 @@ describe("ValueWithUnit", () => {
     expect(units[0]).toHaveTextContent("B")
     expect(grids[1]).toHaveTextContent("1KiB")
     expect(units[1]).toHaveTextContent("KiB")
-    expect(grids[1]).toHaveStyle(
-      "grid-template-columns: minmax(0,1fr) 44px"
-    )
+    expect(grids[1]).toHaveStyle("grid-template-columns: minmax(0,1fr) 44px")
+    expect(units[1]).toHaveStyle({
+      minWidth: "0px",
+      padding: "0px 0px 0px 8px",
+    })
   })
 
   it("supports units that belong to a derived value instead of the chart", () => {
@@ -64,6 +66,10 @@ describe("ValueWithUnit", () => {
 
     expect(grid).toContainElement(detail)
     expect(grid).toHaveStyle("grid-template-columns: minmax(0,1fr) 44px")
+    expect(detail).toHaveStyle({
+      margin: "4px 0px 0px",
+      textAlign: "right",
+    })
     expect(detail).toHaveTextContent("Strong")
   })
 })

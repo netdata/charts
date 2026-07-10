@@ -1,6 +1,5 @@
 import React from "react"
 import { Flex, TextSmall } from "@netdata/netdata-ui"
-import styled from "styled-components"
 import Color, { ColorBar } from "@/components/line/dimensions/color"
 import Name from "@/components/line/dimensions/name"
 import {
@@ -49,14 +48,6 @@ export const makeNumberSortingFn =
     return result > 0 ? 1 : -1
   }
 
-const ColorBackground = styled(ColorBar).attrs({
-  position: "absolute",
-  top: 1.5,
-  left: 0,
-  backgroundOpacity: 0.4,
-  round: 0.5,
-})``
-
 const rowValueKeys = {
   ANOMALY_RATE: "arp",
   default: "value",
@@ -98,13 +89,18 @@ export const labelColumn = (chart, fallbackExpandKey) => ({
       >
         <Flex alignItems="center" gap={1} position="relative" width="100%">
           {visible && (
-            <ColorBackground
+            <ColorBar
               id={id}
               valueKey={rowValueKeys[rowFlavour] || rowValueKeys.default}
-              height="18px"
+              position="absolute"
+              top={1}
+              left={0}
+              backgroundOpacity={0.4}
+              round
+              height={4}
             >
               <Color id={id} />
-            </ColorBackground>
+            </ColorBar>
           )}
           <Name padding={[1, 2]} flex id={id} />
         </Flex>
@@ -120,7 +116,7 @@ export const labelColumn = (chart, fallbackExpandKey) => ({
               setTimeout(() => e.target.scrollIntoView({ behavior: "smooth", block: "nearest" }))
             }}
             iconRotate={getIsExpanded() ? 2 : null}
-            textProps={{ fontSize: "10px", color: "textLite" }}
+            textProps={{ color: "textLite" }}
           />
         )}
       </Flex>

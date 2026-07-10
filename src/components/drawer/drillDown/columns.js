@@ -76,7 +76,7 @@ export const labelColumn = (groupByOrder = []) => ({
               setTimeout(() => e.target?.scrollIntoView?.({ behavior: "smooth", block: "nearest" }))
             }}
             iconRotate={row.getIsExpanded?.() ? 2 : null}
-            textProps={{ fontSize: "10px", color: "textLite" }}
+            textProps={{ color: "textLite" }}
             alignItems="center"
           />
         )}
@@ -100,15 +100,12 @@ export const contributionColumn = () => ({
     const percentage = Math.round((value + Number.EPSILON) * 100) / 100
 
     return (
-      <Flex flex column gap={0.5}>
+      <Flex flex column gap={1}>
         <ValueWithUnit value={percentage} valueKey="percent" unit="%" color="primary" />
         <ProgressBar
           background="progressBg"
-          color={["green", "deyork"]}
-          height={2}
+          color="primary"
           width={`${Math.min(percentage, 100)}%`}
-          containerWidth="100%"
-          border="none"
         />
       </Flex>
     )
@@ -131,15 +128,12 @@ export const anomalyRateColumn = () => ({
     const percentage = Math.round((value + Number.EPSILON) * 100) / 100
 
     return (
-      <Flex flex column gap={0.5}>
+      <Flex flex column gap={1}>
         <ValueWithUnit value={percentage} valueKey="percent" unit="%" color="textLite" />
         <ProgressBar
           background="progressBg"
           color="anomalyText"
-          height={2}
           width={`${Math.min(percentage, 100)}%`}
-          containerWidth="100%"
-          border="none"
         />
       </Flex>
     )

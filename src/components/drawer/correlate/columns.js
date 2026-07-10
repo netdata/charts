@@ -43,7 +43,7 @@ export const nameColumn = () => ({
               size="small"
             />
           )}
-          <Flex column gap={0.5} minWidth={0}>
+          <Flex column gap={1} width={{ min: "0px" }}>
             <TextSmall strong whiteSpace="normal" wordBreak="break-word">
               {item.contextName}
             </TextSmall>
@@ -56,10 +56,9 @@ export const nameColumn = () => ({
     return (
       <Flex
         column
-        gap={0.5}
+        gap={1}
         padding={[0, 0, 0, (item.searchDepth ?? row.depth) * 3]}
-        minWidth={0}
-        width="100%"
+        width={{ min: "0px", base: "100%" }}
       >
         <TextSmall
           title={`Metric: ${item.dimensionName}\nContext: ${item.context}\nNode: ${item.nodeName}`}
@@ -126,7 +125,11 @@ export const sparklineColumn = () => ({
   id: "sparkline",
   header: (
     <Flex alignItems="center" gap={1} width="100%">
-      <Flex width={`${valueColumnSize}px`} style={{ flex: `0 0 ${valueColumnSize}px` }}>
+      <Flex
+        flex={false}
+        basis={`${valueColumnSize}px`}
+        width={`${valueColumnSize}px`}
+      >
         <ValueUnitHeader label="Value" />
       </Flex>
       <TextMicro strong>Trend</TextMicro>

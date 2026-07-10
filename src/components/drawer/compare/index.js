@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { Flex, TextSmall, TextMicro, Button } from "@netdata/netdata-ui"
+import { Flex, TextSmall, TextMicro, Button, getSizeBy } from "@netdata/netdata-ui"
 import styled from "styled-components"
 import Tooltip from "@/components/tooltip"
 import Icon, { Button as IconButton } from "@/components/icon"
@@ -10,10 +10,9 @@ import ChangeIndicator from "./changeIndicator"
 import CustomPeriodForm from "./customPeriodForm"
 import StatValue from "./statValue"
 
-const GridContainer = styled(Flex)`
+const GridContainer = styled(Flex).attrs({ gap: 3 })`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(${getSizeBy(32.5)}, 1fr));
 `
 
 const formatDateRange = (chart, after, before) => {
@@ -26,7 +25,7 @@ const StatRow = ({ label, value, change, valueKey = "value", tab, tooltip, promi
   if (prominent) {
     return (
       <Tooltip content={tooltip}>
-        <Flex column gap={0.5} flex="1 1 0">
+        <Flex column gap={1} flex="1 1 0">
           <TextMicro color="textLite">{label}</TextMicro>
           <StatValue value={value} valueKey={valueKey} prominent />
           <ChangeIndicator change={change} tab={tab} />
@@ -98,7 +97,7 @@ const ComparisonCard = ({ period, showAdvanced, showVolume, tab }) => {
           <TextSmall strong>{period.label}</TextSmall>
           {!period.isBase && (
             <IconButton
-              icon={<Icon svg={pencilIcon} size="10px" />}
+              icon={<Icon svg={pencilIcon} size="12px" />}
               onClick={() => setShowEditForm(true)}
               data-testid="period-edit"
               data-track={chart.track("period-edit")}
@@ -192,7 +191,7 @@ const Compare = () => {
 
   return (
     <Flex column gap={3}>
-      <GridContainer>
+      <GridContainer data-testid="comparison-grid">
         {periods.map(period => (
           <ComparisonCard
             key={period.id}
@@ -212,11 +211,12 @@ const Compare = () => {
             round
             alignItems="center"
             justifyContent="center"
-            height={{ min: "142px" }}
+            height={{ min: 36 }}
+            data-testid="custom-period-card"
           >
             <TextSmall>Custom</TextSmall>
             <Tooltip content="Add a custom time period for comparison - Choose any specific date range to compare with the current view">
-              <Button tiny label="Select a timeframe" onClick={() => setShowCustomForm(true)} />
+              <Button label="Select a timeframe" onClick={() => setShowCustomForm(true)} />
             </Tooltip>
           </Flex>
         ) : (

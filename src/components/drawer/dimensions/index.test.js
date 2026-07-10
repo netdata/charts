@@ -6,43 +6,22 @@ import systemLoadLine from "../../../../fixtures/systemLoadLine"
 import Dimensions from "./index"
 
 describe("Dimensions", () => {
-  const mockData = [
-    [1617946860000, 25, 50, 75],
-    [1617946920000, 30, 55, 70],
-    [1617946980000, 20, 45, 80],
-    [1617947040000, 35, 60, 65],
-  ]
-
-  beforeEach(() => {
-    jest.clearAllMocks()
-  })
-
   it("renders dimensions table with window period by default", () => {
-    const { chart } = renderWithChart(<Dimensions />)
-
-    jest.spyOn(chart, "getPayload").mockReturnValue({ data: mockData })
-    jest.spyOn(chart, "getDimensionIds").mockReturnValue(["dim1", "dim2"])
+    renderWithChart(<Dimensions />)
 
     expect(screen.getByText("Window points")).toBeInTheDocument()
   })
 
   it("shows selected area header when selectedArea tab is active", () => {
-    const { chart } = renderWithChart(<Dimensions />, {
+    renderWithChart(<Dimensions />, {
       attributes: { drawer: { tab: "selectedArea" } },
     })
-
-    jest.spyOn(chart, "getPayload").mockReturnValue({ data: mockData })
-    jest.spyOn(chart, "getDimensionIds").mockReturnValue(["dim1", "dim2"])
 
     expect(screen.getByText("Selected area points")).toBeInTheDocument()
   })
 
   it("renders table with dimension data", () => {
-    const { chart } = renderWithChart(<Dimensions />)
-
-    jest.spyOn(chart, "getPayload").mockReturnValue({ data: mockData })
-    jest.spyOn(chart, "getDimensionIds").mockReturnValue(["cpu", "memory"])
-    jest.spyOn(chart, "getDimensionName").mockImplementation(id => id)
+    renderWithChart(<Dimensions />)
 
     expect(screen.getByText("Name")).toBeInTheDocument()
     expect(screen.getByText("Min")).toBeInTheDocument()
@@ -55,10 +34,10 @@ describe("Dimensions", () => {
 
     const container = screen.getByTestId("chart-values-table-container")
 
-    expect(container).toHaveAttribute("height", "100%")
     expect(container).toHaveStyle({
       flexDirection: "column",
-      minHeight: "0",
+      height: "100%",
+      minHeight: "0px",
       overflow: "hidden",
     })
   })

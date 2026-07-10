@@ -13,7 +13,7 @@ const ChangeIndicator = ({ change }) => {
   const arrow = change.direction === "neutral" ? "=" : change.direction === "up" ? "↑" : "↓"
 
   return (
-    <Flex alignItems="center" gap={0.5}>
+    <Flex alignItems="center" gap={1}>
       <TextMicro color={color} whiteSpace="nowrap">
         {change.formatted} {arrow}
       </TextMicro>

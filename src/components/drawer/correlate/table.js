@@ -96,9 +96,8 @@ const CorrelationTable = ({ data }) => {
     <Flex
       flex
       column
-      height="100%"
+      height={{ min: "0px", base: "100%" }}
       overflow="hidden"
-      style={{ minHeight: 0 }}
       ref={containerRef}
     >
       <Table
@@ -106,14 +105,12 @@ const CorrelationTable = ({ data }) => {
         title={`Found ${dimensionCount} correlated dimensions across ${contextCount} contexts`}
         headerChildren={
           <Button
-            tiny
             neutral
             disabled={searching}
             label={allExpanded ? "Collapse all" : "Expand all"}
             onClick={() => setExpanded(allExpanded ? {} : true)}
           />
         }
-        enableExpanding
         enableCustomSearch
         dataColumns={columns}
         data={displayData}

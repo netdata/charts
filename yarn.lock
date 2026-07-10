@@ -2938,10 +2938,10 @@
     "@emnapi/runtime" "^1.4.3"
     "@tybys/wasm-util" "^0.10.0"
 
-"@netdata/netdata-ui@^5.3.0":
-  version "5.3.0"
-  resolved "https://registry.yarnpkg.com/@netdata/netdata-ui/-/netdata-ui-5.3.0.tgz#246881171ac7a5a8661c58b53852d2f9e49ac881"
-  integrity sha512-N1xKahOSfdBBKCg4tI/wZQPCaJ+YlXrUREMmisxOEmQirxT3WaPnLUrTF0juiKja7ywi2/knqp0Z2YJNjze/Rg==
+"@netdata/netdata-ui@^5.4.17":
+  version "5.4.17"
+  resolved "https://registry.npmjs.org/@netdata/netdata-ui/-/netdata-ui-5.4.17.tgz#a6df61f8539530bffa10778e5f9216153600ec7d"
+  integrity sha512-qh15R+iGhEl7dsM+oUMalgzRqFZK5hAoao28Wa0Fto9fOwTZjz5F4VtbGDY6DraiY7lFawJ7JK0CkIorXqFLFg==
   dependencies:
     "@dnd-kit/core" "^6.3.1"
     "@dnd-kit/modifiers" "^9.0.0"

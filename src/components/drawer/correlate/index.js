@@ -8,7 +8,13 @@ const Correlate = () => {
   const { loading, error, data } = useData()
 
   return (
-    <Flex flex column gap={2} height="100%" overflow="hidden" style={{ minHeight: 0 }}>
+    <Flex
+      flex
+      column
+      gap={2}
+      height={{ min: "0px", base: "100%" }}
+      overflow="hidden"
+    >
       <Flex flex={false}>
         <Controls />
       </Flex>

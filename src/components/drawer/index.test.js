@@ -12,7 +12,7 @@ describe("Drawer", () => {
     })
 
     expect(screen.getByTestId("drawer-content")).toHaveStyle({
-      minHeight: "0",
+      minHeight: "0px",
       overflowY: "hidden",
     })
   })
@@ -23,7 +23,7 @@ describe("Drawer", () => {
     })
 
     expect(screen.getByTestId("drawer-content")).toHaveStyle({
-      minHeight: "0",
+      minHeight: "0px",
       overflowY: "hidden",
     })
   })
@@ -34,7 +34,7 @@ describe("Drawer", () => {
     })
 
     expect(screen.getByTestId("drawer-content")).toHaveStyle({
-      minHeight: "0",
+      minHeight: "0px",
       overflowY: "scroll",
     })
   })

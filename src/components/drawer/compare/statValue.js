@@ -3,9 +3,7 @@ import { Flex, Text, TextMicro, TextSmall } from "@netdata/netdata-ui"
 import { useConverted, useUnitSign, useValueUnitAttributes } from "@/components/provider"
 
 const getDisplayUnit = (unit, integrated) =>
-  integrated && typeof unit === "string" && unit.endsWith("/s")
-    ? unit.slice(0, -2)
-    : unit
+  integrated && typeof unit === "string" && unit.endsWith("/s") ? unit.slice(0, -2) : unit
 
 const StatValue = ({ value, valueKey, prominent, justifyContent }) => {
   const unitAttributes = useValueUnitAttributes(value, {
@@ -25,7 +23,7 @@ const StatValue = ({ value, valueKey, prominent, justifyContent }) => {
       alignItems="end"
       gap={1}
       justifyContent={justifyContent}
-      minWidth={0}
+      width={{ min: "0px" }}
       data-testid="comparison-stat-value"
     >
       <Value strong textAlign={justifyContent === "end" ? "right" : undefined} whiteSpace="nowrap">

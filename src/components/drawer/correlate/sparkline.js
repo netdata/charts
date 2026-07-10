@@ -70,15 +70,16 @@ const Sparkline = memo(({ dimension, dimensions }) => {
   const color = useMemo(() => dimensionColors[11][chart.getThemeIndex()], [chart, theme])
 
   return (
-    <Flex alignItems="center" gap={1} width="100%" minWidth={0}>
+    <Flex alignItems="center" gap={1} width={{ min: "0px", base: "100%" }}>
       <Flex
+        flex={false}
+        basis={`${valueWidth}px`}
         width={`${valueWidth}px`}
-        style={{ flex: `0 0 ${valueWidth}px` }}
         title={[formatted.value, formatted.unit].filter(Boolean).join(" ")}
       >
         <ValueUnitGrid value={formatted.value} unit={formatted.unit} strong />
       </Flex>
-      <Flex flex minWidth={0}>
+      <Flex flex width={{ min: "0px" }}>
         <SparklineCanvas values={series?.values || []} color={color} />
       </Flex>
     </Flex>

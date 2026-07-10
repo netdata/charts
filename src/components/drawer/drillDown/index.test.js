@@ -1,6 +1,7 @@
 import React from "react"
 import { screen, waitFor } from "@testing-library/react"
 import "@testing-library/jest-dom"
+import { Box } from "@netdata/netdata-ui"
 import { renderWithChart } from "@jest/testUtilities"
 import DrillDown from "./index"
 
@@ -60,9 +61,9 @@ const makeSearchWeightsResponse = () => ({
 describe("DrillDown", () => {
   it("keeps a 6,000-row expanded hierarchy inside a virtualized table viewport", async () => {
     const { chart, user } = renderWithChart(
-      <div style={{ height: 400 }}>
+      <Box height={100}>
         <DrillDown />
-      </div>,
+      </Box>,
       {
         attributes: {
           drawer: { action: "compare", tab: "window" },
@@ -82,8 +83,7 @@ describe("DrillDown", () => {
     )
 
     const container = screen.getByTestId("chart-drilldown-table-container")
-    expect(container).toHaveAttribute("height", "100%")
-    expect(container).toHaveStyle({ minHeight: "0", overflow: "hidden" })
+    expect(container).toHaveStyle({ height: "100%", minHeight: "0px", overflow: "hidden" })
 
     await user.click(screen.getAllByText("instances")[0])
 
@@ -97,9 +97,9 @@ describe("DrillDown", () => {
   it("searches hierarchy labels, reveals matching descendants, and ignores measurements", async () => {
     const originalExpanded = { "other-node": true }
     const { chart, user } = renderWithChart(
-      <div style={{ height: 400 }}>
+      <Box height={100}>
         <DrillDown />
-      </div>,
+      </Box>,
       {
         attributes: {
           drawer: { action: "compare", tab: "window" },

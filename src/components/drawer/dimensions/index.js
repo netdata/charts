@@ -132,9 +132,8 @@ const Dimensions = () => {
       flex
       column
       gap={2}
-      height="100%"
+      height={{ min: "0px", base: "100%" }}
       overflow="hidden"
-      style={{ minHeight: 0 }}
       data-testid="chart-values-table-container"
     >
       <Table

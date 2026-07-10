@@ -20,7 +20,6 @@ const SelectedAreaButton = ({ chart, selected }) => {
   return (
     <Tooltip content={range ? "Selected Area - Analyze data for the highlighted time range" : "Select an area on the chart to enable this option"}>
       <Button
-        tiny
         neutral={!selected}
         label="Selected area"
         disabled={!range}
@@ -42,7 +41,6 @@ const Header = rest => {
         <Flex gap={1} flexWrap>
           <Tooltip content="Compare - Compare current data with different time periods or baselines">
             <Button
-              tiny
               neutral={actions.compare !== action}
               icon="weights_compare"
               label="Compare"
@@ -51,7 +49,6 @@ const Header = rest => {
           </Tooltip>
           <Tooltip content="Chart Values - View dimension values, statistics, and time ranges">
             <Button
-              tiny
               neutral={actions.values !== action}
               icon="line_chart"
               label="Values"
@@ -60,7 +57,6 @@ const Header = rest => {
           </Tooltip>
           <Tooltip content="Drill Down - Explore related metrics and child contexts using weights analysis">
             <Button
-              tiny
               neutral={actions.drillDown !== action}
               icon="weights_drill_down"
               label="Drill Down"
@@ -69,7 +65,6 @@ const Header = rest => {
           </Tooltip>
           <Tooltip content="Correlate - Find metrics that correlate with the current chart's behavior">
             <Button
-              tiny
               neutral={actions.correlate !== action}
               icon="correlation_inv"
               label="Correlate"
@@ -80,7 +75,6 @@ const Header = rest => {
         <Flex gap={1}>
           <Tooltip content="Window - Analyze data for the entire visible time window">
             <Button
-              tiny
               neutral={tabs.window !== tab}
               label="Window"
               onClick={() => chart.updateAttribute("drawer.tab", tabs.window)}
@@ -88,7 +82,6 @@ const Header = rest => {
           </Tooltip>
           <SelectedAreaButton chart={chart} selected={tabs.selectedArea === tab} />
           {/*<Button
-            tiny
             neutral={tabs.point !== tab}
             label="Point"
             disabled
