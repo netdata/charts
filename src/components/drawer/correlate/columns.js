@@ -91,12 +91,12 @@ export const correlationColumn = () => ({
     const weight = getValue()
 
     return (
-      <Flex column alignItems="end" gap={0.5} width="100%">
-        <ValueUnitGrid value={formatWeight(weight)} unit="%" color={getWeightColor(weight)} />
-        {item.kind === "dimension" && (
-          <TextMicro color="textDescription">{item.correlationStrength}</TextMicro>
-        )}
-      </Flex>
+      <ValueUnitGrid
+        value={formatWeight(weight)}
+        unit="%"
+        detail={item.kind === "dimension" ? item.correlationStrength : undefined}
+        color={getWeightColor(weight)}
+      />
     )
   },
   sortingFn: "basic",

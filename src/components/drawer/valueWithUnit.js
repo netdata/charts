@@ -26,7 +26,14 @@ const HeaderLabel = styled(TextMicro)`
   text-align: center;
 `
 
-export const ValueUnitGrid = ({ value, unit, color = "text", strong }) => (
+const ValueDetail = styled(TextMicro)`
+  grid-column: 1;
+  grid-row: 2;
+  margin-top: 2px;
+  text-align: right;
+`
+
+export const ValueUnitGrid = ({ value, unit, detail, color = "text", strong }) => (
   <Container data-testid="drawer-value-unit-grid">
     <TextSmall color={color} strong={strong} textAlign="right" whiteSpace="nowrap">
       {value}
@@ -38,6 +45,11 @@ export const ValueUnitGrid = ({ value, unit, color = "text", strong }) => (
         </TextMicro>
       )}
     </UnitCell>
+    {detail && (
+      <ValueDetail data-testid="drawer-value-unit-detail" color="textDescription">
+        {detail}
+      </ValueDetail>
+    )}
   </Container>
 )
 

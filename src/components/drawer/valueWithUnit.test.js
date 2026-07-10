@@ -2,7 +2,7 @@ import React from "react"
 import { screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { makeTestChart, renderWithChart } from "@jest/testUtilities"
-import ValueWithUnit, { ValueUnitHeader } from "./valueWithUnit"
+import ValueWithUnit, { ValueUnitGrid, ValueUnitHeader } from "./valueWithUnit"
 
 describe("ValueWithUnit", () => {
   it("renders one header for the value and unit subcolumns", () => {
@@ -54,5 +54,16 @@ describe("ValueWithUnit", () => {
 
     expect(screen.getByTestId("drawer-value-unit-grid")).toHaveTextContent("25.40%")
     expect(screen.getByTestId("drawer-value-unit-cell")).toHaveTextContent("%")
+  })
+
+  it("renders details beneath the value subcolumn", () => {
+    renderWithChart(<ValueUnitGrid value="99.5" unit="%" detail="Strong" />)
+
+    const grid = screen.getByTestId("drawer-value-unit-grid")
+    const detail = screen.getByTestId("drawer-value-unit-detail")
+
+    expect(grid).toContainElement(detail)
+    expect(grid).toHaveStyle("grid-template-columns: minmax(0,1fr) 44px")
+    expect(detail).toHaveTextContent("Strong")
   })
 })
