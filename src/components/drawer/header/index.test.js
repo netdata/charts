@@ -25,4 +25,18 @@ describe("Drawer Header", () => {
 
     expect(chart.getAttribute("drawer.action")).toBe(actions.correlate)
   })
+
+  it("uses the public metrics icon and toggles advanced statistics", async () => {
+    const { chart, user } = renderWithChart(<Header />)
+    const button = screen.getByTestId("drawer-header-advanced-stats")
+
+    expect(button.querySelector(".button-icon")).toHaveStyle({
+      height: "16px",
+      width: "16px",
+    })
+
+    await user.click(button)
+
+    expect(chart.getAttribute("drawer.showAdvancedStats")).toBe(true)
+  })
 })

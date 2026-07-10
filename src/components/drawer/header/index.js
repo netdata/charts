@@ -1,10 +1,8 @@
 import React from "react"
-import { Flex, Button } from "@netdata/netdata-ui"
-import Icon, { Button as IconButton } from "@/components/icon"
+import { Flex, Button, IconButton } from "@netdata/netdata-ui"
 import Tooltip from "@/components/tooltip"
 import { useChart, useAttributeValue } from "@/components/provider"
 import { actions, tabs } from "../constants"
-import metricsIcon from "@netdata/netdata-ui/dist/components/icon/assets/metrics.svg"
 
 const supportsAdvancedStats = {
   values: true,
@@ -92,8 +90,14 @@ const Header = rest => {
       {supportsAdvancedStats[action] && (
         <Flex>
           <IconButton
-            icon={<Icon svg={metricsIcon} size="16px" />}
-            title={showAdvancedStats ? "Hide advanced statistics - Click to show only basic stats" : "Show advanced statistics - Click to display detailed metrics including min, max, avg, and more"}
+            icon="metrics"
+            width="16px"
+            height="16px"
+            tooltip={
+              showAdvancedStats
+                ? "Hide advanced statistics - Click to show only basic stats"
+                : "Show advanced statistics - Click to display detailed metrics including min, max, avg, and more"
+            }
             active={showAdvancedStats}
             onClick={() => chart.updateAttribute("drawer.showAdvancedStats", !showAdvancedStats)}
             data-testid="drawer-header-advanced-stats"

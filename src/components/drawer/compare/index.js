@@ -1,11 +1,16 @@
 import React, { useState } from "react"
-import { Flex, TextSmall, TextMicro, Button, getSizeBy } from "@netdata/netdata-ui"
+import {
+  Flex,
+  TextSmall,
+  TextMicro,
+  Button,
+  IconButton,
+  getSizeBy,
+} from "@netdata/netdata-ui"
 import styled from "styled-components"
 import Tooltip from "@/components/tooltip"
-import Icon, { Button as IconButton } from "@/components/icon"
 import useData from "./useData"
 import { useChart, useAttributeValue } from "@/components/provider"
-import pencilIcon from "@netdata/netdata-ui/dist/components/icon/assets/pencil_outline.svg"
 import ChangeIndicator from "./changeIndicator"
 import CustomPeriodForm from "./customPeriodForm"
 import StatValue from "./statValue"
@@ -92,19 +97,22 @@ const ComparisonCard = ({ period, showAdvanced, showVolume, tab }) => {
 
   return (
     <Flex column gap={2} padding={[3]} border="all" round>
-      <Tooltip content={dateRange}>
-        <Flex alignItems="center" gap={1} justifyContent="between">
+      <Flex alignItems="center" gap={1} justifyContent="between">
+        <Tooltip content={dateRange}>
           <TextSmall strong>{period.label}</TextSmall>
-          {!period.isBase && (
-            <IconButton
-              icon={<Icon svg={pencilIcon} size="12px" />}
-              onClick={() => setShowEditForm(true)}
-              data-testid="period-edit"
-              data-track={chart.track("period-edit")}
-            />
-          )}
-        </Flex>
-      </Tooltip>
+        </Tooltip>
+        {!period.isBase && (
+          <IconButton
+            icon="pencilOutline"
+            width="12px"
+            height="12px"
+            tooltip="Edit comparison period"
+            onClick={() => setShowEditForm(true)}
+            data-testid="period-edit"
+            data-track={chart.track("period-edit")}
+          />
+        )}
+      </Flex>
 
       {!hasData ? (
         <Flex column gap={1}>
