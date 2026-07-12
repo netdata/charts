@@ -132,7 +132,7 @@ const makePayload = ({ title, unit, dimensions, chartType = "line" }) => {
     totals: {},
     functions: [],
     result: {
-      labels: ["time", ...ids],
+      labels: ["time", ...names],
       point: { value: 0, arp: 1, pa: 2 },
       data: rows,
     },
@@ -172,17 +172,17 @@ const makePayload = ({ title, unit, dimensions, chartType = "line" }) => {
 
 const makeSignedRateDimensions = () => [
   {
-    id: "positive traffic",
+    id: "traffic_positive",
     name: "positive traffic",
     values: makeWave({ center: 1.8e6, amplitude: 650000, phase: 0.2 }),
   },
   {
-    id: "negative traffic",
+    id: "traffic_negative",
     name: "negative traffic",
     values: makeWave({ center: -1.5e6, amplitude: 720000, phase: 1.4 }),
   },
   {
-    id: "crossing zero",
+    id: "traffic_crossing_zero",
     name: "crossing zero",
     values: makeWave({ center: 0, amplitude: 480000, cycles: 3.4, phase: 0.7 }),
   },

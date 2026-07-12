@@ -6,11 +6,13 @@ import {
   makeDivergingStackedDataHandler,
 } from "./divergingStack"
 
-const loadStackedPayload = async (chart, ids, rows) => {
+const loadStackedPayload = async (chart, ids, rows, labels = ids) => {
   const payload = makeHeatmapPayload(ids, rows)
 
   payload.view.chart_type = "stacked"
   payload.view.dimensions.grouped_by = []
+  payload.view.dimensions.names = labels
+  payload.result.labels = ["time", ...labels]
 
   chart.doneFetch(payload)
   await new Promise(resolve => setTimeout(resolve, 0))
@@ -51,7 +53,7 @@ describe("diverging stacked data handler", () => {
     document.body.innerHTML = ""
   })
 
-  const createChart = async (ids, rows, attributes = {}) => {
+  const createChart = async (ids, rows, attributes = {}, labels = ids) => {
     const { chart } = makeTestChart({
       attributes: {
         chartType: "stacked",
@@ -61,7 +63,7 @@ describe("diverging stacked data handler", () => {
       },
     })
 
-    await loadStackedPayload(chart, ids, rows)
+    await loadStackedPayload(chart, ids, rows, labels)
 
     const dygraph = makeDygraph(chart)
     dygraphs.push(dygraph)
@@ -116,6 +118,28 @@ describe("diverging stacked data handler", () => {
     expect(getDivergingStackBounds(points[1][0])).toEqual({ base: -7, end: -9 })
   })
 
+  it("maps display labels to dimension ids by column", async () => {
+    const ids = ['{"PROTOCOL":"6"}', '{"PROTOCOL":"17"}']
+    const labels = ["Protocol=TCP", "Protocol=UDP"]
+    const { dygraph } = await createChart(ids, [[2, 4]], {}, labels)
+    const { points } = gather(dygraph)
+
+    expect(getDivergingStackBounds(points[2][0])).toEqual({ base: 0, end: 4 })
+    expect(getDivergingStackBounds(points[1][0])).toEqual({ base: 4, end: 6 })
+  })
+
+  it("maps a tile sparkline label to its synthetic dimension", async () => {
+    const { dygraph } = await createChart(
+      ["source dimension"],
+      [[5]],
+      { sparkline: true },
+      ["selected"]
+    )
+    const { points } = gather(dygraph)
+
+    expect(getDivergingStackBounds(points[1][0])).toEqual({ base: 0, end: 5 })
+  })
+
   it("leaves null values as gaps without changing adjacent stack totals", async () => {
     const { dygraph } = await createChart(["top", "gap", "bottom"], [[2, null, 4]])
     const { points } = gather(dygraph)
@@ -126,20 +150,16 @@ describe("diverging stacked data handler", () => {
   })
 
   it("rebases a selected dimension at zero", async () => {
-    const { chart } = makeTestChart({
-      attributes: {
-        chartType: "stacked",
-        groupBy: [],
-        selectedLegendDimensions: [],
-      },
-    })
-
-    await loadStackedPayload(chart, ["top", "middle", "bottom"], [[2, 3, 4]])
+    const ids = ["top-id", "middle-id", "bottom-id"]
+    const labels = ["top", "middle", "bottom"]
+    const { chart, dygraph } = await createChart(ids, [[2, 3, 4]], {}, labels)
     chart.updateAttribute("selectedLegendDimensions", ["middle"])
     await new Promise(resolve => setTimeout(resolve, 0))
 
-    const dygraph = makeDygraph(chart)
-    dygraphs.push(dygraph)
+    dygraph.updateOptions({
+      visibility: [...ids.map(chart.isDimensionVisible), true, true],
+      dataHandler: makeDivergingStackedDataHandler(chart),
+    })
 
     const { points } = gather(dygraph)
     expect(points[1]).toBeUndefined()

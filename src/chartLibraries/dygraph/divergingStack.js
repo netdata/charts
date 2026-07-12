@@ -47,13 +47,18 @@ export const makeDivergingStackedDataHandler = chart => {
       super()
 
       const dimensionIds = chart.getPayloadDimensionIds()
+      const payloadLabels = chart.getPayload().labels || []
+      const series = dimensionIds.map((dimensionId, index) => ({
+        dimensionId,
+        name: payloadLabels[index + 1] ?? dimensionId,
+      }))
       const selectedDimensions = chart.getAttribute("selectedLegendDimensions")
-      const visibleDimensionIds = selectedDimensions?.length
-        ? dimensionIds.filter(chart.isDimensionVisible)
-        : dimensionIds
+      const visibleSeries = selectedDimensions?.length
+        ? series.filter(({ dimensionId }) => chart.isDimensionVisible(dimensionId))
+        : series
 
-      this.dimensionIds = new Set(dimensionIds)
-      this.firstStackedSeries = visibleDimensionIds[visibleDimensionIds.length - 1]
+      this.seriesNames = new Set(series.map(({ name }) => name))
+      this.firstStackedSeries = visibleSeries[visibleSeries.length - 1]?.name
       this.positiveStack = []
       this.negativeStack = []
       this.pendingExtremes = null
@@ -66,7 +71,7 @@ export const makeDivergingStackedDataHandler = chart => {
 
     seriesToPoints(series, setName, boundaryIdStart) {
       const points = super.seriesToPoints(series, setName, boundaryIdStart)
-      if (!this.dimensionIds.has(setName)) return points
+      if (!this.seriesNames.has(setName)) return points
 
       if (setName === this.firstStackedSeries) {
         this.positiveStack = []
