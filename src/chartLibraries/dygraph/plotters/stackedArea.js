@@ -3,7 +3,7 @@ import { getDivergingStackBounds } from "../divergingStack"
 
 const maxPointsPerPixel = 6
 
-const getPointX = point => point?.x ?? point?.canvasx
+const getPointX = point => (Number.isFinite(point?.canvasx) ? point.canvasx : point?.x)
 
 const getPointBounds = point => {
   if (Number.isFinite(point?.baseY) && Number.isFinite(point?.endY)) {

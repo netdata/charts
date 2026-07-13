@@ -57,6 +57,7 @@ describe("stacked area plotter", () => {
     )
 
     expect(selectedIndexes.length).toBeGreaterThanOrEqual(width + 1)
+    expect(selectedIndexes.length).toBeLessThanOrEqual((width + 1) * 6)
     expect(selectedPixels.size).toBe(width + 1)
   })
 
