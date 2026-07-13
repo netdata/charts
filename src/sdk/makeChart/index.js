@@ -8,7 +8,7 @@ import { fetchChartData } from "./api"
 import makeDimensions from "./makeDimensions"
 import makeFilterControllers from "./filters/makeControllers"
 import makeDataFetch from "./makeDataFetch"
-import makeGetUnitSign, { makeGetUnitAttributesForValue } from "./makeGetUnitSign"
+import makeGetUnitSign from "./makeGetUnitSign"
 import getAggregateMethod from "./filters/getAggregateMethod"
 
 const themeIndex = {
@@ -253,7 +253,6 @@ export default ({
   makeDataFetch(node, sdk)
 
   node.type = "chart"
-  makeGetUnitAttributesForValue(node)
   makeGetUnitSign(node)
 
   node.track = makeTrack(node)

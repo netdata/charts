@@ -8,6 +8,7 @@ import {
   withoutPrefix,
 } from "@/helpers/heatmap"
 import { detectHeatmapScale, formatHeatmapLabel, sortHeatmapValues } from "@/helpers/heatmapScale"
+import { getConversionAttributes } from "@/helpers/unitConversion/getConversionUnits"
 import groupBy from "lodash/groupBy"
 import isEmpty from "lodash/isEmpty"
 import { getPointValue } from "./getPointValue"
@@ -402,6 +403,20 @@ export default (chart, sdk) => {
     const unit = chart.getAttribute(key)[unitIndex]
 
     return { method, fractionDigits, base, prefix, divider, unit }
+  }
+
+  chart.getUnitAttributesForValue = (
+    value,
+    { dimensionId, key = "units", min = value, max = value } = {}
+  ) => {
+    const units = chart.getAttribute(key)
+    const unit = dimensionId
+      ? chart.getDimensionUnit(dimensionId)
+      : Array.isArray(units)
+        ? units[0]
+        : units
+
+    return getConversionAttributes(chart, unit, { min, max })
   }
 
   chart.getDimensionGroups = () => {

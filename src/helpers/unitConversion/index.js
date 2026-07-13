@@ -83,8 +83,7 @@ export default chart => {
     const dimMinMax = result?.byDimension
       ? chart.getVisibleDimensionIds().reduce(
           (h, d) => {
-            const dname = chart.getDimensionName(d)
-            const dimSts = result.byDimension[d] || result.byDimension[dname]
+            const dimSts = getDimensionStats(chart, result, d)
 
             if (dimSts && dimSts.min <= h.min) h.min = dimSts.min
             if (dimSts && dimSts.max >= h.max) h.max = dimSts.max
