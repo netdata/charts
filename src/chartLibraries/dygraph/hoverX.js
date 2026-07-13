@@ -1,5 +1,6 @@
 import getOffsets from "@/helpers/eventOffset"
 import { isHeatmap } from "@/helpers/heatmap"
+import { findDivergingStackedPoint } from "./divergingStack"
 
 const shouldFindMaxValue = {
   stacked: true,
@@ -45,20 +46,11 @@ export default chartUI => {
     }
 
     if (shouldFindMaxValue[chartUI.chart.getAttribute("chartType")]) {
-      let closestPoint = _dygraph.findStackedPoint(offsetX, offsetY)
+      const closestPoint = findDivergingStackedPoint(points, offsetY, value =>
+        _dygraph.toDomYCoord(value)
+      )
 
-      if (closestPoint.point?.canvasy > offsetY) {
-        closestPoint = points.reduce((max, p) => (p.yval > max.yval ? p : max), {
-          yval: -Infinity,
-        })
-
-        closestPoint = {
-          point: closestPoint,
-          row: closestPoint.idx,
-          seriesName: closestPoint.name,
-        }
-      }
-      return closestPoint
+      return closestPoint.seriesName ? closestPoint : _dygraph.findClosestPoint(offsetX, offsetY)
     }
 
     return _dygraph.findClosestPoint(offsetX, offsetY)
