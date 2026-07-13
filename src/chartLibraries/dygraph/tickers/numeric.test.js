@@ -155,16 +155,24 @@ describe("numericTicker", () => {
       units: [""],
     })
 
+    const dataTicks = ticks.filter(tick => tick.v !== undefined && !tick.label_v).map(t => t.v)
+    expect(dataTicks).toEqual([
+      5.12000001,
+      5.12000002,
+      5.12000003,
+      5.12000004,
+      5.12000005,
+      5.12000006,
+      5.12000007,
+      5.12000008,
+      5.12000009,
+    ])
     expect(mockFormatter).toHaveBeenCalledWith(
-      expect.any(Number),
-      expect.any(Number),
+      5.12000001,
+      9.99999993922529e-9,
       mockOpts,
       mockDygraph
     )
-
-    const dataTicks = ticks.filter(tick => tick.v !== undefined && !tick.label_v).map(t => t.v)
-    expect(dataTicks.length).toBeGreaterThan(1)
-    expect(dataTicks[1] - dataTicks[0]).toBeGreaterThan(0)
   })
 
   it("includes anomaly SVG in first tick", () => {
