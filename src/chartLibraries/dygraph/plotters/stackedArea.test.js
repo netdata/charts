@@ -6,6 +6,17 @@ const makePoint = (index, count, width) => ({
   endY: index % 47,
 })
 
+const interpolateBoundary = (points, x, key) => {
+  const rightIndex = points.findIndex(point => point.x >= x)
+  const right = points[rightIndex]
+  if (right.x === x) return right[key]
+
+  const left = points[rightIndex - 1]
+  const progress = (x - left.x) / (right.x - left.x)
+
+  return left[key] + (right[key] - left[key]) * progress
+}
+
 describe("stacked area plotter", () => {
   it("provides fill and line plotter functions to Dygraphs", () => {
     const plotters = makeStackedAreaPlotter()
@@ -50,5 +61,29 @@ describe("stacked area plotter", () => {
 
     expect(gap).toBeGreaterThan(0)
     expect(gap).toBeLessThan(reduced.length - 1)
+  })
+
+  it("keeps adjacent series on the same shared boundary after reduction", () => {
+    const xValues = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07]
+    const sharedBoundary = [0, 30, 45, 60, 120, 100, 80]
+    const lowerBase = [0, 10, 20, 100, 40, 50, 60]
+    const upperEnd = [50, -100, 60, 70, 80, 200, 90]
+    const lower = xValues.map((x, index) => ({
+      x,
+      baseY: lowerBase[index],
+      endY: sharedBoundary[index],
+    }))
+    const upper = xValues.map((x, index) => ({
+      x,
+      baseY: sharedBoundary[index],
+      endY: upperEnd[index],
+    }))
+
+    const reducedLower = reduceStackedAreaPoints(lower, 1)
+    const reducedUpper = reduceStackedAreaPoints(upper, 1)
+    const x = xValues[3]
+
+    expect(interpolateBoundary(reducedLower, x, "endY")).toBe(60)
+    expect(interpolateBoundary(reducedUpper, x, "baseY")).toBe(60)
   })
 })
