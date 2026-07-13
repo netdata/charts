@@ -41,6 +41,25 @@ describe("stacked area plotter", () => {
     expect(reduced[reduced.length - 1]).toBe(points[points.length - 1])
   })
 
+  it("uses pixel coordinates when Dygraph points include normalized and canvas x values", () => {
+    const width = 800
+    const count = 86400
+    const points = Array.from({ length: count }, (_, index) => ({
+      x: index / (count - 1),
+      canvasx: (index / (count - 1)) * width,
+      baseY: index % 31,
+      endY: index % 47,
+    }))
+
+    const selectedIndexes = selectStackedAreaPointIndexes([points], width)
+    const selectedPixels = new Set(
+      selectedIndexes.map(index => Math.round(points[index].canvasx))
+    )
+
+    expect(selectedIndexes.length).toBeGreaterThanOrEqual(width + 1)
+    expect(selectedPixels.size).toBe(width + 1)
+  })
+
   it("keeps the canvas-width bound independent of the number of stacked series", () => {
     const width = 100
     const count = 10000
