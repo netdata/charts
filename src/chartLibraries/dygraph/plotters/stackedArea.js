@@ -1,117 +1,183 @@
 import Dygraph from "dygraphs"
 import { getDivergingStackBounds } from "../divergingStack"
 
-const appendBucket = (target, bucket) => {
+const maxPointsPerPixel = 6
+
+const getPointX = point => point?.x ?? point?.canvasx
+
+const getPointBounds = point => {
+  if (Number.isFinite(point?.baseY) && Number.isFinite(point?.endY)) {
+    return { base: point.baseY, end: point.endY }
+  }
+
+  return getDivergingStackBounds(point)
+}
+
+const getPointDeviation = (seriesPoints, referencePoints, index, firstIndex, lastIndex) => {
+  const firstX = getPointX(referencePoints[firstIndex])
+  const lastX = getPointX(referencePoints[lastIndex])
+  const currentX = getPointX(referencePoints[index])
+  const indexProgress = (index - firstIndex) / (lastIndex - firstIndex)
+  const hasXProgress = [firstX, currentX, lastX].every(Number.isFinite) && lastX !== firstX
+  const progress = hasXProgress ? (currentX - firstX) / (lastX - firstX) : indexProgress
+  let deviation = 0
+
+  seriesPoints.forEach(points => {
+    const first = getPointBounds(points[firstIndex])
+    const current = getPointBounds(points[index])
+    const last = getPointBounds(points[lastIndex])
+
+    if (!first || !current || !last) {
+      deviation = Infinity
+      return
+    }
+
+    const expectedBase = first.base + (last.base - first.base) * progress
+    const expectedEnd = first.end + (last.end - first.end) * progress
+
+    deviation = Math.max(
+      deviation,
+      Math.abs(current.base - expectedBase),
+      Math.abs(current.end - expectedEnd)
+    )
+  })
+
+  return deviation
+}
+
+const appendBucket = (target, bucket, seriesPoints, referencePoints) => {
   if (!bucket.length) return
-  if (bucket.length <= 6) {
+  if (bucket.length <= maxPointsPerPixel) {
     target.push(...bucket)
     return
   }
 
   const indexes = new Set([0, bucket.length - 1])
-  const boundaryKeys = ["baseY", "endY"]
+  const firstIndex = bucket[0]
+  const lastIndex = bucket[bucket.length - 1]
+  const candidates = bucket.slice(1, -1).map((index, bucketIndex) => ({
+    bucketIndex: bucketIndex + 1,
+    deviation: getPointDeviation(seriesPoints, referencePoints, index, firstIndex, lastIndex),
+  }))
 
-  boundaryKeys.forEach(key => {
-    let minIndex = 0
-    let maxIndex = 0
-
-    for (let index = 1; index < bucket.length; index++) {
-      if (bucket[index][key] < bucket[minIndex][key]) minIndex = index
-      if (bucket[index][key] > bucket[maxIndex][key]) maxIndex = index
-    }
-
-    indexes.add(minIndex)
-    indexes.add(maxIndex)
-  })
+  candidates
+    .sort((a, b) => b.deviation - a.deviation || a.bucketIndex - b.bucketIndex)
+    .slice(0, maxPointsPerPixel - indexes.size)
+    .forEach(({ bucketIndex }) => indexes.add(bucketIndex))
 
   Array.from(indexes)
     .sort((a, b) => a - b)
-    .forEach(index => target.push(bucket[index]))
+    .forEach(bucketIndex => target.push(bucket[bucketIndex]))
 }
 
-export const reduceStackedAreaPoints = (points, width) => {
-  if (!Number.isFinite(width) || width <= 0 || points.length <= width * 2) return points
+export const selectStackedAreaPointIndexes = (seriesPoints, width) => {
+  const stackedSeriesPoints = seriesPoints.filter(points => points?.some(getPointBounds))
+  if (!stackedSeriesPoints.length) return null
 
-  const reduced = []
+  const referencePoints = stackedSeriesPoints.reduce((longest, points) =>
+    points.length > longest.length ? points : longest
+  )
+  const pointCount = referencePoints.length
+  if (!Number.isFinite(width) || width <= 0 || pointCount <= width * 2) return null
+
+  const selected = []
   let bucket = []
   let pixel = null
 
-  points.forEach(point => {
-    if (!point || !Number.isFinite(point.x)) {
-      appendBucket(reduced, bucket)
+  for (let index = 0; index < pointCount; index++) {
+    const point = referencePoints[index]
+    const x = getPointX(point)
+
+    if (!Number.isFinite(x)) {
+      appendBucket(selected, bucket, stackedSeriesPoints, referencePoints)
       bucket = []
       pixel = null
-      if (reduced[reduced.length - 1] !== null) reduced.push(null)
-      return
+      selected.push(index)
+      continue
     }
 
-    const nextPixel = Math.round(point.x)
+    const nextPixel = Math.round(x)
     if (pixel !== null && nextPixel !== pixel) {
-      appendBucket(reduced, bucket)
+      appendBucket(selected, bucket, stackedSeriesPoints, referencePoints)
       bucket = []
     }
 
     pixel = nextPixel
-    bucket.push(point)
-  })
+    bucket.push(index)
+  }
 
-  appendBucket(reduced, bucket)
-  if (reduced[reduced.length - 1] === null) reduced.pop()
+  appendBucket(selected, bucket, stackedSeriesPoints, referencePoints)
 
-  return reduced
+  return selected
 }
 
-const makeFillPlotter = () => plotter => {
-  const { drawingContext: ctx, dygraph, points, plotArea, setName } = plotter
-  const stepPlot = dygraph.getBooleanOption("stepPlot", setName)
+export const reduceStackedAreaPoints = (points, selectedIndexes) =>
+  selectedIndexes ? selectedIndexes.map(index => points[index] ?? null) : points
 
-  ctx.fillStyle = plotter.color
-  ctx.globalAlpha = dygraph.getNumericOption("fillAlpha", setName)
-  ctx.beginPath()
+const makeFillPlotter = () => {
+  let cachedSeriesPoints
+  let cachedWidth
+  let selectedIndexes
 
-  const renderPoints = points.map(point => {
-    const bounds = getDivergingStackBounds(point)
-    if (!bounds) return null
+  return plotter => {
+    const { drawingContext: ctx, dygraph, points, plotArea, seriesIndex, setName } = plotter
+    const allSeriesPoints = plotter.allSeriesPoints || [points]
+    const stepPlot = dygraph.getBooleanOption("stepPlot", setName)
 
-    const baseY = dygraph.toDomYCoord(bounds.base)
-    const endY = dygraph.toDomYCoord(bounds.end)
-    if (!Number.isFinite(point.canvasx) || !Number.isFinite(baseY) || !Number.isFinite(endY))
-      return null
-
-    return {
-      x: point.canvasx,
-      baseY,
-      endY,
-    }
-  })
-
-  let previous
-
-  reduceStackedAreaPoints(renderPoints, plotArea.w).forEach(current => {
-    if (!current) {
-      previous = null
-      return
+    if (seriesIndex === 0 || cachedSeriesPoints !== allSeriesPoints || cachedWidth !== plotArea.w) {
+      cachedSeriesPoints = allSeriesPoints
+      cachedWidth = plotArea.w
+      selectedIndexes = selectStackedAreaPointIndexes(allSeriesPoints, plotArea.w)
     }
 
-    if (previous) {
-      ctx.moveTo(previous.x, previous.endY)
+    ctx.fillStyle = plotter.color
+    ctx.globalAlpha = dygraph.getNumericOption("fillAlpha", setName)
+    ctx.beginPath()
 
-      if (stepPlot) {
-        ctx.lineTo(current.x, previous.endY)
-        ctx.lineTo(current.x, current.endY)
-      } else {
-        ctx.lineTo(current.x, current.endY)
+    const renderPoints = reduceStackedAreaPoints(points, selectedIndexes).map(point => {
+      const bounds = getDivergingStackBounds(point)
+      if (!bounds) return null
+
+      const baseY = dygraph.toDomYCoord(bounds.base)
+      const endY = dygraph.toDomYCoord(bounds.end)
+      if (!Number.isFinite(point.canvasx) || !Number.isFinite(baseY) || !Number.isFinite(endY))
+        return null
+
+      return {
+        x: point.canvasx,
+        baseY,
+        endY,
+      }
+    })
+
+    let previous
+
+    renderPoints.forEach(current => {
+      if (!current) {
+        previous = null
+        return
       }
 
-      ctx.lineTo(current.x, current.baseY)
-      ctx.lineTo(previous.x, previous.baseY)
-      ctx.closePath()
-    }
+      if (previous) {
+        ctx.moveTo(previous.x, previous.endY)
 
-    previous = current
-  })
+        if (stepPlot) {
+          ctx.lineTo(current.x, previous.endY)
+          ctx.lineTo(current.x, current.endY)
+        } else {
+          ctx.lineTo(current.x, current.endY)
+        }
 
-  ctx.fill()
+        ctx.lineTo(current.x, current.baseY)
+        ctx.lineTo(previous.x, previous.baseY)
+        ctx.closePath()
+      }
+
+      previous = current
+    })
+
+    ctx.fill()
+  }
 }
 
 const makeLinePlotter = () => plotter => {

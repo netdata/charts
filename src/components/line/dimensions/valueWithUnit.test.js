@@ -44,7 +44,9 @@ describe("ValueWithUnit", () => {
     expect(units[0]).toHaveTextContent("B")
     expect(grids[1]).toHaveTextContent("1KiB")
     expect(units[1]).toHaveTextContent("KiB")
-    expect(grids[1]).toHaveStyle("grid-template-columns: minmax(0,1fr) 44px")
+    expect(grids[1]).toHaveStyle(
+      "grid-template-columns: minmax(auto,1fr) minmax(40px,max-content)"
+    )
     expect(units[1]).toHaveStyle({
       minWidth: "0px",
       padding: "0px 0px 0px 8px",
@@ -65,7 +67,9 @@ describe("ValueWithUnit", () => {
     const detail = screen.getByTestId("value-unit-detail")
 
     expect(grid).toContainElement(detail)
-    expect(grid).toHaveStyle("grid-template-columns: minmax(0,1fr) 44px")
+    expect(grid).toHaveStyle(
+      "grid-template-columns: minmax(auto,1fr) minmax(40px,max-content)"
+    )
     expect(detail).toHaveStyle({
       margin: "4px 0px 0px",
       textAlign: "right",
