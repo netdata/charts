@@ -3,11 +3,10 @@ import styled from "styled-components"
 import { Flex } from "@netdata/netdata-ui"
 import Color, { ColorBar } from "@/components/line/dimensions/color"
 import Name from "@/components/line/dimensions/name"
-import Units from "@/components/line/dimensions/units"
+import { Value as UnitValue } from "@/components/line/dimensions/units"
 import Value, { Value as ValuePart } from "@/components/line/dimensions/value"
 import {
-  useLatestDisplayValue,
-  useValueUnitAttributes,
+  useLatestDisplayValueWithUnit,
   useVisibleDimensionId,
 } from "@/components/provider"
 import { labels as annotationLabels } from "@/helpers/annotations"
@@ -64,27 +63,17 @@ const UnitCell = styled(Flex).attrs({
   box-sizing: border-box;
 `
 
-const ValueWithUnits = ({ id, visible, children, ...rest }) => {
+const ValueWithUnits = ({ id, visible, ...rest }) => {
   const isHeatmap = useIsHeatmap()
-  const value = useLatestDisplayValue(id, { allowNull: true })
-  const unitAttributes = useValueUnitAttributes(value, {
-    dimensionId: id,
-    scaleByValue: true,
-  })
+  const { convertedValue, convertedUnit } = useLatestDisplayValueWithUnit(id)
+
+  if (!visible) return null
 
   return (
     <>
-      <PlainValue {...rest}>{children}</PlainValue>
+      <PlainValue {...rest}>{convertedValue}</PlainValue>
       <UnitCell>
-        {!isHeatmap && (
-          <Units
-            visible={visible}
-            dimensionId={id}
-            value={value}
-            unitAttributes={unitAttributes}
-            scaleByValue
-          />
-        )}
+        {!isHeatmap && convertedUnit && <UnitValue>{convertedUnit}</UnitValue>}
       </UnitCell>
     </>
   )
@@ -131,12 +120,10 @@ const Dimension = ({ id, strong, rowFlavour }) => {
           color={strong ? "textFocus" : "text"}
         />
       </DimensionNameCell>
-      <Value
+      <ValueWithUnits
         id={id}
         strong={strong}
         visible={visible}
-        Component={props => <ValueWithUnits id={id} visible={visible} {...props} />}
-        scaleByValue
         color={rowFlavour === rowFlavours.default ? (strong ? "textFocus" : "text") : "textLite"}
       />
       <Value

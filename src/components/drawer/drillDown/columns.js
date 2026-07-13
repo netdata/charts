@@ -3,7 +3,7 @@ import { Flex, ProgressBar, TextSmall } from "@netdata/netdata-ui"
 import Color from "@/components/line/dimensions/color"
 import { useChart } from "@/components/provider"
 import Label from "@/components/filterToolbox/label"
-import ValueWithUnit, { ValueUnitHeader } from "@/components/drawer/valueWithUnit"
+import ValueWithUnit, { ValueUnitHeader } from "@/components/line/dimensions/valueWithUnit"
 
 const valueColumnSize = 144
 const valueColumnMinSize = 120

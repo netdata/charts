@@ -1,6 +1,6 @@
 import React from "react"
 import styled from "styled-components"
-import { Flex, TextMicro, TextSmall, getSizeBy } from "@netdata/netdata-ui"
+import { Flex, TextMicro, TextSmall } from "@netdata/netdata-ui"
 import { useValueWithUnit } from "@/components/provider"
 
 const Container = styled(Flex).attrs({
@@ -8,7 +8,7 @@ const Container = styled(Flex).attrs({
   width: "100%",
 })`
   display: grid;
-  grid-template-columns: minmax(0, 1fr) ${getSizeBy(5.5)};
+  grid-template-columns: minmax(auto, 1fr) minmax(40px, max-content);
 `
 
 const UnitCell = styled(Flex).attrs({
@@ -34,12 +34,19 @@ const ValueDetail = styled(TextMicro).attrs({
   grid-row: 2;
 `
 
-export const ValueUnitGrid = ({ value, unit, detail, color = "text", strong }) => (
-  <Container data-testid="drawer-value-unit-grid">
+export const ValueUnitGrid = ({
+  value,
+  unit,
+  detail,
+  color = "text",
+  strong,
+  testIdPrefix = "value-unit",
+}) => (
+  <Container data-testid={`${testIdPrefix}-grid`}>
     <TextSmall color={color} strong={strong} textAlign="right" whiteSpace="nowrap">
       {value}
     </TextSmall>
-    <UnitCell data-testid="drawer-value-unit-cell">
+    <UnitCell data-testid={`${testIdPrefix}-cell`}>
       {unit && (
         <TextMicro color="textDescription" whiteSpace="nowrap" truncate>
           {unit}
@@ -47,7 +54,7 @@ export const ValueUnitGrid = ({ value, unit, detail, color = "text", strong }) =
       )}
     </UnitCell>
     {detail && (
-      <ValueDetail data-testid="drawer-value-unit-detail" color="textDescription">
+      <ValueDetail data-testid={`${testIdPrefix}-detail`} color="textDescription">
         {detail}
       </ValueDetail>
     )}

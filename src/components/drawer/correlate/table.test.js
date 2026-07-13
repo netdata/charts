@@ -172,7 +172,7 @@ describe("CorrelationTable", () => {
     await user.type(search, "Target node")
 
     await waitFor(() => expect(screen.getByText("Target metric")).toBeInTheDocument())
-    expect(screen.getByTestId("drawer-value-unit-detail")).toHaveTextContent("Strong")
+    expect(screen.getByTestId("value-unit-detail")).toHaveTextContent("Strong")
     expect(screen.queryByText("Other metric")).not.toBeInTheDocument()
     expect(chart.getAttribute("correlate.expanded")).toEqual(originalExpanded)
 

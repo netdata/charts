@@ -1,8 +1,8 @@
 import React from "react"
-import styled from "styled-components"
-import { Flex, TextMicro, TextSmall, getSizeBy } from "@netdata/netdata-ui"
+import { Flex, TextSmall } from "@netdata/netdata-ui"
 import Color from "@/components/line/dimensions/color"
 import Name from "@/components/line/dimensions/name"
+import ValueWithUnit from "@/components/line/dimensions/valueWithUnit"
 import {
   getValueByPeriod,
   useChart,
@@ -10,7 +10,6 @@ import {
   useVisibleDimensionId,
   useLatestDisplayValue,
   useUnitSign,
-  useValueWithUnit,
 } from "@/components/provider"
 import Tooltip from "@/components/tooltip"
 import sanitizeId from "@/helpers/sanitizeId"
@@ -103,37 +102,10 @@ export const findDimensionId = (value, key) => {
 const getRowDimensionId = (keysStr, { key, ids, contextGroups }) =>
   findDimensionId(getValue(keysStr, ids, contextGroups, "|"), key)
 
-const ValueCell = styled(Flex).attrs({
-  alignItems: "center",
-  width: "100%",
-})`
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) ${getSizeBy(5.5)};
-`
-
 const DisplayValue = ({ id, visible }) => {
   const value = useLatestDisplayValue(id, { allowNull: true })
-  const { convertedValue, convertedUnit } = useValueWithUnit(value, {
-    dimensionId: id,
-    scaleByValue: true,
-  })
 
-  if (!visible) return null
-
-  return (
-    <ValueCell>
-      <TextSmall color="text" textAlign="right" whiteSpace="nowrap">
-        {convertedValue}
-      </TextSmall>
-      <Flex alignItems="center" overflow="hidden" padding={[0, 0, 0, 2]} width={{ min: "0px" }}>
-        {!!convertedUnit && (
-          <TextMicro color="textDescription" whiteSpace="nowrap" truncate>
-            {convertedUnit}
-          </TextMicro>
-        )}
-      </Flex>
-    </ValueCell>
-  )
+  return <ValueWithUnit value={value} dimensionId={id} visible={visible} />
 }
 
 const TooltipValue = ({ id }) => {

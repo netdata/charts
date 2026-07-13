@@ -3,7 +3,7 @@ import { Flex } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart } from "@/components/provider"
 import { getConversionAttributes } from "@/helpers/unitConversion/getConversionUnits"
 import dimensionColors from "@/sdk/makeChart/theme/dimensionColors"
-import { ValueUnitGrid } from "@/components/drawer/valueWithUnit"
+import { ValueUnitGrid } from "@/components/line/dimensions/valueWithUnit"
 import SparklineCanvas from "./sparklineCanvas"
 import {
   getSparklineBatchAttributes,
