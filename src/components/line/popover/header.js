@@ -19,14 +19,12 @@ const HeaderContainer = styled(Flex).attrs({
 const ContextText = styled(TextMicro).attrs({
   "data-testid": "chartPopover-context",
   strong: true,
+  truncate: true,
 })`
   display: block;
   min-width: 0;
   width: 100%;
   max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   font-size: ${({ $fontSize }) => $fontSize}px;
 `
 
@@ -45,9 +43,9 @@ const TimestampCell = styled(Flex).attrs({
 const SourceUnits = styled(TextMicro).attrs({
   color: "textLite",
   "data-testid": "chartPopover-sourceUnits",
+  whiteSpace: "nowrap",
 })`
   flex: 0 0 auto;
-  white-space: nowrap;
 `
 
 const getMeasuredFont = (element, fontSize) => {
