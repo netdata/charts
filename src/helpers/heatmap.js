@@ -16,7 +16,7 @@ export const useIsHeatmap = () => useAttributeValue("chartType") === "heatmap"
 export const isIncremental = chart =>
   isHeatmap(chart) && chart.getAttribute("heatmapType") === heatmapTypes.incremental
 
-const regex = /(.+)_(\d+?\.?(\d+)?|\+[Ii]nf)$/
+const regex = /(.+)_(-?\d+?\.?(\d+)?|\+[Ii]nf)$/
 
 export const heatmapOrChartType = (ids, chartType) =>
   Array.isArray(ids) && ids.length && ids.every(id => id.match(regex)) ? "heatmap" : chartType
@@ -55,7 +55,7 @@ export const useGetColor = (opacity = 1) => {
 }
 
 export const withoutPrefix = label =>
-  label ? label.replace(/.+_(\d+?\.?(\d+)?|\+[Ii]nf)$/, "$1") : label
+  label ? label.replace(/.+_(-?\d+?\.?(\d+)?|\+[Ii]nf)$/, "$1") : label
 
 export const cropHeatmapZeroEdges = (ids, isZeroOnly, minVisible = 5) => {
   if (!Array.isArray(ids) || typeof isZeroOnly !== "function" || ids.length <= minVisible)

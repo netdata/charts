@@ -77,13 +77,18 @@ export default (sdk, chart) => {
     const dimensionIds = chart.getVisibleDimensionIds()
 
     const values = dimensionIds
-      .map(id => ({
-        label: shortForLength(id, 30),
-        value: chart.getDimensionValue(id, index),
-        color: chart.selectDimensionColor(id),
-        caption: id,
-        id,
-      }))
+      .map(id => {
+        const signedValue = chart.getDimensionValue(id, index, { abs: false })
+
+        return {
+          label: shortForLength(id, 30),
+          value: Math.abs(signedValue),
+          signedValue,
+          color: chart.selectDimensionColor(id),
+          caption: id,
+          id,
+        }
+      })
       .filter(v => !!v.value)
 
     let [min, max] = getMinMax()

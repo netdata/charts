@@ -1,7 +1,7 @@
 import React from "react"
 import styled from "styled-components"
 import { Flex, Text, getColor } from "@netdata/netdata-ui"
-import { useLatestConvertedValue, useUnitSign, useOnResize } from "@/components/provider"
+import { useLatestDisplayValueWithUnit, useOnResize } from "@/components/provider"
 import FontSizer from "@/components/helpers/fontSizer"
 
 const StrokeLabel = styled(Text)`
@@ -22,8 +22,8 @@ const defaultTextProps = {
 }
 
 const LatestValue = ({ dimensionId, textProps, ...rest }) => {
-  const unit = useUnitSign({ dimensionId })
-  const value = useLatestConvertedValue(dimensionId)
+  const { convertedValue: value, convertedUnit: unit } =
+    useLatestDisplayValueWithUnit(dimensionId)
   const { width, height } = useOnResize()
 
   if (!value || value === "-")

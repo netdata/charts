@@ -1,6 +1,6 @@
 import React from "react"
 import { TextSmall } from "@netdata/netdata-ui"
-import { useConvertedValue } from "@/components/provider"
+import { useDisplayConvertedValue } from "@/components/provider"
 
 export const Value = props => (
   <TextSmall color="text" data-testid="chartDimensions-value" {...props} />
@@ -17,7 +17,7 @@ const ValueComponent = ({
   scaleByValue,
   ...rest
 }) => {
-  const value = useConvertedValue(id, period, {
+  const value = useDisplayConvertedValue(id, period, {
     valueKey,
     objKey,
     allowNull: true,

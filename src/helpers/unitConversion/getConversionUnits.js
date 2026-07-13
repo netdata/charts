@@ -2,6 +2,7 @@ import conversableUnits, {
   makeConversableKey,
   keys as conversableKeys,
 } from "@/helpers/units/conversableUnits"
+import { shouldUseExponential } from "@/helpers/formatNumber"
 import convert, { getScales, getUnitConfig, isScalable, getExponent } from "@/helpers/units"
 
 const selfOrExponent = (u, scaleByKey) => {
@@ -138,14 +139,11 @@ const getMethod = (chart, units, min, max, maxDecimals) => {
   return scalable(chart, units, min, max, desiredUnits, maxDecimals)
 }
 
-export const getConversionAttributes = (chart, unit, { min, max, maxDecimals = precisionHardMax }) => {
-  const [method, divider, prefix = "", base = ""] = getMethod(chart, unit, min, max, maxDecimals)
-
+const makeConversionAttributes = (chart, unit, candidate, min, max, maxDecimals) => {
+  const [method, divider, prefix = "", base = ""] = candidate
   const cMin = convert(chart, method, min, divider)
   const cMax = convert(chart, method, max, divider)
-
   const delta = Math.abs(cMin === cMax ? cMin : cMax - cMin)
-
   const fractionDigits = isNaN(delta) || delta === 0 ? -1 : getFractionDigits(delta)
 
   return {
@@ -156,6 +154,43 @@ export const getConversionAttributes = (chart, unit, { min, max, maxDecimals = p
     base,
     unit,
   }
+}
+
+const usesExponentialNotation = (chart, { method, divider, fractionDigits }, min, max) => {
+  const staticFractionDigits = chart.getAttribute("staticFractionDigits")
+
+  return [min, max].some(value =>
+    shouldUseExponential(
+      chart,
+      convert(chart, method, value, divider),
+      staticFractionDigits,
+      fractionDigits
+    )
+  )
+}
+
+const getUnprefixedCandidate = unit => {
+  const [, scaleByKey] = getScales(unit)
+  const config = getUnitConfig(unit)
+  const base = config.base_unit ?? config.print_symbol ?? unit
+  const sourceScale = selfOrExponent(config.prefix_symbol, scaleByKey)
+
+  return makeScalableCandidate("1", scaleByKey, sourceScale, base)
+}
+
+export const getConversionAttributes = (
+  chart,
+  unit,
+  { min, max, maxDecimals = precisionHardMax }
+) => {
+  const candidate = getMethod(chart, unit, min, max, maxDecimals)
+  const attributes = makeConversionAttributes(chart, unit, candidate, min, max, maxDecimals)
+
+  if (!attributes.prefix || !usesExponentialNotation(chart, attributes, min, max)) {
+    return attributes
+  }
+
+  return makeConversionAttributes(chart, unit, getUnprefixedCandidate(unit), min, max, maxDecimals)
 }
 
 const getConversionUnits = (chart, unitsKey, options = {}) => {

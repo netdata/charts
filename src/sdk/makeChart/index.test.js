@@ -166,10 +166,20 @@ describe("makeChart", () => {
   })
 
   it("uses exponential notation for unreadably large raw values", () => {
-    chart.updateAttribute("units", ["raw-events"])
+    chart.updateAttributes({ units: ["raw-events"], desiredUnits: ["auto"] })
+    const unitAttributes = chart.getUnitAttributesForValue(6.999e99)
 
-    expect(chart.getConvertedValue(6.999e99)).toBe("6.999e+99")
-    expect(chart.getConvertedValueWithUnit(6.999e99)).toBe("6.999e+99")
+    expect(unitAttributes.prefix).toBe("")
+    expect(chart.getConvertedValue(6.999e99, { unitAttributes })).toBe("6.999e+99")
+    expect(chart.getConvertedValueWithUnit(6.999e99, { unitAttributes })).toBe("6.999e+99")
+  })
+
+  it("normalizes pre-scaled units without adding a prefix to exponential values", () => {
+    chart.updateAttributes({ units: ["KiBy"], desiredUnits: ["auto"] })
+    const unitAttributes = chart.getUnitAttributesForValue(6.999e99)
+
+    expect(unitAttributes).toMatchObject({ base: "By", prefix: "" })
+    expect(chart.getConvertedValueWithUnit(6.999e99, { unitAttributes })).toBe("7.167e+102 B")
   })
 
   it("formats seconds below one microsecond as nanoseconds", () => {

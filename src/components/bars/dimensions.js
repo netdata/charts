@@ -2,7 +2,6 @@ import React, { useMemo, memo } from "react"
 import styled from "styled-components"
 import { useChart, useAttributeValue, usePayload } from "@/components/provider"
 import { TextMicro, TextNano } from "@netdata/netdata-ui"
-import Units from "@/components/line/dimensions/units"
 import Dimension from "./dimension"
 
 const Grid = styled.div`
@@ -108,13 +107,7 @@ const Dimensions = ({ height }) => {
           color={rowFlavour === rowFlavours.default ? "text" : "textLite"}
           textAlign="right"
         >
-          Value{" "}
-          <Units
-            visible
-            strong={rowFlavour === rowFlavours.default}
-            color={rowFlavour === rowFlavours.default ? "text" : "textLite"}
-            fontSize="1em"
-          />
+          Value
         </TextMicro>
         {cols === "full" && (
           <>

@@ -17,12 +17,15 @@ describe("heatmapScale", () => {
       expect(parseHeatmapValue("0.005")).toBe(0.005)
       expect(parseHeatmapValue("2.5")).toBe(2.5)
       expect(parseHeatmapValue(".5")).toBe(0.5)
+      expect(parseHeatmapValue("-0.005")).toBe(-0.005)
+      expect(parseHeatmapValue("-1024")).toBe(-1024)
     })
 
     it("parses prefixed bucket labels", () => {
       expect(parseHeatmapValue("bucket_1")).toBe(1)
       expect(parseHeatmapValue("latency_0.005")).toBe(0.005)
       expect(parseHeatmapValue("bucket_+Inf")).toBe(Infinity)
+      expect(parseHeatmapValue("latency_-0.005")).toBe(-0.005)
     })
 
     it("parses positive infinity variants", () => {
@@ -99,6 +102,16 @@ describe("heatmapScale", () => {
       ])
     })
 
+    it("sorts signed bucket boundaries numerically", () => {
+      expect(sortHeatmapValues(["1024", "-1", "0", "-1024", "+Inf"])).toEqual([
+        "-1024",
+        "-1",
+        "0",
+        "1024",
+        "+Inf",
+      ])
+    })
+
     it("sorts the live Prometheus bucket shape", () => {
       expect(sortHeatmapValues(["+Inf", "0.3", "10", "120", "15", "2", "2.5"])).toEqual([
         "0.3",
@@ -140,6 +153,8 @@ describe("heatmapScale", () => {
       expect(formatScaledValue(1250, "num")).toBe("1.25k")
       expect(formatScaledValue(1000000, "num")).toBe("1M")
       expect(formatScaledValue(0, "num")).toBe("0")
+      expect(formatScaledValue(-0.005, "num")).toBe("-5m")
+      expect(formatScaledValue(-1500, "num")).toBe("-1.5k")
     })
 
     it("formats binary values compactly", () => {
@@ -149,6 +164,7 @@ describe("heatmapScale", () => {
       expect(formatScaledValue(1536, "binary")).toBe("1.5Ki")
       expect(formatScaledValue(1048576, "binary")).toBe("1Mi")
       expect(formatScaledValue(0, "binary")).toBe("0")
+      expect(formatScaledValue(-1536, "binary")).toBe("-1.5Ki")
     })
   })
 
@@ -164,6 +180,7 @@ describe("heatmapScale", () => {
       expect(formatHeatmapLabel("0.005", "num")).toBe("5m")
       expect(formatHeatmapLabel("1024", "binary")).toBe("1Ki")
       expect(formatHeatmapLabel("bucket_1024", "binary")).toBe("1Ki")
+      expect(formatHeatmapLabel("bucket_-1024", "binary")).toBe("-1Ki")
     })
 
     it("passes through fallback labels", () => {

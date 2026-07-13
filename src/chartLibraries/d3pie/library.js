@@ -964,6 +964,8 @@ import * as d3 from "d3"
             formatterContext.index = i
             formatterContext.part = "value"
             formatterContext.value = d.value
+            formatterContext.signedValue = d.signedValue
+            formatterContext.id = d.id
             formatterContext.label = d.value
             formatterContext.realLabel = d.label
             return settings.formatter ? settings.formatter(formatterContext, d.value) : d.value

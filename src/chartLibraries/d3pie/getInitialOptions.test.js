@@ -1,5 +1,5 @@
 import React from "react"
-import { renderWithChart } from "@jest/testUtilities"
+import { makeHeatmapPayload, renderWithChart } from "@jest/testUtilities"
 import getInitialOptions from "./getInitialOptions"
 
 describe("getInitialOptions", () => {
@@ -57,5 +57,33 @@ describe("getInitialOptions", () => {
     const options = getInitialOptions(mockChartUI)
 
     expect(typeof options.labels.formatter).toBe("function")
+  })
+
+  it("formats a signed value with its atomic scale", async () => {
+    const { chart } = renderWithChart(<div />, {
+      chartType: "pie",
+    })
+    const payload = makeHeatmapPayload(["bytes"], [[-1536]])
+    payload.view.chart_type = "pie"
+    payload.view.units = "By"
+    payload.view.dimensions.units = ["By"]
+
+    chart.doneFetch(payload)
+    await new Promise(resolve => setTimeout(resolve, 0))
+
+    const options = getInitialOptions({
+      getElement: () => ({ clientWidth: 400, clientHeight: 300 }),
+      chart,
+    })
+
+    expect(
+      options.labels.formatter({
+        part: "value",
+        realLabel: "bytes",
+        id: "bytes",
+        value: 1536,
+        signedValue: -1536,
+      })
+    ).toBe("-1.5 KiB")
   })
 })

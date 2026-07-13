@@ -2,10 +2,9 @@ import React from "react"
 import { Text } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
 import {
-  useUnitSign,
-  useLatestConvertedValue,
+  useLatestDisplayValueWithUnit,
   useOnResize,
-  useDimensionIds,
+  useVisibleDimensionIds,
 } from "@/components/provider"
 import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
@@ -13,7 +12,8 @@ import FontSizer from "@/components/helpers/fontSizer"
 
 export const Value = props => {
   const { width, height } = useOnResize()
-  const value = useLatestConvertedValue("selected")
+  const [dimensionId] = useVisibleDimensionIds()
+  const { convertedValue: value } = useLatestDisplayValueWithUnit(dimensionId)
 
   return (
     <FontSizer
@@ -31,8 +31,8 @@ export const Value = props => {
 
 export const Unit = props => {
   const { width, height } = useOnResize()
-  const [firstDimId] = useDimensionIds()
-  const unit = useUnitSign({ dimensionId: firstDimId })
+  const [dimensionId] = useVisibleDimensionIds()
+  const { convertedUnit: unit } = useLatestDisplayValueWithUnit(dimensionId)
 
   if (!unit) return null
 
