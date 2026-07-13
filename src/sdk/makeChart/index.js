@@ -9,7 +9,6 @@ import makeDimensions from "./makeDimensions"
 import makeFilterControllers from "./filters/makeControllers"
 import makeDataFetch from "./makeDataFetch"
 import makeGetUnitSign, { makeGetUnitAttributesForValue } from "./makeGetUnitSign"
-import makeWeights from "./makeWeights"
 import getAggregateMethod from "./filters/getAggregateMethod"
 
 const themeIndex = {
@@ -252,7 +251,6 @@ export default ({
 
   makeDimensions(node, sdk)
   makeDataFetch(node, sdk)
-  makeWeights(node, sdk)
 
   node.type = "chart"
   makeGetUnitAttributesForValue(node)
