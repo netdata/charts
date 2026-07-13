@@ -11,7 +11,7 @@ import {
 } from "@/components/provider"
 import Label from "@/components/filterToolbox/label"
 import { rowFlavours } from "@/components/line/popover/dimensions"
-import ValueWithUnit, { ValueUnitHeader } from "@/components/drawer/valueWithUnit"
+import ValueWithUnit, { ValueUnitHeader } from "@/components/line/dimensions/valueWithUnit"
 
 const valueColumnSize = 144
 const valueColumnMinSize = 120

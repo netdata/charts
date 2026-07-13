@@ -34,12 +34,19 @@ const ValueDetail = styled(TextMicro).attrs({
   grid-row: 2;
 `
 
-export const ValueUnitGrid = ({ value, unit, detail, color = "text", strong }) => (
-  <Container data-testid="drawer-value-unit-grid">
+export const ValueUnitGrid = ({
+  value,
+  unit,
+  detail,
+  color = "text",
+  strong,
+  testIdPrefix = "value-unit",
+}) => (
+  <Container data-testid={`${testIdPrefix}-grid`}>
     <TextSmall color={color} strong={strong} textAlign="right" whiteSpace="nowrap">
       {value}
     </TextSmall>
-    <UnitCell data-testid="drawer-value-unit-cell">
+    <UnitCell data-testid={`${testIdPrefix}-cell`}>
       {unit && (
         <TextMicro color="textDescription" whiteSpace="nowrap" truncate>
           {unit}
@@ -47,7 +54,7 @@ export const ValueUnitGrid = ({ value, unit, detail, color = "text", strong }) =
       )}
     </UnitCell>
     {detail && (
-      <ValueDetail data-testid="drawer-value-unit-detail" color="textDescription">
+      <ValueDetail data-testid={`${testIdPrefix}-detail`} color="textDescription">
         {detail}
       </ValueDetail>
     )}
