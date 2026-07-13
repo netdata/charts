@@ -1,6 +1,6 @@
 import React from "react"
 import styled from "styled-components"
-import { Flex, TextMicro, TextSmall, getSizeBy } from "@netdata/netdata-ui"
+import { Flex, TextMicro, TextSmall } from "@netdata/netdata-ui"
 import { useValueWithUnit } from "@/components/provider"
 
 const Container = styled(Flex).attrs({
@@ -8,7 +8,7 @@ const Container = styled(Flex).attrs({
   width: "100%",
 })`
   display: grid;
-  grid-template-columns: minmax(0, 1fr) ${getSizeBy(5.5)};
+  grid-template-columns: minmax(auto, 1fr) minmax(40px, max-content);
 `
 
 const UnitCell = styled(Flex).attrs({
