@@ -45,6 +45,16 @@ const { updatePristine, resetPristine } = makePristine(pristineKey, [
 
   "showPostAggregations",
   "selectedNodeLabelsFilter",
+
+  "enabledYAxis",
+  "enabledXAxis",
+  "legend",
+  "staticValueRange",
+  "desiredUnits",
+  "staticFractionDigits",
+
+  "nulls2zero",
+  "points",
 ])
 
 export default { update: updatePristine, reset: resetPristine }
