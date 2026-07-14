@@ -14,6 +14,19 @@ class ResizeObserver {
 
 window.ResizeObserver = ResizeObserver
 
+if (!window.matchMedia) {
+  window.matchMedia = query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  })
+}
+
 Element.prototype.getBoundingClientRect = jest.fn(() => {
   return {
     width: 120,
