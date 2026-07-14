@@ -273,4 +273,87 @@ describe("makeControllers", () => {
       expect(triggerSpy).toHaveBeenCalledWith("fetch", { processing: true })
     })
   })
+
+  describe("renderer resolution", () => {
+    it("resolves the configured renderer for a chart type, defaulting to dygraph", () => {
+      const { chart: c } = makeTestChart({
+        attributes: { chartLibrariesByType: { line: "table", heatmap: "dygraph" } },
+      })
+      const ctrl = makeControllers(c)
+
+      expect(ctrl.getRendererForChartType("line")).toBe("table")
+      expect(ctrl.getRendererForChartType("heatmap")).toBe("dygraph")
+      expect(ctrl.getRendererForChartType("area")).toBe("dygraph")
+    })
+
+    it("identifies which libraries are time-series renderers", () => {
+      const { chart: c } = makeTestChart({
+        attributes: { chartLibrariesByType: { line: "table" } },
+      })
+      const ctrl = makeControllers(c)
+
+      expect(ctrl.isTimeSeriesRenderer("dygraph")).toBe(true)
+      expect(ctrl.isTimeSeriesRenderer("table")).toBe(true)
+      expect(ctrl.isTimeSeriesRenderer("gauge")).toBe(false)
+    })
+
+    it("ships a default chartLibrariesByType map from makeDefaultSDK (all dygraph)", () => {
+      const { chart: c } = makeTestChart()
+
+      expect(c.getAttribute("chartLibrariesByType")).toEqual({
+        line: "dygraph",
+        stacked: "dygraph",
+        area: "dygraph",
+        stackedBar: "dygraph",
+        multiBar: "dygraph",
+        heatmap: "dygraph",
+      })
+    })
+  })
+
+  describe("updateChartTypeAttribute renderer resolution", () => {
+    it("uses the configured renderer for a time-series chart type", () => {
+      const { chart: c } = makeTestChart({
+        attributes: { chartLibrariesByType: { line: "table" } },
+      })
+      const ctrl = makeControllers(c)
+
+      ctrl.updateChartTypeAttribute("line")
+
+      expect(c.getAttribute("chartLibrary")).toBe("table")
+      expect(c.getAttribute("chartType")).toBe("line")
+    })
+
+    it("defaults an unmapped time-series type to dygraph", () => {
+      const { chart: c } = makeTestChart()
+      const ctrl = makeControllers(c)
+
+      ctrl.updateChartTypeAttribute("area")
+
+      expect(c.getAttribute("chartLibrary")).toBe("dygraph")
+      expect(c.getAttribute("chartType")).toBe("area")
+    })
+
+    it("rebuilds the chart UI when the renderer changes", () => {
+      const { chart: c } = makeTestChart({
+        attributes: { chartLibrariesByType: { line: "table" } },
+      })
+      const ctrl = makeControllers(c)
+
+      const before = c.getUI()
+      ctrl.updateChartTypeAttribute("line")
+
+      expect(c.getUI()).not.toBe(before)
+    })
+
+    it("keeps the same chart UI when switching types that share a renderer", () => {
+      const { chart: c } = makeTestChart({ attributes: { chartType: "line" } })
+      const ctrl = makeControllers(c)
+
+      const before = c.getUI()
+      ctrl.updateChartTypeAttribute("area")
+
+      expect(c.getUI()).toBe(before)
+    })
+  })
 })
