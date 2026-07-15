@@ -119,11 +119,14 @@ export default chart => {
     table: true,
   }
 
+  const timeSeriesRenderers = ["dygraph", "uplot"]
+
   const getRendererForChartType = chartType =>
-    (chart.getAttribute("chartLibrariesByType") || {})[chartType] || "dygraph"
+    (chart.getAttribute("chartLibrariesByType") || {})[chartType] ||
+    chart.getAttribute("chartLibrary")
 
   const isTimeSeriesRenderer = chartLibrary =>
-    chartLibrary === "dygraph" ||
+    timeSeriesRenderers.includes(chartLibrary) ||
     Object.values(chart.getAttribute("chartLibrariesByType") || {}).includes(chartLibrary)
 
   const updateChartTypeAttribute = selected => {

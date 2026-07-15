@@ -38,14 +38,7 @@ export default ({ attributes, ...options } = {}) =>
     attributes: {
       _v: "v3",
       chartLibrary: "dygraph",
-      chartLibrariesByType: {
-        line: "dygraph",
-        stacked: "dygraph",
-        area: "dygraph",
-        stackedBar: "dygraph",
-        multiBar: "dygraph",
-        heatmap: "dygraph",
-      },
+      chartLibrariesByType: {},
       navigation: "pan",
       after: -1 * minutes15,
       overlays: { proceeded: { type: "proceeded" } },
