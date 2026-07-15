@@ -6,6 +6,7 @@ import makeResizeObserver from "@/helpers/makeResizeObserver"
 import { getStackBounds, getStackValueRange } from "./stacking"
 import { seriesBarsPlugin } from "./bars/seriesBarsPlugin"
 import { stack } from "./bars/stack"
+import makeOverlays from "./overlays"
 
 const barTypes = { multiBar: true, stackedBar: true }
 
@@ -40,6 +41,7 @@ export default (sdk, chart) => {
   let resizeObserver
   let hovering = false
   let detachNavigation = null
+  let overlays = null
 
   const getData = () => {
     const { data } = chart.getPayload()
@@ -265,6 +267,8 @@ export default (sdk, chart) => {
     drawVerticalLine(self, chart.getAttribute("clickX"), crosshairColor, null)
   }
 
+  const drawOverlays = self => overlays && overlays.draw(self)
+
   const setCursor = self => {
     if (!chart.getAttribute("enabledHover")) return
 
@@ -464,7 +468,11 @@ export default (sdk, chart) => {
         scales: getScales(),
         series: getSeries(),
         axes: getAxes(),
-        hooks: { setCursor: [setCursor], draw: [drawStacked, draw], setSelect: [onSetSelect] },
+        hooks: {
+          setCursor: [setCursor],
+          draw: [drawStacked, draw, drawOverlays],
+          setSelect: [onSetSelect],
+        },
       },
       data,
       element
@@ -532,6 +540,8 @@ export default (sdk, chart) => {
       }),
       chart.onAttributeChange("hoverX", () => u && u.redraw(false, false)),
       chart.onAttributeChange("clickX", () => u && u.redraw(false, false)),
+      chart.onAttributeChange("overlays", overlays.toggle),
+      chart.onAttributeChange("draftAnnotation", overlays.toggle),
       chart.onAttributeChange("selectedLegendDimensions", rebuild),
       chart.onAttributeChange("chartType", rebuild),
       chart.onAttributeChange("navigation", rebuild),
@@ -597,6 +607,8 @@ export default (sdk, chart) => {
     getPlotArea,
     getXCoord,
   }
+
+  overlays = makeOverlays(instance)
 
   return instance
 }
