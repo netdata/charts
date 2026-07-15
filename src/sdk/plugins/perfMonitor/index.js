@@ -1,3 +1,4 @@
+import React from "react"
 import { createRoot } from "react-dom/client"
 import PerfOverlay from "@/components/perf"
 import { setEnabled, sampleHeap, reset } from "./registry"
