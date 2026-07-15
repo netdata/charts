@@ -69,6 +69,7 @@ const getStsByContext = (groups, units, dimensions, contextsArray) => {
   if (!Array.isArray(contextsArray) || !contextsArray.length) return [[], {}]
 
   const unitsByKey = {}
+  const groupedByContext = groups.includes("context")
 
   const regex = new RegExp(
     groups.reduce((s, g) => {
@@ -91,39 +92,29 @@ const getStsByContext = (groups, units, dimensions, contextsArray) => {
 
     const [, ctx] = match
 
-    if (ctx && dimensions.sts) {
-      stsByCtx[ctx] = stsByCtx[ctx] || { min: Infinity, max: -Infinity }
-      stsByCtx[ctx].min =
-        stsByCtx[ctx].min > dimensions.sts.min[index]
-          ? dimensions.sts.min[index]
-          : stsByCtx[ctx].min
-      stsByCtx[ctx].max =
-        stsByCtx[ctx].max < dimensions.sts.max[index]
-          ? dimensions.sts.max[index]
-          : stsByCtx[ctx].max
+    if (ctx) {
+      if (
+        groupedByContext &&
+        !Object.prototype.hasOwnProperty.call(unitsByKey, ctx) &&
+        dimensions.units
+      )
+        unitsByKey[ctx] = dimensions.units[index]
+
+      if (dimensions.sts) {
+        stsByCtx[ctx] = stsByCtx[ctx] || { min: Infinity, max: -Infinity }
+        stsByCtx[ctx].min =
+          stsByCtx[ctx].min > dimensions.sts.min[index]
+            ? dimensions.sts.min[index]
+            : stsByCtx[ctx].min
+        stsByCtx[ctx].max =
+          stsByCtx[ctx].max < dimensions.sts.max[index]
+            ? dimensions.sts.max[index]
+            : stsByCtx[ctx].max
+      }
     }
 
     return ctx || contextsArray[0].id
   })
-
-  if (groups.includes("context")) {
-    contextsArray.forEach(ctx => {
-      const regex = new RegExp(
-        groups.reduce((s, g) => {
-          s = s + (s ? "," : "")
-          s = s + ("context" === g ? ctx.id : ".*")
-
-          return s
-        }, "")
-      )
-
-      const dimIndex = dimensions.ids.findIndex(id => regex.test(id))
-
-      if (dimIndex === -1) return
-
-      unitsByKey[ctx.id] = dimensions.units[dimIndex]
-    })
-  }
 
   return [
     dimensionContexts,
