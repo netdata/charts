@@ -17,6 +17,7 @@ import selectVertical from "./sdk/plugins/selectVertical"
 import play from "./sdk/plugins/play"
 import annotationSync from "./sdk/plugins/annotationSync"
 import fullscreen from "./sdk/plugins/fullscreen"
+import perfMonitor from "./sdk/plugins/perfMonitor"
 
 const minutes15 = 15 * 60
 
@@ -34,6 +35,7 @@ export default ({ attributes, ...options } = {}) =>
       play,
       annotationSync,
       fullscreen,
+      perfMonitor,
     },
     attributes: {
       _v: "v3",

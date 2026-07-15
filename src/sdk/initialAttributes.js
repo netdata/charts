@@ -17,6 +17,7 @@ export default {
   min: 0,
   max: 0,
   autofetchOnHovering: false,
+  perfMonitor: false,
 
   pristineStaticValueRange: undefined,
   valueRange: null,
