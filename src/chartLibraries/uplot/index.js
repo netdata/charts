@@ -566,6 +566,25 @@ export default (sdk, chart) => {
 
   const getChartHeight = () => (u ? u.over.clientHeight : chartUI.getChartHeight())
 
+  const getXAxisRange = () => (u ? [u.scales.x.min * 1000, u.scales.x.max * 1000] : null)
+
+  const getPlotArea = () => {
+    if (!u) return { left: 0, top: 0, width: 0, height: 0 }
+    const dpr = u.pxRatio || 1
+    return {
+      left: u.bbox.left / dpr,
+      top: u.bbox.top / dpr,
+      width: u.bbox.width / dpr,
+      height: u.bbox.height / dpr,
+    }
+  }
+
+  const getXCoord = timestampMs => {
+    if (!u) return 0
+    const dpr = u.pxRatio || 1
+    return u.bbox.left / dpr + u.valToPos(timestampMs / 1000, "x")
+  }
+
   const instance = {
     ...chartUI,
     getChartWidth,
@@ -574,6 +593,9 @@ export default (sdk, chart) => {
     unmount,
     render,
     getUPlot,
+    getXAxisRange,
+    getPlotArea,
+    getXCoord,
   }
 
   return instance
