@@ -3,6 +3,8 @@ import { debounce } from "throttle-debounce"
 import makeChartUI from "@/sdk/makeChartUI"
 import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
+import { makeGetColor, withoutPrefix } from "@/helpers/heatmap"
+import { formatHeatmapLabel } from "@/helpers/heatmapScale"
 import { getStackBounds, getStackValueRange } from "./stacking"
 import { seriesBarsPlugin } from "./bars/seriesBarsPlugin"
 import { stack } from "./bars/stack"
@@ -14,6 +16,7 @@ const axisFont = "11px 'IBM Plex Sans', sans-serif"
 const tickSize = 4
 const axisGap = 6
 const xTickSpace = 80
+const heatmapPixelsPerLabel = 15
 
 const lineWidth = 2
 const areaLineWidth = 1.5
@@ -72,7 +75,8 @@ export default (sdk, chart) => {
     )
 
   const getPaths = () => {
-    if (chart.getAttribute("chartType") === "stacked") return nullPathBuilder
+    const chartType = chart.getAttribute("chartType")
+    if (chartType === "stacked" || chartType === "heatmap") return nullPathBuilder
     if (chart.getAttribute("stepPlot")) return steppedPathBuilder
 
     return undefined
@@ -81,6 +85,7 @@ export default (sdk, chart) => {
   const getSeries = () => {
     const chartType = chart.getAttribute("chartType")
     const filled = chartType === "area"
+    const heatmap = chartType === "heatmap"
     const paths = getPaths()
 
     return [
@@ -95,9 +100,17 @@ export default (sdk, chart) => {
           width: filled ? areaLineWidth : lineWidth,
           ...(paths && { paths }),
           ...(filled && { fill: makeAreaFill(color) }),
+          ...(heatmap && { points: { show: false } }),
         }
       }),
     ]
+  }
+
+  const getHeatmapValueRange = () => {
+    const staticValueRange = chart.getAttribute("staticValueRange")
+    if (staticValueRange) return [Math.ceil(staticValueRange[0]), Math.ceil(staticValueRange[1])]
+
+    return [0, chart.getVisibleHeatmapIds().length || 1]
   }
 
   const getScales = () => ({
@@ -110,11 +123,39 @@ export default (sdk, chart) => {
     },
     y: {
       range: (self, dataMin, dataMax) => {
-        if (chart.getAttribute("chartType") === "stacked") return getStackValueRange(stackBounds())
+        const chartType = chart.getAttribute("chartType")
+        if (chartType === "stacked") return getStackValueRange(stackBounds())
+        if (chartType === "heatmap") return getHeatmapValueRange()
 
         const [min, max] = chart.getAttribute("getValueRange")(chart)
         return [min == null ? dataMin : min, max == null ? dataMax : max]
       },
+    },
+  })
+
+  const getHeatmapYAxis = (gridColor, labelColor) => ({
+    font: axisFont,
+    stroke: labelColor,
+    grid: { stroke: gridColor, width: 1 },
+    ticks: { stroke: gridColor, width: 1, size: tickSize },
+    size: 60,
+    gap: axisGap,
+    splits: self => {
+      const count = chart.getVisibleHeatmapIds().length
+      if (!count) return []
+
+      const heightPx = self.bbox.height / (self.pxRatio || 1)
+      const maxTicks = Math.max(1, Math.floor(heightPx / heatmapPixelsPerLabel))
+      const step = Math.max(1, Math.ceil(count / Math.max(1, maxTicks - 1)))
+
+      const splits = []
+      for (let i = 0; i < count; i++) if (i % step === 0) splits.push(i)
+      return splits
+    },
+    values: (self, splits) => {
+      const ids = chart.getVisibleHeatmapIds()
+      const scale = chart.getHeatmapScale()
+      return splits.map(index => formatHeatmapLabel(withoutPrefix(ids[index]), scale))
     },
   })
 
@@ -125,16 +166,21 @@ export default (sdk, chart) => {
     const labelColor = chart.getThemeAttribute("themeLabelColor")
     const dimensionId = chart.getVisibleDimensionIds()?.[0]
 
+    const xAxis = {
+      font: axisFont,
+      stroke: labelColor,
+      grid: { stroke: gridColor, width: 1 },
+      ticks: { stroke: gridColor, width: 1, size: tickSize },
+      space: xTickSpace,
+      gap: axisGap,
+      values: (self, splits) => splits.map(value => chart.formatXAxis(new Date(value * 1000))),
+    }
+
+    if (chart.getAttribute("chartType") === "heatmap")
+      return [xAxis, getHeatmapYAxis(gridColor, labelColor)]
+
     return [
-      {
-        font: axisFont,
-        stroke: labelColor,
-        grid: { stroke: gridColor, width: 1 },
-        ticks: { stroke: gridColor, width: 1, size: tickSize },
-        space: xTickSpace,
-        gap: axisGap,
-        values: (self, splits) => splits.map(value => chart.formatXAxis(new Date(value * 1000))),
-      },
+      xAxis,
       {
         font: axisFont,
         stroke: labelColor,
@@ -256,6 +302,46 @@ export default (sdk, chart) => {
       ctx.lineWidth = edgeWidth
       ctx.strokeStyle = `${color}${stackedEdgeAlpha}`
       ctx.stroke()
+    })
+
+    ctx.restore()
+  }
+
+  const drawHeatmap = self => {
+    if (chart.getAttribute("chartType") !== "heatmap") return
+
+    const dimensionIds = chart.getPayloadDimensionIds()
+    const xs = self.data[0]
+    if (!xs || !xs.length) return
+
+    const { ctx } = self
+    const getColor = makeGetColor(chart)
+
+    let minWidthSep = Infinity
+    for (let i = 1; i < xs.length; i++) {
+      const sep = self.valToPos(xs[i], "x", true) - self.valToPos(xs[i - 1], "x", true)
+      if (sep < minWidthSep) minWidthSep = sep
+    }
+
+    const barWidth = Number.isFinite(minWidthSep) ? Math.floor(minWidthSep) : self.bbox.width
+    const rowHeight = Math.abs(self.valToPos(1, "y", true) - self.valToPos(0, "y", true))
+
+    ctx.save()
+    ctx.beginPath()
+    ctx.rect(self.bbox.left, self.bbox.top, self.bbox.width, self.bbox.height)
+    ctx.clip()
+
+    dimensionIds.forEach(id => {
+      const yIndex = chart.getHeatmapYIndex(id)
+      if (yIndex === -1) return
+
+      const yTop = self.valToPos(yIndex, "y", true) - rowHeight / 2
+
+      for (let row = 0; row < xs.length; row++) {
+        const value = chart.getDimensionValue(id, row, { allowNull: true })
+        ctx.fillStyle = getColor(value)
+        ctx.fillRect(self.valToPos(xs[row], "x", true) - barWidth / 2, yTop, barWidth, rowHeight)
+      }
     })
 
     ctx.restore()
@@ -470,7 +556,7 @@ export default (sdk, chart) => {
         axes: getAxes(),
         hooks: {
           setCursor: [setCursor],
-          draw: [drawStacked, draw, drawOverlays],
+          draw: [drawStacked, drawHeatmap, draw, drawOverlays],
           setSelect: [onSetSelect],
         },
       },
