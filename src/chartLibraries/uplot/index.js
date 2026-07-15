@@ -6,11 +6,10 @@ import makeResizeObserver from "@/helpers/makeResizeObserver"
 import { makeGetColor, withoutPrefix } from "@/helpers/heatmap"
 import { formatHeatmapLabel } from "@/helpers/heatmapScale"
 import { getStackBounds, getStackValueRange } from "./stacking"
-import { seriesBarsPlugin } from "./bars/seriesBarsPlugin"
 import { stack } from "./bars/stack"
 import makeOverlays from "./overlays"
 
-const barTypes = { multiBar: true, stackedBar: true }
+const barGroupWidth = 0.6
 
 const axisFont = "11px 'IBM Plex Sans', sans-serif"
 const tickSize = 4
@@ -74,9 +73,12 @@ export default (sdk, chart) => {
       chart.isDimensionVisible(id)
     )
 
+  const isBarType = chartType => chartType === "multiBar" || chartType === "stackedBar"
+
   const getPaths = () => {
     const chartType = chart.getAttribute("chartType")
-    if (chartType === "stacked" || chartType === "heatmap") return nullPathBuilder
+    if (chartType === "stacked" || chartType === "heatmap" || isBarType(chartType))
+      return nullPathBuilder
     if (chart.getAttribute("stepPlot")) return steppedPathBuilder
 
     return undefined
@@ -86,6 +88,7 @@ export default (sdk, chart) => {
     const chartType = chart.getAttribute("chartType")
     const filled = chartType === "area"
     const heatmap = chartType === "heatmap"
+    const bar = isBarType(chartType)
     const paths = getPaths()
 
     return [
@@ -100,7 +103,7 @@ export default (sdk, chart) => {
           width: filled ? areaLineWidth : lineWidth,
           ...(paths && { paths }),
           ...(filled && { fill: makeAreaFill(color) }),
-          ...(heatmap && { points: { show: false } }),
+          ...((heatmap || bar) && { points: { show: false } }),
         }
       }),
     ]
@@ -111,6 +114,38 @@ export default (sdk, chart) => {
     if (staticValueRange) return [Math.ceil(staticValueRange[0]), Math.ceil(staticValueRange[1])]
 
     return [0, chart.getVisibleHeatmapIds().length || 1]
+  }
+
+  const padAwayFromZero = value => (value === 0 ? 0 : value * 1.05)
+
+  const getBarValueRange = (self, chartType, dataMin, dataMax) => {
+    const staticValueRange = chart.getAttribute("staticValueRange")
+    if (staticValueRange) return staticValueRange
+
+    if (chartType === "stackedBar") {
+      const dimensionIds = chart.getPayloadDimensionIds()
+      const omit = index => !chart.isDimensionVisible(dimensionIds[index - 1])
+      const { data } = stack(self.data, omit)
+
+      let min = 0
+      let max = 0
+
+      for (let i = 1; i < data.length; i++) {
+        if (omit(i)) continue
+
+        const column = data[i]
+        for (let row = 0; row < column.length; row++) {
+          const value = column[row]
+          if (value == null) continue
+          if (value < min) min = value
+          if (value > max) max = value
+        }
+      }
+
+      return [padAwayFromZero(min), padAwayFromZero(max)]
+    }
+
+    return [padAwayFromZero(Math.min(0, dataMin)), padAwayFromZero(Math.max(0, dataMax))]
   }
 
   const getScales = () => ({
@@ -126,6 +161,7 @@ export default (sdk, chart) => {
         const chartType = chart.getAttribute("chartType")
         if (chartType === "stacked") return getStackValueRange(stackBounds())
         if (chartType === "heatmap") return getHeatmapValueRange()
+        if (isBarType(chartType)) return getBarValueRange(self, chartType, dataMin, dataMax)
 
         const [min, max] = chart.getAttribute("getValueRange")(chart)
         return [min == null ? dataMin : min, max == null ? dataMax : max]
@@ -190,22 +226,6 @@ export default (sdk, chart) => {
         gap: axisGap,
         values: (self, splits) =>
           splits.map(value => chart.getConvertedValueWithUnit(value, { dimensionId })),
-      },
-    ]
-  }
-
-  const getBarAxes = () => {
-    const gridColor = chart.getThemeAttribute("themeGridColor")
-    const labelColor = chart.getThemeAttribute("themeLabelColor")
-
-    return [
-      { font: axisFont, stroke: labelColor, gap: axisGap },
-      {
-        font: axisFont,
-        stroke: labelColor,
-        grid: { stroke: gridColor, width: 1 },
-        ticks: { stroke: gridColor, width: 1, size: tickSize },
-        gap: axisGap,
       },
     ]
   }
@@ -343,6 +363,97 @@ export default (sdk, chart) => {
         ctx.fillRect(self.valToPos(xs[row], "x", true) - barWidth / 2, yTop, barWidth, rowHeight)
       }
     })
+
+    ctx.restore()
+  }
+
+  const getBarSlotWidth = self => {
+    const xs = self.data[0]
+
+    let minSep = Infinity
+    for (let i = 1; i < xs.length; i++) {
+      const sep = self.valToPos(xs[i], "x", true) - self.valToPos(xs[i - 1], "x", true)
+      if (sep < minSep) minSep = sep
+    }
+
+    return Number.isFinite(minSep) ? minSep : self.bbox.width
+  }
+
+  const drawGroupedBars = (self, dimensionIds, groupWidth) => {
+    const xs = self.data[0]
+    const { ctx } = self
+    const y0 = self.valToPos(0, "y", true)
+
+    const visibleIds = dimensionIds.filter(id => chart.isDimensionVisible(id))
+    const barCount = visibleIds.length || 1
+    const barWidth = groupWidth / barCount
+
+    dimensionIds.forEach((id, index) => {
+      if (!chart.isDimensionVisible(id)) return
+
+      const values = self.data[index + 1]
+      const barIndex = visibleIds.indexOf(id)
+      ctx.fillStyle = chart.selectDimensionColor(id)
+
+      for (let row = 0; row < xs.length; row++) {
+        const value = values[row]
+        if (value == null) continue
+
+        const valuePos = self.valToPos(value, "y", true)
+        const left = self.valToPos(xs[row], "x", true) - groupWidth / 2 + barIndex * barWidth
+
+        ctx.fillRect(left, Math.min(y0, valuePos), barWidth, Math.abs(valuePos - y0))
+      }
+    })
+  }
+
+  const drawStackedBars = (self, dimensionIds, groupWidth) => {
+    const xs = self.data[0]
+    const { ctx } = self
+
+    const omit = index => !chart.isDimensionVisible(dimensionIds[index - 1])
+    const { data } = stack(self.data, omit)
+
+    dimensionIds.forEach((id, index) => {
+      const seriesIndex = index + 1
+      if (omit(seriesIndex)) return
+
+      const tops = data[seriesIndex]
+      const raw = self.data[seriesIndex]
+      ctx.fillStyle = chart.selectDimensionColor(id)
+
+      for (let row = 0; row < xs.length; row++) {
+        const top = tops[row]
+        const value = raw[row]
+        if (top == null || value == null) continue
+
+        const topPos = self.valToPos(top, "y", true)
+        const basePos = self.valToPos(top - value, "y", true)
+        const left = self.valToPos(xs[row], "x", true) - groupWidth / 2
+
+        ctx.fillRect(left, Math.min(topPos, basePos), groupWidth, Math.abs(topPos - basePos))
+      }
+    })
+  }
+
+  const drawBars = self => {
+    const chartType = chart.getAttribute("chartType")
+    if (!isBarType(chartType)) return
+
+    const xs = self.data[0]
+    if (!xs || !xs.length) return
+
+    const dimensionIds = chart.getPayloadDimensionIds()
+    const groupWidth = Math.max(1, getBarSlotWidth(self) * barGroupWidth)
+    const { ctx } = self
+
+    ctx.save()
+    ctx.beginPath()
+    ctx.rect(self.bbox.left, self.bbox.top, self.bbox.width, self.bbox.height)
+    ctx.clip()
+
+    if (chartType === "stackedBar") drawStackedBars(self, dimensionIds, groupWidth)
+    else drawGroupedBars(self, dimensionIds, groupWidth)
 
     ctx.restore()
   }
@@ -490,60 +601,11 @@ export default (sdk, chart) => {
     }
   }
 
-  const getBarSeries = () => [
-    {},
-    ...chart.getPayloadDimensionIds().map(id => ({
-      label: id,
-      show: chart.isDimensionVisible(id),
-      fill: chart.selectDimensionColor(id),
-      width: 0,
-    })),
-  ]
-
-  const createBars = data => {
-    const chartType = chart.getAttribute("chartType")
-    let barData = data
-    let bands
-
-    if (chartType === "stackedBar") {
-      const stacked = stack(data, () => false)
-      barData = stacked.data
-      bands = stacked.bands
-    }
-
-    u = new uPlot(
-      {
-        width: chartUI.getChartWidth(),
-        height: chartUI.getChartHeight(),
-        legend: { show: false },
-        ...(bands && { bands }),
-        axes: getBarAxes(),
-        series: getBarSeries(),
-        plugins: [
-          seriesBarsPlugin({
-            ori: 0,
-            dir: 1,
-            stacked: chartType === "stackedBar",
-            groupWidth: 0.6,
-            radius: 0.15,
-          }),
-        ],
-      },
-      barData,
-      element
-    )
-  }
-
   const create = () => {
     if (!element) return
 
     const data = getData()
     if (!data) return
-
-    if (barTypes[chart.getAttribute("chartType")]) {
-      createBars(data)
-      return
-    }
 
     u = new uPlot(
       {
@@ -556,7 +618,7 @@ export default (sdk, chart) => {
         axes: getAxes(),
         hooks: {
           setCursor: [setCursor],
-          draw: [drawStacked, drawHeatmap, draw, drawOverlays],
+          draw: [drawStacked, drawHeatmap, drawBars, draw, drawOverlays],
           setSelect: [onSetSelect],
         },
       },
@@ -599,7 +661,7 @@ export default (sdk, chart) => {
     }
 
     if (!u) create()
-    else if (barTypes[chart.getAttribute("chartType")] || u.series.length !== data.length) rebuild()
+    else if (u.series.length !== data.length) rebuild()
     else u.setData(data)
 
     chartUI.trigger("rendered")
