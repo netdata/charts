@@ -680,10 +680,10 @@ export const usePlotArea = (uiName = "default") => {
     [uiName, chart]
   )
 
-  const area = chart.getUI(uiName)?.getDygraph?.()?.getArea()
+  const area = chart.getUI(uiName)?.getPlotArea?.()
 
   return {
-    left: area?.x ?? 0,
-    width: area?.w ?? 0,
+    left: area?.left ?? 0,
+    width: area?.width ?? 0,
   }
 }
