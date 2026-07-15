@@ -313,26 +313,6 @@ describe("uplotChart", () => {
     document.body.removeChild(element)
   })
 
-  it.each(["multiBar", "stackedBar"])(
-    "renders %s via the seriesBars plugin without throwing",
-    chartType => {
-      const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType } })
-      withLoadedPayload(chart)
-
-      const instance = uplotChart(sdk, chart)
-      const element = document.createElement("div")
-      element.style.width = "800px"
-      element.style.height = "300px"
-      document.body.appendChild(element)
-
-      expect(() => instance.mount(element)).not.toThrow()
-      expect(element.querySelector(".uplot")).not.toBeNull()
-
-      instance.unmount()
-      document.body.removeChild(element)
-    }
-  )
-
   it("emits highlightEnd on drag-select in select mode", () => {
     const { sdk, chart } = makeTestChart({
       attributes: { loaded: true, chartType: "line", navigation: "select" },
@@ -548,4 +528,142 @@ describe("uplotChart heatmap", () => {
 
     cleanup(instance, element)
   })
+})
+
+describe("uplotChart bars", () => {
+  const positiveData = [
+    [1617946860000, 10, 20, 30],
+    [1617946865000, 12, 18, 28],
+    [1617946870000, 11, 22, 31],
+  ]
+
+  const negativeData = [
+    [1617946860000, 10, -20, 5],
+    [1617946865000, -12, 18, -8],
+    [1617946870000, 11, -22, 6],
+  ]
+
+  const withBarPayload = (chart, data) => {
+    chart.getPayload = () => ({
+      data,
+      labels: ["time", "reads", "writes", "other"],
+    })
+    chart.getPayloadDimensionIds = () => ["reads", "writes", "other"]
+    chart.getVisibleDimensionIds = () => ["reads", "writes", "other"]
+    chart.isDimensionVisible = () => true
+    chart.selectDimensionColor = () => "#3366CC"
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getConvertedValueWithUnit = value => `${value}`
+  }
+
+  const mountBars = (chartType, data) => {
+    const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType } })
+    withBarPayload(chart, data)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    return { sdk, chart, instance, element }
+  }
+
+  const cleanup = (instance, element) => {
+    instance.unmount()
+    document.body.removeChild(element)
+  }
+
+  it.each(["multiBar", "stackedBar"])(
+    "draws %s on the main time-x instance, not a separate ordinal instance",
+    chartType => {
+      const { instance, element } = mountBars(chartType, positiveData)
+      const u = instance.getUPlot()
+
+      expect(element.querySelector(".uplot")).not.toBeNull()
+      expect(u.scales.x.time).toBe(true)
+      expect(u.scales.x.distr).not.toBe(2)
+      expect(u.series[1].paths()).toBeNull()
+      expect(() => u.hooks.draw.forEach(hook => hook(u))).not.toThrow()
+
+      cleanup(instance, element)
+    }
+  )
+
+  it.each(["multiBar", "stackedBar"])(
+    "keeps the time x-range aligned with the chart date window for %s",
+    chartType => {
+      const { chart, instance, element } = mountBars(chartType, positiveData)
+      const u = instance.getUPlot()
+
+      const [after, before] = chart.getDateWindow()
+      expect(u.scales.x.range()).toEqual([after / 1000, before / 1000])
+
+      cleanup(instance, element)
+    }
+  )
+
+  it("spans the multiBar y-range from the zero baseline to the tallest bar", () => {
+    const { instance, element } = mountBars("multiBar", positiveData)
+    const u = instance.getUPlot()
+
+    const [min, max] = u.scales.y.range(u, 10, 31)
+    expect(min).toBe(0)
+    expect(max).toBeGreaterThanOrEqual(31)
+
+    cleanup(instance, element)
+  })
+
+  it("includes negative values below the zero line in the multiBar y-range", () => {
+    const { instance, element } = mountBars("multiBar", negativeData)
+    const u = instance.getUPlot()
+
+    const [min, max] = u.scales.y.range(u, -22, 18)
+    expect(min).toBeLessThan(0)
+    expect(max).toBeGreaterThan(0)
+
+    cleanup(instance, element)
+  })
+
+  it("stacks stackedBar dimensions cumulatively via stack.js", () => {
+    const { instance, element } = mountBars("stackedBar", positiveData)
+    const u = instance.getUPlot()
+
+    const [min, max] = u.scales.y.range(u, 10, 31)
+    expect(min).toBe(0)
+    expect(max).toBeGreaterThanOrEqual(60)
+
+    cleanup(instance, element)
+  })
+
+  it("includes a negative cumulative total below the zero line in the stackedBar y-range", () => {
+    const { instance, element } = mountBars("stackedBar", negativeData)
+    const u = instance.getUPlot()
+
+    const [min] = u.scales.y.range(u, -22, 18)
+    expect(min).toBeLessThan(0)
+
+    cleanup(instance, element)
+  })
+
+  it.each(["multiBar", "stackedBar"])(
+    "emits hoverChart and highlightHover through the shared setCursor for %s",
+    chartType => {
+      const { sdk, instance, element } = mountBars(chartType, positiveData)
+
+      const hovered = []
+      const hoverCharts = []
+      sdk.on("highlightHover", (c, x) => hovered.push(x))
+      sdk.on("hoverChart", () => hoverCharts.push(true))
+
+      instance.getUPlot().setCursor({ left: 400, top: 100 }, true)
+      expect(hovered.length).toBeGreaterThan(0)
+      expect(hovered[0]).toBeGreaterThanOrEqual(1617946860000)
+      expect(hovered[0]).toBeLessThanOrEqual(1617946870000)
+      expect(hoverCharts.length).toBeGreaterThan(0)
+
+      cleanup(instance, element)
+    }
+  )
 })
