@@ -139,6 +139,7 @@ const netContext = "showcase.net.traffic"
 const diskContext = "showcase.disk.ops"
 const memoryContext = "showcase.system.ram"
 const requestsContext = "showcase.web.requests"
+const latencyContext = "showcase.app.latency"
 
 const cpuPayload = chartType =>
   makePayload({
@@ -214,6 +215,35 @@ const requestsPayload = chartType =>
     dimensions: [
       { id: "success", name: "success", values: makeWave({ center: 1250, amplitude: 420, cycles: 2.4, phase: 0.8 }) },
     ],
+  })
+
+const latencyBuckets = [
+  { id: "1", center: 5, amplitude: 4, phase: 0.2 },
+  { id: "2.5", center: 11, amplitude: 6, phase: 0.6 },
+  { id: "5", center: 19, amplitude: 9, phase: 1 },
+  { id: "10", center: 27, amplitude: 11, phase: 1.5 },
+  { id: "25", center: 21, amplitude: 9, phase: 2.1 },
+  { id: "50", center: 13, amplitude: 6, phase: 2.6 },
+  { id: "100", center: 7, amplitude: 4, phase: 3 },
+  { id: "+Inf", center: 3, amplitude: 2, phase: 3.4 },
+]
+
+const latencyPayload = chartType =>
+  makePayload({
+    context: latencyContext,
+    title: "Request latency distribution",
+    unit: "requests/s",
+    chartType,
+    dimensions: latencyBuckets.map(bucket => ({
+      id: bucket.id,
+      name: bucket.id,
+      values: makeWave({
+        center: bucket.center,
+        amplitude: bucket.amplitude,
+        cycles: 2.3,
+        phase: bucket.phase,
+      }).map(value => Math.max(0, Math.round(value))),
+    })),
   })
 
 const singleMetric = ({ context, id, unit, center, amplitude, cycles = 2.4, phase = 0.3, chartType }) =>
@@ -537,6 +567,7 @@ const renderModes = theme => [
   { title: "Diverging stack", subtitle: "net in / out", config: { context: netContext, chartType: "stacked", theme, payload: netPayload("stacked") } },
   { title: "Multi bar", subtitle: "disk ops", config: { context: diskContext, chartType: "multiBar", theme, payload: diskPayload("multiBar") } },
   { title: "Stacked bar", subtitle: "memory", config: { context: memoryContext, chartType: "stackedBar", theme, payload: memoryPayload("stackedBar") } },
+  { title: "Heatmap", subtitle: "latency buckets", config: { context: latencyContext, chartType: "heatmap", theme, payload: latencyPayload("heatmap") }, legend: false },
 ]
 
 const Showcase = ({ theme }) => {
