@@ -3,13 +3,17 @@ import { debounce } from "throttle-debounce"
 import makeChartUI from "@/sdk/makeChartUI"
 import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
+import { getStackBounds, getStackValueRange } from "./stacking"
+import { seriesBarsPlugin } from "./bars/seriesBarsPlugin"
+import { stack } from "./bars/stack"
+
+const barTypes = { multiBar: true, stackedBar: true }
 
 const fillAlpha = "40"
+const stackedFillAlpha = "CC"
 
-const barsPathBuilder = uPlot.paths.bars && uPlot.paths.bars({ size: [0.6, 100], align: 0 })
 const steppedPathBuilder = uPlot.paths.stepped && uPlot.paths.stepped({ align: 1 })
-
-const barTypes = { multiBar: true, stackedBar: true, bars: true }
+const nullPathBuilder = () => null
 
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
@@ -43,10 +47,13 @@ export default (sdk, chart) => {
     return [x, ...series]
   }
 
-  const getPaths = () => {
-    const chartType = chart.getAttribute("chartType")
+  const stackBounds = () =>
+    getStackBounds(chart.getPayload().data, chart.getPayloadDimensionIds(), id =>
+      chart.isDimensionVisible(id)
+    )
 
-    if (barTypes[chartType]) return barsPathBuilder
+  const getPaths = () => {
+    if (chart.getAttribute("chartType") === "stacked") return nullPathBuilder
     if (chart.getAttribute("stepPlot")) return steppedPathBuilder
 
     return undefined
@@ -54,7 +61,7 @@ export default (sdk, chart) => {
 
   const getSeries = () => {
     const chartType = chart.getAttribute("chartType")
-    const filled = chartType === "area" || chartType === "stacked" || barTypes[chartType]
+    const filled = chartType === "area"
     const paths = getPaths()
 
     return [
@@ -84,6 +91,8 @@ export default (sdk, chart) => {
     },
     y: {
       range: (self, dataMin, dataMax) => {
+        if (chart.getAttribute("chartType") === "stacked") return getStackValueRange(stackBounds())
+
         const [min, max] = chart.getAttribute("getValueRange")(chart)
         return [min == null ? dataMin : min, max == null ? dataMax : max]
       },
@@ -133,6 +142,57 @@ export default (sdk, chart) => {
     ctx.moveTo(left, top)
     ctx.lineTo(left, top + height)
     ctx.stroke()
+    ctx.restore()
+  }
+
+  const drawStacked = self => {
+    if (chart.getAttribute("chartType") !== "stacked") return
+
+    const dimensionIds = chart.getPayloadDimensionIds()
+    const bounds = stackBounds()
+    const xs = self.data[0]
+    const { ctx } = self
+
+    ctx.save()
+    ctx.beginPath()
+    ctx.rect(self.bbox.left, self.bbox.top, self.bbox.width, self.bbox.height)
+    ctx.clip()
+
+    dimensionIds.forEach((id, index) => {
+      const series = bounds[index]
+      if (!series) return
+
+      ctx.beginPath()
+      let started = false
+
+      for (let row = 0; row < xs.length; row++) {
+        const bound = series[row]
+        if (!bound) continue
+
+        const x = self.valToPos(xs[row], "x", true)
+        const y = self.valToPos(bound[1], "y", true)
+
+        if (started) ctx.lineTo(x, y)
+        else {
+          ctx.moveTo(x, y)
+          started = true
+        }
+      }
+
+      for (let row = xs.length - 1; row >= 0; row--) {
+        const bound = series[row]
+        if (!bound) continue
+
+        ctx.lineTo(self.valToPos(xs[row], "x", true), self.valToPos(bound[0], "y", true))
+      }
+
+      if (!started) return
+
+      ctx.closePath()
+      ctx.fillStyle = `${chart.selectDimensionColor(id)}${stackedFillAlpha}`
+      ctx.fill()
+    })
+
     ctx.restore()
   }
 
@@ -277,11 +337,59 @@ export default (sdk, chart) => {
     }
   }
 
+  const getBarSeries = () => [
+    {},
+    ...chart.getPayloadDimensionIds().map(id => ({
+      label: id,
+      show: chart.isDimensionVisible(id),
+      fill: chart.selectDimensionColor(id),
+      width: 0,
+    })),
+  ]
+
+  const createBars = data => {
+    const chartType = chart.getAttribute("chartType")
+    let barData = data
+    let bands
+
+    if (chartType === "stackedBar") {
+      const stacked = stack(data, () => false)
+      barData = stacked.data
+      bands = stacked.bands
+    }
+
+    u = new uPlot(
+      {
+        width: chartUI.getChartWidth(),
+        height: chartUI.getChartHeight(),
+        legend: { show: false },
+        ...(bands && { bands }),
+        axes: [{}, {}],
+        series: getBarSeries(),
+        plugins: [
+          seriesBarsPlugin({
+            ori: 0,
+            dir: 1,
+            stacked: chartType === "stackedBar",
+            groupWidth: 0.6,
+          }),
+        ],
+      },
+      barData,
+      element
+    )
+  }
+
   const create = () => {
     if (!element) return
 
     const data = getData()
     if (!data) return
+
+    if (barTypes[chart.getAttribute("chartType")]) {
+      createBars(data)
+      return
+    }
 
     u = new uPlot(
       {
@@ -292,7 +400,7 @@ export default (sdk, chart) => {
         scales: getScales(),
         series: getSeries(),
         axes: getAxes(),
-        hooks: { setCursor: [setCursor], draw: [draw], setSelect: [onSetSelect] },
+        hooks: { setCursor: [setCursor], draw: [drawStacked, draw], setSelect: [onSetSelect] },
       },
       data,
       element
@@ -333,7 +441,7 @@ export default (sdk, chart) => {
     }
 
     if (!u) create()
-    else if (u.series.length !== data.length) rebuild()
+    else if (barTypes[chart.getAttribute("chartType")] || u.series.length !== data.length) rebuild()
     else u.setData(data)
 
     chartUI.trigger("rendered")
