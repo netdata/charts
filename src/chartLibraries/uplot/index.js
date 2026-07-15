@@ -17,7 +17,7 @@ export default (sdk, chart) => {
     const { data } = chart.getPayload()
     const dimensionIds = chart.getPayloadDimensionIds()
 
-    if (!data?.length || !dimensionIds.length) return null
+    if (chart.getAttribute("outOfLimits") || !data?.length || !dimensionIds.length) return null
 
     const rows = data.length
     const x = new Array(rows)
@@ -56,7 +56,25 @@ export default (sdk, chart) => {
     ]
   }
 
+  const getScales = () => ({
+    x: {
+      time: true,
+      range: () => {
+        const [after, before] = chart.getDateWindow()
+        return [after / 1000, before / 1000]
+      },
+    },
+    y: {
+      range: (self, dataMin, dataMax) => {
+        const [min, max] = chart.getAttribute("getValueRange")(chart)
+        return [min == null ? dataMin : min, max == null ? dataMax : max]
+      },
+    },
+  })
+
   const getAxes = () => {
+    if (chart.isSparkline()) return [{ show: false }, { show: false }]
+
     const gridColor = chart.getThemeAttribute("themeGridColor")
     const labelColor = chart.getThemeAttribute("themeLabelColor")
     const dimensionId = chart.getVisibleDimensionIds()?.[0]
@@ -66,6 +84,7 @@ export default (sdk, chart) => {
         stroke: labelColor,
         grid: { stroke: gridColor, width: 1 },
         ticks: { stroke: gridColor, width: 1 },
+        values: (self, splits) => splits.map(value => chart.formatXAxis(new Date(value * 1000))),
       },
       {
         stroke: labelColor,
@@ -106,6 +125,8 @@ export default (sdk, chart) => {
   }
 
   const setCursor = self => {
+    if (!chart.getAttribute("enabledHover")) return
+
     const { left, idx } = self.cursor
     const outside = left == null || left < 0 || idx == null
 
@@ -129,6 +150,8 @@ export default (sdk, chart) => {
   }
 
   const create = () => {
+    if (!element) return
+
     const data = getData()
     if (!data) return
 
@@ -138,7 +161,7 @@ export default (sdk, chart) => {
         height: chartUI.getChartHeight(),
         legend: { show: false },
         cursor: { focus: { prox: 16 } },
-        scales: { x: { time: true } },
+        scales: getScales(),
         series: getSeries(),
         axes: getAxes(),
         hooks: { setCursor: [setCursor], draw: [draw] },
@@ -161,10 +184,18 @@ export default (sdk, chart) => {
   }
 
   const render = () => {
+    if (!element) return
+
+    const { highlighting, panning, processing } = chart.getAttributes()
+    if (highlighting || panning || processing) return
+
     chartUI.render()
 
     const data = getData()
-    if (!data) return
+    if (!data) {
+      destroyChart()
+      return
+    }
 
     if (!u) create()
     else if (u.series.length !== data.length) rebuild()
@@ -196,6 +227,9 @@ export default (sdk, chart) => {
       chart.onAttributeChange("clickX", () => u && u.redraw(false, false)),
       chart.onAttributeChange("selectedLegendDimensions", rebuild),
       chart.onAttributeChange("chartType", rebuild),
+      chart.onAttributeChange("staticValueRange", () => u && u.setData(u.data, true)),
+      chart.onAttributeChange("timezone", () => u && u.redraw()),
+      chart.onAttributeChange("unitsConversionPrefix", () => u && u.redraw()),
       chart.onAttributeChange("theme", (next, prev) => {
         element.classList.remove(prev)
         element.classList.add(next)
@@ -219,8 +253,14 @@ export default (sdk, chart) => {
 
   const getUPlot = () => u
 
+  const getChartWidth = () => (u ? u.over.clientWidth : chartUI.getChartWidth())
+
+  const getChartHeight = () => (u ? u.over.clientHeight : chartUI.getChartHeight())
+
   const instance = {
     ...chartUI,
+    getChartWidth,
+    getChartHeight,
     mount,
     unmount,
     render,
