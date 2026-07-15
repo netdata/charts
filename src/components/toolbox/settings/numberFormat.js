@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react"
 import { Flex, TextSmall, TextInput, Select } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart } from "@/components/provider"
-import { getScales, isScalable } from "@/helpers/units"
+import { getScales, getUnitConfig, isScalable } from "@/helpers/units"
 import conversableUnits, { keys as conversableKeys } from "@/helpers/units/conversableUnits"
 
 const NumberFormat = () => {
@@ -39,9 +39,11 @@ const NumberFormat = () => {
         })
       } else {
         const [scaleKeys] = getScales(selectedUnit)
+        const config = getUnitConfig(selectedUnit)
+        const base = config.base_unit ?? selectedUnit
         scaleKeys.forEach(key => {
           const prefix = key === "1" ? "" : key
-          const unitLabel = `${prefix} ${selectedUnit}`
+          const unitLabel = `${prefix} ${base}`.trim()
           options.push({ value: key, label: unitLabel })
         })
       }
