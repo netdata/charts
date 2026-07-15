@@ -9,11 +9,28 @@ import { stack } from "./bars/stack"
 
 const barTypes = { multiBar: true, stackedBar: true }
 
-const fillAlpha = "40"
+const axisFont = "11px 'IBM Plex Sans', sans-serif"
+const tickSize = 4
+const axisGap = 6
+const xTickSpace = 80
+
+const lineWidth = 2
+const areaLineWidth = 1.5
+const areaGradientTopAlpha = "59"
+const areaGradientBottomAlpha = "00"
 const stackedFillAlpha = "CC"
+const stackedEdgeAlpha = "E6"
 
 const steppedPathBuilder = uPlot.paths.stepped && uPlot.paths.stepped({ align: 1 })
 const nullPathBuilder = () => null
+
+const makeAreaFill = color => self => {
+  const { ctx, bbox } = self
+  const gradient = ctx.createLinearGradient(0, bbox.top, 0, bbox.top + bbox.height)
+  gradient.addColorStop(0, `${color}${areaGradientTopAlpha}`)
+  gradient.addColorStop(1, `${color}${areaGradientBottomAlpha}`)
+  return gradient
+}
 
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
@@ -73,9 +90,9 @@ export default (sdk, chart) => {
           label: id,
           show: chart.isDimensionVisible(id),
           stroke: color,
-          width: chartType === "line" ? 1.5 : 1,
+          width: filled ? areaLineWidth : lineWidth,
           ...(paths && { paths }),
-          ...(filled && { fill: `${color}${fillAlpha}` }),
+          ...(filled && { fill: makeAreaFill(color) }),
         }
       }),
     ]
@@ -108,18 +125,39 @@ export default (sdk, chart) => {
 
     return [
       {
+        font: axisFont,
         stroke: labelColor,
         grid: { stroke: gridColor, width: 1 },
-        ticks: { stroke: gridColor, width: 1 },
+        ticks: { stroke: gridColor, width: 1, size: tickSize },
+        space: xTickSpace,
+        gap: axisGap,
         values: (self, splits) => splits.map(value => chart.formatXAxis(new Date(value * 1000))),
       },
       {
+        font: axisFont,
         stroke: labelColor,
         grid: { stroke: gridColor, width: 1 },
-        ticks: { stroke: gridColor, width: 1 },
+        ticks: { stroke: gridColor, width: 1, size: tickSize },
         size: 60,
+        gap: axisGap,
         values: (self, splits) =>
           splits.map(value => chart.getConvertedValueWithUnit(value, { dimensionId })),
+      },
+    ]
+  }
+
+  const getBarAxes = () => {
+    const gridColor = chart.getThemeAttribute("themeGridColor")
+    const labelColor = chart.getThemeAttribute("themeLabelColor")
+
+    return [
+      { font: axisFont, stroke: labelColor, gap: axisGap },
+      {
+        font: axisFont,
+        stroke: labelColor,
+        grid: { stroke: gridColor, width: 1 },
+        ticks: { stroke: gridColor, width: 1, size: tickSize },
+        gap: axisGap,
       },
     ]
   }
@@ -158,9 +196,13 @@ export default (sdk, chart) => {
     ctx.rect(self.bbox.left, self.bbox.top, self.bbox.width, self.bbox.height)
     ctx.clip()
 
+    const edgeWidth = window.devicePixelRatio || 1
+
     dimensionIds.forEach((id, index) => {
       const series = bounds[index]
       if (!series) return
+
+      const color = chart.selectDimensionColor(id)
 
       ctx.beginPath()
       let started = false
@@ -189,8 +231,29 @@ export default (sdk, chart) => {
       if (!started) return
 
       ctx.closePath()
-      ctx.fillStyle = `${chart.selectDimensionColor(id)}${stackedFillAlpha}`
+      ctx.fillStyle = `${color}${stackedFillAlpha}`
       ctx.fill()
+
+      ctx.beginPath()
+      let edgeStarted = false
+
+      for (let row = 0; row < xs.length; row++) {
+        const bound = series[row]
+        if (!bound) continue
+
+        const x = self.valToPos(xs[row], "x", true)
+        const y = self.valToPos(bound[1], "y", true)
+
+        if (edgeStarted) ctx.lineTo(x, y)
+        else {
+          ctx.moveTo(x, y)
+          edgeStarted = true
+        }
+      }
+
+      ctx.lineWidth = edgeWidth
+      ctx.strokeStyle = `${color}${stackedEdgeAlpha}`
+      ctx.stroke()
     })
 
     ctx.restore()
@@ -198,7 +261,7 @@ export default (sdk, chart) => {
 
   const draw = self => {
     const crosshairColor = chart.getThemeAttribute("themeCrosshair")
-    drawVerticalLine(self, chart.getAttribute("hoverX"), crosshairColor, [3, 3])
+    drawVerticalLine(self, chart.getAttribute("hoverX"), crosshairColor, [4, 4])
     drawVerticalLine(self, chart.getAttribute("clickX"), crosshairColor, null)
   }
 
@@ -364,7 +427,7 @@ export default (sdk, chart) => {
         height: chartUI.getChartHeight(),
         legend: { show: false },
         ...(bands && { bands }),
-        axes: [{}, {}],
+        axes: getBarAxes(),
         series: getBarSeries(),
         plugins: [
           seriesBarsPlugin({
@@ -372,6 +435,7 @@ export default (sdk, chart) => {
             dir: 1,
             stacked: chartType === "stackedBar",
             groupWidth: 0.6,
+            radius: 0.15,
           }),
         ],
       },
