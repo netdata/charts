@@ -6,6 +6,11 @@ import makeResizeObserver from "@/helpers/makeResizeObserver"
 
 const fillAlpha = "40"
 
+const barsPathBuilder = uPlot.paths.bars && uPlot.paths.bars({ size: [0.6, 100], align: 0 })
+const steppedPathBuilder = uPlot.paths.stepped && uPlot.paths.stepped({ align: 1 })
+
+const barTypes = { multiBar: true, stackedBar: true, bars: true }
+
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
   let u = null
@@ -38,9 +43,19 @@ export default (sdk, chart) => {
     return [x, ...series]
   }
 
+  const getPaths = () => {
+    const chartType = chart.getAttribute("chartType")
+
+    if (barTypes[chartType]) return barsPathBuilder
+    if (chart.getAttribute("stepPlot")) return steppedPathBuilder
+
+    return undefined
+  }
+
   const getSeries = () => {
     const chartType = chart.getAttribute("chartType")
-    const filled = chartType === "area" || chartType === "stacked"
+    const filled = chartType === "area" || chartType === "stacked" || barTypes[chartType]
+    const paths = getPaths()
 
     return [
       {},
@@ -52,6 +67,7 @@ export default (sdk, chart) => {
           show: chart.isDimensionVisible(id),
           stroke: color,
           width: chartType === "line" ? 1.5 : 1,
+          ...(paths && { paths }),
           ...(filled && { fill: `${color}${fillAlpha}` }),
         }
       }),
