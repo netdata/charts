@@ -485,7 +485,7 @@ export const useLatestRowValue = (options = {}) => {
     return unregister(
       chart.onAttributeChange("hoverX", () => setState(getValue())),
       chart.on("dimensionChanged", () => setState(getValue())),
-      chart.on("render", () => setState(getValue()))
+      chart.on("successFetch", () => setState(getValue()))
     )
   }, [chart])
 
@@ -621,7 +621,7 @@ export const useValue = (
       chart.onAttributeChange("hoverX", () => setState(getValue())),
       chart.on("dimensionChanged", () => setState(getValue())),
       chart.onAttributeChange(`${unitsKey}Conversion`, () => setState(getValue())),
-      chart.on("render", () => setState(getValue()))
+      chart.on("successFetch", () => setState(getValue()))
     )
   }, [chart, id, valueKey, period, unitsKey, abs, allowNull])
 
