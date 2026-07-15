@@ -18,6 +18,7 @@ import makeHoverX from "./hoverX"
 import makeOverlays from "./overlays"
 import crosshair from "./crosshair"
 import { makeDivergingStackedDataHandler } from "./divergingStack"
+import makeDygraphWithoutLegend from "./makeDygraph"
 
 const touchEvents = ["touchstart", "touchmove", "touchend"]
 
@@ -47,7 +48,7 @@ export default (sdk, chart) => {
 
     const isEmpty = attributes.outOfLimits || data.length === 0
 
-    dygraph = new Dygraph(element, isEmpty ? [[0]] : data, {
+    dygraph = makeDygraphWithoutLegend(element, isEmpty ? [[0]] : data, {
       // timingName: chart.getId(),
       legend: "never",
       showLabelsOnHighlight: false,
