@@ -292,7 +292,7 @@ Files:
 | stacked / diverging / bar / multi-bar / heatmap plotters | ❌ deferred | |
 | anomaly ribbon, annotation strip | ❌ deferred | |
 | alert overlays (alarm / alarmRange / alertTransitions / highlight) | ❌ deferred | same `draw`-hook pattern as crosshair |
-| pan / zoom / select navigation | ❌ deferred | |
+| pan / zoom / select navigation | ✅ implemented | drag-select (select/highlight) + selectVertical via `setSelect`; custom pan; wheel zoom; dblclick → `resetNavigation`; mode from `navigation`, gated by `enabledNavigation` |
 | required uPlot CSS (`uplot/dist/uPlot.min.css`) | ❌ deferred (Phase A) | **functional** (drives `.uplot` layout + cursor positioning), not cosmetic; story-only import today |
 | in-app UI integration (toolbox chart-type) | ❌ blocked on Phase 0 | see §7 |
 

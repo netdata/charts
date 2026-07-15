@@ -292,6 +292,75 @@ describe("uplotChart", () => {
     document.body.removeChild(element)
   })
 
+  it("emits highlightEnd on drag-select in select mode", () => {
+    const { sdk, chart } = makeTestChart({
+      attributes: { loaded: true, chartType: "line", navigation: "select" },
+    })
+    withLoadedPayload(chart)
+
+    const ends = []
+    sdk.on("highlightEnd", (c, range) => ends.push(range))
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    instance.getUPlot().setSelect({ left: 100, top: 0, width: 200, height: 0 }, true)
+    expect(ends).toHaveLength(1)
+    expect(ends[0]).toHaveLength(2)
+
+    instance.unmount()
+    document.body.removeChild(element)
+  })
+
+  it("does not emit highlightEnd when navigation is pan", () => {
+    const { sdk, chart } = makeTestChart({
+      attributes: { loaded: true, chartType: "line", navigation: "pan" },
+    })
+    withLoadedPayload(chart)
+
+    const ends = []
+    sdk.on("highlightEnd", (c, range) => ends.push(range))
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    instance.getUPlot().setSelect({ left: 100, top: 0, width: 200, height: 0 }, true)
+    expect(ends).toHaveLength(0)
+
+    instance.unmount()
+    document.body.removeChild(element)
+  })
+
+  it("resets navigation on double-click", () => {
+    const { sdk, chart } = makeTestChart({
+      attributes: { loaded: true, chartType: "line", navigation: "pan" },
+    })
+    withLoadedPayload(chart)
+
+    const spy = jest.spyOn(chart, "resetNavigation")
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    instance.getUPlot().over.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }))
+    expect(spy).toHaveBeenCalled()
+
+    instance.unmount()
+    document.body.removeChild(element)
+  })
+
   it("unmounts and destroys the uPlot instance cleanly", () => {
     const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType: "line" } })
     withLoadedPayload(chart)

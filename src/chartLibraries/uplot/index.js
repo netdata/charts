@@ -1,4 +1,5 @@
 import uPlot from "uplot"
+import { debounce } from "throttle-debounce"
 import makeChartUI from "@/sdk/makeChartUI"
 import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
@@ -12,6 +13,7 @@ export default (sdk, chart) => {
   let listeners
   let resizeObserver
   let hovering = false
+  let detachNavigation = null
 
   const getData = () => {
     const { data } = chart.getPayload()
@@ -149,6 +151,116 @@ export default (sdk, chart) => {
     sdk.trigger("highlightHover", chart, timestamp, dimensionId)
   }
 
+  const emitNav = (name, ...args) => sdk.trigger(name, chart, ...args)
+
+  const getCursor = () => {
+    const nav = chart.getAttribute("enabledNavigation") ? chart.getAttribute("navigation") : null
+    const drag =
+      nav === "selectVertical"
+        ? { x: false, y: true, setScale: false }
+        : nav === "select" || nav === "highlight"
+          ? { x: true, y: false, setScale: false }
+          : { x: false, y: false }
+
+    return { focus: { prox: 16 }, drag }
+  }
+
+  const onSetSelect = self => {
+    if (!chart.getAttribute("enabledNavigation")) return
+
+    const nav = chart.getAttribute("navigation")
+    const { select } = self
+
+    if (nav === "selectVertical" && select.height > 0) {
+      const min = self.posToVal(select.top + select.height, "y")
+      const max = self.posToVal(select.top, "y")
+      emitNav("highlightVerticalStart")
+      emitNav("highlightVerticalEnd", [min, max])
+    } else if ((nav === "select" || nav === "highlight") && select.width > 0) {
+      const after = Math.round(self.posToVal(select.left, "x"))
+      const before = Math.round(self.posToVal(select.left + select.width, "x"))
+      emitNav("highlightStart")
+      emitNav("highlightEnd", [after, before])
+    }
+
+    self.setSelect({ left: 0, top: 0, width: 0, height: 0 }, false)
+  }
+
+  const moveXDebounced = debounce(300, (after, before) => chart.moveX(after, before))
+
+  const onWheel = event => {
+    if (!chart.getAttribute("enabledNavigation")) return
+
+    event.preventDefault()
+
+    const left = u.cursor.left
+    if (left == null || left < 0) return
+
+    const rect = u.over.getBoundingClientRect()
+    const leftPct = left / rect.width
+    const xVal = u.posToVal(left, "x")
+    const range = u.scales.x.max - u.scales.x.min
+    const factor = 0.75
+    const nextRange = event.deltaY < 0 ? range * factor : range / factor
+    const min = xVal - leftPct * nextRange
+    const max = min + nextRange
+
+    u.setScale("x", { min, max })
+    moveXDebounced(min, max)
+  }
+
+  const attachNavigation = () => {
+    const over = u.over
+    let detachDoc = null
+
+    const onDown = event => {
+      if (event.button !== 0) return
+      if (!chart.getAttribute("enabledNavigation")) return
+      if (chart.getAttribute("navigation") !== "pan") return
+
+      event.preventDefault()
+
+      const left0 = event.clientX
+      const min0 = u.scales.x.min
+      const max0 = u.scales.x.max
+      const unitsPerPx = u.posToVal(1, "x") - u.posToVal(0, "x")
+
+      emitNav("panStart")
+
+      const onMove = ev => {
+        const dx = unitsPerPx * (ev.clientX - left0)
+        u.setScale("x", { min: min0 - dx, max: max0 - dx })
+      }
+
+      const onUp = () => {
+        document.removeEventListener("mousemove", onMove)
+        document.removeEventListener("mouseup", onUp)
+        detachDoc = null
+        emitNav("panEnd", [u.scales.x.min * 1000, u.scales.x.max * 1000])
+      }
+
+      document.addEventListener("mousemove", onMove)
+      document.addEventListener("mouseup", onUp)
+      detachDoc = () => {
+        document.removeEventListener("mousemove", onMove)
+        document.removeEventListener("mouseup", onUp)
+      }
+    }
+
+    const onDblClick = () => chart.resetNavigation()
+
+    over.addEventListener("mousedown", onDown)
+    over.addEventListener("wheel", onWheel, { passive: false })
+    over.addEventListener("dblclick", onDblClick)
+
+    return () => {
+      over.removeEventListener("mousedown", onDown)
+      over.removeEventListener("wheel", onWheel)
+      over.removeEventListener("dblclick", onDblClick)
+      if (detachDoc) detachDoc()
+    }
+  }
+
   const create = () => {
     if (!element) return
 
@@ -160,19 +272,26 @@ export default (sdk, chart) => {
         width: chartUI.getChartWidth(),
         height: chartUI.getChartHeight(),
         legend: { show: false },
-        cursor: { focus: { prox: 16 } },
+        cursor: getCursor(),
         scales: getScales(),
         series: getSeries(),
         axes: getAxes(),
-        hooks: { setCursor: [setCursor], draw: [draw] },
+        hooks: { setCursor: [setCursor], draw: [draw], setSelect: [onSetSelect] },
       },
       data,
       element
     )
+
+    detachNavigation = attachNavigation()
   }
 
   const destroyChart = () => {
     if (!u) return
+
+    if (detachNavigation) {
+      detachNavigation()
+      detachNavigation = null
+    }
 
     u.destroy()
     u = null
@@ -227,6 +346,8 @@ export default (sdk, chart) => {
       chart.onAttributeChange("clickX", () => u && u.redraw(false, false)),
       chart.onAttributeChange("selectedLegendDimensions", rebuild),
       chart.onAttributeChange("chartType", rebuild),
+      chart.onAttributeChange("navigation", rebuild),
+      chart.onAttributeChange("enabledNavigation", rebuild),
       chart.onAttributeChange("staticValueRange", () => u && u.setData(u.data, true)),
       chart.onAttributeChange("timezone", () => u && u.redraw()),
       chart.onAttributeChange("unitsConversionPrefix", () => u && u.redraw()),
