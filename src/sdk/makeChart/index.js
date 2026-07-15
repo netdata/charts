@@ -53,6 +53,13 @@ export default ({
   }
 
   let uiInstances = {}
+  let renderRevision = 0
+
+  node.getRenderRevision = () => renderRevision
+  node.invalidateRender = () => {
+    renderRevision += 1
+    return renderRevision
+  }
 
   node.getUpdateEvery = () => {
     if (!node) return
@@ -135,9 +142,21 @@ export default ({
     uiInstances[uiName] = newUi
   }
 
-  const render = executeLatest.add(() =>
-    Object.keys(uiInstances).forEach(uiName => uiInstances[uiName].render())
-  )
+  const render = executeLatest.add(() => {
+    if (!uiInstances) return
+
+    Object.keys(uiInstances).forEach(uiName => {
+      const chartUI = uiInstances[uiName]
+      if (!chartUI?.render) return
+
+      if (chartUI.renderIfStale) {
+        chartUI.renderIfStale(chartUI.render)
+        return
+      }
+
+      chartUI.render()
+    })
+  })
 
   node.on("render", render)
   unitConversion(node)

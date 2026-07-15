@@ -245,6 +245,61 @@ describe("makeDimensions", () => {
       expect(() => mockChart.sortDimensions()).not.toThrow()
     })
 
+    it("resolves each dimension value once per value sort", () => {
+      const ids = Array.from({ length: 100 }, (_, index) => `dimension-${index}`)
+      const values = Object.fromEntries(ids.map((id, index) => [id, ids.length - index]))
+      mockChart.getPayloadDimensionIds = jest.fn(() => [...ids])
+      mockChart.getDimensionValue = jest.fn(id => values[id])
+      mockChart.getDimensionName = jest.fn(id => id)
+      mockChart.getAttribute.mockImplementation(key => {
+        if (key === "dimensionsSort") return "valueDesc"
+        if (key === "selectedLegendDimensions") return []
+        return null
+      })
+
+      mockChart.sortDimensions()
+
+      expect(mockChart.getDimensionValue).toHaveBeenCalledTimes(ids.length)
+      expect(mockChart.getDimensionName).toHaveBeenCalledTimes(ids.length)
+      expect(mockChart.getVisibleDimensionIds()).toEqual(ids)
+    })
+
+    it("preserves value, secondary value, and name fallback ordering", () => {
+      const ids = ["low", "name-last", "name-first", "high"]
+      const anomalyRates = { low: 1, "name-last": 2, "name-first": 2, high: 2 }
+      const values = { low: 100, "name-last": 50, "name-first": 50, high: 200 }
+      const names = {
+        low: "Low",
+        "name-last": "Zulu",
+        "name-first": "Alpha",
+        high: "High",
+      }
+      mockChart.getPayloadDimensionIds = jest.fn(() => [...ids])
+      mockChart.getDimensionName = jest.fn(id => names[id])
+      mockChart.getDimensionValue = jest.fn((id, _x, options) =>
+        options?.valueKey === "arp" ? anomalyRates[id] : values[id]
+      )
+      mockChart.getAttribute.mockImplementation(key => {
+        if (key === "dimensionsSort") return "anomalyDesc"
+        if (key === "selectedLegendDimensions") return []
+        return null
+      })
+
+      mockChart.sortDimensions()
+
+      expect(mockChart.getVisibleDimensionIds()).toEqual(["high", "name-first", "name-last", "low"])
+      const callsByValue = mockChart.getDimensionValue.mock.calls.reduce(
+        (calls, [id, , options]) => {
+          const key = `${options?.valueKey || "value"}:${id}`
+          calls.set(key, (calls.get(key) || 0) + 1)
+          return calls
+        },
+        new Map()
+      )
+      expect([...callsByValue.values()].every(count => count === 1)).toBe(true)
+      expect(mockChart.getDimensionValue).toHaveBeenCalledTimes(ids.length * 2)
+    })
+
     it("sorts by anomaly descending", () => {
       mockChart.getAttribute.mockImplementation(key => {
         if (key === "dimensionsSort") return "anomalyDesc"
@@ -904,15 +959,7 @@ describe("makeDimensions heatmap bucket ordering", () => {
   })
 
   it("crops prefixed heatmap edges using raw bucket values", async () => {
-    const ids = [
-      "bucket_0",
-      "bucket_1",
-      "bucket_2",
-      "bucket_3",
-      "bucket_4",
-      "bucket_5",
-      "bucket_6",
-    ]
+    const ids = ["bucket_0", "bucket_1", "bucket_2", "bucket_3", "bucket_4", "bucket_5", "bucket_6"]
     const chart = makeHeatmapChart(ids)
 
     await loadHeatmapPayload(chart, ids, [

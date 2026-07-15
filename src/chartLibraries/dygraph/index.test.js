@@ -128,6 +128,38 @@ describe("dygraphChart", () => {
     expect(() => instance.render()).not.toThrow()
   })
 
+  it("blocks a nested option redraw while preserving the outer redraw", () => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        highlighting: false,
+        panning: false,
+        processing: false,
+      },
+    })
+
+    chart.getPayload = () => ({
+      data: [[1617946860000, 10]],
+      labels: ["time", "value"],
+    })
+    chart.getDateWindow = () => [1617946860000, 1617947750000]
+    chart.formatXAxis = x => x.toString()
+    chart.getThemeAttribute = () => "#333"
+    chart.getUnitSign = () => ""
+
+    const instance = dygraphChart(sdk, chart)
+    instance.mount(document.createElement("div"))
+    mockDygraph.updateOptions.mockClear()
+    mockDygraph.updateOptions.mockImplementationOnce(() => {
+      chart.updateAttribute("unitsConversionPrefix", ["Ki"])
+    })
+
+    instance.render()
+
+    expect(mockDygraph.updateOptions).toHaveBeenCalledTimes(2)
+    expect(mockDygraph.updateOptions.mock.calls[0][1]).toBe(false)
+    expect(mockDygraph.updateOptions.mock.calls[1][1]).toBe(true)
+  })
+
   it("skips render when highlighting, panning, or processing", () => {
     const { sdk, chart } = makeTestChart({
       attributes: {

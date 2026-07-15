@@ -8,6 +8,7 @@ import {
   useTitle,
   useName,
   useIsMinimal,
+  useLatestRowValue,
   useLatestDisplayValue,
   useLatestDisplayValueWithUnit,
   useLatestValue,
@@ -309,6 +310,56 @@ describe("Chart Provider Selectors", () => {
   })
 
   describe("display values", () => {
+    it("refreshes latest values for successful fetches instead of render requests", () => {
+      jest.useFakeTimers()
+      const { chart } = makeTestChart()
+      jest.spyOn(chart, "getPayload").mockReturnValue({ all: [[0, 11]], data: [[0, 11]] })
+      jest.spyOn(chart, "isDimensionVisible").mockReturnValue(true)
+      const getDimensionValue = jest.spyOn(chart, "getDimensionValue").mockReturnValue(11)
+
+      const { result } = renderHookWithChart(() => useLatestValue("dim1"), { chart })
+
+      expect(result.current).toBe(11)
+      getDimensionValue.mockClear()
+
+      act(() => {
+        for (let i = 0; i < 20; i++) chart.trigger("render")
+        jest.runOnlyPendingTimers()
+      })
+
+      expect(getDimensionValue).not.toHaveBeenCalled()
+
+      act(() => chart.trigger("successFetch"))
+
+      expect(getDimensionValue).toHaveBeenCalledTimes(1)
+      jest.useRealTimers()
+    })
+
+    it("refreshes complete latest rows for successful fetches instead of render requests", () => {
+      jest.useFakeTimers()
+      const { chart } = makeTestChart()
+      jest.spyOn(chart, "getPayload").mockReturnValue({ all: [[0, 11]], data: [[0, 11]] })
+      jest.spyOn(chart, "getVisibleDimensionIds").mockReturnValue(["dim1"])
+      const getDimensionValue = jest.spyOn(chart, "getDimensionValue").mockReturnValue(11)
+      jest.spyOn(chart, "selectDimensionColor").mockReturnValue("#123456")
+
+      const { result } = renderHookWithChart(() => useLatestRowValue(), { chart })
+
+      act(() => {
+        for (let i = 0; i < 20; i++) chart.trigger("render")
+        jest.runOnlyPendingTimers()
+      })
+
+      expect(result.current).toBeNull()
+      expect(getDimensionValue).not.toHaveBeenCalled()
+
+      act(() => chart.trigger("successFetch"))
+
+      expect(result.current).toEqual([{ label: "dim1", value: 11, color: "#123456" }])
+      expect(getDimensionValue).toHaveBeenCalledTimes(1)
+      jest.useRealTimers()
+    })
+
     it("keeps magnitude retrieval separate from signed atomic presentation", async () => {
       const payload = makeHeatmapPayload(["bytes"], [[-1536]])
       payload.view.chart_type = "line"

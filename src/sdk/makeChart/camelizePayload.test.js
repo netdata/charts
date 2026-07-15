@@ -71,6 +71,34 @@ describe("camelizePayload", () => {
     expect(result.all[2][dimensionCount][0]).toBe(dimensionCount + 1)
   })
 
+  it("resolves each result label once while aggregating many rows", () => {
+    const dimensionCount = 100
+    const rowCount = 100
+    let labelReads = 0
+    const labels = new Proxy(
+      ["time", ...Array.from({ length: dimensionCount }, (_, index) => `d${index}`)],
+      {
+        get(target, property, receiver) {
+          if (typeof property === "string" && /^\d+$/.test(property)) labelReads++
+          return Reflect.get(target, property, receiver)
+        },
+      }
+    )
+    const data = Array.from({ length: rowCount }, (_, rowIndex) => [
+      rowIndex,
+      ...Array.from({ length: dimensionCount }, (_, dimensionIndex) => rowIndex + dimensionIndex),
+    ])
+    const payload = {
+      result: { data, labels, point: { value: 0 } },
+    }
+
+    const result = camelizePayload(payload).result
+
+    expect(result.byDimension.d0).toEqual({ min: 0, max: 99 })
+    expect(result.byDimension.d99).toEqual({ min: 99, max: 198 })
+    expect(labelReads).toBeLessThan(labels.length * 4)
+  })
+
   it("handles empty payload", () => {
     const payload = {
       result: {
@@ -308,5 +336,59 @@ describe("camelizePayload", () => {
     expect(result.nodes).toHaveProperty("node1")
     expect(result.dimensions).toHaveProperty("dim1")
     expect(result.dimensionIds).toContain("dim1")
+  })
+
+  it("derives grouped context units and statistics in one dimension pass", () => {
+    const dimensionCount = 100
+    let dimensionReads = 0
+    const ids = new Proxy(
+      Array.from({ length: dimensionCount }, (_, index) => `node-${index},context.${index}`),
+      {
+        get(target, property, receiver) {
+          if (typeof property === "string" && /^\d+$/.test(property)) dimensionReads++
+          return Reflect.get(target, property, receiver)
+        },
+      }
+    )
+    const contexts = Array.from({ length: dimensionCount }, (_, index) => ({
+      id: `context.${index}`,
+      sts: { min: -1, max: -1 },
+    }))
+    const payload = {
+      summary: { contexts },
+      view: {
+        chart_type: "line",
+        units: "count",
+        dimensions: {
+          grouped_by: ["node", "context"],
+          ids,
+          units: Array.from({ length: dimensionCount }, (_, index) => `unit-${index}`),
+          sts: {
+            min: Array.from({ length: dimensionCount }, (_, index) => index),
+            max: Array.from({ length: dimensionCount }, (_, index) => index + 1),
+          },
+        },
+      },
+      result: {
+        data: [],
+        labels: [],
+        point: { value: 0 },
+      },
+    }
+
+    const result = camelizePayload(payload)
+
+    expect(result.viewDimensions.contexts).toEqual(contexts.map(context => context.id))
+    expect(result.unitsStsByContext["context.0"]).toEqual({
+      min: 0,
+      max: 1,
+      units: "unit-0",
+    })
+    expect(result.unitsStsByContext["context.99"]).toEqual({
+      min: 99,
+      max: 100,
+      units: "unit-99",
+    })
+    expect(dimensionReads).toBeLessThan(dimensionCount * 3)
   })
 })

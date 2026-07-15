@@ -13,8 +13,6 @@ import groupBy from "lodash/groupBy"
 import isEmpty from "lodash/isEmpty"
 import { getPointValue } from "./getPointValue"
 
-const noop = () => {}
-
 export default (chart, sdk) => {
   let prevDimensionIds = []
   let dimensionsById = {}
@@ -41,97 +39,105 @@ export default (chart, sdk) => {
     return [...(viewDimensions?.ids || [])]
   }
 
-  const withSortByNameFallback =
-    (cb = noop, fallbackCb = noop) =>
-    (a, b) =>
-      cb(a, b) ||
-      fallbackCb(a, b) ||
-      chart.getDimensionName(a).localeCompare(chart.getDimensionName(b), undefined, {
-        sensitivity: "accent",
-        ignorePunctuation: true,
-      })
+  const sortDimensionIds = ({
+    getIds = chart.getPayloadDimensionIds,
+    getPrimary,
+    getSecondary,
+    descending = false,
+    namesDescending = false,
+  } = {}) => {
+    const dimensions = getIds().map(id => ({
+      id,
+      name: chart.getDimensionName(id),
+      primary: getPrimary?.(id),
+      secondary: getSecondary?.(id),
+    }))
+    const direction = descending ? -1 : 1
+
+    dimensions.sort((a, b) => {
+      const primary = getPrimary ? direction * (a.primary - b.primary) : 0
+      if (primary) return primary
+
+      const secondary = getSecondary ? direction * (a.secondary - b.secondary) : 0
+      if (secondary) return secondary
+
+      return namesDescending
+        ? b.name.localeCompare(a.name)
+        : a.name.localeCompare(b.name, undefined, {
+            sensitivity: "accent",
+            ignorePunctuation: true,
+          })
+    })
+
+    return dimensions.map(({ id }) => id)
+  }
 
   const bySortMethod = {
     default: (getIds = chart.getPayloadDimensionIds) =>
-      getIds().sort(
-        withSortByNameFallback(
-          (a, b) => chart.getDimensionPriority(a) - chart.getDimensionPriority(b)
-        )
-      ),
-    nameAsc: (getIds = chart.getPayloadDimensionIds) => getIds().sort(withSortByNameFallback()),
+      sortDimensionIds({ getIds, getPrimary: id => chart.getDimensionPriority(id) }),
+    nameAsc: (getIds = chart.getPayloadDimensionIds) => sortDimensionIds({ getIds }),
     nameDesc: (getIds = chart.getPayloadDimensionIds) =>
-      getIds().sort((a, b) => chart.getDimensionName(b).localeCompare(chart.getDimensionName(a))),
+      sortDimensionIds({ getIds, namesDescending: true }),
     valueDesc: (getIds = chart.getPayloadDimensionIds, x) => {
       const { data } = chart.getPayload()
       x = x || data.length - 1
 
-      return getIds().sort(
-        withSortByNameFallback(
-          (a, b) => chart.getDimensionValue(b, x) - chart.getDimensionValue(a, x)
-        )
-      )
+      return sortDimensionIds({
+        getIds,
+        getPrimary: id => chart.getDimensionValue(id, x),
+        descending: true,
+      })
     },
     valueAsc: (getIds = chart.getPayloadDimensionIds, x) => {
       const { data } = chart.getPayload()
       x = x || data.length - 1
 
-      return getIds().sort(
-        withSortByNameFallback(
-          (a, b) => chart.getDimensionValue(a, x) - chart.getDimensionValue(b, x)
-        )
-      )
+      return sortDimensionIds({
+        getIds,
+        getPrimary: id => chart.getDimensionValue(id, x),
+      })
     },
     anomalyDesc: (getIds = chart.getPayloadDimensionIds, x) => {
       const { all } = chart.getPayload()
       x = x || all.length - 1
 
-      return getIds().sort(
-        withSortByNameFallback(
-          (a, b) =>
-            chart.getDimensionValue(b, x, { valueKey: "arp" }) -
-            chart.getDimensionValue(a, x, { valueKey: "arp" }),
-          (a, b) => chart.getDimensionValue(b, x) - chart.getDimensionValue(a, x)
-        )
-      )
+      return sortDimensionIds({
+        getIds,
+        getPrimary: id => chart.getDimensionValue(id, x, { valueKey: "arp" }),
+        getSecondary: id => chart.getDimensionValue(id, x),
+        descending: true,
+      })
     },
     anomalyAsc: (getIds = chart.getPayloadDimensionIds, x) => {
       const { all } = chart.getPayload()
       x = x || all.length - 1
 
-      return getIds().sort(
-        withSortByNameFallback(
-          (a, b) =>
-            chart.getDimensionValue(a, x, { valueKey: "arp" }) -
-            chart.getDimensionValue(b, x, { valueKey: "arp" }),
-          (a, b) => chart.getDimensionValue(a, x) - chart.getDimensionValue(b, x)
-        )
-      )
+      return sortDimensionIds({
+        getIds,
+        getPrimary: id => chart.getDimensionValue(id, x, { valueKey: "arp" }),
+        getSecondary: id => chart.getDimensionValue(id, x),
+      })
     },
     annotationsDesc: (getIds = chart.getPayloadDimensionIds, x) => {
       const { all } = chart.getPayload()
       x = x || all.length - 1
 
-      return getIds().sort(
-        withSortByNameFallback(
-          (a, b) =>
-            chart.getDimensionValue(b, x, { valueKey: "pa" }) -
-            chart.getDimensionValue(a, x, { valueKey: "pa" }),
-          (a, b) => chart.getDimensionValue(b, x) - chart.getDimensionValue(a, x)
-        )
-      )
+      return sortDimensionIds({
+        getIds,
+        getPrimary: id => chart.getDimensionValue(id, x, { valueKey: "pa" }),
+        getSecondary: id => chart.getDimensionValue(id, x),
+        descending: true,
+      })
     },
     annotationsAsc: (getIds = chart.getPayloadDimensionIds, x) => {
       const { all } = chart.getPayload()
       x = x || all.length - 1
 
-      return getIds().sort(
-        withSortByNameFallback(
-          (a, b) =>
-            chart.getDimensionValue(a, x, { valueKey: "pa" }) -
-            chart.getDimensionValue(b, x, { valueKey: "pa" }),
-          (a, b) => chart.getDimensionValue(a, x) - chart.getDimensionValue(b, x)
-        )
-      )
+      return sortDimensionIds({
+        getIds,
+        getPrimary: id => chart.getDimensionValue(id, x, { valueKey: "pa" }),
+        getSecondary: id => chart.getDimensionValue(id, x),
+      })
     },
   }
 

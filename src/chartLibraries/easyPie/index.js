@@ -85,26 +85,22 @@ export default (sdk, chart) => {
   const getMinMax = () => chart.getAttribute("getValueRange")(chart)
 
   const render = () => {
-    chartUI.render()
-
     const { hoverX, loaded } = chart.getAttributes()
 
-    if (!easyPie || !loaded) return
+    if (!easyPie || !loaded) return false
 
     const { data } = chart.getPayload()
 
-    if (data?.length === undefined) return
+    if (data?.length === undefined) return false
 
     const row = hoverX ? chart.getClosestRow(hoverX[0]) : data.length - 1
 
     const rowData = data[row]
-    if (!Array.isArray(rowData)) return
+    if (!Array.isArray(rowData)) return chartUI.render()
 
     const [, ...rows] = rowData
     const value = rows.reduce((acc, v = 0) => acc + v, 0)
     let [min, max] = getMinMax()
-
-    chartUI.render()
 
     const percentage = ((value - min) / (max - min)) * 100
 
@@ -117,7 +113,9 @@ export default (sdk, chart) => {
     prevMin = min
     prevMax = max
 
+    chartUI.render()
     chartUI.trigger("rendered")
+    return true
   }
 
   const unmount = () => {

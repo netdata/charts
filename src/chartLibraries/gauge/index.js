@@ -128,20 +128,18 @@ export default (sdk, chart) => {
   const getMinMax = () => chart.getAttribute("getValueRange")(chart)
 
   const render = () => {
-    chartUI.render()
-
     const { hoverX, loaded } = chart.getAttributes()
 
-    if (!gauge || !loaded) return
+    if (!gauge || !loaded) return false
 
     const { data } = chart.getPayload()
 
-    if (data?.length === undefined) return
+    if (data?.length === undefined) return false
 
     const row = hoverX ? chart.getClosestRow(hoverX[0]) : data.length - 1
 
     const rowData = data[row]
-    if (!Array.isArray(rowData)) return
+    if (!Array.isArray(rowData)) return chartUI.render()
 
     const [, ...rows] = rowData
 
@@ -156,12 +154,12 @@ export default (sdk, chart) => {
     prevMin = min
     prevMax = max
 
-    chartUI.render()
-
     const percentage = Math.max(Math.min(((value - min) / (max - min)) * 100, 99.999), 0.001)
     gauge.set(percentage)
 
+    chartUI.render()
     chartUI.trigger("rendered")
+    return true
   }
 
   const unmount = () => {

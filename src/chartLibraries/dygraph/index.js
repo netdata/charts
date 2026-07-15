@@ -18,6 +18,7 @@ import makeHoverX from "./hoverX"
 import makeOverlays from "./overlays"
 import crosshair from "./crosshair"
 import { makeDivergingStackedDataHandler } from "./divergingStack"
+import makeDygraphWithoutLegend from "./makeDygraph"
 
 const touchEvents = ["touchstart", "touchmove", "touchend"]
 
@@ -31,6 +32,18 @@ export default (sdk, chart) => {
   let resizeObserver = null
   let overlays = null
   let executeLatest = null
+  let applyingOptions = false
+
+  const updateOptions = options => {
+    const blockRedraw = applyingOptions
+    applyingOptions = true
+
+    try {
+      return dygraph.updateOptions(options, blockRedraw)
+    } finally {
+      applyingOptions = blockRedraw
+    }
+  }
 
   const mount = element => {
     if (dygraph) return
@@ -47,7 +60,7 @@ export default (sdk, chart) => {
 
     const isEmpty = attributes.outOfLimits || data.length === 0
 
-    dygraph = new Dygraph(element, isEmpty ? [[0]] : data, {
+    dygraph = makeDygraphWithoutLegend(element, isEmpty ? [[0]] : data, {
       // timingName: chart.getId(),
       legend: "never",
       showLabelsOnHighlight: false,
@@ -161,15 +174,15 @@ export default (sdk, chart) => {
       chart.onAttributeChange("theme", (nextTheme, prevTheme) => {
         element.classList.remove(prevTheme)
         element.classList.add(nextTheme)
-        dygraph.updateOptions(makeThemingOptions())
+        updateOptions(makeThemingOptions())
       }),
       chart.onAttributeChange("chartType", () => {
         if (chart.getAttribute("processing")) return
 
-        dygraph.updateOptions(makeChartTypeOptions())
+        updateOptions(makeChartTypeOptions())
       }),
       chart.onAttributeChange("unitsConversionPrefix", () => {
-        dygraph.updateOptions({
+        updateOptions({
           ...makeChartTypeOptions(),
           digitsAfterDecimal:
             chart.getAttribute("unitsConversionFractionDigits")[0] < 0
@@ -180,7 +193,7 @@ export default (sdk, chart) => {
       chart.onAttributeChange("selectedLegendDimensions", () => {
         if (chart.getAttribute("processing")) return
 
-        dygraph.updateOptions({
+        updateOptions({
           ...makeVisibilityOptions(),
           ...makeColorOptions(),
           ...makeChartTypeOptions(),
@@ -189,23 +202,24 @@ export default (sdk, chart) => {
               ? 0
               : chart.getAttribute("unitsConversionFractionDigits")[0],
         })
+        chartUI.render()
       }),
       chart.onAttributeChange("staticValueRange", staticValueRange => {
         if (!staticValueRange) {
-          dygraph.updateOptions({
+          updateOptions({
             valueRange: attributes.getValueRange(chart, { dygraph: true }),
           })
           return
         }
 
         const [min, max] = staticValueRange
-        dygraph.updateOptions({
+        updateOptions({
           valueRange: isHeatmap(attributes.chartType)
             ? [Math.ceil(min), Math.ceil(max)]
             : attributes.getValueRange(chart, { dygraph: true }),
         })
       }),
-      chart.onAttributeChange("timezone", () => dygraph.updateOptions({})),
+      chart.onAttributeChange("timezone", () => updateOptions({})),
     ].filter(Boolean)
 
     overlays.toggle()
@@ -324,9 +338,10 @@ export default (sdk, chart) => {
     const { chartType, includeZero, enabledXAxis, enabledYAxis, yAxisLabelWidth, stepPlot } =
       chart.getAttributes()
 
-    const plotter = stepPlot && chartType === "line"
-      ? plotterByChartType.default
-      : plotterByChartType[chartType] || plotterByChartType.default
+    const plotter =
+      stepPlot && chartType === "line"
+        ? plotterByChartType.default
+        : plotterByChartType[chartType] || plotterByChartType.default
 
     const {
       strokeWidth,
@@ -343,14 +358,14 @@ export default (sdk, chart) => {
     } = optionsByChartType[chartType] || optionsByChartType.default
 
     const yAxisLabelFormatter = makeYAxisLabelFormatter(labels)
-      const yTicker = makeYTicker
-        ? makeYTicker({
-            labels: chart.getVisibleHeatmapIds?.() || chart.getVisibleDimensionIds(),
-            scale: chart.getHeatmapScale?.(),
-            secondsAsTime: chart.getAttribute("secondsAsTime"),
-            units: chart.getVisibleDimensionIds().map(id => chart.getDimensionUnit(id)),
-          })
-        : null
+    const yTicker = makeYTicker
+      ? makeYTicker({
+          labels: chart.getVisibleHeatmapIds?.() || chart.getVisibleDimensionIds(),
+          scale: chart.getHeatmapScale?.(),
+          secondsAsTime: chart.getAttribute("secondsAsTime"),
+          units: chart.getVisibleDimensionIds().map(id => chart.getDimensionUnit(id)),
+        })
+      : null
 
     const { selectedLegendDimensions } = chart.getAttributes()
     const dimensionIds = chart.getPayloadDimensionIds()
@@ -476,14 +491,12 @@ export default (sdk, chart) => {
   const getDygraph = () => dygraph
 
   const render = () => {
-    if (!dygraph) return
+    if (!dygraph) return false
 
     const { highlighting, panning, processing } = chart.getAttributes()
-    if (highlighting || panning || processing) return
+    if (highlighting || panning || processing) return false
 
-    chartUI.render()
-
-    dygraph.updateOptions({
+    updateOptions({
       ...makeDataOptions(),
       ...makeVisibilityOptions(),
       ...makeColorOptions(),
@@ -495,7 +508,9 @@ export default (sdk, chart) => {
       ...makeSparklineOptions(),
     })
 
+    chartUI.render()
     chartUI.trigger("rendered")
+    return true
   }
 
   const getPreceded = () => {
