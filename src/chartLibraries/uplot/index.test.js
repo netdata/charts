@@ -2,7 +2,7 @@ import React from "react"
 import { render } from "@testing-library/react"
 import { ThemeProvider } from "styled-components"
 import { Flex, DefaultTheme } from "@netdata/netdata-ui"
-import { makeTestChart } from "@jest/testUtilities"
+import { makeTestChart, loadHeatmapPayload } from "@jest/testUtilities"
 import ChartContainer from "@/components/chartContainer"
 import withChart from "@/components/hocs/withChart"
 import makeMockPayload from "@/helpers/makeMockPayload"
@@ -417,5 +417,135 @@ describe("uplotChart", () => {
     expect(element.querySelector(".uplot")).toBeNull()
 
     document.body.removeChild(element)
+  })
+})
+
+describe("uplotChart heatmap", () => {
+  const heatmapIds = ["0", "1", "2", "3", "4", "5", "6"]
+  const heatmapRows = [
+    [0, 0, 1, 0, 2, 0, 0],
+    [0, 0, 0, 3, 1, 0, 0],
+    [0, 0, 2, 0, 0, 0, 0],
+  ]
+
+  const mountHeatmap = async (extraAttributes = {}) => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType: "heatmap",
+        context: "prometheus.test.histogram",
+        groupBy: ["dimension"],
+        selectedLegendDimensions: [],
+        viewDimensions: {
+          ids: heatmapIds,
+          names: heatmapIds,
+          priorities: heatmapIds.map((_, index) => index),
+          units: heatmapIds.map(() => ""),
+          contexts: heatmapIds.map(() => ""),
+          grouped: ["dimension"],
+        },
+        ...extraAttributes,
+      },
+    })
+
+    await loadHeatmapPayload(chart, heatmapIds, heatmapRows, { timestamp: 1617946860000 })
+    chart.getDateWindow = () => [1617946860000, 1617947750000]
+    chart.formatXAxis = x => x.toString()
+    chart.getThemeAttribute = () => "#333"
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    Object.defineProperty(element, "offsetWidth", { configurable: true, value: 800 })
+    Object.defineProperty(element, "offsetHeight", { configurable: true, value: 300 })
+    document.body.appendChild(element)
+
+    return { sdk, chart, instance, element }
+  }
+
+  const cleanup = (instance, element) => {
+    instance.unmount()
+    document.body.removeChild(element)
+  }
+
+  it("takes the heatmap render path with null series paths for chartType heatmap", async () => {
+    const { chart, instance, element } = await mountHeatmap()
+
+    expect(chart.getAttribute("chartType")).toBe("heatmap")
+
+    instance.mount(element)
+    const u = instance.getUPlot()
+
+    expect(element.querySelector(".uplot")).not.toBeNull()
+    expect(u.series[1].paths()).toBeNull()
+    expect(() => u.hooks.draw.forEach(hook => hook(u))).not.toThrow()
+
+    cleanup(instance, element)
+  })
+
+  it("sets the y value-range to [0, numBuckets] using visible heatmap ids", async () => {
+    const { chart, instance, element } = await mountHeatmap()
+
+    instance.mount(element)
+    const u = instance.getUPlot()
+
+    const numBuckets = chart.getVisibleHeatmapIds().length
+    expect(numBuckets).toBe(5)
+    expect(u.scales.y.range(u, 0, 100)).toEqual([0, numBuckets])
+
+    cleanup(instance, element)
+  })
+
+  it("exercises the shared heatmap accessors while rendering", async () => {
+    const { chart, instance, element } = await mountHeatmap()
+
+    const visibleSpy = jest.spyOn(chart, "getVisibleHeatmapIds")
+    const yIndexSpy = jest.spyOn(chart, "getHeatmapYIndex")
+    const scaleSpy = jest.spyOn(chart, "getHeatmapScale")
+    const valueSpy = jest.spyOn(chart, "getDimensionValue")
+
+    instance.mount(element)
+    const u = instance.getUPlot()
+
+    u.hooks.draw.forEach(hook => hook(u))
+    u.axes[1].values(u, u.axes[1].splits(u, 1, 0, chart.getVisibleHeatmapIds().length))
+
+    expect(visibleSpy).toHaveBeenCalled()
+    expect(yIndexSpy).toHaveBeenCalled()
+    expect(scaleSpy).toHaveBeenCalled()
+    expect(valueSpy).toHaveBeenCalledWith(expect.any(String), expect.any(Number), {
+      allowNull: true,
+    })
+
+    visibleSpy.mockRestore()
+    yIndexSpy.mockRestore()
+    scaleSpy.mockRestore()
+    valueSpy.mockRestore()
+
+    cleanup(instance, element)
+  })
+
+  it("labels the y-axis with bucket boundaries decimated to fit", async () => {
+    const { chart, instance, element } = await mountHeatmap()
+
+    instance.mount(element)
+    const u = instance.getUPlot()
+
+    const numBuckets = chart.getVisibleHeatmapIds().length
+    const splits = u.axes[1].splits(u, 1, 0, numBuckets)
+
+    expect(splits.length).toBeGreaterThan(0)
+    splits.forEach(split => {
+      expect(Number.isInteger(split)).toBe(true)
+      expect(split).toBeGreaterThanOrEqual(0)
+      expect(split).toBeLessThan(numBuckets)
+    })
+
+    const values = u.axes[1].values(u, splits)
+    expect(values).toHaveLength(splits.length)
+    values.forEach(value => expect(typeof value).toBe("string"))
+
+    cleanup(instance, element)
   })
 })
