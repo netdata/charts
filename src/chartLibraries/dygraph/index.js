@@ -515,6 +515,15 @@ export default (sdk, chart) => {
 
   const getXAxisRange = () => dygraph?.xAxisRange()
 
+  const getPlotArea = () => {
+    const area = dygraph?.getArea()
+    return area
+      ? { left: area.x, top: area.y, width: area.w, height: area.h }
+      : { left: 0, top: 0, width: 0, height: 0 }
+  }
+
+  const getXCoord = timestampMs => (dygraph ? dygraph.toDomXCoord(timestampMs) : 0)
+
   const instance = {
     ...chartUI,
     getChartWidth,
@@ -524,6 +533,8 @@ export default (sdk, chart) => {
     unmount,
     getDygraph,
     getXAxisRange,
+    getPlotArea,
+    getXCoord,
     render,
   }
 
