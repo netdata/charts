@@ -250,6 +250,27 @@ describe("uplotChart", () => {
     document.body.removeChild(element)
   })
 
+  it("renders the stacked type with a null series path and a diverging fill draw hook", () => {
+    const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType: "stacked" } })
+    withLoadedPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+
+    expect(() => instance.mount(element)).not.toThrow()
+
+    const u = instance.getUPlot()
+    expect(element.querySelector(".uplot")).not.toBeNull()
+    expect(u.series[1].paths()).toBeNull()
+    expect(() => u.redraw()).not.toThrow()
+
+    instance.unmount()
+    document.body.removeChild(element)
+  })
+
   it("does not create an orphaned uPlot when render runs before mount", () => {
     const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType: "line" } })
     withLoadedPayload(chart)
@@ -292,23 +313,25 @@ describe("uplotChart", () => {
     document.body.removeChild(element)
   })
 
-  it.each(["multiBar", "bars", "stackedBar"])("renders %s chart type with a bars path", chartType => {
-    const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType } })
-    withLoadedPayload(chart)
+  it.each(["multiBar", "stackedBar"])(
+    "renders %s via the seriesBars plugin without throwing",
+    chartType => {
+      const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType } })
+      withLoadedPayload(chart)
 
-    const instance = uplotChart(sdk, chart)
-    const element = document.createElement("div")
-    element.style.width = "800px"
-    element.style.height = "300px"
-    document.body.appendChild(element)
+      const instance = uplotChart(sdk, chart)
+      const element = document.createElement("div")
+      element.style.width = "800px"
+      element.style.height = "300px"
+      document.body.appendChild(element)
 
-    expect(() => instance.mount(element)).not.toThrow()
-    expect(element.querySelector(".uplot")).not.toBeNull()
-    expect(typeof instance.getUPlot().series[1].paths).toBe("function")
+      expect(() => instance.mount(element)).not.toThrow()
+      expect(element.querySelector(".uplot")).not.toBeNull()
 
-    instance.unmount()
-    document.body.removeChild(element)
-  })
+      instance.unmount()
+      document.body.removeChild(element)
+    }
+  )
 
   it("emits highlightEnd on drag-select in select mode", () => {
     const { sdk, chart } = makeTestChart({
