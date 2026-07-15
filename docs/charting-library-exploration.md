@@ -276,18 +276,19 @@ Files:
 | `mount` / `unmount` / `render` lifecycle | ✅ implemented | verified by tests |
 | line / area rendering, per-dimension colors | ✅ implemented | line/area only |
 | theme grid/label colors, resize → `setSize` | ✅ implemented | rebuild on theme/chartType/legend change |
-| y-axis unit formatting | ⚠️ partial | build-time only; no `unitsConversionPrefix` reaction |
+| y-axis unit formatting (+ `unitsConversionPrefix` reaction) | ✅ implemented | `getConvertedValueWithUnit`; redraws on prefix change |
 | emit `highlightHover`/`highlightBlur`/`hoverChart`/`blurChart` | ✅ implemented | **emission asserted by automated test** |
 | `hoverX`/`clickX` crosshair reception (draw hook + `valToPos` + `ctx`) | ⚠️ implemented, **pixel correctness Storybook-only** | not asserted at pixel level in tests |
 | dimension **count** change (schema) | ⚠️ partial | rebuilds on series-length mismatch; reorder/recolor not handled |
-| x-axis date-window / range | ❌ deferred | uPlot auto-scales x from data; does not honor `after/before` window |
-| y-range: `staticValueRange` / `getValueRange` | ❌ deferred | uPlot auto-scales y |
-| empty / `outOfLimits` states + transitions | ❌ deferred | no data → no chart; data→empty leaves stale chart |
-| `enabledHover` toggle | ❌ deferred | always emits |
-| `timezone` reaction | ❌ deferred | |
-| `formatXAxis` integration | ❌ deferred | uses uPlot's built-in time formatting |
-| drawable-area dims (`getChartWidth/Height` = plot area) | ❌ deferred | uses element offset via base `chartUI` |
-| sparkline mode | ❌ deferred | |
+| x-axis date-window / range | ✅ implemented | `scales.x.range` from `getDateWindow` |
+| y-range: `staticValueRange` / `getValueRange` | ✅ implemented | `scales.y.range` honors `getValueRange`; redraws on `staticValueRange` change |
+| empty / `outOfLimits` states + transitions | ✅ implemented | `getData` returns null on `outOfLimits`/empty; `render` destroys stale chart |
+| `enabledHover` toggle | ✅ implemented | `setCursor` skips emit when disabled |
+| `timezone` reaction | ✅ implemented | redraws (re-runs axis formatter) on change |
+| `formatXAxis` integration | ✅ implemented | x-axis `values` use `chart.formatXAxis` (timezone-aware) |
+| drawable-area dims (`getChartWidth/Height` = plot area) | ✅ implemented | returns `u.over` client size when mounted |
+| sparkline mode | ✅ implemented | axes hidden via `isSparkline()` |
+| processing guard | ✅ implemented | `render` skips while `highlighting`/`panning`/`processing` |
 | stacked / diverging / bar / multi-bar / heatmap plotters | ❌ deferred | |
 | anomaly ribbon, annotation strip | ❌ deferred | |
 | alert overlays (alarm / alarmRange / alertTransitions / highlight) | ❌ deferred | same `draw`-hook pattern as crosshair |
