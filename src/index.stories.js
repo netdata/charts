@@ -7,6 +7,7 @@ import HeadlessChart from "@/components/headlessChart"
 import makeMockPayload from "@/helpers/makeMockPayload"
 import { useAttribute, useAttributeValue, useChart, withChartProvider } from "@/components/provider"
 import makeDefaultSDK from "./makeDefaultSDK"
+import uplot from "@/chartLibraries/uplot"
 
 import noData from "../fixtures/noData"
 
@@ -14,13 +15,38 @@ import systemLoadLine from "../fixtures/systemLoadLine"
 
 const getChart = makeMockPayload(systemLoadLine[0], { delay: 600 })
 
-export const Simple = () => {
-  const sdk = makeDefaultSDK()
-  const chart = sdk.makeChart({
-    getChart,
-    attributes: { contextScope: ["system.load"] },
+const timeSeriesTypes = ["line", "stacked", "area", "stackedBar", "multiBar", "heatmap"]
+
+const chartLibraryArgTypes = {
+  chartLibrary: {
+    name: "Chart library",
+    control: "select",
+    options: ["dygraph", "uplot"],
+  },
+}
+
+const makeSdkWithLibrary = (chartLibrary = "dygraph", sdkAttributes = {}) => {
+  const sdk = makeDefaultSDK({
+    attributes: {
+      chartLibrary,
+      chartLibrariesByType: timeSeriesTypes.reduce((h, type) => ({ ...h, [type]: chartLibrary }), {}),
+      ...sdkAttributes,
+    },
   })
-  sdk.appendChild(chart)
+  sdk.addUI("uplot", uplot)
+  return sdk
+}
+
+export const Simple = ({ chartLibrary }) => {
+  const chart = useMemo(() => {
+    const sdk = makeSdkWithLibrary(chartLibrary)
+    const chart = sdk.makeChart({
+      getChart,
+      attributes: { contextScope: ["system.load"] },
+    })
+    sdk.appendChild(chart)
+    return chart
+  }, [chartLibrary])
 
   return (
     <ThemeProvider theme={DefaultTheme}>
@@ -29,17 +55,17 @@ export const Simple = () => {
   )
 }
 
-export const Width = () => {
+export const Width = ({ chartLibrary }) => {
   const [width, setWidth] = useState(false)
   const chart = useMemo(() => {
-    const sdk = makeDefaultSDK()
+    const sdk = makeSdkWithLibrary(chartLibrary)
     const chart = sdk.makeChart({
       getChart,
       attributes: { contextScope: ["system.load"], navigation: "selectVertical" },
     })
     sdk.appendChild(chart)
     return chart
-  }, [])
+  }, [chartLibrary])
 
   return (
     <ThemeProvider theme={DefaultTheme}>
@@ -53,10 +79,13 @@ export const Width = () => {
   )
 }
 
-export const SimpleDark = () => {
-  const sdk = makeDefaultSDK({ attributes: { contextScope: ["system.load"], theme: "dark" } })
-  const chart = sdk.makeChart({ getChart })
-  sdk.appendChild(chart)
+export const SimpleDark = ({ chartLibrary }) => {
+  const chart = useMemo(() => {
+    const sdk = makeSdkWithLibrary(chartLibrary, { contextScope: ["system.load"], theme: "dark" })
+    const chart = sdk.makeChart({ getChart })
+    sdk.appendChild(chart)
+    return chart
+  }, [chartLibrary])
 
   return (
     <ThemeProvider theme={DarkTheme}>
@@ -69,13 +98,16 @@ export const SimpleDark = () => {
 
 SimpleDark.parameters = { netdataTheme: "dark" }
 
-export const NoData = () => {
-  const sdk = makeDefaultSDK()
-  const chart = sdk.makeChart({
-    getChart: () => new Promise(r => setTimeout(() => r(noData), 600)),
-    attributes: { contextScope: ["system.load"] },
-  })
-  sdk.appendChild(chart)
+export const NoData = ({ chartLibrary }) => {
+  const chart = useMemo(() => {
+    const sdk = makeSdkWithLibrary(chartLibrary)
+    const chart = sdk.makeChart({
+      getChart: () => new Promise(r => setTimeout(() => r(noData), 600)),
+      attributes: { contextScope: ["system.load"] },
+    })
+    sdk.appendChild(chart)
+    return chart
+  }, [chartLibrary])
 
   return (
     <ThemeProvider theme={DefaultTheme}>
@@ -99,9 +131,9 @@ const TimezonePicker = withChartProvider(() => {
   )
 })
 
-export const Timezone = () => {
+export const Timezone = ({ chartLibrary }) => {
   const chart = useMemo(() => {
-    const sdk = makeDefaultSDK()
+    const sdk = makeSdkWithLibrary(chartLibrary)
     const chart = sdk.makeChart({
       getChart,
       attributes: { contextScope: ["system.load"], timezone: "Pacific/Honolulu" },
@@ -109,7 +141,7 @@ export const Timezone = () => {
     sdk.appendChild(chart)
 
     return chart
-  }, [])
+  }, [chartLibrary])
 
   return (
     <ThemeProvider theme={DefaultTheme}>
@@ -158,14 +190,14 @@ const TimePicker = withChartProvider(() => {
   )
 })
 
-export const Timepicker = () => {
+export const Timepicker = ({ chartLibrary }) => {
   const chart = useMemo(() => {
-    const sdk = makeDefaultSDK()
+    const sdk = makeSdkWithLibrary(chartLibrary)
     const chart = sdk.makeChart({ getChart, attributes: { contextScope: ["system.load"] } })
     sdk.appendChild(chart)
 
     return chart
-  }, [])
+  }, [chartLibrary])
 
   return (
     <ThemeProvider theme={DefaultTheme}>
@@ -177,16 +209,19 @@ export const Timepicker = () => {
   )
 }
 
-export const SelectedDimensions = () => {
-  const sdk = makeDefaultSDK()
-  const chart = sdk.makeChart({
-    getChart,
-    attributes: {
-      contextScope: ["system.load"],
-      selectedDimensions: ["load5", "load15"],
-    },
-  })
-  sdk.appendChild(chart)
+export const SelectedDimensions = ({ chartLibrary }) => {
+  const chart = useMemo(() => {
+    const sdk = makeSdkWithLibrary(chartLibrary)
+    const chart = sdk.makeChart({
+      getChart,
+      attributes: {
+        contextScope: ["system.load"],
+        selectedDimensions: ["load5", "load15"],
+      },
+    })
+    sdk.appendChild(chart)
+    return chart
+  }, [chartLibrary])
 
   return (
     <ThemeProvider theme={DefaultTheme}>
@@ -195,8 +230,8 @@ export const SelectedDimensions = () => {
   )
 }
 
-export const AlertInTimeWindow = () => {
-  const sdk = makeDefaultSDK()
+export const AlertInTimeWindow = ({ chartLibrary }) => {
+  const sdk = makeSdkWithLibrary(chartLibrary)
 
   const chart = sdk.makeChart({
     getChart,
@@ -221,8 +256,8 @@ export const AlertInTimeWindow = () => {
   )
 }
 
-export const AlertTransitions = () => {
-  const sdk = makeDefaultSDK()
+export const AlertTransitions = ({ chartLibrary }) => {
+  const sdk = makeSdkWithLibrary(chartLibrary)
   const now = Math.floor(Date.now() / 1000)
 
   const chart = sdk.makeChart({
@@ -270,8 +305,8 @@ export const AlertTransitions = () => {
   )
 }
 
-export const AlertTransitionsDark = () => {
-  const sdk = makeDefaultSDK({ attributes: { theme: "dark" } })
+export const AlertTransitionsDark = ({ chartLibrary }) => {
+  const sdk = makeSdkWithLibrary(chartLibrary, { theme: "dark" })
   const now = Math.floor(Date.now() / 1000)
 
   const chart = sdk.makeChart({
@@ -318,8 +353,8 @@ const alertTransitionsData = [
   { timestamp: -3 * 60, from: "WARNING", to: "CLEAR", value: 45.0 },
 ]
 
-export const AlertTransitionsWithTimeline = () => {
-  const sdk = makeDefaultSDK({ attributes: { theme: "dark", syncHover: true } })
+export const AlertTransitionsWithTimeline = ({ chartLibrary }) => {
+  const sdk = makeSdkWithLibrary(chartLibrary, { theme: "dark", syncHover: true })
   const now = Math.floor(Date.now() / 1000)
 
   const transitions = alertTransitionsData.map(t => ({
@@ -354,8 +389,8 @@ export const AlertTransitionsWithTimeline = () => {
 
 AlertTransitionsWithTimeline.parameters = { netdataTheme: "dark" }
 
-export const HighlightInTimeWindow = () => {
-  const sdk = makeDefaultSDK()
+export const HighlightInTimeWindow = ({ chartLibrary }) => {
+  const sdk = makeSdkWithLibrary(chartLibrary)
 
   const chart = sdk.makeChart({
     getChart,
@@ -378,9 +413,9 @@ export const HighlightInTimeWindow = () => {
   )
 }
 
-export const Timeout = () => {
+export const Timeout = ({ chartLibrary }) => {
   let requests = 0
-  const sdk = makeDefaultSDK()
+  const sdk = makeSdkWithLibrary(chartLibrary)
   const chart = sdk.makeChart({
     getChart: params => {
       if (requests++ % 2 === 1)
@@ -400,9 +435,9 @@ export const Timeout = () => {
   )
 }
 
-export const Error = () => {
+export const Error = ({ chartLibrary }) => {
   let requests = 0
-  const sdk = makeDefaultSDK()
+  const sdk = makeSdkWithLibrary(chartLibrary)
   const chart = sdk.makeChart({
     getChart: params => {
       if (requests++ % 2 === 1)
@@ -422,8 +457,8 @@ export const Error = () => {
   )
 }
 
-export const InitialLoading = () => {
-  const sdk = makeDefaultSDK()
+export const InitialLoading = ({ chartLibrary }) => {
+  const sdk = makeSdkWithLibrary(chartLibrary)
   const chart = sdk.makeChart({
     getChart: () => new Promise(() => {}),
     attributes: { contextScope: ["system.load"] },
@@ -449,8 +484,8 @@ export const InitialLoading = () => {
   )
 }
 
-export const Multiple = () => {
-  const sdk = makeDefaultSDK()
+export const Multiple = ({ chartLibrary }) => {
+  const sdk = makeSdkWithLibrary(chartLibrary)
 
   const charts = Array.from(Array(10)).map((v, index) => {
     const chart = sdk.makeChart({
@@ -473,8 +508,8 @@ export const Multiple = () => {
   )
 }
 
-export const Sync = () => {
-  const sdk = makeDefaultSDK()
+export const Sync = ({ chartLibrary }) => {
+  const sdk = makeSdkWithLibrary(chartLibrary)
 
   const charts = Array.from(Array(3)).map((v, index) => {
     const chart = sdk.makeChart({
@@ -496,8 +531,8 @@ export const Sync = () => {
   )
 }
 
-export const WithAnnotations = () => {
-  const sdk = makeDefaultSDK()
+export const WithAnnotations = ({ chartLibrary }) => {
+  const sdk = makeSdkWithLibrary(chartLibrary)
 
   const chart = sdk.makeChart({
     getChart,
@@ -544,8 +579,8 @@ export const WithAnnotations = () => {
   )
 }
 
-export const AnnotationCreation = () => {
-  const sdk = makeDefaultSDK()
+export const AnnotationCreation = ({ chartLibrary }) => {
+  const sdk = makeSdkWithLibrary(chartLibrary)
 
   const chart = sdk.makeChart({
     getChart,
@@ -568,8 +603,8 @@ export const AnnotationCreation = () => {
   )
 }
 
-export const CrossChartAnnotationSync = () => {
-  const sdk = makeDefaultSDK()
+export const CrossChartAnnotationSync = ({ chartLibrary }) => {
+  const sdk = makeSdkWithLibrary(chartLibrary)
 
   const charts = Array.from(Array(3)).map((v, index) => {
     const chart = sdk.makeChart({
@@ -623,4 +658,6 @@ export const CrossChartAnnotationSync = () => {
 export default {
   title: "Charts",
   component: Simple,
+  argTypes: chartLibraryArgTypes,
+  args: { chartLibrary: "dygraph" },
 }
