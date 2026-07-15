@@ -189,6 +189,7 @@ export default (sdk, chart) => {
               ? 0
               : chart.getAttribute("unitsConversionFractionDigits")[0],
         })
+        chartUI.render()
       }),
       chart.onAttributeChange("staticValueRange", staticValueRange => {
         if (!staticValueRange) {
@@ -324,9 +325,10 @@ export default (sdk, chart) => {
     const { chartType, includeZero, enabledXAxis, enabledYAxis, yAxisLabelWidth, stepPlot } =
       chart.getAttributes()
 
-    const plotter = stepPlot && chartType === "line"
-      ? plotterByChartType.default
-      : plotterByChartType[chartType] || plotterByChartType.default
+    const plotter =
+      stepPlot && chartType === "line"
+        ? plotterByChartType.default
+        : plotterByChartType[chartType] || plotterByChartType.default
 
     const {
       strokeWidth,
@@ -343,14 +345,14 @@ export default (sdk, chart) => {
     } = optionsByChartType[chartType] || optionsByChartType.default
 
     const yAxisLabelFormatter = makeYAxisLabelFormatter(labels)
-      const yTicker = makeYTicker
-        ? makeYTicker({
-            labels: chart.getVisibleHeatmapIds?.() || chart.getVisibleDimensionIds(),
-            scale: chart.getHeatmapScale?.(),
-            secondsAsTime: chart.getAttribute("secondsAsTime"),
-            units: chart.getVisibleDimensionIds().map(id => chart.getDimensionUnit(id)),
-          })
-        : null
+    const yTicker = makeYTicker
+      ? makeYTicker({
+          labels: chart.getVisibleHeatmapIds?.() || chart.getVisibleDimensionIds(),
+          scale: chart.getHeatmapScale?.(),
+          secondsAsTime: chart.getAttribute("secondsAsTime"),
+          units: chart.getVisibleDimensionIds().map(id => chart.getDimensionUnit(id)),
+        })
+      : null
 
     const { selectedLegendDimensions } = chart.getAttributes()
     const dimensionIds = chart.getPayloadDimensionIds()
@@ -476,12 +478,10 @@ export default (sdk, chart) => {
   const getDygraph = () => dygraph
 
   const render = () => {
-    if (!dygraph) return
+    if (!dygraph) return false
 
     const { highlighting, panning, processing } = chart.getAttributes()
-    if (highlighting || panning || processing) return
-
-    chartUI.render()
+    if (highlighting || panning || processing) return false
 
     dygraph.updateOptions({
       ...makeDataOptions(),
@@ -495,7 +495,9 @@ export default (sdk, chart) => {
       ...makeSparklineOptions(),
     })
 
+    chartUI.render()
     chartUI.trigger("rendered")
+    return true
   }
 
   const getPreceded = () => {

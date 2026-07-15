@@ -63,11 +63,9 @@ export default (sdk, chart) => {
   const getMinMax = () => chart.getAttribute("getValueRange")(chart)
 
   const render = () => {
-    chartUI.render()
-
     const { hoverX, loaded } = chart.getAttributes()
 
-    if (!pie || !loaded) return
+    if (!pie || !loaded) return false
 
     const { data } = chart.getPayload()
 
@@ -100,8 +98,6 @@ export default (sdk, chart) => {
     prevMin = min
     prevMax = max
 
-    chartUI.render()
-
     pie.options.data.content = values.length
       ? values
       : [
@@ -117,7 +113,9 @@ export default (sdk, chart) => {
       reMake()
     })
 
+    chartUI.render()
     chartUI.trigger("rendered")
+    return true
   }
 
   const unmount = () => {

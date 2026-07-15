@@ -90,7 +90,11 @@ describe("makeChartUI", () => {
       expect(typeof chartUI.trigger).toBe("function")
     })
 
-    it("registers for chart events", () => {
+    it("registers for chart events while mounted", () => {
+      expect(mockChart.on).not.toHaveBeenCalled()
+
+      chartUI.mount(mockElement)
+
       expect(mockChart.on).toHaveBeenCalledWith("visibleDimensionsChanged", expect.any(Function))
     })
   })

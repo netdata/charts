@@ -53,6 +53,7 @@ describe("makeDataFetch", () => {
       updateDimensions: jest.fn(),
       startAutofetch: jest.fn(),
       backoff: jest.fn(),
+      invalidateRender: jest.fn(),
       invalidateClosestRowCache: jest.fn(),
       getFilteredNodeIds: jest.fn(() => []),
       getUnits: jest.fn(() => "value"),
@@ -225,5 +226,19 @@ describe("makeDataFetch", () => {
     await new Promise(resolve => setTimeout(resolve, 0))
 
     expect(chart.getAttribute("liveAnchor")).toBe(1002000)
+  })
+
+  it("invalidates rendering only when a successful payload becomes current", async () => {
+    const { chart } = makeTestChart()
+    const initialRevision = chart.getRenderRevision()
+
+    await chart.fetch()
+    await new Promise(resolve => setTimeout(resolve, 0))
+
+    expect(chart.getRenderRevision()).toBe(initialRevision + 1)
+
+    chart.consumePayload()
+
+    expect(chart.getRenderRevision()).toBe(initialRevision + 1)
   })
 })

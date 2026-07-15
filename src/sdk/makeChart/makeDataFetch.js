@@ -283,7 +283,10 @@ export default chart => {
 
     const prevPayload = payload
     payload = nextPayload
-    if (chart) chart.trigger("payloadChanged", nextPayload, prevPayload)
+    if (chart) {
+      chart.invalidateRender()
+      chart.trigger("payloadChanged", nextPayload, prevPayload)
+    }
 
     return true
   }
