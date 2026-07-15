@@ -1,5 +1,6 @@
 import makeKeyboardListener from "@/helpers/makeKeyboardListener"
 import makeExecuteLatest from "@/helpers/makeExecuteLatest"
+import { timeRender } from "@/sdk/plugins/perfMonitor/registry"
 import formatNumber from "@/helpers/formatNumber"
 import convert from "@/helpers/units"
 import unitConversion from "@/helpers/unitConversion"
@@ -136,7 +137,11 @@ export default ({
   }
 
   const render = executeLatest.add(() =>
-    Object.keys(uiInstances).forEach(uiName => uiInstances[uiName].render())
+    Object.keys(uiInstances).forEach(uiName =>
+      timeRender(node.getId(), node.getAttribute("chartLibrary"), () =>
+        uiInstances[uiName].render()
+      )
+    )
   )
 
   node.on("render", render)
