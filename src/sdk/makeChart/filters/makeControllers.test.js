@@ -297,17 +297,29 @@ describe("makeControllers", () => {
       expect(ctrl.isTimeSeriesRenderer("gauge")).toBe(false)
     })
 
-    it("ships a default chartLibrariesByType map from makeDefaultSDK (all dygraph)", () => {
+    it("ships an empty chartLibrariesByType map from makeDefaultSDK", () => {
       const { chart: c } = makeTestChart()
 
-      expect(c.getAttribute("chartLibrariesByType")).toEqual({
-        line: "dygraph",
-        stacked: "dygraph",
-        area: "dygraph",
-        stackedBar: "dygraph",
-        multiBar: "dygraph",
-        heatmap: "dygraph",
+      expect(c.getAttribute("chartLibrariesByType")).toEqual({})
+    })
+
+    it("falls back to the chart's chartLibrary when a type is unmapped", () => {
+      const { chart: c } = makeTestChart({
+        attributes: { chartLibrary: "uplot", chartLibrariesByType: { heatmap: "dygraph" } },
       })
+      const ctrl = makeControllers(c)
+
+      expect(ctrl.getRendererForChartType("line")).toBe("uplot")
+      expect(ctrl.getRendererForChartType("heatmap")).toBe("dygraph")
+    })
+
+    it("recognizes uplot as a time-series renderer with an empty map", () => {
+      const { chart: c } = makeTestChart()
+      const ctrl = makeControllers(c)
+
+      expect(ctrl.isTimeSeriesRenderer("dygraph")).toBe(true)
+      expect(ctrl.isTimeSeriesRenderer("uplot")).toBe(true)
+      expect(ctrl.isTimeSeriesRenderer("gauge")).toBe(false)
     })
   })
 

@@ -14,8 +14,6 @@ import systemLoadLine from "../fixtures/systemLoadLine"
 
 const getChart = makeMockPayload(systemLoadLine[0], { delay: 600 })
 
-const timeSeriesTypes = ["line", "stacked", "area", "stackedBar", "multiBar", "heatmap"]
-
 const chartLibraryArgTypes = {
   chartLibrary: {
     name: "Chart library",
@@ -28,7 +26,6 @@ const makeSdkWithLibrary = (chartLibrary = "dygraph", sdkAttributes = {}) =>
   makeDefaultSDK({
     attributes: {
       chartLibrary,
-      chartLibrariesByType: timeSeriesTypes.reduce((h, type) => ({ ...h, [type]: chartLibrary }), {}),
       ...sdkAttributes,
     },
   })
