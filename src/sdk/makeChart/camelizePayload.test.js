@@ -71,6 +71,34 @@ describe("camelizePayload", () => {
     expect(result.all[2][dimensionCount][0]).toBe(dimensionCount + 1)
   })
 
+  it("resolves each result label once while aggregating many rows", () => {
+    const dimensionCount = 100
+    const rowCount = 100
+    let labelReads = 0
+    const labels = new Proxy(
+      ["time", ...Array.from({ length: dimensionCount }, (_, index) => `d${index}`)],
+      {
+        get(target, property, receiver) {
+          if (typeof property === "string" && /^\d+$/.test(property)) labelReads++
+          return Reflect.get(target, property, receiver)
+        },
+      }
+    )
+    const data = Array.from({ length: rowCount }, (_, rowIndex) => [
+      rowIndex,
+      ...Array.from({ length: dimensionCount }, (_, dimensionIndex) => rowIndex + dimensionIndex),
+    ])
+    const payload = {
+      result: { data, labels, point: { value: 0 } },
+    }
+
+    const result = camelizePayload(payload).result
+
+    expect(result.byDimension.d0).toEqual({ min: 0, max: 99 })
+    expect(result.byDimension.d99).toEqual({ min: 99, max: 198 })
+    expect(labelReads).toBeLessThan(labels.length * 4)
+  })
+
   it("handles empty payload", () => {
     const payload = {
       result: {

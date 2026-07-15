@@ -4,19 +4,23 @@ import { getAlias } from "@/helpers/units"
 import normalizeSelectedInstances from "@/helpers/normalizeSelectedInstances"
 import { getPointValue } from "./getPointValue"
 
-const transformDataRow = (row, point, labels, byDimension) => {
+const transformDataRow = (row, point, labels, statsByIndex, byDimension) => {
   const values = new Array(row.length + 2)
   values[0] = row[0]
 
   for (let index = 1; index < row.length; index++) {
     const value = getPointValue(row[index], point)
-    const label = labels[index]
-    let stats = byDimension[label]
+    let stats = statsByIndex[index]
 
     values[index] = value
     if (!stats) {
-      stats = { min: Infinity, max: -Infinity }
-      byDimension[label] = stats
+      const label = labels[index]
+      stats = byDimension[label]
+      if (!stats) {
+        stats = { min: Infinity, max: -Infinity }
+        byDimension[label] = stats
+      }
+      statsByIndex[index] = stats
     }
     if (value <= stats.min) stats.min = value
     if (value >= stats.max) stats.max = value
@@ -44,7 +48,10 @@ const buildTree = (h, keys, id) => {
 const transformResult = result => {
   const all = result.data
   const byDimension = {}
-  const data = all.map(row => transformDataRow(row, result.point, result.labels, byDimension))
+  const statsByIndex = new Array(result.labels.length)
+  const data = all.map(row =>
+    transformDataRow(row, result.point, result.labels, statsByIndex, byDimension)
+  )
 
   const tree = result.labels.reduce((h, id, i) => {
     if (i === 0) return h
