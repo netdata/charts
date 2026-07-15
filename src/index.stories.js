@@ -7,7 +7,6 @@ import HeadlessChart from "@/components/headlessChart"
 import makeMockPayload from "@/helpers/makeMockPayload"
 import { useAttribute, useAttributeValue, useChart, withChartProvider } from "@/components/provider"
 import makeDefaultSDK from "./makeDefaultSDK"
-import uplot from "@/chartLibraries/uplot"
 
 import noData from "../fixtures/noData"
 
@@ -25,17 +24,14 @@ const chartLibraryArgTypes = {
   },
 }
 
-const makeSdkWithLibrary = (chartLibrary = "dygraph", sdkAttributes = {}) => {
-  const sdk = makeDefaultSDK({
+const makeSdkWithLibrary = (chartLibrary = "dygraph", sdkAttributes = {}) =>
+  makeDefaultSDK({
     attributes: {
       chartLibrary,
       chartLibrariesByType: timeSeriesTypes.reduce((h, type) => ({ ...h, [type]: chartLibrary }), {}),
       ...sdkAttributes,
     },
   })
-  sdk.addUI("uplot", uplot)
-  return sdk
-}
 
 export const Simple = ({ chartLibrary }) => {
   const chart = useMemo(() => {
