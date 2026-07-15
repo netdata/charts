@@ -6,12 +6,12 @@ let heapCurrent = null
 let heapPeak = null
 
 const getEntry = (chartId, renderer) => {
-  let entry = byChart.get(chartId)
+  const key = `${chartId}:${renderer}`
+  let entry = byChart.get(key)
   if (!entry) {
     entry = { renderer, durations: [] }
-    byChart.set(chartId, entry)
+    byChart.set(key, entry)
   }
-  entry.renderer = renderer
   return entry
 }
 

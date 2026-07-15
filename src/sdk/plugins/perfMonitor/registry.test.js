@@ -40,9 +40,11 @@ describe("perf registry", () => {
 
     timeRender("c1", "uplot", fn)
     expect(calls).toBe(1)
+    expect(isEnabled()).toBe(false)
     expect(snapshot().overall.count).toBe(0)
 
     setEnabled(true)
+    expect(isEnabled()).toBe(true)
     timeRender("c1", "uplot", fn)
     expect(calls).toBe(2)
     expect(snapshot().overall.count).toBe(1)
@@ -51,5 +53,25 @@ describe("perf registry", () => {
   it("reports heap unsupported when performance.memory is absent", () => {
     sampleHeap()
     expect(snapshot().heap.supported).toBe(false)
+  })
+
+  it("keeps stats separate when a chart id is recorded under two renderers", () => {
+    record("c1", "dygraph", 40)
+    record("c1", "uplot", 10)
+
+    const snap = snapshot()
+    expect(snap.renderers.dygraph.count).toBe(1)
+    expect(snap.renderers.dygraph.max).toBe(40)
+    expect(snap.renderers.uplot.count).toBe(1)
+    expect(snap.renderers.uplot.max).toBe(10)
+    expect(snap.overall.count).toBe(2)
+  })
+
+  it("caps stored samples per chart+renderer at 500 with FIFO eviction", () => {
+    Array.from({ length: 550 }, (_, i) => record("c1", "uplot", i))
+
+    const snap = snapshot()
+    expect(snap.renderers.uplot.count).toBe(500)
+    expect(snap.renderers.uplot.max).toBe(549)
   })
 })
