@@ -19,12 +19,14 @@ import makeOverlays from "./overlays"
 import crosshair from "./crosshair"
 import { makeDivergingStackedDataHandler } from "./divergingStack"
 import makeDygraphWithoutLegend from "./makeDygraph"
+import { makeReusableLineDataHandler } from "./reusableLineDataHandler"
 
 const touchEvents = ["touchstart", "touchmove", "touchend"]
 
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
   const DivergingStackedDataHandler = makeDivergingStackedDataHandler(chart)
+  const ReusableLineDataHandler = makeReusableLineDataHandler()
   let dygraph = null
   let listeners = []
   let navigation = null
@@ -286,6 +288,7 @@ export default (sdk, chart) => {
       ...defaultOptions,
       strokeWidth: 1.5,
       fillAlpha: 0.2,
+      dataHandler: ReusableLineDataHandler,
     },
     stacked: {
       ...defaultOptions,
