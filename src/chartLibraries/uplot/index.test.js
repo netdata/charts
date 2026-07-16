@@ -842,3 +842,139 @@ describe("uplotChart click-to-annotate", () => {
     teardown()
   })
 })
+
+describe("uplotChart touch navigation", () => {
+  const withTouchPayload = chart => {
+    chart.getPayload = () => ({
+      data: [
+        [1617946860000, 10, 20, 30],
+        [1617946865000, 12, 18, 28],
+        [1617946870000, 11, 22, 31],
+      ],
+      labels: ["time", "load1", "load5", "load15"],
+    })
+    chart.getPayloadDimensionIds = () => ["load1", "load5", "load15"]
+    chart.getVisibleDimensionIds = () => ["load1", "load5", "load15"]
+    chart.isDimensionVisible = () => true
+    chart.selectDimensionColor = () => "#3366CC"
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getConvertedValueWithUnit = value => `${value}`
+  }
+
+  const touchEvent = (type, x) => {
+    const event = new Event(type, { bubbles: true, cancelable: true })
+    const touch = { clientX: x, clientY: 100, pageX: x, pageY: 100 }
+    event.touches = type === "touchend" ? [] : [touch]
+    event.changedTouches = [touch]
+    return event
+  }
+
+  const mount = async (attributes = {}) => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType: "line",
+        chartLibrary: "uplot",
+        after: 1617946860,
+        before: 1617946870,
+        ...attributes,
+      },
+    })
+    withTouchPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    const u = instance.getUPlot()
+    u.over.getBoundingClientRect = () => ({
+      left: 0,
+      top: 0,
+      width: 800,
+      height: 300,
+      right: 800,
+      bottom: 300,
+    })
+
+    return {
+      sdk,
+      chart,
+      instance,
+      u,
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  it("pans the x-scale on a single-finger drag, emitting panStart and panEnd", async () => {
+    const { sdk, u, teardown } = await mount()
+
+    let panStarts = 0
+    let panEnds = 0
+    sdk.on("panStart", () => panStarts++)
+    sdk.on("panEnd", () => panEnds++)
+
+    const setScaleSpy = jest.spyOn(u, "setScale")
+
+    u.over.dispatchEvent(touchEvent("touchstart", 400))
+    u.over.dispatchEvent(touchEvent("touchmove", 300))
+
+    expect(panStarts).toBe(1)
+    expect(setScaleSpy).toHaveBeenCalledWith(
+      "x",
+      expect.objectContaining({ min: expect.any(Number), max: expect.any(Number) })
+    )
+
+    u.over.dispatchEvent(touchEvent("touchend", 300))
+    expect(panEnds).toBe(1)
+
+    setScaleSpy.mockRestore()
+    teardown()
+  })
+
+  it("sets clickX to the tapped timestamp on a tap with no movement", async () => {
+    const { chart, u, teardown } = await mount()
+
+    u.over.dispatchEvent(touchEvent("touchstart", 400))
+    u.over.dispatchEvent(touchEvent("touchend", 400))
+
+    const clickX = chart.getAttribute("clickX")
+    expect(Array.isArray(clickX)).toBe(true)
+    expect(clickX[0]).toBeGreaterThanOrEqual(1617946860000)
+    expect(clickX[0]).toBeLessThanOrEqual(1617946870000)
+    expect(clickX[1]).toBeNull()
+
+    teardown()
+  })
+
+  it("resets navigation on a double-tap within the double-tap delay", async () => {
+    const { chart, u, teardown } = await mount()
+
+    const resetSpy = jest.spyOn(chart, "resetNavigation")
+
+    u.over.dispatchEvent(touchEvent("touchstart", 400))
+    u.over.dispatchEvent(touchEvent("touchend", 400))
+    u.over.dispatchEvent(touchEvent("touchstart", 400))
+    u.over.dispatchEvent(touchEvent("touchend", 400))
+
+    expect(resetSpy).toHaveBeenCalled()
+
+    resetSpy.mockRestore()
+    teardown()
+  })
+
+  it("does not handle touch when navigation is disabled", async () => {
+    const { chart, u, teardown } = await mount({ enabledNavigation: false })
+
+    u.over.dispatchEvent(touchEvent("touchstart", 400))
+    u.over.dispatchEvent(touchEvent("touchend", 400))
+
+    expect(chart.getAttribute("clickX")).toBeFalsy()
+
+    teardown()
+  })
+})

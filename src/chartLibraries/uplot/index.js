@@ -14,6 +14,8 @@ import makeGetHoverDimension from "./hover"
 
 const barGroupWidth = 0.6
 
+const doubleTapDelay = 300
+
 const axisFont = "11px 'IBM Plex Sans', sans-serif"
 const tickSize = 4
 const axisGap = 6
@@ -670,18 +672,93 @@ export default (sdk, chart) => {
       chart.trigger("highlightClick", xMs, dimensionId)
     }
 
+    let lastTouchEndTime = 0
+    let touchMoved = false
+    let touchPanning = false
+    let touchStartX = 0
+    let touchMin0 = 0
+    let touchMax0 = 0
+    let touchUnitsPerPx = 0
+
+    const onTouchStart = event => {
+      if (!chart.getAttribute("enabledNavigation")) return
+
+      const touch = event.touches[0]
+      if (!touch) return
+
+      touchMoved = false
+      touchPanning = false
+      touchStartX = touch.clientX
+      touchMin0 = u.scales.x.min
+      touchMax0 = u.scales.x.max
+      touchUnitsPerPx = u.posToVal(1, "x") - u.posToVal(0, "x")
+    }
+
+    const onTouchMove = event => {
+      if (!chart.getAttribute("enabledNavigation")) return
+
+      const touch = event.touches[0]
+      if (!touch) return
+
+      event.preventDefault()
+
+      if (!touchMoved) {
+        touchMoved = true
+        touchPanning = true
+        emitNav("panStart")
+      }
+
+      const dx = touchUnitsPerPx * (touch.clientX - touchStartX)
+      u.setScale("x", { min: touchMin0 - dx, max: touchMax0 - dx })
+    }
+
+    const onTouchEnd = event => {
+      if (!chart.getAttribute("enabledNavigation")) return
+
+      const now = Date.now()
+
+      if (now - lastTouchEndTime < doubleTapDelay) {
+        lastTouchEndTime = now
+        chart.resetNavigation()
+        return
+      }
+
+      lastTouchEndTime = now
+
+      if (!touchMoved) {
+        const touch = event.changedTouches?.[0]
+        if (!touch) return
+
+        const rect = over.getBoundingClientRect()
+        const offsetX = touch.clientX - rect.left
+        chart.updateAttribute("clickX", [u.posToVal(offsetX, "x") * 1000, null])
+        return
+      }
+
+      if (touchPanning) {
+        touchPanning = false
+        emitNav("panEnd", [u.scales.x.min * 1000, u.scales.x.max * 1000])
+      }
+    }
+
     over.addEventListener("mousedown", onDown)
     over.addEventListener("mousedown", onDownTrack)
     document.addEventListener("mousemove", onMoveTrack)
     document.addEventListener("mouseup", onUpTrack)
     over.addEventListener("wheel", onWheel, { passive: false })
     over.addEventListener("dblclick", onDblClick)
+    over.addEventListener("touchstart", onTouchStart, { passive: false })
+    over.addEventListener("touchmove", onTouchMove, { passive: false })
+    over.addEventListener("touchend", onTouchEnd)
 
     return () => {
       over.removeEventListener("mousedown", onDown)
       over.removeEventListener("mousedown", onDownTrack)
       document.removeEventListener("mousemove", onMoveTrack)
       document.removeEventListener("mouseup", onUpTrack)
+      over.removeEventListener("touchstart", onTouchStart)
+      over.removeEventListener("touchmove", onTouchMove)
+      over.removeEventListener("touchend", onTouchEnd)
       over.removeEventListener("wheel", onWheel)
       over.removeEventListener("dblclick", onDblClick)
       if (detachDoc) detachDoc()
