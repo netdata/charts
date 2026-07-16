@@ -10,6 +10,7 @@ import { stack } from "./bars/stack"
 import makeOverlays from "./overlays"
 import makeAnomaly from "./plotters/anomaly"
 import makeAnnotations from "./plotters/annotations"
+import makeGetHoverDimension from "./hover"
 
 const barGroupWidth = 0.6
 
@@ -462,6 +463,7 @@ export default (sdk, chart) => {
 
   const drawAnomaly = makeAnomaly(chartUI)
   const drawAnnotations = makeAnnotations(chartUI)
+  const getHoverDimension = makeGetHoverDimension(chart)
 
   const draw = self => {
     const crosshairColor = chart.getThemeAttribute("themeCrosshair")
@@ -482,6 +484,7 @@ export default (sdk, chart) => {
 
       hovering = false
       sdk.trigger("highlightBlur", chart)
+      chart.trigger("highlightBlur")
       sdk.trigger("blurChart", chart)
       return
     }
@@ -492,8 +495,9 @@ export default (sdk, chart) => {
     }
 
     const timestamp = self.data[0][idx] * 1000
-    const dimensionId = chart.getVisibleDimensionIds()?.[0]
+    const dimensionId = getHoverDimension(self)
     sdk.trigger("highlightHover", chart, timestamp, dimensionId)
+    chart.trigger("highlightHover", timestamp, dimensionId)
   }
 
   const emitNav = (name, ...args) => sdk.trigger(name, chart, ...args)
