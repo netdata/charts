@@ -2,6 +2,7 @@ import React, { useMemo, memo } from "react"
 import styled from "styled-components"
 import { Flex, TextMicro, TextNano } from "@netdata/netdata-ui"
 import { useChart, useAttributeValue } from "@/components/provider"
+import getWindowRange from "@/helpers/getWindowRange"
 import Header from "./header"
 import Dimension from "./dimension"
 import {
@@ -43,27 +44,6 @@ const getMaxDimensions = () => {
   const maxDimensions = Math.floor((window.innerHeight - 500) / 15) || 16
   return maxDimensions < 5 ? 5 : maxDimensions > 10 ? 10 : 10
 }
-const getHalf = () => getMaxDimensions() / 2
-
-const getFrom = (total, index) => {
-  if (total < getMaxDimensions()) return 0
-
-  if (index < getHalf()) return 0
-
-  if (index > total - getHalf()) return index - (getHalf() + (total - index))
-
-  return index - getHalf()
-}
-
-const getTo = (total, index) => {
-  if (total < getMaxDimensions()) return total
-
-  if (index < getHalf()) return index + getHalf() + (getHalf() - index)
-
-  if (index > total - getHalf()) return total
-
-  return index + getHalf()
-}
 
 export const rowFlavours = {
   ANOMALY_RATE: "ANOMALY_RATE",
@@ -97,8 +77,11 @@ const Dimensions = () => {
     const total = dimensionIds.length
     if (isHeatmap) return [0, total, total, dimensionIds]
 
-    const from = Math.floor(getFrom(total, rowIndex))
-    const to = Math.ceil(getTo(total, rowIndex))
+    const { from, to } = getWindowRange({
+      total,
+      index: rowIndex,
+      limit: getMaxDimensions(),
+    })
     const ids = dimensionIds.slice(from, to)
 
     return [from, to, total, ids]

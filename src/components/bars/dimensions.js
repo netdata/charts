@@ -2,6 +2,7 @@ import React, { useMemo, memo } from "react"
 import styled from "styled-components"
 import { useChart, useAttributeValue, usePayload } from "@/components/provider"
 import { TextMicro, TextNano } from "@netdata/netdata-ui"
+import getWindowRange from "@/helpers/getWindowRange"
 import Dimension from "./dimension"
 
 const Grid = styled.div`
@@ -24,27 +25,6 @@ const emptyArray = [null, null]
 const getMaxDimensions = height => {
   const maxDimensions = Math.round((height - 70) / 18)
   return maxDimensions < 2 ? 2 : maxDimensions
-}
-const getHalf = height => getMaxDimensions(height) / 2
-
-const getFrom = (total, index, height) => {
-  if (total < getMaxDimensions(height)) return 0
-
-  if (index < getHalf(height)) return 0
-
-  if (index > total - getHalf(height)) return index - (getHalf(height) + (total - index))
-
-  return index - getHalf(height)
-}
-
-const getTo = (total, index, height) => {
-  if (total < getMaxDimensions(height)) return total
-
-  if (index < getHalf(height)) return index + getHalf(height) + (getHalf(height) - index)
-
-  if (index > total - getHalf(height)) return total
-
-  return index + getHalf(height)
 }
 
 export const rowFlavours = {
@@ -81,8 +61,11 @@ const Dimensions = ({ height }) => {
 
     const total = dimensionIds.length
 
-    const from = Math.floor(getFrom(total, rowIndex, height))
-    const to = Math.ceil(getTo(total, rowIndex, height))
+    const { from, to } = getWindowRange({
+      total,
+      index: rowIndex,
+      limit: getMaxDimensions(height),
+    })
     const ids = dimensionIds.slice(from, to)
 
     return [from, to, total, ids]

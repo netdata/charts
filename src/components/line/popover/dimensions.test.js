@@ -86,6 +86,32 @@ describe("line popover Dimensions", () => {
     expect(screen.getAllByTestId("chartPopover-dimension")).toHaveLength(10)
   })
 
+  it("keeps the complete list when the highlighted row is in the lower half", async () => {
+    const ids = Array.from({ length: 10 }, (_, index) => `dim${index}`)
+    const { chart } = makeTestChart({
+      attributes: {
+        chartType: "line",
+        groupBy: [],
+        selectedDimensions: [],
+        selectedLegendDimensions: [],
+      },
+    })
+
+    await loadLinePayload(
+      chart,
+      ids,
+      [ids.map((_, index) => index)]
+    )
+    chart.updateAttribute("hoverX", [1000, "dim2"])
+
+    renderWithChart(<Dimensions />, { chart })
+
+    expect(screen.queryByText(/more values/)).not.toBeInTheDocument()
+    expect(screen.getAllByTestId("chartDimensions-name").map(node => node.textContent)).toEqual(
+      [...ids].reverse()
+    )
+  })
+
   it("uses fixed compact side columns for regular value popovers", async () => {
     const ids = ["very-long-dimension-name-that-should-not-expand-the-popover"]
     const { chart } = makeTestChart({
