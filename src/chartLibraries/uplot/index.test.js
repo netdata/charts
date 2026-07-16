@@ -187,6 +187,33 @@ describe("uplotChart", () => {
     document.body.removeChild(element)
   })
 
+  it("emits highlightHover and highlightBlur on the chart bus too, with the nearest dimension", () => {
+    const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType: "line" } })
+    withLoadedPayload(chart)
+
+    const chartHovered = []
+    const chartBlurred = []
+    chart.on("highlightHover", (x, dimensionId) => chartHovered.push([x, dimensionId]))
+    chart.on("highlightBlur", () => chartBlurred.push(true))
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    instance.getUPlot().setCursor({ left: 400, top: 100 }, true)
+    expect(chartHovered.length).toBeGreaterThan(0)
+    expect(["load1", "load5", "load15"]).toContain(chartHovered[0][1])
+
+    instance.getUPlot().setCursor({ left: -10, top: -10 }, true)
+    expect(chartBlurred.length).toBeGreaterThan(0)
+
+    instance.unmount()
+    document.body.removeChild(element)
+  })
+
   it("mounts through ChartContainer via the SDK provider path without throwing", () => {
     const sdk = makeDefaultSDK()
     sdk.addUI("uplot", uplotChart)
