@@ -667,3 +667,151 @@ describe("uplotChart bars", () => {
     }
   )
 })
+
+describe("uplotChart click-to-annotate", () => {
+  const withLoadedClickPayload = chart => {
+    chart.getPayload = () => ({
+      data: [
+        [1617946860000, 10, 20, 30],
+        [1617946865000, 12, 18, 28],
+        [1617946870000, 11, 22, 31],
+      ],
+      labels: ["time", "load1", "load5", "load15"],
+    })
+    chart.getPayloadDimensionIds = () => ["load1", "load5", "load15"]
+    chart.getVisibleDimensionIds = () => ["load1", "load5", "load15"]
+    chart.isDimensionVisible = () => true
+    chart.selectDimensionColor = () => "#3366CC"
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getConvertedValueWithUnit = value => `${value}`
+  }
+
+  const mount = async (attributes = {}) => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType: "line",
+        chartLibrary: "uplot",
+        after: 1617946860,
+        before: 1617946870,
+        ...attributes,
+      },
+    })
+    withLoadedClickPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    const u = instance.getUPlot()
+    u.over.getBoundingClientRect = () => ({
+      left: 0,
+      top: 0,
+      width: 800,
+      height: 300,
+      right: 800,
+      bottom: 300,
+    })
+
+    const click = clientX => {
+      u.over.dispatchEvent(new MouseEvent("mousedown", { clientX, clientY: 100, button: 0 }))
+      document.dispatchEvent(new MouseEvent("mouseup", { clientX, clientY: 100 }))
+    }
+
+    const dragClick = (fromX, toX) => {
+      u.over.dispatchEvent(new MouseEvent("mousedown", { clientX: fromX, clientY: 100, button: 0 }))
+      document.dispatchEvent(new MouseEvent("mousemove", { clientX: toX, clientY: 100 }))
+      document.dispatchEvent(new MouseEvent("mouseup", { clientX: toX, clientY: 100 }))
+    }
+
+    return {
+      sdk,
+      chart,
+      instance,
+      u,
+      click,
+      dragClick,
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  it("sets a draft annotation and fires annotationCreate on a plain click", async () => {
+    const { sdk, chart, click, teardown } = await mount({ navigation: "select" })
+
+    const created = []
+    sdk.on("annotationCreate", (c, ts) => created.push(ts))
+
+    click(400)
+
+    const draft = chart.getAttribute("draftAnnotation")
+    expect(draft).toBeTruthy()
+    expect(draft.status).toBe("draft")
+    expect(typeof draft.timestamp).toBe("number")
+    expect(created.length).toBe(1)
+
+    teardown()
+  })
+
+  it("fires highlightClick on the sdk bus on a plain click", async () => {
+    const { sdk, click, teardown } = await mount({ navigation: "select" })
+
+    const clicks = []
+    sdk.on("highlightClick", (c, ts) => clicks.push(ts))
+
+    click(400)
+
+    expect(clicks.length).toBe(1)
+    expect(clicks[0]).toBeGreaterThanOrEqual(1617946860000)
+    expect(clicks[0]).toBeLessThanOrEqual(1617946870000)
+
+    teardown()
+  })
+
+  it("does not annotate when the click follows a drag", async () => {
+    const { chart, dragClick, teardown } = await mount({ navigation: "select" })
+
+    dragClick(100, 300)
+
+    expect(chart.getAttribute("draftAnnotation")).toBeFalsy()
+
+    teardown()
+  })
+
+  it("does not annotate when enabledHover is false", async () => {
+    const { chart, click, teardown } = await mount({ navigation: "select", enabledHover: false })
+
+    click(400)
+
+    expect(chart.getAttribute("draftAnnotation")).toBeFalsy()
+
+    teardown()
+  })
+
+  it("does not create a draft when the click lands on an existing annotation", async () => {
+    const { chart, u, click, teardown } = await mount({
+      navigation: "select",
+      overlays: { "ann-1": { type: "annotation", timestamp: 1617946865 } },
+    })
+
+    click(u.valToPos(1617946865, "x"))
+
+    expect(chart.getAttribute("draftAnnotation")).toBeFalsy()
+
+    teardown()
+  })
+
+  it("does not annotate during a pan gesture, matching dygraph hover suppression", async () => {
+    const { chart, click, teardown } = await mount({ navigation: "pan" })
+
+    click(400)
+
+    expect(chart.getAttribute("draftAnnotation")).toBeFalsy()
+
+    teardown()
+  })
+})
