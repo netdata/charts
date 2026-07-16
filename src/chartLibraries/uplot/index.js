@@ -8,6 +8,8 @@ import { formatHeatmapLabel } from "@/helpers/heatmapScale"
 import { getStackBounds, getStackValueRange } from "./stacking"
 import { stack } from "./bars/stack"
 import makeOverlays from "./overlays"
+import makeAnomaly from "./plotters/anomaly"
+import makeAnnotations from "./plotters/annotations"
 
 const barGroupWidth = 0.6
 
@@ -458,6 +460,9 @@ export default (sdk, chart) => {
     ctx.restore()
   }
 
+  const drawAnomaly = makeAnomaly(chartUI)
+  const drawAnnotations = makeAnnotations(chartUI)
+
   const draw = self => {
     const crosshairColor = chart.getThemeAttribute("themeCrosshair")
     drawVerticalLine(self, chart.getAttribute("hoverX"), crosshairColor, [4, 4])
@@ -492,6 +497,36 @@ export default (sdk, chart) => {
   }
 
   const emitNav = (name, ...args) => sdk.trigger(name, chart, ...args)
+
+  const isNearAnnotation = offsetX => {
+    const overlays = chart.getAttribute("overlays")
+
+    for (const overlayId in overlays) {
+      const overlay = overlays[overlayId]
+      if (overlay.type !== "annotation") continue
+
+      const annotationX = u.valToPos(overlay.timestamp, "x")
+      if (Math.abs(offsetX - annotationX) < 10) return true
+    }
+
+    return false
+  }
+
+  const annotate = (offsetX, xMs) => {
+    if (isNearAnnotation(offsetX)) return
+
+    const existingDraft = chart.getAttribute("draftAnnotation")
+    if (existingDraft && existingDraft.status === "editing") return
+
+    chart.updateAttribute("draftAnnotation", {
+      timestamp: xMs / 1000,
+      createdAt: new Date(),
+      status: "draft",
+    })
+
+    emitNav("annotationCreate", xMs / 1000)
+    chart.trigger("annotationCreate", xMs / 1000)
+  }
 
   const getCursor = () => {
     const nav = chart.getAttribute("enabledNavigation") ? chart.getAttribute("navigation") : null
@@ -589,12 +624,60 @@ export default (sdk, chart) => {
 
     const onDblClick = () => chart.resetNavigation()
 
+    let downX = null
+    let downY = null
+    let dragged = false
+    let downedOnOver = false
+
+    const onDownTrack = event => {
+      if (event.button !== 0) return
+      downX = event.clientX
+      downY = event.clientY
+      dragged = false
+      downedOnOver = true
+    }
+
+    const onMoveTrack = event => {
+      if (!downedOnOver) return
+      if (Math.abs(event.clientX - downX) > 3 || Math.abs(event.clientY - downY) > 3)
+        dragged = true
+    }
+
+    const onUpTrack = event => {
+      if (!downedOnOver) return
+
+      const wasDrag = dragged
+      downedOnOver = false
+      dragged = false
+
+      if (wasDrag) return
+      if (!chart.getAttribute("enabledHover")) return
+
+      const rect = over.getBoundingClientRect()
+      const offsetX = event.clientX - rect.left
+      if (offsetX < 0 || offsetX > rect.width) return
+
+      const xMs = u.posToVal(offsetX, "x") * 1000
+
+      annotate(offsetX, xMs)
+
+      const dimensionId = chart.getVisibleDimensionIds()?.[0]
+      emitNav("highlightClick", xMs, dimensionId)
+      chart.trigger("highlightClick", xMs, dimensionId)
+    }
+
     over.addEventListener("mousedown", onDown)
+    over.addEventListener("mousedown", onDownTrack)
+    document.addEventListener("mousemove", onMoveTrack)
+    document.addEventListener("mouseup", onUpTrack)
     over.addEventListener("wheel", onWheel, { passive: false })
     over.addEventListener("dblclick", onDblClick)
 
     return () => {
       over.removeEventListener("mousedown", onDown)
+      over.removeEventListener("mousedown", onDownTrack)
+      document.removeEventListener("mousemove", onMoveTrack)
+      document.removeEventListener("mouseup", onUpTrack)
       over.removeEventListener("wheel", onWheel)
       over.removeEventListener("dblclick", onDblClick)
       if (detachDoc) detachDoc()
@@ -618,7 +701,15 @@ export default (sdk, chart) => {
         axes: getAxes(),
         hooks: {
           setCursor: [setCursor],
-          draw: [drawStacked, drawHeatmap, drawBars, draw, drawOverlays],
+          draw: [
+            drawStacked,
+            drawHeatmap,
+            drawBars,
+            drawAnomaly,
+            drawAnnotations,
+            draw,
+            drawOverlays,
+          ],
           setSelect: [onSetSelect],
         },
       },
