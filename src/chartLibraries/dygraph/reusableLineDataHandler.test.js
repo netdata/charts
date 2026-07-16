@@ -20,7 +20,16 @@ const makeDygraph = (data, options = {}) => {
 const snapshot = dygraph => ({
   series: dygraph.rolledSeries_.slice(1).map(series => series.map(item => [...item])),
   points: dygraph.layout_.points.map(points =>
-    points.map(({ xval, yval, name, idx }) => ({ xval, yval, name, idx }))
+    points.map(({ x, y, xval, yval, name, idx, canvasx, canvasy }) => ({
+      x,
+      y,
+      xval,
+      yval,
+      name,
+      idx,
+      canvasx,
+      canvasy,
+    }))
   ),
   xRange: dygraph.xAxisRange(),
   yRange: dygraph.yAxisRange(),
@@ -75,6 +84,43 @@ describe("reusable line data handler", () => {
       { xval: 2000, yval: 5, name: "first", idx: 0 },
       { xval: 3000, yval: 7, name: "first", idx: 1 },
     ])
+  })
+
+  it("overwrites corrected historical values in reused structures", () => {
+    const labels = ["time", "first", "second"]
+    const initialData = [
+      [1000, 1, 10],
+      [2000, 2, 20],
+      [3000, 3, 30],
+    ]
+    const reference = makeDygraph(initialData, { labels })
+    const candidate = makeDygraph(initialData, {
+      labels,
+      dataHandler: makeReusableLineDataHandler(),
+    })
+    const firstSeries = candidate.rolledSeries_[1]
+    const firstPair = firstSeries[0]
+    const firstPoints = candidate.layout_.points[0]
+    const firstPoint = firstPoints[0]
+    const correctedData = [
+      [1000, 11, 110],
+      [2000, null, 220],
+      [3000, 33, 330],
+    ]
+
+    reference.updateOptions({ file: correctedData, labels })
+    candidate.updateOptions({ file: correctedData, labels })
+
+    expect(candidate.rolledSeries_[1]).toBe(firstSeries)
+    expect(candidate.rolledSeries_[1][0]).toBe(firstPair)
+    expect(candidate.layout_.points[0]).toBe(firstPoints)
+    expect(candidate.layout_.points[0][0]).toBe(firstPoint)
+    expect(candidate.rolledSeries_[1]).toEqual([
+      [1000, 11],
+      [2000, null],
+      [3000, 33],
+    ])
+    expect(snapshot(candidate)).toEqual(snapshot(reference))
   })
 
   it("rebuilds cached structures when the row shape changes", () => {
