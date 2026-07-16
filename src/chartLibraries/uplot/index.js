@@ -5,7 +5,7 @@ import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
 import { makeGetColor, withoutPrefix } from "@/helpers/heatmap"
 import { formatHeatmapLabel } from "@/helpers/heatmapScale"
-import { getStackBounds, getStackValueRange } from "./stacking"
+import { getStackBounds, getStackSegments, getStackValueRange } from "./stacking"
 import { stack } from "./bars/stack"
 import makeOverlays from "./overlays"
 import makeAnomaly from "./plotters/anomaly"
@@ -256,6 +256,40 @@ export default (sdk, chart) => {
     ctx.restore()
   }
 
+  const drawStackSegment = (self, ctx, xs, series, start, end, color, edgeWidth) => {
+    ctx.beginPath()
+
+    for (let row = start; row <= end; row++) {
+      const x = self.valToPos(xs[row], "x", true)
+      const y = self.valToPos(series[row][1], "y", true)
+
+      if (row === start) ctx.moveTo(x, y)
+      else ctx.lineTo(x, y)
+    }
+
+    for (let row = end; row >= start; row--) {
+      ctx.lineTo(self.valToPos(xs[row], "x", true), self.valToPos(series[row][0], "y", true))
+    }
+
+    ctx.closePath()
+    ctx.fillStyle = `${color}${stackedFillAlpha}`
+    ctx.fill()
+
+    ctx.beginPath()
+
+    for (let row = start; row <= end; row++) {
+      const x = self.valToPos(xs[row], "x", true)
+      const y = self.valToPos(series[row][1], "y", true)
+
+      if (row === start) ctx.moveTo(x, y)
+      else ctx.lineTo(x, y)
+    }
+
+    ctx.lineWidth = edgeWidth
+    ctx.strokeStyle = `${color}${stackedEdgeAlpha}`
+    ctx.stroke()
+  }
+
   const drawStacked = self => {
     if (chart.getAttribute("chartType") !== "stacked") return
 
@@ -277,56 +311,9 @@ export default (sdk, chart) => {
 
       const color = chart.selectDimensionColor(id)
 
-      ctx.beginPath()
-      let started = false
-
-      for (let row = 0; row < xs.length; row++) {
-        const bound = series[row]
-        if (!bound) continue
-
-        const x = self.valToPos(xs[row], "x", true)
-        const y = self.valToPos(bound[1], "y", true)
-
-        if (started) ctx.lineTo(x, y)
-        else {
-          ctx.moveTo(x, y)
-          started = true
-        }
-      }
-
-      for (let row = xs.length - 1; row >= 0; row--) {
-        const bound = series[row]
-        if (!bound) continue
-
-        ctx.lineTo(self.valToPos(xs[row], "x", true), self.valToPos(bound[0], "y", true))
-      }
-
-      if (!started) return
-
-      ctx.closePath()
-      ctx.fillStyle = `${color}${stackedFillAlpha}`
-      ctx.fill()
-
-      ctx.beginPath()
-      let edgeStarted = false
-
-      for (let row = 0; row < xs.length; row++) {
-        const bound = series[row]
-        if (!bound) continue
-
-        const x = self.valToPos(xs[row], "x", true)
-        const y = self.valToPos(bound[1], "y", true)
-
-        if (edgeStarted) ctx.lineTo(x, y)
-        else {
-          ctx.moveTo(x, y)
-          edgeStarted = true
-        }
-      }
-
-      ctx.lineWidth = edgeWidth
-      ctx.strokeStyle = `${color}${stackedEdgeAlpha}`
-      ctx.stroke()
+      getStackSegments(series, xs.length).forEach(([start, end]) =>
+        drawStackSegment(self, ctx, xs, series, start, end, color, edgeWidth)
+      )
     })
 
     ctx.restore()

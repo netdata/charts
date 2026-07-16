@@ -978,3 +978,52 @@ describe("uplotChart touch navigation", () => {
     teardown()
   })
 })
+
+describe("uplotChart stacked gap handling", () => {
+  const withStackedPayload = (chart, data) => {
+    chart.getPayload = () => ({ data, labels: ["time", "a", "b"] })
+    chart.getPayloadDimensionIds = () => ["a", "b"]
+    chart.getVisibleDimensionIds = () => ["a", "b"]
+    chart.isDimensionVisible = () => true
+    chart.selectDimensionColor = () => "#3366CC"
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getConvertedValueWithUnit = value => `${value}`
+  }
+
+  const mountStacked = async data => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType: "stacked",
+        chartLibrary: "uplot",
+        after: 1617946860,
+        before: 1617946870,
+      },
+    })
+    withStackedPayload(chart, data)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    return { instance, teardown: () => (instance.unmount(), document.body.removeChild(element)) }
+  }
+
+  it("draws a stacked series containing null gaps without throwing", async () => {
+    const { instance, teardown } = await mountStacked([
+      [1617946860000, 10, 20],
+      [1617946865000, 10, null],
+      [1617946870000, 10, 20],
+    ])
+    const u = instance.getUPlot()
+
+    expect(() => u.hooks.draw.forEach(hook => hook(u))).not.toThrow()
+
+    teardown()
+  })
+})

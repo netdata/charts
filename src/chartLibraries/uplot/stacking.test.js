@@ -1,4 +1,4 @@
-import { getStackBounds, getStackValueRange } from "./stacking"
+import { getStackBounds, getStackSegments, getStackValueRange } from "./stacking"
 
 describe("getStackBounds", () => {
   it("accumulates positive values from a zero base in column order", () => {
@@ -39,5 +39,37 @@ describe("getStackValueRange", () => {
     const bounds = getStackBounds(data, ["a", "b", "c", "d"])
 
     expect(getStackValueRange(bounds)).toEqual([-5, 9])
+  })
+})
+
+describe("getStackSegments", () => {
+  const bound = [0, 1]
+
+  it("returns a single full-span segment when there are no gaps", () => {
+    expect(getStackSegments([bound, bound, bound], 3)).toEqual([[0, 2]])
+  })
+
+  it("splits into separate segments around an interior null, leaving the gap empty", () => {
+    expect(getStackSegments([bound, null, bound], 3)).toEqual([
+      [0, 0],
+      [2, 2],
+    ])
+  })
+
+  it("handles multiple gaps and contiguous runs", () => {
+    const series = [bound, bound, null, bound, null, bound, bound]
+    expect(getStackSegments(series, 7)).toEqual([
+      [0, 1],
+      [3, 3],
+      [5, 6],
+    ])
+  })
+
+  it("skips leading and trailing nulls", () => {
+    expect(getStackSegments([null, bound, bound, null], 4)).toEqual([[1, 2]])
+  })
+
+  it("returns no segments when every value is null", () => {
+    expect(getStackSegments([null, null, null], 3)).toEqual([])
   })
 })

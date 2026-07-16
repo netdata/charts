@@ -30,6 +30,26 @@ export const getStackBounds = (data, columns, isVisible) => {
   })
 }
 
+export const getStackSegments = (series, length) => {
+  const segments = []
+  let start = 0
+
+  while (start < length) {
+    if (!series[start]) {
+      start++
+      continue
+    }
+
+    let end = start
+    while (end + 1 < length && series[end + 1]) end++
+
+    segments.push([start, end])
+    start = end + 1
+  }
+
+  return segments
+}
+
 export const getStackValueRange = stackBounds => {
   let min = 0
   let max = 0
