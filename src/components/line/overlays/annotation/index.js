@@ -231,7 +231,7 @@ const AnnotationActions = memo(({ id, annotation, onEdit }) => {
         event: "annotation_url_copied",
         annotationId: id,
       })
-    } catch (err) {
+    } catch {
       makeLog(chart)({
         event: "annotation_url_copy_failed",
         annotationId: id,
@@ -405,38 +405,32 @@ const Annotation = ({ id }) => {
   const isSynced = !!annotation?.originallyFrom
 
   useEffect(() => {
-    if (
-      !annotation ||
-      !annotation.timestamp ||
-      !chart ||
-      chart.getAttribute("chartLibrary") !== "dygraph"
-    )
-      return
+    if (!annotation || !annotation.timestamp || !chart) return
 
     const chartUI = chart.getUI()
     if (!chartUI) return
 
-    const dygraph = chartUI.getDygraph()
-    if (!dygraph) return
+    const element = chartUI.getElement()
+    if (!element) return
 
     const handleMouseMove = event => {
-      const canvas = dygraph.canvas_
-      const rect = canvas.getBoundingClientRect()
+      const rect = element.getBoundingClientRect()
       const offsetX = event.clientX - rect.left
 
-      const annotationX = dygraph.toDomXCoord(annotation.timestamp * 1000)
+      const annotationX = chartUI.getXCoord(annotation.timestamp * 1000)
 
       const isNearAnnotation = Math.abs(offsetX - annotationX) < hoverTolerance
       setMouseHovered(isNearAnnotation)
     }
 
-    const canvas = dygraph.canvas_
-    canvas.addEventListener("mousemove", handleMouseMove)
-    canvas.addEventListener("mouseleave", () => setMouseHovered(false))
+    const handleMouseLeave = () => setMouseHovered(false)
+
+    element.addEventListener("mousemove", handleMouseMove)
+    element.addEventListener("mouseleave", handleMouseLeave)
 
     return () => {
-      canvas.removeEventListener("mousemove", handleMouseMove)
-      canvas.removeEventListener("mouseleave", () => setMouseHovered(false))
+      element.removeEventListener("mousemove", handleMouseMove)
+      element.removeEventListener("mouseleave", handleMouseLeave)
     }
   }, [annotation, annotation?.timestamp, chart, id])
 
