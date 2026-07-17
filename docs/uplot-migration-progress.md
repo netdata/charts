@@ -88,11 +88,51 @@ Prioritized; each needs Storybook visual verification (jsdom can't paint).
    only the time-series family is being moved.
 6. **Flip-the-default** — wire `chartLibrariesByType` into initial renderer selection + measure real
    dashboard CPU/memory/frame-time/bundle delta before making uPlot the default `line` renderer,
-   then remove dygraph. **No local perf measurements exist yet** (benchmark numbers in the
-   exploration doc are upstream-published only).
+   then remove dygraph. **First local measurements now exist** (see "Perf measurements" below);
+   still Storybook-mock ratios, not a real dashboard.
 7. **Bundle** — uPlot now ships with `makeDefaultSDK` for all consumers (~48KB). Fine for now;
    revisit at flip time if bundle size matters.
 8. **ECharts consolidation (Phase B)** — pie/gauge/easyPie/bars → ECharts. Not started.
+
+## Perf measurements (first pass — 2026-07-17)
+
+Storybook `Perf/Benchmark` story (`src/perf.stories.js`), N charts streaming the `system.load` mock,
+driven headless (Chromium via Playwright). Two independent measures, per chart-count, 40s (CDP) /
+25s (HUD) windows, one run each. dygraph → uPlot, ratio = uPlot / dygraph (`<1` = uPlot cheaper).
+
+**A. Whole-tab main-thread cost per render** — Chrome DevTools `Performance.getMetrics`
+(`TaskDuration`, paint-inclusive; includes the shared React/mock/streaming overhead identical to both
+renderers), normalised by render count (near-equal per renderer, so fair):
+
+| charts | dygraph task/render | uPlot task/render | ratio | heap end (dyg → uPlot) |
+|--------|--------------------:|------------------:|------:|------------------------|
+| 10     | 7.19 ms             | 4.06 ms           | ×0.56 | 88 → 37 MB             |
+| 25     | 7.42 ms             | 3.12 ms           | ×0.42 | 85 → 64 MB             |
+| 50     | 8.49 ms             | 3.09 ms           | ×0.36 | 121 → 100 MB           |
+
+**B. Isolated renderer render+paint** — the in-repo `perfMonitor` HUD (`registry.timeRender`), which
+times only the `render()` fan-out plus the renderer's own (possibly microtask-deferred) paint:
+
+| charts | dygraph p50 / p95   | uPlot p50 / p95   | p50 ratio |
+|--------|---------------------|-------------------|----------:|
+| 10     | 2.9 / 5.1 ms        | 0.5 / 0.8 ms      | ×0.17     |
+| 25     | 3.5 / 5.5 ms        | 0.4 / 0.6 ms      | ×0.11     |
+| 50     | 5.4 / 8.0 ms        | 0.3 / 0.5 ms      | ×0.06     |
+
+**Takeaway:** both measures agree — uPlot is materially cheaper on main-thread cost and the advantage
+grows with chart density. B (isolated renderer) shows uPlot at 6–17% of dygraph's per-render cost; A
+(whole tab) dilutes that to 0.36–0.56× because the shared React/mock overhead is constant across
+renderers. Heap is lower on uPlot but noisy (single end-of-window sample, no forced GC).
+
+**Caveats:** the mock emits `data.length` rows regardless of requested points, so absolute ms are NOT
+production figures — only the dygraph/uPlot ratio under identical conditions is meaningful. One run
+per config, headless shell, one machine — no variance/repetition yet. Real absolute numbers need
+`yarn to-cloud` + the HUD on a live dashboard (`perfMonitor: true`).
+
+**Harness note:** the HUD (measure B) initially reported uPlot at ~0 ms because uPlot defers its paint
+to `microTask(_commit)`, outside the synchronous `timeRender` window, while dygraph paints
+synchronously — an unfair artifact. Fixed by recording from a `queueMicrotask` after `fn()` so the
+timing spans the deferred paint (commit `8c8fbd2`).
 
 ## How to verify
 - Tests: `yarn jest --config ./jest/config.js src/chartLibraries/uplot/ --collectCoverage=false`
