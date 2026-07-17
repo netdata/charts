@@ -15,6 +15,7 @@ import makeGetHoverDimension from "./hover"
 const barGroupWidth = 0.6
 
 const doubleTapDelay = 300
+const minDragPx = 5
 
 const axisFont = "11px 'IBM Plex Sans', sans-serif"
 const tickSize = 4
@@ -541,12 +542,12 @@ export default (sdk, chart) => {
     const nav = chart.getAttribute("navigation")
     const { select } = self
 
-    if (nav === "selectVertical" && select.height > 0) {
+    if (nav === "selectVertical" && select.height >= minDragPx) {
       const min = self.posToVal(select.top + select.height, "y")
       const max = self.posToVal(select.top, "y")
       emitNav("highlightVerticalStart")
       emitNav("highlightVerticalEnd", [min, max])
-    } else if ((nav === "select" || nav === "highlight") && select.width > 0) {
+    } else if ((nav === "select" || nav === "highlight") && select.width >= minDragPx) {
       const after = Math.round(self.posToVal(select.left, "x"))
       const before = Math.round(self.posToVal(select.left + select.width, "x"))
       emitNav("highlightStart")
@@ -563,6 +564,7 @@ export default (sdk, chart) => {
 
   const onWheel = event => {
     if (!chart.getAttribute("enabledNavigation")) return
+    if (!event.shiftKey && !event.altKey) return
 
     event.preventDefault()
 

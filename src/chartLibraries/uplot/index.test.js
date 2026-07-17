@@ -1028,6 +1028,133 @@ describe("uplotChart stacked gap handling", () => {
   })
 })
 
+describe("uplotChart wheel gating + drag threshold (dygraph parity)", () => {
+  const withPayload = chart => {
+    chart.getPayload = () => ({
+      data: [
+        [1617946860000, 10, 20, 30],
+        [1617946865000, 12, 18, 28],
+        [1617946870000, 11, 22, 31],
+      ],
+      labels: ["time", "load1", "load5", "load15"],
+    })
+    chart.getPayloadDimensionIds = () => ["load1", "load5", "load15"]
+    chart.getVisibleDimensionIds = () => ["load1", "load5", "load15"]
+    chart.isDimensionVisible = () => true
+    chart.selectDimensionColor = () => "#3366CC"
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getConvertedValueWithUnit = value => `${value}`
+  }
+
+  const mount = async (attributes = {}) => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType: "line",
+        chartLibrary: "uplot",
+        after: 1617946860,
+        before: 1617947760,
+        ...attributes,
+      },
+    })
+    withPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    const u = instance.getUPlot()
+    u.over.getBoundingClientRect = () => ({
+      left: 0,
+      top: 0,
+      width: 800,
+      height: 300,
+      right: 800,
+      bottom: 300,
+    })
+
+    return {
+      sdk,
+      chart,
+      instance,
+      u,
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  const wheel = (u, extra) => {
+    const event = new Event("wheel", { bubbles: true, cancelable: true })
+    event.deltaY = -100
+    Object.assign(event, extra)
+    u.over.dispatchEvent(event)
+  }
+
+  it("ignores a plain wheel (dygraph gates zoom behind Shift/Alt)", async () => {
+    const { u, teardown } = await mount()
+    u.setCursor({ left: 400, top: 100 }, true)
+
+    const spy = jest.spyOn(u, "setScale")
+    wheel(u, {})
+    expect(spy).not.toHaveBeenCalled()
+
+    spy.mockRestore()
+    teardown()
+  })
+
+  it("zooms on Shift+wheel", async () => {
+    const { u, teardown } = await mount()
+    u.setCursor({ left: 400, top: 100 }, true)
+
+    const spy = jest.spyOn(u, "setScale")
+    wheel(u, { shiftKey: true })
+    expect(spy).toHaveBeenCalledWith("x", expect.objectContaining({ min: expect.any(Number) }))
+
+    spy.mockRestore()
+    teardown()
+  })
+
+  it("zooms on Alt+wheel", async () => {
+    const { u, teardown } = await mount()
+    u.setCursor({ left: 400, top: 100 }, true)
+
+    const spy = jest.spyOn(u, "setScale")
+    wheel(u, { altKey: true })
+    expect(spy).toHaveBeenCalled()
+
+    spy.mockRestore()
+    teardown()
+  })
+
+  it("ignores a sub-5px drag-select", async () => {
+    const { sdk, u, teardown } = await mount({ navigation: "select" })
+
+    const ends = []
+    sdk.on("highlightEnd", (c, range) => ends.push(range))
+
+    u.setSelect({ left: 100, top: 0, width: 3, height: 0 }, true)
+    expect(ends).toHaveLength(0)
+
+    teardown()
+  })
+
+  it("emits highlightEnd for a >=5px drag-select", async () => {
+    const { sdk, u, teardown } = await mount({ navigation: "select" })
+
+    const ends = []
+    sdk.on("highlightEnd", (c, range) => ends.push(range))
+
+    u.setSelect({ left: 100, top: 0, width: 50, height: 0 }, true)
+    expect(ends).toHaveLength(1)
+
+    teardown()
+  })
+})
+
 describe("uplotChart mouse pan navigation", () => {
   const after = 1617946860
   const before = 1617947760
