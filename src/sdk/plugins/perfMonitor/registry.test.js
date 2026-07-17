@@ -32,7 +32,7 @@ describe("perf registry", () => {
     expect(snapshot().overall.count).toBe(0)
   })
 
-  it("timeRender always calls fn but records only when enabled", () => {
+  it("timeRender always calls fn but records only when enabled", async () => {
     let calls = 0
     const fn = () => {
       calls++
@@ -47,7 +47,31 @@ describe("perf registry", () => {
     expect(isEnabled()).toBe(true)
     timeRender("c1", "uplot", fn)
     expect(calls).toBe(2)
+
+    await Promise.resolve()
     expect(snapshot().overall.count).toBe(1)
+  })
+
+  it("captures paint a renderer defers to a microtask during fn (batching renderers)", async () => {
+    setEnabled(true)
+
+    const busyWait = ms => {
+      const until = performance.now() + ms
+      while (performance.now() < until) {
+        /* spin */
+      }
+    }
+
+    timeRender("c1", "uplot", () => {
+      queueMicrotask(() => busyWait(5))
+    })
+
+    await Promise.resolve()
+    await Promise.resolve()
+
+    const snap = snapshot()
+    expect(snap.renderers.uplot.count).toBe(1)
+    expect(snap.renderers.uplot.max).toBeGreaterThanOrEqual(5)
   })
 
   it("reports heap unsupported when performance.memory is absent", () => {

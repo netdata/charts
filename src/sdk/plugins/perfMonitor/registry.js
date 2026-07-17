@@ -32,7 +32,7 @@ export const timeRender = (chartId, renderer, fn) => {
 
   const start = performance.now()
   fn()
-  record(chartId, renderer, performance.now() - start)
+  queueMicrotask(() => record(chartId, renderer, performance.now() - start))
 }
 
 export const sampleHeap = () => {
