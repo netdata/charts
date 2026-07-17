@@ -41,9 +41,11 @@
 | P2.6 | `point` overlay type unimplemented — no shared consumer creates one today; only an external/API risk. | ⧖ | G11 |
 | P2.7 | Stacked-area per-pixel point reduction (dense-data perf) not ported (`dygraph/plotters/stackedArea.js:73-115`). Output identical; perf only. | ⧖ | G11 |
 
-## Open decisions (need maintainer)
-- **Wheel-zoom:** plain scroll (current uPlot) vs Shift/Alt-gated (current dygraph)? Drives P1.5.
-- **P2 scope:** which P2 items are actually required for the target dashboards vs droppable.
+## Decisions
+- **Governing rule: match dygraph exactly.** Wherever uPlot and dygraph differ, reproduce dygraph's
+  behavior/decision — no new UX.
+- **Wheel-zoom:** RESOLVED → match dygraph (Shift/Alt-gated; plain wheel does nothing). Drives G9.5.
+- **P2 scope:** still open — which P2 items are required for the target dashboards vs droppable.
 
 ## Notes
 - App-coupling audit found **no crash-level** gaps: every chartUI method shared code calls is present

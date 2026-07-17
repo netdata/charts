@@ -56,8 +56,8 @@ selectVertical modes (keep the end emission in `onSetSelect`).
 - dygraph ignores drags < 5px (`select.js:47`, `selectVertical.js:48`); uPlot fires on any
   `select.width > 0` (`uplot/index.js:549`) → a twitch zooms/highlights. Add the 5px threshold.
 - dygraph wheel-zoom is gated on Shift/Alt (`generic.js:47` early-return); uPlot zooms on plain wheel
-  (`uplot/index.js` `onWheel`). Reconcile to the intended prod behavior (confirm with maintainer which
-  wins; default to matching dygraph unless product wants plain-wheel zoom).
+  (`uplot/index.js` `onWheel`). **Decision: match dygraph** — gate uPlot wheel-zoom behind Shift/Alt
+  (plain wheel does nothing), reproducing `generic.js:47`.
 
 ## Sequencing
 1 + 2 together (same `chartContentWrapper` edit) → 3 (modifier switching) → 4 → 5. Each TDD'd where a
