@@ -49,6 +49,7 @@ export default (sdk, chart) => {
   let hovering = false
   let detachNavigation = null
   let overlays = null
+  let xRangeOverride = null
 
   const getData = () => {
     const { data } = chart.getPayload()
@@ -157,6 +158,7 @@ export default (sdk, chart) => {
     x: {
       time: true,
       range: () => {
+        if (xRangeOverride) return xRangeOverride
         const [after, before] = chart.getDateWindow()
         return [after / 1000, before / 1000]
       },
@@ -554,7 +556,10 @@ export default (sdk, chart) => {
     self.setSelect({ left: 0, top: 0, width: 0, height: 0 }, false)
   }
 
-  const moveXDebounced = debounce(300, (after, before) => chart.moveX(after, before))
+  const moveXDebounced = debounce(300, (after, before) => {
+    chart.moveX(after, before)
+    xRangeOverride = null
+  })
 
   const onWheel = event => {
     if (!chart.getAttribute("enabledNavigation")) return
@@ -573,6 +578,7 @@ export default (sdk, chart) => {
     const min = xVal - leftPct * nextRange
     const max = min + nextRange
 
+    xRangeOverride = [min, max]
     u.setScale("x", { min, max })
     moveXDebounced(min, max)
   }
@@ -597,6 +603,7 @@ export default (sdk, chart) => {
 
       const onMove = ev => {
         const dx = unitsPerPx * (ev.clientX - left0)
+        xRangeOverride = [min0 - dx, max0 - dx]
         u.setScale("x", { min: min0 - dx, max: max0 - dx })
       }
 
@@ -604,7 +611,9 @@ export default (sdk, chart) => {
         document.removeEventListener("mousemove", onMove)
         document.removeEventListener("mouseup", onUp)
         detachDoc = null
-        emitNav("panEnd", [u.scales.x.min * 1000, u.scales.x.max * 1000])
+        const [rangeMin, rangeMax] = xRangeOverride || [u.scales.x.min, u.scales.x.max]
+        emitNav("panEnd", [rangeMin * 1000, rangeMax * 1000])
+        xRangeOverride = null
       }
 
       document.addEventListener("mousemove", onMove)
@@ -696,6 +705,7 @@ export default (sdk, chart) => {
       }
 
       const dx = touchUnitsPerPx * (touch.clientX - touchStartX)
+      xRangeOverride = [touchMin0 - dx, touchMax0 - dx]
       u.setScale("x", { min: touchMin0 - dx, max: touchMax0 - dx })
     }
 
@@ -706,6 +716,7 @@ export default (sdk, chart) => {
 
       if (now - lastTouchEndTime < doubleTapDelay) {
         lastTouchEndTime = now
+        xRangeOverride = null
         chart.resetNavigation()
         return
       }
@@ -724,7 +735,9 @@ export default (sdk, chart) => {
 
       if (touchPanning) {
         touchPanning = false
-        emitNav("panEnd", [u.scales.x.min * 1000, u.scales.x.max * 1000])
+        const [rangeMin, rangeMax] = xRangeOverride || [u.scales.x.min, u.scales.x.max]
+        emitNav("panEnd", [rangeMin * 1000, rangeMax * 1000])
+        xRangeOverride = null
       }
     }
 

@@ -1027,3 +1027,103 @@ describe("uplotChart stacked gap handling", () => {
     teardown()
   })
 })
+
+describe("uplotChart mouse pan navigation", () => {
+  const after = 1617946860
+  const before = 1617947760
+
+  const withPanPayload = chart => {
+    chart.getPayload = () => ({
+      data: [
+        [after * 1000, 10, 20, 30],
+        [(after + 450) * 1000, 12, 18, 28],
+        [before * 1000, 11, 22, 31],
+      ],
+      labels: ["time", "load1", "load5", "load15"],
+    })
+    chart.getPayloadDimensionIds = () => ["load1", "load5", "load15"]
+    chart.getVisibleDimensionIds = () => ["load1", "load5", "load15"]
+    chart.isDimensionVisible = () => true
+    chart.selectDimensionColor = () => "#3366CC"
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getConvertedValueWithUnit = value => `${value}`
+  }
+
+  const mount = async () => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType: "line",
+        chartLibrary: "uplot",
+        navigation: "pan",
+        after,
+        before,
+      },
+    })
+    withPanPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    return {
+      sdk,
+      chart,
+      instance,
+      u: instance.getUPlot(),
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  it("shifts the live x-scale while dragging instead of snapping back to the window", async () => {
+    const { u, teardown } = await mount()
+
+    const min0 = u.scales.x.min
+
+    u.over.dispatchEvent(new MouseEvent("mousedown", { button: 0, clientX: 400, clientY: 100 }))
+    document.dispatchEvent(new MouseEvent("mousemove", { clientX: 200, clientY: 100 }))
+    await Promise.resolve()
+
+    expect(u.scales.x.min).not.toBeCloseTo(min0, 5)
+
+    document.dispatchEvent(new MouseEvent("mouseup", { clientX: 200, clientY: 100 }))
+    teardown()
+  })
+
+  it("reports a moved window on panEnd so moveX is not a no-op", async () => {
+    const { sdk, u, teardown } = await mount()
+
+    const min0 = u.scales.x.min
+
+    let panEndRange
+    sdk.on("panEnd", (c, range) => (panEndRange = range))
+
+    u.over.dispatchEvent(new MouseEvent("mousedown", { button: 0, clientX: 400, clientY: 100 }))
+    document.dispatchEvent(new MouseEvent("mousemove", { clientX: 200, clientY: 100 }))
+    document.dispatchEvent(new MouseEvent("mouseup", { clientX: 200, clientY: 100 }))
+
+    expect(panEndRange).toBeDefined()
+    expect(panEndRange[0]).not.toBeCloseTo(min0 * 1000, 0)
+    expect(panEndRange[0]).toBeGreaterThan(min0 * 1000)
+
+    teardown()
+  })
+
+  it("hands the committed window back to getDateWindow after the drag ends", async () => {
+    const { chart, u, teardown } = await mount()
+
+    u.over.dispatchEvent(new MouseEvent("mousedown", { button: 0, clientX: 400, clientY: 100 }))
+    document.dispatchEvent(new MouseEvent("mousemove", { clientX: 200, clientY: 100 }))
+    document.dispatchEvent(new MouseEvent("mouseup", { clientX: 200, clientY: 100 }))
+
+    const [winAfter] = chart.getDateWindow()
+    expect(winAfter).toBeGreaterThan(after * 1000)
+
+    teardown()
+  })
+})
