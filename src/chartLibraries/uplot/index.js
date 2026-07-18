@@ -51,6 +51,7 @@ export default (sdk, chart) => {
   let detachNavigation = null
   let overlays = null
   let xRangeOverride = null
+  let selectEnded = false
 
   const getData = () => {
     const { data } = chart.getPayload()
@@ -536,22 +537,42 @@ export default (sdk, chart) => {
     return { focus: { prox: 16 }, drag }
   }
 
+  const updateCursorDrag = () => {
+    if (!u) return
+
+    const { drag } = getCursor()
+    u.cursor.drag.x = !!drag.x
+    u.cursor.drag.y = !!drag.y
+    u.cursor.drag.setScale = false
+    u.redraw(false, false)
+  }
+
   const onSetSelect = self => {
     if (!chart.getAttribute("enabledNavigation")) return
 
     const nav = chart.getAttribute("navigation")
+    const vertical = nav === "selectVertical"
+    if (nav !== "select" && nav !== "highlight" && !vertical) return
+    if (selectEnded) return
+    selectEnded = true
+
     const { select } = self
 
-    if (nav === "selectVertical" && select.height >= minDragPx) {
-      const min = self.posToVal(select.top + select.height, "y")
-      const max = self.posToVal(select.top, "y")
-      emitNav("highlightVerticalStart")
-      emitNav("highlightVerticalEnd", [min, max])
-    } else if ((nav === "select" || nav === "highlight") && select.width >= minDragPx) {
-      const after = Math.round(self.posToVal(select.left, "x"))
-      const before = Math.round(self.posToVal(select.left + select.width, "x"))
-      emitNav("highlightStart")
-      emitNav("highlightEnd", [after, before])
+    if (vertical) {
+      const range =
+        select.height >= minDragPx
+          ? [self.posToVal(select.top + select.height, "y"), self.posToVal(select.top, "y")]
+          : null
+      emitNav("highlightVerticalEnd", range)
+    } else {
+      const range =
+        select.width >= minDragPx
+          ? [
+              Math.round(self.posToVal(select.left, "x")),
+              Math.round(self.posToVal(select.left + select.width, "x")),
+            ]
+          : null
+      emitNav("highlightEnd", range)
     }
 
     self.setSelect({ left: 0, top: 0, width: 0, height: 0 }, false)
@@ -632,6 +653,7 @@ export default (sdk, chart) => {
     let downY = null
     let dragged = false
     let downedOnOver = false
+    let enabledHoverAtDown = false
 
     const onDownTrack = event => {
       if (event.button !== 0) return
@@ -639,6 +661,7 @@ export default (sdk, chart) => {
       downY = event.clientY
       dragged = false
       downedOnOver = true
+      enabledHoverAtDown = chart.getAttribute("enabledHover")
     }
 
     const onMoveTrack = event => {
@@ -655,7 +678,7 @@ export default (sdk, chart) => {
       dragged = false
 
       if (wasDrag) return
-      if (!chart.getAttribute("enabledHover")) return
+      if (!enabledHoverAtDown) return
 
       const rect = over.getBoundingClientRect()
       const offsetX = event.clientX - rect.left
@@ -743,10 +766,81 @@ export default (sdk, chart) => {
       }
     }
 
+    let detachSelectUp = null
+
+    const onSelectDown = event => {
+      if (event.button !== 0) return
+      if (!chart.getAttribute("enabledNavigation")) return
+
+      const nav = chart.getAttribute("navigation")
+      const vertical = nav === "selectVertical"
+      if (nav !== "select" && nav !== "highlight" && !vertical) return
+
+      selectEnded = false
+      emitNav(vertical ? "highlightVerticalStart" : "highlightStart")
+
+      const onSelectUp = () => {
+        document.removeEventListener("mouseup", onSelectUp)
+        detachSelectUp = null
+        if (selectEnded) return
+        selectEnded = true
+        emitNav(vertical ? "highlightVerticalEnd" : "highlightEnd", null)
+      }
+
+      document.addEventListener("mouseup", onSelectUp)
+      detachSelectUp = () => document.removeEventListener("mouseup", onSelectUp)
+    }
+
+    let pointerOver = false
+
+    const onOverEnter = () => {
+      pointerOver = true
+    }
+
+    const onOverLeave = () => {
+      pointerOver = false
+    }
+
+    const modifierNavigation = event => {
+      if (event.shiftKey && event.altKey) return "selectVertical"
+      if (event.altKey) return "highlight"
+      if (event.shiftKey) return "select"
+      return null
+    }
+
+    const onKeyDown = event => {
+      if (!pointerOver) return
+      if (!chart.getAttribute("enabledNavigation")) return
+
+      const navigation = modifierNavigation(event)
+      if (!navigation) return
+
+      const current = chart.getAttribute("navigation")
+      if (current === navigation) return
+
+      const prevNavigation = chart.getAttribute("prevNavigation") || current
+      chart.updateAttributes({ navigation, prevNavigation })
+    }
+
+    const onKeyUp = event => {
+      if (modifierNavigation(event)) {
+        onKeyDown(event)
+        return
+      }
+
+      const prevNavigation = chart.getAttribute("prevNavigation")
+      if (prevNavigation) chart.updateAttributes({ navigation: prevNavigation, prevNavigation: null })
+    }
+
     over.addEventListener("mousedown", onDown)
     over.addEventListener("mousedown", onDownTrack)
+    over.addEventListener("mousedown", onSelectDown)
+    over.addEventListener("mouseenter", onOverEnter)
+    over.addEventListener("mouseleave", onOverLeave)
     document.addEventListener("mousemove", onMoveTrack)
     document.addEventListener("mouseup", onUpTrack)
+    document.addEventListener("keydown", onKeyDown)
+    document.addEventListener("keyup", onKeyUp)
     over.addEventListener("wheel", onWheel, { passive: false })
     over.addEventListener("dblclick", onDblClick)
     over.addEventListener("touchstart", onTouchStart, { passive: false })
@@ -756,14 +850,20 @@ export default (sdk, chart) => {
     return () => {
       over.removeEventListener("mousedown", onDown)
       over.removeEventListener("mousedown", onDownTrack)
+      over.removeEventListener("mousedown", onSelectDown)
+      over.removeEventListener("mouseenter", onOverEnter)
+      over.removeEventListener("mouseleave", onOverLeave)
       document.removeEventListener("mousemove", onMoveTrack)
       document.removeEventListener("mouseup", onUpTrack)
+      document.removeEventListener("keydown", onKeyDown)
+      document.removeEventListener("keyup", onKeyUp)
       over.removeEventListener("touchstart", onTouchStart)
       over.removeEventListener("touchmove", onTouchMove)
       over.removeEventListener("touchend", onTouchEnd)
       over.removeEventListener("wheel", onWheel)
       over.removeEventListener("dblclick", onDblClick)
       if (detachDoc) detachDoc()
+      if (detachSelectUp) detachSelectUp()
     }
   }
 
@@ -866,7 +966,7 @@ export default (sdk, chart) => {
       chart.onAttributeChange("draftAnnotation", overlays.toggle),
       chart.onAttributeChange("selectedLegendDimensions", rebuild),
       chart.onAttributeChange("chartType", rebuild),
-      chart.onAttributeChange("navigation", rebuild),
+      chart.onAttributeChange("navigation", updateCursorDrag),
       chart.onAttributeChange("enabledNavigation", rebuild),
       chart.onAttributeChange("staticValueRange", () => u && u.setData(u.data, true)),
       chart.onAttributeChange("timezone", () => u && u.redraw()),

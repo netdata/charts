@@ -1130,14 +1130,15 @@ describe("uplotChart wheel gating + drag threshold (dygraph parity)", () => {
     teardown()
   })
 
-  it("ignores a sub-5px drag-select", async () => {
+  it("ends a sub-5px drag-select with a null range (dygraph parity, no zoom)", async () => {
     const { sdk, u, teardown } = await mount({ navigation: "select" })
 
     const ends = []
     sdk.on("highlightEnd", (c, range) => ends.push(range))
 
     u.setSelect({ left: 100, top: 0, width: 3, height: 0 }, true)
-    expect(ends).toHaveLength(0)
+    expect(ends).toHaveLength(1)
+    expect(ends[0]).toBeNull()
 
     teardown()
   })
@@ -1250,6 +1251,315 @@ describe("uplotChart mouse pan navigation", () => {
 
     const [winAfter] = chart.getDateWindow()
     expect(winAfter).toBeGreaterThan(after * 1000)
+
+    teardown()
+  })
+})
+
+describe("uplotChart modifier-key navigation switching (dygraph parity)", () => {
+  const withPayload = chart => {
+    chart.getPayload = () => ({
+      data: [
+        [1617946860000, 10, 20, 30],
+        [1617946865000, 12, 18, 28],
+        [1617946870000, 11, 22, 31],
+      ],
+      labels: ["time", "load1", "load5", "load15"],
+    })
+    chart.getPayloadDimensionIds = () => ["load1", "load5", "load15"]
+    chart.getVisibleDimensionIds = () => ["load1", "load5", "load15"]
+    chart.isDimensionVisible = () => true
+    chart.selectDimensionColor = () => "#3366CC"
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getConvertedValueWithUnit = value => `${value}`
+  }
+
+  const mount = async (attributes = {}) => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType: "line",
+        chartLibrary: "uplot",
+        navigation: "pan",
+        after: 1617946860,
+        before: 1617947760,
+        ...attributes,
+      },
+    })
+    withPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    const u = instance.getUPlot()
+    u.over.getBoundingClientRect = () => ({
+      left: 0,
+      top: 0,
+      width: 800,
+      height: 300,
+      right: 800,
+      bottom: 300,
+    })
+
+    return {
+      sdk,
+      chart,
+      instance,
+      u,
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  const enter = u => u.over.dispatchEvent(new MouseEvent("mouseenter"))
+  const leave = u => u.over.dispatchEvent(new MouseEvent("mouseleave"))
+  const keyDown = mods => document.dispatchEvent(new KeyboardEvent("keydown", mods))
+  const keyUp = mods => document.dispatchEvent(new KeyboardEvent("keyup", mods))
+
+  it("switches to select on Shift while the pointer is over the chart, restoring on release", async () => {
+    const { chart, u, teardown } = await mount()
+    enter(u)
+
+    keyDown({ key: "Shift", shiftKey: true })
+    expect(chart.getAttribute("navigation")).toBe("select")
+    expect(chart.getAttribute("prevNavigation")).toBe("pan")
+
+    keyUp({ key: "Shift", shiftKey: false })
+    expect(chart.getAttribute("navigation")).toBe("pan")
+    expect(chart.getAttribute("prevNavigation")).toBeNull()
+
+    teardown()
+  })
+
+  it("switches to highlight on Alt, restoring on release", async () => {
+    const { chart, u, teardown } = await mount()
+    enter(u)
+
+    keyDown({ key: "Alt", altKey: true })
+    expect(chart.getAttribute("navigation")).toBe("highlight")
+    expect(chart.getAttribute("prevNavigation")).toBe("pan")
+
+    keyUp({ key: "Alt", altKey: false })
+    expect(chart.getAttribute("navigation")).toBe("pan")
+
+    teardown()
+  })
+
+  it("switches to selectVertical on Shift+Alt, restoring on full release", async () => {
+    const { chart, u, teardown } = await mount()
+    enter(u)
+
+    keyDown({ key: "Alt", shiftKey: true, altKey: true })
+    expect(chart.getAttribute("navigation")).toBe("selectVertical")
+    expect(chart.getAttribute("prevNavigation")).toBe("pan")
+
+    keyUp({ key: "Shift", shiftKey: false, altKey: false })
+    expect(chart.getAttribute("navigation")).toBe("pan")
+
+    teardown()
+  })
+
+  it("keeps the original base navigation when a second modifier is added then removed", async () => {
+    const { chart, u, teardown } = await mount()
+    enter(u)
+
+    keyDown({ key: "Shift", shiftKey: true })
+    expect(chart.getAttribute("navigation")).toBe("select")
+
+    keyDown({ key: "Alt", shiftKey: true, altKey: true })
+    expect(chart.getAttribute("navigation")).toBe("selectVertical")
+    expect(chart.getAttribute("prevNavigation")).toBe("pan")
+
+    keyUp({ key: "Alt", shiftKey: true, altKey: false })
+    expect(chart.getAttribute("navigation")).toBe("select")
+
+    keyUp({ key: "Shift", shiftKey: false, altKey: false })
+    expect(chart.getAttribute("navigation")).toBe("pan")
+
+    teardown()
+  })
+
+  it("does not switch when the pointer is not over the chart", async () => {
+    const { chart, u, teardown } = await mount()
+    enter(u)
+    leave(u)
+
+    keyDown({ key: "Shift", shiftKey: true })
+    expect(chart.getAttribute("navigation")).toBe("pan")
+
+    teardown()
+  })
+
+  it("updates u.cursor.drag in place on a navigation change without destroying the instance", async () => {
+    const { chart, instance, teardown } = await mount()
+
+    const before = instance.getUPlot()
+    expect(before.cursor.drag.x).toBe(false)
+    expect(before.cursor.drag.y).toBe(false)
+
+    chart.updateAttribute("navigation", "select")
+    expect(instance.getUPlot()).toBe(before)
+    expect(before.cursor.drag.x).toBe(true)
+    expect(before.cursor.drag.y).toBe(false)
+
+    chart.updateAttribute("navigation", "selectVertical")
+    expect(instance.getUPlot()).toBe(before)
+    expect(before.cursor.drag.x).toBe(false)
+    expect(before.cursor.drag.y).toBe(true)
+
+    teardown()
+  })
+})
+
+describe("uplotChart select gesture start/end (dygraph parity)", () => {
+  const withPayload = chart => {
+    chart.getPayload = () => ({
+      data: [
+        [1617946860000, 10, 20, 30],
+        [1617946865000, 12, 18, 28],
+        [1617946870000, 11, 22, 31],
+      ],
+      labels: ["time", "load1", "load5", "load15"],
+    })
+    chart.getPayloadDimensionIds = () => ["load1", "load5", "load15"]
+    chart.getVisibleDimensionIds = () => ["load1", "load5", "load15"]
+    chart.isDimensionVisible = () => true
+    chart.selectDimensionColor = () => "#3366CC"
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getConvertedValueWithUnit = value => `${value}`
+  }
+
+  const mount = async (attributes = {}) => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType: "line",
+        chartLibrary: "uplot",
+        after: 1617946860,
+        before: 1617947760,
+        ...attributes,
+      },
+    })
+    withPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    const u = instance.getUPlot()
+    u.over.getBoundingClientRect = () => ({
+      left: 0,
+      top: 0,
+      width: 800,
+      height: 300,
+      right: 800,
+      bottom: 300,
+    })
+
+    return {
+      sdk,
+      chart,
+      instance,
+      u,
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  const down = u =>
+    u.over.dispatchEvent(new MouseEvent("mousedown", { button: 0, clientX: 100, clientY: 100 }))
+  const up = clientX =>
+    document.dispatchEvent(new MouseEvent("mouseup", { button: 0, clientX, clientY: 100 }))
+
+  it("emits highlightStart on mousedown in select mode, before any mouseup", async () => {
+    const { sdk, u, teardown } = await mount({ navigation: "select" })
+
+    const starts = []
+    sdk.on("highlightStart", () => starts.push(true))
+
+    down(u)
+    expect(starts).toHaveLength(1)
+
+    up(100)
+    teardown()
+  })
+
+  it("emits highlightVerticalStart on mousedown in selectVertical mode", async () => {
+    const { sdk, u, teardown } = await mount({ navigation: "selectVertical" })
+
+    const starts = []
+    sdk.on("highlightVerticalStart", () => starts.push(true))
+
+    down(u)
+    expect(starts).toHaveLength(1)
+
+    up(100)
+    teardown()
+  })
+
+  it("does not emit highlightStart on mousedown in pan mode", async () => {
+    const { sdk, u, teardown } = await mount({ navigation: "pan" })
+
+    const starts = []
+    sdk.on("highlightStart", () => starts.push(true))
+
+    down(u)
+    expect(starts).toHaveLength(0)
+
+    up(100)
+    teardown()
+  })
+
+  it("emits highlightEnd with a numeric range for a >=5px setSelect", async () => {
+    const { sdk, u, teardown } = await mount({ navigation: "select" })
+
+    const ends = []
+    sdk.on("highlightEnd", (c, range) => ends.push(range))
+
+    u.setSelect({ left: 100, top: 0, width: 200, height: 0 }, true)
+    expect(ends).toHaveLength(1)
+    expect(ends[0]).toHaveLength(2)
+    expect(typeof ends[0][0]).toBe("number")
+
+    teardown()
+  })
+
+  it("ends a pure click (mousedown+mouseup, no setSelect) with highlightEnd(null) exactly once", async () => {
+    const { sdk, u, teardown } = await mount({ navigation: "select" })
+
+    const ends = []
+    sdk.on("highlightEnd", (c, range) => ends.push(range))
+
+    down(u)
+    up(100)
+
+    expect(ends).toHaveLength(1)
+    expect(ends[0]).toBeNull()
+
+    teardown()
+  })
+
+  it("fires highlightEnd exactly once when a real setSelect precedes the mouseup", async () => {
+    const { sdk, u, teardown } = await mount({ navigation: "select" })
+
+    const ends = []
+    sdk.on("highlightEnd", (c, range) => ends.push(range))
+
+    down(u)
+    u.setSelect({ left: 100, top: 0, width: 200, height: 0 }, true)
+    up(300)
+
+    expect(ends).toHaveLength(1)
+    expect(ends[0]).toHaveLength(2)
 
     teardown()
   })
