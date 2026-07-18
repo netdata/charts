@@ -1564,3 +1564,150 @@ describe("uplotChart select gesture start/end (dygraph parity)", () => {
     teardown()
   })
 })
+
+describe("uplotChart yAxisChange (unit rescaling parity)", () => {
+  const setup = () => {
+    const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType: "line" } })
+    withLoadedPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    return {
+      sdk,
+      chart,
+      instance,
+      u: instance.getUPlot(),
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  it("fires yAxisChange with the committed y-scale range", () => {
+    const { chart, u, teardown } = setup()
+
+    const ranges = []
+    chart.on("yAxisChange", (min, max) => ranges.push([min, max]))
+
+    u.scales.y.min = 5
+    u.scales.y.max = 40
+    u.hooks.draw.forEach(hook => hook(u))
+
+    expect(ranges).toEqual([[5, 40]])
+
+    teardown()
+  })
+
+  it("does not re-fire for an unchanged range but fires again once it changes", () => {
+    const { chart, u, teardown } = setup()
+
+    const ranges = []
+    chart.on("yAxisChange", (min, max) => ranges.push([min, max]))
+
+    u.scales.y.min = 5
+    u.scales.y.max = 40
+    u.hooks.draw.forEach(hook => hook(u))
+    u.hooks.draw.forEach(hook => hook(u))
+    expect(ranges).toEqual([[5, 40]])
+
+    u.scales.y.min = 6
+    u.hooks.draw.forEach(hook => hook(u))
+    expect(ranges).toEqual([
+      [5, 40],
+      [6, 40],
+    ])
+
+    teardown()
+  })
+
+  it("drives the real unitConversion consumer without looping or overflowing the stack", async () => {
+    const { chart, u, teardown } = setup()
+
+    let fires = 0
+    chart.on("yAxisChange", () => fires++)
+
+    expect(() => {
+      u.scales.y.min = 5
+      u.scales.y.max = 40
+      u.hooks.draw.forEach(hook => hook(u))
+    }).not.toThrow()
+
+    expect(chart.getAttribute("min")).toBe(5)
+    expect(chart.getAttribute("max")).toBe(40)
+    expect(fires).toBe(1)
+
+    await Promise.resolve()
+    await Promise.resolve()
+
+    u.hooks.draw.forEach(hook => hook(u))
+    expect(fires).toBe(1)
+
+    teardown()
+  })
+})
+
+describe("uplotChart axis visibility (enabledXAxis / enabledYAxis parity)", () => {
+  const mountWith = attributes => {
+    const { sdk, chart } = makeTestChart({
+      attributes: { loaded: true, chartType: "line", ...attributes },
+    })
+    withLoadedPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    return {
+      chart,
+      instance,
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  it("shows both axes by default", () => {
+    const { instance, teardown } = mountWith({})
+    const u = instance.getUPlot()
+
+    expect(u.axes[0].show).toBe(true)
+    expect(u.axes[1].show).toBe(true)
+
+    teardown()
+  })
+
+  it("hides the y axis when enabledYAxis is false, keeping the x axis", () => {
+    const { instance, teardown } = mountWith({ enabledYAxis: false })
+    const u = instance.getUPlot()
+
+    expect(u.axes[1].show).toBe(false)
+    expect(u.axes[0].show).toBe(true)
+
+    teardown()
+  })
+
+  it("hides the x axis when enabledXAxis is false, keeping the y axis", () => {
+    const { instance, teardown } = mountWith({ enabledXAxis: false })
+    const u = instance.getUPlot()
+
+    expect(u.axes[0].show).toBe(false)
+    expect(u.axes[1].show).toBe(true)
+
+    teardown()
+  })
+
+  it("re-renders and flips the y axis back when the attribute toggles", () => {
+    const { chart, instance, teardown } = mountWith({ enabledYAxis: false })
+    expect(instance.getUPlot().axes[1].show).toBe(false)
+
+    chart.updateAttribute("enabledYAxis", true)
+
+    expect(instance.getUPlot().axes[1].show).toBe(true)
+
+    teardown()
+  })
+})

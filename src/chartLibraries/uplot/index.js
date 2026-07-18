@@ -52,6 +52,8 @@ export default (sdk, chart) => {
   let overlays = null
   let xRangeOverride = null
   let selectEnded = false
+  let prevYMin
+  let prevYMax
 
   const getData = () => {
     const { data } = chart.getPayload()
@@ -207,11 +209,14 @@ export default (sdk, chart) => {
   const getAxes = () => {
     if (chart.isSparkline()) return [{ show: false }, { show: false }]
 
+    const enabledXAxis = chart.getAttribute("enabledXAxis")
+    const enabledYAxis = chart.getAttribute("enabledYAxis")
     const gridColor = chart.getThemeAttribute("themeGridColor")
     const labelColor = chart.getThemeAttribute("themeLabelColor")
     const dimensionId = chart.getVisibleDimensionIds()?.[0]
 
     const xAxis = {
+      show: enabledXAxis,
       font: axisFont,
       stroke: labelColor,
       grid: { stroke: gridColor, width: 1 },
@@ -222,11 +227,12 @@ export default (sdk, chart) => {
     }
 
     if (chart.getAttribute("chartType") === "heatmap")
-      return [xAxis, getHeatmapYAxis(gridColor, labelColor)]
+      return [xAxis, { show: enabledYAxis, ...getHeatmapYAxis(gridColor, labelColor) }]
 
     return [
       xAxis,
       {
+        show: enabledYAxis,
         font: axisFont,
         stroke: labelColor,
         grid: { stroke: gridColor, width: 1 },
@@ -457,6 +463,16 @@ export default (sdk, chart) => {
   const drawAnomaly = makeAnomaly(chartUI)
   const drawAnnotations = makeAnnotations(chartUI)
   const getHoverDimension = makeGetHoverDimension(chart)
+
+  const fireYAxisChange = self => {
+    const { min, max } = self.scales.y
+    if (min == null || max == null) return
+    if (min === prevYMin && max === prevYMax) return
+
+    prevYMin = min
+    prevYMax = max
+    chart.trigger("yAxisChange", min, max)
+  }
 
   const draw = self => {
     const crosshairColor = chart.getThemeAttribute("themeCrosshair")
@@ -885,6 +901,7 @@ export default (sdk, chart) => {
         hooks: {
           setCursor: [setCursor],
           draw: [
+            fireYAxisChange,
             drawStacked,
             drawHeatmap,
             drawBars,
@@ -968,6 +985,8 @@ export default (sdk, chart) => {
       chart.onAttributeChange("chartType", rebuild),
       chart.onAttributeChange("navigation", updateCursorDrag),
       chart.onAttributeChange("enabledNavigation", rebuild),
+      chart.onAttributeChange("enabledXAxis", rebuild),
+      chart.onAttributeChange("enabledYAxis", rebuild),
       chart.onAttributeChange("staticValueRange", () => u && u.setData(u.data, true)),
       chart.onAttributeChange("timezone", () => u && u.redraw()),
       chart.onAttributeChange("unitsConversionPrefix", () => u && u.redraw()),
