@@ -3,6 +3,7 @@ import {
   pointMultiplierByChartType,
   getLiveFetchBefore,
   getChartPayload,
+  getChartDataRequestAttributes,
   errorCodesToMessage,
 } from "./helpers"
 import { makeTestChart } from "@jest/testUtilities"
@@ -105,6 +106,16 @@ describe("API helpers", () => {
 
       // eliminateZeroDimensions is true by default, so "nonzero" is included
       expect(result).toEqual(["jsonwrap", "nonzero", "flip", "ms", "jw-anomaly-rates", "minify"])
+    })
+  })
+
+  describe("getChartDataRequestAttributes", () => {
+    it("keeps the configured chart host when fetch attributes contain a host", () => {
+      const { chart } = makeTestChart({ attributes: { host: "configured-host" } })
+
+      const result = getChartDataRequestAttributes(chart, { host: "ignored-host" })
+
+      expect(result.host).toBe("configured-host")
     })
   })
 

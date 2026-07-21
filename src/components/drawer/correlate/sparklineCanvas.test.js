@@ -24,4 +24,15 @@ describe("getSparklinePoints", () => {
     ])
     expect(getSparklinePoints([null, NaN], 100, 20)).toEqual([])
   })
+
+  it("supports a shared range without changing existing callers", () => {
+    expect(getSparklinePoints([0, 50], 100, 24, { min: 0, max: 100 })).toEqual([
+      { x: 4, y: 20 },
+      { x: 96, y: 12 },
+    ])
+    expect(getSparklinePoints([0, 50], 100, 24)).toEqual([
+      { x: 4, y: 20 },
+      { x: 96, y: 4 },
+    ])
+  })
 })
