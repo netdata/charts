@@ -77,7 +77,7 @@ const chartLibraries = {
       }
 
       .u-select {
-        background: rgba(0, 0, 0, 0.07);
+        background: rgba(128, 128, 128, 0.3);
         position: absolute;
         pointer-events: none;
       }

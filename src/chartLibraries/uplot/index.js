@@ -3,6 +3,7 @@ import { debounce } from "throttle-debounce"
 import makeChartUI from "@/sdk/makeChartUI"
 import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
+import limitRange from "@/helpers/limitRange"
 import { makeGetColor, withoutPrefix } from "@/helpers/heatmap"
 import { formatHeatmapLabel } from "@/helpers/heatmapScale"
 import { getStackBounds, getStackSegments, getStackValueRange } from "./stacking"
@@ -681,21 +682,39 @@ export default (sdk, chart) => {
 
     event.preventDefault()
 
+    if (event.deltaY === 0) return
+
     const left = u.cursor.left
     if (left == null || left < 0) return
 
     const rect = u.over.getBoundingClientRect()
-    const leftPct = left / rect.width
-    const xVal = u.posToVal(left, "x")
-    const range = u.scales.x.max - u.scales.x.min
-    const factor = 0.75
-    const nextRange = event.deltaY < 0 ? range * factor : range / factor
-    const min = xVal - leftPct * nextRange
-    const max = min + nextRange
+    const bias = rect.width === 0 ? 0 : left / rect.width
 
-    xRangeOverride = [min, max]
-    u.setScale("x", { min, max })
-    moveXDebounced(min, max)
+    const normalDef =
+      typeof event.wheelDelta === "number" && !Number.isNaN(event.wheelDelta)
+        ? event.wheelDelta / 40
+        : event.deltaY * -1.2
+    const normal = event.detail ? event.detail * -1 : normalDef
+    const percentage = normal / 50
+
+    const afterAxis = u.scales.x.min * 1000
+    const beforeAxis = u.scales.x.max * 1000
+
+    const delta = beforeAxis - afterAxis
+    const increment = delta * percentage
+    const afterIncrement = increment * bias
+    const beforeIncrement = increment * (1 - bias)
+
+    const afterSeconds = Math.round((afterAxis + afterIncrement) / 1000)
+    const beforeSeconds = Math.round((beforeAxis - beforeIncrement) / 1000)
+
+    const { fixedAfter, fixedBefore } = limitRange({ after: afterSeconds, before: beforeSeconds })
+
+    if (fixedAfter * 1000 === afterAxis && fixedBefore * 1000 === beforeAxis) return
+
+    xRangeOverride = [fixedAfter, fixedBefore]
+    u.setScale("x", { min: fixedAfter, max: fixedBefore })
+    moveXDebounced(fixedAfter, fixedBefore)
   }
 
   const attachNavigation = () => {
@@ -708,6 +727,8 @@ export default (sdk, chart) => {
       if (chart.getAttribute("navigation") !== "pan") return
 
       event.preventDefault()
+
+      moveXDebounced.cancel({ upcomingOnly: true })
 
       const left0 = event.clientX
       const min0 = u.scales.x.min
@@ -758,7 +779,10 @@ export default (sdk, chart) => {
 
     const onMoveTrack = event => {
       if (!downedOnOver) return
-      if (Math.abs(event.clientX - downX) > 3 || Math.abs(event.clientY - downY) > 3)
+      if (
+        Math.abs(event.clientX - downX) >= minDragPx ||
+        Math.abs(event.clientY - downY) >= minDragPx
+      )
         dragged = true
     }
 
@@ -798,6 +822,8 @@ export default (sdk, chart) => {
 
       const touch = event.touches[0]
       if (!touch) return
+
+      moveXDebounced.cancel({ upcomingOnly: true })
 
       touchMoved = false
       touchPanning = false

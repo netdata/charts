@@ -918,6 +918,26 @@ describe("uplotChart click-to-annotate", () => {
 
     teardown()
   })
+
+  it("annotates on a sub-5px pointer wobble (no 4px dead zone)", async () => {
+    const { chart, dragClick, teardown } = await mount({ navigation: "select" })
+
+    dragClick(100, 104)
+
+    expect(chart.getAttribute("draftAnnotation")).toBeTruthy()
+
+    teardown()
+  })
+
+  it("does not annotate on a movement at the 5px drag threshold", async () => {
+    const { chart, dragClick, teardown } = await mount({ navigation: "select" })
+
+    dragClick(100, 105)
+
+    expect(chart.getAttribute("draftAnnotation")).toBeFalsy()
+
+    teardown()
+  })
 })
 
 describe("uplotChart touch navigation", () => {
@@ -1229,6 +1249,127 @@ describe("uplotChart wheel gating + drag threshold (dygraph parity)", () => {
     u.setSelect({ left: 100, top: 0, width: 50, height: 0 }, true)
     expect(ends).toHaveLength(1)
 
+    teardown()
+  })
+
+  it("zooms IN to a narrower window on Shift+wheel with deltaY<0", async () => {
+    const { u, teardown } = await mount()
+    u.setCursor({ left: 400, top: 100 }, true)
+
+    const range0 = u.scales.x.max - u.scales.x.min
+    const spy = jest.spyOn(u, "setScale")
+
+    wheel(u, { shiftKey: true, deltaY: -100 })
+
+    expect(spy).toHaveBeenCalledWith("x", expect.any(Object))
+    const { min, max } = spy.mock.calls[0][1]
+    expect(max - min).toBeLessThan(range0)
+
+    spy.mockRestore()
+    teardown()
+  })
+
+  it("zooms OUT to a wider window on wheel with deltaY>0", async () => {
+    const { u, teardown } = await mount()
+    u.setCursor({ left: 400, top: 100 }, true)
+
+    const range0 = u.scales.x.max - u.scales.x.min
+    const spy = jest.spyOn(u, "setScale")
+
+    wheel(u, { shiftKey: true, deltaY: 100 })
+
+    const { min, max } = spy.mock.calls[0][1]
+    expect(max - min).toBeGreaterThan(range0)
+
+    spy.mockRestore()
+    teardown()
+  })
+
+  it("biases the zoom toward the cursor position", async () => {
+    const { u, teardown } = await mount()
+    u.setCursor({ left: 40, top: 100 }, true)
+
+    const min0 = u.scales.x.min
+    const max0 = u.scales.x.max
+    const spy = jest.spyOn(u, "setScale")
+
+    wheel(u, { shiftKey: true, deltaY: -100 })
+
+    const { min, max } = spy.mock.calls[0][1]
+    expect(min - min0).toBeLessThan(max0 - max)
+
+    spy.mockRestore()
+    teardown()
+  })
+
+  it("is a no-op at the limitRange bound (unchanged early-return)", async () => {
+    const { u, teardown } = await mount({ after: 1617946860, before: 1617946920 })
+    u.setCursor({ left: 400, top: 100 }, true)
+
+    expect(u.scales.x.min).toBe(1617946860)
+    expect(u.scales.x.max).toBe(1617946920)
+
+    const spy = jest.spyOn(u, "setScale")
+    wheel(u, { shiftKey: true, deltaY: -100 })
+    expect(spy).not.toHaveBeenCalled()
+
+    spy.mockRestore()
+    teardown()
+  })
+
+  it("is a no-op for a deltaY===0 wheel", async () => {
+    const { u, teardown } = await mount()
+    u.setCursor({ left: 400, top: 100 }, true)
+
+    const spy = jest.spyOn(u, "setScale")
+    wheel(u, { shiftKey: true, deltaY: 0 })
+    expect(spy).not.toHaveBeenCalled()
+
+    spy.mockRestore()
+    teardown()
+  })
+
+  it("cancels the pending wheel moveX when a mouse pan gesture starts", async () => {
+    const { chart, u, teardown } = await mount({ navigation: "pan" })
+    u.setCursor({ left: 400, top: 100 }, true)
+
+    const moveXSpy = jest.spyOn(chart, "moveX")
+    jest.useFakeTimers()
+
+    wheel(u, { shiftKey: true, deltaY: -100 })
+
+    u.over.dispatchEvent(new MouseEvent("mousedown", { button: 0, clientX: 400, clientY: 100 }))
+
+    jest.advanceTimersByTime(500)
+    jest.useRealTimers()
+
+    expect(moveXSpy).not.toHaveBeenCalled()
+
+    document.dispatchEvent(new MouseEvent("mouseup", { clientX: 400, clientY: 100 }))
+    moveXSpy.mockRestore()
+    teardown()
+  })
+
+  it("cancels the pending wheel moveX when a touch gesture starts", async () => {
+    const { chart, u, teardown } = await mount()
+    u.setCursor({ left: 400, top: 100 }, true)
+
+    const moveXSpy = jest.spyOn(chart, "moveX")
+    jest.useFakeTimers()
+
+    wheel(u, { shiftKey: true, deltaY: -100 })
+
+    const touchStart = new Event("touchstart", { bubbles: true, cancelable: true })
+    touchStart.touches = [{ clientX: 400, clientY: 100 }]
+    touchStart.changedTouches = [{ clientX: 400, clientY: 100 }]
+    u.over.dispatchEvent(touchStart)
+
+    jest.advanceTimersByTime(500)
+    jest.useRealTimers()
+
+    expect(moveXSpy).not.toHaveBeenCalled()
+
+    moveXSpy.mockRestore()
     teardown()
   })
 })
