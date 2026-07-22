@@ -1321,69 +1321,88 @@ describe("uplotChart modifier-key navigation switching (dygraph parity)", () => 
 
   const enter = u => u.over.dispatchEvent(new MouseEvent("mouseenter"))
   const leave = u => u.over.dispatchEvent(new MouseEvent("mouseleave"))
-  const keyDown = mods => document.dispatchEvent(new KeyboardEvent("keydown", mods))
-  const keyUp = mods => document.dispatchEvent(new KeyboardEvent("keyup", mods))
+  const down = (u, mods = {}) =>
+    u.over.dispatchEvent(
+      new MouseEvent("mousedown", { button: 0, clientX: 100, clientY: 100, ...mods })
+    )
+  const up = (clientX = 100) =>
+    document.dispatchEvent(new MouseEvent("mouseup", { button: 0, clientX, clientY: 100 }))
+  const flushTimers = () => new Promise(resolve => setTimeout(resolve))
 
-  it("switches to select on Shift while the pointer is over the chart, restoring on release", async () => {
+  it("switches to select on Shift+mousedown while the pointer is over the chart", async () => {
     const { chart, u, teardown } = await mount()
     enter(u)
 
-    keyDown({ key: "Shift", shiftKey: true })
+    down(u, { shiftKey: true })
     expect(chart.getAttribute("navigation")).toBe("select")
     expect(chart.getAttribute("prevNavigation")).toBe("pan")
 
-    keyUp({ key: "Shift", shiftKey: false })
+    up()
+    await flushTimers()
     expect(chart.getAttribute("navigation")).toBe("pan")
     expect(chart.getAttribute("prevNavigation")).toBeNull()
 
     teardown()
   })
 
-  it("switches to highlight on Alt, restoring on release", async () => {
+  it("switches to highlight on Alt+mousedown, restoring on mouseup", async () => {
     const { chart, u, teardown } = await mount()
     enter(u)
 
-    keyDown({ key: "Alt", altKey: true })
+    down(u, { altKey: true })
     expect(chart.getAttribute("navigation")).toBe("highlight")
     expect(chart.getAttribute("prevNavigation")).toBe("pan")
 
-    keyUp({ key: "Alt", altKey: false })
+    up()
+    await flushTimers()
     expect(chart.getAttribute("navigation")).toBe("pan")
 
     teardown()
   })
 
-  it("switches to selectVertical on Shift+Alt, restoring on full release", async () => {
+  it("switches to selectVertical on Shift+Alt+mousedown, restoring on mouseup", async () => {
     const { chart, u, teardown } = await mount()
     enter(u)
 
-    keyDown({ key: "Alt", shiftKey: true, altKey: true })
+    down(u, { shiftKey: true, altKey: true })
     expect(chart.getAttribute("navigation")).toBe("selectVertical")
     expect(chart.getAttribute("prevNavigation")).toBe("pan")
 
-    keyUp({ key: "Shift", shiftKey: false, altKey: false })
+    up()
+    await flushTimers()
     expect(chart.getAttribute("navigation")).toBe("pan")
 
     teardown()
   })
 
-  it("keeps the original base navigation when a second modifier is added then removed", async () => {
+  it("captures the real base navigation in prevNavigation across a second switch", async () => {
     const { chart, u, teardown } = await mount()
     enter(u)
 
-    keyDown({ key: "Shift", shiftKey: true })
+    down(u, { shiftKey: true })
     expect(chart.getAttribute("navigation")).toBe("select")
+    expect(chart.getAttribute("prevNavigation")).toBe("pan")
 
-    keyDown({ key: "Alt", shiftKey: true, altKey: true })
+    down(u, { shiftKey: true, altKey: true })
     expect(chart.getAttribute("navigation")).toBe("selectVertical")
     expect(chart.getAttribute("prevNavigation")).toBe("pan")
 
-    keyUp({ key: "Alt", shiftKey: true, altKey: false })
-    expect(chart.getAttribute("navigation")).toBe("select")
-
-    keyUp({ key: "Shift", shiftKey: false, altKey: false })
+    up()
+    await flushTimers()
     expect(chart.getAttribute("navigation")).toBe("pan")
 
+    teardown()
+  })
+
+  it("does not switch on a plain mousedown with no modifier", async () => {
+    const { chart, u, teardown } = await mount()
+    enter(u)
+
+    down(u)
+    expect(chart.getAttribute("navigation")).toBe("pan")
+    expect(chart.getAttribute("prevNavigation")).toBeFalsy()
+
+    up()
     teardown()
   })
 
@@ -1392,29 +1411,121 @@ describe("uplotChart modifier-key navigation switching (dygraph parity)", () => 
     enter(u)
     leave(u)
 
-    keyDown({ key: "Shift", shiftKey: true })
+    down(u, { shiftKey: true })
+    expect(chart.getAttribute("navigation")).toBe("pan")
+
+    up()
+    teardown()
+  })
+
+  it("does not switch when navigation is disabled", async () => {
+    const { chart, u, teardown } = await mount({ enabledNavigation: false })
+    enter(u)
+
+    down(u, { shiftKey: true })
+    expect(chart.getAttribute("navigation")).toBe("pan")
+
+    up()
+    teardown()
+  })
+
+  it("does not change navigation on keydown (no typing hijack)", async () => {
+    const { chart, u, teardown } = await mount()
+    enter(u)
+
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Shift", shiftKey: true }))
+    expect(chart.getAttribute("navigation")).toBe("pan")
+    expect(chart.getAttribute("prevNavigation")).toBeFalsy()
+
+    document.dispatchEvent(new KeyboardEvent("keyup", { key: "Shift" }))
     expect(chart.getAttribute("navigation")).toBe("pan")
 
     teardown()
   })
 
-  it("updates u.cursor.drag in place on a navigation change without destroying the instance", async () => {
-    const { chart, instance, teardown } = await mount()
+  it("defers the mouseup restore past the end-plugin chain, leaving hover enabled", async () => {
+    const { chart, u, teardown } = await mount()
+    enter(u)
 
-    const before = instance.getUPlot()
-    expect(before.cursor.drag.x).toBe(false)
-    expect(before.cursor.drag.y).toBe(false)
+    down(u, { shiftKey: true })
+    expect(chart.getAttribute("navigation")).toBe("select")
+    expect(chart.getAttribute("enabledHover")).toBe(false)
+    expect(chart.getAttribute("highlighting")).toBe(true)
 
-    chart.updateAttribute("navigation", "select")
-    expect(instance.getUPlot()).toBe(before)
-    expect(before.cursor.drag.x).toBe(true)
-    expect(before.cursor.drag.y).toBe(false)
+    document.dispatchEvent(new MouseEvent("mousemove", { clientX: 300, clientY: 100 }))
+    u.setSelect({ left: 100, top: 0, width: 200, height: 0 }, true)
+    expect(chart.getAttribute("enabledHover")).toBe(true)
+    expect(chart.getAttribute("highlighting")).toBe(false)
 
-    chart.updateAttribute("navigation", "selectVertical")
-    expect(instance.getUPlot()).toBe(before)
-    expect(before.cursor.drag.x).toBe(false)
-    expect(before.cursor.drag.y).toBe(true)
+    up(300)
+    expect(chart.getAttribute("navigation")).toBe("select")
 
+    await flushTimers()
+    expect(chart.getAttribute("navigation")).toBe("pan")
+    expect(chart.getAttribute("prevNavigation")).toBeNull()
+    expect(chart.getAttribute("enabledHover")).toBe(true)
+    expect(chart.getAttribute("highlighting")).toBe(false)
+
+    teardown()
+  })
+
+  it("restores a stuck prevNavigation on window blur", async () => {
+    const { chart, u, teardown } = await mount()
+    enter(u)
+
+    down(u, { shiftKey: true })
+    expect(chart.getAttribute("navigation")).toBe("select")
+    expect(chart.getAttribute("prevNavigation")).toBe("pan")
+
+    window.dispatchEvent(new Event("blur"))
+    expect(chart.getAttribute("navigation")).toBe("pan")
+    expect(chart.getAttribute("prevNavigation")).toBeNull()
+
+    teardown()
+  })
+
+  it("runs the capture-phase switch before uPlot's mousedown so the gesture selects", async () => {
+    const { sdk, chart, u, teardown } = await mount()
+    enter(u)
+
+    const starts = []
+    sdk.on("highlightStart", () => starts.push(true))
+
+    down(u, { shiftKey: true })
+
+    expect(chart.getAttribute("navigation")).toBe("select")
+    expect(u.cursor.drag.x).toBe(true)
+    expect(starts).toHaveLength(1)
+
+    up()
+    await flushTimers()
+    teardown()
+  })
+
+  it("keeps the same uPlot instance while mutating cursor.drag in place on switch", async () => {
+    const { chart, instance, u, teardown } = await mount()
+    enter(u)
+
+    expect(u.cursor.drag.x).toBe(false)
+    expect(u.cursor.drag.y).toBe(false)
+
+    down(u, { shiftKey: true })
+    expect(chart.getAttribute("navigation")).toBe("select")
+    expect(instance.getUPlot()).toBe(u)
+    expect(u.cursor.drag.x).toBe(true)
+    expect(u.cursor.drag.y).toBe(false)
+
+    up()
+    await flushTimers()
+
+    down(u, { shiftKey: true, altKey: true })
+    expect(chart.getAttribute("navigation")).toBe("selectVertical")
+    expect(instance.getUPlot()).toBe(u)
+    expect(u.cursor.drag.x).toBe(false)
+    expect(u.cursor.drag.y).toBe(true)
+
+    up()
+    await flushTimers()
     teardown()
   })
 })

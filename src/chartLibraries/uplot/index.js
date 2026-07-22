@@ -900,7 +900,11 @@ export default (sdk, chart) => {
       return null
     }
 
-    const onKeyDown = event => {
+    const isSelectNavigation = navigation =>
+      navigation === "select" || navigation === "highlight" || navigation === "selectVertical"
+
+    const onModifierDown = event => {
+      if (event.button !== 0) return
       if (!pointerOver) return
       if (!chart.getAttribute("enabledNavigation")) return
 
@@ -911,19 +915,22 @@ export default (sdk, chart) => {
       if (current === navigation) return
 
       const prevNavigation = chart.getAttribute("prevNavigation") || current
+      if (isSelectNavigation(navigation)) selectEnded = false
       chart.updateAttributes({ navigation, prevNavigation })
     }
 
-    const onKeyUp = event => {
-      if (modifierNavigation(event)) {
-        onKeyDown(event)
-        return
-      }
-
+    const restoreNavigation = () => {
       const prevNavigation = chart.getAttribute("prevNavigation")
       if (prevNavigation) chart.updateAttributes({ navigation: prevNavigation, prevNavigation: null })
     }
 
+    const onModifierUp = () => setTimeout(restoreNavigation)
+
+    const onWindowBlur = () => restoreNavigation()
+
+    const switchTarget = over.parentNode || over
+
+    switchTarget.addEventListener("mousedown", onModifierDown, true)
     over.addEventListener("mousedown", onDown)
     over.addEventListener("mousedown", onDownTrack)
     over.addEventListener("mousedown", onSelectDown)
@@ -931,8 +938,8 @@ export default (sdk, chart) => {
     over.addEventListener("mouseleave", onOverLeave)
     document.addEventListener("mousemove", onMoveTrack)
     document.addEventListener("mouseup", onUpTrack)
-    document.addEventListener("keydown", onKeyDown)
-    document.addEventListener("keyup", onKeyUp)
+    document.addEventListener("mouseup", onModifierUp)
+    window.addEventListener("blur", onWindowBlur)
     over.addEventListener("wheel", onWheel, { passive: false })
     over.addEventListener("dblclick", onDblClick)
     over.addEventListener("touchstart", onTouchStart, { passive: false })
@@ -940,6 +947,7 @@ export default (sdk, chart) => {
     over.addEventListener("touchend", onTouchEnd)
 
     return () => {
+      switchTarget.removeEventListener("mousedown", onModifierDown, true)
       over.removeEventListener("mousedown", onDown)
       over.removeEventListener("mousedown", onDownTrack)
       over.removeEventListener("mousedown", onSelectDown)
@@ -947,8 +955,8 @@ export default (sdk, chart) => {
       over.removeEventListener("mouseleave", onOverLeave)
       document.removeEventListener("mousemove", onMoveTrack)
       document.removeEventListener("mouseup", onUpTrack)
-      document.removeEventListener("keydown", onKeyDown)
-      document.removeEventListener("keyup", onKeyUp)
+      document.removeEventListener("mouseup", onModifierUp)
+      window.removeEventListener("blur", onWindowBlur)
       over.removeEventListener("touchstart", onTouchStart)
       over.removeEventListener("touchmove", onTouchMove)
       over.removeEventListener("touchend", onTouchEnd)
