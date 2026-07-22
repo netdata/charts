@@ -159,6 +159,19 @@ export default (sdk, chart) => {
     return [0, chart.getVisibleHeatmapIds().length || 1]
   }
 
+  const getEmptyValueRange = () => {
+    const staticValueRange = chart.getAttribute("staticValueRange")
+    if (staticValueRange) return staticValueRange
+
+    if (chart.getAttribute("chartType") === "heatmap")
+      return [0, chart.getVisibleHeatmapIds().length || 1]
+
+    const [min, max] = chart.getAttribute("getValueRange")(chart)
+    if (Number.isFinite(min) && Number.isFinite(max) && min !== max) return [min, max]
+
+    return [0, 1]
+  }
+
   const padAwayFromZero = value => (value === 0 ? 0 : value * 1.05)
 
   const getBarValueRange = (self, chartType, dataMin, dataMax) => {
@@ -982,7 +995,7 @@ export default (sdk, chart) => {
     if (empty && !chart.getAttribute("loaded")) return
 
     const scales = getScales()
-    if (empty) scales.y = { range: () => [0, 1] }
+    if (empty) scales.y = { range: () => getEmptyValueRange() }
 
     u = new uPlot(
       {
@@ -994,7 +1007,7 @@ export default (sdk, chart) => {
         series: empty ? [{}] : getSeries(),
         axes: getAxes(),
         hooks: empty
-          ? {}
+          ? { draw: [drawOverlays], setCursor: [setCursor] }
           : {
               setCursor: [setCursor],
               draw: [

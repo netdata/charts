@@ -2206,3 +2206,155 @@ describe("uplotChart sparkline series styling (dygraph parity)", () => {
     document.body.removeChild(element)
   })
 })
+
+describe("uplotChart framed-empty overlays + y-range (dygraph parity)", () => {
+  const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve))
+
+  const withOutOfLimitsPayload = chart => {
+    chart.getPayload = () => ({
+      data: [
+        [1617946860000, 10, 20, 30],
+        [1617946865000, 12, 18, 28],
+        [1617946870000, 11, 22, 31],
+      ],
+      labels: ["time", "load1", "load5", "load15"],
+    })
+    chart.getPayloadDimensionIds = () => ["load1", "load5", "load15"]
+    chart.getVisibleDimensionIds = () => ["load1", "load5", "load15"]
+    chart.isDimensionVisible = () => true
+    chart.selectDimensionColor = () => "#3366CC"
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getConvertedValueWithUnit = value => `${value}`
+  }
+
+  const mountEmpty = attributes => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType: "line",
+        chartLibrary: "uplot",
+        after: 1617946860,
+        before: 1617947760,
+        outOfLimits: true,
+        ...attributes,
+      },
+    })
+    withOutOfLimitsPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    return {
+      sdk,
+      chart,
+      instance,
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  it("emits overlayedAreaChanged:proceeded when the framed empty chart re-renders", async () => {
+    const { instance, teardown } = mountEmpty({
+      firstEntry: 1617946865,
+      error: false,
+      overlays: { proceeded: { type: "proceeded" } },
+    })
+
+    let called = false
+    instance.on("overlayedAreaChanged:proceeded", () => (called = true))
+
+    expect(() => instance.render()).not.toThrow()
+    await nextFrame()
+
+    expect(called).toBe(true)
+
+    teardown()
+  })
+
+  it("emits a positioned proceeded area through the empty-frame draw hook when the first entry is in view", async () => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType: "line",
+        chartLibrary: "uplot",
+        after: 1617946860,
+        before: 1617947760,
+        outOfLimits: false,
+        error: false,
+        firstEntry: 1617946865,
+        overlays: { proceeded: { type: "proceeded" } },
+      },
+    })
+    chart.getPayload = () => ({ data: [], labels: ["time"] })
+    chart.getPayloadDimensionIds = () => []
+    chart.getVisibleDimensionIds = () => []
+    chart.isDimensionVisible = () => true
+    chart.selectDimensionColor = () => "#3366CC"
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getConvertedValueWithUnit = value => `${value}`
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    expect(instance.getUPlot().series).toHaveLength(1)
+
+    let area
+    instance.on("overlayedAreaChanged:proceeded", next => (area = next))
+
+    instance.getUPlot().redraw()
+    await nextFrame()
+
+    expect(area).toEqual({
+      from: expect.any(Number),
+      to: expect.any(Number),
+      width: expect.any(Number),
+    })
+    expect(Number.isFinite(area.from)).toBe(true)
+
+    instance.unmount()
+    document.body.removeChild(element)
+  })
+
+  it("draws the framed empty overlay set with the proceeded default without throwing", () => {
+    const { instance, teardown } = mountEmpty({
+      firstEntry: 1617946865,
+      error: false,
+      overlays: { proceeded: { type: "proceeded" } },
+    })
+
+    const u = instance.getUPlot()
+    expect(u.series).toHaveLength(1)
+    expect(() => u.hooks.draw.forEach(hook => hook(u))).not.toThrow()
+
+    teardown()
+  })
+
+  it("frames the empty y-range with the configured staticValueRange, not [0, 1]", () => {
+    const { instance, teardown } = mountEmpty({ staticValueRange: [5, 40] })
+
+    const u = instance.getUPlot()
+    expect(u.series).toHaveLength(1)
+    expect(u.scales.y.range(u, 0, 100)).toEqual([5, 40])
+
+    teardown()
+  })
+
+  it("frames the empty y-range with finite, non-collapsed bounds when unconfigured", () => {
+    const { instance, teardown } = mountEmpty({})
+
+    const u = instance.getUPlot()
+    const [min, max] = u.scales.y.range(u, 0, 100)
+    expect(Number.isFinite(min)).toBe(true)
+    expect(Number.isFinite(max)).toBe(true)
+    expect(min).toBeLessThan(max)
+
+    teardown()
+  })
+})
