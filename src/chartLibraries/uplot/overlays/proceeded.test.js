@@ -103,7 +103,7 @@ describe("uplot proceeded overlay", () => {
     teardown()
   })
 
-  it("does not emit or throw when out of limits leaves no uPlot instance", async () => {
+  it("keeps a framed uPlot instance and emits when out of limits, matching dygraph", async () => {
     const { instance, teardown } = await mountUplot({
       firstEntry: after + 5,
       outOfLimits: true,
@@ -111,13 +111,15 @@ describe("uplot proceeded overlay", () => {
       overlays: { proceeded: { type: "proceeded" } },
     })
 
+    expect(instance.getUPlot()).not.toBeNull()
+
     let called = false
     instance.on("overlayedAreaChanged:proceeded", () => (called = true))
 
     expect(() => proceeded(instance, "proceeded")).not.toThrow()
     await nextFrame()
 
-    expect(called).toBe(false)
+    expect(called).toBe(true)
 
     teardown()
   })

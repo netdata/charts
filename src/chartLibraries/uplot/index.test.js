@@ -123,7 +123,7 @@ describe("uplotChart", () => {
     document.body.removeChild(element)
   })
 
-  it("clears the uPlot instance when data goes out of limits", () => {
+  it("keeps a framed empty chart when data goes out of limits and recovers when valid data returns", () => {
     const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType: "line" } })
     withLoadedPayload(chart)
 
@@ -133,11 +133,85 @@ describe("uplotChart", () => {
     element.style.height = "300px"
     document.body.appendChild(element)
     instance.mount(element)
-    expect(instance.getUPlot()).not.toBeNull()
+
+    const full = instance.getUPlot()
+    expect(full).not.toBeNull()
+    expect(full.series).toHaveLength(4)
 
     chart.updateAttribute("outOfLimits", true)
-    instance.render()
+    expect(() => instance.render()).not.toThrow()
+
+    const framed = instance.getUPlot()
+    expect(framed).not.toBeNull()
+    expect(element.querySelector(".uplot")).not.toBeNull()
+    expect(framed.axes[0].show).toBe(true)
+    expect(framed.axes[1].show).toBe(true)
+    expect(framed.series).toHaveLength(1)
+
+    chart.updateAttribute("outOfLimits", false)
+    expect(() => instance.render()).not.toThrow()
+
+    const recovered = instance.getUPlot()
+    expect(recovered).not.toBeNull()
+    expect(recovered.series).toHaveLength(4)
+
+    instance.unmount()
+    document.body.removeChild(element)
+  })
+
+  it("mounts a framed empty chart when the payload has no dimensions, without throwing", () => {
+    const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType: "line" } })
+    chart.getPayload = () => ({ data: [], labels: ["time"] })
+    chart.getPayloadDimensionIds = () => []
+    chart.getVisibleDimensionIds = () => []
+    chart.isDimensionVisible = () => true
+    chart.selectDimensionColor = () => "#3366CC"
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getConvertedValueWithUnit = value => `${value}`
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+
+    expect(() => instance.mount(element)).not.toThrow()
+
+    const u = instance.getUPlot()
+    expect(u).not.toBeNull()
+    expect(element.querySelector(".uplot")).not.toBeNull()
+    expect(u.axes[0].show).toBe(true)
+    expect(u.axes[1].show).toBe(true)
+    expect(u.series).toHaveLength(1)
+
+    instance.unmount()
+    document.body.removeChild(element)
+  })
+
+  it("renders nothing until loaded, then draws the framed empty chart once loaded", () => {
+    const { sdk, chart } = makeTestChart({ attributes: { loaded: false, chartType: "line" } })
+    chart.getPayload = () => ({ data: [], labels: ["time"] })
+    chart.getPayloadDimensionIds = () => []
+    chart.getVisibleDimensionIds = () => []
+    chart.isDimensionVisible = () => true
+    chart.selectDimensionColor = () => "#3366CC"
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getConvertedValueWithUnit = value => `${value}`
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+
+    instance.mount(element)
     expect(instance.getUPlot()).toBeNull()
+    expect(element.querySelector(".uplot")).toBeNull()
+
+    chart.updateAttribute("loaded", true)
+
+    expect(instance.getUPlot()).not.toBeNull()
+    expect(element.querySelector(".uplot")).not.toBeNull()
 
     instance.unmount()
     document.body.removeChild(element)

@@ -971,7 +971,11 @@ export default (sdk, chart) => {
     if (!element) return
 
     const data = getData()
-    if (!data) return
+    const empty = !data
+    if (empty && !chart.getAttribute("loaded")) return
+
+    const scales = getScales()
+    if (empty) scales.y = { range: () => [0, 1] }
 
     u = new uPlot(
       {
@@ -979,25 +983,27 @@ export default (sdk, chart) => {
         height: chartUI.getChartHeight(),
         legend: { show: false },
         cursor: getCursor(),
-        scales: getScales(),
-        series: getSeries(),
+        scales,
+        series: empty ? [{}] : getSeries(),
         axes: getAxes(),
-        hooks: {
-          setCursor: [setCursor],
-          draw: [
-            fireYAxisChange,
-            drawStacked,
-            drawHeatmap,
-            drawBars,
-            drawAnomaly,
-            drawAnnotations,
-            draw,
-            drawOverlays,
-          ],
-          setSelect: [onSetSelect],
-        },
+        hooks: empty
+          ? {}
+          : {
+              setCursor: [setCursor],
+              draw: [
+                fireYAxisChange,
+                drawStacked,
+                drawHeatmap,
+                drawBars,
+                drawAnomaly,
+                drawAnnotations,
+                draw,
+                drawOverlays,
+              ],
+              setSelect: [onSetSelect],
+            },
       },
-      data,
+      empty ? [[0]] : data,
       element
     )
 
@@ -1030,14 +1036,16 @@ export default (sdk, chart) => {
     chartUI.render()
 
     const data = getData()
-    if (!data) {
+    if (!data && !chart.getAttribute("loaded")) {
       destroyChart()
       return
     }
 
+    const frameData = data || [[0]]
+
     if (!u) create()
-    else if (u.series.length !== data.length) rebuild()
-    else u.setData(data)
+    else if (u.series.length !== frameData.length) rebuild()
+    else u.setData(frameData)
 
     chartUI.trigger("rendered")
   }
