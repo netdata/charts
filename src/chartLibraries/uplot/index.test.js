@@ -1394,7 +1394,6 @@ describe("uplotChart modifier-key navigation switching (dygraph parity)", () => 
   }
 
   const enter = u => u.over.dispatchEvent(new MouseEvent("mouseenter"))
-  const leave = u => u.over.dispatchEvent(new MouseEvent("mouseleave"))
   const down = (u, mods = {}) =>
     u.over.dispatchEvent(
       new MouseEvent("mousedown", { button: 0, clientX: 100, clientY: 100, ...mods })
@@ -1480,15 +1479,17 @@ describe("uplotChart modifier-key navigation switching (dygraph parity)", () => 
     teardown()
   })
 
-  it("does not switch when the pointer is not over the chart", async () => {
+  it("switches on a modifier mousedown without a preceding mouseenter", async () => {
     const { chart, u, teardown } = await mount()
-    enter(u)
-    leave(u)
 
     down(u, { shiftKey: true })
-    expect(chart.getAttribute("navigation")).toBe("pan")
+    expect(chart.getAttribute("navigation")).toBe("select")
+    expect(chart.getAttribute("prevNavigation")).toBe("pan")
 
     up()
+    await flushTimers()
+    expect(chart.getAttribute("navigation")).toBe("pan")
+
     teardown()
   })
 
@@ -1539,21 +1540,6 @@ describe("uplotChart modifier-key navigation switching (dygraph parity)", () => 
     expect(chart.getAttribute("prevNavigation")).toBeNull()
     expect(chart.getAttribute("enabledHover")).toBe(true)
     expect(chart.getAttribute("highlighting")).toBe(false)
-
-    teardown()
-  })
-
-  it("restores a stuck prevNavigation on window blur", async () => {
-    const { chart, u, teardown } = await mount()
-    enter(u)
-
-    down(u, { shiftKey: true })
-    expect(chart.getAttribute("navigation")).toBe("select")
-    expect(chart.getAttribute("prevNavigation")).toBe("pan")
-
-    window.dispatchEvent(new Event("blur"))
-    expect(chart.getAttribute("navigation")).toBe("pan")
-    expect(chart.getAttribute("prevNavigation")).toBeNull()
 
     teardown()
   })

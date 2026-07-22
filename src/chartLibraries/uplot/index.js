@@ -883,16 +883,6 @@ export default (sdk, chart) => {
       detachSelectUp = () => document.removeEventListener("mouseup", onSelectUp)
     }
 
-    let pointerOver = false
-
-    const onOverEnter = () => {
-      pointerOver = true
-    }
-
-    const onOverLeave = () => {
-      pointerOver = false
-    }
-
     const modifierNavigation = event => {
       if (event.shiftKey && event.altKey) return "selectVertical"
       if (event.altKey) return "highlight"
@@ -905,7 +895,6 @@ export default (sdk, chart) => {
 
     const onModifierDown = event => {
       if (event.button !== 0) return
-      if (!pointerOver) return
       if (!chart.getAttribute("enabledNavigation")) return
 
       const navigation = modifierNavigation(event)
@@ -926,20 +915,15 @@ export default (sdk, chart) => {
 
     const onModifierUp = () => setTimeout(restoreNavigation)
 
-    const onWindowBlur = () => restoreNavigation()
-
     const switchTarget = over.parentNode || over
 
     switchTarget.addEventListener("mousedown", onModifierDown, true)
     over.addEventListener("mousedown", onDown)
     over.addEventListener("mousedown", onDownTrack)
     over.addEventListener("mousedown", onSelectDown)
-    over.addEventListener("mouseenter", onOverEnter)
-    over.addEventListener("mouseleave", onOverLeave)
     document.addEventListener("mousemove", onMoveTrack)
     document.addEventListener("mouseup", onUpTrack)
     document.addEventListener("mouseup", onModifierUp)
-    window.addEventListener("blur", onWindowBlur)
     over.addEventListener("wheel", onWheel, { passive: false })
     over.addEventListener("dblclick", onDblClick)
     over.addEventListener("touchstart", onTouchStart, { passive: false })
@@ -951,12 +935,9 @@ export default (sdk, chart) => {
       over.removeEventListener("mousedown", onDown)
       over.removeEventListener("mousedown", onDownTrack)
       over.removeEventListener("mousedown", onSelectDown)
-      over.removeEventListener("mouseenter", onOverEnter)
-      over.removeEventListener("mouseleave", onOverLeave)
       document.removeEventListener("mousemove", onMoveTrack)
       document.removeEventListener("mouseup", onUpTrack)
       document.removeEventListener("mouseup", onModifierUp)
-      window.removeEventListener("blur", onWindowBlur)
       over.removeEventListener("touchstart", onTouchStart)
       over.removeEventListener("touchmove", onTouchMove)
       over.removeEventListener("touchend", onTouchEnd)
