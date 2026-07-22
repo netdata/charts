@@ -87,7 +87,10 @@ describe("uplotChart", () => {
 
     const u = instance.getUPlot()
     expect(u.scales.x.range()).toEqual([1617946860, 1617947760])
-    expect(u.scales.y.range(u, 0, 100)).toEqual([5, 40])
+
+    const yRange = u.scales.y.range(u, 0, 100)
+    expect(yRange[0]).toBeLessThan(5)
+    expect(yRange[1]).toBeGreaterThan(40)
 
     const labels = u.axes[0].values(u, [1617946860])
     expect(labels).toHaveLength(1)
@@ -1566,8 +1569,10 @@ describe("uplotChart select gesture start/end (dygraph parity)", () => {
 })
 
 describe("uplotChart yAxisChange (unit rescaling parity)", () => {
-  const setup = () => {
-    const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType: "line" } })
+  const setup = (attributes = {}) => {
+    const { sdk, chart } = makeTestChart({
+      attributes: { loaded: true, chartType: "line", min: 5, max: 40, ...attributes },
+    })
     withLoadedPayload(chart)
 
     const instance = uplotChart(sdk, chart)
@@ -1586,17 +1591,18 @@ describe("uplotChart yAxisChange (unit rescaling parity)", () => {
     }
   }
 
-  it("fires yAxisChange with the committed y-scale range", () => {
+  it("fires yAxisChange with the getValueRange data range, not the rendered scale", () => {
     const { chart, u, teardown } = setup()
 
     const ranges = []
     chart.on("yAxisChange", (min, max) => ranges.push([min, max]))
 
-    u.scales.y.min = 5
-    u.scales.y.max = 40
+    u.scales.y.min = 999
+    u.scales.y.max = 1234
     u.hooks.draw.forEach(hook => hook(u))
 
     expect(ranges).toEqual([[5, 40]])
+    expect(chart.getAttribute("getValueRange")(chart)).toEqual([5, 40])
 
     teardown()
   })
@@ -1607,18 +1613,34 @@ describe("uplotChart yAxisChange (unit rescaling parity)", () => {
     const ranges = []
     chart.on("yAxisChange", (min, max) => ranges.push([min, max]))
 
-    u.scales.y.min = 5
-    u.scales.y.max = 40
     u.hooks.draw.forEach(hook => hook(u))
     u.hooks.draw.forEach(hook => hook(u))
     expect(ranges).toEqual([[5, 40]])
 
-    u.scales.y.min = 6
+    chart.updateAttribute("max", 50)
     u.hooks.draw.forEach(hook => hook(u))
     expect(ranges).toEqual([
       [5, 40],
-      [6, 40],
+      [5, 50],
     ])
+
+    teardown()
+  })
+
+  it("keeps the fired range independent of yRangePad and fires only once", () => {
+    const { chart, u, teardown } = setup()
+
+    const ranges = []
+    chart.on("yAxisChange", (min, max) => ranges.push([min, max]))
+
+    const [renderedMin, renderedMax] = u.scales.y.range(u, 5, 40)
+    expect(renderedMin).toBeLessThan(5)
+    expect(renderedMax).toBeGreaterThan(40)
+
+    u.hooks.draw.forEach(hook => hook(u))
+    u.hooks.draw.forEach(hook => hook(u))
+
+    expect(ranges).toEqual([[5, 40]])
 
     teardown()
   })
@@ -1630,8 +1652,6 @@ describe("uplotChart yAxisChange (unit rescaling parity)", () => {
     chart.on("yAxisChange", () => fires++)
 
     expect(() => {
-      u.scales.y.min = 5
-      u.scales.y.max = 40
       u.hooks.draw.forEach(hook => hook(u))
     }).not.toThrow()
 
@@ -1670,44 +1690,207 @@ describe("uplotChart axis visibility (enabledXAxis / enabledYAxis parity)", () =
     }
   }
 
-  it("shows both axes by default", () => {
+  it("shows both axes with ticks by default", () => {
     const { instance, teardown } = mountWith({})
     const u = instance.getUPlot()
 
     expect(u.axes[0].show).toBe(true)
     expect(u.axes[1].show).toBe(true)
+    expect(u.axes[0].ticks.show).not.toBe(false)
+    expect(u.axes[1].ticks.show).not.toBe(false)
 
     teardown()
   })
 
-  it("hides the y axis when enabledYAxis is false, keeping the x axis", () => {
+  it("keeps y-axis gridlines but hides its ticks when enabledYAxis is false", () => {
     const { instance, teardown } = mountWith({ enabledYAxis: false })
     const u = instance.getUPlot()
 
-    expect(u.axes[1].show).toBe(false)
-    expect(u.axes[0].show).toBe(true)
+    expect(u.axes[1].show).toBe(true)
+    expect(u.axes[1].grid.show).toBe(true)
+    expect(u.axes[1].ticks.show).toBe(false)
+    expect(u.axes[0].ticks.show).not.toBe(false)
 
     teardown()
   })
 
-  it("hides the x axis when enabledXAxis is false, keeping the y axis", () => {
+  it("keeps x-axis gridlines but hides its ticks when enabledXAxis is false", () => {
     const { instance, teardown } = mountWith({ enabledXAxis: false })
     const u = instance.getUPlot()
 
-    expect(u.axes[0].show).toBe(false)
-    expect(u.axes[1].show).toBe(true)
+    expect(u.axes[0].show).toBe(true)
+    expect(u.axes[0].grid.show).toBe(true)
+    expect(u.axes[0].ticks.show).toBe(false)
+    expect(u.axes[1].ticks.show).not.toBe(false)
 
     teardown()
   })
 
-  it("re-renders and flips the y axis back when the attribute toggles", () => {
+  it("re-renders and restores y-axis ticks when the attribute toggles", () => {
     const { chart, instance, teardown } = mountWith({ enabledYAxis: false })
-    expect(instance.getUPlot().axes[1].show).toBe(false)
+    expect(instance.getUPlot().axes[1].ticks.show).toBe(false)
+    expect(instance.getUPlot().axes[1].grid.show).toBe(true)
 
     chart.updateAttribute("enabledYAxis", true)
 
-    expect(instance.getUPlot().axes[1].show).toBe(true)
+    expect(instance.getUPlot().axes[1].ticks.show).not.toBe(false)
 
     teardown()
+  })
+})
+
+describe("uplotChart yRangePad (dygraph parity)", () => {
+  const mountLine = attributes => {
+    const { sdk, chart } = makeTestChart({
+      attributes: { loaded: true, chartType: "line", min: 10, max: 31, ...attributes },
+    })
+    withLoadedPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    return {
+      instance,
+      u: instance.getUPlot(),
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  it("pads a line chart y-range beyond the raw data extent at both ends", () => {
+    const { u, teardown } = mountLine()
+
+    const [min, max] = u.scales.y.range(u, 10, 31)
+    expect(min).toBeLessThan(10)
+    expect(max).toBeGreaterThan(31)
+
+    teardown()
+  })
+
+  it("leaves the multiBar zero-based y-range unpadded", () => {
+    const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType: "multiBar" } })
+    chart.getPayload = () => ({
+      data: [
+        [1617946860000, 10, 20, 30],
+        [1617946865000, 12, 18, 28],
+        [1617946870000, 11, 22, 31],
+      ],
+      labels: ["time", "reads", "writes", "other"],
+    })
+    chart.getPayloadDimensionIds = () => ["reads", "writes", "other"]
+    chart.getVisibleDimensionIds = () => ["reads", "writes", "other"]
+    chart.isDimensionVisible = () => true
+    chart.selectDimensionColor = () => "#3366CC"
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getConvertedValueWithUnit = value => `${value}`
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    const u = instance.getUPlot()
+    const [min] = u.scales.y.range(u, 10, 31)
+    expect(min).toBe(0)
+
+    instance.unmount()
+    document.body.removeChild(element)
+  })
+})
+
+describe("uplotChart area zero baseline (dygraph parity)", () => {
+  const mountArea = selectedLegendDimensions => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType: "area",
+        min: 10,
+        max: 31,
+        selectedLegendDimensions,
+      },
+    })
+    withLoadedPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    return {
+      instance,
+      u: instance.getUPlot(),
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  it("includes zero for multi-dimension, multi-selected area", () => {
+    const { u, teardown } = mountArea(["load1", "load5"])
+
+    const [min, max] = u.scales.y.range(u, 10, 31)
+    expect(min).toBeLessThanOrEqual(0)
+    expect(max).toBeGreaterThanOrEqual(31)
+
+    teardown()
+  })
+
+  it("does not include zero when only one dimension is selected", () => {
+    const { u, teardown } = mountArea(["load1"])
+
+    const [min] = u.scales.y.range(u, 10, 31)
+    expect(min).toBeGreaterThan(0)
+
+    teardown()
+  })
+})
+
+describe("uplotChart sparkline series styling (dygraph parity)", () => {
+  it("renders each sparkline series as a solid fill with a zero-width stroke and no points", () => {
+    const { sdk, chart } = makeTestChart({
+      attributes: { loaded: true, chartType: "line", sparkline: true },
+    })
+    withLoadedPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "200px"
+    element.style.height = "40px"
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    const u = instance.getUPlot()
+    for (let i = 1; i < u.series.length; i++) {
+      expect(u.series[i].width).toBe(0)
+      expect(u.series[i].fill(u, i)).toBe("#3366CC")
+      expect(u.series[i].points.show(u, i)).toBe(false)
+    }
+
+    instance.unmount()
+    document.body.removeChild(element)
+  })
+
+  it("keeps non-sparkline line series stroked and unfilled", () => {
+    const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType: "line" } })
+    withLoadedPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    const u = instance.getUPlot()
+    expect(u.series[1].width).toBe(2)
+    expect(u.series[1].fill(u, 1)).toBeNull()
+
+    instance.unmount()
+    document.body.removeChild(element)
   })
 })

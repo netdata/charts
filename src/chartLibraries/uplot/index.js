@@ -30,6 +30,11 @@ const areaGradientBottomAlpha = "00"
 const stackedFillAlpha = "CC"
 const stackedEdgeAlpha = "E6"
 
+const yRangePadPx = 15
+const yRangePadFallbackRatio = 0.05
+
+const hiddenAxisSize = 0
+
 const steppedPathBuilder = uPlot.paths.stepped && uPlot.paths.stepped({ align: 1 })
 const nullPathBuilder = () => null
 
@@ -39,6 +44,21 @@ const makeAreaFill = color => self => {
   gradient.addColorStop(0, `${color}${areaGradientTopAlpha}`)
   gradient.addColorStop(1, `${color}${areaGradientBottomAlpha}`)
   return gradient
+}
+
+const makeSolidFill = color => () => color
+
+const padYRange = (self, min, max) => {
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return [min, max]
+
+  const span = max - min
+  if (span <= 0) return [min, max]
+
+  const height = self && self.bbox ? self.bbox.height / (self.pxRatio || 1) : 0
+  const ratio = height > 0 ? yRangePadPx / height : yRangePadFallbackRatio
+  const pad = span * ratio
+
+  return [min - pad, max + pad]
 }
 
 export default (sdk, chart) => {
@@ -96,6 +116,7 @@ export default (sdk, chart) => {
 
   const getSeries = () => {
     const chartType = chart.getAttribute("chartType")
+    const sparkline = chart.isSparkline()
     const filled = chartType === "area"
     const heatmap = chartType === "heatmap"
     const bar = isBarType(chartType)
@@ -105,6 +126,17 @@ export default (sdk, chart) => {
       {},
       ...chart.getPayloadDimensionIds().map(id => {
         const color = chart.selectDimensionColor(id)
+
+        if (sparkline)
+          return {
+            label: id,
+            show: chart.isDimensionVisible(id),
+            stroke: color,
+            width: 0,
+            fill: makeSolidFill(color),
+            points: { show: false },
+            ...(paths && { paths }),
+          }
 
         return {
           label: id,
@@ -158,6 +190,14 @@ export default (sdk, chart) => {
     return [padAwayFromZero(Math.min(0, dataMin)), padAwayFromZero(Math.max(0, dataMax))]
   }
 
+  const areaIncludesZero = () => {
+    if (chart.getAttribute("includeZero")) return true
+
+    const dimensionIds = chart.getPayloadDimensionIds()
+    const selectedLegendDimensions = chart.getAttribute("selectedLegendDimensions")
+    return dimensionIds.length > 1 && selectedLegendDimensions.length > 1
+  }
+
   const getScales = () => ({
     x: {
       time: true,
@@ -174,8 +214,16 @@ export default (sdk, chart) => {
         if (chartType === "heatmap") return getHeatmapValueRange()
         if (isBarType(chartType)) return getBarValueRange(self, chartType, dataMin, dataMax)
 
-        const [min, max] = chart.getAttribute("getValueRange")(chart)
-        return [min == null ? dataMin : min, max == null ? dataMax : max]
+        const [rangeMin, rangeMax] = chart.getAttribute("getValueRange")(chart)
+        let min = rangeMin == null ? dataMin : rangeMin
+        let max = rangeMax == null ? dataMax : rangeMax
+
+        if (chartType === "area" && areaIncludesZero()) {
+          min = Math.min(0, min)
+          max = Math.max(0, max)
+        }
+
+        return padYRange(self, min, max)
       },
     },
   })
@@ -209,40 +257,61 @@ export default (sdk, chart) => {
   const getAxes = () => {
     if (chart.isSparkline()) return [{ show: false }, { show: false }]
 
-    const enabledXAxis = chart.getAttribute("enabledXAxis")
-    const enabledYAxis = chart.getAttribute("enabledYAxis")
+    const enabledXAxis = chart.getAttribute("enabledXAxis") !== false
+    const enabledYAxis = chart.getAttribute("enabledYAxis") !== false
     const gridColor = chart.getThemeAttribute("themeGridColor")
     const labelColor = chart.getThemeAttribute("themeLabelColor")
     const dimensionId = chart.getVisibleDimensionIds()?.[0]
 
     const xAxis = {
-      show: enabledXAxis,
+      show: true,
       font: axisFont,
       stroke: labelColor,
       grid: { stroke: gridColor, width: 1 },
-      ticks: { stroke: gridColor, width: 1, size: tickSize },
       space: xTickSpace,
       gap: axisGap,
-      values: (self, splits) => splits.map(value => chart.formatXAxis(new Date(value * 1000))),
+      ...(enabledXAxis
+        ? {
+            ticks: { stroke: gridColor, width: 1, size: tickSize },
+            values: (self, splits) =>
+              splits.map(value => chart.formatXAxis(new Date(value * 1000))),
+          }
+        : { ticks: { show: false }, values: () => [], size: hiddenAxisSize }),
     }
 
-    if (chart.getAttribute("chartType") === "heatmap")
-      return [xAxis, { show: enabledYAxis, ...getHeatmapYAxis(gridColor, labelColor) }]
+    if (chart.getAttribute("chartType") === "heatmap") {
+      const heatmapYAxis = getHeatmapYAxis(gridColor, labelColor)
+      return [
+        xAxis,
+        enabledYAxis
+          ? { show: true, ...heatmapYAxis }
+          : {
+              show: true,
+              ...heatmapYAxis,
+              ticks: { show: false },
+              values: () => [],
+              size: hiddenAxisSize,
+            },
+      ]
+    }
 
-    return [
-      xAxis,
-      {
-        show: enabledYAxis,
-        font: axisFont,
-        stroke: labelColor,
-        grid: { stroke: gridColor, width: 1 },
-        ticks: { stroke: gridColor, width: 1, size: tickSize },
-        size: 60,
-        gap: axisGap,
-        values: (self, splits) =>
-          splits.map(value => chart.getConvertedValueWithUnit(value, { dimensionId })),
-      },
-    ]
+    const yAxis = {
+      show: true,
+      font: axisFont,
+      stroke: labelColor,
+      grid: { stroke: gridColor, width: 1 },
+      gap: axisGap,
+      ...(enabledYAxis
+        ? {
+            ticks: { stroke: gridColor, width: 1, size: tickSize },
+            size: 60,
+            values: (self, splits) =>
+              splits.map(value => chart.getConvertedValueWithUnit(value, { dimensionId })),
+          }
+        : { ticks: { show: false }, values: () => [], size: hiddenAxisSize }),
+    }
+
+    return [xAxis, yAxis]
   }
 
   const drawVerticalLine = (self, dimensions, color, dash) => {
@@ -464,8 +533,15 @@ export default (sdk, chart) => {
   const drawAnnotations = makeAnnotations(chartUI)
   const getHoverDimension = makeGetHoverDimension(chart)
 
-  const fireYAxisChange = self => {
-    const { min, max } = self.scales.y
+  const getYAxisValueRange = () => {
+    if (chart.getAttribute("chartType") === "heatmap")
+      return [chart.getAttribute("min"), chart.getAttribute("max")]
+
+    return chart.getAttribute("getValueRange")(chart)
+  }
+
+  const fireYAxisChange = () => {
+    const [min, max] = getYAxisValueRange()
     if (min == null || max == null) return
     if (min === prevYMin && max === prevYMax) return
 
