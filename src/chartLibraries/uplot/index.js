@@ -26,6 +26,8 @@ const heatmapPixelsPerLabel = 15
 
 const lineWidth = 2
 const areaLineWidth = 1.5
+const hoverDotRadius = 4
+const sparklineHoverDotRadius = 3
 const areaGradientTopAlpha = "59"
 const areaGradientBottomAlpha = "00"
 const stackedFillAlpha = "CC"
@@ -564,10 +566,57 @@ export default (sdk, chart) => {
     chart.trigger("yAxisChange", min, max)
   }
 
+  const drawHoverDots = (self, dimensions) => {
+    if (!Array.isArray(dimensions)) return
+
+    const timestamp = dimensions[0]
+    if (timestamp == null) return
+    if (chart.getAttribute("chartType") === "heatmap") return
+
+    const row = chart.getClosestRow(timestamp)
+    if (row === -1) return
+
+    const xs = self.data[0]
+    if (!xs || xs[row] == null) return
+
+    const x = self.valToPos(xs[row], "x", true)
+    if (!Number.isFinite(x)) return
+
+    const dpr = self.pxRatio || 1
+    const radius = (chart.isSparkline() ? sparklineHoverDotRadius : hoverDotRadius) * dpr
+    const dimensionIds = chart.getPayloadDimensionIds()
+    const { ctx } = self
+
+    ctx.save()
+
+    dimensionIds.forEach((id, index) => {
+      if (!chart.isDimensionVisible(id)) return
+
+      const series = self.data[index + 1]
+      const value = series && series[row]
+      if (value == null) return
+
+      const y = self.valToPos(value, "y", true)
+      if (!Number.isFinite(y)) return
+
+      ctx.beginPath()
+      ctx.fillStyle = chart.selectDimensionColor(id)
+      ctx.arc(x, y, radius, 0, 2 * Math.PI)
+      ctx.fill()
+    })
+
+    ctx.restore()
+  }
+
   const draw = self => {
     const crosshairColor = chart.getThemeAttribute("themeCrosshair")
-    drawVerticalLine(self, chart.getAttribute("hoverX"), crosshairColor, [4, 4])
-    drawVerticalLine(self, chart.getAttribute("clickX"), crosshairColor, null)
+    const hoverX = chart.getAttribute("hoverX")
+    const clickX = chart.getAttribute("clickX")
+
+    drawVerticalLine(self, hoverX, crosshairColor, [4, 4])
+    drawVerticalLine(self, clickX, crosshairColor, null)
+    drawHoverDots(self, hoverX)
+    drawHoverDots(self, clickX)
   }
 
   const drawOverlays = self => overlays && overlays.draw(self)
@@ -730,9 +779,21 @@ export default (sdk, chart) => {
     moveXDebounced(fixedAfter, fixedBefore)
   }
 
+  const emitPointer = name => event => {
+    const rect = u.over.getBoundingClientRect()
+    const dpr = u.pxRatio || 1
+    const offsetX = event.clientX - rect.left + u.bbox.left / dpr
+    const offsetY = event.clientY - rect.top + u.bbox.top / dpr
+    chartUI.trigger(name, { offsetX, offsetY, layerX: offsetX, layerY: offsetY })
+  }
+
   const attachNavigation = () => {
     const over = u.over
     let detachDoc = null
+
+    const onOverMove = emitPointer("mousemove")
+    const onOverOut = emitPointer("mouseout")
+    const onOverOver = emitPointer("mouseover")
 
     const onDown = event => {
       if (event.button !== 0) return
@@ -968,6 +1029,9 @@ export default (sdk, chart) => {
     over.addEventListener("touchstart", onTouchStart, { passive: false })
     over.addEventListener("touchmove", onTouchMove, { passive: false })
     over.addEventListener("touchend", onTouchEnd)
+    over.addEventListener("mousemove", onOverMove)
+    over.addEventListener("mouseout", onOverOut)
+    over.addEventListener("mouseover", onOverOver)
 
     return () => {
       switchTarget.removeEventListener("mousedown", onModifierDown, true)
@@ -982,6 +1046,9 @@ export default (sdk, chart) => {
       over.removeEventListener("touchend", onTouchEnd)
       over.removeEventListener("wheel", onWheel)
       over.removeEventListener("dblclick", onDblClick)
+      over.removeEventListener("mousemove", onOverMove)
+      over.removeEventListener("mouseout", onOverOut)
+      over.removeEventListener("mouseover", onOverOver)
       if (detachDoc) detachDoc()
       if (detachSelectUp) detachSelectUp()
     }
@@ -1007,9 +1074,10 @@ export default (sdk, chart) => {
         series: empty ? [{}] : getSeries(),
         axes: getAxes(),
         hooks: empty
-          ? { draw: [drawOverlays], setCursor: [setCursor] }
+          ? { drawClear: [drawOverlays], setCursor: [setCursor] }
           : {
               setCursor: [setCursor],
+              drawClear: [drawOverlays],
               draw: [
                 fireYAxisChange,
                 drawStacked,
@@ -1018,7 +1086,6 @@ export default (sdk, chart) => {
                 drawAnomaly,
                 drawAnnotations,
                 draw,
-                drawOverlays,
               ],
               setSelect: [onSetSelect],
             },

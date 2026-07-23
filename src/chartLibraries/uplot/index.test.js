@@ -1,11 +1,12 @@
 import React from "react"
-import { render } from "@testing-library/react"
+import { render, screen, act } from "@testing-library/react"
 import { ThemeProvider } from "styled-components"
 import { Flex, DefaultTheme } from "@netdata/netdata-ui"
-import { makeTestChart, loadHeatmapPayload } from "@jest/testUtilities"
+import { makeTestChart, loadHeatmapPayload, renderWithChart } from "@jest/testUtilities"
 import ChartContainer from "@/components/chartContainer"
 import withChart from "@/components/hocs/withChart"
 import makeMockPayload from "@/helpers/makeMockPayload"
+import Popover from "@/components/line/popover"
 import makeDefaultSDK from "../../makeDefaultSDK"
 import systemLoadLine from "../../../fixtures/systemLoadLine"
 import uplotChart from "./index"
@@ -2331,7 +2332,8 @@ describe("uplotChart framed-empty overlays + y-range (dygraph parity)", () => {
 
     const u = instance.getUPlot()
     expect(u.series).toHaveLength(1)
-    expect(() => u.hooks.draw.forEach(hook => hook(u))).not.toThrow()
+    expect(u.hooks.draw).toBeUndefined()
+    expect(() => u.hooks.drawClear.forEach(hook => hook(u))).not.toThrow()
 
     teardown()
   })
@@ -2354,6 +2356,387 @@ describe("uplotChart framed-empty overlays + y-range (dygraph parity)", () => {
     expect(Number.isFinite(min)).toBe(true)
     expect(Number.isFinite(max)).toBe(true)
     expect(min).toBeLessThan(max)
+
+    teardown()
+  })
+})
+
+describe("uplotChart hover popover events (dygraph mouse-forwarding parity)", () => {
+  const mountLine = (attributes = {}) => {
+    const { sdk, chart } = makeTestChart({
+      attributes: { loaded: true, chartType: "line", ...attributes },
+    })
+    withLoadedPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    return {
+      sdk,
+      chart,
+      instance,
+      u: instance.getUPlot(),
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  it("re-emits pointer moves on the chartUI bus with chart-element-relative offsets", () => {
+    const { instance, u, teardown } = mountLine()
+
+    const dpr = u.pxRatio || 1
+    const plotLeft = u.bbox.left / dpr
+    const plotTop = u.bbox.top / dpr
+    expect(plotLeft).toBeGreaterThan(0)
+
+    u.over.getBoundingClientRect = () => ({
+      left: plotLeft,
+      top: plotTop,
+      width: 800,
+      height: 300,
+      right: plotLeft + 800,
+      bottom: plotTop + 300,
+    })
+
+    const moves = []
+    instance.on("mousemove", event => moves.push(event))
+
+    u.over.dispatchEvent(new MouseEvent("mousemove", { clientX: 400, clientY: 150, bubbles: true }))
+
+    expect(moves).toHaveLength(1)
+    const { offsetX, offsetY, layerX, layerY } = moves[0]
+    expect(offsetX).toBeCloseTo(400, 5)
+    expect(offsetY).toBeCloseTo(150, 5)
+    expect(layerX).toBe(offsetX)
+    expect(layerY).toBe(offsetY)
+    expect(offsetX).not.toBeCloseTo(400 - plotLeft, 5)
+
+    teardown()
+  })
+
+  it("re-emits mouseout on the chartUI bus so the popover can close", () => {
+    const { instance, u, teardown } = mountLine()
+
+    const outs = []
+    instance.on("mouseout", () => outs.push(true))
+
+    u.over.dispatchEvent(new MouseEvent("mouseout", { clientX: 400, clientY: 150, bubbles: true }))
+
+    expect(outs).toHaveLength(1)
+
+    teardown()
+  })
+
+  it("opens the hover Popover on a real uPlot pointer move through the shared UI bus", () => {
+    const { chart, instance, u, teardown } = mountLine()
+    chart.getUI = () => instance
+
+    const dpr = u.pxRatio || 1
+    u.over.getBoundingClientRect = () => ({
+      left: u.bbox.left / dpr,
+      top: u.bbox.top / dpr,
+      width: 800,
+      height: 300,
+      right: u.bbox.left / dpr + 800,
+      bottom: u.bbox.top / dpr + 300,
+    })
+
+    renderWithChart(<Popover uiName="default" />, { chart })
+
+    expect(screen.queryByTestId("drop")).toBeNull()
+
+    act(() => {
+      u.over.dispatchEvent(new MouseEvent("mousemove", { clientX: 400, clientY: 150, bubbles: true }))
+    })
+
+    expect(screen.queryByTestId("drop")).not.toBeNull()
+
+    act(() => {
+      u.over.dispatchEvent(new MouseEvent("mouseout", { clientX: 400, clientY: 150, bubbles: true }))
+    })
+
+    expect(screen.queryByTestId("drop")).toBeNull()
+
+    teardown()
+  })
+})
+
+describe("uplotChart hover dots (dygraph highlight-circle parity)", () => {
+  const mountLine = async (attributes = {}) => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType: "line",
+        after: 1617946860,
+        before: 1617946870,
+        min: 10,
+        max: 31,
+        ...attributes,
+      },
+    })
+    withLoadedPayload(chart)
+    chart.getClosestRow = tsMs => chart.getPayload().data.findIndex(row => row[0] === tsMs)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    return {
+      sdk,
+      chart,
+      instance,
+      u: instance.getUPlot(),
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  it("plots one filled dot per visible dimension at the hovered row, at radius 4", async () => {
+    const { chart, u, teardown } = await mountLine()
+    chart.updateAttribute("hoverX", [1617946865000])
+
+    const arcSpy = jest.spyOn(u.ctx, "arc")
+    const fillSpy = jest.spyOn(u.ctx, "fill")
+
+    u.hooks.draw.forEach(hook => hook(u))
+
+    expect(arcSpy).toHaveBeenCalledTimes(3)
+    expect(fillSpy).toHaveBeenCalled()
+    expect(arcSpy.mock.calls[0][2]).toBe(4)
+
+    arcSpy.mockRestore()
+    fillSpy.mockRestore()
+    teardown()
+  })
+
+  it("draws a dot only for visible dimensions, skipping hidden ones", async () => {
+    const { chart, u, teardown } = await mountLine()
+    chart.isDimensionVisible = id => id === "load5"
+    chart.updateAttribute("hoverX", [1617946865000])
+
+    const arcSpy = jest.spyOn(u.ctx, "arc")
+    u.hooks.draw.forEach(hook => hook(u))
+
+    expect(arcSpy).toHaveBeenCalledTimes(1)
+
+    arcSpy.mockRestore()
+    teardown()
+  })
+
+  it("draws no dots when hoverX is null", async () => {
+    const { chart, u, teardown } = await mountLine()
+    chart.updateAttribute("hoverX", null)
+
+    const arcSpy = jest.spyOn(u.ctx, "arc")
+    u.hooks.draw.forEach(hook => hook(u))
+
+    expect(arcSpy).not.toHaveBeenCalled()
+
+    arcSpy.mockRestore()
+    teardown()
+  })
+
+  it("plots the dots for the clicked row too", async () => {
+    const { chart, u, teardown } = await mountLine()
+    chart.updateAttribute("clickX", [1617946860000])
+
+    const arcSpy = jest.spyOn(u.ctx, "arc")
+    u.hooks.draw.forEach(hook => hook(u))
+
+    expect(arcSpy).toHaveBeenCalledTimes(3)
+
+    arcSpy.mockRestore()
+    teardown()
+  })
+
+  it("uses the smaller sparkline dot radius of 3", async () => {
+    const { chart, u, teardown } = await mountLine({ sparkline: true })
+    chart.updateAttribute("hoverX", [1617946865000])
+
+    const arcSpy = jest.spyOn(u.ctx, "arc")
+    u.hooks.draw.forEach(hook => hook(u))
+
+    expect(arcSpy).toHaveBeenCalledTimes(3)
+    expect(arcSpy.mock.calls[0][2]).toBe(3)
+
+    arcSpy.mockRestore()
+    teardown()
+  })
+
+  it("draws no hover dots for a heatmap, matching the dygraph heatmap crosshair", async () => {
+    const heatmapIds = ["0", "1", "2", "3", "4", "5", "6"]
+    const heatmapRows = [
+      [0, 0, 1, 0, 2, 0, 0],
+      [0, 0, 0, 3, 1, 0, 0],
+      [0, 0, 2, 0, 0, 0, 0],
+    ]
+
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType: "heatmap",
+        context: "prometheus.test.histogram",
+        groupBy: ["dimension"],
+        selectedLegendDimensions: [],
+        viewDimensions: {
+          ids: heatmapIds,
+          names: heatmapIds,
+          priorities: heatmapIds.map((_, index) => index),
+          units: heatmapIds.map(() => ""),
+          contexts: heatmapIds.map(() => ""),
+          grouped: ["dimension"],
+        },
+      },
+    })
+
+    await loadHeatmapPayload(chart, heatmapIds, heatmapRows, { timestamp: 1617946860000 })
+    chart.getDateWindow = () => [1617946860000, 1617947750000]
+    chart.formatXAxis = x => x.toString()
+    chart.getThemeAttribute = () => "#333"
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    Object.defineProperty(element, "offsetWidth", { configurable: true, value: 800 })
+    Object.defineProperty(element, "offsetHeight", { configurable: true, value: 300 })
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    const u = instance.getUPlot()
+    chart.updateAttribute("hoverX", [1617946860000])
+
+    const arcSpy = jest.spyOn(u.ctx, "arc")
+    u.hooks.draw.forEach(hook => hook(u))
+
+    expect(arcSpy).not.toHaveBeenCalled()
+
+    arcSpy.mockRestore()
+    instance.unmount()
+    document.body.removeChild(element)
+  })
+})
+
+describe("uplotChart overlay z-order (drawClear behind series, dygraph underlay parity)", () => {
+  const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve))
+
+  const mountLine = async (attributes = {}) => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType: "line",
+        after: 1617946860,
+        before: 1617947760,
+        min: 10,
+        max: 31,
+        ...attributes,
+      },
+    })
+    withLoadedPayload(chart)
+    chart.getClosestRow = tsMs => chart.getPayload().data.findIndex(row => row[0] === tsMs)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    return {
+      sdk,
+      chart,
+      instance,
+      u: instance.getUPlot(),
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  it("registers overlays on drawClear and keeps crosshair/dots on draw for a normal frame", async () => {
+    const { chart, u, teardown } = await mountLine({
+      firstEntry: 1617946865,
+      error: false,
+      overlays: { proceeded: { type: "proceeded" } },
+    })
+
+    expect(u.hooks.drawClear).toHaveLength(1)
+    expect(Array.isArray(u.hooks.draw)).toBe(true)
+    expect(u.hooks.draw).not.toContain(u.hooks.drawClear[0])
+
+    chart.updateAttribute("hoverX", [1617946865000])
+
+    const arcSpy = jest.spyOn(u.ctx, "arc")
+
+    u.hooks.drawClear.forEach(hook => hook(u))
+    expect(arcSpy).not.toHaveBeenCalled()
+
+    arcSpy.mockClear()
+    u.hooks.draw.forEach(hook => hook(u))
+    expect(arcSpy).toHaveBeenCalledTimes(3)
+
+    arcSpy.mockRestore()
+    teardown()
+  })
+
+  it("keeps overlays on drawClear with no draw hook for the framed-empty branch", async () => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType: "line",
+        after: 1617946860,
+        before: 1617947760,
+        outOfLimits: true,
+        error: false,
+        firstEntry: 1617946865,
+        overlays: { proceeded: { type: "proceeded" } },
+      },
+    })
+    withLoadedPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    const u = instance.getUPlot()
+    expect(u.series).toHaveLength(1)
+    expect(Array.isArray(u.hooks.drawClear)).toBe(true)
+    expect(u.hooks.draw).toBeUndefined()
+
+    const areas = []
+    instance.on("overlayedAreaChanged:proceeded", () => areas.push(true))
+
+    u.hooks.drawClear.forEach(hook => hook(u))
+    await nextFrame()
+    expect(areas.length).toBeGreaterThan(0)
+
+    instance.unmount()
+    document.body.removeChild(element)
+  })
+
+  it("still emits overlayedAreaChanged through a real redraw of a normal frame", async () => {
+    const { instance, u, teardown } = await mountLine({
+      firstEntry: 1617946865,
+      error: false,
+      overlays: { proceeded: { type: "proceeded" } },
+    })
+
+    const areas = []
+    instance.on("overlayedAreaChanged:proceeded", () => areas.push(true))
+
+    u.redraw()
+    await nextFrame()
+    expect(areas.length).toBeGreaterThan(0)
 
     teardown()
   })
