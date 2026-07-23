@@ -2841,3 +2841,193 @@ describe("uplotChart overlay z-order (drawClear behind series, dygraph underlay 
     teardown()
   })
 })
+
+describe("uplotChart y-axis label width + font size (dygraph parity)", () => {
+  const mountLine = attributes => {
+    const { sdk, chart } = makeTestChart({
+      attributes: { loaded: true, chartType: "line", ...attributes },
+    })
+    withLoadedPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    return {
+      u: instance.getUPlot(),
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  it("derives the y-axis size from a configured yAxisLabelWidth", () => {
+    const { u, teardown } = mountLine({ yAxisLabelWidth: 120 })
+
+    expect(u.axes[1].size(u, null, 1, 0)).toBe(120)
+
+    teardown()
+  })
+
+  it("derives the y-axis label font size from a configured axisLabelFontSize", () => {
+    const { u, teardown } = mountLine({ axisLabelFontSize: 16 })
+
+    expect(u.axes[1].font[2]).toBe(16)
+    expect(u.axes[1].font[0]).toContain("IBM Plex Sans")
+
+    teardown()
+  })
+
+  it("falls back to the default size and font when both attributes are unset", () => {
+    const { u, teardown } = mountLine({ yAxisLabelWidth: null, axisLabelFontSize: null })
+
+    expect(u.axes[1].size(u, null, 1, 0)).toBe(60)
+    expect(u.axes[1].font[2]).toBe(11)
+
+    teardown()
+  })
+})
+
+describe("uplotChart y-axis per-tick unit selection (dygraph parity)", () => {
+  const withUnitPayload = (chart, unit) => {
+    chart.getPayload = () => ({
+      data: [
+        [1617946860000, 10, 20, 30],
+        [1617946865000, 12, 18, 28],
+        [1617946870000, 11, 22, 31],
+      ],
+      labels: ["time", "load1", "load5", "load15"],
+    })
+    chart.getPayloadDimensionIds = () => ["load1", "load5", "load15"]
+    chart.getVisibleDimensionIds = () => ["load1"]
+    chart.isDimensionVisible = () => true
+    chart.selectDimensionColor = () => "#3366CC"
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getDimensionUnit = () => unit
+  }
+
+  const mountUnit = unit => {
+    const { sdk, chart } = makeTestChart({
+      attributes: { loaded: true, chartType: "line", units: [unit] },
+    })
+    withUnitPayload(chart, unit)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    return {
+      chart,
+      u: instance.getUPlot(),
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  const unitToken = label => String(label).trim().split(/\s+/).pop()
+
+  it("computes per-tick unitAttributes from the tick-local value range, matching dygraph", () => {
+    const { chart, u, teardown } = mountUnit("By")
+    const dimensionId = "load1"
+    const step = 268435456
+    const splits = [0, step, step * 2, step * 3, step * 4]
+
+    const spy = jest.spyOn(chart, "getUnitAttributesForValue")
+    const labels = u.axes[1].values(u, splits)
+    expect(spy).toHaveBeenCalledTimes(splits.length)
+
+    splits.forEach(value =>
+      expect(spy).toHaveBeenCalledWith(
+        value,
+        expect.objectContaining({ dimensionId, min: value, max: value + step })
+      )
+    )
+
+    labels.forEach((label, index) => {
+      const value = splits[index]
+      const unitAttributes = chart.getUnitAttributesForValue(value, {
+        dimensionId,
+        min: value,
+        max: value + step,
+      })
+      expect(label).toBe(chart.getConvertedValueWithUnit(value, { dimensionId, unitAttributes }))
+    })
+
+    spy.mockRestore()
+    teardown()
+  })
+
+  it("selects different units across ticks that span unit boundaries", () => {
+    const { u, teardown } = mountUnit("By")
+    const step = 268435456
+    const splits = [0, step, step * 2, step * 3, step * 4]
+
+    const labels = u.axes[1].values(u, splits)
+    const distinctUnits = new Set(labels.map(unitToken))
+
+    expect(distinctUnits.size).toBeGreaterThan(1)
+
+    teardown()
+  })
+})
+
+describe("uplotChart duration-nice y-axis splits (dygraph parity)", () => {
+  const durationSteps = [1, 2, 5, 10, 15, 30, 60, 120, 300, 600, 900, 1800, 2700, 3600]
+
+  const withDurationPayload = chart => {
+    chart.getPayload = () => ({
+      data: [
+        [1617946860000, 60, 1800, 3600],
+        [1617946865000, 120, 2400, 3000],
+        [1617946870000, 90, 1200, 3300],
+      ],
+      labels: ["time", "load1", "load5", "load15"],
+    })
+    chart.getPayloadDimensionIds = () => ["load1", "load5", "load15"]
+    chart.getVisibleDimensionIds = () => ["load1"]
+    chart.isDimensionVisible = () => true
+    chart.selectDimensionColor = () => "#3366CC"
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getConvertedValueWithUnit = value => `${value}`
+    chart.getDimensionUnit = () => "s"
+  }
+
+  const mountDuration = () => {
+    const { sdk, chart } = makeTestChart({
+      attributes: { loaded: true, chartType: "line", secondsAsTime: true, units: ["s"] },
+    })
+    withDurationPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    return {
+      u: instance.getUPlot(),
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  it("places y-axis splits on duration-nice boundaries for a seconds axis", () => {
+    const { u, teardown } = mountDuration()
+
+    const splits = u.axes[1].splits(u, 1, 0, 3600)
+    expect(splits.length).toBeGreaterThan(1)
+
+    const step = splits[1] - splits[0]
+    expect(durationSteps).toContain(step)
+    expect(splits[0]).toBe(0)
+
+    for (let i = 1; i < splits.length; i++) {
+      expect(splits[i] - splits[i - 1]).toBeCloseTo(step, 6)
+    }
+
+    teardown()
+  })
+})

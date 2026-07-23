@@ -1,6 +1,7 @@
 import uPlot from "uplot"
 import { debounce } from "throttle-debounce"
 import makeChartUI from "@/sdk/makeChartUI"
+import { isDurationAxis, makeAxisTicks } from "@/helpers/ticks"
 import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
 import limitRange from "@/helpers/limitRange"
@@ -18,7 +19,10 @@ const barGroupWidth = 0.6
 const doubleTapDelay = 300
 const minDragPx = 5
 
-const axisFont = "11px 'IBM Plex Sans', sans-serif"
+const axisFontFamily = "'IBM Plex Sans', sans-serif"
+const defaultAxisFontSize = 11
+const defaultYAxisSize = 60
+const yPixelsPerLabel = 15
 const tickSize = 4
 const axisGap = 6
 const xTickSpace = 80
@@ -40,6 +44,19 @@ const hiddenAxisSize = 0
 
 const steppedPathBuilder = uPlot.paths.stepped && uPlot.paths.stepped({ align: 1 })
 const nullPathBuilder = () => null
+
+const makeAxisFont = fontSize => `${fontSize}px ${axisFontFamily}`
+
+const getSplitGranularity = (splits, index) => {
+  const value = splits[index]
+  const previous = splits[index - 1]
+  const next = splits[index + 1]
+  const previousStep = typeof previous === "number" ? Math.abs(value - previous) : Infinity
+  const nextStep = typeof next === "number" ? Math.abs(next - value) : Infinity
+  const step = Math.min(previousStep, nextStep)
+
+  return Number.isFinite(step) ? step : 0
+}
 
 const makeAreaFill = color => self => {
   const { ctx, bbox } = self
@@ -247,12 +264,12 @@ export default (sdk, chart) => {
     },
   })
 
-  const getHeatmapYAxis = (gridColor, labelColor) => ({
-    font: axisFont,
+  const getHeatmapYAxis = (gridColor, labelColor, font, size) => ({
+    font,
     stroke: labelColor,
     grid: { stroke: gridColor, width: 1 },
     ticks: { stroke: gridColor, width: 1, size: tickSize },
-    size: 60,
+    size,
     gap: axisGap,
     splits: self => {
       const count = chart.getVisibleHeatmapIds().length
@@ -280,7 +297,14 @@ export default (sdk, chart) => {
     const enabledYAxis = chart.getAttribute("enabledYAxis") !== false
     const gridColor = chart.getThemeAttribute("themeGridColor")
     const labelColor = chart.getThemeAttribute("themeLabelColor")
-    const dimensionId = chart.getVisibleDimensionIds()?.[0]
+    const visibleDimensionIds = chart.getVisibleDimensionIds() || []
+    const dimensionId = visibleDimensionIds[0]
+
+    const axisFont = makeAxisFont(chart.getAttribute("axisLabelFontSize") || defaultAxisFontSize)
+    const yAxisSize = chart.getAttribute("yAxisLabelWidth") || defaultYAxisSize
+    const secondsAsTime = chart.getAttribute("secondsAsTime")
+    const units = visibleDimensionIds.map(id => chart.getDimensionUnit(id))
+    const durationAxis = isDurationAxis({ secondsAsTime, units })
 
     const xAxis = {
       show: true,
@@ -299,7 +323,7 @@ export default (sdk, chart) => {
     }
 
     if (chart.getAttribute("chartType") === "heatmap") {
-      const heatmapYAxis = getHeatmapYAxis(gridColor, labelColor)
+      const heatmapYAxis = getHeatmapYAxis(gridColor, labelColor, axisFont, yAxisSize)
       return [
         xAxis,
         enabledYAxis
@@ -323,9 +347,28 @@ export default (sdk, chart) => {
       ...(enabledYAxis
         ? {
             ticks: { stroke: gridColor, width: 1, size: tickSize },
-            size: 60,
+            size: yAxisSize,
+            ...(durationAxis && {
+              splits: (self, axisIdx, scaleMin, scaleMax) =>
+                makeAxisTicks({
+                  min: scaleMin,
+                  max: scaleMax,
+                  pixels: self.bbox.height / (self.pxRatio || 1),
+                  pixelsPerTick: yPixelsPerLabel,
+                  units,
+                  secondsAsTime,
+                }).map(tick => tick.v),
+            }),
             values: (self, splits) =>
-              splits.map(value => chart.getConvertedValueWithUnit(value, { dimensionId })),
+              splits.map((value, index) => {
+                const tickStep = getSplitGranularity(splits, index)
+                const range = tickStep ? { min: value, max: value + tickStep } : {}
+                const unitAttributes = chart.getUnitAttributesForValue(value, {
+                  dimensionId,
+                  ...range,
+                })
+                return chart.getConvertedValueWithUnit(value, { dimensionId, unitAttributes })
+              }),
           }
         : { ticks: { show: false }, values: () => [], size: hiddenAxisSize }),
     }
