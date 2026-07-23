@@ -1127,6 +1127,100 @@ describe("uplotChart stacked gap handling", () => {
   })
 })
 
+describe("uplotChart stepped stacked (dygraph parity)", () => {
+  const withSteppedPayload = chart => {
+    chart.getPayload = () => ({
+      data: [
+        [1617946860000, 10],
+        [1617946865000, 30],
+        [1617946870000, 20],
+      ],
+      labels: ["time", "a"],
+    })
+    chart.getPayloadDimensionIds = () => ["a"]
+    chart.getVisibleDimensionIds = () => ["a"]
+    chart.isDimensionVisible = () => true
+    chart.selectDimensionColor = () => "#3366CC"
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getConvertedValueWithUnit = value => `${value}`
+  }
+
+  const mountStepped = async stepPlot => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType: "stacked",
+        chartLibrary: "uplot",
+        after: 1617946860,
+        before: 1617946870,
+        stepPlot,
+      },
+    })
+    withSteppedPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    return { instance, teardown: () => (instance.unmount(), document.body.removeChild(element)) }
+  }
+
+  it("holds each value horizontally then steps vertically on the top edge when stepPlot is true", async () => {
+    const { instance, teardown } = await mountStepped(true)
+    const u = instance.getUPlot()
+
+    const moveTo = jest.spyOn(u.ctx, "moveTo")
+    const lineTo = jest.spyOn(u.ctx, "lineTo")
+    moveTo.mockClear()
+    lineTo.mockClear()
+
+    u.hooks.draw.forEach(hook => hook(u))
+
+    expect(moveTo).toHaveBeenCalled()
+    const [mx, my] = moveTo.mock.calls[0]
+    const [l0x, l0y] = lineTo.mock.calls[0]
+    const [l1x, l1y] = lineTo.mock.calls[1]
+
+    expect(l0y).toBeCloseTo(my, 5)
+    expect(l0x).not.toBeCloseTo(mx, 5)
+
+    expect(l1x).toBeCloseTo(l0x, 5)
+    expect(l1y).not.toBeCloseTo(l0y, 5)
+
+    moveTo.mockRestore()
+    lineTo.mockRestore()
+    teardown()
+  })
+
+  it("draws straight top edges (no horizontal hold) for a stacked chart by default", async () => {
+    const { instance, teardown } = await mountStepped(false)
+    const u = instance.getUPlot()
+
+    const moveTo = jest.spyOn(u.ctx, "moveTo")
+    const lineTo = jest.spyOn(u.ctx, "lineTo")
+    moveTo.mockClear()
+    lineTo.mockClear()
+
+    u.hooks.draw.forEach(hook => hook(u))
+
+    expect(moveTo).toHaveBeenCalled()
+    const [mx, my] = moveTo.mock.calls[0]
+    const [l0x, l0y] = lineTo.mock.calls[0]
+
+    expect(l0x).not.toBeCloseTo(mx, 5)
+    expect(l0y).not.toBeCloseTo(my, 5)
+
+    moveTo.mockRestore()
+    lineTo.mockRestore()
+    teardown()
+  })
+})
+
 describe("uplotChart wheel gating + drag threshold (dygraph parity)", () => {
   const withPayload = chart => {
     chart.getPayload = () => ({

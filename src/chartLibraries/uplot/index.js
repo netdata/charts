@@ -68,6 +68,19 @@ const makeAreaFill = color => self => {
 
 const makeSolidFill = color => () => color
 
+const traceStackTop = (self, ctx, xs, series, start, end, stepped) => {
+  for (let row = start; row <= end; row++) {
+    const x = self.valToPos(xs[row], "x", true)
+    const y = self.valToPos(series[row][1], "y", true)
+
+    if (row === start) ctx.moveTo(x, y)
+    else if (stepped) {
+      ctx.lineTo(x, self.valToPos(series[row - 1][1], "y", true))
+      ctx.lineTo(x, y)
+    } else ctx.lineTo(x, y)
+  }
+}
+
 const padYRange = (self, min, max) => {
   if (!Number.isFinite(min) || !Number.isFinite(max)) return [min, max]
 
@@ -397,16 +410,10 @@ export default (sdk, chart) => {
     ctx.restore()
   }
 
-  const drawStackSegment = (self, ctx, xs, series, start, end, color, edgeWidth) => {
+  const drawStackSegment = (self, ctx, xs, series, start, end, color, edgeWidth, stepped) => {
     ctx.beginPath()
 
-    for (let row = start; row <= end; row++) {
-      const x = self.valToPos(xs[row], "x", true)
-      const y = self.valToPos(series[row][1], "y", true)
-
-      if (row === start) ctx.moveTo(x, y)
-      else ctx.lineTo(x, y)
-    }
+    traceStackTop(self, ctx, xs, series, start, end, stepped)
 
     for (let row = end; row >= start; row--) {
       ctx.lineTo(self.valToPos(xs[row], "x", true), self.valToPos(series[row][0], "y", true))
@@ -418,13 +425,7 @@ export default (sdk, chart) => {
 
     ctx.beginPath()
 
-    for (let row = start; row <= end; row++) {
-      const x = self.valToPos(xs[row], "x", true)
-      const y = self.valToPos(series[row][1], "y", true)
-
-      if (row === start) ctx.moveTo(x, y)
-      else ctx.lineTo(x, y)
-    }
+    traceStackTop(self, ctx, xs, series, start, end, stepped)
 
     ctx.lineWidth = edgeWidth
     ctx.strokeStyle = `${color}${stackedEdgeAlpha}`
@@ -438,6 +439,7 @@ export default (sdk, chart) => {
     const bounds = stackBounds()
     const xs = self.data[0]
     const { ctx } = self
+    const stepped = chart.getAttribute("stepPlot")
 
     ctx.save()
     ctx.beginPath()
@@ -453,7 +455,7 @@ export default (sdk, chart) => {
       const color = chart.selectDimensionColor(id)
 
       getStackSegments(series, xs.length).forEach(([start, end]) =>
-        drawStackSegment(self, ctx, xs, series, start, end, color, edgeWidth)
+        drawStackSegment(self, ctx, xs, series, start, end, color, edgeWidth, stepped)
       )
     })
 
