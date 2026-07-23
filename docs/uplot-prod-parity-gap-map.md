@@ -3,7 +3,47 @@
 > Master checklist for switching production dashboards from dygraph to uPlot without losing any
 > current functionality. Built from two source audits (renderer-internal + app-coupling) plus the
 > navigation work. Status: `✓` = verified against source this session (file:line shown); `⧖` =
-> audit-reported, individual spot-check still pending. Nothing here is implemented yet.
+> audit-reported, individual spot-check still pending.
+
+## STATUS: COMPLETE — all P0/P1 landed; P2 done except two documented deferrals
+
+Every P0 and P1 item is implemented, unit-tested (no mocks), adversarially reviewed, and gated by
+the full suite (1575 passing, 167 suites) with the maintainer's concurrent WIP files never touched.
+Commits on `explore/uplot-spike`:
+
+- **P0.1** popover hover events — `4ce1aa6` (uPlot re-emits `mousemove`/`mouseout`/`mouseover` on the
+  chartUI bus with chart-root-relative offsets).
+- **P0.2** `yAxisChange` (unit rescale) — `a9190db`, corrected source in `cf12de5` + `6007434`
+  (fires `getValueRange(chart,{dygraph:true})`, heatmap `min/max`, prevMin/prevMax guard).
+- **P0.3** axis show/hide + gridlines-kept — `a9190db` + `cf12de5`.
+- **P0.4** cursors / **P0.5** uPlot layout CSS — `3bf1050`.
+- **P1.1** yRangePad / **P1.2** area zero / **P1.3** sparkline — `cf12de5` (+ stacked pad, line
+  includeZero in `6007434`).
+- **P1.4** synced hover dots / **P1.5** overlay z-order (drawClear) — `4ce1aa6`.
+- **P1.6** empty/out-of-limits framed chart — `59e9e1f` + `eb1f02d`.
+- Navigation: modifier switch (mousedown + deferred restore) `6e9b2fd` → `3aafde3`; wheel-zoom math +
+  threshold + debounce-cancel `180d2de`; pan x-range override `7092e92`; wheel gate/threshold
+  `bca9c9b`.
+- Overlays: `proceeded` + `point` types `303514d`; point-overlay markers `584b18e`.
+- P2: y-axis label width/font + per-tick units + duration-nice ticks `20dbd38`; stepped stacked
+  interior `f06e677`.
+
+**Deferred (documented, non-blocking):**
+- **Stacked-area point-reduction** (dygraph `plotters/stackedArea.js:73-115`): perf-only, NOT
+  pixel-identical (drops vertices), and uPlot is already cheaper per render than dygraph (see
+  `docs/uplot-migration-progress.md` perf measurements) — no perf need, and porting risks visual
+  drift in the diverging polygons. Skip unless a real perf issue appears.
+- **Anomaly-rate y-axis icon** (dygraph `tickers/numeric.js:61-65`): a decorative SVG hexagon badge
+  dygraph injects as an HTML axis label. uPlot paints axis labels on canvas and can't host an
+  SVG/DOM node cleanly; both port routes (hand-drawn Path2D in the gutter, or a resynced DOM overlay)
+  are fragile hacks for a purely cosmetic glyph. The functional anomaly **ribbon** is implemented.
+
+**Remaining before flipping the default renderer:** visual verification in the app is the
+maintainer's (per their workflow); the Storybook `Charts`/`RenderModes` stories exercise
+`chartLibrary:"uplot"` across all chart types and interactions.
+
+---
+
 
 ## P0 — must fix before any prod switch (affects every / most charts, or a silent functional loss)
 
