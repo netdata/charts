@@ -226,7 +226,10 @@ export default (sdk, chart) => {
     y: {
       range: (self, dataMin, dataMax) => {
         const chartType = chart.getAttribute("chartType")
-        if (chartType === "stacked") return getStackValueRange(stackBounds())
+        if (chartType === "stacked") {
+          const [stackMin, stackMax] = getStackValueRange(stackBounds())
+          return padYRange(self, stackMin, stackMax)
+        }
         if (chartType === "heatmap") return getHeatmapValueRange()
         if (isBarType(chartType)) return getBarValueRange(self, chartType, dataMin, dataMax)
 
@@ -234,7 +237,7 @@ export default (sdk, chart) => {
         let min = rangeMin == null ? dataMin : rangeMin
         let max = rangeMax == null ? dataMax : rangeMax
 
-        if (chartType === "area" && areaIncludesZero()) {
+        if (chartType === "area" ? areaIncludesZero() : chart.getAttribute("includeZero")) {
           min = Math.min(0, min)
           max = Math.max(0, max)
         }
@@ -553,7 +556,11 @@ export default (sdk, chart) => {
     if (chart.getAttribute("chartType") === "heatmap")
       return [chart.getAttribute("min"), chart.getAttribute("max")]
 
-    return chart.getAttribute("getValueRange")(chart)
+    const [min, max] = chart.getAttribute("getValueRange")(chart, { dygraph: true })
+    return [
+      min === null ? chart.getAttribute("min") : min,
+      max === null ? chart.getAttribute("max") : max,
+    ]
   }
 
   const fireYAxisChange = () => {

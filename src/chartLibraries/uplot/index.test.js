@@ -10,6 +10,7 @@ import Popover from "@/components/line/popover"
 import makeDefaultSDK from "../../makeDefaultSDK"
 import systemLoadLine from "../../../fixtures/systemLoadLine"
 import uplotChart from "./index"
+import { getStackBounds, getStackValueRange } from "./stacking"
 
 const withLoadedPayload = chart => {
   chart.getPayload = () => ({
@@ -1980,6 +1981,39 @@ describe("uplotChart yAxisChange (unit rescaling parity)", () => {
 
     teardown()
   })
+
+  it("falls back to min/max when the dygraph internal gate fails, not the raw valueRange", () => {
+    const { chart, u, teardown } = setup({ valueRange: [2, 50], groupBy: ["label"] })
+
+    const ranges = []
+    chart.on("yAxisChange", (min, max) => ranges.push([min, max]))
+
+    const raw = chart.getAttribute("getValueRange")(chart)
+    expect(raw).toEqual([2, 50])
+    expect(chart.getAttribute("getValueRange")(chart, { dygraph: true })).toEqual([null, null])
+
+    u.hooks.draw.forEach(hook => hook(u))
+    u.hooks.draw.forEach(hook => hook(u))
+
+    expect(ranges).toEqual([[5, 40]])
+    expect(ranges[0]).not.toEqual(raw)
+
+    teardown()
+  })
+
+  it("fires the clamped dygraph valueRange when the internal gate passes", () => {
+    const { chart, u, teardown } = setup({ valueRange: [2, 50] })
+
+    const ranges = []
+    chart.on("yAxisChange", (min, max) => ranges.push([min, max]))
+
+    u.hooks.draw.forEach(hook => hook(u))
+    u.hooks.draw.forEach(hook => hook(u))
+
+    expect(ranges).toEqual([[2, 50]])
+
+    teardown()
+  })
 })
 
 describe("uplotChart axis visibility (enabledXAxis / enabledYAxis parity)", () => {
@@ -2113,6 +2147,72 @@ describe("uplotChart yRangePad (dygraph parity)", () => {
 
     instance.unmount()
     document.body.removeChild(element)
+  })
+
+  it("pads a stacked chart y-range beyond the raw stack extent (dygraph inherits yRangePad)", () => {
+    const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType: "stacked" } })
+    withLoadedPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    const u = instance.getUPlot()
+    const bounds = getStackBounds(
+      chart.getPayload().data,
+      chart.getPayloadDimensionIds(),
+      () => true
+    )
+    const [rawMin, rawMax] = getStackValueRange(bounds)
+
+    const [min, max] = u.scales.y.range(u, 0, 0)
+    expect(min).toBeLessThan(rawMin)
+    expect(max).toBeGreaterThan(rawMax)
+
+    instance.unmount()
+    document.body.removeChild(element)
+  })
+})
+
+describe("uplotChart line includeZero (dygraph parity)", () => {
+  const mountLine = attributes => {
+    const { sdk, chart } = makeTestChart({
+      attributes: { loaded: true, chartType: "line", min: 10, max: 31, ...attributes },
+    })
+    withLoadedPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    return {
+      u: instance.getUPlot(),
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  it("clamps the y-range to include zero when includeZero is true", () => {
+    const { u, teardown } = mountLine({ includeZero: true })
+
+    const [min] = u.scales.y.range(u, 10, 31)
+    expect(min).toBeLessThanOrEqual(0)
+
+    teardown()
+  })
+
+  it("keeps a positive minimum when includeZero is unset (default)", () => {
+    const { u, teardown } = mountLine()
+
+    const [min] = u.scales.y.range(u, 10, 31)
+    expect(min).toBeGreaterThan(0)
+
+    teardown()
   })
 })
 
