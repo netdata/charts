@@ -79,11 +79,31 @@ describe("uplot point overlay", () => {
     teardown()
   })
 
-  it("does not throw when the row is out of range", async () => {
+  it("draws a marker per visible dimension at the configured row", async () => {
+    const { instance, teardown } = await mountUplot({ "point-1": { type: "point", row: 1 } })
+
+    const u = instance.getUPlot()
+    const arcSpy = jest.spyOn(u.ctx, "arc")
+    arcSpy.mockClear()
+
+    point(instance, "point-1")
+
+    expect(arcSpy).toHaveBeenCalledTimes(3)
+
+    arcSpy.mockRestore()
+    teardown()
+  })
+
+  it("does not draw markers when the row is out of range", async () => {
     const { instance, teardown } = await mountUplot({ "point-1": { type: "point", row: 999 } })
 
-    expect(() => point(instance, "point-1")).not.toThrow()
+    const u = instance.getUPlot()
+    const arcSpy = jest.spyOn(u.ctx, "arc")
 
+    expect(() => point(instance, "point-1")).not.toThrow()
+    expect(arcSpy).not.toHaveBeenCalled()
+
+    arcSpy.mockRestore()
     teardown()
   })
 })
