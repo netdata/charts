@@ -1,5 +1,6 @@
 import { getAlias } from "@/helpers/units"
 import { getPointValue } from "@/sdk/makeChart/getPointValue"
+import { normalizeDataQueryUnits } from "@/sdk/dataQuery/response"
 
 const maxConcurrentRequests = 4
 const maxCachedResponses = 100
@@ -13,6 +14,7 @@ const requestAttributeKeys = [
   "before",
   "context",
   "contextScope",
+  "dimensionsScope",
   "eliminateZeroDimensions",
   "groupBy",
   "groupByLabel",
@@ -20,8 +22,11 @@ const requestAttributeKeys = [
   "groupingTime",
   "host",
   "liveAnchor",
+  "limit",
   "nodesScope",
+  "nulls2zero",
   "points",
+  "postAggregationMethod",
   "postGroupBy",
   "postGroupByLabel",
   "renderedAt",
@@ -31,6 +36,11 @@ const requestAttributeKeys = [
   "selectedLabels",
   "selectedNodes",
   "showPostAggregations",
+  "sparklineRateVolume",
+  "tier",
+  "timeout",
+  "timeGroupOptions",
+  "unaligned",
 ]
 
 const states = new WeakMap()
@@ -120,13 +130,15 @@ export const getSparklineBatchAttributes = (chart, dimensions, overrides = {}) =
   }
 }
 
-export const normalizeSparklinePayload = rawPayload => {
+export const normalizeSparklinePayload = (rawPayload, { rateVolume = false, timeGroup } = {}) => {
   const result = rawPayload?.result
   if (!result || !Array.isArray(result.labels) || !Array.isArray(result.data))
     throw new Error("Invalid sparkline response")
 
-  const dimensionUnits = rawPayload.view?.dimensions?.units || []
-  const defaultUnit = rawPayload.view?.units || rawPayload.db?.units || ""
+  const normalizedUnits = normalizeDataQueryUnits(rawPayload, { rateVolume, timeGroup })
+  if (!normalizedUnits.available) throw new Error("Unsupported sparkline units")
+  const dimensionUnits = normalizedUnits.units
+  const defaultUnit = dimensionUnits[0] || rawPayload.db?.units || ""
   const seriesByDimension = new Map()
 
   for (let column = 1; column < result.labels.length; column++) {
@@ -208,7 +220,12 @@ const drainQueue = state => {
         attrs: entry.attrs,
         signal: entry.controller.signal,
       })
-      .then(normalizeSparklinePayload)
+      .then(payload =>
+        normalizeSparklinePayload(payload, {
+          rateVolume: entry.attrs.sparklineRateVolume,
+          timeGroup: entry.attrs.groupingMethod,
+        })
+      )
       .then(value => {
         entry.status = "fulfilled"
         entry.resolve(value)

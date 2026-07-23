@@ -2,6 +2,7 @@ import makeListeners from "@/helpers/makeListeners"
 import makeContainer from "./makeContainer"
 import makeChart from "./makeChart"
 import initialAttributes from "./initialAttributes"
+import makeDataQuery from "./dataQuery"
 
 export default ({
   ui,
@@ -72,6 +73,8 @@ export default ({
 
   const removeChild = id => root.removeChild(id)
 
+  const queryData = makeDataQuery({ getAttributes: () => root.getAttributes() })
+
   const instance = {
     ...listeners,
     getRoot,
@@ -86,6 +89,7 @@ export default ({
     getNodes,
     appendChild,
     removeChild,
+    queryData,
     version,
     ui,
   }

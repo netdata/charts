@@ -4,8 +4,13 @@ const defaultUrlOptionsByLibrary = {
 }
 
 export const getChartURLOptions = chart => {
-  const { eliminateZeroDimensions, urlOptions = [], chartLibrary, chartType, nulls2zero } =
-    chart.getAttributes()
+  const {
+    eliminateZeroDimensions,
+    urlOptions = [],
+    chartLibrary,
+    chartType,
+    nulls2zero,
+  } = chart.getAttributes()
   const opts = defaultUrlOptionsByLibrary[chartLibrary] || defaultUrlOptionsByLibrary.default
   const canEliminateZeroDimensions = chartLibrary !== "table" && chartType !== "heatmap"
 
@@ -98,6 +103,15 @@ export const getChartPayload = (chart, attrs = {}) => {
     ...afterBefore,
   }
 }
+
+export const getChartDataRequestAttributes = (chart, attrs = {}) => ({
+  ...chart.getAttributes(),
+  ...attrs,
+  ...getChartPayload(chart, attrs),
+  host: chart.getAttribute("host"),
+  selectedNodes: chart.getFilteredNodeIds(),
+  options: getChartURLOptions(chart),
+})
 
 export const errorCodesToMessage = {
   ErrAllNodesFailed: "All agents failed to return data",

@@ -5,13 +5,13 @@ const defaultWidth = 120
 const defaultHeight = 24
 const linePadding = 4
 
-export const getSparklinePoints = (values, width, height) => {
+export const getSparklinePoints = (values, width, height, range = {}) => {
   const finiteValues = values.filter(Number.isFinite)
   if (!finiteValues.length) return []
 
-  const min = Math.min(...finiteValues)
-  const max = Math.max(...finiteValues)
-  const range = max - min
+  const min = Number.isFinite(range.min) ? range.min : Math.min(...finiteValues)
+  const max = Number.isFinite(range.max) ? range.max : Math.max(...finiteValues)
+  const span = max - min
   const xRange = Math.max(width - linePadding * 2, 1)
   const yRange = Math.max(height - linePadding * 2, 1)
   const divisor = Math.max(values.length - 1, 1)
@@ -21,13 +21,13 @@ export const getSparklinePoints = (values, width, height) => {
 
     return {
       x: linePadding + (index / divisor) * xRange,
-      y: range ? linePadding + ((max - value) / range) * yRange : height / 2,
+      y: span ? linePadding + ((max - value) / span) * yRange : height / 2,
     }
   })
 }
 
-export const drawSparkline = (context, values, width, height, color) => {
-  const points = getSparklinePoints(values, width, height)
+export const drawSparkline = (context, values, width, height, color, range) => {
+  const points = getSparklinePoints(values, width, height, range)
   context.clearRect(0, 0, width, height)
   if (!points.length) return
 
@@ -52,7 +52,7 @@ export const drawSparkline = (context, values, width, height, color) => {
   context.stroke()
 }
 
-const SparklineCanvas = ({ values, color, height = defaultHeight }) => {
+const SparklineCanvas = ({ values, color, height = defaultHeight, range }) => {
   const canvasRef = useRef(null)
   const frameRef = useRef(null)
 
@@ -72,8 +72,8 @@ const SparklineCanvas = ({ values, color, height = defaultHeight }) => {
     if (!context) return
 
     context.setTransform(ratio, 0, 0, ratio, 0, 0)
-    drawSparkline(context, values, width, height, color)
-  }, [color, height, values])
+    drawSparkline(context, values, width, height, color, range)
+  }, [color, height, range, values])
 
   useLayoutEffect(() => {
     draw()

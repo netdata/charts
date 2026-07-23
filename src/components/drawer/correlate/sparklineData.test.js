@@ -3,6 +3,7 @@ import {
   getSparklineBatchAttributes,
   getSparklineBatchDimensions,
   getSparklineDataFetcher,
+  getSparklineRequestKey,
   normalizeSparklinePayload,
   sparklineRequestLimits,
 } from "./sparklineData"
@@ -57,6 +58,35 @@ const makeDimension = (index, overrides = {}) => ({
 const makeAttrs = (owner, index) => getSparklineBatchAttributes(owner, [makeDimension(index)])
 
 describe("sparkline batch requests", () => {
+  it("keys every attribute that can change a fleet trend response", () => {
+    const attrs = {
+      contextScope: ["context"],
+      dimensionsScope: ["dimension"],
+      limit: 1,
+      nulls2zero: false,
+      tier: 0,
+      timeGroupOptions: ["absolute"],
+      unaligned: true,
+    }
+
+    expect(getSparklineRequestKey(attrs)).not.toBe(
+      getSparklineRequestKey({
+        ...attrs,
+        dimensionsScope: ["other-dimension"],
+      })
+    )
+    expect(getSparklineRequestKey(attrs)).not.toBe(
+      getSparklineRequestKey({
+        ...attrs,
+        timeGroupOptions: ["percentage"],
+      })
+    )
+    expect(getSparklineRequestKey(attrs)).not.toBe(getSparklineRequestKey({ ...attrs, limit: 2 }))
+    expect(getSparklineRequestKey(attrs)).not.toBe(
+      getSparklineRequestKey({ ...attrs, nulls2zero: true })
+    )
+  })
+
   it("builds deterministic bounded batches for one context and node", () => {
     const dimensions = Array.from({ length: 120 }, (_, index) => makeDimension(index)).reverse()
     dimensions.push(makeDimension(200, { context: "other-context" }))
@@ -130,6 +160,21 @@ describe("normalizeSparklinePayload", () => {
 
   it("rejects responses without chart labels and data", () => {
     expect(() => normalizeSparklinePayload({})).toThrow("Invalid sparkline response")
+  })
+
+  it("normalizes canonical rate units for a Volume trend and rejects unknown units", () => {
+    expect(
+      normalizeSparklinePayload(makePayload(["traffic"], { units: ["MiB/s"] }), {
+        rateVolume: true,
+        timeGroup: "sum",
+      }).get("traffic").unit
+    ).toBe("MiBy")
+    expect(() =>
+      normalizeSparklinePayload(makePayload(["traffic"], { units: [""] }), {
+        rateVolume: true,
+        timeGroup: "sum",
+      })
+    ).toThrow("Unsupported sparkline units")
   })
 })
 
