@@ -271,6 +271,42 @@ describe("makeNode", () => {
       expect(node.getAttribute("paused")).toBe(false)
     })
 
+    it("tracks reason types without exposing mutable internal state", () => {
+      node.addPauseReason("hover-1", "hover")
+      node.addPauseReason("modal-1")
+
+      const reasons = node.getPauseReasons()
+      expect(reasons).toEqual([
+        { reasonId: "hover-1", reasonType: "hover" },
+        { reasonId: "modal-1", reasonType: "interaction" },
+      ])
+
+      reasons.pop()
+      expect(node.getPauseReasons()).toHaveLength(2)
+    })
+
+    it("removes all reasons of one type and preserves the others", () => {
+      node.addPauseReason("hover-1", "hover")
+      node.addPauseReason("hover-2", "hover")
+      node.addPauseReason("modal-1")
+
+      node.removePauseReasonsByType("hover")
+
+      expect(node.getPauseReasons()).toEqual([{ reasonId: "modal-1", reasonType: "interaction" }])
+      expect(node.getAttribute("paused")).toBe(true)
+
+      node.removePauseReason("modal-1")
+      expect(node.getAttribute("paused")).toBe(false)
+    })
+
+    it("requests playback reconciliation through the SDK", () => {
+      node.reconcilePlaybackState({ clearHover: true })
+
+      expect(mockSdk.trigger).toHaveBeenCalledWith("reconcilePlaybackState", {
+        clearHover: true,
+      })
+    })
+
     it("ignores empty/missing reason ids", () => {
       node.addPauseReason("")
       node.addPauseReason(null)

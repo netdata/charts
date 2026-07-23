@@ -136,10 +136,33 @@ describe("useHover", () => {
     const mouseoverHandler = addedCalls.find(call => call[0] === "mouseover")[1]
     const mouseoutHandler = addedCalls.find(call => call[0] === "mouseout")[1]
 
+    act(() => {
+      result.current.current = null
+    })
     unmount()
 
     expect(mockElement.removeEventListener).toHaveBeenCalledWith("mouseover", mouseoverHandler)
     expect(mockElement.removeEventListener).toHaveBeenCalledWith("mouseout", mouseoutHandler)
+  })
+
+  it("reconciles hover state from the DOM when the window regains focus", () => {
+    mockElement.matches = jest.fn(() => false)
+    const { result, rerender } = renderHook(() =>
+      useHover({ onHover: mockOnHover, onBlur: mockOnBlur }, [])
+    )
+
+    act(() => {
+      result.current.current = mockElement
+    })
+    rerender()
+
+    act(() => {
+      window.dispatchEvent(new Event("focus"))
+    })
+
+    expect(mockElement.matches).toHaveBeenCalledWith(":hover")
+    expect(mockOnBlur).toHaveBeenCalledTimes(1)
+    expect(mockOnHover).not.toHaveBeenCalled()
   })
 
   it("uses default isOut function when not provided", () => {
