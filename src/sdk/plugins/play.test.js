@@ -31,10 +31,12 @@ const makePlaybackSDK = () => {
 describe("play plugin", () => {
   let chart
   let sdk
+  let hasFocus
   let visibilityDescriptor
 
   beforeEach(() => {
     jest.useFakeTimers()
+    hasFocus = jest.spyOn(document, "hasFocus").mockReturnValue(true)
     visibilityDescriptor = Object.getOwnPropertyDescriptor(document, "visibilityState")
     setVisibility("visible")
 
@@ -51,6 +53,7 @@ describe("play plugin", () => {
 
     jest.clearAllTimers()
     jest.useRealTimers()
+    hasFocus.mockRestore()
     document.body.innerHTML = ""
 
     if (visibilityDescriptor)
@@ -74,8 +77,34 @@ describe("play plugin", () => {
     expect(root.getAttribute("hovering")).toBe(false)
 
     window.dispatchEvent(new Event("focus"))
+    jest.runAllTicks()
+
     expect(root.getAttribute("paused")).toBe(false)
     expect(root.getAttribute("autofetch")).toBe(true)
+  })
+
+  it("reconciles chart hover before resuming playback on focus", () => {
+    const playback = makePlaybackSDK()
+    chart = playback.chart
+    sdk = playback.sdk
+    const root = sdk.getRoot()
+    const reconcileHover = () => chart.focus()
+
+    window.addEventListener("focus", reconcileHover)
+    window.dispatchEvent(new Event("blur"))
+    window.dispatchEvent(new Event("focus"))
+
+    expect(root.getAttribute("blurred")).toBe(false)
+    expect(root.getAttribute("hovering")).toBe(true)
+    expect(root.getAttribute("autofetch")).toBe(false)
+
+    jest.runAllTicks()
+
+    expect(root.getAttribute("blurred")).toBe(false)
+    expect(root.getAttribute("hovering")).toBe(true)
+    expect(root.getAttribute("autofetch")).toBe(false)
+
+    window.removeEventListener("focus", reconcileHover)
   })
 
   it("manual reconciliation clears hover blockers but preserves other reasons", () => {
@@ -113,6 +142,7 @@ describe("play plugin", () => {
     setVisibility("visible")
     document.querySelector("button").focus()
     document.dispatchEvent(new Event("visibilitychange"))
+    jest.runAllTicks()
 
     expect(root.getAttribute("blurred")).toBe(false)
     expect(root.getAttribute("paused")).toBe(false)
@@ -133,6 +163,9 @@ describe("play plugin", () => {
 
     root.updateAttribute("blurred", false)
     window.dispatchEvent(new Event("blur"))
+    expect(root.getAttribute("blurred")).toBe(false)
+    window.dispatchEvent(new Event("focus"))
+    jest.runAllTicks()
     expect(root.getAttribute("blurred")).toBe(false)
 
     sdk.unregister("hover")

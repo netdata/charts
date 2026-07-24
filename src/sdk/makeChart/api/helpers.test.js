@@ -168,6 +168,19 @@ describe("API helpers", () => {
 
       expect(result).toBe(null)
     })
+
+    it("uses an explicit live request anchor for a frozen view update window", () => {
+      const result = getLiveFetchBefore({
+        after: -300,
+        renderedAt: null,
+        hovering: false,
+        fetchStartedAt: 1000500,
+        viewUpdateEvery: 600,
+        liveRequestBefore: 900.25,
+      })
+
+      expect(result).toBe(901)
+    })
   })
 
   describe("getChartPayload", () => {
@@ -289,6 +302,31 @@ describe("API helpers", () => {
 
       expect(result.after).toBe(701)
       expect(result.before).toBe(1001)
+    })
+
+    it("keeps an explicit live request anchor when chart state changes", () => {
+      const { chart } = makeTestChart({
+        attributes: {
+          after: -300,
+          before: 0,
+          groupingMethod: "average",
+          groupingTime: "auto",
+          renderedAt: 1200000,
+          hovering: true,
+          fetchStartedAt: 1200500,
+          chartType: "line",
+          pixelsPerPoint: 4,
+          chartLibrary: "dygraph",
+          viewUpdateEvery: 600,
+        },
+      })
+
+      chart.getUI().getChartWidth = () => 800
+
+      const result = getChartPayload(chart, { liveRequestBefore: 1000 })
+
+      expect(result.after).toBe(700)
+      expect(result.before).toBe(1000)
     })
 
     it("uses different multiplier for multiBar", () => {

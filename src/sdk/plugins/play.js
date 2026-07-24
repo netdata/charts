@@ -1,5 +1,8 @@
 export default sdk => {
   let timeoutId
+  let reconciliationRevision = 0
+  let reconcilingBrowserFocus = false
+  let registered = true
   const root = sdk.getRoot()
 
   const isRenderingPaused = chart => {
@@ -88,9 +91,38 @@ export default sdk => {
     if (previousPaused === root.getAttribute("paused")) refreshPlaybackState()
   }
 
-  const blur = () => reconcilePlaybackState({ blurred: true })
-  const focus = () => reconcilePlaybackState({ blurred: false })
-  const visibilityChange = () => reconcilePlaybackState()
+  const focus = () => {
+    if (document.visibilityState === "hidden") {
+      reconcilePlaybackState({ blurred: true })
+      return
+    }
+
+    const revision = ++reconciliationRevision
+    reconcilingBrowserFocus = true
+    root.updateAttribute("blurred", false)
+
+    queueMicrotask(() => {
+      if (!registered || revision !== reconciliationRevision) return
+
+      reconcilingBrowserFocus = false
+      reconcilePlaybackState()
+    })
+  }
+
+  const blur = () => {
+    reconciliationRevision += 1
+    reconcilingBrowserFocus = false
+    reconcilePlaybackState({ blurred: true })
+  }
+  const visibilityChange = () => {
+    if (document.visibilityState === "visible") {
+      if (typeof document.hasFocus !== "function" || document.hasFocus()) focus()
+      else reconcilePlaybackState()
+      return
+    }
+
+    blur()
+  }
 
   window.addEventListener("blur", blur)
   window.addEventListener("focus", focus)
@@ -103,6 +135,8 @@ export default sdk => {
       autofetchIfActive(chart, { force: true })
     })
     .on("play:hoverChart", chart => {
+      if (reconcilingBrowserFocus) return
+
       toggleRender(sdk.getRoot().getAttribute("autofetchOnHovering"))
 
       if (sdk.getRoot().getAttribute("paused")) return
@@ -112,6 +146,7 @@ export default sdk => {
         .forEach(node => autofetchIfActive(node, { now: chart.getAttribute("renderedAt") }))
     })
     .on("play:blurChart", chart => {
+      if (reconcilingBrowserFocus) return
       if (chart.getRoot().getAttribute("paused")) return
 
       toggleRender(chart.getAttribute("after") < 0 && !isRenderingPaused(chart))
@@ -128,10 +163,15 @@ export default sdk => {
     })
     .on("reconcilePlaybackState", reconcilePlaybackState)
 
-  const offPaused = root.onAttributeChange("paused", refreshPlaybackState)
+  const offPaused = root.onAttributeChange("paused", () => {
+    if (!reconcilingBrowserFocus) refreshPlaybackState()
+  })
   root.updateAttribute("blurred", document.visibilityState === "hidden")
 
   return () => {
+    registered = false
+    reconciliationRevision += 1
+    reconcilingBrowserFocus = false
     offs()
     offPaused()
     clearTimeout(timeoutId)
