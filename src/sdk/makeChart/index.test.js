@@ -153,6 +153,28 @@ describe("makeChart", () => {
     expect(chart.getAttribute("active")).toBe(false)
   })
 
+  it("deactivate releases an active hover", () => {
+    chart.focus()
+
+    chart.deactivate()
+
+    expect(chart.getAttribute("focused")).toBe(false)
+    expect(chart.getAttribute("hovering")).toBe(false)
+    expect(sdk.getRoot().getAttribute("hovering")).toBe(false)
+  })
+
+  it("destroy releases an active hover", () => {
+    jest.useFakeTimers()
+    chart.focus()
+
+    chart.destroy()
+
+    expect(sdk.getRoot().getAttribute("hovering")).toBe(false)
+    sdk.unregister("play")
+    jest.clearAllTimers()
+    jest.useRealTimers()
+  })
+
   it("getUnits returns units from attributes", () => {
     chart.updateAttribute("units", "GB")
     const units = chart.getUnits()

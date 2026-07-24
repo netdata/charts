@@ -36,8 +36,11 @@ export const getLiveFetchBefore = ({
   hovering,
   fetchStartedAt,
   viewUpdateEvery,
+  liveRequestBefore,
 }) => {
   if (after > 0) return null
+  if (typeof liveRequestBefore === "number" && isFinite(liveRequestBefore))
+    return Math.ceil(liveRequestBefore)
   if (viewUpdateEvery && viewUpdateEvery > Math.abs(after)) return null
 
   return hovering && renderedAt ? Math.ceil(renderedAt / 1000) : Math.ceil(fetchStartedAt / 1000)
@@ -60,6 +63,7 @@ export const getChartPayload = (chart, attrs = {}) => {
     chartLibrary,
     points: customPoints,
     viewUpdateEvery,
+    liveRequestBefore,
   } = { ...chart.getAttributes(), ...attrs }
 
   const pointsMultiplier =
@@ -73,6 +77,7 @@ export const getChartPayload = (chart, attrs = {}) => {
     hovering,
     fetchStartedAt,
     viewUpdateEvery,
+    liveRequestBefore,
   })
 
   const afterBefore =

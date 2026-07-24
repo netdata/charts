@@ -1,8 +1,11 @@
 export default sdk => {
   let timeoutId
+  let reconciliationRevision = 0
+  let reconcilingBrowserFocus = false
+  let registered = true
+  const root = sdk.getRoot()
 
   const isRenderingPaused = chart => {
-    const root = sdk.getRoot()
     return (
       (!root.getAttribute("autofetchOnHovering") && chart?.getAttribute("hovering")) ||
       (!root.getAttribute("autofetchOnWindowBlur") && root.getAttribute("blurred")) ||
@@ -11,13 +14,13 @@ export default sdk => {
   }
 
   const getNext = () => {
-    if (!sdk.getRoot().getAttribute("paused") && sdk.getRoot().getAttribute("after") < 0)
-      sdk.getRoot().setAttribute("fetchAt", Date.now())
+    if (!root.getAttribute("paused") && root.getAttribute("after") < 0)
+      root.setAttribute("fetchAt", Date.now())
 
     sdk
       .getNodes(
         (node, { loaded, active }) =>
-          node.type === "chart" && loaded && active && !sdk.getRoot().getAttribute("paused")
+          node.type === "chart" && loaded && active && !root.getAttribute("paused")
       )
       .forEach(node => node.trigger("render"))
 
@@ -56,24 +59,74 @@ export default sdk => {
     }
   }
 
-  const blur = () => {
-    sdk.getRoot().updateAttributes({
-      blurred: true,
-    })
-    toggleRender(sdk.getRoot().getAttribute("after") < 0 && !isRenderingPaused())
-
+  const refreshPlaybackState = () => {
+    toggleRender(root.getAttribute("after") < 0 && !isRenderingPaused())
     sdk.getNodes().forEach(node => autofetchIfActive(node))
   }
 
-  const focus = () => {
-    sdk.getRoot().updateAttributes({ blurred: false })
-    toggleRender(sdk.getRoot().getAttribute("after") < 0 && !isRenderingPaused())
+  const isDocumentBlurred = () =>
+    document.visibilityState === "hidden" ||
+    (typeof document.hasFocus === "function" && !document.hasFocus())
 
-    sdk.getNodes().forEach(node => autofetchIfActive(node))
+  const clearHoverState = () => {
+    sdk.getNodes().forEach(node => {
+      const attributes = {}
+      if (node.getAttribute("focused")) attributes.focused = false
+      if (node.getAttribute("hovering")) attributes.hovering = false
+      if (node.getAttribute("renderedAt") !== null) attributes.renderedAt = null
+      if (Object.keys(attributes).length) node.updateAttributes(attributes)
+    })
+
+    root.removePauseReasonsByType("hover")
+  }
+
+  const reconcilePlaybackState = (options = {}) => {
+    const { blurred = isDocumentBlurred(), clearHover = false } =
+      typeof options === "object" && options ? options : {}
+    const previousPaused = root.getAttribute("paused")
+
+    if (clearHover) clearHoverState()
+    root.updateAttribute("blurred", blurred)
+
+    if (previousPaused === root.getAttribute("paused")) refreshPlaybackState()
+  }
+
+  const focus = () => {
+    if (document.visibilityState === "hidden") {
+      reconcilePlaybackState({ blurred: true })
+      return
+    }
+
+    const revision = ++reconciliationRevision
+    reconcilingBrowserFocus = true
+    root.updateAttribute("blurred", false)
+
+    queueMicrotask(() => {
+      if (!registered || revision !== reconciliationRevision) return
+
+      reconcilingBrowserFocus = false
+      reconcilePlaybackState()
+    })
+  }
+
+  const blur = () => {
+    reconciliationRevision += 1
+    reconcilingBrowserFocus = false
+    reconcilePlaybackState({ blurred: true })
+  }
+  const visibilityChange = () => {
+    if (document.visibilityState === "visible") {
+      if (typeof document.hasFocus !== "function" || document.hasFocus()) focus()
+      else reconcilePlaybackState()
+      return
+    }
+
+    blur()
   }
 
   window.addEventListener("blur", blur)
   window.addEventListener("focus", focus)
+  document.addEventListener("visibilitychange", visibilityChange)
 
   const offs = sdk
     .on("active", chart => {
@@ -82,6 +135,8 @@ export default sdk => {
       autofetchIfActive(chart, { force: true })
     })
     .on("play:hoverChart", chart => {
+      if (reconcilingBrowserFocus) return
+
       toggleRender(sdk.getRoot().getAttribute("autofetchOnHovering"))
 
       if (sdk.getRoot().getAttribute("paused")) return
@@ -91,6 +146,7 @@ export default sdk => {
         .forEach(node => autofetchIfActive(node, { now: chart.getAttribute("renderedAt") }))
     })
     .on("play:blurChart", chart => {
+      if (reconcilingBrowserFocus) return
       if (chart.getRoot().getAttribute("paused")) return
 
       toggleRender(chart.getAttribute("after") < 0 && !isRenderingPaused(chart))
@@ -105,14 +161,22 @@ export default sdk => {
         autofetchIfActive(node)
       })
     })
+    .on("reconcilePlaybackState", reconcilePlaybackState)
 
-  sdk
-    .getRoot()
-    .onAttributeChange("paused", () => sdk.getNodes().forEach(node => autofetchIfActive(node)))
+  const offPaused = root.onAttributeChange("paused", () => {
+    if (!reconcilingBrowserFocus) refreshPlaybackState()
+  })
+  root.updateAttribute("blurred", document.visibilityState === "hidden")
 
   return () => {
+    registered = false
+    reconciliationRevision += 1
+    reconcilingBrowserFocus = false
     offs()
+    offPaused()
+    clearTimeout(timeoutId)
     window.removeEventListener("blur", blur)
     window.removeEventListener("focus", focus)
+    document.removeEventListener("visibilitychange", visibilityChange)
   }
 }

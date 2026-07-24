@@ -229,7 +229,10 @@ export default ({
 
   node.deactivate = () => {
     if (!node) return
+
     node.updateAttribute("active", false)
+    if (node.getAttribute("focused")) node.blur()
+
     sdk.trigger("active", node, false)
     node.trigger("active", false)
   }
@@ -409,6 +412,8 @@ export default ({
   const destroy = () => {
     if (!node) return
 
+    node.updateAttribute("active", false)
+    if (node.getAttribute("focused")) node.blur()
     if (executeLatest) executeLatest.clear()
 
     node.destroy()
