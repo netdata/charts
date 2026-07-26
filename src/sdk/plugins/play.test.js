@@ -68,13 +68,17 @@ describe("play plugin", () => {
     const root = sdk.getRoot()
 
     chart.focus()
+    sdk.trigger("highlightHover", chart, 1000, "dimension")
     expect(root.getAttribute("hovering")).toBe(true)
+    expect(root.getAttribute("hoverX")).toEqual([1000, "dimension"])
 
     window.dispatchEvent(new Event("blur"))
     expect(root.getAttribute("paused")).toBe(true)
 
     chart.blur()
     expect(root.getAttribute("hovering")).toBe(false)
+    expect(root.getAttribute("hoverX")).toBeNull()
+    expect(chart.getAttribute("hoverX")).toBeNull()
 
     window.dispatchEvent(new Event("focus"))
     jest.runAllTicks()
@@ -114,13 +118,16 @@ describe("play plugin", () => {
     const root = sdk.getRoot()
 
     chart.focus()
+    sdk.trigger("highlightHover", chart, 1000, "dimension")
     root.addPauseReason("hover-1", "hover")
     root.addPauseReason("modal-1")
 
     root.reconcilePlaybackState({ clearHover: true, blurred: false })
 
     expect(chart.getAttribute("focused")).toBe(false)
+    expect(chart.getAttribute("hoverX")).toBeNull()
     expect(root.getAttribute("hovering")).toBe(false)
+    expect(root.getAttribute("hoverX")).toBeNull()
     expect(root.getPauseReasons()).toEqual([{ reasonId: "modal-1", reasonType: "interaction" }])
     expect(root.getAttribute("paused")).toBe(true)
 

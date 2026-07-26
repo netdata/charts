@@ -73,6 +73,7 @@ export default sdk => {
       const attributes = {}
       if (node.getAttribute("focused")) attributes.focused = false
       if (node.getAttribute("hovering")) attributes.hovering = false
+      if (node.getAttribute("hoverX") !== null) attributes.hoverX = null
       if (node.getAttribute("renderedAt") !== null) attributes.renderedAt = null
       if (Object.keys(attributes).length) node.updateAttributes(attributes)
     })
