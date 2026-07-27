@@ -1,9 +1,9 @@
 import React from "react"
 import { Flex, Text, TextMicro, TextSmall } from "@netdata/netdata-ui"
+import { stripRateUnit } from "@/helpers/units"
 import { useValueWithUnit } from "@/components/provider"
 
-const getDisplayUnit = (unit, integrated) =>
-  integrated && typeof unit === "string" && unit.endsWith("/s") ? unit.slice(0, -2) : unit
+const getDisplayUnit = (unit, integrated) => (integrated ? stripRateUnit(unit) : unit)
 
 const StatValue = ({ value, valueKey, prominent, justifyContent }) => {
   const { convertedValue, convertedUnit } = useValueWithUnit(value, {

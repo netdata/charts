@@ -11,6 +11,8 @@ import unitConverter, {
   isDecimalByte,
   getScales,
   getUnitsString,
+  isRateUnit,
+  stripRateUnit,
 } from "."
 import scalableUnits from "./scalableUnits"
 
@@ -639,6 +641,23 @@ describe("units helpers", () => {
 
       expect(binaryScales).toBe(scalableUnits.binary)
       expect(metricScales).toBe(scalableUnits.num)
+    })
+  })
+
+  describe("rate units", () => {
+    it("detects only string units ending with a rate suffix", () => {
+      expect(isRateUnit("bytes/s")).toBe(true)
+      expect(isRateUnit("bytes")).toBe(false)
+      expect(isRateUnit("/s")).toBe(true)
+      expect(isRateUnit(undefined)).toBe(false)
+      expect(isRateUnit(123)).toBe(false)
+    })
+
+    it("strips the rate suffix only from rate units and leaves others untouched", () => {
+      expect(stripRateUnit("bytes/s")).toBe("bytes")
+      expect(stripRateUnit("requests")).toBe("requests")
+      expect(stripRateUnit("/s")).toBe("")
+      expect(stripRateUnit(undefined)).toBe(undefined)
     })
   })
 })
