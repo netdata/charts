@@ -162,6 +162,47 @@ describe("normalizeSparklinePayload", () => {
     expect(() => normalizeSparklinePayload({})).toThrow("Invalid sparkline response")
   })
 
+  it("falls back to the first dimension unit for columns beyond heterogeneous units", () => {
+    const payload = {
+      view: {
+        units: "percentage",
+        dimensions: { units: ["microseconds", "bytes"] },
+      },
+      result: {
+        labels: ["time", "latency", "traffic", "extra"],
+        point: { value: 0, anomalyRate: 1 },
+        data: [
+          [1000, [1, 0], [2, 0], [3, 0]],
+          [1005, [3, 0], [8, 0], [9, 0]],
+        ],
+      },
+    }
+
+    const result = normalizeSparklinePayload(payload)
+
+    expect(result.get("latency").unit).toBe("us")
+    expect(result.get("traffic").unit).toBe("By")
+    expect(result.get("extra").unit).toBe("us")
+  })
+
+  it("rejects a Volume trend when rate and non-rate dimension units are mixed", () => {
+    expect(() =>
+      normalizeSparklinePayload(
+        makePayload(["latency", "traffic"], { units: ["MiB/s", "requests"] }),
+        { rateVolume: true, timeGroup: "sum" }
+      )
+    ).toThrow("Unsupported sparkline units")
+  })
+
+  it("rejects a Volume trend when the time grouping is not a sum", () => {
+    expect(() =>
+      normalizeSparklinePayload(makePayload(["traffic"], { units: ["MiB/s"] }), {
+        rateVolume: true,
+        timeGroup: "average",
+      })
+    ).toThrow("Unsupported sparkline units")
+  })
+
   it("normalizes canonical rate units for a Volume trend and rejects unknown units", () => {
     expect(
       normalizeSparklinePayload(makePayload(["traffic"], { units: ["MiB/s"] }), {

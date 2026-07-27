@@ -12,6 +12,10 @@ export const unitsMissing = u => {
   return typeof allUnits.units[alias] === "undefined"
 }
 
+export const isRateUnit = unit => typeof unit === "string" && unit.endsWith("/s")
+
+export const stripRateUnit = unit => (isRateUnit(unit) ? unit.slice(0, -2) : unit)
+
 const unitOrEmpty = u => (u === null || typeof u === "undefined" ? "" : u)
 
 export const getUnitConfig = u => {

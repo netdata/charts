@@ -1,3 +1,4 @@
+import { isRateUnit, stripRateUnit } from "@/helpers/units"
 import { getPointValue } from "../makeChart/getPointValue"
 
 export const dataQueryNodeStatus = Object.freeze({
@@ -453,9 +454,9 @@ export const normalizeDataQueryUnits = (payload, { rateVolume = false, timeGroup
   if (!sourceUnits.length || sourceUnits.some(unit => typeof unit !== "string" || !unit))
     return { available: false, status: "unavailable", sourceUnits, units: [] }
 
-  const rateUnits = sourceUnits.filter(unit => unit.endsWith("/s"))
+  const rateUnits = sourceUnits.filter(isRateUnit)
   if (rateUnits.length === sourceUnits.length) {
-    const units = sourceUnits.map(unit => unit.slice(0, -2))
+    const units = sourceUnits.map(stripRateUnit)
     if (units.some(unit => !unit))
       return { available: false, status: "unavailable", sourceUnits, units: [] }
 
