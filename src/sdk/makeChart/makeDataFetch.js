@@ -96,10 +96,44 @@ export default chart => {
     return data?.length || 0
   }
 
-  chart.doneFetch = (nextRawPayload, { liveAnchor } = {}) => {
+  const getFrozenWindowEnd = () => {
+    const { after, hovering } = chart.getAttributes()
+    if (after > 0) return null
+
+    const paused = chart.getRoot?.()?.getAttribute?.("paused")
+    if (!hovering && !paused) return null
+
+    const windowEnd = chart.getDateWindow?.()?.[1]
+    return typeof windowEnd === "number" && isFinite(windowEnd) ? windowEnd : null
+  }
+
+  const isFrozenAtAnotherAnchor = requestAnchor => {
+    if (
+      !chart.getAttribute("loaded") ||
+      typeof requestAnchor !== "number" ||
+      !isFinite(requestAnchor)
+    )
+      return false
+
+    const frozenWindowEnd = getFrozenWindowEnd()
+    if (frozenWindowEnd === null) return false
+
+    return Math.ceil(frozenWindowEnd / 1000) * 1000 !== requestAnchor
+  }
+
+  chart.doneFetch = (nextRawPayload, { liveAnchor, requestAnchor = liveAnchor } = {}) => {
     chart.backoffMs = 0
 
     setTimeout(() => {
+      if (isFrozenAtAnotherAnchor(requestAnchor)) {
+        chart.updateAttributes({
+          loading: false,
+          processing: false,
+        })
+        finishFetch()
+        return
+      }
+
       const { result, chartType, versions, title, ...restPayload } = camelizePayload(
         nextRawPayload,
         chart
@@ -213,10 +247,12 @@ export default chart => {
     failFetch = chart.failFetch,
     signal,
     params = {},
+    attrs,
   } = {}) => {
     if (!chart) return
 
     const options = {
+      ...(attrs && { attrs }),
       params,
       signal,
     }
@@ -249,6 +285,9 @@ export default chart => {
       loading: true,
       fetchStartedAt,
     })
+    const frozenWindowEnd = getFrozenWindowEnd()
+    const liveRequestBefore =
+      frozenWindowEnd === null ? undefined : Math.ceil(frozenWindowEnd / 1000)
     const { after, hovering, renderedAt, viewUpdateEvery } = chart.getAttributes()
     const fetchBefore = getLiveFetchBefore({
       after,
@@ -256,11 +295,18 @@ export default chart => {
       renderedAt,
       fetchStartedAt,
       viewUpdateEvery,
+      liveRequestBefore,
     })
     const liveAnchor =
       typeof fetchBefore === "number" && isFinite(fetchBefore) && fetchBefore > 0
         ? fetchBefore * 1000
         : null
+    const requestAnchor =
+      after > 0
+        ? null
+        : (typeof fetchBefore === "number" && isFinite(fetchBefore)
+            ? fetchBefore
+            : Math.ceil(fetchStartedAt / 1000)) * 1000
 
     chart.cancelFetch()
     chart.trigger("startFetch")
@@ -272,9 +318,13 @@ export default chart => {
     abortController = new AbortController()
 
     return chart.baseFetch({
-      doneFetch: data => chart.doneFetch(data, { liveAnchor }),
+      doneFetch: data => chart.doneFetch(data, { liveAnchor, requestAnchor }),
       failFetch: chart.failFetch,
       signal: abortController.signal,
+      attrs:
+        typeof fetchBefore === "number" && isFinite(fetchBefore)
+          ? { liveRequestBefore: fetchBefore }
+          : undefined,
     })
   }
 

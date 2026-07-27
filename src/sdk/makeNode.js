@@ -179,7 +179,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   onAttributeChange("timezone", tz => updateIntls(tz, getAttribute("locale")))
   onAttributeChange("locale", locale => updateIntls(getAttribute("timezone"), locale))
 
-  const pauseReasons = new Set()
+  const pauseReasons = new Map()
   const computeAggregatePaused = () => {
     const blurReason = !getAttribute("autofetchOnWindowBlur") && getAttribute("blurred")
     return Boolean(blurReason) || pauseReasons.size > 0
@@ -187,9 +187,9 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
   const applyAggregatePaused = () => {
     updateAttribute("paused", computeAggregatePaused())
   }
-  const addPauseReason = reasonId => {
+  const addPauseReason = (reasonId, reasonType = "interaction") => {
     if (!reasonId) return
-    pauseReasons.add(reasonId)
+    pauseReasons.set(reasonId, reasonType)
     applyAggregatePaused()
   }
   const removePauseReason = reasonId => {
@@ -197,6 +197,19 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     if (!pauseReasons.delete(reasonId)) return
     applyAggregatePaused()
   }
+  const removePauseReasonsByType = reasonType => {
+    let removed = false
+    pauseReasons.forEach((type, reasonId) => {
+      if (type !== reasonType) return
+
+      pauseReasons.delete(reasonId)
+      removed = true
+    })
+    if (removed) applyAggregatePaused()
+  }
+  const getPauseReasons = () =>
+    Array.from(pauseReasons, ([reasonId, reasonType]) => ({ reasonId, reasonType }))
+  const reconcilePlaybackState = (options = {}) => sdk.trigger("reconcilePlaybackState", options)
   onAttributeChange("blurred", applyAggregatePaused)
   onAttributeChange("autofetchOnWindowBlur", applyAggregatePaused)
 
@@ -244,6 +257,9 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     formatXAxis,
     addPauseReason,
     removePauseReason,
+    removePauseReasonsByType,
+    getPauseReasons,
+    reconcilePlaybackState,
   }
 
   return instance

@@ -1,5 +1,10 @@
 import { renderHook, act } from "@testing-library/react"
-import { makeHeatmapPayload, renderHookWithChart, makeTestChart } from "@jest/testUtilities"
+import {
+  loadHeatmapPayload,
+  makeHeatmapPayload,
+  renderHookWithChart,
+  makeTestChart,
+} from "@jest/testUtilities"
 import {
   useChart,
   useAttributeValue,
@@ -310,6 +315,24 @@ describe("Chart Provider Selectors", () => {
   })
 
   describe("display values", () => {
+    it("returns to the latest value when chart hover ends without a Dygraph mouseout", async () => {
+      const { chart, sdk } = makeTestChart()
+      await loadHeatmapPayload(chart, ["dim1"], [[50], [60]])
+
+      const { result } = renderHookWithChart(() => useLatestValue("dim1"), { chart })
+
+      act(() => {
+        chart.focus()
+        sdk.trigger("highlightHover", chart, 1000, "dim1")
+      })
+
+      expect(result.current).toBe(50)
+
+      act(() => chart.blur())
+
+      expect(result.current).toBe(60)
+    })
+
     it("refreshes latest values for successful fetches instead of render requests", () => {
       jest.useFakeTimers()
       const { chart } = makeTestChart()

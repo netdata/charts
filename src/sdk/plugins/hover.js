@@ -31,9 +31,7 @@ export default sdk => {
     })
     .on("blurChart", chart => {
       chart.getApplicableNodes({ syncHover: true }).forEach(node => {
-        if (chart.getRoot().getAttribute("paused")) return
-
-        node.updateAttributes({ hovering: false, renderedAt: null })
+        node.updateAttributes({ hovering: false, hoverX: null, renderedAt: null })
       })
       sdk.trigger("play:blurChart", chart)
     })
