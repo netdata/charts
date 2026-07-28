@@ -125,7 +125,9 @@ export default (chart, getChartInstance = () => chart) => {
 
   const getRendererForChartType = chartType => {
     const renderer = getChartLibrariesByType()[chartType] || "dygraph"
-    return renderer in chart.sdk.ui ? renderer : "dygraph"
+    const makeRenderer = chart.sdk.ui[renderer]
+    if (!makeRenderer) return "dygraph"
+    return makeRenderer.isSupported?.(chart.sdk) === false ? "dygraph" : renderer
   }
 
   const isTimeSeriesRenderer = chartLibrary => {
@@ -158,6 +160,18 @@ export default (chart, getChartInstance = () => chart) => {
     if (prevChartLibrary === nextChartLibrary) return false
 
     chart.updateAttribute("chartLibrary", nextChartLibrary)
+    replaceChartUI()
+    return true
+  }
+
+  const fallbackChartLibrary = (failedRenderer, fallbackRenderer = "dygraph") => {
+    if (chart.getAttribute("chartLibrary") !== failedRenderer) return false
+
+    const nextRenderer = fallbackRenderer in chart.sdk.ui ? fallbackRenderer : "dygraph"
+    if (nextRenderer === failedRenderer) return false
+
+    activeTimeSeriesRenderer = true
+    chart.updateAttribute("chartLibrary", nextRenderer)
     replaceChartUI()
     return true
   }
@@ -403,5 +417,6 @@ export default (chart, getChartInstance = () => chart) => {
     getRendererForChartType,
     isTimeSeriesRenderer,
     reconcileChartLibrary,
+    fallbackChartLibrary,
   }
 }

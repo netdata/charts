@@ -24,6 +24,7 @@
     "to-cloud": "yarn build:cjs && yarn build:es6 && yarn cp-cloud",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
+    "benchmark:time-series": "node benchmarks/time-series-renderers/build.cjs && node benchmarks/time-series-renderers/run.cjs",
     "format": "prettier --write \"**/*.{js,mjs}\""
   },
   "keywords": [

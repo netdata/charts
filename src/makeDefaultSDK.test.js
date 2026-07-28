@@ -19,6 +19,7 @@ describe("makeDefaultSDK", () => {
     expect(makeSDK).toHaveBeenCalledWith({
       ui: expect.objectContaining({
         dygraph: expect.any(Function),
+        webgpu: expect.any(Function),
         easypiechart: expect.any(Function),
         gauge: expect.any(Function),
         groupBoxes: expect.any(Function),

@@ -29,8 +29,10 @@ Do not use this skill for:
 - `makeDefaultSDK` is the consumer factory. It registers the default chart libraries and the ordered plugin set ending with `fullscreen`. Evidence: `src/makeDefaultSDK.js`.
 - Persistent chart state belongs in chart attributes so it survives virtualization and drives provider subscriptions. Read with `useAttributeValue`; do not duplicate persistent state in React `useState`. Evidence: `src/components/provider/selectors.js`, `AGENTS.md`.
 - Public SDK, component, attribute, event, chart-type, payload, and query behavior are compatibility surfaces even when implementation modules are deep imports. Evidence: `.agents/sow/specs/charts-public-consumer-contract.md`.
-- Chart-library-specific behavior belongs behind chart-library/SDK seams. Do not spread renderer checks through unrelated React consumers. Evidence: `src/chartLibraries/`, `src/sdk/`, `.agents/sow/current/SOW-0002-20260727-uplot-migration.md`.
+- Renderer-specific behavior belongs behind chart-library/SDK seams. Do not spread renderer checks through unrelated React consumers. Evidence: `src/chartLibraries/`, `src/sdk/`, `.agents/sow/done/SOW-0002-20260727-native-gpu-renderer-prototype.md`.
 - Time-series renderer preference is resolved through `chartLibrariesByType`; unavailable or unmapped renderers fall back to Dygraphs. Renderer replacement must use the chart UI replacement lifecycle rather than unmounting and assigning a UI directly. Evidence: `src/sdk/makeChart/filters/makeControllers.js`, `src/sdk/makeChart/index.js`.
+- The internal WebGPU renderer is opt-in and shares one adapter/device and pipeline cache per SDK. Capability failure, initialization/pipeline failure, and device loss must replace it with Dygraphs; never leave a mounted blank canvas. Evidence: `src/chartLibraries/webgpu/runtime.js`, `src/chartLibraries/webgpu/index.js`.
+- Payload cells may be scalars, objects, or compact JSON2 arrays described by `payload.point`. Renderer conversion must use the shared point-value semantics rather than coercing cells directly. Evidence: `src/sdk/makeChart/getPointValue.js`, `src/chartLibraries/webgpu/data.js`.
 - React code that subscribes to chart-UI events must use `useChartUI`; reading `chart.getUI()` once leaves the component subscribed to a destroyed renderer after replacement. Evidence: `src/components/provider/selectors.js`, `src/components/chartContainer.js`.
 - The package builds CJS and ES6 distributions. There is no current UMD build script. Evidence: `package.json`.
 
@@ -42,6 +44,7 @@ Do not use this skill for:
 - Preserve unsubscribe and destruction paths whenever listeners, timers, observers, SDK nodes, or chart UIs are added.
 - Preserve the public chart object and custom `options.ui` overrides when constructing a replacement renderer.
 - Validate behavior through both the source package and a real consuming path when a public/deep-import contract changes.
+- For GPU measurements, distinguish synchronous submission, queue completion, and frame presentation; prewarm shared runtime/pipelines and report cold startup separately. Software adapters validate correctness only.
 - Use short comments only for non-obvious reasons; do not narrate what the code visibly does.
 
 ## Bad Practices
@@ -50,7 +53,7 @@ Do not use this skill for:
 - Do not store virtualization-persistent UI/data/loading state only in React component state.
 - Do not scatter checks such as `if (chartLibrary === ...)` through consumer components when the chart-library seam can own the behavior.
 - Do not change payload or query semantics as a side effect of renderer work.
-- Do not remove Dygraphs or a fallback path as part of incremental uPlot migration.
+- Do not remove Dygraphs or the fallback path while introducing an internal renderer.
 - Do not add dynamic `require()` or body-level imports; project source uses top-level ES imports.
 
 ## Workflow Checklist
@@ -71,6 +74,7 @@ Before claiming done:
 
 - Focused behavioral tests cover the changed SDK/renderer/component path.
 - Listener/timer/observer/chart-node cleanup is exercised where applicable.
+- GPU resource sharing, buffer release, runtime failure, and device-loss fallback are exercised in a real browser when WebGPU code changes.
 - Unrelated chart libraries and ordinary charts retain their behavior.
 - `yarn test`, `yarn build`, and scoped/repo lint results are recorded accurately when dependencies are available.
 - Visual changes are checked in Storybook and in light/dark themes; consuming integration is checked when public behavior is affected.
@@ -83,6 +87,8 @@ Before claiming done:
 - `src/index.js`: root auto-mount behavior.
 - `src/makeDefaultSDK.js`: default libraries, plugins, and root attributes.
 - `src/sdk/`: node, attribute, plugin, and chart lifecycle architecture.
+- `src/chartLibraries/webgpu/`: shared runtime, exact line kernel, payload packing, and fallback implementation.
+- `benchmarks/time-series-renderers/`: deterministic physical-GPU comparator and feasibility gates.
 - `src/components/provider/selectors.js`: reactive attribute/provider hooks.
 - `.agents/sow/specs/charts-public-consumer-contract.md`: current consumer contract.
 - `netdata/cloud-frontend @ bf2ba8182cff`: verified deep-import consumption and SDK provider integration.
@@ -94,4 +100,4 @@ Update this skill when:
 - package entrypoints, supported distributions, default libraries/plugins, or public consumer patterns change;
 - a renderer or lifecycle regression exposes a missing workflow check;
 - a reviewer or user establishes a new Charts architecture rule;
-- uPlot migration establishes a reusable renderer or benchmark workflow.
+- Native GPU renderer work establishes a reusable lifecycle, fallback, or benchmark workflow.

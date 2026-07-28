@@ -57,6 +57,7 @@ The package has three cooperating layers:
 `makeDefaultSDK` is the consumer-facing configured factory. It currently registers these chart libraries:
 
 - `dygraph`
+- `webgpu`
 - `easypiechart`
 - `gauge`
 - `groupBoxes`
@@ -64,6 +65,8 @@ The package has three cooperating layers:
 - `d3pie`
 - `bars`
 - `table`
+
+`webgpu` is an internal opt-in renderer. No default `chartLibrariesByType` entry selects it, and unsupported capability or runtime failure falls back to Dygraphs. Its registration does not claim complete production visual or interaction parity.
 
 It registers these plugins in order:
 
@@ -96,6 +99,7 @@ Evidence: `src/makeDefaultSDK.js`, `src/sdk/`.
 - State that must survive component unmount/remount or virtualization belongs in chart attributes rather than component-local React state.
 - Event, listener, activation, deactivation, fetch, render, and destruction behavior are lifecycle contracts; changes require cleanup and remount validation.
 - `chartLibrariesByType` is the internal per-time-series-type renderer preference map. An omitted type or unavailable renderer resolves to Dygraphs.
+- A selected renderer may declare capability support and may request runtime fallback. Fallback replaces the mounted UI without changing the public chart identity; WebGPU uses this path for unavailable devices, initialization/pipeline failure, and device loss.
 - Renderer reconciliation happens after parent attributes are inherited and after the first payload supplies `chartType`. User-facing chart-type controls continue to display the visualization type rather than the internal renderer.
 - Replacing a mounted chart UI preserves its DOM mount, custom UI overrides, chart identity, and renderer-bound React subscriptions. Renderer-aware hooks use `useChartUI` so subscriptions move to the replacement UI.
 
@@ -104,11 +108,12 @@ Evidence: `src/sdk/`, `src/components/provider/`, `src/components/chartContainer
 ## Data And Time Contract
 
 - Existing payload and query semantics are compatibility surfaces.
-- SDK `after` and `before` values use Unix seconds. Negative `after` values represent relative windows.
+- SDK `after` and `before` values use Unix seconds. Negative `after` values represent relative windows; payload row timestamps use Unix milliseconds.
+- Data cells may be scalar values, objects, or compact JSON2 arrays indexed through the payload's `point` schema. Renderers must preserve the value extraction semantics in `src/sdk/makeChart/getPointValue.js`.
 - Dimension identifiers, order, visibility, values, units, nulls, gaps, and corrected-history behavior affect renderers and consumers.
 - Renderer changes must not silently alter API requests, payload interpretation, dimension selection, or synchronization behavior.
 
-Evidence: `src/sdk/makeChart/`, `src/sdk/plugins/`, `.agents/sow/current/SOW-0002-20260727-uplot-migration.md`.
+Evidence: `src/sdk/makeChart/`, `src/sdk/plugins/`, `.agents/sow/done/SOW-0002-20260727-native-gpu-renderer-prototype.md`.
 
 ## Visual And Interaction Contract
 

@@ -55,6 +55,38 @@ describe("time-series renderer routing", () => {
     expect(chart.getUI().getDygraph()).toBeNull()
   })
 
+  it("falls back before construction when a registered renderer is unsupported", () => {
+    const unsupported = () => null
+    unsupported.isSupported = () => false
+    const sdk = makeDefaultSDK({
+      attributes: { chartLibrariesByType: { line: "unsupported" } },
+    })
+    sdk.addUI("unsupported", unsupported)
+    const chart = sdk.makeChart({ attributes: { chartType: "line" } })
+    sdk.appendChild(chart)
+
+    expect(chart.getAttribute("chartLibrary")).toBe("dygraph")
+    expect(chart.getUI().getDygraph()).toBeNull()
+  })
+
+  it("replaces a failed active renderer with dygraph", () => {
+    const chart = makeChart({ line: "number" })
+
+    expect(chart.fallbackChartLibrary("number")).toBe(true)
+    expect(chart.getAttribute("chartLibrary")).toBe("dygraph")
+    expect(chart.getUI().getDygraph()).toBeNull()
+    expect(chart.getUI().marker()).toBe("preserved")
+  })
+
+  it("ignores a stale failure from a renderer that is no longer active", () => {
+    const chart = makeChart({ line: "number" })
+    chart.updateAttribute("chartLibrariesByType", { line: "dygraph" })
+    chart.reconcileChartLibrary()
+
+    expect(chart.fallbackChartLibrary("number")).toBe(false)
+    expect(chart.getAttribute("chartLibrary")).toBe("dygraph")
+  })
+
   it("reconciles after the first payload supplies the chart type", async () => {
     const sdk = makeDefaultSDK({
       attributes: { chartLibrariesByType: { line: "number" } },
