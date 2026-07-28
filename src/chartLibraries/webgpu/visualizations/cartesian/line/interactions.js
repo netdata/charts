@@ -108,6 +108,7 @@ const makeSelectionRect = ({ mode, start, end, frame }) => {
 
 export default ({
   chart,
+  chartUI,
   canvas,
   getFrame,
   setDateWindow,
@@ -147,6 +148,7 @@ export default ({
   }
 
   const mousemove = event => {
+    chartUI.trigger("mousemove", event)
     if (drag) return
     if (!chart.getAttribute("enabledHover")) return
     const point = eventToCanvasPoint(event, canvas)
@@ -165,8 +167,9 @@ export default ({
     chart.trigger("highlightHover", closest.timestampMs, closest.dimensionId)
   }
 
-  const mouseleave = () => {
+  const mouseleave = event => {
     if (drag) return
+    chartUI.trigger("mouseout", event)
     lastX = null
     lastY = null
     hovering = false

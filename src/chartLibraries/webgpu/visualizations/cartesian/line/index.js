@@ -37,6 +37,7 @@ export default ({ chart, chartUI }) => {
   const mount = ({ render, canvas }) => {
     offInteractions = makeInteractions({
       chart,
+      chartUI,
       canvas,
       getFrame: () => lastFrame,
       setDateWindow: dateWindow => {

@@ -14,10 +14,9 @@ export const makeVerticalDashRects = ({ x, plot, color, dash = [5, 5] }) => {
 export const makeCrosshairRects = (chart, frame) => {
   const clickX = chart.getAttribute("clickX")
   const hoverX = chart.getAttribute("hoverX")
-  const dimensions = Array.isArray(clickX) ? clickX : hoverX
+  const click = Array.isArray(clickX) && Number.isFinite(clickX[0])
+  const dimensions = click ? clickX : hoverX
   if (!Array.isArray(dimensions) || !Number.isFinite(dimensions[0])) return []
-
-  const click = dimensions === clickX
   const x = xPosition(dimensions[0], frame.afterMs, frame.beforeMs, frame.plot)
   if (x < frame.plot.left || x > frame.plot.left + frame.plot.width) return []
 

@@ -4,7 +4,7 @@
 
 Status: in-progress
 
-Sub-state: The first production-capable opt-in line renderer now works and passes its physical-GPU gates. Visualization/renderer separation, one-canvas rendering, exact line data semantics, interactions, fallback, exports, and shared-runtime multi-chart lifecycle are implemented. Runtime/power policy, broader browser/device coverage, rollout/defaulting, and later visualization adapters remain intentionally deferred; Dygraphs remains every default.
+Sub-state: The first production-capable opt-in line renderer now works and passes its physical-GPU gates. Visualization/renderer separation, one-canvas rendering, exact line data semantics, interactions, fallback, exports, and shared-runtime multi-chart lifecycle are implemented. The active hardening milestone first repairs physically reproduced hover hairline/popover regressions, then evaluates an exact WebGL2 acceleration fallback for environments where WebGPU cannot acquire an adapter. Runtime/power policy, broader browser/device coverage, rollout/defaulting, and later visualization adapters remain intentionally deferred; Dygraphs remains every default.
 
 ## Requirements
 
@@ -14,7 +14,9 @@ Deliver a production-quality Netdata-native WebGPU visualization engine that pre
 
 ### User Request
 
-Proceed with WebGPU as the renderer direction after the native feasibility prototype proved exact 100,000-value one-frame rendering and more than 5x frame-settled gains at 1,000,000 values. Organize it for eventual migration of every Netdata visualization, not only line or time series; line remains the first implementation. Minimize visible DOM: deterministic, simple visualization pixels should be drawn on canvas, with any unavoidable DOM surface explicitly managed. Do not confuse the benchmark's one-frame acceptance rule with runtime renderer selection.
+Proceed with WebGPU as the preferred renderer direction after the native feasibility prototype proved exact 100,000-value one-frame rendering and more than 5x frame-settled gains at 1,000,000 values. Organize it for eventual migration of every Netdata visualization, not only line or time series; line remains the first implementation. Minimize visible DOM: deterministic, simple visualization pixels should be drawn on canvas, with any unavoidable DOM surface explicitly managed. Do not confuse the benchmark's one-frame acceptance rule with runtime renderer selection.
+
+On 2026-07-29, the user approved two ordered hardening stages: repair and physically verify the missing WebGPU hover hairline/popover; then build an exact WebGL2 feasibility backend and promote it to the runtime chain `WebGPU -> WebGL2 -> Dygraphs` only if it passes the existing correctness, performance, export, and lifecycle gates.
 
 ### Assistant Understanding
 
@@ -50,7 +52,7 @@ Unknowns:
 - The internal engine separates visualization identity from rendering backend and provides shared runtime, surface/frame, ordered-layer, primitive, text-atlas, and interaction seams usable by all current visualization families without line/time-series assumptions.
 - The first implementation exercises those seams through exact visual and interaction parity for ordinary line charts; no empty future visualization adapters or unused speculative primitives are added.
 - Approved production scope has exact visual and interaction parity against Dygraphs for every enabled chart type and state.
-- WebGPU is preferred only for approved eligible chart types after capability and feature checks; Dygraphs remains installed and automatically handles unsupported capability/features, initialization/pipeline failure, and device loss.
+- WebGPU is preferred only for approved eligible chart types after capability and feature checks. A WebGL2 backend may become the accelerated compatibility fallback only after proving the same exact-data correctness, performance, export, and lifecycle gates; Dygraphs remains installed as the final compatibility fallback.
 - Runtime routing never benchmarks renderers dynamically and never falls back solely because WebGPU requires more than one display frame.
 - Shared device/pipelines, prewarming, persistent buffers, multi-chart ownership, virtualization, resize, teardown, and device-loss recovery are validated without leaks or blank charts.
 - Existing payload/query/public timestamp contracts remain unchanged; compact point-schema values, null gaps, visibility, colors, corrected history, and full updates retain exact semantics.
@@ -87,7 +89,7 @@ Current state:
 Risks:
 
 - Defaulting before complete parity can silently change visuals or interactions.
-- WebGPU support varies by browser, operating system, device, driver, VM, and security policy. Official May 2026 status still leaves gaps, including Firefox stable on Linux/Android and some Chromium Linux/Android GPU families.
+- WebGPU support varies by browser, operating system, device, driver, VM, window-system/backend selection, and security policy. The local Chromium X11 path exposes `navigator.gpu` but returns no adapter, while native Wayland acquires the same physical NVIDIA GPU. WebGL2 is broader but adds another context, shader language, resource lifecycle, context-loss path, and export surface that must be independently proven.
 - The prototype requests a high-performance adapter. MDN warns this can materially reduce laptop battery life and increase device loss; production should use the browser's default adapter unless measured evidence proves it insufficient.
 - Cold device/pipeline startup, device loss, uncaptured validation/out-of-memory errors, resource ownership, and many simultaneous charts can create latency, blanks, or GPU-memory leaks.
 - Raw `f32` y values can lose meaningful variation around large baselines. Production packing needs a double-precision CPU origin/scale before storing normalized `f32` values.
@@ -178,7 +180,7 @@ Open decisions:
 
 ## Implications And Decisions
 
-1. **WebGPU direction:** approved. Build the production renderer on WebGPU, not WebGL or a third-party chart library.
+1. **GPU direction:** approved. WebGPU remains the preferred production backend. WebGL2 is approved as a potential exact acceleration fallback—not a replacement or third-party chart library—subject to the existing benchmark and parity gates before production routing.
 2. **Runtime fallback meaning:** approved. Fallback is for capability, unsupported feature, initialization/pipeline failure, or device loss—not a one-frame performance threshold.
 3. **Current default:** approved. Dygraphs remains default until the production SOW proves and receives approval for a rollout milestone.
 4. **No silent approximation:** retained. Exact rendering remains mandatory unless a separate explicit product mode is designed and approved.
@@ -188,6 +190,8 @@ Open decisions:
 8. **Precision and autoscaling:** recommended line design. Normalize y values from double-precision payload ranges before `f32` storage and build exact block min/max indexes so pan/zoom changes uniforms and low-cost range queries, not data buffers.
 9. **Runtime, platforms, and rollout:** explicitly deferred by the user until a production-capable renderer works. Prototype fallback behavior remains unchanged in the meantime.
 10. Production architecture implementation is approved. Later runtime/platform/rollout policy remains deferred and does not block the opt-in renderer.
+11. **Hover regression repair:** approved. Treat `clickX` as active only when it contains a finite timestamp, otherwise render valid `hoverX`; forward WebGPU native pointer exit/motion through the renderer-neutral `chartUI` event contract so the existing React popover works unchanged.
+12. **WebGL2 fallback evaluation:** approved. First build an exact standalone feasibility backend against the existing deterministic 100,000/1,000,000-value workloads. If it passes, share visualization/data/interaction logic and keep only shaders, GPU resources, surfaces, and loss handling backend-specific. The intended chain is `WebGPU -> WebGL2 -> Dygraphs`; no sampling, approximation, or WebGPU compatibility-mode assumption is allowed.
 
 ## Plan
 
@@ -195,7 +199,10 @@ Open decisions:
 2. Start with the one-canvas/offscreen-text-atlas boundary and keep it reversible behind stable layer contracts.
 3. Establish the renderer/visualization separation and shared engine seams with no behavior/default change.
 4. Implement and validate line as the first complete adapter.
-5. Evaluate runtime, browser, rollout, and the next visualization only after working evidence exists.
+5. Repair and physically verify WebGPU hover hairline/popover behavior without changing the existing DOM boundary.
+6. Build and benchmark an exact WebGL2 feasibility backend before refactoring production routing.
+7. If WebGL2 passes the gates, integrate it behind shared visualization/data/interaction contracts and validate `WebGPU -> WebGL2 -> Dygraphs`, context loss, export, builds, and Cloud consumption.
+8. Evaluate runtime, browser, rollout, and the next visualization only after working evidence exists.
 
 ## Execution Log
 
@@ -232,6 +239,17 @@ Open decisions:
 - The user's normal Chromium is explicitly forced to X11 and reports `No available adapters`; line charts correctly fell back to Dygraphs there while topology GPU rendering continued through its separate WebGL backend. A separate native-Wayland Chromium profile, without unsafe WebGPU flags, loaded the same `/v3/` build and proved `adapterAcquired: true`, preference `{ line: "webgpu" }`, 10 visible WebGPU canvases, 10 WebGPU chart instances, and 7 expected non-line Dygraphs instances.
 - Committed the production-capable opt-in line milestone with message `feat: add production WebGPU line renderer`.
 - The user selected line/Cloud/browser hardening before any rollout or next-visualization work.
+
+### 2026-07-29
+
+- Reproduced the missing hover behavior in the installed native-Wayland WebGPU demo. Native canvas mouse events fire and update `hoverX`, but neither plot pixels nor the React popover change.
+- Isolated two concrete causes: array-valued default `clickX: [null, null]` masks finite `hoverX` in crosshair selection, and the WebGPU canvas does not forward native `mousemove`/`mouseout` through `chartUI`, which is the existing popover contract.
+- The user approved the surgical hover repair followed by an exact WebGL2 feasibility backend. WebGPU remains preferred; WebGL2 may enter the production fallback chain only after passing the same deterministic performance, export, lifecycle, and visual gates.
+- Official Chrome 146 compatibility mode starts with Android OpenGL ES 3.1 and only explores other platforms, so it is not accepted as a Linux desktop fallback. TimeChart and WebGL Plot provide source evidence for WebGL2 float-texture/vertex-shader line rendering, but they do not prove Netdata parity or performance; the local benchmark remains authoritative.
+- Repaired both hover failures without changing public behavior or the canvas/DOM boundary. A click selection now wins only when its timestamp is finite; otherwise a finite synchronized hover selection drives the GPU crosshair. Native WebGPU canvas motion/exit now forwards through the same `chartUI` events consumed by the existing React popover.
+- Added real SDK/chart and DOM-event regression coverage without new Jest mocks. Full Jest passed 167 suites with 1,554 passed and 2 skipped; focused tests, changed-file ESLint, CJS/ES6 builds, SOW audit, and `git diff --check` passed.
+- Rebuilt the isolated Cloud consumer with the verified local Charts distribution and reinstalled `/v3/`; the installed Charts bundle matches the build at `sha256 cb9ed72f8ecd68e8490db53cbced419bc96d86dd6995c20ee4f85439c692e023`. The temporary line-to-WebGPU preference was removed from source after the build.
+- Fresh-cache physical Chromium 150/Wayland validation passed: the React popover opened on hover and closed on exit, `clickX` remained `[null, null]`, synchronized `hoverX` became finite, and the GPU canvas changed by exactly 88 pixels corresponding to the visible dashed hairline. No console or page errors occurred. Ephemeral evidence is `/tmp/webgpu-hover-validation.json` and `/tmp/webgpu-hover-canvas-{before,after}.png`.
 
 ## Validation
 
