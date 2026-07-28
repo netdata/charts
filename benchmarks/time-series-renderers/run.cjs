@@ -106,6 +106,12 @@ const compare = results =>
     const values = workload.dimensions * workload.points
     const dygraph = results.find(result => result.renderer === "dygraph" && result.values === values)
     const webgpu = results.find(result => result.renderer === "webgpu" && result.values === values)
+    const multiChartPassed = Boolean(
+      webgpu.multiChart &&
+        webgpu.multiChart.runtimeReferencesDuring === webgpu.multiChart.count + 1 &&
+        webgpu.multiChart.runtimeReferencesAfter === 1 &&
+        webgpu.multiChart.gpuBufferBytes > 0
+    )
     const speedups = {
       mountSync: speedup(dygraph.mountSyncMs.median, webgpu.mountSyncMs.median),
       mountFrame: speedup(dygraph.mountFrameMs.median, webgpu.mountFrameMs.median),
@@ -141,6 +147,8 @@ const compare = results =>
         },
         mountPassed,
         updatePassed,
+        exportPassed: webgpu.exportDataUrlBytes > 1000,
+        multiChartPassed,
       }
     }
 
@@ -151,6 +159,8 @@ const compare = results =>
       speedups,
       mountPassed: speedups.mountFrame >= workload.requiredFrameSpeedup,
       updatePassed: speedups.updateFrame >= workload.requiredFrameSpeedup,
+      exportPassed: webgpu.exportDataUrlBytes > 1000,
+      multiChartPassed,
     }
   })
 
@@ -162,6 +172,8 @@ const run = async () => {
     "--disable-background-timer-throttling",
     "--disable-renderer-backgrounding",
   ]
+  if (process.env.CHROMIUM_OZONE_PLATFORM)
+    browserArgs.push(`--ozone-platform=${process.env.CHROMIUM_OZONE_PLATFORM}`)
   if (process.env.WEBGPU_UNSAFE === "1") browserArgs.push("--enable-unsafe-webgpu")
   if (process.env.WEBGPU_VULKAN === "1") {
     browserArgs.push(
@@ -195,7 +207,13 @@ const run = async () => {
   }
 
   const comparisons = compare(results)
-  const passed = comparisons.every(result => result.mountPassed && result.updatePassed)
+  const passed = comparisons.every(
+    result =>
+      result.mountPassed &&
+      result.updatePassed &&
+      result.exportPassed &&
+      result.multiChartPassed
+  )
   const output = {
     generatedAt: new Date().toISOString(),
     runtime: {

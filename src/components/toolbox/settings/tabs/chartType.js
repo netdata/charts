@@ -141,7 +141,9 @@ const ChartType = () => {
   const chart = useChart()
   const chartLibrary = useAttributeValue("chartLibrary") || "dygraph"
   const chartType = useAttributeValue("chartType") || "line"
-  const value = chart.isTimeSeriesRenderer(chartLibrary) ? chartType : chartLibrary
+  const value =
+    chart.getVisualizationType?.() ||
+    (chart.isTimeSeriesRenderer(chartLibrary) ? chartType : chartLibrary)
 
   const options = useOptions(chart)
   const grouped = useMemo(() => groupedOptions(options), [options])

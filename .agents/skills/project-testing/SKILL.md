@@ -29,6 +29,7 @@ Do not use this skill for:
 - Real chart integration tests use `makeTestChart`, `renderWithChart`, `renderHookWithChart`, and real providers from `jest/testUtilities/`. Evidence: `jest/testUtilities/index.js` and its implementations.
 - Do not add Jest module mocks for Charts internals, netdata-ui, providers, or components. Existing legacy `jest.mock` tests are historical debt, not a pattern to copy. Evidence: `AGENTS.md` and repository search.
 - Tests are colocated with source. Focused tests commonly disable coverage for speed; the full `yarn test` run enforces configured coverage.
+- WebGPU visual, queue, export, performance, shared-runtime, and physical-device behavior uses `benchmarks/time-series-renderers/`; jsdom unit tests cannot prove GPU execution.
 
 ## Best Practices
 
@@ -81,7 +82,10 @@ yarn test --coverage=false --runInBand
 yarn test
 yarn build
 yarn lint
+BENCHMARK_HEADED=1 CHROMIUM_OZONE_PLATFORM=wayland yarn benchmark:time-series
 ```
+
+The physical benchmark page must display its current workload; a blank page or renderer fallback is a failed run. Software-adapter runs are correctness evidence only, never performance evidence.
 
 Use `yarn to-cloud` followed by the consuming Cloud Frontend build/run path when package integration must be proven.
 

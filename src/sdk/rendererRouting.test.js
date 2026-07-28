@@ -18,6 +18,8 @@ describe("time-series renderer routing", () => {
     expect(chart.getUI().getDygraph).toBeUndefined()
     expect(chart.getUI().chart).toBe(chart)
     expect(chart.getUI().marker()).toBe("preserved")
+    expect(chart.isVisualizationRenderer()).toBe(true)
+    expect(chart.isTimeSeriesRenderer()).toBe(true)
   })
 
   it("switches a routed chart back to dygraph", () => {
@@ -116,5 +118,43 @@ describe("time-series renderer routing", () => {
 
     expect(chart.getAttribute("chartLibrary")).toBe("number")
     expect(chart.getUI().getDygraph).toBeUndefined()
+  })
+
+  it("routes a standalone visualization independently from its renderer", () => {
+    const sdk = makeDefaultSDK({
+      attributes: { chartRenderersByVisualization: { gauge: "number" } },
+    })
+    const chart = sdk.makeChart({ attributes: { chartLibrary: "gauge" } })
+    sdk.appendChild(chart)
+
+    expect(chart.getVisualizationType()).toBe("gauge")
+    expect(chart.getAttribute("chartLibrary")).toBe("number")
+    expect(chart.isVisualizationRenderer("number")).toBe(true)
+    expect(chart.isVisualizationRenderer()).toBe(true)
+    expect(chart.isTimeSeriesRenderer("number")).toBe(false)
+    expect(chart.isTimeSeriesRenderer()).toBe(false)
+  })
+
+  it("falls a standalone visualization back to its legacy renderer", () => {
+    const sdk = makeDefaultSDK({
+      attributes: { chartRenderersByVisualization: { gauge: "number" } },
+    })
+    const chart = sdk.makeChart({ attributes: { chartLibrary: "gauge" } })
+    sdk.appendChild(chart)
+
+    expect(chart.fallbackChartLibrary("number")).toBe(true)
+    expect(chart.getVisualizationType()).toBe("gauge")
+    expect(chart.getAttribute("chartLibrary")).toBe("gauge")
+  })
+
+  it("keeps a visualization on its legacy renderer when WebGPU has no adapter for it", () => {
+    const sdk = makeDefaultSDK({
+      attributes: { chartRenderersByVisualization: { gauge: "webgpu" } },
+    })
+    const chart = sdk.makeChart({ attributes: { chartLibrary: "gauge" } })
+    sdk.appendChild(chart)
+
+    expect(chart.getVisualizationType()).toBe("gauge")
+    expect(chart.getAttribute("chartLibrary")).toBe("gauge")
   })
 })

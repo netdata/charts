@@ -62,7 +62,7 @@ Unknowns answered by this prototype:
 - At 1,000,000 values, the feasibility gate remains at least 5x faster prewarmed frame-settled mount and repeated update against Dygraphs.
 - Physical-GPU browser evidence is captured. Software adapters may validate correctness but cannot satisfy the performance gate.
 - No WASM, worker, SharedArrayBuffer requirement, payload protocol change, WebGL fallback, generalized performance HUD, or production instrumentation is added in this prototype.
-- The passing prototype is not made the default and is not claimed visually production-complete. Smooth spline parity, axes, overlays, full interactions, exports, broader browser support, and additional visualization families are tracked in `SOW-0004-20260727-webgpu-production-renderer.md`.
+- The passing prototype is not made the default and is not claimed visually production-complete. Smooth spline parity, axes, overlays, full interactions, exports, broader browser support, and additional visualization families are tracked in `SOW-0004-20260727-webgpu-visualization-renderer.md`.
 - A failing prototype records the measured blocker and leaves every visualization on Dygraphs.
 
 ## Analysis
@@ -401,7 +401,7 @@ Lessons:
 
 Follow-up mapping:
 
-- Production GPU renderer, smooth splines, full overlays/interactions, browser support, export, rollout, and additional visualization families are tracked in `.agents/sow/pending/SOW-0004-20260727-webgpu-production-renderer.md`.
+- Production GPU renderer, smooth splines, full overlays/interactions, browser support, export, rollout, and additional visualization families are tracked in `.agents/sow/current/SOW-0004-20260727-webgpu-visualization-renderer.md`.
 - WASM/workers remain excluded unless SOW-0004 profiling proves a CPU bottleneck and the user explicitly approves them.
 - Density/LOD remains rejected from renderer work and would require a separately approved product mode.
 
@@ -422,7 +422,7 @@ The prototype remains internal opt-in and is not production visually complete. T
 
 ## Followup
 
-Production parity and rollout are tracked in `.agents/sow/pending/SOW-0004-20260727-webgpu-production-renderer.md`.
+Production parity and rollout are tracked in `.agents/sow/current/SOW-0004-20260727-webgpu-visualization-renderer.md`.
 
 ## Regression Log
 

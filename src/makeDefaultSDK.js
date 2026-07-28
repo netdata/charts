@@ -38,6 +38,7 @@ export default ({ attributes, ...options } = {}) =>
     attributes: {
       _v: "v3",
       chartLibrary: "dygraph",
+      chartRenderersByVisualization: {},
       chartLibrariesByType: {
         line: "dygraph",
         stacked: "dygraph",

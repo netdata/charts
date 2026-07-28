@@ -30,9 +30,10 @@ Do not use this skill for:
 - Persistent chart state belongs in chart attributes so it survives virtualization and drives provider subscriptions. Read with `useAttributeValue`; do not duplicate persistent state in React `useState`. Evidence: `src/components/provider/selectors.js`, `AGENTS.md`.
 - Public SDK, component, attribute, event, chart-type, payload, and query behavior are compatibility surfaces even when implementation modules are deep imports. Evidence: `.agents/sow/specs/charts-public-consumer-contract.md`.
 - Renderer-specific behavior belongs behind chart-library/SDK seams. Do not spread renderer checks through unrelated React consumers. Evidence: `src/chartLibraries/`, `src/sdk/`, `.agents/sow/done/SOW-0002-20260727-native-gpu-renderer-prototype.md`.
-- Time-series renderer preference is resolved through `chartLibrariesByType`; unavailable or unmapped renderers fall back to Dygraphs. Renderer replacement must use the chart UI replacement lifecycle rather than unmounting and assigning a UI directly. Evidence: `src/sdk/makeChart/filters/makeControllers.js`, `src/sdk/makeChart/index.js`.
-- The internal WebGPU renderer is opt-in and shares one adapter/device and pipeline cache per SDK. Capability failure, initialization/pipeline failure, and device loss must replace it with Dygraphs; never leave a mounted blank canvas. Evidence: `src/chartLibraries/webgpu/runtime.js`, `src/chartLibraries/webgpu/index.js`.
-- Payload cells may be scalars, objects, or compact JSON2 arrays described by `payload.point`. Renderer conversion must use the shared point-value semantics rather than coercing cells directly. Evidence: `src/sdk/makeChart/getPointValue.js`, `src/chartLibraries/webgpu/data.js`.
+- Visualization identity and active renderer are separate. New internal routing uses `chartRenderersByVisualization`; `chartLibrariesByType` remains the time-series compatibility map. Consumers dispatch through `chart.getVisualizationType()` and `chart.isTimeSeriesRenderer()`, never renderer-name branches. Unavailable mappings fall back to each visualization's legacy renderer. Renderer replacement must use the chart UI replacement lifecycle rather than unmounting and assigning a UI directly. Evidence: `src/sdk/makeChart/filters/makeControllers.js`, `src/sdk/makeChart/index.js`.
+- The internal WebGPU renderer is opt-in and shares one adapter/device, pipeline cache, and bounded shaped-text atlas per SDK. Capability, unsupported-visualization, initialization/pipeline/render, uncaptured device-error, and device-loss failure must replace it with the legacy renderer; never leave a mounted blank canvas. Evidence: `src/chartLibraries/webgpu/engine/`, `src/chartLibraries/webgpu/index.js`.
+- The WebGPU line plot owns one visible GPU canvas for deterministic plot pixels. Browser-shaped complete strings are rasterized offscreen and uploaded to a bounded atlas; semantic legend/toolbox/menu/popover surfaces remain DOM-owned. Evidence: `src/chartLibraries/webgpu/text/`, `src/chartLibraries/webgpu/visualizations/cartesian/line/`.
+- Payload cells may be scalars, objects, or compact JSON2 arrays described by `payload.point`. Renderer conversion must use the shared point-value semantics rather than coercing cells directly. Evidence: `src/sdk/makeChart/getPointValue.js`, `src/chartLibraries/webgpu/visualizations/cartesian/line/data.js`.
 - React code that subscribes to chart-UI events must use `useChartUI`; reading `chart.getUI()` once leaves the component subscribed to a destroyed renderer after replacement. Evidence: `src/components/provider/selectors.js`, `src/components/chartContainer.js`.
 - The package builds CJS and ES6 distributions. There is no current UMD build script. Evidence: `package.json`.
 
@@ -41,7 +42,8 @@ Do not use this skill for:
 - Reuse existing SDK node, attribute, plugin, provider, helper, and chart-library patterns before introducing another abstraction.
 - Keep algorithmic work in small pure helpers when it can be tested independently from chart lifecycle and DOM rendering.
 - Keep consumers thin: derive state through chart/provider APIs and keep engine-specific behavior inside renderer-facing modules.
-- Preserve unsubscribe and destruction paths whenever listeners, timers, observers, SDK nodes, or chart UIs are added.
+- Preserve unsubscribe and destruction paths whenever listeners, timers, observers, SDK nodes, chart UIs, GPU buffers, textures, or device resources are added.
+- Report raw data ranges—not display-padded domains—through `yAxisChange`; feeding padded ranges back into unit conversion recursively expands the range and can force renderer fallback.
 - Preserve the public chart object and custom `options.ui` overrides when constructing a replacement renderer.
 - Validate behavior through both the source package and a real consuming path when a public/deep-import contract changes.
 - For GPU measurements, distinguish synchronous submission, queue completion, and frame presentation; prewarm shared runtime/pipelines and report cold startup separately. Software adapters validate correctness only.
@@ -74,7 +76,7 @@ Before claiming done:
 
 - Focused behavioral tests cover the changed SDK/renderer/component path.
 - Listener/timer/observer/chart-node cleanup is exercised where applicable.
-- GPU resource sharing, buffer release, runtime failure, and device-loss fallback are exercised in a real browser when WebGPU code changes.
+- GPU resource sharing, buffer release, runtime failure, export, shared-runtime multi-chart teardown, and device-loss fallback are exercised in a real browser when WebGPU code changes.
 - Unrelated chart libraries and ordinary charts retain their behavior.
 - `yarn test`, `yarn build`, and scoped/repo lint results are recorded accurately when dependencies are available.
 - Visual changes are checked in Storybook and in light/dark themes; consuming integration is checked when public behavior is affected.
@@ -87,7 +89,7 @@ Before claiming done:
 - `src/index.js`: root auto-mount behavior.
 - `src/makeDefaultSDK.js`: default libraries, plugins, and root attributes.
 - `src/sdk/`: node, attribute, plugin, and chart lifecycle architecture.
-- `src/chartLibraries/webgpu/`: shared runtime, exact line kernel, payload packing, and fallback implementation.
+- `src/chartLibraries/webgpu/`: shared engine/runtime, ordered layers, bounded text, exact line adapter, payload/range indexing, interactions, and fallback implementation.
 - `benchmarks/time-series-renderers/`: deterministic physical-GPU comparator and feasibility gates.
 - `src/components/provider/selectors.js`: reactive attribute/provider hooks.
 - `.agents/sow/specs/charts-public-consumer-contract.md`: current consumer contract.

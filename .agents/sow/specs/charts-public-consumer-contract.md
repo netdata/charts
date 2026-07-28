@@ -66,7 +66,7 @@ The package has three cooperating layers:
 - `bars`
 - `table`
 
-`webgpu` is an internal opt-in renderer. No default `chartLibrariesByType` entry selects it, and unsupported capability or runtime failure falls back to Dygraphs. Its registration does not claim complete production visual or interaction parity.
+`webgpu` is an internal opt-in visualization renderer. No default renderer map selects it. It currently implements the ordinary `line` visualization; unsupported visualizations or capability, initialization/pipeline/render failure, uncaptured device error, and device loss fall back to the legacy renderer. Its registration does not make it a default or claim parity for other visualization families.
 
 It registers these plugins in order:
 
@@ -84,6 +84,7 @@ Default root attributes include:
 
 - `_v: "v3"`
 - `chartLibrary: "dygraph"`
+- an empty `chartRenderersByVisualization` map
 - `chartLibrariesByType`, mapping `line`, `stacked`, `area`, `stackedBar`, `multiBar`, and `heatmap` to `dygraph`
 - `navigation: "pan"`
 - `after: -900`
@@ -98,9 +99,10 @@ Evidence: `src/makeDefaultSDK.js`, `src/sdk/`.
 - Provider hooks such as `useAttributeValue` subscribe to attribute changes and re-render consumers.
 - State that must survive component unmount/remount or virtualization belongs in chart attributes rather than component-local React state.
 - Event, listener, activation, deactivation, fetch, render, and destruction behavior are lifecycle contracts; changes require cleanup and remount validation.
-- `chartLibrariesByType` is the internal per-time-series-type renderer preference map. An omitted type or unavailable renderer resolves to Dygraphs.
-- A selected renderer may declare capability support and may request runtime fallback. Fallback replaces the mounted UI without changing the public chart identity; WebGPU uses this path for unavailable devices, initialization/pipeline failure, and device loss.
-- Renderer reconciliation happens after parent attributes are inherited and after the first payload supplies `chartType`. User-facing chart-type controls continue to display the visualization type rather than the internal renderer.
+- Visualization identity is independent of the active renderer. `chart.getVisualizationType()`, `chart.isVisualizationRenderer()`, and `chart.isTimeSeriesRenderer()` expose renderer-neutral identity to internal consumers.
+- `chartRenderersByVisualization` is the internal renderer preference map for all visualization families. `chartLibrariesByType` remains the compatibility map for time-series types. Existing defaults and omitted or unavailable mappings resolve to each visualization's legacy renderer.
+- A selected renderer may declare visualization/capability support and may request runtime fallback. Fallback replaces the mounted UI without changing the visualization identity; WebGPU uses this path for unavailable devices, unsupported visualizations, initialization/pipeline/render failure, uncaptured device errors, and device loss.
+- Renderer reconciliation happens after parent attributes are inherited and after the first payload supplies `chartType`. User-facing chart-type controls and consuming React dispatch continue to use the visualization identity rather than the internal renderer name.
 - Replacing a mounted chart UI preserves its DOM mount, custom UI overrides, chart identity, and renderer-bound React subscriptions. Renderer-aware hooks use `useChartUI` so subscriptions move to the replacement UI.
 
 Evidence: `src/sdk/`, `src/components/provider/`, `src/components/chartContainer.js`, `AGENTS.md`.
@@ -128,6 +130,8 @@ Publicly observable behavior includes:
 - loading, empty, error, pause/play, remount, and destruction states.
 
 An internal renderer change does not permit a visible or consumer-facing contract change unless a SOW explicitly defines and validates that change.
+
+The opt-in WebGPU line renderer owns one visible plot canvas for grid, axes, browser-shaped text, series, gap markers, data decorations, renderer overlays, crosshairs, and selections. Existing semantic and interactive React surfaces—including legend, toolbox, menus, processing state, and popovers—remain DOM-owned. This canvas/DOM placement is internal and does not change payloads, attributes, events, exports, or consumer component selection.
 
 ## Distribution And Consumer Validation
 

@@ -14,6 +14,12 @@ Prerequisites:
 BENCHMARK_HEADED=1 yarn benchmark:time-series
 ```
 
+When Chromium needs a particular Linux display backend to expose the hardware adapter:
+
+```bash
+BENCHMARK_HEADED=1 CHROMIUM_OZONE_PLATFORM=wayland yarn benchmark:time-series
+```
+
 Headless Chromium can run correctness checks with its software adapter:
 
 ```bash
@@ -26,6 +32,7 @@ The command prints JSON and exits non-zero unless WebGPU reaches both feasibilit
 
 - 100,000 values: prewarmed mount and update present within one measured display frame, GPU work completes within that budget, and synchronous/main-thread work is at least 3x lower than Dygraphs.
 - 1,000,000 values: median prewarmed frame-settled mount and repeated full-data updates are at least 5x faster than Dygraphs.
+- Each WebGPU workload exports a non-empty PNG data URL and mounts, updates, and tears down four charts sharing one SDK runtime without leaking runtime leases.
 
 The one-frame gate allows 25% browser scheduling tolerance around the measured refresh interval. A frame-settled ratio is not used when both renderers already present on the same refresh boundary. Cold adapter/device initialization and first pipeline creation are reported separately.
 
@@ -35,7 +42,7 @@ The one-frame gate allows 25% browser scheduling tolerance around the measured r
 - Workloads: 100 dimensions x 1,000 points and 1,000 dimensions x 1,000 points.
 - Geometry: every visible series and adjacent pair; no LOD, sampling, or aggregation.
 - Data: two pre-generated deterministic row-major revisions, alternated during updates.
-- Samples: 3 mounts, 2 warm-up updates, 10 measured updates, and 3 seconds of sustained updates.
+- Samples: 3 mounts, 2 warm-up updates, 10 measured updates, 3 seconds of sustained updates, and one four-chart shared-runtime lifecycle.
 - Timing: synchronous adapter time, GPU queue completion, measured display refresh interval, and wall time through the next animation frame.
 - Memory: Chromium heap before mounting, sampled peak, post-teardown retained delta, and allocated GPU buffer bytes.
 - Browser task, script, and layout durations are collected through the Chromium DevTools protocol.

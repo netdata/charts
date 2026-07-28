@@ -33,6 +33,10 @@ const measureFrameInterval = async () => {
   )
 }
 const collectMemory = () => performance.memory?.usedJSHeapSize ?? null
+const setStatus = message => {
+  const status = document.getElementById("benchmark-status")
+  if (status) status.textContent = message
+}
 
 const forceGc = async () => {
   if (typeof window.gc === "function") window.gc()
@@ -56,6 +60,9 @@ const makeData = (dimensions, points, revision) => {
 
 const makeChart = state => {
   const chart = state.sdk.makeChart()
+  chart.on("rendererFallback", (failedRenderer, error) => {
+    state.fallbackErrors.push(`${failedRenderer} fallback: ${error?.stack || error}`)
+  })
   state.sdk.appendChild(chart)
 
   let revision = 0
@@ -96,6 +103,7 @@ const makeChart = state => {
   }
 
   const element = document.createElement("div")
+  element.dataset.benchmarkChart = "true"
   element.style.width = `${width}px`
   element.style.height = `${height}px`
   document.body.appendChild(element)
@@ -120,7 +128,12 @@ const makeChart = state => {
 const settle = async (instance, startedAt = performance.now()) => {
   await instance.ui.whenReady?.()
   if (instance.chart.getAttribute("chartLibrary") !== prepared.renderer) {
-    throw new Error(`Renderer fell back to ${instance.chart.getAttribute("chartLibrary")}`)
+    const runtimeFailure = prepared.runtime?.lastFailure
+    throw new Error(
+      prepared.fallbackErrors.at(-1) ||
+        (runtimeFailure && `${runtimeFailure.reason}: ${runtimeFailure.message}`) ||
+        `Renderer fell back to ${instance.chart.getAttribute("chartLibrary")}`
+    )
   }
   await instance.ui.getQueueDone?.()
   const workCompletionMs = performance.now() - startedAt
@@ -135,6 +148,7 @@ const prepare = async ({ renderer, dimensions, points, gaps = false }) => {
   if (prepared) throw new Error("Benchmark state already prepared")
   if (renderer !== "dygraph" && renderer !== "webgpu") throw new Error("Unknown renderer")
 
+  setStatus(`Preparing ${renderer}: ${dimensions * points} values`)
   const datasets = [makeData(dimensions, points, 0), makeData(dimensions, points, 1)]
   if (gaps && points > 2) {
     const gapIndex = Math.floor(points / 2)
@@ -142,17 +156,20 @@ const prepare = async ({ renderer, dimensions, points, gaps = false }) => {
       data[gapIndex][1] = null
     })
   }
+  const fallbackErrors = []
   const sdk = makeDefaultSDK({
     on: {
       rendererFallback: (chart, failedRenderer, error) => {
-        console.error(`${failedRenderer} fallback: ${error?.stack || error}`)
+        const message = `${failedRenderer} fallback: ${error?.stack || error}`
+        fallbackErrors.push(message)
+        console.error(message)
       },
     },
     attributes: {
       autofetch: false,
       after: datasets[0][0][0] / 1000,
       before: datasets[0][points - 1][0] / 1000,
-      chartLibrariesByType: { line: renderer },
+      chartRenderersByVisualization: { line: renderer },
     },
   })
   prepared = {
@@ -164,6 +181,7 @@ const prepare = async ({ renderer, dimensions, points, gaps = false }) => {
     sdk,
     runtime: null,
     runtimeLease: false,
+    fallbackErrors,
   }
 
   let coldRuntimeMs = null
@@ -197,8 +215,47 @@ const prepare = async ({ renderer, dimensions, points, gaps = false }) => {
   }
 }
 
+const measureMultiChart = async (count = 4) => {
+  if (prepared.renderer !== "webgpu") return null
+  const instances = Array.from({ length: count }, () => makeChart(prepared))
+  const mountStartedAt = performance.now()
+  instances.forEach(instance => instance.ui.mount(instance.element))
+  await Promise.all(instances.map(instance => instance.ui.whenReady()))
+  if (instances.some(instance => instance.chart.getAttribute("chartLibrary") !== "webgpu"))
+    throw new Error("A multi-chart WebGPU instance fell back")
+  await Promise.all(instances.map(instance => instance.ui.getQueueDone()))
+  await nextFrame()
+  const mountMs = performance.now() - mountStartedAt
+  const runtimeReferencesDuring = prepared.runtime.references
+
+  const updateStartedAt = performance.now()
+  instances.forEach(instance => {
+    instance.setRevision(1)
+    instance.ui.invalidateRender()
+    instance.ui.render()
+  })
+  await Promise.all(instances.map(instance => instance.ui.getQueueDone()))
+  await nextFrame()
+  const updateMs = performance.now() - updateStartedAt
+  const gpuBufferBytes = instances.reduce(
+    (total, instance) => total + (instance.ui.getBufferBytes?.() || 0),
+    0
+  )
+
+  instances.forEach(instance => instance.destroy())
+  return {
+    count,
+    mountMs,
+    updateMs,
+    gpuBufferBytes,
+    runtimeReferencesDuring,
+    runtimeReferencesAfter: prepared.runtime.references,
+  }
+}
+
 const measure = async ({ mountSamples = 3, updateSamples = 10, sustainedMs = 3000 } = {}) => {
   if (!prepared) throw new Error("Benchmark state has not been prepared")
+  setStatus(`Running ${prepared.renderer}: ${prepared.dimensions * prepared.points} values`)
 
   let pipelineWarmupMs = null
   if (prepared.renderer === "webgpu") {
@@ -269,11 +326,15 @@ const measure = async ({ mountSamples = 3, updateSamples = 10, sustainedMs = 300
   }
   const sustainedElapsedMs = performance.now() - sustainedStartedAt
   const gpuBufferBytes = instance.ui.getBufferBytes?.() || 0
+  const exportCanvas = instance.ui.getCanvas?.() || instance.element.querySelector("canvas")
+  const exportDataUrlBytes = exportCanvas?.toDataURL("image/png").length || 0
 
   instance.destroy()
+  const multiChart = await measureMultiChart()
   await forceGc()
   const retainedMemory = collectMemory()
 
+  setStatus(`Completed ${prepared.renderer}: ${prepared.dimensions * prepared.points} values`)
   return {
     renderer: prepared.renderer,
     dimensions: prepared.dimensions,
@@ -295,17 +356,26 @@ const measure = async ({ mountSamples = 3, updateSamples = 10, sustainedMs = 300
       missedFrameBudget: sustainedDurations.filter(value => value > 1000 / 60).length,
     },
     gpuBufferBytes,
+    exportDataUrlBytes,
+    multiChart,
     peakMemory,
     retainedMemory,
   }
 }
 
-const mountPreview = async ({ stepped = false, visibleDimensionIds = null } = {}) => {
+const mountPreview = async ({
+  stepped = false,
+  visibleDimensionIds = null,
+  enabledXAxis,
+  enabledYAxis,
+} = {}) => {
   if (!prepared) throw new Error("Benchmark state has not been prepared")
   if (preview) throw new Error("Preview is already mounted")
 
   preview = makeChart(prepared)
   preview.chart.updateAttribute("stepPlot", stepped)
+  if (enabledXAxis !== undefined) preview.chart.updateAttribute("enabledXAxis", enabledXAxis)
+  if (enabledYAxis !== undefined) preview.chart.updateAttribute("enabledYAxis", enabledYAxis)
   if (visibleDimensionIds) {
     preview.chart.updateAttribute("selectedLegendDimensions", visibleDimensionIds)
   }
@@ -315,6 +385,21 @@ const mountPreview = async ({ stepped = false, visibleDimensionIds = null } = {}
     renderer: preview.chart.getAttribute("chartLibrary"),
     canvas: preview.ui.getCanvas?.()?.dataset.renderer || "dygraph",
     runtimeReferences: prepared.runtime?.references || 0,
+  }
+}
+
+const inspectPreview = () => {
+  if (!preview) throw new Error("A preview is required")
+  const xAxisRange = preview.ui.getXAxisRange?.() || null
+  return {
+    plotArea: preview.ui.getPlotArea?.() || null,
+    xAxisRange,
+    xCoords: xAxisRange?.map(value => preview.ui.getXCoord?.(value)) || null,
+    hoverX: preview.chart.getAttribute("hoverX"),
+    clickX: preview.chart.getAttribute("clickX"),
+    navigation: preview.chart.getAttribute("navigation"),
+    panning: preview.chart.getAttribute("panning"),
+    enabledHover: preview.chart.getAttribute("enabledHover"),
   }
 }
 
@@ -339,7 +424,8 @@ const cleanup = async () => {
   if (prepared?.runtimeLease) prepared.runtime.release()
   if (prepared?.sdk) disposeWebGPURuntime(prepared.sdk)
   prepared = null
-  document.body.replaceChildren()
+  document.querySelectorAll("[data-benchmark-chart]").forEach(element => element.remove())
+  setStatus("Renderer benchmark is idle")
   await forceGc()
 }
 
@@ -347,6 +433,7 @@ window.__NETDATA_RENDERER_BENCHMARK__ = {
   prepare,
   measure,
   mountPreview,
+  inspectPreview,
   exerciseDeviceLossFallback,
   cleanup,
 }

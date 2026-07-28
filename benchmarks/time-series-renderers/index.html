@@ -4,8 +4,22 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Time-series renderer benchmark</title>
+    <style>
+      #benchmark-status {
+        position: fixed;
+        z-index: 1000;
+        top: 8px;
+        right: 8px;
+        padding: 6px 10px;
+        border-radius: 4px;
+        background: #202b33;
+        color: #ffffff;
+        font: 12px sans-serif;
+      }
+    </style>
   </head>
   <body>
+    <div id="benchmark-status" role="status">Renderer benchmark is loading…</div>
     <script src="/benchmark.js"></script>
   </body>
 </html>

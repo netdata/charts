@@ -27,6 +27,9 @@ describe("makeControllers", () => {
     expect(controllers).toHaveProperty("resetPristine")
     expect(controllers).toHaveProperty("removePristine")
     expect(controllers).toHaveProperty("toggleFullscreen")
+    expect(controllers).toHaveProperty("getRendererForVisualization")
+    expect(controllers).toHaveProperty("getVisualizationType")
+    expect(controllers).toHaveProperty("isVisualizationRenderer")
   })
 
   it("updateAggregationMethodAttribute updates when value changes", () => {
