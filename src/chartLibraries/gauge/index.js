@@ -140,7 +140,13 @@ export default (sdk, chart) => {
 
     const { gaugeGradient, gaugeThresholds: thresholds } = chart.getAttributes()
     const [min, max] = getMinMax()
-    const stops = makeThresholdStops(thresholds, min, max, chart.getThemeIndex())
+    const stops = makeThresholdStops(
+      thresholds,
+      min,
+      max,
+      chart.getThemeIndex(),
+      chart.selectDimensionColor()
+    )
 
     if (stops) {
       gauge.setOptions({

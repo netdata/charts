@@ -64,6 +64,61 @@ describe("makeThresholdStops", () => {
     expect(gauge.getColorForValue(99, false)).toBe("rgb(249,82,81)")
   })
 
+  it("prepends a base band below the lowest threshold using the base color", () => {
+    const stops = makeThresholdStops(
+      [
+        { from: 80, color: ["#FFA400", "#FFA400"] },
+        { from: 90, color: ["#F95251", "#F95251"] },
+      ],
+      0,
+      100,
+      0,
+      "#123456"
+    )
+    expect(stops).toHaveLength(3)
+    expect(stops[0][1]).toBe("#123456")
+    expect(stops[0][0]).toBeCloseTo(0.8, 5)
+  })
+
+  it("renders the base color below the lowest threshold (real engine)", () => {
+    const canvas = document.createElement("canvas")
+    canvas.width = 200
+    canvas.height = 200
+    const gauge = new Gauge(canvas)
+    gauge.maxValue = 100
+    gauge.setMinValue(0)
+    const stops = makeThresholdStops(
+      [
+        { from: 80, color: ["#FFA400", "#FFA400"] },
+        { from: 90, color: ["#F95251", "#F95251"] },
+      ],
+      0,
+      100,
+      0,
+      "#123456"
+    )
+    gauge.setOptions({ percentColors: stops, generateGradient: false })
+
+    expect(gauge.getColorForValue(30, false)).toBe("rgb(18,52,86)")
+    expect(gauge.getColorForValue(85, false)).toBe("rgb(255,164,0)")
+    expect(gauge.getColorForValue(95, false)).toBe("rgb(249,82,81)")
+  })
+
+  it("does not prepend a base band when a threshold already starts at min", () => {
+    const stops = makeThresholdStops(
+      [
+        { from: 0, color: ["#00AB44", "#00AB44"] },
+        { from: 80, color: ["#FFA400", "#FFA400"] },
+      ],
+      0,
+      100,
+      0,
+      "#123456"
+    )
+    expect(stops).toHaveLength(2)
+    expect(stops[0][1]).toBe("#00AB44")
+  })
+
   it("keeps the last threshold when two share the same from", () => {
     const stops = makeThresholdStops(
       [

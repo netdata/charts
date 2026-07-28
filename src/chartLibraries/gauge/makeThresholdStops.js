@@ -2,7 +2,7 @@ const EPSILON = 1e-6
 
 const clamp = (value, low, high) => Math.max(Math.min(value, high), low)
 
-export default (thresholds, min, max, themeIndex = 0) => {
+export default (thresholds, min, max, themeIndex = 0, baseColor) => {
   if (!Array.isArray(thresholds) || !thresholds.length || max === min) return undefined
 
   const rows = thresholds
@@ -19,10 +19,17 @@ export default (thresholds, min, max, themeIndex = 0) => {
     return acc
   }, [])
 
-  return deduped.map((row, i) => {
+  const stops = deduped.map((row, i) => {
     const hex = row.color[themeIndex] || row.color[0]
     const next = deduped[i + 1]
     if (!next) return [1, hex]
     return [clamp((next.from - min) / (max - min), 0, 1) - EPSILON, hex]
   })
+
+  if (baseColor && deduped[0].from > min) {
+    const basePct = clamp((deduped[0].from - min) / (max - min), 0, 1) - EPSILON
+    return [[basePct, baseColor], ...stops]
+  }
+
+  return stops
 }
