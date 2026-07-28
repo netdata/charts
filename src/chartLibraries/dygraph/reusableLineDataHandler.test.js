@@ -180,6 +180,68 @@ describe("reusable line data handler", () => {
     expect(dygraph.layout_.points[0][0].name).toBe("second")
   })
 
+  it("skips hidden series and rebuilds them when they become visible", () => {
+    const labels = ["time", "first", "second"]
+    const data = [
+      [1000, -1, 2],
+      [2000, 3, 4],
+      [3000, 5, 8],
+      [4000, 7, null],
+    ]
+    const options = {
+      labels,
+      dateWindow: [1500, 3500],
+      logscale: true,
+      rollPeriod: 2,
+    }
+    const reference = makeDygraph(data, options)
+    const candidate = makeDygraph(data, {
+      ...options,
+      dataHandler: makeReusableLineDataHandler(),
+    })
+    const secondSeries = candidate.rolledSeries_[2]
+    const secondPoint = candidate.layout_.points[1][0]
+    const annotations = [{ series: "second", x: 2000, shortText: "A" }]
+
+    reference.setAnnotations(annotations)
+    candidate.setAnnotations(annotations)
+
+    reference.updateOptions({ visibility: [true, false] })
+    candidate.updateOptions({ visibility: [true, false] })
+
+    expect(candidate.rolledSeries_[2]).toEqual([])
+    expect(candidate.layout_.setNames).toEqual(reference.layout_.setNames)
+    const hiddenReference = snapshot(reference)
+    const hiddenCandidate = snapshot(candidate)
+    expect({
+      points: hiddenCandidate.points,
+      xRange: hiddenCandidate.xRange,
+      yRange: hiddenCandidate.yRange,
+    }).toEqual({
+      points: hiddenReference.points,
+      xRange: hiddenReference.xRange,
+      yRange: hiddenReference.yRange,
+    })
+
+    const nextData = [
+      [2000, 9, 16],
+      [3000, 11, 32],
+      [4000, 13, 64],
+      [5000, 15, 128],
+    ]
+    reference.updateOptions({ file: nextData })
+    candidate.updateOptions({ file: nextData })
+    reference.updateOptions({ visibility: [true, true] })
+    candidate.updateOptions({ visibility: [true, true] })
+
+    expect(candidate.rolledSeries_[2]).not.toBe(secondSeries)
+    expect(candidate.layout_.points[1][0]).not.toBe(secondPoint)
+    expect(snapshot(candidate)).toEqual(snapshot(reference))
+    expect(candidate.layout_.points[1].map(point => point.annotation?.shortText)).toEqual(
+      reference.layout_.points[1].map(point => point.annotation?.shortText)
+    )
+  })
+
   it("does not retain removed annotations on reused points", () => {
     const labels = ["time", "value"]
     const dygraph = makeDygraph([[1000, 1]], {

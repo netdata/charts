@@ -93,9 +93,15 @@ export const makeReusableLineDataHandler = () => {
         reset(nextLabels, rawData.length)
       }
 
+      const seriesLabel = nextLabels[seriesIndex]
+      if (options.get("visibility")?.[seriesIndex - 1] === false) {
+        if (seriesByIndex[seriesIndex]) seriesByIndex[seriesIndex] = null
+        pointsByName.delete(seriesLabel)
+        return []
+      }
+
       if (!reusable) return super.extractSeries(rawData, seriesIndex, options)
 
-      const seriesLabel = nextLabels[seriesIndex]
       const logScale = options.getForSeries("logscale", seriesLabel)
       let series = seriesByIndex[seriesIndex]
 
