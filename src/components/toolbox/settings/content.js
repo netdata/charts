@@ -14,6 +14,7 @@ const RESET_DEFAULTS = {
   staticFractionDigits: null,
   points: null,
   nulls2zero: false,
+  gaugeThresholds: null,
 }
 
 const FETCH_KEYS = new Set(["points", "nulls2zero", "groupingMethod"])

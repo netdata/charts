@@ -3,6 +3,7 @@ import makeChartUI from "@/sdk/makeChartUI"
 import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
 import lightenColor from "./makeGradientColors"
+import makeThresholdStops from "./makeThresholdStops"
 
 const makeGradientFillStyle = (lightColor, fullColor) => g => {
   if (!g.ctx.createConicGradient) return fullColor
@@ -38,7 +39,8 @@ export default (sdk, chart) => {
     chartUI.mount(element)
 
     const { color, strokeColor } = makeThemingOptions()
-    const { staticZones, gaugeLineWidth, gaugeGradient } = chart.getAttributes()
+    const { staticZones, gaugeLineWidth, gaugeGradient, gaugeThresholds } = chart.getAttributes()
+    const hasThresholds = Array.isArray(gaugeThresholds) && gaugeThresholds.length > 0
     const dimensionColor = chart.selectDimensionColor()
 
     const makeGaugeOptions = () => ({
@@ -56,9 +58,10 @@ export default (sdk, chart) => {
       colorStart: dimensionColor,
       generateGradient: true,
       highDpiSupport: true,
-      ...(gaugeGradient && {
-        customFillStyle: makeGradientFillStyle(lightenColor(dimensionColor), dimensionColor),
-      }),
+      ...(gaugeGradient &&
+        !hasThresholds && {
+          customFillStyle: makeGradientFillStyle(lightenColor(dimensionColor), dimensionColor),
+        }),
       ...(staticZones && {
         staticZones: [{ strokeStyle: strokeColor, min: 0, max: 100, height: 1 }, ...staticZones],
       }),
@@ -93,19 +96,24 @@ export default (sdk, chart) => {
     listeners = unregister(
       chart.onAttributeChange("hoverX", render),
       !loaded && chart.onceAttributeChange("loaded", render),
+      chart.onAttributeChange("gaugeThresholds", applyThresholds),
       chart.onAttributeChange("theme", () => {
         const { color, strokeColor } = makeThemingOptions()
         const updatedDimensionColor = chart.selectDimensionColor()
+        const { gaugeThresholds: thresholds } = chart.getAttributes()
+        const themeHasThresholds = Array.isArray(thresholds) && thresholds.length > 0
         gauge.setOptions({
           strokeColor,
           pointer: { color },
-          ...(gaugeGradient && {
-            customFillStyle: makeGradientFillStyle(
-              lightenColor(updatedDimensionColor),
-              updatedDimensionColor
-            ),
-          }),
+          ...(gaugeGradient &&
+            !themeHasThresholds && {
+              customFillStyle: makeGradientFillStyle(
+                lightenColor(updatedDimensionColor),
+                updatedDimensionColor
+              ),
+            }),
         })
+        if (themeHasThresholds) applyThresholds()
       })
     )
 
@@ -126,6 +134,38 @@ export default (sdk, chart) => {
   })
 
   const getMinMax = () => chart.getAttribute("getValueRange")(chart)
+
+  const applyThresholds = () => {
+    if (!gauge) return
+
+    const { gaugeGradient, gaugeThresholds: thresholds } = chart.getAttributes()
+    const [min, max] = getMinMax()
+    const stops = makeThresholdStops(
+      thresholds,
+      min,
+      max,
+      chart.getThemeIndex(),
+      chart.selectDimensionColor()
+    )
+
+    if (stops) {
+      gauge.setOptions({
+        percentColors: stops,
+        generateGradient: false,
+        customFillStyle: undefined,
+      })
+      return
+    }
+
+    const dimensionColor = chart.selectDimensionColor()
+    gauge.setOptions({
+      percentColors: undefined,
+      generateGradient: true,
+      ...(gaugeGradient && {
+        customFillStyle: makeGradientFillStyle(lightenColor(dimensionColor), dimensionColor),
+      }),
+    })
+  }
 
   const render = () => {
     const { hoverX, loaded } = chart.getAttributes()
@@ -149,6 +189,7 @@ export default (sdk, chart) => {
 
     if (min !== prevMin || max !== prevMax) {
       chart.trigger("yAxisChange", min, max)
+      applyThresholds()
     }
 
     prevMin = min

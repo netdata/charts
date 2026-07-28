@@ -4,6 +4,7 @@ import ChartType from "./chartType"
 import ChartElements from "../chartElements"
 import ValueRange from "../valueRange"
 import NumberFormat from "../numberFormat"
+import GaugeThresholds from "../gaugeThresholds"
 
 const DisplayBody = () => (
   <Flex column gap={3} padding={[3]} width={{ min: "260px" }}>
@@ -11,6 +12,7 @@ const DisplayBody = () => (
     <ChartElements />
     <ValueRange />
     <NumberFormat />
+    <GaugeThresholds />
   </Flex>
 )
 
@@ -27,5 +29,6 @@ export default {
     "staticValueRange",
     "desiredUnits",
     "staticFractionDigits",
+    "gaugeThresholds",
   ],
 }

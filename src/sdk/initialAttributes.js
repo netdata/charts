@@ -209,6 +209,7 @@ export default {
 
   gaugeLineWidth: 0.1,
   gaugeGradient: true,
+  gaugeThresholds: null,
 
   themeD3pieSmallColor: ["#536775", "#CFD5DA"],
   themeD3pieStroke: ["#DBE1E1", "#353F3F"],
