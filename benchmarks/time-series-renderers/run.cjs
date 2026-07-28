@@ -20,7 +20,21 @@ const workloads = [
     requiredFrameSpeedup: 5,
   },
 ]
-const renderers = ["dygraph", "webgpu"]
+const supportedCandidates = new Set(["webgpu", "webgl2"])
+const candidateRenderers = [
+  ...new Set(
+    (process.env.BENCHMARK_RENDERERS || "webgpu")
+      .split(",")
+      .map(value => value.trim())
+      .filter(value => value && value !== "dygraph")
+  ),
+]
+if (
+  !candidateRenderers.length ||
+  candidateRenderers.some(value => !supportedCandidates.has(value))
+)
+  throw new Error("BENCHMARK_RENDERERS must select webgpu and/or webgl2")
+const renderers = ["dygraph", ...candidateRenderers]
 
 const server = http.createServer((request, response) => {
   const file = request.url === "/benchmark.js" ? path.join(root, "benchmark.js") : indexPath
@@ -101,67 +115,138 @@ const measureCase = async (browser, port, benchmarkCase) => {
   }
 }
 
+const validateWebGL2 = async (browser, port) => {
+  const context = await browser.newContext({
+    viewport: { width: 1600, height: 500 },
+    deviceScaleFactor: 1,
+  })
+  const page = await context.newPage()
+  const cases = [
+    { name: "smooth", gaps: false, stepped: false },
+    { name: "step", gaps: false, stepped: true },
+    { name: "gap", gaps: true, stepped: false },
+  ]
+  const captures = {}
+
+  try {
+    await page.goto(`http://127.0.0.1:${port}`, { waitUntil: "load" })
+    await page.waitForFunction(() => Boolean(window.__NETDATA_RENDERER_BENCHMARK__))
+    for (const benchmarkCase of cases) {
+      await page.evaluate(
+        input => window.__NETDATA_RENDERER_BENCHMARK__.prepare(input),
+        { renderer: "webgl2", dimensions: 1, points: 100, gaps: benchmarkCase.gaps }
+      )
+      await page.evaluate(
+        input => window.__NETDATA_RENDERER_BENCHMARK__.mountPreview(input),
+        {
+          stepped: benchmarkCase.stepped,
+          enabledXAxis: false,
+          enabledYAxis: false,
+        }
+      )
+      captures[benchmarkCase.name] = await page.evaluate(() =>
+        window.__NETDATA_RENDERER_BENCHMARK__.capturePreview()
+      )
+      await page.evaluate(() => window.__NETDATA_RENDERER_BENCHMARK__.cleanup())
+    }
+    captures.activeContextsAfter = await page.evaluate(() =>
+      window.__NETDATA_RENDERER_BENCHMARK__.getActiveWebGL2Contexts()
+    )
+  } finally {
+    await context.close()
+  }
+
+  const exactDraws = cases.map(({ name }) => captures[name]).every(
+    capture =>
+      capture.drawStats.sourcePairs === 99 &&
+      capture.drawStats.instanceCount ===
+        capture.drawStats.sourcePairs * capture.drawStats.segmentsPerPair
+  )
+  const passed = Boolean(
+    exactDraws &&
+      captures.smooth.nonTransparentPixels > 0 &&
+      captures.step.nonTransparentPixels > 0 &&
+      captures.gap.nonTransparentPixels > 0 &&
+      captures.smooth.sha256 !== captures.step.sha256 &&
+      captures.step.drawStats.segmentsPerPair === 2 &&
+      captures.gap.gapBandNonTransparentPixels === 0 &&
+      captures.activeContextsAfter === 0
+  )
+
+  return { captures, exactDraws, passed }
+}
+
 const compare = results =>
-  workloads.map(workload => {
+  workloads.flatMap(workload => {
     const values = workload.dimensions * workload.points
     const dygraph = results.find(result => result.renderer === "dygraph" && result.values === values)
-    const webgpu = results.find(result => result.renderer === "webgpu" && result.values === values)
-    const multiChartPassed = Boolean(
-      webgpu.multiChart &&
-        webgpu.multiChart.runtimeReferencesDuring === webgpu.multiChart.count + 1 &&
-        webgpu.multiChart.runtimeReferencesAfter === 1 &&
-        webgpu.multiChart.gpuBufferBytes > 0
-    )
-    const speedups = {
-      mountSync: speedup(dygraph.mountSyncMs.median, webgpu.mountSyncMs.median),
-      mountFrame: speedup(dygraph.mountFrameMs.median, webgpu.mountFrameMs.median),
-      updateSync: speedup(dygraph.updateSyncMs.median, webgpu.updateSyncMs.median),
-      updateFrame: speedup(dygraph.updateFrameMs.median, webgpu.updateFrameMs.median),
-    }
 
-    if (workload.gate === "single-frame") {
-      const frameBudgetMs = webgpu.displayFrameIntervalMs * 1.25
-      const mountPassed =
-        speedups.mountSync >= workload.requiredMainThreadSpeedup &&
-        webgpu.mountWorkCompletionMs.median <= frameBudgetMs &&
-        webgpu.mountFrameMs.median <= frameBudgetMs
-      const updatePassed =
-        speedups.updateSync >= workload.requiredMainThreadSpeedup &&
-        webgpu.updateWorkCompletionMs.median <= frameBudgetMs &&
-        webgpu.updateFrameMs.median <= frameBudgetMs
+    return candidateRenderers.map(candidateRenderer => {
+      const candidate = results.find(
+        result => result.renderer === candidateRenderer && result.values === values
+      )
+      const expectedReferencesAfter = candidateRenderer === "webgpu" ? 1 : 0
+      const expectedReferencesDuring =
+        candidate.multiChart.count + expectedReferencesAfter
+      const multiChartPassed = Boolean(
+        candidate.multiChart &&
+          candidate.multiChart.resourceReferencesDuring === expectedReferencesDuring &&
+          candidate.multiChart.resourceReferencesAfter === expectedReferencesAfter &&
+          candidate.multiChart.gpuBufferBytes > 0
+      )
+      const speedups = {
+        mountSync: speedup(dygraph.mountSyncMs.median, candidate.mountSyncMs.median),
+        mountFrame: speedup(dygraph.mountFrameMs.median, candidate.mountFrameMs.median),
+        updateSync: speedup(dygraph.updateSyncMs.median, candidate.updateSyncMs.median),
+        updateFrame: speedup(dygraph.updateFrameMs.median, candidate.updateFrameMs.median),
+      }
+
+      if (workload.gate === "single-frame") {
+        const frameBudgetMs = candidate.displayFrameIntervalMs * 1.25
+        const mountPassed =
+          speedups.mountSync >= workload.requiredMainThreadSpeedup &&
+          candidate.mountWorkCompletionMs.median <= frameBudgetMs &&
+          candidate.mountFrameMs.median <= frameBudgetMs
+        const updatePassed =
+          speedups.updateSync >= workload.requiredMainThreadSpeedup &&
+          candidate.updateWorkCompletionMs.median <= frameBudgetMs &&
+          candidate.updateFrameMs.median <= frameBudgetMs
+
+        return {
+          candidateRenderer,
+          values,
+          gate: workload.gate,
+          measuredDisplayFrameMs: candidate.displayFrameIntervalMs,
+          allowedFrameBudgetMs: frameBudgetMs,
+          requiredMainThreadSpeedup: workload.requiredMainThreadSpeedup,
+          speedups,
+          candidateWorkCompletionMs: {
+            mount: candidate.mountWorkCompletionMs.median,
+            update: candidate.updateWorkCompletionMs.median,
+          },
+          candidateFrameMs: {
+            mount: candidate.mountFrameMs.median,
+            update: candidate.updateFrameMs.median,
+          },
+          mountPassed,
+          updatePassed,
+          exportPassed: candidate.exportDataUrlBytes > 1000,
+          multiChartPassed,
+        }
+      }
 
       return {
+        candidateRenderer,
         values,
         gate: workload.gate,
-        measuredDisplayFrameMs: webgpu.displayFrameIntervalMs,
-        allowedFrameBudgetMs: frameBudgetMs,
-        requiredMainThreadSpeedup: workload.requiredMainThreadSpeedup,
+        requiredFrameSpeedup: workload.requiredFrameSpeedup,
         speedups,
-        webgpuWorkCompletionMs: {
-          mount: webgpu.mountWorkCompletionMs.median,
-          update: webgpu.updateWorkCompletionMs.median,
-        },
-        webgpuFrameMs: {
-          mount: webgpu.mountFrameMs.median,
-          update: webgpu.updateFrameMs.median,
-        },
-        mountPassed,
-        updatePassed,
-        exportPassed: webgpu.exportDataUrlBytes > 1000,
+        mountPassed: speedups.mountFrame >= workload.requiredFrameSpeedup,
+        updatePassed: speedups.updateFrame >= workload.requiredFrameSpeedup,
+        exportPassed: candidate.exportDataUrlBytes > 1000,
         multiChartPassed,
       }
-    }
-
-    return {
-      values,
-      gate: workload.gate,
-      requiredFrameSpeedup: workload.requiredFrameSpeedup,
-      speedups,
-      mountPassed: speedups.mountFrame >= workload.requiredFrameSpeedup,
-      updatePassed: speedups.updateFrame >= workload.requiredFrameSpeedup,
-      exportPassed: webgpu.exportDataUrlBytes > 1000,
-      multiChartPassed,
-    }
+    })
   })
 
 const run = async () => {
@@ -194,8 +279,11 @@ const run = async () => {
   })
   const browserVersion = browser.version()
   const results = []
+  let webgl2Correctness = null
 
   try {
+    if (candidateRenderers.includes("webgl2"))
+      webgl2Correctness = await validateWebGL2(browser, port)
     for (const workload of workloads) {
       for (const renderer of renderers) {
         results.push(await measureCase(browser, port, { ...workload, renderer }))
@@ -207,13 +295,15 @@ const run = async () => {
   }
 
   const comparisons = compare(results)
-  const passed = comparisons.every(
-    result =>
-      result.mountPassed &&
-      result.updatePassed &&
-      result.exportPassed &&
-      result.multiChartPassed
-  )
+  const passed =
+    (!webgl2Correctness || webgl2Correctness.passed) &&
+    comparisons.every(
+      result =>
+        result.mountPassed &&
+        result.updatePassed &&
+        result.exportPassed &&
+        result.multiChartPassed
+    )
   const output = {
     generatedAt: new Date().toISOString(),
     runtime: {
@@ -225,7 +315,9 @@ const run = async () => {
       logicalCpus: os.cpus().length,
     },
     method: {
-      renderers: "Dygraphs and the native WebGPU prototype from the same @netdata/charts checkout",
+      renderers: `Dygraphs and ${candidateRenderers.join(
+        ", "
+      )} from the same @netdata/charts checkout`,
       data: "deterministic row-major values; two pre-generated revisions alternated",
       canvas: "1600x500 CSS pixels at devicePixelRatio 1",
       samples: "3 mounts, 2 warm-up updates, 10 measured updates, 3 seconds sustained updates",
@@ -234,6 +326,7 @@ const run = async () => {
       memory: "Chromium usedJSHeapSize delta after forced GC; peak sampled after settled draws",
     },
     results,
+    correctness: { webgl2: webgl2Correctness },
     comparisons,
     passed,
   }

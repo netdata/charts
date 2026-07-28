@@ -3,6 +3,10 @@ import {
   disposeWebGPURuntime,
   getWebGPURuntime,
 } from "@/chartLibraries/webgpu/runtime"
+import makeWebGL2BenchmarkUI, {
+  getActiveWebGL2Contexts,
+  inspectWebGL2,
+} from "./webgl2"
 
 const width = 1600
 const height = 500
@@ -96,7 +100,12 @@ const makeChart = state => {
     },
   })
   chart.updateDimensions()
-  chart.reconcileChartLibrary()
+  if (state.renderer === "webgl2") {
+    chart.updateAttribute("chartLibrary", "webgl2")
+    chart.setUI(makeWebGL2BenchmarkUI({ chart, width, height }))
+  } else {
+    chart.reconcileChartLibrary()
+  }
 
   if (chart.getAttribute("chartLibrary") !== state.renderer) {
     throw new Error(`Expected ${state.renderer} but routed to ${chart.getAttribute("chartLibrary")}`)
@@ -146,7 +155,8 @@ let preview = null
 
 const prepare = async ({ renderer, dimensions, points, gaps = false }) => {
   if (prepared) throw new Error("Benchmark state already prepared")
-  if (renderer !== "dygraph" && renderer !== "webgpu") throw new Error("Unknown renderer")
+  if (!new Set(["dygraph", "webgpu", "webgl2"]).has(renderer))
+    throw new Error("Unknown renderer")
 
   setStatus(`Preparing ${renderer}: ${dimensions * points} values`)
   const datasets = [makeData(dimensions, points, 0), makeData(dimensions, points, 1)]
@@ -176,6 +186,7 @@ const prepare = async ({ renderer, dimensions, points, gaps = false }) => {
     renderer,
     dimensions,
     points,
+    gaps,
     ids: Array.from({ length: dimensions }, (_, index) => `series-${index}`),
     datasets,
     sdk,
@@ -199,6 +210,11 @@ const prepare = async ({ renderer, dimensions, points, gaps = false }) => {
       device: info.device || null,
       description: info.description || null,
     }
+  } else if (renderer === "webgl2") {
+    const startedAt = performance.now()
+    adapterInfo = inspectWebGL2()
+    coldRuntimeMs = performance.now() - startedAt
+    if (!adapterInfo) throw new Error("WebGL2 is unavailable")
   }
 
   await forceGc()
@@ -216,17 +232,22 @@ const prepare = async ({ renderer, dimensions, points, gaps = false }) => {
 }
 
 const measureMultiChart = async (count = 4) => {
-  if (prepared.renderer !== "webgpu") return null
+  if (prepared.renderer === "dygraph") return null
   const instances = Array.from({ length: count }, () => makeChart(prepared))
   const mountStartedAt = performance.now()
   instances.forEach(instance => instance.ui.mount(instance.element))
   await Promise.all(instances.map(instance => instance.ui.whenReady()))
-  if (instances.some(instance => instance.chart.getAttribute("chartLibrary") !== "webgpu"))
-    throw new Error("A multi-chart WebGPU instance fell back")
+  if (
+    instances.some(
+      instance => instance.chart.getAttribute("chartLibrary") !== prepared.renderer
+    )
+  )
+    throw new Error(`A multi-chart ${prepared.renderer} instance failed`)
   await Promise.all(instances.map(instance => instance.ui.getQueueDone()))
   await nextFrame()
   const mountMs = performance.now() - mountStartedAt
-  const runtimeReferencesDuring = prepared.runtime.references
+  const resourceReferencesDuring =
+    prepared.renderer === "webgpu" ? prepared.runtime.references : getActiveWebGL2Contexts()
 
   const updateStartedAt = performance.now()
   instances.forEach(instance => {
@@ -243,13 +264,15 @@ const measureMultiChart = async (count = 4) => {
   )
 
   instances.forEach(instance => instance.destroy())
+  const resourceReferencesAfter =
+    prepared.renderer === "webgpu" ? prepared.runtime.references : getActiveWebGL2Contexts()
   return {
     count,
     mountMs,
     updateMs,
     gpuBufferBytes,
-    runtimeReferencesDuring,
-    runtimeReferencesAfter: prepared.runtime.references,
+    resourceReferencesDuring,
+    resourceReferencesAfter,
   }
 }
 
@@ -258,7 +281,7 @@ const measure = async ({ mountSamples = 3, updateSamples = 10, sustainedMs = 300
   setStatus(`Running ${prepared.renderer}: ${prepared.dimensions * prepared.points} values`)
 
   let pipelineWarmupMs = null
-  if (prepared.renderer === "webgpu") {
+  if (prepared.renderer !== "dygraph") {
     const warmup = makeChart(prepared)
     const startedAt = performance.now()
     warmup.ui.mount(warmup.element)
@@ -403,6 +426,64 @@ const inspectPreview = () => {
   }
 }
 
+const capturePreview = async () => {
+  if (!preview) throw new Error("A preview is required")
+  const canvas = preview.ui.getCanvas?.()
+  if (!canvas) throw new Error("The preview has no canvas")
+  const dataUrl = canvas.toDataURL("image/png")
+  const image = new Image()
+  image.src = dataUrl
+  await image.decode()
+  const copy = document.createElement("canvas")
+  copy.width = canvas.width
+  copy.height = canvas.height
+  const context = copy.getContext("2d")
+  context.drawImage(image, 0, 0)
+  const pixels = context.getImageData(0, 0, copy.width, copy.height).data
+  let nonTransparentPixels = 0
+  for (let offset = 3; offset < pixels.length; offset += 4) {
+    if (pixels[offset]) nonTransparentPixels += 1
+  }
+
+  const plot = preview.ui.getPlotArea?.()
+  const dpr = window.devicePixelRatio || 1
+  const gapIndex = Math.floor(prepared.points / 2)
+  const gapX = plot
+    ? Math.round((plot.left + (plot.width * gapIndex) / (prepared.points - 1)) * dpr)
+    : null
+  const spacing = plot ? (plot.width * dpr) / Math.max(prepared.points - 1, 1) : 0
+  const gapHalfWidth = Math.max(1, Math.floor(spacing * 0.35))
+  let gapBandNonTransparentPixels = null
+  if (gapX !== null) {
+    gapBandNonTransparentPixels = 0
+    for (let y = 0; y < copy.height; y += 1) {
+      for (
+        let x = Math.max(0, gapX - gapHalfWidth);
+        x <= Math.min(copy.width - 1, gapX + gapHalfWidth);
+        x += 1
+      ) {
+        if (pixels[(y * copy.width + x) * 4 + 3]) gapBandNonTransparentPixels += 1
+      }
+    }
+  }
+
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(dataUrl))
+  const sha256 = Array.from(new Uint8Array(digest), byte =>
+    byte.toString(16).padStart(2, "0")
+  ).join("")
+
+  return {
+    dataUrlBytes: dataUrl.length,
+    sha256,
+    width: copy.width,
+    height: copy.height,
+    nonTransparentPixels,
+    gapBandNonTransparentPixels,
+    gapBandWidth: gapHalfWidth * 2 + 1,
+    drawStats: preview.ui.getDrawStats?.() || null,
+  }
+}
+
 const exerciseDeviceLossFallback = async () => {
   if (!preview || !prepared?.runtime?.device) throw new Error("A WebGPU preview is required")
 
@@ -422,7 +503,7 @@ const cleanup = async () => {
   preview?.destroy()
   preview = null
   if (prepared?.runtimeLease) prepared.runtime.release()
-  if (prepared?.sdk) disposeWebGPURuntime(prepared.sdk)
+  if (prepared?.renderer === "webgpu" && prepared.sdk) disposeWebGPURuntime(prepared.sdk)
   prepared = null
   document.querySelectorAll("[data-benchmark-chart]").forEach(element => element.remove())
   setStatus("Renderer benchmark is idle")
@@ -434,6 +515,8 @@ window.__NETDATA_RENDERER_BENCHMARK__ = {
   measure,
   mountPreview,
   inspectPreview,
+  capturePreview,
   exerciseDeviceLossFallback,
+  getActiveWebGL2Contexts,
   cleanup,
 }
