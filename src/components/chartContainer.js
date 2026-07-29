@@ -7,8 +7,9 @@ const ChartContainer = ({ uiName, ...rest }) => {
   const ref = useRef()
 
   useLayoutEffect(() => {
-    if (chartUI.getElement() !== ref.current) chartUI.mount(ref.current)
-    return () => chartUI.getElement() && chartUI.unmount()
+    const element = ref.current
+    if (chartUI.getElement() !== element) chartUI.mount(element)
+    return () => chartUI.getElement() === element && chartUI.unmount()
   }, [chartUI])
 
   return (

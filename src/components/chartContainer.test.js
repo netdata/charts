@@ -59,6 +59,24 @@ describe("ChartContainer", () => {
     })
   })
 
+  it("does not unmount a UI that moved to a newer container", () => {
+    const { chart, unmount } = renderWithChart(<ChartContainer uiName="default" />)
+    const chartUI = chart.getUI()
+    const nextContainer = document.createElement("div")
+    document.body.appendChild(nextContainer)
+
+    act(() => {
+      chartUI.unmount()
+      chartUI.mount(nextContainer)
+    })
+    unmount()
+
+    expect(chartUI.getElement()).toBe(nextContainer)
+
+    chartUI.unmount()
+    nextContainer.remove()
+  })
+
   it("keeps the mounted element when the chart UI is replaced", () => {
     const { chart } = renderWithChart(<ChartContainer uiName="default" />)
     const container = screen.getByTestId("chartContent")

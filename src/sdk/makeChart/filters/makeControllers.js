@@ -230,17 +230,20 @@ export default (chart, getChartInstance = () => chart) => {
 
   const reconcileChartLibrary = (chartType = chart.getAttribute("chartType")) => {
     const prevChartLibrary = chart.getAttribute("chartLibrary")
-    let visualization = getVisualizationType()
+    const prevVisualization = getVisualizationType()
+    let visualization = prevVisualization
 
     if (!visualization && chartType) visualization = chartType
     else if (timeSeriesVisualizations[visualization] && chartType) visualization = chartType
     if (!visualization) return false
 
     const nextChartLibrary = getRendererForVisualization(visualization)
+    const visualizationChanged = prevVisualization !== visualization
     activeVisualization = visualization
-    if (prevChartLibrary === nextChartLibrary) return false
+    if (prevChartLibrary === nextChartLibrary && !visualizationChanged) return false
 
-    chart.updateAttribute("chartLibrary", nextChartLibrary)
+    if (prevChartLibrary !== nextChartLibrary)
+      chart.updateAttribute("chartLibrary", nextChartLibrary)
     replaceChartUI()
     return true
   }
@@ -265,6 +268,7 @@ export default (chart, getChartInstance = () => chart) => {
 
   const updateChartTypeAttribute = selected => {
     const prevChartLibrary = chart.getAttribute("chartLibrary")
+    const prevVisualization = getVisualizationType()
     const prevGroupBy = chart.getAttribute("groupBy")
     const isTimeSeries = !!timeSeriesVisualizations[selected]
     const nextChartLibrary = getRendererForVisualization(selected)
@@ -276,7 +280,8 @@ export default (chart, getChartInstance = () => chart) => {
       ...(isTimeSeries && { chartType: selected }),
       ...(isHeatmap(selected) && { dimensionsSort: "default" }),
     })
-    if (prevChartLibrary !== nextChartLibrary) replaceChartUI()
+    if (prevChartLibrary !== nextChartLibrary || prevVisualization !== selected)
+      replaceChartUI()
 
     if (isHeatmap(selected)) {
       updateGroupByAttribute(["dimension"])

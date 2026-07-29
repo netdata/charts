@@ -236,6 +236,32 @@ describe("time-series renderer routing", () => {
     }
   )
 
+  it("replaces the adapter when visualization changes on the same renderer", () => {
+    const descriptor = Object.getOwnPropertyDescriptor(navigator, "gpu")
+    Object.defineProperty(navigator, "gpu", { configurable: true, value: {} })
+
+    try {
+      const sdk = makeDefaultSDK({
+        attributes: {
+          chartRenderersByVisualization: { gauge: "webgpu", d3pie: "webgpu" },
+        },
+      })
+      const chart = sdk.makeChart({ attributes: { chartLibrary: "gauge" } })
+      sdk.appendChild(chart)
+      const gaugeUI = chart.getUI()
+
+      chart.updateChartTypeAttribute("d3pie")
+
+      expect(chart.getVisualizationType()).toBe("d3pie")
+      expect(chart.getAttribute("chartLibrary")).toBe("webgpu")
+      expect(chart.getUI()).not.toBe(gaugeUI)
+      expect(chart.getUI().getVisualizationId()).toBe("d3pie")
+    } finally {
+      if (descriptor) Object.defineProperty(navigator, "gpu", descriptor)
+      else delete navigator.gpu
+    }
+  })
+
   it("routes unsupported Gauge static zones directly to the legacy renderer", () => {
     const sdk = makeDefaultSDK({
       attributes: { chartRenderersByVisualization: { gauge: "webgpu" } },
