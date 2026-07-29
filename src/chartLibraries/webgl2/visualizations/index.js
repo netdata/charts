@@ -4,15 +4,19 @@ import makeLineVisualization from "@/chartLibraries/gpu/visualizations/cartesian
 import makeMultiBarVisualization from "@/chartLibraries/gpu/visualizations/cartesian/multiBar"
 import makeStackedVisualization from "@/chartLibraries/gpu/visualizations/cartesian/stacked"
 import makeStackedBarVisualization from "@/chartLibraries/gpu/visualizations/cartesian/stackedBar"
+import makeEasyPieVisualization from "@/chartLibraries/gpu/visualizations/radial/easyPie"
 import makeAreaResources from "./cartesian/area/resources"
 import makeHeatmapResources from "./cartesian/heatmap/resources"
 import makeLineResources from "./cartesian/line/resources"
 import makeMultiBarResources from "./cartesian/multiBar/resources"
 import makeStackedResources from "./cartesian/stacked/resources"
 import makeStackedBarResources from "./cartesian/stackedBar/resources"
+import makeEasyPieResources from "./radial/easyPie/resources"
 
 const visualizations = {
   area: options => makeAreaVisualization({ ...options, makeResources: makeAreaResources }),
+  easypiechart: options =>
+    makeEasyPieVisualization({ ...options, makeResources: makeEasyPieResources }),
   heatmap: options => makeHeatmapVisualization({ ...options, makeResources: makeHeatmapResources }),
   line: options => makeLineVisualization({ ...options, makeResources: makeLineResources }),
   multiBar: options =>

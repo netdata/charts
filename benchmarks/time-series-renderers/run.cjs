@@ -681,6 +681,97 @@ const validateHeatmapParity = async (
   }
 }
 
+const captureEasyPie = async (browser, port, renderer, profile) => {
+  const context = await browser.newContext({
+    viewport: { width: 700, height: 700 },
+    deviceScaleFactor: 1,
+  })
+  const page = await context.newPage()
+  try {
+    await page.goto(`http://127.0.0.1:${port}`, { waitUntil: "load" })
+    await page.waitForFunction(() => Boolean(window.__NETDATA_RENDERER_BENCHMARK__))
+    await page.evaluate(input => window.__NETDATA_RENDERER_BENCHMARK__.prepare(input), {
+      renderer,
+      visualization: "easypiechart",
+      dimensions: 2,
+      points: 10,
+      profile,
+      range: [0, 100],
+    })
+    await page.evaluate(() =>
+      window.__NETDATA_RENDERER_BENCHMARK__.mountPreview({
+        width: 500,
+        height: 500,
+      })
+    )
+    const capture = await page.evaluate(() =>
+      window.__NETDATA_RENDERER_BENCHMARK__.capturePreview({
+        samples: [
+          { name: "top", xRatio: 0.5, yRatio: 0.07 },
+          { name: "right", xRatio: 0.93, yRatio: 0.5 },
+          { name: "bottom", xRatio: 0.5, yRatio: 0.93 },
+          { name: "left", xRatio: 0.07, yRatio: 0.5 },
+          { name: "center", xRatio: 0.5, yRatio: 0.5 },
+        ],
+      })
+    )
+    await page.evaluate(() => window.__NETDATA_RENDERER_BENCHMARK__.cleanup())
+    return capture
+  } finally {
+    await context.close()
+  }
+}
+
+const validateEasyPieParity = async (browser, port, renderer, references) => {
+  const positive = await captureEasyPie(browser, port, renderer, "easy-pie")
+  const negative = await captureEasyPie(browser, port, renderer, "easy-pie-negative")
+  const makeDeltas = (reference, candidate) =>
+    Object.fromEntries(
+      Object.keys(reference.samplePixels).map(name => [
+        name,
+        Math.max(
+          ...reference.samplePixels[name].map((value, index) =>
+            Math.abs(value - candidate.samplePixels[name][index])
+          )
+        ),
+      ])
+    )
+  const positiveDeltas = makeDeltas(references.positive, positive)
+  const negativeDeltas = makeDeltas(references.negative, negative)
+  const runWidthDelta = Math.abs(
+    positive.sampleRuns.right.width - references.positive.sampleRuns.right.width
+  )
+  const pixelCountDelta = Math.abs(
+    positive.nonTransparentPixels - references.positive.nonTransparentPixels
+  )
+  const passed = Boolean(
+    positive.samplePixels.top[3] > 0 &&
+      positive.samplePixels.right[3] > 0 &&
+      positive.samplePixels.bottom[3] > 0 &&
+      positive.samplePixels.left[3] > 0 &&
+      positive.samplePixels.center[3] === 0 &&
+      negative.samplePixels.left[3] > 0 &&
+      negative.samplePixels.right[3] > 0 &&
+      Object.values(positiveDeltas).every(delta => delta <= 3) &&
+      Object.values(negativeDeltas).every(delta => delta <= 3) &&
+      runWidthDelta <= 2 &&
+      pixelCountDelta <= 1000
+  )
+  return {
+    renderer,
+    positiveSamples: positive.samplePixels,
+    negativeSamples: negative.samplePixels,
+    referencePositiveSamples: references.positive.samplePixels,
+    referenceNegativeSamples: references.negative.samplePixels,
+    positiveDeltas,
+    negativeDeltas,
+    runWidthDelta,
+    pixelCountDelta,
+    drawStats: positive.drawStats,
+    passed,
+  }
+}
+
 const validateFallbackChain = async (browser, port, visualizationId) => {
   const context = await browser.newContext({
     viewport: { width: 1600, height: 500 },
@@ -707,6 +798,8 @@ const validateFallbackChain = async (browser, port, visualizationId) => {
     const activeWebGL2Contexts = await page.evaluate(() =>
       window.__NETDATA_RENDERER_BENCHMARK__.getActiveWebGL2Contexts()
     )
+    const legacyRenderer =
+      visualizationId === "easypiechart" ? "easypiechart" : "dygraph"
     return {
       deviceLoss,
       contextLoss,
@@ -715,8 +808,8 @@ const validateFallbackChain = async (browser, port, visualizationId) => {
         deviceLoss.renderer === "webgl2" &&
         deviceLoss.hasWebGL2 &&
         !deviceLoss.hasDygraph &&
-        contextLoss.renderer === "dygraph" &&
-        contextLoss.hasDygraph &&
+        contextLoss.renderer === legacyRenderer &&
+        contextLoss.hasDygraph === (legacyRenderer === "dygraph") &&
         activeWebGL2Contexts === 0,
     }
   } finally {
@@ -829,9 +922,17 @@ const run = async () => {
     viewport: { width: 1600, height: 500 },
     deviceScaleFactor: 1,
   })
-  const page = await context.newPage()
+  let page = await context.newPage()
+  let logicalContexts = 0
+  const resetPage = async () => {
+    await page.close()
+    page = await context.newPage()
+    logicalContexts = 0
+  }
   const benchmarkBrowser = {
     newContext: async () => {
+      if (logicalContexts >= 2) await resetPage()
+      logicalContexts += 1
       const sessions = []
       return {
         newPage: async () => page,
@@ -843,6 +944,7 @@ const run = async () => {
         close: async () => Promise.all(sessions.map(session => session.detach())),
       }
     },
+    resetPage,
   }
   const results = []
   const lineCorrectness = {}
@@ -856,7 +958,9 @@ const run = async () => {
   const stackedParity = {}
   const stackedBarCorrectness = {}
   const stackedBarParity = {}
+  const easyPieParity = {}
   let fallbackChain = null
+  let easyPieFallbackChain = null
 
   try {
     for (const workload of workloads) {
@@ -890,7 +994,22 @@ const run = async () => {
       "dygraph",
       "stackedBar"
     )
+    const easyPieReferences = {
+      positive: await captureEasyPie(
+        benchmarkBrowser,
+        port,
+        "easypiechart",
+        "easy-pie"
+      ),
+      negative: await captureEasyPie(
+        benchmarkBrowser,
+        port,
+        "easypiechart",
+        "easy-pie-negative"
+      ),
+    }
     for (const renderer of candidateRenderers) {
+      await benchmarkBrowser.resetPage()
       lineCorrectness[renderer] = await validateLine(benchmarkBrowser, port, renderer)
       areaCorrectness[renderer] = await validateFilledVisualization(
         benchmarkBrowser,
@@ -955,13 +1074,26 @@ const run = async () => {
         "stackedBar",
         dygraphStackedBar
       )
+      easyPieParity[renderer] = await validateEasyPieParity(
+        benchmarkBrowser,
+        port,
+        renderer,
+        easyPieReferences
+      )
     }
-    if (candidateRenderers.includes("webgpu"))
+    if (candidateRenderers.includes("webgpu")) {
+      await benchmarkBrowser.resetPage()
       fallbackChain = await validateFallbackChain(
         benchmarkBrowser,
         port,
         visualization
       )
+      easyPieFallbackChain = await validateFallbackChain(
+        benchmarkBrowser,
+        port,
+        "easypiechart"
+      )
+    }
   } finally {
     await context.close()
     await browser.close()
@@ -981,7 +1113,9 @@ const run = async () => {
     Object.values(stackedParity).every(result => result.passed) &&
     Object.values(stackedBarCorrectness).every(result => result.passed) &&
     Object.values(stackedBarParity).every(result => result.passed) &&
+    Object.values(easyPieParity).every(result => result.passed) &&
     (!fallbackChain || fallbackChain.passed) &&
+    (!easyPieFallbackChain || easyPieFallbackChain.passed) &&
     comparisons.every(
       result =>
         result.mountPassed &&
@@ -1005,7 +1139,8 @@ const run = async () => {
       )} rendering ${visualization} from the same @netdata/charts checkout`,
       data: "deterministic row-major values; two pre-generated revisions alternated",
       canvas: "1600x500 CSS pixels at devicePixelRatio 1",
-      browser: "one shared Chromium context and page, reloaded between isolated cases",
+      browser:
+        "one shared Chromium context with at most one live page, reset between backend groups",
       samples: "3 mounts, 2 warm-up updates, 10 measured updates, 3 seconds sustained updates",
       primaryLatency:
         "100k uses measured one-frame presentation/work completion plus synchronous speedup; 1M uses median frame-settled speedup",
@@ -1024,7 +1159,9 @@ const run = async () => {
       stackedParity,
       stackedBar: stackedBarCorrectness,
       stackedBarParity,
+      easyPieParity,
       fallbackChain,
+      easyPieFallbackChain,
     },
     comparisons,
     passed,

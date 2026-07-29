@@ -72,6 +72,14 @@ const makeData = (dimensions, points, revision, profile) => {
         row[dimensionIndex + 1] = [90, 45, 0][dimensionIndex % 3]
         continue
       }
+      if (profile === "easy-pie") {
+        row[dimensionIndex + 1] = [75, -25][dimensionIndex % 2]
+        continue
+      }
+      if (profile === "easy-pie-negative") {
+        row[dimensionIndex + 1] = [-75, 25][dimensionIndex % 2]
+        continue
+      }
       const phase = pointIndex * 0.017 + dimensionIndex * 0.031 + revision * 0.13
       row[dimensionIndex + 1] = Math.sin(phase) * 70 + Math.cos(phase * 0.37) * 20
     }
@@ -182,12 +190,18 @@ const prepare = async ({
   ids = null,
 }) => {
   if (prepared) throw new Error("Benchmark state already prepared")
-  if (!new Set(["dygraph", "webgpu", "webgl2"]).has(renderer))
+  if (!new Set(["dygraph", "easypiechart", "webgpu", "webgl2"]).has(renderer))
     throw new Error("Unknown renderer")
   if (
-    !new Set(["line", "area", "heatmap", "multiBar", "stacked", "stackedBar"]).has(
-      visualization
-    )
+    !new Set([
+      "line",
+      "area",
+      "easypiechart",
+      "heatmap",
+      "multiBar",
+      "stacked",
+      "stackedBar",
+    ]).has(visualization)
   )
     throw new Error("Unknown visualization")
 
@@ -442,11 +456,15 @@ const mountPreview = async ({
   visibleDimensionIds = null,
   enabledXAxis,
   enabledYAxis,
+  width: previewWidth,
+  height: previewHeight,
 } = {}) => {
   if (!prepared) throw new Error("Benchmark state has not been prepared")
   if (preview) throw new Error("Preview is already mounted")
 
   preview = makeChart(prepared)
+  if (previewWidth) preview.element.style.width = `${previewWidth}px`
+  if (previewHeight) preview.element.style.height = `${previewHeight}px`
   preview.chart.updateAttribute("stepPlot", stepped)
   if (enabledXAxis !== undefined) preview.chart.updateAttribute("enabledXAxis", enabledXAxis)
   if (enabledYAxis !== undefined) preview.chart.updateAttribute("enabledYAxis", enabledYAxis)
@@ -496,8 +514,13 @@ const capturePreview = async ({ samples = [] } = {}) => {
     if (pixels[offset]) nonTransparentPixels += 1
   }
 
-  const plot = preview.ui.getPlotArea?.()
   const dpr = window.devicePixelRatio || 1
+  const plot = preview.ui.getPlotArea?.() || {
+    left: 0,
+    top: 0,
+    width: copy.width / dpr,
+    height: copy.height / dpr,
+  }
   const gapIndex = Math.floor(prepared.points / 2)
   const gapX = plot
     ? Math.round((plot.left + (plot.width * gapIndex) / (prepared.points - 1)) * dpr)
