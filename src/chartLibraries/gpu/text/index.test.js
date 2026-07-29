@@ -1,6 +1,6 @@
-import { placeText } from "."
+import { placeRasterizedText, placeText } from "."
 
-describe("WebGPU text placement", () => {
+describe("GPU text placement", () => {
   it("places centered and bottom-aligned shaped strings", () => {
     expect(
       placeText({
@@ -22,4 +22,27 @@ describe("WebGPU text placement", () => {
       height: 6,
     })
   })
+
+  it.each([1, 1.25, 1.5, 2])(
+    "places exact atlas pixels at DPR %s without fractional scaling",
+    dpr => {
+      const pixelWidth = Math.ceil(43 * dpr)
+      const pixelHeight = Math.ceil(15 * dpr)
+      const placement = placeRasterizedText({
+        label: {
+          x: 100,
+          y: 40,
+          align: "right",
+          verticalAlign: "middle",
+        },
+        entry: { pixelWidth, pixelHeight },
+        dpr,
+      })
+
+      expect(placement.width).toBe(pixelWidth)
+      expect(placement.height).toBe(pixelHeight)
+      expect(Number.isInteger(placement.x)).toBe(true)
+      expect(Number.isInteger(placement.y)).toBe(true)
+    }
+  )
 })

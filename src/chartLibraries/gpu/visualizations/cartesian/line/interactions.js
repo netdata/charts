@@ -203,13 +203,16 @@ export default ({
     if (!drag) return
     const current = eventToCanvasPoint(event, canvas)
     const distance = Math.hypot(current.x - drag.start.x, current.y - drag.start.y)
-    suppressClick = distance >= 5
+    const moved = drag.moved || distance >= 5
+    suppressClick = moved
     setSelectionRect(null)
 
     if (drag.mode === "pan") {
-      const frame = getFrame()
-      chart.sdk.trigger("panEnd", chart, [frame.afterMs, frame.beforeMs])
-      clearDateWindow()
+      if (drag.panning) {
+        const frame = getFrame()
+        chart.sdk.trigger("panEnd", chart, [frame.afterMs, frame.beforeMs])
+        clearDateWindow()
+      }
     } else if (drag.mode === "selectVertical") {
       const range =
         distance < 5
@@ -241,12 +244,21 @@ export default ({
     if (!drag) return
     const current = eventToCanvasPoint(event, canvas)
     if (drag.mode === "pan") {
+      const distance = Math.hypot(current.x - drag.start.x, current.y - drag.start.y)
+      if (distance < 5 && !drag.panning) return
+      if (!drag.panning) {
+        drag.panning = true
+        chart.sdk.trigger("panStart", chart)
+      }
+      drag.moved = true
       const delta =
         ((drag.start.x - current.x) / Math.max(drag.frame.plot.width, 1)) *
         (drag.frame.beforeMs - drag.frame.afterMs)
       setDateWindow([drag.frame.afterMs + delta, drag.frame.beforeMs + delta])
       return
     }
+    drag.moved =
+      drag.moved || Math.hypot(current.x - drag.start.x, current.y - drag.start.y) >= 5
     setSelectionRect(makeSelectionRect({ ...drag, end: current }))
   }
 
@@ -265,12 +277,11 @@ export default ({
     const mode = getNavigationMode(event, chart)
     const previous = chart.getAttribute("navigation")
     if (mode !== previous) chart.updateAttributes({ navigation: mode, prevNavigation: previous })
-    drag = { mode, start, frame }
+    drag = { mode, start, frame, moved: false, panning: false }
     event.preventDefault()
 
-    if (mode === "pan") chart.sdk.trigger("panStart", chart)
-    else if (mode === "selectVertical") chart.sdk.trigger("highlightVerticalStart", chart)
-    else chart.sdk.trigger("highlightStart", chart)
+    if (mode === "selectVertical") chart.sdk.trigger("highlightVerticalStart", chart)
+    else if (mode !== "pan") chart.sdk.trigger("highlightStart", chart)
 
     window.addEventListener("mousemove", dragMove)
     window.addEventListener("mouseup", endDrag)
@@ -406,7 +417,7 @@ export default ({
 
   return () => {
     clearTimeout(moveTimer)
-    if (drag?.mode === "pan" || touch?.panning) {
+    if (drag?.panning || touch?.panning) {
       chart
         .getApplicableNodes({ syncPanning: true })
         .forEach(node => node.updateAttributes({ enabledHover: true, panning: false }))

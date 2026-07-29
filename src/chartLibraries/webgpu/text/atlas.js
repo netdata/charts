@@ -90,6 +90,8 @@ export default runtime => {
       generation,
       width: widthCss,
       height: heightCss,
+      pixelWidth: width,
+      pixelHeight: height,
       u0: allocation.x / size,
       v0: allocation.y / size,
       u1: (allocation.x + width) / size,

@@ -91,6 +91,8 @@ export default gl => {
       generation,
       width,
       height,
+      pixelWidth,
+      pixelHeight,
       u0: allocation.x / size,
       v0: allocation.y / size,
       u1: (allocation.x + pixelWidth) / size,

@@ -264,6 +264,13 @@ Open decisions:
 - Reproduced a Cloud sparkline parity defect on four live dashboard tiles: `sparkline` was true while both explicit axis flags remained true, so the GPU plot reserved 74 pixels for the y axis and 16 pixels for the x axis. Dygraphs independently overrides both axes off for sparklines; the shared GPU axis layer did not.
 - Added the same sparkline axis override to the backend-neutral GPU plot layout and axis generation, including reactive invalidation when `sparkline` changes. Normal charts and explicit axis flags retain their prior behavior.
 - Full Jest passed 169 suites with 1,559 passed and 2 skipped; changed-file ESLint and CJS/ES6 builds passed. Fresh installed Cloud validation passed on both physical paths: X11/WebGL2 and Wayland/WebGPU each rendered four live sparkline canvases with full-height, zero-gutter plots and no GPU axis pixels, while normal chart axes remained enabled. Evidence: `/tmp/webgl2-sparkline-axis-validation.json`, `/tmp/webgpu-sparkline-axis-validation.json`, and their matching canvas PNGs.
+- Reproduced blurry and transiently stretched GPU axis text at the workstation's DPR 1.25. Atlas allocations round outward to integer physical pixels, while both backends draw fractional CSS-size-times-DPR quads at fractional origins through linear filtering. During a 546-to-339 CSS-pixel resize, the 200 ms shared resize debounce left a 683-pixel backing canvas scaled to 339 CSS pixels until it was rebuilt at 424 pixels. Evidence: `/tmp/gpu-font-resize-validation.json` and `/tmp/gpu-font-{before,during-resize,after-resize}.png`.
+- The user approved the long-term fix: position complete-string atlas entries on integer physical-pixel origins, draw their exact allocated physical dimensions without scaling, and give GPU renderers an immediate ResizeObserver path instead of changing the legacy shared 200 ms behavior used by Dygraphs. Preserve linear filtering for source glyph antialiasing and retain the one-visible-canvas architecture.
+- Reproduced the intermittently partial WebGL2 grid deterministically across width changes. Tracing proved the grid buffer and full-canvas scissor were correct, but the shared GLSL program declares `uCanvas` as `vec4` while primitive and text layers call `uniform2f`; WebGL rejects the wrong uniform arity and leaves the previous chart's canvas dimensions active. The following line pass writes the correct `vec4`, explaining why lines and labels can be current while the earlier grid is clipped or scaled to another chart's size.
+- Reproduced the zero-motion mouse-pan defect. Desktop mousedown emits `panStart` immediately, and mouseup emits `panEnd` even at zero distance; this changes `after`/`before` from relative to absolute values, toggles synchronized panning state, and may trigger a subsequent fetch although no pan occurred. The approved correction is to cross the existing five-pixel drag threshold before starting or committing a desktop pan, matching the already-lazy touch behavior and preserving ordinary click selection.
+- Implemented exact physical-pixel text placement for both atlases, immediate GPU-only ResizeObserver rendering, the correct WebGL2 `uniform4f` canvas update for primitive/text passes, and lazy thresholded desktop pan start/end. The legacy Dygraphs resize path and public interaction contracts are unchanged.
+- Fresh installed Cloud validation at DPR 1.25 passed both physical backends. X11/WebGL2 kept every horizontal grid within one pixel of the expected plot boundary through three 680-to-300-to-680 CSS-pixel cycles, rebuilt backing canvases within 50 ms, emitted integer atlas geometry, ignored zero-motion pan without changing relative `after`/`before`, and retained real drag panning. Wayland/WebGPU passed the same immediate resize and zero-motion pan gates with a complete visible grid. Evidence: `/tmp/webgl2-visual-hardening.json`, `/tmp/webgl2-real-pan-validation.json`, `/tmp/webgpu-visual-hardening.json`, and matching PNGs.
+- The final combined physical benchmark passed after visual hardening. At 1,000,000 values WebGPU retained 10.43x/7.52x mount/update frame speedups and WebGL2 retained 10.01x/7.57x; exact data, gaps, exports, four-chart lifecycle, forced WebGPU-to-WebGL2 device-loss transition, and WebGL2-to-Dygraphs context-loss transition all passed. Evidence: `/tmp/gpu-visual-hardening-benchmark.json`.
 
 ## Validation
 
@@ -276,7 +283,7 @@ Acceptance criteria evidence:
 
 Tests or equivalent validation:
 
-- Full Jest with coverage: 169 suites passed; 1,559 tests passed and 2 skipped. Coverage passed unchanged thresholds at 59.62% statements, 54.50% branches, 59.12% functions, and 60.59% lines.
+- Full Jest with coverage: 169 suites passed; 1,565 tests passed and 2 skipped. Coverage passed unchanged thresholds at 60.00% statements, 54.93% branches, 59.52% functions, and 61.02% lines.
 - Focused shared-GPU, WebGPU, WebGL2 primitive, routing, controller, hover, and default-SDK tests passed without new Jest mocks.
 - Clean CommonJS and ES6 distributions built with 541 files each; moved backend-neutral modules and both GPU backends were present, while stale pre-move paths were absent.
 - Changed-file ESLint passed. Repository lint retained 35 unrelated pre-existing errors and introduced none in changed files.
@@ -287,7 +294,7 @@ Real-use evidence:
 
 - Physical Chromium 150 acquired the local NVIDIA Blackwell adapter through Wayland without unsafe flags and rendered/exported the preferred WebGPU line backend.
 - The same Chromium build under normal X11 could not acquire WebGPU, automatically selected hardware WebGL2, and rendered/exported/interacted through the same line visualization without unsafe flags.
-- Isolated Cloud Frontend consumption passed its production agent build. The locally served `/v3/` Charts bundle matches the verified build at `sha256 47d0a8114a813ee462a15020612bcf4a643c45884882bdb37cda82b65f33f2da`; results from duplicate or shared checkouts are not accepted as evidence.
+- Isolated Cloud Frontend consumption passed its production agent build. The locally served `/v3/` Charts bundle matches the verified build at `sha256 e91a5bebda3ea9ebdcdeb2887102d2224fdec999164ff55210cba2f6390938c4`; results from duplicate or shared checkouts are not accepted as evidence.
 
 Reviewer findings:
 

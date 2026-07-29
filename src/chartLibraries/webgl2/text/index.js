@@ -1,5 +1,5 @@
 import { parseColor } from "@/chartLibraries/gpu/color"
-import { placeText } from "@/chartLibraries/gpu/text"
+import { placeRasterizedText } from "@/chartLibraries/gpu/text"
 import makeAtlas from "./atlas"
 import { fragmentShader, vertexShader } from "./shader"
 
@@ -60,14 +60,14 @@ export default async surface => {
     labels.forEach((label, index) => {
       const entry = entries[index]
       if (!entry) return
-      const placement = placeText({ ...label, width: entry.width, height: entry.height })
+      const placement = placeRasterizedText({ label, entry, dpr })
       const offset = index * 16
       packed.set(
         [
-          placement.x * dpr,
-          placement.y * dpr,
-          placement.width * dpr,
-          placement.height * dpr,
+          placement.x,
+          placement.y,
+          placement.width,
+          placement.height,
           entry.u0,
           entry.v0,
           entry.u1,
@@ -93,7 +93,7 @@ export default async surface => {
     gl.useProgram(program)
     gl.bindVertexArray(vertexArray)
     gl.uniform1i(passLocation, 1)
-    gl.uniform2f(canvasLocation, size.width, size.height)
+    gl.uniform4f(canvasLocation, size.width, size.height, 0, 0)
     gl.activeTexture(gl.TEXTURE0)
     gl.bindTexture(gl.TEXTURE_2D, atlas.texture)
     gl.uniform1i(atlasLocation, 0)

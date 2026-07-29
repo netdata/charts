@@ -21,6 +21,18 @@ export const placeText = ({ x, y, width, height, align = "left", verticalAlign =
   height,
 })
 
+export const placeRasterizedText = ({ label, entry, dpr }) => {
+  const placement = placeText({
+    x: label.x * dpr,
+    y: label.y * dpr,
+    width: entry.pixelWidth,
+    height: entry.pixelHeight,
+    align: label.align,
+    verticalAlign: label.verticalAlign,
+  })
+  return { ...placement, x: Math.round(placement.x), y: Math.round(placement.y) }
+}
+
 export const rasterizeText = (canvas, { text, font, dpr }) => {
   let context = canvas.getContext("2d")
   if (!context) return null

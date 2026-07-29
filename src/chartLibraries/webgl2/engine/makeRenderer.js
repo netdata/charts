@@ -1,4 +1,4 @@
-import makeResizeObserver from "@/helpers/makeResizeObserver"
+import makeGPUResizeObserver from "@/chartLibraries/gpu/resize"
 import makeChartUI from "@/sdk/makeChartUI"
 import { getWebGL2Runtime, markWebGL2Failed } from "./runtime"
 
@@ -109,11 +109,7 @@ export default ({ sdk, chart, makeVisualization, visualizationId }) => {
     chartUI.mount(node)
     canvas = makeCanvas(element)
     visualization.mount({ render, canvas })
-    resizeObserver = makeResizeObserver(
-      element,
-      () => render(),
-      () => render()
-    )
+    resizeObserver = makeGPUResizeObserver(element, render)
     initialize(currentGeneration)
   }
 

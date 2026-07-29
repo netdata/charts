@@ -1,5 +1,5 @@
 import { parseColor } from "@/chartLibraries/gpu/color"
-import { placeText } from "@/chartLibraries/gpu/text"
+import { placeRasterizedText, placeText } from "@/chartLibraries/gpu/text"
 import makeAtlas from "./atlas"
 import shader from "./shader"
 
@@ -119,18 +119,14 @@ export default async (runtime, surface) => {
     labels.forEach((label, index) => {
       const entry = entries[index]
       if (!entry) return
-      const placement = placeText({
-        ...label,
-        width: entry.width,
-        height: entry.height,
-      })
+      const placement = placeRasterizedText({ label, entry, dpr })
       const offset = index * 12
       packed.set(
         [
-          placement.x * dpr,
-          placement.y * dpr,
-          placement.width * dpr,
-          placement.height * dpr,
+          placement.x,
+          placement.y,
+          placement.width,
+          placement.height,
           entry.u0,
           entry.v0,
           entry.u1,

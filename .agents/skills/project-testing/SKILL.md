@@ -29,7 +29,7 @@ Do not use this skill for:
 - Real chart integration tests use `makeTestChart`, `renderWithChart`, `renderHookWithChart`, and real providers from `jest/testUtilities/`. Evidence: `jest/testUtilities/index.js` and its implementations.
 - Do not add Jest module mocks for Charts internals, netdata-ui, providers, or components. Existing legacy `jest.mock` tests are historical debt, not a pattern to copy. Evidence: `AGENTS.md` and repository search.
 - Tests are colocated with source. Focused tests commonly disable coverage for speed; the full `yarn test` run enforces configured coverage.
-- WebGPU/WebGL2 visual, completion, export, performance, shared-runtime, and physical-device behavior uses `benchmarks/time-series-renderers/`; jsdom unit tests cannot prove GPU execution.
+- WebGPU/WebGL2 visual, completion, export, performance, shared-runtime, and physical-device behavior uses `benchmarks/time-series-renderers/`; jsdom unit tests cannot prove GPU execution. GPU visual changes also require physical mixed-size/DPR resize checks because stale shared-context uniforms, fractional atlas scaling, and delayed backing-canvas updates are not visible in jsdom.
 
 ## Best Practices
 

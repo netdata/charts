@@ -67,7 +67,7 @@ export default async ({ surface, key, vertexShader, fragmentShader, pack }) => {
     gl.useProgram(program)
     gl.bindVertexArray(vertexArray)
     gl.uniform1i(passLocation, 1)
-    gl.uniform2f(canvasLocation, size.width, size.height)
+    gl.uniform4f(canvasLocation, size.width, size.height, 0, 0)
     gl.enable(gl.SCISSOR_TEST)
     if (scissor)
       gl.scissor(
