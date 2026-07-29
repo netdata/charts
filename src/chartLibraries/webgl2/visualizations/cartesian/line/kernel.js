@@ -306,7 +306,13 @@ export default async (surface, { fillMode = null } = {}) => {
     gl.uniform4fv(uniforms.uPlot, drawState.plot)
     gl.uniform4fv(uniforms.uCanvas, drawState.canvas)
     if (isHeatmap) gl.uniform4fv(uniforms.uFill, drawState.fill)
-    else gl.uniform3fv(uniforms.uFill, drawState.fill)
+    else
+      gl.uniform3f(
+        uniforms.uFill,
+        drawState.fill[0],
+        drawState.fill[1],
+        drawState.fill[2]
+      )
     gl.uniform4uiv(uniforms.uCounts, drawState.counts)
     gl.enable(gl.SCISSOR_TEST)
     gl.scissor(
