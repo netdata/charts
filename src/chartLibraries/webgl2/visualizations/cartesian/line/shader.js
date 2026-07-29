@@ -52,7 +52,9 @@ vec4 loadColor(int index) {
 }
 
 int valueIndex(uint seriesIndex, uint pointIndex) {
-  if (uFill.z > 0.5) return int(pointIndex * uCounts.y + seriesIndex);
+  if (uFill.z > 0.5 && uFill.z < 1.5) {
+    return int(pointIndex * uCounts.y + seriesIndex);
+  }
   return int(seriesIndex * uCounts.x + pointIndex);
 }
 
@@ -259,13 +261,21 @@ void stackedBarOutput() {
   uint pointCount = uCounts.x;
   uint seriesIndex = uint(gl_InstanceID) / pointCount;
   uint pointIndex = uint(gl_InstanceID) % pointCount;
+  bool isMultiBar = uFill.z > 1.5;
   int offset = valueIndex(seriesIndex, pointIndex);
+  int colorOffset = int(seriesIndex) * (isMultiBar ? 3 : 2);
   float x = loadValue(uXValues, uXTextureSize, int(pointIndex));
   float end = loadValue(uYValues, uYTextureSize, offset);
-  float base = loadValue(uBaseValues, uBaseTextureSize, offset);
-  vec4 color = loadColor(int(seriesIndex) * 2);
-  vec4 strokeColor = loadColor(int(seriesIndex) * 2 + 1);
-  if (isnan(end) || isnan(base) || color.a <= 0.0) {
+  float base = isMultiBar
+    ? uFill.y
+    : loadValue(uBaseValues, uBaseTextureSize, offset);
+  vec4 color = loadColor(colorOffset);
+  vec4 strokeColor = loadColor(colorOffset + 1);
+  vec2 visibility = isMultiBar ? loadColor(colorOffset + 2).xy : vec2(0.0, 1.0);
+  if (
+    isnan(end) || isnan(base) || color.a <= 0.0 ||
+    visibility.x < 0.0 || visibility.y <= 0.0
+  ) {
     gapOutput(color);
     return;
   }
@@ -273,10 +283,17 @@ void stackedBarOutput() {
   vec2 center = toScreen(vec2(x, end));
   float baseY = toScreen(vec2(x, base)).y;
   float barWidth = uFill.x;
+  float xLeft = center.x - barWidth * 0.5;
+  if (isMultiBar) {
+    float rankDenominator = visibility.y > 1.0 ? visibility.y - 1.0 : 1.0;
+    xLeft = center.x - uFill.x * 0.5 *
+      (1.0 - visibility.x / rankDenominator);
+    barWidth = uFill.x / visibility.y;
+  }
   float strokeWidth = max(0.0, uCanvas.z);
-  vec2 fillOrigin = vec2(center.x - barWidth * 0.5, min(center.y, baseY));
+  vec2 fillOrigin = vec2(xLeft, min(center.y, baseY));
   vec2 fillSize = vec2(barWidth, abs(center.y - baseY));
-  vec2 antialiasPadding = vec2(0.0, 0.5);
+  vec2 antialiasPadding = vec2(isMultiBar ? 0.5 : 0.0, 0.5);
   vec2 outerOrigin = fillOrigin - vec2(strokeWidth * 0.5) - antialiasPadding;
   vec2 outerSize = fillSize + vec2(strokeWidth) + antialiasPadding * 2.0;
   vec2 quad = quadCoordinates(gl_VertexID);

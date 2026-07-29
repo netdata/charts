@@ -52,14 +52,31 @@ fn vertexMain(
   let pointCount = uniforms.counts.x;
   let seriesIndex = instanceIndex / pointCount;
   let pointIndex = instanceIndex % pointCount;
-  let offset = pointIndex * uniforms.counts.y + seriesIndex;
+  let isMultiBar = uniforms.fill.z > 1.5;
+  var offset = pointIndex * uniforms.counts.y + seriesIndex;
+  var colorOffset = seriesIndex * 2u;
+  if (isMultiBar) {
+    offset = seriesIndex * pointCount + pointIndex;
+    colorOffset = seriesIndex * 3u;
+  }
   let end = yValues[offset];
-  let base = baseValues[offset];
-  let color = seriesColors[seriesIndex * 2u];
-  let strokeColor = seriesColors[seriesIndex * 2u + 1u];
+  var base = baseValues[offset];
+  let color = seriesColors[colorOffset];
+  let strokeColor = seriesColors[colorOffset + 1u];
+  var visibleRank = 0.0;
+  var visibleCount = 1.0;
+  if (isMultiBar) {
+    base = uniforms.fill.y;
+    let metadata = seriesColors[colorOffset + 2u];
+    visibleRank = metadata.x;
+    visibleCount = metadata.y;
+  }
 
   var output: VertexOutput;
-  if (end != end || base != base || color.a <= 0.0) {
+  if (
+    end != end || base != base || color.a <= 0.0 ||
+    visibleRank < 0.0 || visibleCount <= 0.0
+  ) {
     output.position = vec4<f32>(0.0, 0.0, 0.0, 0.0);
     output.color = color;
     output.strokeColor = strokeColor;
@@ -71,11 +88,18 @@ fn vertexMain(
 
   let center = toScreen(vec2<f32>(xValues[pointIndex], end));
   let baseY = toScreen(vec2<f32>(xValues[pointIndex], base)).y;
-  let barWidth = uniforms.fill.x;
+  var barWidth = uniforms.fill.x;
+  var xLeft = center.x - barWidth * 0.5;
+  if (isMultiBar) {
+    let rankDenominator = select(1.0, visibleCount - 1.0, visibleCount > 1.0);
+    xLeft = center.x - uniforms.fill.x * 0.5 *
+      (1.0 - visibleRank / rankDenominator);
+    barWidth = uniforms.fill.x / visibleCount;
+  }
   let strokeWidth = max(0.0, uniforms.canvas.z);
-  let fillOrigin = vec2<f32>(center.x - barWidth * 0.5, min(center.y, baseY));
+  let fillOrigin = vec2<f32>(xLeft, min(center.y, baseY));
   let fillSize = vec2<f32>(barWidth, abs(center.y - baseY));
-  let antialiasPadding = vec2<f32>(0.0, 0.5);
+  let antialiasPadding = vec2<f32>(select(0.0, 0.5, isMultiBar), 0.5);
   let outerOrigin =
     fillOrigin - vec2<f32>(strokeWidth * 0.5) - antialiasPadding;
   let outerSize =

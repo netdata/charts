@@ -82,6 +82,22 @@ describe("WebGPU aligned payload packing", () => {
     expect(packed.gapEdgeIndexes).toEqual([[0, 3]])
   })
 
+  it("skips gap-edge residency for bar adapters without changing nulls", () => {
+    const packed = packAlignedData(
+      [
+        [1000, 1],
+        [2000, null],
+      ],
+      1,
+      null,
+      null,
+      { trackGapEdges: false }
+    )
+
+    expect(packed.gapEdgeIndexes).toEqual([])
+    expect(Number.isNaN(packed.y[1])).toBe(true)
+  })
+
   it("preserves visible variation around a large baseline", () => {
     const baseline = 1_000_000_000_000_000
     const packed = packAlignedData(

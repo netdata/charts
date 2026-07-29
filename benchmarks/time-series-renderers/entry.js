@@ -64,6 +64,10 @@ const makeData = (dimensions, points, revision, profile) => {
         row[dimensionIndex + 1] = [2, -1, 0.5][dimensionIndex % 3]
         continue
       }
+      if (profile === "multi-bar") {
+        row[dimensionIndex + 1] = [2, 1, -1][dimensionIndex % 3]
+        continue
+      }
       const phase = pointIndex * 0.017 + dimensionIndex * 0.031 + revision * 0.13
       row[dimensionIndex + 1] = Math.sin(phase) * 70 + Math.cos(phase * 0.37) * 20
     }
@@ -171,7 +175,11 @@ const prepare = async ({
   if (prepared) throw new Error("Benchmark state already prepared")
   if (!new Set(["dygraph", "webgpu", "webgl2"]).has(renderer))
     throw new Error("Unknown renderer")
-  if (!new Set(["line", "area", "stacked", "stackedBar"]).has(visualization))
+  if (
+    !new Set(["line", "area", "multiBar", "stacked", "stackedBar"]).has(
+      visualization
+    )
+  )
     throw new Error("Unknown visualization")
 
   setStatus(`Preparing ${renderer} ${visualization}: ${dimensions * points} values`)
@@ -199,6 +207,7 @@ const prepare = async ({
       after: datasets[0][0][0] / 1000,
       before: datasets[0][points - 1][0] / 1000,
       chartRenderersByVisualization: { [visualization]: renderer },
+      themeGridColor: ["transparent", "transparent"],
     },
   })
   prepared = {
@@ -575,10 +584,8 @@ const capturePreview = async ({ samples = [] } = {}) => {
     byte.toString(16).padStart(2, "0")
   ).join("")
 
-  const yAxisRange =
-    preview.ui.getDygraph?.()?.yAxisRange?.() ||
-    preview.ui.getDrawStats?.()?.valueRange ||
-    null
+  const dygraph = preview.ui.getDygraph?.()
+  const yAxisRange = dygraph?.yAxisRange?.() || preview.ui.getDrawStats?.()?.valueRange || null
 
   return {
     dataUrlBytes: dataUrl.length,

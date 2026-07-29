@@ -55,8 +55,9 @@ const makePipeline = async (runtime, { label, shader }) => {
 
 export default async (runtime, surface, { fillMode = null } = {}) => {
   const { device, format } = runtime
-  const isBar = fillMode === "stackedBar"
-  const usesStackedData = fillMode === "stacked" || isBar
+  const isMultiBar = fillMode === "multiBar"
+  const isBar = fillMode === "stackedBar" || isMultiBar
+  const usesStackedData = fillMode === "stacked" || fillMode === "stackedBar"
   const linePipeline = isBar
     ? null
     : await runtime.getPipeline(`netdata-line-v2:${format}`, () =>
@@ -192,8 +193,8 @@ export default async (runtime, surface, { fillMode = null } = {}) => {
       lineWidth * dpr,
       stepped ? 1 : smooth ? 2 : 0,
       isBar ? barWidth * dpr : (0 - packed.yOrigin) / packed.yScale,
-      fillAlpha,
-      usesStackedData ? 1 : 0,
+      isMultiBar ? (0 - packed.yOrigin) / packed.yScale : fillAlpha,
+      usesStackedData ? 1 : isMultiBar ? 2 : 0,
       0,
     ])
     integers.set(
@@ -220,12 +221,16 @@ export default async (runtime, surface, { fillMode = null } = {}) => {
         { binding: 2, resource: { buffer: y } },
         { binding: 3, resource: { buffer: color } },
       ]
-      if (includeBase) entries.push({ binding: 4, resource: { buffer: base } })
+      if (includeBase)
+        entries.push({ binding: 4, resource: { buffer: base || y } })
       return device.createBindGroup({ layout: pipeline.getBindGroupLayout(0), entries })
     }
     if (linePipeline && !bindGroups.line) bindGroups.line = makeBindGroup(linePipeline)
     if (fillPipeline && !bindGroups.fill)
-      bindGroups.fill = makeBindGroup(fillPipeline, usesStackedData)
+      bindGroups.fill = makeBindGroup(
+        fillPipeline,
+        fillMode === "stacked" || isBar
+      )
   }
 
   const encode = pass => {

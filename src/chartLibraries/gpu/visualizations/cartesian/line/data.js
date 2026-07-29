@@ -27,7 +27,13 @@ const getFiniteRange = (rows, seriesCount, point, range) => {
   return Number.isFinite(min) && Number.isFinite(max) ? [min, max] : [0, 1]
 }
 
-export const packAlignedData = (rows, seriesCount, point, range) => {
+export const packAlignedData = (
+  rows,
+  seriesCount,
+  point,
+  range,
+  { trackGapEdges = true } = {}
+) => {
   const pointCount = rows.length
   const xOriginMs = pointCount ? rows[0][0] : 0
   const [yOrigin, yMax] = getFiniteRange(rows, seriesCount, point, range)
@@ -35,8 +41,10 @@ export const packAlignedData = (rows, seriesCount, point, range) => {
   const x = new Float32Array(pointCount)
   const y = new Float32Array(pointCount * seriesCount)
   const rangeBlockCount = Math.ceil(pointCount / RANGE_BLOCK_SIZE)
-  const gapEdgeIndexes = Array.from({ length: seriesCount }, () => [])
-  const previousValid = new Uint8Array(seriesCount)
+  const gapEdgeIndexes = trackGapEdges
+    ? Array.from({ length: seriesCount }, () => [])
+    : []
+  const previousValid = trackGapEdges ? new Uint8Array(seriesCount) : null
   const readValue = makePointValueReader(point)
   let dataMin = Infinity
   let dataMax = -Infinity
@@ -49,12 +57,15 @@ export const packAlignedData = (rows, seriesCount, point, range) => {
       const value = readValue(row[seriesIndex + 1])
       const valid = Number.isFinite(value)
       y[seriesIndex * pointCount + pointIndex] = valid ? (value - yOrigin) / yScale : NaN
-      if (pointIndex > 0) {
-        if (valid && !previousValid[seriesIndex]) gapEdgeIndexes[seriesIndex].push(pointIndex)
-        else if (!valid && previousValid[seriesIndex])
-          gapEdgeIndexes[seriesIndex].push(pointIndex - 1)
+      if (trackGapEdges) {
+        if (pointIndex > 0) {
+          if (valid && !previousValid[seriesIndex])
+            gapEdgeIndexes[seriesIndex].push(pointIndex)
+          else if (!valid && previousValid[seriesIndex])
+            gapEdgeIndexes[seriesIndex].push(pointIndex - 1)
+        }
+        previousValid[seriesIndex] = valid ? 1 : 0
       }
-      previousValid[seriesIndex] = valid ? 1 : 0
       if (valid) {
         dataMin = Math.min(dataMin, value)
         dataMax = Math.max(dataMax, value)
@@ -84,7 +95,7 @@ export const packAlignedData = (rows, seriesCount, point, range) => {
   }
 }
 
-export default chart => {
+export default (chart, options) => {
   let source = null
   let dimensionKey = null
   let pointSchema = null
@@ -112,7 +123,13 @@ export default chart => {
     dimensionKey = nextDimensionKey
     pointSchema = point
     rangeKey = nextRangeKey
-    packed = packAlignedData(data, dimensionIds.length, point, [min, max])
+    packed = packAlignedData(
+      data,
+      dimensionIds.length,
+      point,
+      [min, max],
+      options
+    )
     return packed
   }
 

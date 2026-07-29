@@ -72,8 +72,9 @@ const updateTexture = ({
 
 export default async (surface, { fillMode = null } = {}) => {
   const { gl } = surface
-  const isBar = fillMode === "stackedBar"
-  const usesStackedData = fillMode === "stacked" || isBar
+  const isMultiBar = fillMode === "multiBar"
+  const isBar = fillMode === "stackedBar" || isMultiBar
+  const usesStackedData = fillMode === "stacked" || fillMode === "stackedBar"
   const program = await surface.getProgram("gpu", vertexShader, fragmentShader)
   const vertexArray = gl.createVertexArray()
   const textures = {
@@ -223,8 +224,8 @@ export default async (surface, { fillMode = null } = {}) => {
       canvas: [canvasWidth, canvasHeight, lineWidth * dpr, stepped ? 1 : smooth ? 2 : 0],
       fill: [
         isBar ? barWidth * dpr : (0 - packed.yOrigin) / packed.yScale,
-        fillAlpha,
-        usesStackedData ? 1 : 0,
+        isMultiBar ? (0 - packed.yOrigin) / packed.yScale : fillAlpha,
+        usesStackedData ? 1 : isMultiBar ? 2 : 0,
       ],
       fillPass: fillMode === "stacked" ? 3 : isBar ? 4 : 2,
       counts: [
@@ -261,11 +262,14 @@ export default async (surface, { fillMode = null } = {}) => {
     if (usesStackedData) {
       gl.activeTexture(gl.TEXTURE3)
       gl.bindTexture(gl.TEXTURE_2D, textures.base)
+    } else if (isMultiBar) {
+      gl.activeTexture(gl.TEXTURE3)
+      gl.bindTexture(gl.TEXTURE_2D, textures.y)
     }
     gl.uniform1i(uniforms.uXValues, 0)
     gl.uniform1i(uniforms.uYValues, 1)
     gl.uniform1i(uniforms.uSeriesColors, 2)
-    if (usesStackedData) gl.uniform1i(uniforms.uBaseValues, 3)
+    if (usesStackedData || isMultiBar) gl.uniform1i(uniforms.uBaseValues, 3)
     gl.uniform2i(uniforms.uXTextureSize, textureStates.x.width, textureStates.x.height)
     gl.uniform2i(uniforms.uYTextureSize, textureStates.y.width, textureStates.y.height)
     gl.uniform2i(
@@ -278,6 +282,12 @@ export default async (surface, { fillMode = null } = {}) => {
         uniforms.uBaseTextureSize,
         textureStates.base.width,
         textureStates.base.height
+      )
+    else if (isMultiBar)
+      gl.uniform2i(
+        uniforms.uBaseTextureSize,
+        textureStates.y.width,
+        textureStates.y.height
       )
     gl.uniform4fv(uniforms.uDomain, drawState.domain)
     gl.uniform4fv(uniforms.uPlot, drawState.plot)
