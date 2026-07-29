@@ -37,12 +37,12 @@ if (
 const renderers = ["dygraph", ...candidateRenderers]
 const visualization = process.env.BENCHMARK_VISUALIZATION || "line"
 if (
-  !new Set(["line", "area", "multiBar", "stacked", "stackedBar"]).has(
+  !new Set(["line", "area", "heatmap", "multiBar", "stacked", "stackedBar"]).has(
     visualization
   )
 )
   throw new Error(
-    "BENCHMARK_VISUALIZATION must select line, area, multiBar, stacked, or stackedBar"
+    "BENCHMARK_VISUALIZATION must select line, area, heatmap, multiBar, stacked, or stackedBar"
   )
 
 const server = http.createServer((request, response) => {
@@ -222,7 +222,9 @@ const validateFilledVisualization = async (
         }
       )
       captures[benchmarkCase.name] = await page.evaluate(() =>
-        window.__NETDATA_RENDERER_BENCHMARK__.capturePreview()
+        window.__NETDATA_RENDERER_BENCHMARK__.capturePreview({
+          samples: [{ name: "gapCenter", xRatio: 50 / 99, yRatio: 0.75 }],
+        })
       )
       await page.evaluate(() => window.__NETDATA_RENDERER_BENCHMARK__.cleanup())
     }
@@ -233,7 +235,9 @@ const validateFilledVisualization = async (
   const regularStats = captures.regular.drawStats
   const stepStats = captures.step.drawStats
   const gapStats = captures.gap.drawStats
-  const isBar = visualizationId === "multiBar" || visualizationId === "stackedBar"
+  const isBar = new Set(["heatmap", "multiBar", "stackedBar"]).has(
+    visualizationId
+  )
   const exactDraws = isBar
     ? [regularStats, stepStats, gapStats].every(
         stats =>
@@ -258,11 +262,16 @@ const validateFilledVisualization = async (
   const stepPassed = isBar
     ? captures.regular.sha256 === captures.step.sha256
     : captures.regular.sha256 !== captures.step.sha256
+  const heatmapGapPassed =
+    visualizationId !== "heatmap" ||
+    (captures.regular.samplePixels.gapCenter[3] > 0 &&
+      captures.gap.samplePixels.gapCenter[3] === 0)
   const passed = Boolean(
     exactDraws &&
       captures.regular.nonTransparentPixels > 0 &&
       captures.step.nonTransparentPixels > 0 &&
       captures.gap.nonTransparentPixels > 0 &&
+      heatmapGapPassed &&
       stepPassed &&
       captures.gap.gapBandNonTransparentPixels === 0
   )
@@ -584,6 +593,94 @@ const validateMultiBarParity = async (
   }
 }
 
+const captureHeatmap = async (browser, port, renderer) => {
+  const context = await browser.newContext({
+    viewport: { width: 1600, height: 500 },
+    deviceScaleFactor: 1,
+  })
+  const page = await context.newPage()
+  try {
+    await page.goto(`http://127.0.0.1:${port}`, { waitUntil: "load" })
+    await page.waitForFunction(() => Boolean(window.__NETDATA_RENDERER_BENCHMARK__))
+    await page.evaluate(input => window.__NETDATA_RENDERER_BENCHMARK__.prepare(input), {
+      renderer,
+      visualization: "heatmap",
+      dimensions: 3,
+      points: 101,
+      profile: "heatmap",
+      range: [0, 90],
+      ids: ["+Inf", "0.3", "2"],
+    })
+    await page.evaluate(() =>
+      window.__NETDATA_RENDERER_BENCHMARK__.mountPreview({
+        enabledXAxis: false,
+        enabledYAxis: false,
+      })
+    )
+    const capture = await page.evaluate(() =>
+      window.__NETDATA_RENDERER_BENCHMARK__.capturePreview({
+        samples: [
+          { name: "top", xRatio: 0.5, yRatio: 0.34 },
+          { name: "middle", xRatio: 0.5, yRatio: 0.66 },
+          { name: "bottom", xRatio: 0.5, yRatio: 0.97 },
+          { name: "outside", xRatio: 0.5, xOffset: 10, yRatio: 0.34 },
+        ],
+      })
+    )
+    await page.evaluate(() => window.__NETDATA_RENDERER_BENCHMARK__.cleanup())
+    return capture
+  } finally {
+    await context.close()
+  }
+}
+
+const validateHeatmapParity = async (
+  browser,
+  port,
+  renderer,
+  dygraphCapture
+) => {
+  const capture = await captureHeatmap(browser, port, renderer)
+  const deltas = Object.fromEntries(
+    Object.keys(dygraphCapture.samplePixels).map(name => [
+      name,
+      Math.max(
+        ...dygraphCapture.samplePixels[name].map((value, index) =>
+          Math.abs(value - capture.samplePixels[name][index])
+        )
+      ),
+    ])
+  )
+  const samples = capture.samplePixels
+  const horizontalDelta = Math.abs(
+    capture.sampleRuns.top.width - dygraphCapture.sampleRuns.top.width
+  )
+  const verticalDelta = Math.abs(
+    capture.sampleVerticalRuns.top.height -
+      dygraphCapture.sampleVerticalRuns.top.height
+  )
+  const passed = Boolean(
+    samples.top[3] > 0 &&
+      samples.middle[3] === 0 &&
+      samples.bottom[3] > 0 &&
+      Object.values(deltas).every(delta => delta <= 3) &&
+      horizontalDelta <= 1 &&
+      verticalDelta <= 2 &&
+      JSON.stringify(capture.yAxisRange) === JSON.stringify(dygraphCapture.yAxisRange)
+  )
+  return {
+    renderer,
+    samples,
+    dygraphSamples: dygraphCapture.samplePixels,
+    deltas,
+    horizontalDelta,
+    verticalDelta,
+    yAxisRange: capture.yAxisRange,
+    dygraphYAxisRange: dygraphCapture.yAxisRange,
+    passed,
+  }
+}
+
 const validateFallbackChain = async (browser, port, visualizationId) => {
   const context = await browser.newContext({
     viewport: { width: 1600, height: 500 },
@@ -728,10 +825,31 @@ const run = async () => {
     args: browserArgs,
   })
   const browserVersion = browser.version()
+  const context = await browser.newContext({
+    viewport: { width: 1600, height: 500 },
+    deviceScaleFactor: 1,
+  })
+  const page = await context.newPage()
+  const benchmarkBrowser = {
+    newContext: async () => {
+      const sessions = []
+      return {
+        newPage: async () => page,
+        newCDPSession: async target => {
+          const session = await context.newCDPSession(target)
+          sessions.push(session)
+          return session
+        },
+        close: async () => Promise.all(sessions.map(session => session.detach())),
+      }
+    },
+  }
   const results = []
   const lineCorrectness = {}
   const areaCorrectness = {}
   const areaParity = {}
+  const heatmapCorrectness = {}
+  const heatmapParity = {}
   const multiBarCorrectness = {}
   const multiBarParity = {}
   const stackedCorrectness = {}
@@ -744,68 +862,94 @@ const run = async () => {
     for (const workload of workloads) {
       for (const renderer of renderers) {
         results.push(
-          await measureCase(browser, port, { ...workload, renderer, visualization })
+          await measureCase(benchmarkBrowser, port, {
+            ...workload,
+            renderer,
+            visualization,
+          })
         )
       }
     }
-    const dygraphArea = await captureAreaOverlap(browser, port, "dygraph")
-    const dygraphMultiBar = await captureMultiBar(browser, port, "dygraph")
+    const dygraphArea = await captureAreaOverlap(benchmarkBrowser, port, "dygraph")
+    const dygraphHeatmap = await captureHeatmap(benchmarkBrowser, port, "dygraph")
+    const dygraphMultiBar = await captureMultiBar(benchmarkBrowser, port, "dygraph")
     const dygraphMultiBarReflow = await captureMultiBar(
-      browser,
+      benchmarkBrowser,
       port,
       "dygraph",
       ["series-0", "series-2"]
     )
-    const dygraphStacked = await captureStackedDiverging(browser, port, "dygraph")
+    const dygraphStacked = await captureStackedDiverging(
+      benchmarkBrowser,
+      port,
+      "dygraph"
+    )
     const dygraphStackedBar = await captureStackedDiverging(
-      browser,
+      benchmarkBrowser,
       port,
       "dygraph",
       "stackedBar"
     )
     for (const renderer of candidateRenderers) {
-      lineCorrectness[renderer] = await validateLine(browser, port, renderer)
+      lineCorrectness[renderer] = await validateLine(benchmarkBrowser, port, renderer)
       areaCorrectness[renderer] = await validateFilledVisualization(
-        browser,
+        benchmarkBrowser,
         port,
         renderer,
         "area"
       )
-      areaParity[renderer] = await validateAreaParity(browser, port, renderer, dygraphArea)
+      areaParity[renderer] = await validateAreaParity(
+        benchmarkBrowser,
+        port,
+        renderer,
+        dygraphArea
+      )
+      heatmapCorrectness[renderer] = await validateFilledVisualization(
+        benchmarkBrowser,
+        port,
+        renderer,
+        "heatmap"
+      )
+      heatmapParity[renderer] = await validateHeatmapParity(
+        benchmarkBrowser,
+        port,
+        renderer,
+        dygraphHeatmap
+      )
       multiBarCorrectness[renderer] = await validateFilledVisualization(
-        browser,
+        benchmarkBrowser,
         port,
         renderer,
         "multiBar"
       )
       multiBarParity[renderer] = await validateMultiBarParity(
-        browser,
+        benchmarkBrowser,
         port,
         renderer,
         dygraphMultiBar,
         dygraphMultiBarReflow
       )
       stackedCorrectness[renderer] = await validateFilledVisualization(
-        browser,
+        benchmarkBrowser,
         port,
         renderer,
         "stacked"
       )
       stackedParity[renderer] = await validateStackedParity(
-        browser,
+        benchmarkBrowser,
         port,
         renderer,
         "stacked",
         dygraphStacked
       )
       stackedBarCorrectness[renderer] = await validateFilledVisualization(
-        browser,
+        benchmarkBrowser,
         port,
         renderer,
         "stackedBar"
       )
       stackedBarParity[renderer] = await validateStackedParity(
-        browser,
+        benchmarkBrowser,
         port,
         renderer,
         "stackedBar",
@@ -813,8 +957,13 @@ const run = async () => {
       )
     }
     if (candidateRenderers.includes("webgpu"))
-      fallbackChain = await validateFallbackChain(browser, port, visualization)
+      fallbackChain = await validateFallbackChain(
+        benchmarkBrowser,
+        port,
+        visualization
+      )
   } finally {
+    await context.close()
     await browser.close()
     await close()
   }
@@ -824,6 +973,8 @@ const run = async () => {
     Object.values(lineCorrectness).every(result => result.passed) &&
     Object.values(areaCorrectness).every(result => result.passed) &&
     Object.values(areaParity).every(result => result.passed) &&
+    Object.values(heatmapCorrectness).every(result => result.passed) &&
+    Object.values(heatmapParity).every(result => result.passed) &&
     Object.values(multiBarCorrectness).every(result => result.passed) &&
     Object.values(multiBarParity).every(result => result.passed) &&
     Object.values(stackedCorrectness).every(result => result.passed) &&
@@ -854,6 +1005,7 @@ const run = async () => {
       )} rendering ${visualization} from the same @netdata/charts checkout`,
       data: "deterministic row-major values; two pre-generated revisions alternated",
       canvas: "1600x500 CSS pixels at devicePixelRatio 1",
+      browser: "one shared Chromium context and page, reloaded between isolated cases",
       samples: "3 mounts, 2 warm-up updates, 10 measured updates, 3 seconds sustained updates",
       primaryLatency:
         "100k uses measured one-frame presentation/work completion plus synchronous speedup; 1M uses median frame-settled speedup",
@@ -864,6 +1016,8 @@ const run = async () => {
       line: lineCorrectness,
       area: areaCorrectness,
       areaParity,
+      heatmap: heatmapCorrectness,
+      heatmapParity,
       multiBar: multiBarCorrectness,
       multiBarParity,
       stacked: stackedCorrectness,

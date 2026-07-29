@@ -76,7 +76,16 @@ const makeXTicks = (chart, min, max, pixels) =>
     null
   )
 
-export const makeCartesianAxes = ({ chart, width, height, min, max, afterMs, beforeMs }) => {
+export const makeCartesianAxes = ({
+  chart,
+  width,
+  height,
+  min,
+  max,
+  afterMs,
+  beforeMs,
+  yTicks,
+}) => {
   const plot = makePlotArea(chart, width, height)
   const [domainMin, domainMax] = padValueRange(min, max, plot.height)
   const sparkline = chart.isSparkline()
@@ -90,20 +99,28 @@ export const makeCartesianAxes = ({ chart, width, height, min, max, afterMs, bef
 
   if (enabledYAxis) {
     const units = chart.getVisibleDimensionIds().map(id => chart.getDimensionUnit(id))
-    const yTicks = makeAxisTicks({
-      min,
-      max,
-      pixels: plot.height,
-      pixelsPerTick: 15,
-      units,
-      secondsAsTime: chart.getAttribute("secondsAsTime"),
-    }).filter(tick => tick.v >= min && tick.v <= max)
+    const resolvedYTicks = (
+      yTicks ||
+      makeAxisTicks({
+        min,
+        max,
+        pixels: plot.height,
+        pixelsPerTick: 15,
+        units,
+        secondsAsTime: chart.getAttribute("secondsAsTime"),
+      })
+    ).filter(tick => tick.v >= min && tick.v <= max)
 
-    yTicks.forEach((tick, index) => {
+    resolvedYTicks.forEach((tick, index) => {
       const y = yPosition(tick.v, domainMin, domainMax, plot)
       rects.push({ x: plot.left, y, width: plot.width, height: 1, color: gridColor })
+      const text =
+        "label" in tick
+          ? tick.label
+          : makeYLabel(chart, tick.v, getTickGranularity(resolvedYTicks, index))
+      if (text === null) return
       labels.push({
-        text: makeYLabel(chart, tick.v, getTickGranularity(yTicks, index)),
+        text,
         x: plot.left + 2,
         y,
         align: "right",

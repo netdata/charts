@@ -2,6 +2,10 @@ import {
   makeCurveSegments,
   makeDrawLayout,
 } from "@/chartLibraries/gpu/visualizations/cartesian/line/geometry"
+import {
+  fragmentShader as heatmapFragmentShader,
+  vertexShader as heatmapVertexShader,
+} from "../heatmap/shader"
 import { fragmentShader, vertexShader } from "./shader"
 
 const normalizeRange = (min, max) => {
@@ -73,9 +77,16 @@ const updateTexture = ({
 export default async (surface, { fillMode = null } = {}) => {
   const { gl } = surface
   const isMultiBar = fillMode === "multiBar"
-  const isBar = fillMode === "stackedBar" || isMultiBar
+  const isHeatmap = fillMode === "heatmap"
+  const isBar = fillMode === "stackedBar" || isMultiBar || isHeatmap
   const usesStackedData = fillMode === "stacked" || fillMode === "stackedBar"
-  const program = await surface.getProgram("gpu", vertexShader, fragmentShader)
+  const program = isHeatmap
+    ? await surface.getProgram(
+        "heatmap-v1",
+        heatmapVertexShader,
+        heatmapFragmentShader
+      )
+    : await surface.getProgram("gpu", vertexShader, fragmentShader)
   const vertexArray = gl.createVertexArray()
   const textures = {
     x: gl.createTexture(),
@@ -129,6 +140,7 @@ export default async (surface, { fillMode = null } = {}) => {
     fillAlpha = 0,
     lineWidth,
     barWidth = 0,
+    heatmapMax = 0,
     stepped,
     smooth,
   }) => {
@@ -225,7 +237,8 @@ export default async (surface, { fillMode = null } = {}) => {
       fill: [
         isBar ? barWidth * dpr : (0 - packed.yOrigin) / packed.yScale,
         isMultiBar ? (0 - packed.yOrigin) / packed.yScale : fillAlpha,
-        usesStackedData ? 1 : isMultiBar ? 2 : 0,
+        usesStackedData ? 1 : isMultiBar ? 2 : isHeatmap ? 3 : 0,
+        isHeatmap ? heatmapMax : 0,
       ],
       fillPass: fillMode === "stacked" ? 3 : isBar ? 4 : 2,
       counts: [
@@ -292,7 +305,8 @@ export default async (surface, { fillMode = null } = {}) => {
     gl.uniform4fv(uniforms.uDomain, drawState.domain)
     gl.uniform4fv(uniforms.uPlot, drawState.plot)
     gl.uniform4fv(uniforms.uCanvas, drawState.canvas)
-    gl.uniform3fv(uniforms.uFill, drawState.fill)
+    if (isHeatmap) gl.uniform4fv(uniforms.uFill, drawState.fill)
+    else gl.uniform3fv(uniforms.uFill, drawState.fill)
     gl.uniform4uiv(uniforms.uCounts, drawState.counts)
     gl.enable(gl.SCISSOR_TEST)
     gl.scissor(
@@ -303,7 +317,12 @@ export default async (surface, { fillMode = null } = {}) => {
     )
     if (drawState.fillInstanceCount) {
       gl.uniform1i(uniforms.uPassType, drawState.fillPass)
-      gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, drawState.fillInstanceCount)
+      gl.drawArraysInstanced(
+        isHeatmap ? gl.TRIANGLE_STRIP : gl.TRIANGLES,
+        0,
+        isHeatmap ? 4 : 6,
+        drawState.fillInstanceCount
+      )
     }
     if (drawState.strokeInstanceCount) {
       gl.uniform1i(uniforms.uPassType, 0)

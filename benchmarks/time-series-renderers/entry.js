@@ -68,6 +68,10 @@ const makeData = (dimensions, points, revision, profile) => {
         row[dimensionIndex + 1] = [2, 1, -1][dimensionIndex % 3]
         continue
       }
+      if (profile === "heatmap") {
+        row[dimensionIndex + 1] = [90, 45, 0][dimensionIndex % 3]
+        continue
+      }
       const phase = pointIndex * 0.017 + dimensionIndex * 0.031 + revision * 0.13
       row[dimensionIndex + 1] = Math.sin(phase) * 70 + Math.cos(phase * 0.37) * 20
     }
@@ -83,12 +87,16 @@ const makeChart = state => {
   state.sdk.appendChild(chart)
 
   let revision = 0
-  chart.getPayload = () => ({
+  const payloads = state.datasets.map(data => ({
     labels: ["time", ...state.ids],
-    data: state.datasets[revision],
-    all: [],
+    data,
+    all: data,
     tree: {},
-  })
+  }))
+  chart.getPayload = () => payloads[revision]
+  if (state.visualization === "heatmap")
+    chart.getDimensionValue = (id, index, options) =>
+      chart.getRowDimensionValue(id, state.datasets[revision][index], options)
   chart.updateAttributes({
     chartType: state.visualization,
     loaded: true,
@@ -171,12 +179,13 @@ const prepare = async ({
   profile = "wave",
   range = [-90, 90],
   colors = null,
+  ids = null,
 }) => {
   if (prepared) throw new Error("Benchmark state already prepared")
   if (!new Set(["dygraph", "webgpu", "webgl2"]).has(renderer))
     throw new Error("Unknown renderer")
   if (
-    !new Set(["line", "area", "multiBar", "stacked", "stackedBar"]).has(
+    !new Set(["line", "area", "heatmap", "multiBar", "stacked", "stackedBar"]).has(
       visualization
     )
   )
@@ -219,7 +228,7 @@ const prepare = async ({
     profile,
     range,
     colors,
-    ids: Array.from({ length: dimensions }, (_, index) => `series-${index}`),
+    ids: ids || Array.from({ length: dimensions }, (_, index) => `series-${index}`),
     datasets,
     sdk,
     runtime: null,

@@ -1,5 +1,6 @@
 import { makeCurveSegments, makeDrawLayout } from "@/chartLibraries/gpu/visualizations/cartesian/line/geometry"
 import areaShader from "../area/shader"
+import heatmapShader from "../heatmap/shader"
 import stackedShader from "../stacked/shader"
 import stackedBarShader from "../stackedBar/shader"
 import lineShader from "./shader"
@@ -17,7 +18,10 @@ const normalizeRange = (min, max) => {
   return [min - padding, max + padding]
 }
 
-const makePipeline = async (runtime, { label, shader }) => {
+const makePipeline = async (
+  runtime,
+  { label, shader, topology = "triangle-list" }
+) => {
   const { device, format } = runtime
   const module = device.createShaderModule({ label: `${label}-shader`, code: shader })
   const compilation = await module.getCompilationInfo()
@@ -49,14 +53,15 @@ const makePipeline = async (runtime, { label, shader }) => {
         },
       ],
     },
-    primitive: { topology: "triangle-list" },
+    primitive: { topology },
   })
 }
 
 export default async (runtime, surface, { fillMode = null } = {}) => {
   const { device, format } = runtime
   const isMultiBar = fillMode === "multiBar"
-  const isBar = fillMode === "stackedBar" || isMultiBar
+  const isHeatmap = fillMode === "heatmap"
+  const isBar = fillMode === "stackedBar" || isMultiBar || isHeatmap
   const usesStackedData = fillMode === "stacked" || fillMode === "stackedBar"
   const linePipeline = isBar
     ? null
@@ -64,10 +69,20 @@ export default async (runtime, surface, { fillMode = null } = {}) => {
         makePipeline(runtime, { label: "netdata-line", shader: lineShader })
       )
   const fillShader =
-    fillMode === "stacked" ? stackedShader : isBar ? stackedBarShader : areaShader
+    fillMode === "stacked"
+      ? stackedShader
+      : isHeatmap
+        ? heatmapShader
+        : isBar
+          ? stackedBarShader
+          : areaShader
   const fillPipeline = fillMode
     ? await runtime.getPipeline(`netdata-${fillMode}-v1:${format}`, () =>
-        makePipeline(runtime, { label: `netdata-${fillMode}`, shader: fillShader })
+        makePipeline(runtime, {
+          label: `netdata-${fillMode}`,
+          shader: fillShader,
+          topology: isHeatmap ? "triangle-strip" : "triangle-list",
+        })
       )
     : null
   const buffers = {}
@@ -110,6 +125,7 @@ export default async (runtime, surface, { fillMode = null } = {}) => {
     fillAlpha = 0,
     lineWidth,
     barWidth = 0,
+    heatmapMax = 0,
     stepped,
     smooth,
   }) => {
@@ -194,8 +210,8 @@ export default async (runtime, surface, { fillMode = null } = {}) => {
       stepped ? 1 : smooth ? 2 : 0,
       isBar ? barWidth * dpr : (0 - packed.yOrigin) / packed.yScale,
       isMultiBar ? (0 - packed.yOrigin) / packed.yScale : fillAlpha,
-      usesStackedData ? 1 : isMultiBar ? 2 : 0,
-      0,
+      usesStackedData ? 1 : isMultiBar ? 2 : isHeatmap ? 3 : 0,
+      isHeatmap ? heatmapMax : 0,
     ])
     integers.set(
       [
@@ -229,7 +245,7 @@ export default async (runtime, surface, { fillMode = null } = {}) => {
     if (fillPipeline && !bindGroups.fill)
       bindGroups.fill = makeBindGroup(
         fillPipeline,
-        fillMode === "stacked" || isBar
+        fillMode === "stacked" || (isBar && !isHeatmap)
       )
   }
 
@@ -240,7 +256,7 @@ export default async (runtime, surface, { fillMode = null } = {}) => {
     if (drawLayout.fillInstanceCount) {
       pass.setPipeline(fillPipeline)
       pass.setBindGroup(0, bindGroups.fill)
-      pass.draw(6, drawLayout.fillInstanceCount)
+      pass.draw(isHeatmap ? 4 : 6, drawLayout.fillInstanceCount)
     }
     if (drawLayout.strokeInstanceCount) {
       pass.setPipeline(linePipeline)

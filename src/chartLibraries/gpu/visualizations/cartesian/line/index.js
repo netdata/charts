@@ -20,6 +20,10 @@ export default ({
   findDimension,
   makeMarkers = makeGapEdgeCircles,
   makeColors = makeSeriesColors,
+  makeAxes = makeCartesianAxes,
+  getValueRangeOverride,
+  getAxisDimensionIds = targetChart => targetChart.getVisibleDimensionIds(),
+  getYAxisNotificationRange = ({ min, max }) => [min, max],
 }) => {
   const packedData = makePackedData(chart)
   let resource = null
@@ -67,6 +71,7 @@ export default ({
       chart.onAttributeChange("colors", markColorsDirty(render)),
       chart.onAttributeChange("theme", markColorsDirty(render)),
       chart.onAttributeChange("stepPlot", render),
+      chart.onAttributeChange("heatmapType", render),
       chart.onAttributeChange("staticValueRange", render),
       chart.onAttributeChange("valueRange", render),
       chart.onAttributeChange("getValueRange", render),
@@ -133,6 +138,9 @@ export default ({
   }
 
   const getValueRange = (packed, afterMs, beforeMs) => {
+    if (getValueRangeOverride)
+      return getValueRangeOverride({ chart, packed, afterMs, beforeMs })
+
     const getRange = chart.getAttribute("getValueRange")
     const range = typeof getRange === "function" ? getRange(chart) : null
     let min = range?.[0] ?? chart.getAttribute("min")
@@ -173,7 +181,7 @@ export default ({
 
   const getAxesKey = ({ width, height, dpr, min, max, afterMs, beforeMs }) => {
     const attributes = chart.getAttributes()
-    const dimensionIds = chart.getVisibleDimensionIds()
+    const dimensionIds = getAxisDimensionIds(chart)
     return JSON.stringify([
       width,
       height,
@@ -219,11 +227,21 @@ export default ({
     const axesKey = getAxesKey({ width, height, dpr, min, max, afterMs, beforeMs })
     const axesChanged = axesKey !== lastAxesKey
     const axes = axesChanged
-      ? makeCartesianAxes({ chart, width, height, min, max, afterMs, beforeMs })
+      ? makeAxes({ chart, width, height, min, max, afterMs, beforeMs })
       : lastAxes
-    if (!lastYAxisRange || lastYAxisRange[0] !== min || lastYAxisRange[1] !== max) {
-      lastYAxisRange = [min, max]
-      chart.trigger("yAxisChange", min, max)
+    const [notificationMin, notificationMax] = getYAxisNotificationRange({
+      chart,
+      packed,
+      min,
+      max,
+    })
+    if (
+      !lastYAxisRange ||
+      lastYAxisRange[0] !== notificationMin ||
+      lastYAxisRange[1] !== notificationMax
+    ) {
+      lastYAxisRange = [notificationMin, notificationMax]
+      chart.trigger("yAxisChange", notificationMin, notificationMax)
     }
     if (axesChanged) resource.grid.update({ rects: axes.rects, width, height, dpr })
     if (axesChanged || resource.text.needsUpdate())

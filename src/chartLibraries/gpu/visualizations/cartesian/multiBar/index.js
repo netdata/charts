@@ -54,7 +54,7 @@ export const getReducedWindowBounds = ({
   return { first, last }
 }
 
-export const getMultiBarGroupWidth = ({
+export const getFirstReducedSeparation = ({
   packed,
   visibleSeriesIndexes,
   afterMs,
@@ -62,7 +62,7 @@ export const getMultiBarGroupWidth = ({
   plotWidth,
 }) => {
   const domainWidth = beforeMs - afterMs
-  if (!domainWidth) return 0
+  if (!domainWidth) return null
   let minimumSeparation = Infinity
 
   visibleSeriesIndexes.forEach(seriesIndex => {
@@ -81,9 +81,12 @@ export const getMultiBarGroupWidth = ({
     if (separation < minimumSeparation) minimumSeparation = separation
   })
 
-  return Number.isFinite(minimumSeparation)
-    ? Math.floor((2 / 3) * minimumSeparation)
-    : 0
+  return Number.isFinite(minimumSeparation) ? minimumSeparation : null
+}
+
+export const getMultiBarGroupWidth = options => {
+  const minimumSeparation = getFirstReducedSeparation(options)
+  return minimumSeparation === null ? 0 : Math.floor((2 / 3) * minimumSeparation)
 }
 
 const makeMultiBarData = chart => makeLineData(chart, { trackGapEdges: false })
