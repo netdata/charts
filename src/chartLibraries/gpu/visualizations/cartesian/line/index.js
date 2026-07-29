@@ -7,8 +7,15 @@ import { makeDataDecorationRects, makeGapEdgeCircles } from "./decorations"
 import makePackedData from "./data"
 import { getVisibleRange } from "./range"
 import { makeSeriesColors } from "./colors"
+import { makeLineStyle, shouldIncludeZero } from "./config"
 
-export default ({ chart, chartUI, makeResources }) => {
+export default ({
+  chart,
+  chartUI,
+  makeResources,
+  forceIncludeZero = false,
+  makeSeriesStyle = makeLineStyle,
+}) => {
   const packedData = makePackedData(chart)
   let resource = null
   let listeners = null
@@ -140,7 +147,13 @@ export default ({ chart, chartUI, makeResources }) => {
       const visibleRange = getVisibleRange({ packed, afterMs, beforeMs, seriesIndexes })
       if (visibleRange) [min, max] = visibleRange
     }
-    if (chart.getAttribute("includeZero")) {
+    const includeZero = shouldIncludeZero({
+      includeZero: chart.getAttribute("includeZero"),
+      forceIncludeZero,
+      dimensionCount: chart.getPayloadDimensionIds().length,
+      selectedDimensionCount: chart.getAttribute("selectedLegendDimensions").length,
+    })
+    if (includeZero) {
       min = Math.min(0, min)
       max = Math.max(0, max)
     }
@@ -257,9 +270,7 @@ export default ({ chart, chartUI, makeResources }) => {
       height,
       dpr,
       plot: axes.plot,
-      lineWidth: 1.5,
-      stepped: chart.getAttribute("stepPlot"),
-      smooth: !chart.getAttribute("stepPlot"),
+      ...makeSeriesStyle(chart),
     })
     resource.surface.draw(
       [

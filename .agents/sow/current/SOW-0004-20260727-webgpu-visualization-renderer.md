@@ -4,7 +4,7 @@
 
 Status: in-progress
 
-Sub-state: The production-capable opt-in line renderer passes physical WebGPU and WebGL2 gates and has been transplanted onto a clean integration branch from current `origin/main`. Visualization/renderer separation, shared exact line semantics/interactions, one-canvas presentation, `WebGPU -> WebGL2 -> Dygraphs` routing, exports, hover feedback, device/context-loss fallback, and shared-runtime multi-chart lifecycle are implemented. The user approved migrating all remaining graphical chart families before the final cross-platform matrix; Area is next. Runtime/power policy and rollout/defaulting remain deferred, and Dygraphs remains every default.
+Sub-state: The production-capable opt-in Line and Area renderers pass physical WebGPU and WebGL2 gates on the clean integration branch from current `origin/main`. Visualization/renderer separation, shared exact Cartesian semantics/interactions, one-canvas presentation, `WebGPU -> WebGL2 -> Dygraphs` routing, exports, hover feedback, device/context-loss fallback, and shared-runtime multi-chart lifecycle are implemented. The user approved migrating all remaining graphical chart families before the final cross-platform matrix; Stacked is next. Runtime/power policy and rollout/defaulting remain deferred, and Dygraphs remains every default.
 
 ## Requirements
 
@@ -205,9 +205,9 @@ Open decisions:
 1. Preserve the completed line branch as backup and transplant only project/GPU commits onto current `origin/main`, excluding duplicate prerequisite history.
 2. Revalidate the clean integration base with full Jest and CJS/ES6 builds.
 3. Implement Area as exact per-adjacent-pair baseline trapezoids sharing line data/color buffers. Draw fills in reverse series order before straight/step strokes, discard any pair touching a gap, clamp the zero baseline to the plot, and preserve Dygraphs opacity/include-zero/sparkline semantics.
-4. Validate Area routing, exact draw counts, gaps, overlap ordering, baseline behavior, step behavior, exports, interactions, runtime loss, multi-chart lifecycle, performance, Storybook, and Cloud consumption on local physical WebGPU and WebGL2 paths.
+4. Validate Area routing, exact draw counts, gaps, overlap ordering, baseline behavior, step behavior, exports, interactions, runtime loss, multi-chart lifecycle, and performance on local physical WebGPU and WebGL2 paths.
 5. Continue in order with Stacked, Stacked Bar, Multi Column, Heatmap, EasyPie/Circle, Gauge, and D3 Pie, applying the same adapter-specific parity gate each time.
-6. Run the authorized Windows/macOS/browser matrix after graphical migration, then decide runtime/power policy, prewarming, batching, rollout, and defaulting.
+6. After graphical migration, run Storybook and Cloud consumption plus the authorized Windows/macOS/browser matrix, then decide runtime/power policy, prewarming, batching, rollout, and defaulting.
 
 ## Execution Log
 
@@ -279,6 +279,11 @@ Open decisions:
 - Verified prerequisite PRs #225, #226, #227, and #228 are merged in `origin/main` at `f36403e`. Created clean integration branch `codex/webgpu-charts-integration` from that commit and replayed only project/GPU changes as ten commits; the backup branch remains untouched. Tree comparison shows only current upstream changes, including merged gauge thresholds, differ from the backup.
 - Installed dependencies under the required Node 22.22.0 runtime and revalidated the clean base: 172 Jest suites passed with 1,588 tests passed and 2 skipped; CJS compiled 548 files and ES6 compiled 555 files; SOW audit and `git diff --check` passed.
 - The user approved completing graphical adapter migration before the final cross-platform matrix. Area is first because it introduces only baseline trapezoids over the proven exact line buffers and core triangle/blending APIs. Official Dygraphs source confirms fills are drawn in reverse series order before strokes, use straight/step segment tops, break at null gaps, and clamp the zero baseline to the plot. `ChartGPU/ChartGPU @ 4ee780e6ecb7d8bd938fb1dccec2db00695f64e1` independently confirms the six-vertex per-segment trapezoid and dual-endpoint NaN-discard pattern; its optional LOD is explicitly rejected for Netdata's exact mode.
+- Implemented Area as a thin backend-neutral adapter over the exact line payload/range/axes/overlays/interactions model. WebGPU and WebGL2 share x/y/color residency with the stroke and add one six-vertex trapezoid per adjacent source pair, reverse fill order, zero-baseline clamping, exact null-pair discard, straight/step tops, 0.2 fill alpha, 0.7 stroke, and opaque no-stroke sparkline behavior. Area is registered in both GPU backend capability maps while all default renderer maps remain Dygraphs.
+- The first combined Area benchmark exposed a real prewarmed WebGPU mount miss: median work completed in 13.2 ms but presentation took 28.9 ms. Parallelized independent WebGPU layer/resource initialization using failure-safe `Promise.allSettled`, reducing the accepted final 100,000-value Area mount to 10.1 ms work and 12.3 ms presentation without changing lifecycle ownership.
+- Final physical Chromium 150/Wayland Area benchmark passed both backends and retained Line correctness. At 100,000 values, WebGPU mount/update work completed in 10.1/7.0 ms and WebGL2 in 11.5/2.7 ms within one measured frame. At 1,000,000 values, WebGPU achieved 10.29x/8.08x and WebGL2 11.53x/14.06x mount/update frame speedups over Dygraphs. Exact fill/stroke instance counts, regular/step distinction, an empty null-gap band, PNG exports, four-chart lifecycle, WebGPU device loss to WebGL2, WebGL2 context loss to Dygraphs, and zero retained contexts passed.
+- Deterministic overlap sampling proved exact Dygraphs pixel parity, including reverse fill order and a zero baseline clamped below an all-positive `[20, 100]` range. Dygraphs, WebGPU, and WebGL2 produced identical interior RGBA values: transparent `[0,0,0,0]`, first-series fill `[255,0,0,51]`, and overlap/baseline fill `[141,0,114,92]`. Evidence: `/tmp/gpu-area-production-benchmark-final.clean.json`.
+- Full validation after Area passed: 174 Jest suites; 1,594 tests passed and 2 skipped; coverage 62.10% statements, 56.09% branches, 60.50% functions, and 63.36% lines; CJS/ES6 each compiled 562 files; Storybook built successfully with only existing size warnings. Cloud installation and external platform checks remain intentionally deferred until graphical migration completes.
 
 ## Validation
 
@@ -291,12 +296,12 @@ Acceptance criteria evidence:
 
 Tests or equivalent validation:
 
-- Full Jest with coverage: 169 suites passed; 1,565 tests passed and 2 skipped. Coverage passed unchanged thresholds at 60.00% statements, 54.93% branches, 59.52% functions, and 61.02% lines.
+- Full Jest with coverage: 174 suites passed; 1,594 tests passed and 2 skipped. Coverage passed unchanged thresholds at 62.10% statements, 56.09% branches, 60.50% functions, and 63.36% lines.
 - Focused shared-GPU, WebGPU, WebGL2 primitive, routing, controller, hover, and default-SDK tests passed without new Jest mocks.
 - Clean CommonJS and ES6 distributions built with 541 files each; moved backend-neutral modules and both GPU backends were present, while stale pre-move paths were absent.
 - Changed-file ESLint passed. Repository lint retained 35 unrelated pre-existing errors and introduced none in changed files.
 - Storybook static build passed. The isolated Cloud production build and final agent installation passed. Mixed-size X11 WebGL2 canvases all exported non-empty frames without cropping or blanks (`/tmp/webgl2-cloud-x11-final.json` and matching narrow/large screenshots). SOW audit and `git diff --check` passed.
-- Physical benchmark passed one-frame 100,000-value mount/update work, greater-than-5x 1,000,000-value frame speedups, PNG export, sustained updates, and four-chart shared-runtime lifecycle gates.
+- Physical Line and Area benchmarks passed one-frame 100,000-value mount/update work, greater-than-5x 1,000,000-value frame speedups, exact source-pair geometry/gaps, Dygraphs Area overlap/baseline pixels, PNG export, sustained updates, four-chart shared-runtime lifecycle, and the complete runtime-loss chain.
 
 Real-use evidence:
 
@@ -348,7 +353,7 @@ Follow-up mapping:
 
 ## Outcome
 
-The production-capable ordinary-line GPU adapter is implemented, physically validated, and cleanly integrated on current `origin/main`. The approved next milestone is exact Area migration, followed by the remaining graphical adapters before broader browser/device hardening. Runtime/power policy and rollout/default approval remain intentionally deferred.
+The production-capable Line and Area GPU adapters are implemented, physically validated, and cleanly integrated on current `origin/main`. The approved next milestone is exact diverging Stacked migration, followed by the remaining graphical adapters before broader browser/device hardening. Runtime/power policy and rollout/default approval remain intentionally deferred.
 
 ## Lessons Extracted
 

@@ -70,7 +70,7 @@ const updateTexture = ({
   state.byteLength = layout.values.byteLength
 }
 
-export default async surface => {
+export default async (surface, { filled = false } = {}) => {
   const { gl } = surface
   const program = await surface.getProgram("gpu", vertexShader, fragmentShader)
   const vertexArray = gl.createVertexArray()
@@ -97,6 +97,7 @@ export default async surface => {
       "uDomain",
       "uPlot",
       "uCanvas",
+      "uFill",
       "uCounts",
     ].map(name => [name, gl.getUniformLocation(program, name)])
   )
@@ -116,6 +117,7 @@ export default async surface => {
     height,
     dpr,
     plot = { left: 0, top: 0, width, height },
+    fillAlpha = 0,
     lineWidth,
     stepped,
     smooth,
@@ -176,6 +178,8 @@ export default async surface => {
       stepped,
       smooth,
       curveSegments: makeCurveSegments({ pointCount: packed.pointCount, plotWidth }),
+      filled: filled && fillAlpha > 0,
+      stroke: lineWidth > 0,
     })
     const [rawRangeMin, rawRangeMax] = normalizeRange(min, max)
     drawState = {
@@ -187,12 +191,15 @@ export default async surface => {
       ],
       plot: [plotLeft, plotTop, plotWidth, plotHeight],
       canvas: [canvasWidth, canvasHeight, lineWidth * dpr, stepped ? 1 : smooth ? 2 : 0],
+      fill: [(0 - packed.yOrigin) / packed.yScale, fillAlpha],
       counts: [
         packed.pointCount,
         packed.seriesCount,
         drawLayout.segmentsPerPair,
         drawLayout.segmentsPerSeries,
       ],
+      fillInstanceCount: drawLayout.fillInstanceCount,
+      strokeInstanceCount: drawLayout.strokeInstanceCount,
       instanceCount: drawLayout.instanceCount,
       drawStats: {
         pointCount: packed.pointCount,
@@ -207,7 +214,6 @@ export default async surface => {
     if (!drawState?.instanceCount) return false
     gl.useProgram(program)
     gl.bindVertexArray(vertexArray)
-    gl.uniform1i(uniforms.uPassType, 0)
     gl.activeTexture(gl.TEXTURE0)
     gl.bindTexture(gl.TEXTURE_2D, textures.x)
     gl.activeTexture(gl.TEXTURE1)
@@ -227,6 +233,7 @@ export default async surface => {
     gl.uniform4fv(uniforms.uDomain, drawState.domain)
     gl.uniform4fv(uniforms.uPlot, drawState.plot)
     gl.uniform4fv(uniforms.uCanvas, drawState.canvas)
+    gl.uniform2fv(uniforms.uFill, drawState.fill)
     gl.uniform4uiv(uniforms.uCounts, drawState.counts)
     gl.enable(gl.SCISSOR_TEST)
     gl.scissor(
@@ -235,7 +242,14 @@ export default async surface => {
       drawState.plot[2],
       drawState.plot[3]
     )
-    gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, drawState.instanceCount)
+    if (drawState.fillInstanceCount) {
+      gl.uniform1i(uniforms.uPassType, 2)
+      gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, drawState.fillInstanceCount)
+    }
+    if (drawState.strokeInstanceCount) {
+      gl.uniform1i(uniforms.uPassType, 0)
+      gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, drawState.strokeInstanceCount)
+    }
     gl.bindVertexArray(null)
     return true
   }

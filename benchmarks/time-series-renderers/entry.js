@@ -49,13 +49,17 @@ const forceGc = async () => {
   if (typeof window.gc === "function") window.gc()
 }
 
-const makeData = (dimensions, points, revision) => {
+const makeData = (dimensions, points, revision, profile) => {
   const start = 1783630694000
   return Array.from({ length: points }, (_, pointIndex) => {
     const row = new Array(dimensions + 1)
     row[0] = start + pointIndex * intervalMs
 
     for (let dimensionIndex = 0; dimensionIndex < dimensions; dimensionIndex++) {
+      if (profile === "area-overlap") {
+        row[dimensionIndex + 1] = dimensionIndex === 0 ? 75 : 50
+        continue
+      }
       const phase = pointIndex * 0.017 + dimensionIndex * 0.031 + revision * 0.13
       row[dimensionIndex + 1] = Math.sin(phase) * 70 + Math.cos(phase * 0.37) * 20
     }
@@ -78,16 +82,17 @@ const makeChart = state => {
     tree: {},
   })
   chart.updateAttributes({
-    chartType: "line",
+    chartType: state.visualization,
     loaded: true,
     loading: false,
     processing: false,
     panning: false,
     highlighting: false,
     outOfLimits: false,
-    min: -90,
-    max: 90,
-    valueRange: [-90, 90],
+    min: state.range[0],
+    max: state.range[1],
+    valueRange: state.range,
+    ...(state.colors && { colors: state.colors }),
     viewDimensions: {
       ids: state.ids,
       names: state.ids,
@@ -149,13 +154,27 @@ const settle = async (instance, startedAt = performance.now()) => {
 let prepared = null
 let preview = null
 
-const prepare = async ({ renderer, dimensions, points, gaps = false }) => {
+const prepare = async ({
+  renderer,
+  dimensions,
+  points,
+  gaps = false,
+  visualization = "line",
+  profile = "wave",
+  range = [-90, 90],
+  colors = null,
+}) => {
   if (prepared) throw new Error("Benchmark state already prepared")
   if (!new Set(["dygraph", "webgpu", "webgl2"]).has(renderer))
     throw new Error("Unknown renderer")
+  if (!new Set(["line", "area"]).has(visualization))
+    throw new Error("Unknown visualization")
 
-  setStatus(`Preparing ${renderer}: ${dimensions * points} values`)
-  const datasets = [makeData(dimensions, points, 0), makeData(dimensions, points, 1)]
+  setStatus(`Preparing ${renderer} ${visualization}: ${dimensions * points} values`)
+  const datasets = [
+    makeData(dimensions, points, 0, profile),
+    makeData(dimensions, points, 1, profile),
+  ]
   if (gaps && points > 2) {
     const gapIndex = Math.floor(points / 2)
     datasets.forEach(data => {
@@ -175,14 +194,18 @@ const prepare = async ({ renderer, dimensions, points, gaps = false }) => {
       autofetch: false,
       after: datasets[0][0][0] / 1000,
       before: datasets[0][points - 1][0] / 1000,
-      chartRenderersByVisualization: { line: renderer },
+      chartRenderersByVisualization: { [visualization]: renderer },
     },
   })
   prepared = {
     renderer,
+    visualization,
     dimensions,
     points,
     gaps,
+    profile,
+    range,
+    colors,
     ids: Array.from({ length: dimensions }, (_, index) => `series-${index}`),
     datasets,
     sdk,
@@ -219,6 +242,7 @@ const prepare = async ({ renderer, dimensions, points, gaps = false }) => {
   const displayFrameIntervalMs = await measureFrameInterval()
   return {
     renderer,
+    visualization,
     dimensions,
     points,
     values: dimensions * points,
@@ -274,7 +298,11 @@ const measureMultiChart = async (count = 4) => {
 
 const measure = async ({ mountSamples = 3, updateSamples = 10, sustainedMs = 3000 } = {}) => {
   if (!prepared) throw new Error("Benchmark state has not been prepared")
-  setStatus(`Running ${prepared.renderer}: ${prepared.dimensions * prepared.points} values`)
+  setStatus(
+    `Running ${prepared.renderer} ${prepared.visualization}: ${
+      prepared.dimensions * prepared.points
+    } values`
+  )
 
   let pipelineWarmupMs = null
   if (prepared.renderer !== "dygraph") {
@@ -353,9 +381,14 @@ const measure = async ({ mountSamples = 3, updateSamples = 10, sustainedMs = 300
   await forceGc()
   const retainedMemory = collectMemory()
 
-  setStatus(`Completed ${prepared.renderer}: ${prepared.dimensions * prepared.points} values`)
+  setStatus(
+    `Completed ${prepared.renderer} ${prepared.visualization}: ${
+      prepared.dimensions * prepared.points
+    } values`
+  )
   return {
     renderer: prepared.renderer,
+    visualization: prepared.visualization,
     dimensions: prepared.dimensions,
     points: prepared.points,
     values: prepared.dimensions * prepared.points,
@@ -422,9 +455,9 @@ const inspectPreview = () => {
   }
 }
 
-const capturePreview = async () => {
+const capturePreview = async ({ samples = [] } = {}) => {
   if (!preview) throw new Error("A preview is required")
-  const canvas = preview.ui.getCanvas?.()
+  const canvas = preview.ui.getCanvas?.() || preview.element.querySelector("canvas")
   if (!canvas) throw new Error("The preview has no canvas")
   const dataUrl = canvas.toDataURL("image/png")
   const image = new Image()
@@ -463,6 +496,21 @@ const capturePreview = async () => {
     }
   }
 
+  const samplePixels = Object.fromEntries(
+    samples.map(({ name, xRatio, yRatio }) => {
+      const x = Math.max(
+        0,
+        Math.min(copy.width - 1, Math.round((plot.left + plot.width * xRatio) * dpr))
+      )
+      const y = Math.max(
+        0,
+        Math.min(copy.height - 1, Math.round((plot.top + plot.height * yRatio) * dpr))
+      )
+      const offset = (y * copy.width + x) * 4
+      return [name, Array.from(pixels.slice(offset, offset + 4))]
+    })
+  )
+
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(dataUrl))
   const sha256 = Array.from(new Uint8Array(digest), byte =>
     byte.toString(16).padStart(2, "0")
@@ -476,6 +524,7 @@ const capturePreview = async () => {
     nonTransparentPixels,
     gapBandNonTransparentPixels,
     gapBandWidth: gapHalfWidth * 2 + 1,
+    samplePixels,
     drawStats: preview.ui.getDrawStats?.() || null,
   }
 }

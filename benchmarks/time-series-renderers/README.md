@@ -1,6 +1,6 @@
 # Time-series renderer benchmark
 
-This task-specific comparator measures the current Dygraphs line renderer and selected production GPU backends from the same checkout with identical deterministic data. WebGPU is preferred; WebGL2 is the accelerated compatibility fallback.
+This task-specific comparator measures Dygraphs and selected production GPU backends from the same checkout with identical deterministic line or Area data. WebGPU is preferred; WebGL2 is the accelerated compatibility fallback.
 
 ## Run
 
@@ -33,6 +33,14 @@ BENCHMARK_HEADED=1 BENCHMARK_RENDERERS=webgpu,webgl2 \
   CHROMIUM_OZONE_PLATFORM=wayland yarn benchmark:time-series
 ```
 
+Measure Area against Dygraphs while retaining line and Area correctness checks:
+
+```bash
+BENCHMARK_HEADED=1 BENCHMARK_VISUALIZATION=area \
+  BENCHMARK_RENDERERS=webgpu,webgl2 CHROMIUM_OZONE_PLATFORM=wayland \
+  yarn benchmark:time-series
+```
+
 Headless Chromium can run correctness checks with its software adapter:
 
 ```bash
@@ -47,7 +55,7 @@ The command prints JSON and exits non-zero unless every selected GPU candidate r
 - 1,000,000 values: median prewarmed frame-settled mount and repeated full-data updates are at least 5x faster than Dygraphs.
 - Each GPU workload exports a non-empty PNG data URL and mounts, updates, and tears down four charts without leaking WebGPU runtime leases or WebGL2 contexts.
 
-The WebGL2 backend uses the same production visualization/data/interaction model as WebGPU, including precision-normalized values, exact null gaps, step segments, monotonic smooth controls, screen-error-bounded tessellation, axes, text, overlays, and interactions. WebGL2 owns only its GLSL shaders, textures/buffers, shared context/program runtime, presentation surface, and context-loss handling.
+Both GPU backends use the same production visualization/data/interaction model, including precision-normalized values, exact null gaps, line step/smooth geometry, Area baseline trapezoids, axes, text, overlays, and interactions. Area correctness requires one exact fill trapezoid per adjacent source pair, reverse fill ordering before straight/step strokes, a fully empty null-gap band, and distinct regular/step pixels. WebGL2 owns only its GLSL shaders, textures/buffers, shared context/program runtime, presentation surface, and context-loss handling.
 
 The one-frame gate allows 25% browser scheduling tolerance around the measured refresh interval. A frame-settled ratio is not used when both renderers already present on the same refresh boundary. Cold adapter/device initialization and first pipeline creation are reported separately.
 
@@ -55,7 +63,7 @@ The one-frame gate allows 25% browser scheduling tolerance around the measured r
 
 - Canvas: 1600x500 CSS pixels at device-pixel ratio 1.
 - Workloads: 100 dimensions x 1,000 points and 1,000 dimensions x 1,000 points.
-- Geometry: every visible series and adjacent pair; no LOD, sampling, or aggregation.
+- Geometry: every visible series and adjacent pair; Area adds one exact fill trapezoid per pair; no LOD, sampling, or aggregation.
 - Data: two pre-generated deterministic row-major revisions, alternated during updates.
 - Samples: 3 mounts, 2 warm-up updates, 10 measured updates, 3 seconds of sustained updates, and one four-chart shared-runtime lifecycle.
 - Timing: synchronous adapter time, GPU queue completion, measured display refresh interval, and wall time through the next animation frame.

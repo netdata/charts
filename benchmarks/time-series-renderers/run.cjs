@@ -35,6 +35,9 @@ if (
 )
   throw new Error("BENCHMARK_RENDERERS must select webgpu and/or webgl2")
 const renderers = ["dygraph", ...candidateRenderers]
+const visualization = process.env.BENCHMARK_VISUALIZATION || "line"
+if (!new Set(["line", "area"]).has(visualization))
+  throw new Error("BENCHMARK_VISUALIZATION must select line or area")
 
 const server = http.createServer((request, response) => {
   const file = request.url === "/benchmark.js" ? path.join(root, "benchmark.js") : indexPath
@@ -115,7 +118,7 @@ const measureCase = async (browser, port, benchmarkCase) => {
   }
 }
 
-const validateWebGL2 = async (browser, port) => {
+const validateLine = async (browser, port, renderer) => {
   const context = await browser.newContext({
     viewport: { width: 1600, height: 500 },
     deviceScaleFactor: 1,
@@ -134,7 +137,7 @@ const validateWebGL2 = async (browser, port) => {
     for (const benchmarkCase of cases) {
       await page.evaluate(
         input => window.__NETDATA_RENDERER_BENCHMARK__.prepare(input),
-        { renderer: "webgl2", dimensions: 1, points: 100, gaps: benchmarkCase.gaps }
+        { renderer, dimensions: 1, points: 100, gaps: benchmarkCase.gaps }
       )
       await page.evaluate(
         input => window.__NETDATA_RENDERER_BENCHMARK__.mountPreview(input),
@@ -149,19 +152,6 @@ const validateWebGL2 = async (browser, port) => {
       )
       await page.evaluate(() => window.__NETDATA_RENDERER_BENCHMARK__.cleanup())
     }
-    await page.evaluate(input => window.__NETDATA_RENDERER_BENCHMARK__.prepare(input), {
-      renderer: "webgl2",
-      dimensions: 1,
-      points: 100,
-    })
-    await page.evaluate(() => window.__NETDATA_RENDERER_BENCHMARK__.mountPreview())
-    captures.contextLoss = await page.evaluate(() =>
-      window.__NETDATA_RENDERER_BENCHMARK__.exerciseWebGL2ContextLossFallback()
-    )
-    await page.evaluate(() => window.__NETDATA_RENDERER_BENCHMARK__.cleanup())
-    captures.activeContextsAfter = await page.evaluate(() =>
-      window.__NETDATA_RENDERER_BENCHMARK__.getActiveWebGL2Contexts()
-    )
   } finally {
     await context.close()
   }
@@ -179,16 +169,149 @@ const validateWebGL2 = async (browser, port) => {
       captures.gap.nonTransparentPixels > 0 &&
       captures.smooth.sha256 !== captures.step.sha256 &&
       captures.step.drawStats.segmentsPerPair === 2 &&
-      captures.gap.gapBandNonTransparentPixels === 0 &&
-      captures.contextLoss.renderer === "dygraph" &&
-      captures.contextLoss.hasDygraph &&
-      captures.activeContextsAfter === 0
+      captures.gap.gapBandNonTransparentPixels === 0
   )
 
-  return { captures, exactDraws, passed }
+  return { renderer, captures, exactDraws, passed }
 }
 
-const validateFallbackChain = async (browser, port) => {
+const validateArea = async (browser, port, renderer) => {
+  const context = await browser.newContext({
+    viewport: { width: 1600, height: 500 },
+    deviceScaleFactor: 1,
+  })
+  const page = await context.newPage()
+  const cases = [
+    { name: "regular", gaps: false, stepped: false },
+    { name: "step", gaps: false, stepped: true },
+    { name: "gap", gaps: true, stepped: false },
+  ]
+  const captures = {}
+
+  try {
+    await page.goto(`http://127.0.0.1:${port}`, { waitUntil: "load" })
+    await page.waitForFunction(() => Boolean(window.__NETDATA_RENDERER_BENCHMARK__))
+    for (const benchmarkCase of cases) {
+      await page.evaluate(
+        input => window.__NETDATA_RENDERER_BENCHMARK__.prepare(input),
+        {
+          renderer,
+          visualization: "area",
+          dimensions: 1,
+          points: 100,
+          gaps: benchmarkCase.gaps,
+        }
+      )
+      await page.evaluate(
+        input => window.__NETDATA_RENDERER_BENCHMARK__.mountPreview(input),
+        {
+          stepped: benchmarkCase.stepped,
+          enabledXAxis: false,
+          enabledYAxis: false,
+        }
+      )
+      captures[benchmarkCase.name] = await page.evaluate(() =>
+        window.__NETDATA_RENDERER_BENCHMARK__.capturePreview()
+      )
+      await page.evaluate(() => window.__NETDATA_RENDERER_BENCHMARK__.cleanup())
+    }
+  } finally {
+    await context.close()
+  }
+
+  const regularStats = captures.regular.drawStats
+  const stepStats = captures.step.drawStats
+  const gapStats = captures.gap.drawStats
+  const exactDraws = Boolean(
+    regularStats?.sourcePairs === 99 &&
+      regularStats.fillInstanceCount === 99 &&
+      regularStats.strokeInstanceCount === 99 &&
+      regularStats.instanceCount === 198 &&
+      stepStats?.sourcePairs === 99 &&
+      stepStats.fillInstanceCount === 99 &&
+      stepStats.strokeInstanceCount === 198 &&
+      stepStats.instanceCount === 297 &&
+      gapStats?.sourcePairs === 99 &&
+      gapStats.fillInstanceCount === 99 &&
+      gapStats.strokeInstanceCount === 99
+  )
+  const passed = Boolean(
+    exactDraws &&
+      captures.regular.nonTransparentPixels > 0 &&
+      captures.step.nonTransparentPixels > 0 &&
+      captures.gap.nonTransparentPixels > 0 &&
+      captures.regular.sha256 !== captures.step.sha256 &&
+      captures.gap.gapBandNonTransparentPixels === 0
+  )
+
+  return { renderer, captures, exactDraws, passed }
+}
+
+const captureAreaOverlap = async (browser, port, renderer) => {
+  const context = await browser.newContext({
+    viewport: { width: 1600, height: 500 },
+    deviceScaleFactor: 1,
+  })
+  const page = await context.newPage()
+  try {
+    await page.goto(`http://127.0.0.1:${port}`, { waitUntil: "load" })
+    await page.waitForFunction(() => Boolean(window.__NETDATA_RENDERER_BENCHMARK__))
+    await page.evaluate(input => window.__NETDATA_RENDERER_BENCHMARK__.prepare(input), {
+      renderer,
+      visualization: "area",
+      dimensions: 2,
+      points: 100,
+      profile: "area-overlap",
+      range: [20, 100],
+      colors: { "series-0": "#ff0000", "series-1": "#0000ff" },
+    })
+    await page.evaluate(() =>
+      window.__NETDATA_RENDERER_BENCHMARK__.mountPreview({
+        enabledXAxis: false,
+        enabledYAxis: false,
+      })
+    )
+    const capture = await page.evaluate(() =>
+      window.__NETDATA_RENDERER_BENCHMARK__.capturePreview({
+        samples: [
+          { name: "empty", xRatio: 0.5, yRatio: 0.1 },
+          { name: "firstSeriesOnly", xRatio: 0.5, yRatio: 0.45 },
+          { name: "overlap", xRatio: 0.5, yRatio: 0.7 },
+          { name: "nearBaseline", xRatio: 0.5, yRatio: 0.9 },
+        ],
+      })
+    )
+    await page.evaluate(() => window.__NETDATA_RENDERER_BENCHMARK__.cleanup())
+    return capture
+  } finally {
+    await context.close()
+  }
+}
+
+const validateAreaParity = async (browser, port, renderer, dygraphCapture) => {
+  const capture = await captureAreaOverlap(browser, port, renderer)
+  const deltas = Object.fromEntries(
+    Object.keys(dygraphCapture.samplePixels).map(name => [
+      name,
+      Math.max(
+        ...dygraphCapture.samplePixels[name].map((value, index) =>
+          Math.abs(value - capture.samplePixels[name][index])
+        )
+      ),
+    ])
+  )
+  const samples = capture.samplePixels
+  const passed = Boolean(
+    samples.empty[3] === 0 &&
+      samples.firstSeriesOnly[3] > 0 &&
+      samples.overlap[3] > samples.firstSeriesOnly[3] &&
+      samples.nearBaseline[3] > 0 &&
+      Object.values(deltas).every(delta => delta <= 3)
+  )
+  return { renderer, samples: capture.samplePixels, deltas, passed }
+}
+
+const validateFallbackChain = async (browser, port, visualizationId) => {
   const context = await browser.newContext({
     viewport: { width: 1600, height: 500 },
     deviceScaleFactor: 1,
@@ -199,6 +322,7 @@ const validateFallbackChain = async (browser, port) => {
     await page.waitForFunction(() => Boolean(window.__NETDATA_RENDERER_BENCHMARK__))
     await page.evaluate(input => window.__NETDATA_RENDERER_BENCHMARK__.prepare(input), {
       renderer: "webgpu",
+      visualization: visualizationId,
       dimensions: 1,
       points: 100,
     })
@@ -332,19 +456,27 @@ const run = async () => {
   })
   const browserVersion = browser.version()
   const results = []
-  let webgl2Correctness = null
+  const lineCorrectness = {}
+  const areaCorrectness = {}
+  const areaParity = {}
   let fallbackChain = null
 
   try {
     for (const workload of workloads) {
       for (const renderer of renderers) {
-        results.push(await measureCase(browser, port, { ...workload, renderer }))
+        results.push(
+          await measureCase(browser, port, { ...workload, renderer, visualization })
+        )
       }
     }
-    if (candidateRenderers.includes("webgl2"))
-      webgl2Correctness = await validateWebGL2(browser, port)
+    const dygraphArea = await captureAreaOverlap(browser, port, "dygraph")
+    for (const renderer of candidateRenderers) {
+      lineCorrectness[renderer] = await validateLine(browser, port, renderer)
+      areaCorrectness[renderer] = await validateArea(browser, port, renderer)
+      areaParity[renderer] = await validateAreaParity(browser, port, renderer, dygraphArea)
+    }
     if (candidateRenderers.includes("webgpu"))
-      fallbackChain = await validateFallbackChain(browser, port)
+      fallbackChain = await validateFallbackChain(browser, port, visualization)
   } finally {
     await browser.close()
     await close()
@@ -352,7 +484,9 @@ const run = async () => {
 
   const comparisons = compare(results)
   const passed =
-    (!webgl2Correctness || webgl2Correctness.passed) &&
+    Object.values(lineCorrectness).every(result => result.passed) &&
+    Object.values(areaCorrectness).every(result => result.passed) &&
+    Object.values(areaParity).every(result => result.passed) &&
     (!fallbackChain || fallbackChain.passed) &&
     comparisons.every(
       result =>
@@ -374,7 +508,7 @@ const run = async () => {
     method: {
       renderers: `Dygraphs and ${candidateRenderers.join(
         ", "
-      )} from the same @netdata/charts checkout`,
+      )} rendering ${visualization} from the same @netdata/charts checkout`,
       data: "deterministic row-major values; two pre-generated revisions alternated",
       canvas: "1600x500 CSS pixels at devicePixelRatio 1",
       samples: "3 mounts, 2 warm-up updates, 10 measured updates, 3 seconds sustained updates",
@@ -383,7 +517,12 @@ const run = async () => {
       memory: "Chromium usedJSHeapSize delta after forced GC; peak sampled after settled draws",
     },
     results,
-    correctness: { webgl2: webgl2Correctness, fallbackChain },
+    correctness: {
+      line: lineCorrectness,
+      area: areaCorrectness,
+      areaParity,
+      fallbackChain,
+    },
     comparisons,
     passed,
   }

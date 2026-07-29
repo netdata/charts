@@ -1,4 +1,5 @@
 import { makeCurveSegments, makeDrawLayout } from "@/chartLibraries/gpu/visualizations/cartesian/line/geometry"
+import areaShader from "../area/shader"
 import lineShader from "./shader"
 
 const nextBufferSize = byteLength => {
@@ -14,15 +15,15 @@ const normalizeRange = (min, max) => {
   return [min - padding, max + padding]
 }
 
-const makePipeline = async runtime => {
+const makePipeline = async (runtime, { label, shader }) => {
   const { device, format } = runtime
-  const module = device.createShaderModule({ label: "netdata-line-shader", code: lineShader })
+  const module = device.createShaderModule({ label: `${label}-shader`, code: shader })
   const compilation = await module.getCompilationInfo()
   const errors = compilation.messages.filter(message => message.type === "error")
   if (errors.length) throw new Error(errors.map(({ message }) => message).join("\n"))
 
   return device.createRenderPipelineAsync({
-    label: "netdata-line-pipeline",
+    label: `${label}-pipeline`,
     layout: "auto",
     vertex: { module, entryPoint: "vertexMain" },
     fragment: {
@@ -50,14 +51,20 @@ const makePipeline = async runtime => {
   })
 }
 
-export default async (runtime, surface) => {
+export default async (runtime, surface, { filled = false } = {}) => {
   const { device, format } = runtime
-  const pipeline = await runtime.getPipeline(`netdata-line-v1:${format}`, () =>
-    makePipeline(runtime)
+  const linePipeline = await runtime.getPipeline(`netdata-line-v2:${format}`, () =>
+    makePipeline(runtime, { label: "netdata-line", shader: lineShader })
   )
+  const areaPipeline = filled
+    ? await runtime.getPipeline(`netdata-area-v1:${format}`, () =>
+        makePipeline(runtime, { label: "netdata-area", shader: areaShader })
+      )
+    : null
   const buffers = {}
-  let bindGroup = null
+  const bindGroups = { area: null, line: null }
   let drawLayout = makeDrawLayout({ pointCount: 0, seriesCount: 0, stepped: false })
+  let drawStats = null
   let bufferBytes = 0
   let scissor = { left: 0, top: 0, width: 1, height: 1 }
 
@@ -71,7 +78,8 @@ export default async (runtime, surface) => {
       usage,
     })
     buffers[name] = next
-    bindGroup = null
+    bindGroups.area = null
+    bindGroups.line = null
     bufferBytes += next.size - (current?.size || 0)
     if (current) surface.destroyAfterSubmission(current)
     return next
@@ -90,6 +98,7 @@ export default async (runtime, surface) => {
     height,
     dpr,
     plot = { left: 0, top: 0, width, height },
+    fillAlpha = 0,
     lineWidth,
     stepped,
     smooth,
@@ -101,7 +110,7 @@ export default async (runtime, surface) => {
     const plotWidth = Math.max(1, Math.round(plot.width * dpr))
     const plotHeight = Math.max(1, Math.round(plot.height * dpr))
 
-    const uniform = ensureBuffer("uniform", 64, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST)
+    const uniform = ensureBuffer("uniform", 80, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST)
     const x = ensureBuffer("x", packed.x.byteLength, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST)
     const y = ensureBuffer("y", packed.y.byteLength, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST)
     const color = ensureBuffer(
@@ -125,11 +134,19 @@ export default async (runtime, surface) => {
         pointCount: packed.pointCount,
         plotWidth: plotWidth,
       }),
+      filled: filled && fillAlpha > 0,
+      stroke: lineWidth > 0,
     })
+    drawStats = {
+      pointCount: packed.pointCount,
+      seriesCount: packed.seriesCount,
+      sourcePairs: Math.max(0, packed.pointCount - 1) * packed.seriesCount,
+      ...drawLayout,
+    }
     const [rawRangeMin, rawRangeMax] = normalizeRange(min, max)
     const rangeMin = (rawRangeMin - packed.yOrigin) / packed.yScale
     const rangeMax = (rawRangeMax - packed.yOrigin) / packed.yScale
-    const uniformData = new ArrayBuffer(64)
+    const uniformData = new ArrayBuffer(80)
     const floats = new Float32Array(uniformData)
     const integers = new Uint32Array(uniformData)
     floats.set([
@@ -145,6 +162,10 @@ export default async (runtime, surface) => {
       canvasHeight,
       lineWidth * dpr,
       stepped ? 1 : smooth ? 2 : 0,
+      (0 - packed.yOrigin) / packed.yScale,
+      fillAlpha,
+      0,
+      0,
     ])
     integers.set(
       [
@@ -153,7 +174,7 @@ export default async (runtime, surface) => {
         drawLayout.segmentsPerPair,
         drawLayout.segmentsPerSeries,
       ],
-      12
+      16
     )
     device.queue.writeBuffer(uniform, 0, uniformData)
     scissor = {
@@ -163,8 +184,8 @@ export default async (runtime, surface) => {
       height: Math.max(1, Math.min(plotHeight, canvasHeight - plotTop)),
     }
 
-    if (!bindGroup) {
-      bindGroup = device.createBindGroup({
+    const makeBindGroup = pipeline =>
+      device.createBindGroup({
         layout: pipeline.getBindGroupLayout(0),
         entries: [
           { binding: 0, resource: { buffer: uniform } },
@@ -173,25 +194,34 @@ export default async (runtime, surface) => {
           { binding: 3, resource: { buffer: color } },
         ],
       })
-    }
+    if (!bindGroups.line) bindGroups.line = makeBindGroup(linePipeline)
+    if (areaPipeline && !bindGroups.area) bindGroups.area = makeBindGroup(areaPipeline)
   }
 
   const encode = pass => {
-    const hasGeometry = Boolean(bindGroup && drawLayout.instanceCount)
-    if (!hasGeometry) return false
+    if (!drawLayout.instanceCount) return false
 
-    pass.setPipeline(pipeline)
-    pass.setBindGroup(0, bindGroup)
     pass.setScissorRect(scissor.left, scissor.top, scissor.width, scissor.height)
-    pass.draw(6, drawLayout.instanceCount)
+    if (drawLayout.fillInstanceCount) {
+      pass.setPipeline(areaPipeline)
+      pass.setBindGroup(0, bindGroups.area)
+      pass.draw(6, drawLayout.fillInstanceCount)
+    }
+    if (drawLayout.strokeInstanceCount) {
+      pass.setPipeline(linePipeline)
+      pass.setBindGroup(0, bindGroups.line)
+      pass.draw(6, drawLayout.strokeInstanceCount)
+    }
     return true
   }
 
   const destroy = () => {
     Object.values(buffers).forEach(surface.destroyAfterSubmission)
     Object.keys(buffers).forEach(name => delete buffers[name])
-    bindGroup = null
+    bindGroups.area = null
+    bindGroups.line = null
     drawLayout = makeDrawLayout({ pointCount: 0, seriesCount: 0, stepped: false })
+    drawStats = null
     bufferBytes = 0
   }
 
@@ -200,5 +230,6 @@ export default async (runtime, surface) => {
     encode,
     destroy,
     getBufferBytes: () => bufferBytes,
+    getDrawStats: () => drawStats,
   }
 }

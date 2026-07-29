@@ -4,13 +4,13 @@ import makeRectLayer from "@/chartLibraries/webgl2/primitives/rect"
 import makeTextLayer from "@/chartLibraries/webgl2/text"
 import makeKernel from "./kernel"
 
-export default async (runtime, canvas) => {
+export default async (runtime, canvas, { filled = false } = {}) => {
   const surface = makeSurface(runtime, canvas)
   const settled = await Promise.allSettled([
     makeRectLayer(surface),
     makeRectLayer(surface),
     makeRectLayer(surface),
-    makeKernel(surface),
+    makeKernel(surface, { filled }),
     makeCircleLayer(surface),
     makeTextLayer(surface),
   ])

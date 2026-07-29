@@ -8,6 +8,7 @@ struct Uniforms {
   domain: vec4<f32>,
   plot: vec4<f32>,
   canvas: vec4<f32>,
+  fill: vec4<f32>,
   counts: vec4<u32>,
 };
 
@@ -174,7 +175,7 @@ fn vertexMain(
 
   let quad = quadCoordinates(vertexIndex);
   let perpendicular = vec2<f32>(delta.y, -delta.x) / lengthPixels;
-  let width = max(1.0, uniforms.canvas.z);
+  let width = max(0.01, uniforms.canvas.z);
   let halfExtent = width * 0.5 + AA_PADDING;
   let side = mix(1.0, -1.0, quad.y);
   let screenPosition = mix(screenA, screenB, quad.x) + perpendicular * halfExtent * side;

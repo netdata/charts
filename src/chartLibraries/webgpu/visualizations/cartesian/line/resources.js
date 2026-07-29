@@ -4,47 +4,42 @@ import makeRectLayer from "@/chartLibraries/webgpu/primitives/rect"
 import makeTextLayer from "@/chartLibraries/webgpu/text"
 import makeKernel from "./kernel"
 
-export default async (runtime, canvas) => {
+export default async (runtime, canvas, { filled = false } = {}) => {
   const surface = makeSurface(runtime, canvas)
-  let grid = null
-  let interaction = null
-  let overlay = null
-  let line = null
-  let marker = null
-  let text = null
-  try {
-    grid = await makeRectLayer(runtime, surface, "grid")
-    interaction = await makeRectLayer(runtime, surface, "interaction")
-    overlay = await makeRectLayer(runtime, surface, "overlay")
-    line = await makeKernel(runtime, surface)
-    marker = await makeCircleLayer(runtime, surface)
-    text = await makeTextLayer(runtime, surface)
-    return {
-      surface,
-      grid,
-      interaction,
-      overlay,
-      line,
-      marker,
-      text,
-      destroy: () => {
-        grid.destroy()
-        interaction.destroy()
-        overlay.destroy()
-        line.destroy()
-        marker.destroy()
-        text.destroy()
-        surface.destroy()
-      },
-    }
-  } catch (error) {
-    grid?.destroy()
-    interaction?.destroy()
-    overlay?.destroy()
-    line?.destroy()
-    marker?.destroy()
-    text?.destroy()
+  const settled = await Promise.allSettled([
+    makeRectLayer(runtime, surface, "grid"),
+    makeRectLayer(runtime, surface, "interaction"),
+    makeRectLayer(runtime, surface, "overlay"),
+    makeKernel(runtime, surface, { filled }),
+    makeCircleLayer(runtime, surface),
+    makeTextLayer(runtime, surface),
+  ])
+  const failed = settled.find(result => result.status === "rejected")
+  if (failed) {
+    settled.forEach(result => result.status === "fulfilled" && result.value.destroy())
     surface.destroy()
-    throw error
+    throw failed.reason
+  }
+
+  const [grid, interaction, overlay, line, marker, text] = settled.map(
+    result => result.value
+  )
+  return {
+    surface,
+    grid,
+    interaction,
+    overlay,
+    line,
+    marker,
+    text,
+    destroy: () => {
+      grid.destroy()
+      interaction.destroy()
+      overlay.destroy()
+      line.destroy()
+      marker.destroy()
+      text.destroy()
+      surface.destroy()
+    },
   }
 }

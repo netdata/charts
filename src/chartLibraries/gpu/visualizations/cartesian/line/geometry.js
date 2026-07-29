@@ -10,15 +10,21 @@ export const makeDrawLayout = ({
   stepped,
   smooth = false,
   curveSegments = 1,
+  filled = false,
+  stroke = true,
 }) => {
   const pairsPerSeries = Math.max(0, pointCount - 1)
   const segmentsPerPair = stepped ? 2 : smooth ? Math.max(1, curveSegments) : 1
   const segmentsPerSeries = pairsPerSeries * segmentsPerPair
+  const fillInstanceCount = filled ? pairsPerSeries * seriesCount : 0
+  const strokeInstanceCount = stroke ? segmentsPerSeries * seriesCount : 0
 
   return {
     pairsPerSeries,
     segmentsPerPair,
     segmentsPerSeries,
-    instanceCount: segmentsPerSeries * seriesCount,
+    fillInstanceCount,
+    strokeInstanceCount,
+    instanceCount: fillInstanceCount + strokeInstanceCount,
   }
 }

@@ -50,6 +50,26 @@ describe("time-series renderer routing", () => {
     expect(chart.getUI().getDygraph()).toBeNull()
   })
 
+  it("routes the supported Area visualization through WebGPU", () => {
+    const descriptor = Object.getOwnPropertyDescriptor(navigator, "gpu")
+    Object.defineProperty(navigator, "gpu", { configurable: true, value: {} })
+
+    try {
+      const sdk = makeDefaultSDK({
+        attributes: { chartRenderersByVisualization: { area: "webgpu" } },
+      })
+      const chart = sdk.makeChart({ attributes: { chartType: "area" } })
+      sdk.appendChild(chart)
+
+      expect(chart.getVisualizationType()).toBe("area")
+      expect(chart.getAttribute("chartLibrary")).toBe("webgpu")
+      expect(chart.isTimeSeriesRenderer()).toBe(true)
+    } finally {
+      if (descriptor) Object.defineProperty(navigator, "gpu", descriptor)
+      else delete navigator.gpu
+    }
+  })
+
   it("falls back to dygraph when a mapped renderer is not registered", () => {
     const chart = makeChart({ line: "missing-renderer" })
 

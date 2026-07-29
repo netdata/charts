@@ -21,6 +21,7 @@ uniform ivec2 uColorTextureSize;
 uniform vec4 uDomain;
 uniform vec4 uPlot;
 uniform vec4 uCanvas;
+uniform vec2 uFill;
 uniform uvec4 uCounts;
 
 out float vAcross;
@@ -154,9 +155,58 @@ void primitiveOutput() {
   vColor = instanceColor;
 }
 
+void areaOutput() {
+  uint pairsPerSeries = uCounts.x - 1u;
+  uint reverseSeriesIndex = uint(gl_InstanceID) / pairsPerSeries;
+  uint seriesIndex = uCounts.y - reverseSeriesIndex - 1u;
+  uint pairIndex = uint(gl_InstanceID) % pairsPerSeries;
+  int yOffset = int(seriesIndex * uCounts.x);
+
+  float x0 = loadValue(uXValues, uXTextureSize, int(pairIndex));
+  float x1 = loadValue(uXValues, uXTextureSize, int(pairIndex + 1u));
+  float y0 = loadValue(uYValues, uYTextureSize, yOffset + int(pairIndex));
+  float y1 = loadValue(uYValues, uYTextureSize, yOffset + int(pairIndex + 1u));
+  vec4 color = loadColor(int(seriesIndex));
+  if (isnan(y0) || isnan(y1) || color.a <= 0.0 || uFill.y <= 0.0) {
+    gapOutput(color);
+    return;
+  }
+
+  vec2 topA = toScreen(vec2(x0, y0));
+  vec2 topB = toScreen(vec2(x1, y1));
+  if (uint(uCanvas.w) == MODE_STEP) topB.y = topA.y;
+
+  vec2 baselineA = toScreen(vec2(x0, uFill.x));
+  vec2 baselineB = toScreen(vec2(x1, uFill.x));
+  float plotBottom = uPlot.y + uPlot.w;
+  baselineA.y = clamp(baselineA.y, uPlot.y, plotBottom);
+  baselineB.y = clamp(baselineB.y, uPlot.y, plotBottom);
+
+  vec2 quad = quadCoordinates(gl_VertexID);
+  vec2 top = mix(topA, topB, quad.x);
+  vec2 baseline = mix(baselineA, baselineB, quad.x);
+  vec2 point = mix(top, baseline, quad.y);
+  gl_Position = vec4(
+    point.x / uCanvas.x * 2.0 - 1.0,
+    1.0 - point.y / uCanvas.y * 2.0,
+    0.0,
+    1.0
+  );
+  vAcross = 0.0;
+  vLocal = vec2(0.0);
+  vUv = vec2(0.0);
+  vWidth = 0.0;
+  vKind = 0.0;
+  vColor = vec4(color.rgb, color.a * uFill.y);
+}
+
 void main() {
   if (uPassType == 1) {
     primitiveOutput();
+    return;
+  }
+  if (uPassType == 2) {
+    areaOutput();
     return;
   }
 
@@ -206,7 +256,7 @@ void main() {
 
   vec2 quad = quadCoordinates(gl_VertexID);
   vec2 perpendicular = vec2(delta.y, -delta.x) / lengthPixels;
-  float width = max(1.0, uCanvas.z);
+  float width = max(0.01, uCanvas.z);
   float halfExtent = width * 0.5 + AA_PADDING;
   float side = mix(1.0, -1.0, quad.y);
   vec2 screenPosition = mix(screenA, screenB, quad.x) + perpendicular * halfExtent * side;
@@ -248,6 +298,10 @@ void main() {
       alpha *= texture(uAtlas, vUv).a;
     }
     outputColor = vec4(vColor.rgb, alpha);
+    return;
+  }
+  if (uPassType == 2) {
+    outputColor = vColor;
     return;
   }
 

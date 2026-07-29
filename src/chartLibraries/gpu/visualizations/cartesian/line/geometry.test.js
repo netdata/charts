@@ -6,6 +6,8 @@ describe("WebGPU aligned line draw layout", () => {
       pairsPerSeries: 2,
       segmentsPerPair: 1,
       segmentsPerSeries: 2,
+      fillInstanceCount: 0,
+      strokeInstanceCount: 4,
       instanceCount: 4,
     })
   })
@@ -15,6 +17,8 @@ describe("WebGPU aligned line draw layout", () => {
       pairsPerSeries: 2,
       segmentsPerPair: 2,
       segmentsPerSeries: 4,
+      fillInstanceCount: 0,
+      strokeInstanceCount: 8,
       instanceCount: 8,
     })
   })
@@ -33,7 +37,43 @@ describe("WebGPU aligned line draw layout", () => {
       pairsPerSeries: 99,
       segmentsPerPair: 8,
       segmentsPerSeries: 792,
+      fillInstanceCount: 0,
+      strokeInstanceCount: 2376,
       instanceCount: 2376,
+    })
+  })
+
+  it("draws one exact fill trapezoid per pair before optional strokes", () => {
+    expect(
+      makeDrawLayout({
+        pointCount: 3,
+        seriesCount: 2,
+        stepped: false,
+        filled: true,
+      })
+    ).toEqual({
+      pairsPerSeries: 2,
+      segmentsPerPair: 1,
+      segmentsPerSeries: 2,
+      fillInstanceCount: 4,
+      strokeInstanceCount: 4,
+      instanceCount: 8,
+    })
+    expect(
+      makeDrawLayout({
+        pointCount: 3,
+        seriesCount: 2,
+        stepped: true,
+        filled: true,
+        stroke: false,
+      })
+    ).toEqual({
+      pairsPerSeries: 2,
+      segmentsPerPair: 2,
+      segmentsPerSeries: 4,
+      fillInstanceCount: 4,
+      strokeInstanceCount: 0,
+      instanceCount: 4,
     })
   })
 
