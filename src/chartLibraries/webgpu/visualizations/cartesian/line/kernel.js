@@ -1,5 +1,6 @@
 import { makeCurveSegments, makeDrawLayout } from "@/chartLibraries/gpu/visualizations/cartesian/line/geometry"
 import areaShader from "../area/shader"
+import stackedShader from "../stacked/shader"
 import lineShader from "./shader"
 
 const nextBufferSize = byteLength => {
@@ -51,18 +52,21 @@ const makePipeline = async (runtime, { label, shader }) => {
   })
 }
 
-export default async (runtime, surface, { filled = false } = {}) => {
+export default async (runtime, surface, { fillMode = null } = {}) => {
   const { device, format } = runtime
   const linePipeline = await runtime.getPipeline(`netdata-line-v2:${format}`, () =>
     makePipeline(runtime, { label: "netdata-line", shader: lineShader })
   )
-  const areaPipeline = filled
-    ? await runtime.getPipeline(`netdata-area-v1:${format}`, () =>
-        makePipeline(runtime, { label: "netdata-area", shader: areaShader })
+  const fillPipeline = fillMode
+    ? await runtime.getPipeline(`netdata-${fillMode}-v1:${format}`, () =>
+        makePipeline(runtime, {
+          label: `netdata-${fillMode}`,
+          shader: fillMode === "stacked" ? stackedShader : areaShader,
+        })
       )
     : null
   const buffers = {}
-  const bindGroups = { area: null, line: null }
+  const bindGroups = { fill: null, line: null }
   let drawLayout = makeDrawLayout({ pointCount: 0, seriesCount: 0, stepped: false })
   let drawStats = null
   let bufferBytes = 0
@@ -78,7 +82,7 @@ export default async (runtime, surface, { filled = false } = {}) => {
       usage,
     })
     buffers[name] = next
-    bindGroups.area = null
+    bindGroups.fill = null
     bindGroups.line = null
     bufferBytes += next.size - (current?.size || 0)
     if (current) surface.destroyAfterSubmission(current)
@@ -118,10 +122,19 @@ export default async (runtime, surface, { filled = false } = {}) => {
       colors.byteLength,
       GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
     )
+    const base =
+      fillMode === "stacked"
+        ? ensureBuffer(
+            "base",
+            packed.base.byteLength,
+            GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+          )
+        : null
 
     if (dataChanged) {
       device.queue.writeBuffer(x, 0, packed.x)
       device.queue.writeBuffer(y, 0, packed.y)
+      if (base) device.queue.writeBuffer(base, 0, packed.base)
     }
     if (colorsChanged) device.queue.writeBuffer(color, 0, colors)
 
@@ -134,7 +147,7 @@ export default async (runtime, surface, { filled = false } = {}) => {
         pointCount: packed.pointCount,
         plotWidth: plotWidth,
       }),
-      filled: filled && fillAlpha > 0,
+      filled: Boolean(fillMode && fillAlpha > 0),
       stroke: lineWidth > 0,
     })
     drawStats = {
@@ -164,7 +177,7 @@ export default async (runtime, surface, { filled = false } = {}) => {
       stepped ? 1 : smooth ? 2 : 0,
       (0 - packed.yOrigin) / packed.yScale,
       fillAlpha,
-      0,
+      fillMode === "stacked" ? 1 : 0,
       0,
     ])
     integers.set(
@@ -184,18 +197,19 @@ export default async (runtime, surface, { filled = false } = {}) => {
       height: Math.max(1, Math.min(plotHeight, canvasHeight - plotTop)),
     }
 
-    const makeBindGroup = pipeline =>
-      device.createBindGroup({
-        layout: pipeline.getBindGroupLayout(0),
-        entries: [
-          { binding: 0, resource: { buffer: uniform } },
-          { binding: 1, resource: { buffer: x } },
-          { binding: 2, resource: { buffer: y } },
-          { binding: 3, resource: { buffer: color } },
-        ],
-      })
+    const makeBindGroup = (pipeline, includeBase = false) => {
+      const entries = [
+        { binding: 0, resource: { buffer: uniform } },
+        { binding: 1, resource: { buffer: x } },
+        { binding: 2, resource: { buffer: y } },
+        { binding: 3, resource: { buffer: color } },
+      ]
+      if (includeBase) entries.push({ binding: 4, resource: { buffer: base } })
+      return device.createBindGroup({ layout: pipeline.getBindGroupLayout(0), entries })
+    }
     if (!bindGroups.line) bindGroups.line = makeBindGroup(linePipeline)
-    if (areaPipeline && !bindGroups.area) bindGroups.area = makeBindGroup(areaPipeline)
+    if (fillPipeline && !bindGroups.fill)
+      bindGroups.fill = makeBindGroup(fillPipeline, fillMode === "stacked")
   }
 
   const encode = pass => {
@@ -203,8 +217,8 @@ export default async (runtime, surface, { filled = false } = {}) => {
 
     pass.setScissorRect(scissor.left, scissor.top, scissor.width, scissor.height)
     if (drawLayout.fillInstanceCount) {
-      pass.setPipeline(areaPipeline)
-      pass.setBindGroup(0, bindGroups.area)
+      pass.setPipeline(fillPipeline)
+      pass.setBindGroup(0, bindGroups.fill)
       pass.draw(6, drawLayout.fillInstanceCount)
     }
     if (drawLayout.strokeInstanceCount) {
@@ -218,7 +232,7 @@ export default async (runtime, surface, { filled = false } = {}) => {
   const destroy = () => {
     Object.values(buffers).forEach(surface.destroyAfterSubmission)
     Object.keys(buffers).forEach(name => delete buffers[name])
-    bindGroups.area = null
+    bindGroups.fill = null
     bindGroups.line = null
     drawLayout = makeDrawLayout({ pointCount: 0, seriesCount: 0, stepped: false })
     drawStats = null

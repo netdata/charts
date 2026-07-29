@@ -4,13 +4,13 @@ import makeRectLayer from "@/chartLibraries/webgpu/primitives/rect"
 import makeTextLayer from "@/chartLibraries/webgpu/text"
 import makeKernel from "./kernel"
 
-export default async (runtime, canvas, { filled = false } = {}) => {
+export default async (runtime, canvas, { fillMode = null } = {}) => {
   const surface = makeSurface(runtime, canvas)
   const settled = await Promise.allSettled([
     makeRectLayer(runtime, surface, "grid"),
     makeRectLayer(runtime, surface, "interaction"),
     makeRectLayer(runtime, surface, "overlay"),
-    makeKernel(runtime, surface, { filled }),
+    makeKernel(runtime, surface, { fillMode }),
     makeCircleLayer(runtime, surface),
     makeTextLayer(runtime, surface),
   ])

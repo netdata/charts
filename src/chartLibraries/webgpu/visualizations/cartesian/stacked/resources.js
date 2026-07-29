@@ -1,4 +1,4 @@
 import makeLineResources from "../line/resources"
 
 export default (runtime, canvas) =>
-  makeLineResources(runtime, canvas, { fillMode: "area" })
+  makeLineResources(runtime, canvas, { fillMode: "stacked" })

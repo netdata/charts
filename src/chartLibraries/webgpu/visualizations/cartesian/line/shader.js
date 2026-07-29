@@ -48,9 +48,15 @@ fn toScreen(point: vec2<f32>) -> vec2<f32> {
   return vec2<f32>(x, y);
 }
 
+fn valueIndex(seriesIndex: u32, pointIndex: u32) -> u32 {
+  if (uniforms.fill.z > 0.5) {
+    return pointIndex * uniforms.counts.y + seriesIndex;
+  }
+  return seriesIndex * uniforms.counts.x + pointIndex;
+}
+
 fn loadScreenPoint(seriesIndex: u32, pointIndex: u32) -> vec2<f32> {
-  let yOffset = seriesIndex * uniforms.counts.x;
-  return toScreen(vec2<f32>(xValues[pointIndex], yValues[yOffset + pointIndex]));
+  return toScreen(vec2<f32>(xValues[pointIndex], yValues[valueIndex(seriesIndex, pointIndex)]));
 }
 
 fn validScreenPoint(point: vec2<f32>) -> bool {
@@ -125,20 +131,18 @@ fn vertexMain(
   @builtin(vertex_index) vertexIndex: u32,
   @builtin(instance_index) instanceIndex: u32,
 ) -> VertexOutput {
-  let pointCount = uniforms.counts.x;
   let segmentsPerPair = uniforms.counts.z;
   let segmentsPerSeries = uniforms.counts.w;
   let seriesIndex = instanceIndex / segmentsPerSeries;
   let localSegment = instanceIndex % segmentsPerSeries;
   let pairIndex = localSegment / segmentsPerPair;
   let pairSegment = localSegment % segmentsPerPair;
-  let yOffset = seriesIndex * pointCount;
   let mode = u32(uniforms.canvas.w);
 
   let x0 = xValues[pairIndex];
   let x1 = xValues[pairIndex + 1u];
-  let y0 = yValues[yOffset + pairIndex];
-  let y1 = yValues[yOffset + pairIndex + 1u];
+  let y0 = yValues[valueIndex(seriesIndex, pairIndex)];
+  let y1 = yValues[valueIndex(seriesIndex, pairIndex + 1u)];
   let color = seriesColors[seriesIndex];
   let sourceA = toScreen(vec2<f32>(x0, y0));
   let sourceB = toScreen(vec2<f32>(x1, y1));

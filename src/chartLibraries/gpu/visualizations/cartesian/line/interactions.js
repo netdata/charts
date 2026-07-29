@@ -6,7 +6,7 @@ export const eventToCanvasPoint = (event, canvas) => {
   return { x: event.clientX - rect.left, y: event.clientY - rect.top }
 }
 
-const valueToY = (value, domain, plot) =>
+export const valueToY = (value, domain, plot) =>
   plot.top + (1 - (value - domain[0]) / Math.max(domain[1] - domain[0], 1e-20)) * plot.height
 
 const yToValue = (y, domain, plot) =>
@@ -114,6 +114,7 @@ export default ({
   setDateWindow,
   clearDateWindow,
   setSelectionRect,
+  findDimension = findClosestDimension,
 }) => {
   let lastX = null
   let lastY = null
@@ -141,7 +142,7 @@ export default ({
     const row = getClosestRow(data, xToTimestamp(point.x, frame))
     const rowData = data[row]
     if (!Array.isArray(rowData)) return null
-    const dimensionId = findClosestDimension({ chart, row, y: point.y, domain, plot })
+    const dimensionId = findDimension({ chart, row, y: point.y, domain, plot })
     if (!dimensionId) return null
 
     return { point, timestampMs: rowData[0], dimensionId }

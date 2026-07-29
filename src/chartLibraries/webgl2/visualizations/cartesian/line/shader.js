@@ -15,13 +15,15 @@ uniform int uPassType;
 uniform sampler2D uXValues;
 uniform sampler2D uYValues;
 uniform sampler2D uSeriesColors;
+uniform sampler2D uBaseValues;
 uniform ivec2 uXTextureSize;
 uniform ivec2 uYTextureSize;
 uniform ivec2 uColorTextureSize;
+uniform ivec2 uBaseTextureSize;
 uniform vec4 uDomain;
 uniform vec4 uPlot;
 uniform vec4 uCanvas;
-uniform vec2 uFill;
+uniform vec3 uFill;
 uniform uvec4 uCounts;
 
 out float vAcross;
@@ -48,6 +50,11 @@ vec4 loadColor(int index) {
   return texelFetch(uSeriesColors, linearCoordinate(index, uColorTextureSize), 0);
 }
 
+int valueIndex(uint seriesIndex, uint pointIndex) {
+  if (uFill.z > 0.5) return int(pointIndex * uCounts.y + seriesIndex);
+  return int(seriesIndex * uCounts.x + pointIndex);
+}
+
 vec2 quadCoordinates(int vertexIndex) {
   if (vertexIndex == 0) return vec2(0.0, 0.0);
   if (vertexIndex == 1) return vec2(1.0, 0.0);
@@ -65,9 +72,8 @@ vec2 toScreen(vec2 point) {
 }
 
 vec2 loadScreenPoint(uint seriesIndex, uint pointIndex) {
-  int yOffset = int(seriesIndex * uCounts.x);
   float x = loadValue(uXValues, uXTextureSize, int(pointIndex));
-  float y = loadValue(uYValues, uYTextureSize, yOffset + int(pointIndex));
+  float y = loadValue(uYValues, uYTextureSize, valueIndex(seriesIndex, pointIndex));
   return toScreen(vec2(x, y));
 }
 
@@ -160,12 +166,11 @@ void areaOutput() {
   uint reverseSeriesIndex = uint(gl_InstanceID) / pairsPerSeries;
   uint seriesIndex = uCounts.y - reverseSeriesIndex - 1u;
   uint pairIndex = uint(gl_InstanceID) % pairsPerSeries;
-  int yOffset = int(seriesIndex * uCounts.x);
 
   float x0 = loadValue(uXValues, uXTextureSize, int(pairIndex));
   float x1 = loadValue(uXValues, uXTextureSize, int(pairIndex + 1u));
-  float y0 = loadValue(uYValues, uYTextureSize, yOffset + int(pairIndex));
-  float y1 = loadValue(uYValues, uYTextureSize, yOffset + int(pairIndex + 1u));
+  float y0 = loadValue(uYValues, uYTextureSize, valueIndex(seriesIndex, pairIndex));
+  float y1 = loadValue(uYValues, uYTextureSize, valueIndex(seriesIndex, pairIndex + 1u));
   vec4 color = loadColor(int(seriesIndex));
   if (isnan(y0) || isnan(y1) || color.a <= 0.0 || uFill.y <= 0.0) {
     gapOutput(color);
@@ -200,6 +205,51 @@ void areaOutput() {
   vColor = vec4(color.rgb, color.a * uFill.y);
 }
 
+void stackedAreaOutput() {
+  uint pairsPerSeries = uCounts.x - 1u;
+  uint seriesIndex = uint(gl_InstanceID) / pairsPerSeries;
+  uint pairIndex = uint(gl_InstanceID) % pairsPerSeries;
+  int offset = valueIndex(seriesIndex, pairIndex);
+  int nextOffset = valueIndex(seriesIndex, pairIndex + 1u);
+
+  float x0 = loadValue(uXValues, uXTextureSize, int(pairIndex));
+  float x1 = loadValue(uXValues, uXTextureSize, int(pairIndex + 1u));
+  float end0 = loadValue(uYValues, uYTextureSize, offset);
+  float end1 = loadValue(uYValues, uYTextureSize, nextOffset);
+  float base0 = loadValue(uBaseValues, uBaseTextureSize, offset);
+  float base1 = loadValue(uBaseValues, uBaseTextureSize, nextOffset);
+  vec4 color = loadColor(int(seriesIndex));
+  if (
+    isnan(end0) || isnan(end1) || isnan(base0) || isnan(base1) ||
+    color.a <= 0.0 || uFill.y <= 0.0
+  ) {
+    gapOutput(color);
+    return;
+  }
+
+  vec2 topA = toScreen(vec2(x0, end0));
+  vec2 topB = toScreen(vec2(x1, end1));
+  if (uint(uCanvas.w) == MODE_STEP) topB.y = topA.y;
+  vec2 baselineA = toScreen(vec2(x0, base0));
+  vec2 baselineB = toScreen(vec2(x1, base1));
+  vec2 quad = quadCoordinates(gl_VertexID);
+  vec2 top = mix(topA, topB, quad.x);
+  vec2 baseline = mix(baselineA, baselineB, quad.x);
+  vec2 point = mix(top, baseline, quad.y);
+  gl_Position = vec4(
+    point.x / uCanvas.x * 2.0 - 1.0,
+    1.0 - point.y / uCanvas.y * 2.0,
+    0.0,
+    1.0
+  );
+  vAcross = 0.0;
+  vLocal = vec2(0.0);
+  vUv = vec2(0.0);
+  vWidth = 0.0;
+  vKind = 0.0;
+  vColor = vec4(color.rgb, color.a * uFill.y);
+}
+
 void main() {
   if (uPassType == 1) {
     primitiveOutput();
@@ -207,6 +257,10 @@ void main() {
   }
   if (uPassType == 2) {
     areaOutput();
+    return;
+  }
+  if (uPassType == 3) {
+    stackedAreaOutput();
     return;
   }
 
@@ -217,13 +271,12 @@ void main() {
   uint localSegment = instanceIndex % segmentsPerSeries;
   uint pairIndex = localSegment / segmentsPerPair;
   uint pairSegment = localSegment % segmentsPerPair;
-  int yOffset = int(seriesIndex * uCounts.x);
   uint mode = uint(uCanvas.w);
 
   float x0 = loadValue(uXValues, uXTextureSize, int(pairIndex));
   float x1 = loadValue(uXValues, uXTextureSize, int(pairIndex + 1u));
-  float y0 = loadValue(uYValues, uYTextureSize, yOffset + int(pairIndex));
-  float y1 = loadValue(uYValues, uYTextureSize, yOffset + int(pairIndex + 1u));
+  float y0 = loadValue(uYValues, uYTextureSize, valueIndex(seriesIndex, pairIndex));
+  float y1 = loadValue(uYValues, uYTextureSize, valueIndex(seriesIndex, pairIndex + 1u));
   vec4 color = loadColor(int(seriesIndex));
   vec2 sourceA = toScreen(vec2(x0, y0));
   vec2 sourceB = toScreen(vec2(x1, y1));
@@ -300,7 +353,7 @@ void main() {
     outputColor = vec4(vColor.rgb, alpha);
     return;
   }
-  if (uPassType == 2) {
+  if (uPassType == 2 || uPassType == 3) {
     outputColor = vColor;
     return;
   }

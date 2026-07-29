@@ -53,7 +53,7 @@ Unknowns:
 - The internal engine separates visualization identity from rendering backend and provides shared runtime, surface/frame, ordered-layer, primitive, text-atlas, and interaction seams usable by all current visualization families without line/time-series assumptions.
 - The first implementation exercises those seams through exact visual and interaction parity for ordinary line charts; no empty future visualization adapters or unused speculative primitives are added.
 - Approved production scope has exact visual and interaction parity against Dygraphs for every enabled chart type and state.
-- WebGPU is preferred only for approved eligible chart types after capability and feature checks. WebGL2 is the proven accelerated compatibility fallback for ordinary line charts, and Dygraphs remains installed as the final compatibility fallback.
+- WebGPU is preferred only for approved eligible chart types after capability and feature checks. WebGL2 is the proven accelerated compatibility fallback for implemented GPU chart types, and Dygraphs remains installed as the final compatibility fallback.
 - Runtime routing never benchmarks renderers dynamically and never falls back solely because WebGPU requires more than one display frame.
 - Shared device/pipelines, prewarming, persistent buffers, multi-chart ownership, virtualization, resize, teardown, and device-loss recovery are validated without leaks or blank charts.
 - Existing payload/query/public timestamp contracts remain unchanged; compact point-schema values, null gaps, visibility, colors, corrected history, and full updates retain exact semantics.
@@ -198,7 +198,8 @@ Open decisions:
 12. **WebGL2 fallback:** approved and implemented. The standalone feasibility and full production backend passed deterministic 100,000/1,000,000-value gates. Visualization/data/interaction logic is shared; shaders, GPU resources, surfaces, and loss handling remain backend-specific. The chain is `WebGPU -> WebGL2 -> Dygraphs`; no sampling, approximation, or WebGPU compatibility-mode assumption is allowed.
 13. **Migration before platform matrix:** approved. Complete the remaining graphical adapters before Windows/macOS/browser validation because no unresolved core API question blocks them. Pause only if an adapter requires a new non-core GPU feature.
 14. **Semantic visualizations remain DOM:** approved. Bars, Value, Group Boxes, and Table are already Netdata-native React/DOM surfaces. They are not GPU migration targets because accessibility, selection, and semantic controls outweigh rasterization.
-15. **Next adapter:** approved. Area reuses the exact line payload, axes, interactions, text, and lifecycle while adding per-segment baseline trapezoids. It preserves Dygraphs' reverse fill order, zero-or-nearest-edge baseline, straight/step geometry, gaps, fill opacity, stroke, and sparkline behavior.
+15. **Area adapter:** approved and implemented. Area reuses the exact line payload, axes, interactions, text, and lifecycle while adding per-segment baseline trapezoids. It preserves Dygraphs' reverse fill order, zero-or-nearest-edge baseline, straight/step geometry, gaps, fill opacity, stroke, and sparkline behavior.
+16. **Stacked adapter:** approved and implemented. Build exact diverging bounds on the CPU in one row-major pass, processing visible series in reverse dimension order and maintaining independent positive/negative totals. Upload precision-normalized base/end arrays once per payload or visibility change; reuse them for fill/stroke/gap pixels while exact Float64 block extrema drive visible-window autoscaling. Hover resolves the signed band under the pointer. Do not carry forward the legacy plotter's six-points-per-pixel reduction.
 
 ## Plan
 
@@ -284,6 +285,11 @@ Open decisions:
 - Final physical Chromium 150/Wayland Area benchmark passed both backends and retained Line correctness. At 100,000 values, WebGPU mount/update work completed in 10.1/7.0 ms and WebGL2 in 11.5/2.7 ms within one measured frame. At 1,000,000 values, WebGPU achieved 10.29x/8.08x and WebGL2 11.53x/14.06x mount/update frame speedups over Dygraphs. Exact fill/stroke instance counts, regular/step distinction, an empty null-gap band, PNG exports, four-chart lifecycle, WebGPU device loss to WebGL2, WebGL2 context loss to Dygraphs, and zero retained contexts passed.
 - Deterministic overlap sampling proved exact Dygraphs pixel parity, including reverse fill order and a zero baseline clamped below an all-positive `[20, 100]` range. Dygraphs, WebGPU, and WebGL2 produced identical interior RGBA values: transparent `[0,0,0,0]`, first-series fill `[255,0,0,51]`, and overlap/baseline fill `[141,0,114,92]`. Evidence: `/tmp/gpu-area-production-benchmark-final.clean.json`.
 - Full validation after Area passed: 174 Jest suites; 1,594 tests passed and 2 skipped; coverage 62.10% statements, 56.09% branches, 60.50% functions, and 63.36% lines; CJS/ES6 each compiled 562 files; Storybook built successfully with only existing size warnings. Cloud installation and external platform checks remain intentionally deferred until graphical migration completes.
+- Mapped the existing diverging Stacked contract before implementation. `divergingStack.js` processes visible dimensions in reverse order, accumulates positive and negative values independently, leaves nulls out of totals, and rebases after visibility changes. `stackedArea.js` fills each exact base/end band before drawing its straight/step end line and uses signed-band hover, but its high-density path silently reduces to at most six points per canvas pixel. The GPU adapter preserves stacking, gaps, order, hover, opacity, stroke, sparkline, and autoscaling semantics while deliberately rejecting that legacy approximation. ChartGPU's separate base/end stacked-area shader confirms the per-pair six-vertex band pattern but its optional LOD remains out of scope.
+- Implemented Stacked on the shared Cartesian adapter with exact row-major precision-normalized base/end residency, independent positive/negative accumulation, reverse visible-series ordering, null-pair discard, straight/step band geometry, visibility-triggered rebasing, exact block-indexed visible-window extrema, signed-band hover, and inherited axes/overlays/interactions/text/export/lifecycle behavior. The WebGPU and WebGL2 backends add only a base buffer/texture and backend shader binding; default routing remains Dygraphs.
+- Deterministic pixel probes matched Dygraphs exactly for top positive, lower positive, negative, and empty regions on both backends: `[255,0,0,204]`, `[0,0,255,204]`, `[0,255,0,204]`, and transparent `[0,0,0,0]`. Exact draw-count and null-gap checks passed for regular and step bands; Line and Area regression/parity checks remained unchanged.
+- The first WebGL2 100,000-value runs narrowly missed the strict presentation budget despite 17-18 ms median work. Repacked stack storage from series-major to row-major so each segment's two source rows are contiguous, removed redundant initialization and hot-loop `Math.min`/`Math.max` calls, and retained exact source semantics. The accepted combined run completed 100,000-value mount work/presentation in 14.2/15.7 ms on WebGPU and 15.2/18.2 ms on WebGL2; updates completed in 6.9/16.6 ms and 5.2/16.7 ms respectively.
+- Final physical Chromium 150/Wayland Stacked benchmark passed both backends. At 1,000,000 values, WebGPU completed mount/update work in 54.0/37.1 ms and WebGL2 in 52.5/26.2 ms, with greater-than-100x frame-settled gains over Dygraphs' legacy Stacked implementation. PNG exports, four-chart lifecycle, WebGPU device loss to WebGL2, WebGL2 context loss to Dygraphs, and zero retained contexts passed. Evidence: `/tmp/gpu-stacked-production-benchmark-final.clean.json`.
 
 ## Validation
 
@@ -296,12 +302,12 @@ Acceptance criteria evidence:
 
 Tests or equivalent validation:
 
-- Full Jest with coverage: 174 suites passed; 1,594 tests passed and 2 skipped. Coverage passed unchanged thresholds at 62.10% statements, 56.09% branches, 60.50% functions, and 63.36% lines.
+- Full Jest with coverage: 177 suites passed; 1,603 tests passed and 2 skipped. Coverage passed unchanged thresholds at 62.54% statements, 56.28% branches, 60.81% functions, and 63.80% lines.
 - Focused shared-GPU, WebGPU, WebGL2 primitive, routing, controller, hover, and default-SDK tests passed without new Jest mocks.
-- Clean CommonJS and ES6 distributions built with 541 files each; moved backend-neutral modules and both GPU backends were present, while stale pre-move paths were absent.
+- Clean CommonJS and ES6 distributions built with 571 files each; moved backend-neutral modules and both GPU backends were present, while stale pre-move paths were absent.
 - Changed-file ESLint passed. Repository lint retained 35 unrelated pre-existing errors and introduced none in changed files.
 - Storybook static build passed. The isolated Cloud production build and final agent installation passed. Mixed-size X11 WebGL2 canvases all exported non-empty frames without cropping or blanks (`/tmp/webgl2-cloud-x11-final.json` and matching narrow/large screenshots). SOW audit and `git diff --check` passed.
-- Physical Line and Area benchmarks passed one-frame 100,000-value mount/update work, greater-than-5x 1,000,000-value frame speedups, exact source-pair geometry/gaps, Dygraphs Area overlap/baseline pixels, PNG export, sustained updates, four-chart shared-runtime lifecycle, and the complete runtime-loss chain.
+- Physical Line, Area, and Stacked benchmarks passed one-frame 100,000-value mount/update work, greater-than-5x 1,000,000-value frame speedups, exact source-pair geometry/gaps, Dygraphs Area overlap/baseline pixels, diverging Stacked positive/negative pixels, PNG export, four-chart shared-runtime lifecycle, and the complete runtime-loss chain.
 
 Real-use evidence:
 
@@ -353,7 +359,7 @@ Follow-up mapping:
 
 ## Outcome
 
-The production-capable Line and Area GPU adapters are implemented, physically validated, and cleanly integrated on current `origin/main`. The approved next milestone is exact diverging Stacked migration, followed by the remaining graphical adapters before broader browser/device hardening. Runtime/power policy and rollout/default approval remain intentionally deferred.
+The production-capable Line, Area, and diverging Stacked GPU adapters are implemented, physically validated, and cleanly integrated on current `origin/main`. The approved next milestone is Stacked Bar, followed by Multi Column, Heatmap, EasyPie/Circle, Gauge, and D3 Pie before broader browser/device hardening. Runtime/power policy and rollout/default approval remain intentionally deferred.
 
 ## Lessons Extracted
 

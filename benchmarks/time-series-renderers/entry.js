@@ -60,6 +60,10 @@ const makeData = (dimensions, points, revision, profile) => {
         row[dimensionIndex + 1] = dimensionIndex === 0 ? 75 : 50
         continue
       }
+      if (profile === "stacked-diverging") {
+        row[dimensionIndex + 1] = [2, -1, 0.5][dimensionIndex % 3]
+        continue
+      }
       const phase = pointIndex * 0.017 + dimensionIndex * 0.031 + revision * 0.13
       row[dimensionIndex + 1] = Math.sin(phase) * 70 + Math.cos(phase * 0.37) * 20
     }
@@ -167,7 +171,7 @@ const prepare = async ({
   if (prepared) throw new Error("Benchmark state already prepared")
   if (!new Set(["dygraph", "webgpu", "webgl2"]).has(renderer))
     throw new Error("Unknown renderer")
-  if (!new Set(["line", "area"]).has(visualization))
+  if (!new Set(["line", "area", "stacked"]).has(visualization))
     throw new Error("Unknown visualization")
 
   setStatus(`Preparing ${renderer} ${visualization}: ${dimensions * points} values`)

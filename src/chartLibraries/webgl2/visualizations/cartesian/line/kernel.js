@@ -70,7 +70,7 @@ const updateTexture = ({
   state.byteLength = layout.values.byteLength
 }
 
-export default async (surface, { filled = false } = {}) => {
+export default async (surface, { fillMode = null } = {}) => {
   const { gl } = surface
   const program = await surface.getProgram("gpu", vertexShader, fragmentShader)
   const vertexArray = gl.createVertexArray()
@@ -78,11 +78,15 @@ export default async (surface, { filled = false } = {}) => {
     x: gl.createTexture(),
     y: gl.createTexture(),
     color: gl.createTexture(),
+    ...(fillMode === "stacked" && { base: gl.createTexture() }),
   }
   const textureStates = {
     x: { width: 0, height: 0, byteLength: 0 },
     y: { width: 0, height: 0, byteLength: 0 },
     color: { width: 0, height: 0, byteLength: 0 },
+    ...(fillMode === "stacked" && {
+      base: { width: 0, height: 0, byteLength: 0 },
+    }),
   }
   const maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE)
   const uniforms = Object.fromEntries(
@@ -91,9 +95,11 @@ export default async (surface, { filled = false } = {}) => {
       "uXValues",
       "uYValues",
       "uSeriesColors",
+      "uBaseValues",
       "uXTextureSize",
       "uYTextureSize",
       "uColorTextureSize",
+      "uBaseTextureSize",
       "uDomain",
       "uPlot",
       "uCanvas",
@@ -153,6 +159,19 @@ export default async (surface, { filled = false } = {}) => {
         format: gl.RED,
         maxTextureSize,
       })
+      if (fillMode === "stacked") {
+        gl.activeTexture(gl.TEXTURE3)
+        updateTexture({
+          gl,
+          texture: textures.base,
+          state: textureStates.base,
+          values: packed.base,
+          components: 1,
+          internalFormat: gl.R32F,
+          format: gl.RED,
+          maxTextureSize,
+        })
+      }
     }
     if (colorsChanged) {
       gl.activeTexture(gl.TEXTURE2)
@@ -178,7 +197,7 @@ export default async (surface, { filled = false } = {}) => {
       stepped,
       smooth,
       curveSegments: makeCurveSegments({ pointCount: packed.pointCount, plotWidth }),
-      filled: filled && fillAlpha > 0,
+      filled: Boolean(fillMode && fillAlpha > 0),
       stroke: lineWidth > 0,
     })
     const [rawRangeMin, rawRangeMax] = normalizeRange(min, max)
@@ -191,7 +210,12 @@ export default async (surface, { filled = false } = {}) => {
       ],
       plot: [plotLeft, plotTop, plotWidth, plotHeight],
       canvas: [canvasWidth, canvasHeight, lineWidth * dpr, stepped ? 1 : smooth ? 2 : 0],
-      fill: [(0 - packed.yOrigin) / packed.yScale, fillAlpha],
+      fill: [
+        (0 - packed.yOrigin) / packed.yScale,
+        fillAlpha,
+        fillMode === "stacked" ? 1 : 0,
+      ],
+      fillPass: fillMode === "stacked" ? 3 : 2,
       counts: [
         packed.pointCount,
         packed.seriesCount,
@@ -220,9 +244,14 @@ export default async (surface, { filled = false } = {}) => {
     gl.bindTexture(gl.TEXTURE_2D, textures.y)
     gl.activeTexture(gl.TEXTURE2)
     gl.bindTexture(gl.TEXTURE_2D, textures.color)
+    if (fillMode === "stacked") {
+      gl.activeTexture(gl.TEXTURE3)
+      gl.bindTexture(gl.TEXTURE_2D, textures.base)
+    }
     gl.uniform1i(uniforms.uXValues, 0)
     gl.uniform1i(uniforms.uYValues, 1)
     gl.uniform1i(uniforms.uSeriesColors, 2)
+    if (fillMode === "stacked") gl.uniform1i(uniforms.uBaseValues, 3)
     gl.uniform2i(uniforms.uXTextureSize, textureStates.x.width, textureStates.x.height)
     gl.uniform2i(uniforms.uYTextureSize, textureStates.y.width, textureStates.y.height)
     gl.uniform2i(
@@ -230,10 +259,16 @@ export default async (surface, { filled = false } = {}) => {
       textureStates.color.width,
       textureStates.color.height
     )
+    if (fillMode === "stacked")
+      gl.uniform2i(
+        uniforms.uBaseTextureSize,
+        textureStates.base.width,
+        textureStates.base.height
+      )
     gl.uniform4fv(uniforms.uDomain, drawState.domain)
     gl.uniform4fv(uniforms.uPlot, drawState.plot)
     gl.uniform4fv(uniforms.uCanvas, drawState.canvas)
-    gl.uniform2fv(uniforms.uFill, drawState.fill)
+    gl.uniform3fv(uniforms.uFill, drawState.fill)
     gl.uniform4uiv(uniforms.uCounts, drawState.counts)
     gl.enable(gl.SCISSOR_TEST)
     gl.scissor(
@@ -243,7 +278,7 @@ export default async (surface, { filled = false } = {}) => {
       drawState.plot[3]
     )
     if (drawState.fillInstanceCount) {
-      gl.uniform1i(uniforms.uPassType, 2)
+      gl.uniform1i(uniforms.uPassType, drawState.fillPass)
       gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, drawState.fillInstanceCount)
     }
     if (drawState.strokeInstanceCount) {

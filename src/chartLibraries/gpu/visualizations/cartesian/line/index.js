@@ -4,8 +4,8 @@ import { makeCrosshairRects } from "../interaction"
 import { makeOverlayRects } from "../overlays"
 import makeInteractions from "./interactions"
 import { makeDataDecorationRects, makeGapEdgeCircles } from "./decorations"
-import makePackedData from "./data"
-import { getVisibleRange } from "./range"
+import makeDefaultPackedData from "./data"
+import { getVisibleRange as getDefaultVisibleRange } from "./range"
 import { makeSeriesColors } from "./colors"
 import { makeLineStyle, shouldIncludeZero } from "./config"
 
@@ -15,6 +15,9 @@ export default ({
   makeResources,
   forceIncludeZero = false,
   makeSeriesStyle = makeLineStyle,
+  makePackedData = makeDefaultPackedData,
+  getPackedVisibleRange = getDefaultVisibleRange,
+  findDimension,
 }) => {
   const packedData = makePackedData(chart)
   let resource = null
@@ -54,6 +57,7 @@ export default ({
         selectionRect = rect
         render()
       },
+      findDimension,
     })
     listeners = unregister(
       chart.on("visibleDimensionsChanged", markColorsDirty(render)),
@@ -144,7 +148,12 @@ export default ({
         .getVisibleDimensionIds()
         .map(id => indexes.get(id))
         .filter(index => index !== undefined)
-      const visibleRange = getVisibleRange({ packed, afterMs, beforeMs, seriesIndexes })
+      const visibleRange = getPackedVisibleRange({
+        packed,
+        afterMs,
+        beforeMs,
+        seriesIndexes,
+      })
       if (visibleRange) [min, max] = visibleRange
     }
     const includeZero = shouldIncludeZero({

@@ -27,9 +27,11 @@ export const makeGapEdgeCircles = ({ chart, packed, frame }) => {
     if (!chart.isDimensionVisible(id)) return
     packed.gapEdgeIndexes[seriesIndex].forEach(pointIndex => {
       const timestampMs = packed.xOriginMs + packed.x[pointIndex] * 1000
-      const value =
-        packed.yOrigin +
-        packed.y[seriesIndex * packed.pointCount + pointIndex] * packed.yScale
+      const valueOffset =
+        packed.layout === "row-major"
+          ? pointIndex * packed.seriesCount + seriesIndex
+          : seriesIndex * packed.pointCount + pointIndex
+      const value = packed.yOrigin + packed.y[valueOffset] * packed.yScale
       const x = xPosition(timestampMs, frame)
       const y =
         frame.plot.top +

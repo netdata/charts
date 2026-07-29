@@ -36,8 +36,8 @@ if (
   throw new Error("BENCHMARK_RENDERERS must select webgpu and/or webgl2")
 const renderers = ["dygraph", ...candidateRenderers]
 const visualization = process.env.BENCHMARK_VISUALIZATION || "line"
-if (!new Set(["line", "area"]).has(visualization))
-  throw new Error("BENCHMARK_VISUALIZATION must select line or area")
+if (!new Set(["line", "area", "stacked"]).has(visualization))
+  throw new Error("BENCHMARK_VISUALIZATION must select line, area, or stacked")
 
 const server = http.createServer((request, response) => {
   const file = request.url === "/benchmark.js" ? path.join(root, "benchmark.js") : indexPath
@@ -175,7 +175,12 @@ const validateLine = async (browser, port, renderer) => {
   return { renderer, captures, exactDraws, passed }
 }
 
-const validateArea = async (browser, port, renderer) => {
+const validateFilledVisualization = async (
+  browser,
+  port,
+  renderer,
+  visualizationId
+) => {
   const context = await browser.newContext({
     viewport: { width: 1600, height: 500 },
     deviceScaleFactor: 1,
@@ -196,7 +201,7 @@ const validateArea = async (browser, port, renderer) => {
         input => window.__NETDATA_RENDERER_BENCHMARK__.prepare(input),
         {
           renderer,
-          visualization: "area",
+          visualization: visualizationId,
           dimensions: 1,
           points: 100,
           gaps: benchmarkCase.gaps,
@@ -244,7 +249,7 @@ const validateArea = async (browser, port, renderer) => {
       captures.gap.gapBandNonTransparentPixels === 0
   )
 
-  return { renderer, captures, exactDraws, passed }
+  return { renderer, visualization: visualizationId, captures, exactDraws, passed }
 }
 
 const captureAreaOverlap = async (browser, port, renderer) => {
@@ -309,6 +314,74 @@ const validateAreaParity = async (browser, port, renderer, dygraphCapture) => {
       Object.values(deltas).every(delta => delta <= 3)
   )
   return { renderer, samples: capture.samplePixels, deltas, passed }
+}
+
+const captureStackedDiverging = async (browser, port, renderer) => {
+  const context = await browser.newContext({
+    viewport: { width: 1600, height: 500 },
+    deviceScaleFactor: 1,
+  })
+  const page = await context.newPage()
+  try {
+    await page.goto(`http://127.0.0.1:${port}`, { waitUntil: "load" })
+    await page.waitForFunction(() => Boolean(window.__NETDATA_RENDERER_BENCHMARK__))
+    await page.evaluate(input => window.__NETDATA_RENDERER_BENCHMARK__.prepare(input), {
+      renderer,
+      visualization: "stacked",
+      dimensions: 3,
+      points: 100,
+      profile: "stacked-diverging",
+      range: [-3, 3],
+      colors: {
+        "series-0": "#ff0000",
+        "series-1": "#00ff00",
+        "series-2": "#0000ff",
+      },
+    })
+    await page.evaluate(() =>
+      window.__NETDATA_RENDERER_BENCHMARK__.mountPreview({
+        enabledXAxis: false,
+        enabledYAxis: false,
+      })
+    )
+    const capture = await page.evaluate(() =>
+      window.__NETDATA_RENDERER_BENCHMARK__.capturePreview({
+        samples: [
+          { name: "topPositive", xRatio: 0.5, yRatio: 0.25 },
+          { name: "bottomPositive", xRatio: 0.5, yRatio: 0.47 },
+          { name: "negative", xRatio: 0.5, yRatio: 0.58 },
+          { name: "empty", xRatio: 0.5, yRatio: 0.85 },
+        ],
+      })
+    )
+    await page.evaluate(() => window.__NETDATA_RENDERER_BENCHMARK__.cleanup())
+    return capture
+  } finally {
+    await context.close()
+  }
+}
+
+const validateStackedParity = async (browser, port, renderer, dygraphCapture) => {
+  const capture = await captureStackedDiverging(browser, port, renderer)
+  const deltas = Object.fromEntries(
+    Object.keys(dygraphCapture.samplePixels).map(name => [
+      name,
+      Math.max(
+        ...dygraphCapture.samplePixels[name].map((value, index) =>
+          Math.abs(value - capture.samplePixels[name][index])
+        )
+      ),
+    ])
+  )
+  const samples = capture.samplePixels
+  const passed = Boolean(
+    samples.topPositive[0] > samples.topPositive[2] &&
+      samples.bottomPositive[2] > samples.bottomPositive[0] &&
+      samples.negative[1] > samples.negative[0] &&
+      samples.empty[3] === 0 &&
+      Object.values(deltas).every(delta => delta <= 3)
+  )
+  return { renderer, samples, deltas, passed }
 }
 
 const validateFallbackChain = async (browser, port, visualizationId) => {
@@ -459,6 +532,8 @@ const run = async () => {
   const lineCorrectness = {}
   const areaCorrectness = {}
   const areaParity = {}
+  const stackedCorrectness = {}
+  const stackedParity = {}
   let fallbackChain = null
 
   try {
@@ -470,10 +545,28 @@ const run = async () => {
       }
     }
     const dygraphArea = await captureAreaOverlap(browser, port, "dygraph")
+    const dygraphStacked = await captureStackedDiverging(browser, port, "dygraph")
     for (const renderer of candidateRenderers) {
       lineCorrectness[renderer] = await validateLine(browser, port, renderer)
-      areaCorrectness[renderer] = await validateArea(browser, port, renderer)
+      areaCorrectness[renderer] = await validateFilledVisualization(
+        browser,
+        port,
+        renderer,
+        "area"
+      )
       areaParity[renderer] = await validateAreaParity(browser, port, renderer, dygraphArea)
+      stackedCorrectness[renderer] = await validateFilledVisualization(
+        browser,
+        port,
+        renderer,
+        "stacked"
+      )
+      stackedParity[renderer] = await validateStackedParity(
+        browser,
+        port,
+        renderer,
+        dygraphStacked
+      )
     }
     if (candidateRenderers.includes("webgpu"))
       fallbackChain = await validateFallbackChain(browser, port, visualization)
@@ -487,6 +580,8 @@ const run = async () => {
     Object.values(lineCorrectness).every(result => result.passed) &&
     Object.values(areaCorrectness).every(result => result.passed) &&
     Object.values(areaParity).every(result => result.passed) &&
+    Object.values(stackedCorrectness).every(result => result.passed) &&
+    Object.values(stackedParity).every(result => result.passed) &&
     (!fallbackChain || fallbackChain.passed) &&
     comparisons.every(
       result =>
@@ -521,6 +616,8 @@ const run = async () => {
       line: lineCorrectness,
       area: areaCorrectness,
       areaParity,
+      stacked: stackedCorrectness,
+      stackedParity,
       fallbackChain,
     },
     comparisons,

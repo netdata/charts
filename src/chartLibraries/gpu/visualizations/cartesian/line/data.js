@@ -1,6 +1,13 @@
 import { getPointValue } from "@/sdk/makeChart/getPointValue"
 
-const RANGE_BLOCK_SIZE = 32
+export const RANGE_BLOCK_SIZE = 32
+
+export const makePointValueReader = point => {
+  const valueIndex = point?.value
+  return typeof valueIndex === "number"
+    ? cell => (Array.isArray(cell) ? cell[valueIndex] : getPointValue(cell, point))
+    : cell => (cell !== null && typeof cell === "object" ? cell.value : cell)
+}
 
 const getFiniteRange = (rows, seriesCount, point, range) => {
   let min = Number.isFinite(range?.[0]) ? range[0] : Infinity
@@ -30,11 +37,7 @@ export const packAlignedData = (rows, seriesCount, point, range) => {
   const rangeBlockCount = Math.ceil(pointCount / RANGE_BLOCK_SIZE)
   const gapEdgeIndexes = Array.from({ length: seriesCount }, () => [])
   const previousValid = new Uint8Array(seriesCount)
-  const valueIndex = point?.value
-  const readValue =
-    typeof valueIndex === "number"
-      ? cell => (Array.isArray(cell) ? cell[valueIndex] : getPointValue(cell, point))
-      : cell => (cell !== null && typeof cell === "object" ? cell.value : cell)
+  const readValue = makePointValueReader(point)
   let dataMin = Infinity
   let dataMax = -Infinity
 
