@@ -30,6 +30,21 @@ export const useAttributeValue = (name, defaultValue) => {
   return chart.getAttribute(name, defaultValue)
 }
 
+export const useChartUI = (uiName = "default") => {
+  const chart = useChart()
+  const forceUpdate = useForceUpdate()
+
+  useImmediateListener(
+    () =>
+      chart.on("chartUIChanged", changedUiName => {
+        if (changedUiName === uiName) forceUpdate()
+      }),
+    [chart, uiName]
+  )
+
+  return chart.getUI(uiName)
+}
+
 export const useFilteredNodeIds = () => {
   const chart = useChart()
 
@@ -225,6 +240,7 @@ export const useFormatDate = value => {
 
 export const useOnResize = uiName => {
   const chart = useChart()
+  const chartUI = useChartUI(uiName)
 
   const [invalidated, invalidate] = useState(1)
   const forceUpdate = useForceUpdate()
@@ -238,14 +254,14 @@ export const useOnResize = uiName => {
             forceUpdate()
           }, 300)
         }),
-        chart.getUI(uiName).on("rendered", forceUpdate).on("resize", forceUpdate)
+        chartUI.on("rendered", forceUpdate).on("resize", forceUpdate)
       ),
-    [uiName, chart, invalidated]
+    [chart, chartUI, invalidated]
   )
 
   return {
-    width: chart.getUI(uiName).getChartWidth(),
-    height: chart.getUI(uiName).getChartHeight(),
+    width: chartUI.getChartWidth(),
+    height: chartUI.getChartHeight(),
     parentWidth: chart.getAttribute("containerWidth"),
   }
 }
@@ -669,18 +685,19 @@ export const useIsMinimal = () => useAttributeValue("designFlavour") === "minima
 
 export const usePlotArea = (uiName = "default") => {
   const chart = useChart()
+  const chartUI = useChartUI(uiName)
   const forceUpdate = useForceUpdate()
 
   useImmediateListener(
     () =>
       unregister(
         chart.on("mountChartUI", () => setTimeout(forceUpdate, 300)),
-        chart.getUI(uiName)?.on("rendered", forceUpdate).on("resize", forceUpdate)
+        chartUI?.on("rendered", forceUpdate).on("resize", forceUpdate)
       ),
-    [uiName, chart]
+    [chart, chartUI]
   )
 
-  const area = chart.getUI(uiName)?.getDygraph?.()?.getArea()
+  const area = chartUI?.getDygraph?.()?.getArea()
 
   return {
     left: area?.x ?? 0,

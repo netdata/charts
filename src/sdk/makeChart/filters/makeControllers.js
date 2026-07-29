@@ -4,7 +4,7 @@ import getInitialFilterAttributes from "./getInitialAttributes"
 import { isHeatmap } from "@/helpers/heatmap"
 import makeLog from "@/sdk/makeLog"
 
-export default chart => {
+export default (chart, getChartInstance = () => chart) => {
   const log = ({ value, ...rest }) =>
     makeLog(chart)({
       ...rest,
@@ -119,30 +119,71 @@ export default chart => {
     table: true,
   }
 
+  let activeTimeSeriesRenderer = chart.getAttribute("chartLibrary") === "dygraph"
+
+  const getChartLibrariesByType = () => chart.getAttribute("chartLibrariesByType") || {}
+
+  const getRendererForChartType = chartType => {
+    const renderer = getChartLibrariesByType()[chartType] || "dygraph"
+    return renderer in chart.sdk.ui ? renderer : "dygraph"
+  }
+
+  const isTimeSeriesRenderer = chartLibrary => {
+    if (
+      chartLibrary === chart.getAttribute("chartLibrary") &&
+      chartLibrary !== "dygraph"
+    )
+      return activeTimeSeriesRenderer
+
+    return (
+      chartLibrary === "dygraph" ||
+      Object.values(getChartLibrariesByType()).includes(chartLibrary)
+    )
+  }
+
+  const replaceChartUI = () => {
+    const chartInstance = getChartInstance()
+    return chart.replaceUI(
+      { ...chart.sdk.makeChartUI(chartInstance), ...(chart.ui || {}) },
+      "default"
+    )
+  }
+
+  const reconcileChartLibrary = (chartType = chart.getAttribute("chartType")) => {
+    const prevChartLibrary = chart.getAttribute("chartLibrary")
+    if (!chartType || (prevChartLibrary !== "dygraph" && !activeTimeSeriesRenderer)) return false
+
+    const nextChartLibrary = getRendererForChartType(chartType)
+    activeTimeSeriesRenderer = true
+    if (prevChartLibrary === nextChartLibrary) return false
+
+    chart.updateAttribute("chartLibrary", nextChartLibrary)
+    replaceChartUI()
+    return true
+  }
+
   const updateChartTypeAttribute = selected => {
     const prevChartLibrary = chart.getAttribute("chartLibrary")
     const prevGroupBy = chart.getAttribute("groupBy")
 
     if (!chartLibraries[selected]) {
+      const nextChartLibrary = getRendererForChartType(selected)
+      activeTimeSeriesRenderer = true
       chart.updateAttributes({
-        chartLibrary: "dygraph",
+        chartLibrary: nextChartLibrary,
         chartType: selected,
         processing: true,
       })
-      if (prevChartLibrary !== "dygraph") {
-        chart.getUI().unmount()
-        chart.setUI({ ...chart.sdk.makeChartUI(chart), ...(chart.ui || {}) }, "default")
-      }
+      if (prevChartLibrary !== nextChartLibrary) replaceChartUI()
     } else {
+      activeTimeSeriesRenderer = false
       chart.updateAttributes({
         chartLibrary: selected,
         processing: true,
         ...(isHeatmap(selected) && { dimensionsSort: "default" }),
       })
-      chart.getUI().unmount()
-      chart.setUI({ ...chart.sdk.makeChartUI(chart), ...(chart.ui || {}) }, "default")
+      if (prevChartLibrary !== selected) replaceChartUI()
     }
-    chartLibraries[selected]
 
     if (isHeatmap(selected)) {
       updateGroupByAttribute(["dimension"])
@@ -316,16 +357,16 @@ export default chart => {
       "chartLibrary" in prev && attributes.chartLibrary !== prev.chartLibrary
 
     pristine.reset(attributes)
+    activeTimeSeriesRenderer =
+      attributes.chartLibrary === "dygraph" ||
+      getChartLibrariesByType()[attributes.chartType] === attributes.chartLibrary
     chart.attributeListeners.trigger(pristineKey, attributes[pristineKey], prev)
     chart.sdk.trigger("pristineChanged", chart, pristineKey, attributes[pristineKey], prev)
     Object.keys(prev).forEach(key =>
       chart.attributeListeners.trigger(key, attributes[key], prev[key])
     )
 
-    if (hasChangedLibrary) {
-      chart.getUI().unmount()
-      chart.setUI({ ...chart.sdk.makeChartUI(chart), ...(chart.ui || {}) }, "default")
-    }
+    if (hasChangedLibrary) replaceChartUI()
     chart.trigger("fetch", { processing: true })
   }
 
@@ -359,5 +400,8 @@ export default chart => {
     removePristine,
     toggleFullscreen,
     baseUpdateGroupBy,
+    getRendererForChartType,
+    isTimeSeriesRenderer,
+    reconcileChartLibrary,
   }
 }

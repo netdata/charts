@@ -1,5 +1,5 @@
 import React from "react"
-import { screen } from "@testing-library/react"
+import { act, screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { renderWithChart } from "@jest/testUtilities"
 import ChartContainer from "./chartContainer"
@@ -57,5 +57,28 @@ describe("ChartContainer", () => {
       justifyContent: "center",
       flexDirection: "column",
     })
+  })
+
+  it("keeps the mounted element when the chart UI is replaced", () => {
+    const { chart } = renderWithChart(<ChartContainer uiName="default" />)
+    const container = screen.getByTestId("chartContent")
+
+    expect(container.querySelector("canvas")).toBeInTheDocument()
+
+    act(() => {
+      chart.updateAttribute("chartLibrary", "number")
+      chart.replaceUI(chart.sdk.makeChartUI(chart))
+    })
+
+    expect(chart.getUI().getElement()).toBe(container)
+    expect(container.querySelector("canvas")).not.toBeInTheDocument()
+
+    act(() => {
+      chart.updateAttribute("chartLibrary", "dygraph")
+      chart.replaceUI(chart.sdk.makeChartUI(chart))
+    })
+
+    expect(chart.getUI().getElement()).toBe(container)
+    expect(container.querySelector("canvas")).toBeInTheDocument()
   })
 })

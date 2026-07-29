@@ -126,6 +126,31 @@ describe("makeControllers", () => {
     expect(spy).toHaveBeenCalledWith("pristine", {})
   })
 
+  describe("time-series renderer routing", () => {
+    it("uses the configured renderer for a chart type", () => {
+      chart.updateAttribute("chartLibrariesByType", { line: "number" })
+
+      expect(controllers.getRendererForChartType("line")).toBe("number")
+      expect(controllers.isTimeSeriesRenderer("number")).toBe(true)
+    })
+
+    it("falls back to dygraph when the configured renderer is unavailable", () => {
+      chart.updateAttribute("chartLibrariesByType", { line: "missing-renderer" })
+
+      expect(controllers.getRendererForChartType("line")).toBe("dygraph")
+    })
+
+    it("switches a time-series type to its configured renderer", () => {
+      chart.updateAttribute("chartLibrariesByType", { line: "number" })
+
+      controllers.updateChartTypeAttribute("line")
+
+      expect(chart.getAttribute("chartType")).toBe("line")
+      expect(chart.getAttribute("chartLibrary")).toBe("number")
+      expect(chart.getUI().getDygraph).toBeUndefined()
+    })
+  })
+
   describe("updateGroupByAttribute", () => {
     beforeEach(() => {
       chart.fetch = jest.fn(() => Promise.resolve())

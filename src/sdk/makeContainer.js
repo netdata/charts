@@ -6,6 +6,7 @@ export default ({ sdk, parent, attributes } = {}) => {
 
   const appendChild = (node, { inherit = true } = {}) => {
     node.setParent(instance, { inherit })
+    node.reconcileChartLibrary?.()
     children.push(node)
     instance.trigger("nodeAdded", node)
     sdk.trigger("nodeAdded", instance, node)

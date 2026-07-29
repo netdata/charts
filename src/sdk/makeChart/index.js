@@ -25,8 +25,10 @@ export default ({
   getChart = fetchChartData,
   attributes = {},
   makeTrack = defaultMakeTrack,
+  ui = {},
 } = {}) => {
   const executeLatest = makeExecuteLatest()
+  let chartInstance = null
 
   let node = makeNode({
     sdk,
@@ -35,6 +37,7 @@ export default ({
   })
 
   node.getChart = getChart
+  node.ui = ui
 
   let fetchTimeoutId = null
 
@@ -139,7 +142,19 @@ export default ({
 
   node.getUI = (uiName = "default") => uiInstances[uiName]
   node.setUI = (newUi, uiName = "default") => {
+    const prevUi = uiInstances[uiName]
     uiInstances[uiName] = newUi
+    if (prevUi !== newUi) node.trigger("chartUIChanged", uiName, newUi, prevUi)
+  }
+  node.replaceUI = (newUi, uiName = "default") => {
+    const prevUi = node.getUI(uiName)
+    const element = prevUi?.getElement?.()
+
+    if (element) prevUi.unmount()
+    node.setUI(newUi, uiName)
+    if (element) newUi.mount(element)
+
+    return newUi
   }
 
   const render = executeLatest.add(() => {
@@ -338,7 +353,7 @@ export default ({
   node.makeSubChart = (options = {}) => {
     const subChart = sdk.makeChartCore(options)
     const chartUi = sdk.makeChartUI(subChart)
-    subChart.setUI(chartUi, "default")
+    subChart.setUI({ ...chartUi, ...(options.ui || {}) }, "default")
 
     return subChart
   }
@@ -441,12 +456,14 @@ export default ({
   }
 
   node.setAttribute("aggregationMethod", attributes.aggregationMethod || getAggregateMethod(node))
+  Object.assign(node, makeFilterControllers(node, () => chartInstance || node))
 
-  return {
+  chartInstance = {
     ...node,
-    ...makeFilterControllers(node),
     destroy,
     onKeyChange,
     sdk,
   }
+
+  return chartInstance
 }

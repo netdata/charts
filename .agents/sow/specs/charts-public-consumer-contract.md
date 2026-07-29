@@ -81,6 +81,7 @@ Default root attributes include:
 
 - `_v: "v3"`
 - `chartLibrary: "dygraph"`
+- `chartLibrariesByType`, mapping `line`, `stacked`, `area`, `stackedBar`, `multiBar`, and `heatmap` to `dygraph`
 - `navigation: "pan"`
 - `after: -900`
 - `overlays.proceeded.type: "proceeded"`
@@ -94,8 +95,11 @@ Evidence: `src/makeDefaultSDK.js`, `src/sdk/`.
 - Provider hooks such as `useAttributeValue` subscribe to attribute changes and re-render consumers.
 - State that must survive component unmount/remount or virtualization belongs in chart attributes rather than component-local React state.
 - Event, listener, activation, deactivation, fetch, render, and destruction behavior are lifecycle contracts; changes require cleanup and remount validation.
+- `chartLibrariesByType` is the internal per-time-series-type renderer preference map. An omitted type or unavailable renderer resolves to Dygraphs.
+- Renderer reconciliation happens after parent attributes are inherited and after the first payload supplies `chartType`. User-facing chart-type controls continue to display the visualization type rather than the internal renderer.
+- Replacing a mounted chart UI preserves its DOM mount, custom UI overrides, chart identity, and renderer-bound React subscriptions. Renderer-aware hooks use `useChartUI` so subscriptions move to the replacement UI.
 
-Evidence: `src/sdk/`, `src/components/provider/`, `AGENTS.md`.
+Evidence: `src/sdk/`, `src/components/provider/`, `src/components/chartContainer.js`, `AGENTS.md`.
 
 ## Data And Time Contract
 
@@ -104,7 +108,7 @@ Evidence: `src/sdk/`, `src/components/provider/`, `AGENTS.md`.
 - Dimension identifiers, order, visibility, values, units, nulls, gaps, and corrected-history behavior affect renderers and consumers.
 - Renderer changes must not silently alter API requests, payload interpretation, dimension selection, or synchronization behavior.
 
-Evidence: `src/sdk/makeChart/`, `src/sdk/plugins/`, `.agents/sow/pending/SOW-0002-20260727-uplot-migration.md`.
+Evidence: `src/sdk/makeChart/`, `src/sdk/plugins/`, `.agents/sow/current/SOW-0002-20260727-uplot-migration.md`.
 
 ## Visual And Interaction Contract
 

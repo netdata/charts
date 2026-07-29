@@ -29,7 +29,9 @@ Do not use this skill for:
 - `makeDefaultSDK` is the consumer factory. It registers the default chart libraries and the ordered plugin set ending with `fullscreen`. Evidence: `src/makeDefaultSDK.js`.
 - Persistent chart state belongs in chart attributes so it survives virtualization and drives provider subscriptions. Read with `useAttributeValue`; do not duplicate persistent state in React `useState`. Evidence: `src/components/provider/selectors.js`, `AGENTS.md`.
 - Public SDK, component, attribute, event, chart-type, payload, and query behavior are compatibility surfaces even when implementation modules are deep imports. Evidence: `.agents/sow/specs/charts-public-consumer-contract.md`.
-- Chart-library-specific behavior belongs behind chart-library/SDK seams. Do not spread renderer checks through unrelated React consumers. Evidence: `src/chartLibraries/`, `src/sdk/`, `.agents/sow/pending/SOW-0002-20260727-uplot-migration.md`.
+- Chart-library-specific behavior belongs behind chart-library/SDK seams. Do not spread renderer checks through unrelated React consumers. Evidence: `src/chartLibraries/`, `src/sdk/`, `.agents/sow/current/SOW-0002-20260727-uplot-migration.md`.
+- Time-series renderer preference is resolved through `chartLibrariesByType`; unavailable or unmapped renderers fall back to Dygraphs. Renderer replacement must use the chart UI replacement lifecycle rather than unmounting and assigning a UI directly. Evidence: `src/sdk/makeChart/filters/makeControllers.js`, `src/sdk/makeChart/index.js`.
+- React code that subscribes to chart-UI events must use `useChartUI`; reading `chart.getUI()` once leaves the component subscribed to a destroyed renderer after replacement. Evidence: `src/components/provider/selectors.js`, `src/components/chartContainer.js`.
 - The package builds CJS and ES6 distributions. There is no current UMD build script. Evidence: `package.json`.
 
 ## Best Practices
@@ -38,6 +40,7 @@ Do not use this skill for:
 - Keep algorithmic work in small pure helpers when it can be tested independently from chart lifecycle and DOM rendering.
 - Keep consumers thin: derive state through chart/provider APIs and keep engine-specific behavior inside renderer-facing modules.
 - Preserve unsubscribe and destruction paths whenever listeners, timers, observers, SDK nodes, or chart UIs are added.
+- Preserve the public chart object and custom `options.ui` overrides when constructing a replacement renderer.
 - Validate behavior through both the source package and a real consuming path when a public/deep-import contract changes.
 - Use short comments only for non-obvious reasons; do not narrate what the code visibly does.
 

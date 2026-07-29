@@ -155,6 +155,7 @@ export default chart => {
         chartType: attributes.chartType || chartType,
         title: attributes.title === null ? title : attributes.title,
       })
+      chart.reconcileChartLibrary?.()
 
       chart.updateAttributes({
         loaded: true,
