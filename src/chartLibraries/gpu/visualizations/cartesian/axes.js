@@ -40,8 +40,7 @@ export const padValueRange = (min, max, plotHeight) => {
     const padding = Math.abs(min || 1) * 0.01
     return [min - padding, max + padding]
   }
-  const drawableHeight = Math.max(1, plotHeight - Y_RANGE_PAD * 2)
-  const padding = ((max - min) * Y_RANGE_PAD) / drawableHeight
+  const padding = ((max - min) * Y_RANGE_PAD) / Math.max(1, plotHeight)
   return [min - padding, max + padding]
 }
 

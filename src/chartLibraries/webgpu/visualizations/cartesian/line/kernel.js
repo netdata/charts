@@ -1,6 +1,7 @@
 import { makeCurveSegments, makeDrawLayout } from "@/chartLibraries/gpu/visualizations/cartesian/line/geometry"
 import areaShader from "../area/shader"
 import stackedShader from "../stacked/shader"
+import stackedBarShader from "../stackedBar/shader"
 import lineShader from "./shader"
 
 const nextBufferSize = byteLength => {
@@ -54,15 +55,18 @@ const makePipeline = async (runtime, { label, shader }) => {
 
 export default async (runtime, surface, { fillMode = null } = {}) => {
   const { device, format } = runtime
-  const linePipeline = await runtime.getPipeline(`netdata-line-v2:${format}`, () =>
-    makePipeline(runtime, { label: "netdata-line", shader: lineShader })
-  )
+  const isBar = fillMode === "stackedBar"
+  const usesStackedData = fillMode === "stacked" || isBar
+  const linePipeline = isBar
+    ? null
+    : await runtime.getPipeline(`netdata-line-v2:${format}`, () =>
+        makePipeline(runtime, { label: "netdata-line", shader: lineShader })
+      )
+  const fillShader =
+    fillMode === "stacked" ? stackedShader : isBar ? stackedBarShader : areaShader
   const fillPipeline = fillMode
     ? await runtime.getPipeline(`netdata-${fillMode}-v1:${format}`, () =>
-        makePipeline(runtime, {
-          label: `netdata-${fillMode}`,
-          shader: fillMode === "stacked" ? stackedShader : areaShader,
-        })
+        makePipeline(runtime, { label: `netdata-${fillMode}`, shader: fillShader })
       )
     : null
   const buffers = {}
@@ -104,6 +108,7 @@ export default async (runtime, surface, { fillMode = null } = {}) => {
     plot = { left: 0, top: 0, width, height },
     fillAlpha = 0,
     lineWidth,
+    barWidth = 0,
     stepped,
     smooth,
   }) => {
@@ -123,7 +128,7 @@ export default async (runtime, surface, { fillMode = null } = {}) => {
       GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
     )
     const base =
-      fillMode === "stacked"
+      usesStackedData
         ? ensureBuffer(
             "base",
             packed.base.byteLength,
@@ -138,22 +143,33 @@ export default async (runtime, surface, { fillMode = null } = {}) => {
     }
     if (colorsChanged) device.queue.writeBuffer(color, 0, colors)
 
-    drawLayout = makeDrawLayout({
-      pointCount: packed.pointCount,
-      seriesCount: packed.seriesCount,
-      stepped,
-      smooth,
-      curveSegments: makeCurveSegments({
-        pointCount: packed.pointCount,
-        plotWidth: plotWidth,
-      }),
-      filled: Boolean(fillMode && fillAlpha > 0),
-      stroke: lineWidth > 0,
-    })
+    drawLayout = isBar
+      ? {
+          instanceCount: packed.pointCount * packed.seriesCount,
+          fillInstanceCount: packed.pointCount * packed.seriesCount,
+          strokeInstanceCount: 0,
+          segmentsPerPair: 0,
+          segmentsPerSeries: 0,
+        }
+      : makeDrawLayout({
+          pointCount: packed.pointCount,
+          seriesCount: packed.seriesCount,
+          stepped,
+          smooth,
+          curveSegments: makeCurveSegments({
+            pointCount: packed.pointCount,
+            plotWidth: plotWidth,
+          }),
+          filled: Boolean(fillMode && fillAlpha > 0),
+          stroke: lineWidth > 0,
+        })
     drawStats = {
       pointCount: packed.pointCount,
       seriesCount: packed.seriesCount,
       sourcePairs: Math.max(0, packed.pointCount - 1) * packed.seriesCount,
+      barInstanceCount: isBar ? packed.pointCount * packed.seriesCount : 0,
+      barWidth: isBar ? barWidth : null,
+      valueRange: [min, max],
       ...drawLayout,
     }
     const [rawRangeMin, rawRangeMax] = normalizeRange(min, max)
@@ -175,9 +191,9 @@ export default async (runtime, surface, { fillMode = null } = {}) => {
       canvasHeight,
       lineWidth * dpr,
       stepped ? 1 : smooth ? 2 : 0,
-      (0 - packed.yOrigin) / packed.yScale,
+      isBar ? barWidth * dpr : (0 - packed.yOrigin) / packed.yScale,
       fillAlpha,
-      fillMode === "stacked" ? 1 : 0,
+      usesStackedData ? 1 : 0,
       0,
     ])
     integers.set(
@@ -207,9 +223,9 @@ export default async (runtime, surface, { fillMode = null } = {}) => {
       if (includeBase) entries.push({ binding: 4, resource: { buffer: base } })
       return device.createBindGroup({ layout: pipeline.getBindGroupLayout(0), entries })
     }
-    if (!bindGroups.line) bindGroups.line = makeBindGroup(linePipeline)
+    if (linePipeline && !bindGroups.line) bindGroups.line = makeBindGroup(linePipeline)
     if (fillPipeline && !bindGroups.fill)
-      bindGroups.fill = makeBindGroup(fillPipeline, fillMode === "stacked")
+      bindGroups.fill = makeBindGroup(fillPipeline, usesStackedData)
   }
 
   const encode = pass => {

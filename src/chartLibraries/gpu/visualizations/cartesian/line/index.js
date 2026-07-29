@@ -18,6 +18,8 @@ export default ({
   makePackedData = makeDefaultPackedData,
   getPackedVisibleRange = getDefaultVisibleRange,
   findDimension,
+  makeMarkers = makeGapEdgeCircles,
+  makeColors = makeSeriesColors,
 }) => {
   const packedData = makePackedData(chart)
   let resource = null
@@ -210,7 +212,7 @@ export default ({
 
     const dataChanged = packed !== lastPacked
     if (dataChanged) colorsDirty = true
-    if (colorsDirty) colors = makeSeriesColors(chart)
+    if (colorsDirty) colors = makeColors(chart)
 
     const [afterMs, beforeMs] = localDateWindow || chart.getDateWindow()
     const [min, max] = getValueRange(packed, afterMs, beforeMs)
@@ -260,7 +262,7 @@ export default ({
     })
     if (dataChanged || axesChanged || colorsDirty)
       resource.marker.update({
-        circles: makeGapEdgeCircles({ chart, packed, frame: lastFrame }),
+        circles: makeMarkers({ chart, packed, frame: lastFrame }),
         width,
         height,
         dpr,
@@ -279,7 +281,7 @@ export default ({
       height,
       dpr,
       plot: axes.plot,
-      ...makeSeriesStyle(chart),
+      ...makeSeriesStyle(chart, { packed, frame: lastFrame }),
     })
     resource.surface.draw(
       [

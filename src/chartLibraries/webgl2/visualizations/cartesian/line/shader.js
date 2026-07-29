@@ -32,6 +32,7 @@ out vec2 vUv;
 flat out float vWidth;
 flat out float vKind;
 flat out vec4 vColor;
+flat out vec4 vStrokeColor;
 
 struct SmoothControls {
   vec2 left;
@@ -139,6 +140,7 @@ void gapOutput(vec4 color) {
   vWidth = 0.0;
   vKind = 0.0;
   vColor = color;
+  vStrokeColor = color;
 }
 
 void primitiveOutput() {
@@ -159,6 +161,7 @@ void primitiveOutput() {
   vWidth = 0.0;
   vKind = instanceKind.x;
   vColor = instanceColor;
+  vStrokeColor = instanceColor;
 }
 
 void areaOutput() {
@@ -203,6 +206,7 @@ void areaOutput() {
   vWidth = 0.0;
   vKind = 0.0;
   vColor = vec4(color.rgb, color.a * uFill.y);
+  vStrokeColor = color;
 }
 
 void stackedAreaOutput() {
@@ -248,6 +252,48 @@ void stackedAreaOutput() {
   vWidth = 0.0;
   vKind = 0.0;
   vColor = vec4(color.rgb, color.a * uFill.y);
+  vStrokeColor = color;
+}
+
+void stackedBarOutput() {
+  uint pointCount = uCounts.x;
+  uint seriesIndex = uint(gl_InstanceID) / pointCount;
+  uint pointIndex = uint(gl_InstanceID) % pointCount;
+  int offset = valueIndex(seriesIndex, pointIndex);
+  float x = loadValue(uXValues, uXTextureSize, int(pointIndex));
+  float end = loadValue(uYValues, uYTextureSize, offset);
+  float base = loadValue(uBaseValues, uBaseTextureSize, offset);
+  vec4 color = loadColor(int(seriesIndex) * 2);
+  vec4 strokeColor = loadColor(int(seriesIndex) * 2 + 1);
+  if (isnan(end) || isnan(base) || color.a <= 0.0) {
+    gapOutput(color);
+    return;
+  }
+
+  vec2 center = toScreen(vec2(x, end));
+  float baseY = toScreen(vec2(x, base)).y;
+  float barWidth = uFill.x;
+  float strokeWidth = max(0.0, uCanvas.z);
+  vec2 fillOrigin = vec2(center.x - barWidth * 0.5, min(center.y, baseY));
+  vec2 fillSize = vec2(barWidth, abs(center.y - baseY));
+  vec2 antialiasPadding = vec2(0.0, 0.5);
+  vec2 outerOrigin = fillOrigin - vec2(strokeWidth * 0.5) - antialiasPadding;
+  vec2 outerSize = fillSize + vec2(strokeWidth) + antialiasPadding * 2.0;
+  vec2 quad = quadCoordinates(gl_VertexID);
+  vec2 point = outerOrigin + quad * outerSize;
+  gl_Position = vec4(
+    point.x / uCanvas.x * 2.0 - 1.0,
+    1.0 - point.y / uCanvas.y * 2.0,
+    0.0,
+    1.0
+  );
+  vAcross = 0.0;
+  vLocal = quad * outerSize - vec2(strokeWidth * 0.5) - antialiasPadding;
+  vUv = fillSize;
+  vWidth = strokeWidth;
+  vKind = 4.0;
+  vColor = color;
+  vStrokeColor = strokeColor;
 }
 
 void main() {
@@ -261,6 +307,10 @@ void main() {
   }
   if (uPassType == 3) {
     stackedAreaOutput();
+    return;
+  }
+  if (uPassType == 4) {
+    stackedBarOutput();
     return;
   }
 
@@ -323,12 +373,16 @@ void main() {
   vWidth = width;
   vKind = 0.0;
   vColor = color;
+  vStrokeColor = color;
 }
 `
 
 export const fragmentShader = `#version 300 es
 precision highp float;
 precision highp int;
+
+// Matches Canvas2D fillRect/strokeRect subpixel edge composition.
+const float CANVAS_STROKE_COVERAGE = 1.17;
 
 uniform int uPassType;
 uniform sampler2D uAtlas;
@@ -338,7 +392,18 @@ in vec2 vUv;
 flat in float vWidth;
 flat in float vKind;
 flat in vec4 vColor;
+flat in vec4 vStrokeColor;
 out vec4 outputColor;
+
+float axisCoverage(float center, float minimum, float maximum) {
+  return clamp(min(center + 0.5, maximum) - max(center - 0.5, minimum), 0.0, 1.0);
+}
+
+float rectCoverage(vec2 point, vec2 minimum, vec2 maximum) {
+  if (maximum.x <= minimum.x || maximum.y <= minimum.y) return 0.0;
+  return axisCoverage(point.x, minimum.x, maximum.x) *
+    axisCoverage(point.y, minimum.y, maximum.y);
+}
 
 void main() {
   if (uPassType == 1) {
@@ -355,6 +420,32 @@ void main() {
   }
   if (uPassType == 2 || uPassType == 3) {
     outputColor = vColor;
+    return;
+  }
+  if (uPassType == 4) {
+    float fillCoverage = rectCoverage(vLocal, vec2(0.0), vUv);
+    float halfStroke = vWidth * 0.5;
+    float outerCoverage = rectCoverage(
+      vLocal,
+      vec2(-halfStroke),
+      vUv + vec2(halfStroke)
+    );
+    float innerCoverage = rectCoverage(
+      vLocal,
+      vec2(halfStroke),
+      vUv - vec2(halfStroke)
+    );
+    float strokeCoverage = clamp(
+      (outerCoverage - innerCoverage) * CANVAS_STROKE_COVERAGE,
+      0.0,
+      1.0
+    );
+    float fillAlpha = vColor.a * fillCoverage * (1.0 - strokeCoverage);
+    float alpha = strokeCoverage + fillAlpha;
+    if (alpha <= 0.0) discard;
+    vec3 premultiplied =
+      vStrokeColor.rgb * strokeCoverage + vColor.rgb * fillAlpha;
+    outputColor = vec4(premultiplied / alpha, alpha);
     return;
   }
 

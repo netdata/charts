@@ -72,19 +72,21 @@ const updateTexture = ({
 
 export default async (surface, { fillMode = null } = {}) => {
   const { gl } = surface
+  const isBar = fillMode === "stackedBar"
+  const usesStackedData = fillMode === "stacked" || isBar
   const program = await surface.getProgram("gpu", vertexShader, fragmentShader)
   const vertexArray = gl.createVertexArray()
   const textures = {
     x: gl.createTexture(),
     y: gl.createTexture(),
     color: gl.createTexture(),
-    ...(fillMode === "stacked" && { base: gl.createTexture() }),
+    ...(usesStackedData && { base: gl.createTexture() }),
   }
   const textureStates = {
     x: { width: 0, height: 0, byteLength: 0 },
     y: { width: 0, height: 0, byteLength: 0 },
     color: { width: 0, height: 0, byteLength: 0 },
-    ...(fillMode === "stacked" && {
+    ...(usesStackedData && {
       base: { width: 0, height: 0, byteLength: 0 },
     }),
   }
@@ -125,6 +127,7 @@ export default async (surface, { fillMode = null } = {}) => {
     plot = { left: 0, top: 0, width, height },
     fillAlpha = 0,
     lineWidth,
+    barWidth = 0,
     stepped,
     smooth,
   }) => {
@@ -159,7 +162,7 @@ export default async (surface, { fillMode = null } = {}) => {
         format: gl.RED,
         maxTextureSize,
       })
-      if (fillMode === "stacked") {
+      if (usesStackedData) {
         gl.activeTexture(gl.TEXTURE3)
         updateTexture({
           gl,
@@ -191,15 +194,23 @@ export default async (surface, { fillMode = null } = {}) => {
       0
     )
 
-    const drawLayout = makeDrawLayout({
-      pointCount: packed.pointCount,
-      seriesCount: packed.seriesCount,
-      stepped,
-      smooth,
-      curveSegments: makeCurveSegments({ pointCount: packed.pointCount, plotWidth }),
-      filled: Boolean(fillMode && fillAlpha > 0),
-      stroke: lineWidth > 0,
-    })
+    const drawLayout = isBar
+      ? {
+          instanceCount: packed.pointCount * packed.seriesCount,
+          fillInstanceCount: packed.pointCount * packed.seriesCount,
+          strokeInstanceCount: 0,
+          segmentsPerPair: 0,
+          segmentsPerSeries: 0,
+        }
+      : makeDrawLayout({
+          pointCount: packed.pointCount,
+          seriesCount: packed.seriesCount,
+          stepped,
+          smooth,
+          curveSegments: makeCurveSegments({ pointCount: packed.pointCount, plotWidth }),
+          filled: Boolean(fillMode && fillAlpha > 0),
+          stroke: lineWidth > 0,
+        })
     const [rawRangeMin, rawRangeMax] = normalizeRange(min, max)
     drawState = {
       domain: [
@@ -211,11 +222,11 @@ export default async (surface, { fillMode = null } = {}) => {
       plot: [plotLeft, plotTop, plotWidth, plotHeight],
       canvas: [canvasWidth, canvasHeight, lineWidth * dpr, stepped ? 1 : smooth ? 2 : 0],
       fill: [
-        (0 - packed.yOrigin) / packed.yScale,
+        isBar ? barWidth * dpr : (0 - packed.yOrigin) / packed.yScale,
         fillAlpha,
-        fillMode === "stacked" ? 1 : 0,
+        usesStackedData ? 1 : 0,
       ],
-      fillPass: fillMode === "stacked" ? 3 : 2,
+      fillPass: fillMode === "stacked" ? 3 : isBar ? 4 : 2,
       counts: [
         packed.pointCount,
         packed.seriesCount,
@@ -229,6 +240,9 @@ export default async (surface, { fillMode = null } = {}) => {
         pointCount: packed.pointCount,
         seriesCount: packed.seriesCount,
         sourcePairs: Math.max(0, packed.pointCount - 1) * packed.seriesCount,
+        barInstanceCount: isBar ? packed.pointCount * packed.seriesCount : 0,
+        barWidth: isBar ? barWidth : null,
+        valueRange: [min, max],
         ...drawLayout,
       },
     }
@@ -244,14 +258,14 @@ export default async (surface, { fillMode = null } = {}) => {
     gl.bindTexture(gl.TEXTURE_2D, textures.y)
     gl.activeTexture(gl.TEXTURE2)
     gl.bindTexture(gl.TEXTURE_2D, textures.color)
-    if (fillMode === "stacked") {
+    if (usesStackedData) {
       gl.activeTexture(gl.TEXTURE3)
       gl.bindTexture(gl.TEXTURE_2D, textures.base)
     }
     gl.uniform1i(uniforms.uXValues, 0)
     gl.uniform1i(uniforms.uYValues, 1)
     gl.uniform1i(uniforms.uSeriesColors, 2)
-    if (fillMode === "stacked") gl.uniform1i(uniforms.uBaseValues, 3)
+    if (usesStackedData) gl.uniform1i(uniforms.uBaseValues, 3)
     gl.uniform2i(uniforms.uXTextureSize, textureStates.x.width, textureStates.x.height)
     gl.uniform2i(uniforms.uYTextureSize, textureStates.y.width, textureStates.y.height)
     gl.uniform2i(
@@ -259,7 +273,7 @@ export default async (surface, { fillMode = null } = {}) => {
       textureStates.color.width,
       textureStates.color.height
     )
-    if (fillMode === "stacked")
+    if (usesStackedData)
       gl.uniform2i(
         uniforms.uBaseTextureSize,
         textureStates.base.width,

@@ -200,6 +200,7 @@ Open decisions:
 14. **Semantic visualizations remain DOM:** approved. Bars, Value, Group Boxes, and Table are already Netdata-native React/DOM surfaces. They are not GPU migration targets because accessibility, selection, and semantic controls outweigh rasterization.
 15. **Area adapter:** approved and implemented. Area reuses the exact line payload, axes, interactions, text, and lifecycle while adding per-segment baseline trapezoids. It preserves Dygraphs' reverse fill order, zero-or-nearest-edge baseline, straight/step geometry, gaps, fill opacity, stroke, and sparkline behavior.
 16. **Stacked adapter:** approved and implemented. Build exact diverging bounds on the CPU in one row-major pass, processing visible series in reverse dimension order and maintaining independent positive/negative totals. Upload precision-normalized base/end arrays once per payload or visibility change; reuse them for fill/stroke/gap pixels while exact Float64 block extrema drive visible-window autoscaling. Hover resolves the signed band under the pointer. Do not carry forward the legacy plotter's six-points-per-pixel reduction.
+17. **Stacked Bar adapter:** approved and implemented under the existing ordered migration. Reuse exact Stacked base/end residency, range, visibility rebasing, and signed-band hover. Generate one centered rectangle per finite source value directly in the GPU shader, preserving series-major paint order, opaque fill, the existing 0.7 CSS-pixel lightened border, and borderless sparkline behavior. Compute CSS bar width exactly as `max(1, floor(2/3 * minimum adjacent x separation))`, with the legacy plot-width/point-count fallback. Null/hidden bars draw nothing; Stacked Bar does not add line gap markers or respond to line step/smooth modes.
 
 ## Plan
 
@@ -290,6 +291,11 @@ Open decisions:
 - Deterministic pixel probes matched Dygraphs exactly for top positive, lower positive, negative, and empty regions on both backends: `[255,0,0,204]`, `[0,0,255,204]`, `[0,255,0,204]`, and transparent `[0,0,0,0]`. Exact draw-count and null-gap checks passed for regular and step bands; Line and Area regression/parity checks remained unchanged.
 - The first WebGL2 100,000-value runs narrowly missed the strict presentation budget despite 17-18 ms median work. Repacked stack storage from series-major to row-major so each segment's two source rows are contiguous, removed redundant initialization and hot-loop `Math.min`/`Math.max` calls, and retained exact source semantics. The accepted combined run completed 100,000-value mount work/presentation in 14.2/15.7 ms on WebGPU and 15.2/18.2 ms on WebGL2; updates completed in 6.9/16.6 ms and 5.2/16.7 ms respectively.
 - Final physical Chromium 150/Wayland Stacked benchmark passed both backends. At 1,000,000 values, WebGPU completed mount/update work in 54.0/37.1 ms and WebGL2 in 52.5/26.2 ms, with greater-than-100x frame-settled gains over Dygraphs' legacy Stacked implementation. PNG exports, four-chart lifecycle, WebGPU device loss to WebGL2, WebGL2 context loss to Dygraphs, and zero retained contexts passed. Evidence: `/tmp/gpu-stacked-production-benchmark-final.clean.json`.
+- Implemented Stacked Bar as a thin adapter over exact Stacked residency/range/visibility/hover. Both shaders generate one series-major centered rectangle per source value; null/hidden values are discarded. CSS width exactly follows the legacy two-thirds minimum-separation rule, normal charts use opaque fills plus the 0.7-pixel lightened Canvas2D border, sparklines omit the border, line step mode is ignored, and unused gap-marker resources/data are not created.
+- Pixel-footprint validation exposed a pre-existing GPU y-padding mismatch. Dygraphs computes `span * yRangePad / plotHeight`; the GPU path incorrectly divided by `plotHeight - 2 * yRangePad`. Correcting the formula produced the exact shared `[-3.18, 3.18]` range and reduced the sampled bar-height difference to the two antialiased outer-edge pixels allowed by the raster contract.
+- Reproduced Canvas2D `fillRect` followed by `strokeRect` composition analytically in both shaders, including legacy color parsing, series paint order, subpixel alpha, and the historical lightening function. Interior positive/negative/fill/empty pixels matched exactly; the sampled border differed by at most one RGBA unit, horizontal bar footprint matched exactly, and vertical footprint differed only at the two outer antialiased pixels.
+- Removed the unnecessary circle-marker layer for Stacked Bar and replaced shared-context `gl.finish()` with `gl.flush()` before the synchronizing Canvas2D `drawImage`, avoiding a per-chart full GPU stall while preserving current-frame capture. Line, Area, Stacked, exports, and runtime-loss checks remained green.
+- Current physical Chromium 150 evidence passed each backend under workstation contention. At 100,000 values, WebGPU mount/update work completed in 10.7/7.5 ms and presented in 14.7/16.6 ms; WebGL2 completed in 16.4/4.0 ms and presented in 19.3/16.5 ms. At 1,000,000 values, WebGPU completed mount/update work in 51.7/28.0 ms and WebGL2 in 68.0/27.1 ms, each retaining more than 15x frame-settled gains over Dygraphs. Exact instances, gaps, no-op step mode, bar width/range/fill/border pixels, PNG export, four-chart lifecycle, WebGPU device loss to WebGL2, WebGL2 context loss to Dygraphs, and zero retained contexts passed. Evidence: `/tmp/gpu-stacked-bar-webgpu-current.clean.json` and `/tmp/gpu-stacked-bar-webgl2-current.clean.json`.
 
 ## Validation
 
@@ -302,12 +308,12 @@ Acceptance criteria evidence:
 
 Tests or equivalent validation:
 
-- Full Jest with coverage: 177 suites passed; 1,603 tests passed and 2 skipped. Coverage passed unchanged thresholds at 62.54% statements, 56.28% branches, 60.81% functions, and 63.80% lines.
+- Full Jest with coverage: 178 suites passed; 1,608 tests passed and 2 skipped. Coverage passed unchanged thresholds at 62.51% statements, 56.11% branches, 60.51% functions, and 63.79% lines.
 - Focused shared-GPU, WebGPU, WebGL2 primitive, routing, controller, hover, and default-SDK tests passed without new Jest mocks.
-- Clean CommonJS and ES6 distributions built with 571 files each; moved backend-neutral modules and both GPU backends were present, while stale pre-move paths were absent.
+- Clean CommonJS and ES6 distributions built with 577 files each; moved backend-neutral modules and both GPU backends were present, while stale pre-move paths were absent.
 - Changed-file ESLint passed. Repository lint retained 35 unrelated pre-existing errors and introduced none in changed files.
 - Storybook static build passed. The isolated Cloud production build and final agent installation passed. Mixed-size X11 WebGL2 canvases all exported non-empty frames without cropping or blanks (`/tmp/webgl2-cloud-x11-final.json` and matching narrow/large screenshots). SOW audit and `git diff --check` passed.
-- Physical Line, Area, and Stacked benchmarks passed one-frame 100,000-value mount/update work, greater-than-5x 1,000,000-value frame speedups, exact source-pair geometry/gaps, Dygraphs Area overlap/baseline pixels, diverging Stacked positive/negative pixels, PNG export, four-chart shared-runtime lifecycle, and the complete runtime-loss chain.
+- Physical Line, Area, Stacked, and Stacked Bar benchmarks passed one-frame 100,000-value mount/update work, greater-than-5x 1,000,000-value frame speedups, exact source geometry/gaps, Dygraphs Area overlap/baseline pixels, diverging Stacked positive/negative pixels, Stacked Bar width/range/fill/border pixels, PNG export, four-chart shared-runtime lifecycle, and the complete runtime-loss chain.
 
 Real-use evidence:
 
@@ -359,7 +365,7 @@ Follow-up mapping:
 
 ## Outcome
 
-The production-capable Line, Area, and diverging Stacked GPU adapters are implemented, physically validated, and cleanly integrated on current `origin/main`. The approved next milestone is Stacked Bar, followed by Multi Column, Heatmap, EasyPie/Circle, Gauge, and D3 Pie before broader browser/device hardening. Runtime/power policy and rollout/default approval remain intentionally deferred.
+The production-capable Line, Area, diverging Stacked, and Stacked Bar GPU adapters are implemented, physically validated, and cleanly integrated on current `origin/main`. The approved next milestone is Multi Column, followed by Heatmap, EasyPie/Circle, Gauge, and D3 Pie before broader browser/device hardening. Runtime/power policy and rollout/default approval remain intentionally deferred.
 
 ## Lessons Extracted
 

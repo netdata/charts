@@ -32,7 +32,8 @@ export default (runtime, canvas) => {
 
     let rendered = false
     for (const layer of layers) rendered = layer.draw(size) || rendered
-    gl.finish()
+    // drawImage synchronizes its source; finish() would stall every shared-context chart.
+    gl.flush()
     context.clearRect(0, 0, size.width, size.height)
     context.drawImage(
       source,

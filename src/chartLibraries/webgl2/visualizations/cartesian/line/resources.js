@@ -4,14 +4,25 @@ import makeRectLayer from "@/chartLibraries/webgl2/primitives/rect"
 import makeTextLayer from "@/chartLibraries/webgl2/text"
 import makeKernel from "./kernel"
 
-export default async (runtime, canvas, { fillMode = null } = {}) => {
+const makeEmptyLayer = () => ({
+  destroy: () => {},
+  draw: () => false,
+  getBufferBytes: () => 0,
+  update: () => {},
+})
+
+export default async (
+  runtime,
+  canvas,
+  { fillMode = null, markers = true } = {}
+) => {
   const surface = makeSurface(runtime, canvas)
   const settled = await Promise.allSettled([
     makeRectLayer(surface),
     makeRectLayer(surface),
     makeRectLayer(surface),
     makeKernel(surface, { fillMode }),
-    makeCircleLayer(surface),
+    markers ? makeCircleLayer(surface) : Promise.resolve(makeEmptyLayer()),
     makeTextLayer(surface),
   ])
   const failed = settled.find(result => result.status === "rejected")

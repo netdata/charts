@@ -60,6 +60,22 @@ describe("GPU diverging stacked data", () => {
     expect(packed.gapEdgeIndexes[1]).toEqual([1])
   })
 
+  it("skips gap-edge residency for bar adapters without changing nulls", () => {
+    const packed = packDivergingStackedData(
+      [
+        [1000, 1],
+        [2000, null],
+      ],
+      1,
+      null,
+      [0],
+      { trackGapEdges: false }
+    )
+
+    expect(packed.gapEdgeIndexes).toEqual([])
+    expect(Number.isNaN(packed.y[1])).toBe(true)
+  })
+
   it("keeps compact point-schema values exact", () => {
     const point = { value: 1 }
     const packed = packDivergingStackedData(

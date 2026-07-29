@@ -57,7 +57,8 @@ export const packDivergingStackedData = (
   rows,
   seriesCount,
   point,
-  visibleSeriesIndexes
+  visibleSeriesIndexes,
+  { trackGapEdges = true } = {}
 ) => {
   const pointCount = rows.length
   const totalValues = pointCount * seriesCount
@@ -70,17 +71,24 @@ export const packDivergingStackedData = (
   const stackRangeMax = new Float64Array(rangeBlockCount)
   stackRangeMin.fill(Infinity)
   stackRangeMax.fill(-Infinity)
-  const gapEdgeIndexes = Array.from({ length: seriesCount }, () => [])
-  const previousValid = new Uint8Array(seriesCount)
+  const gapEdgeIndexes = trackGapEdges
+    ? Array.from({ length: seriesCount }, () => [])
+    : []
+  const previousValid = trackGapEdges ? new Uint8Array(seriesCount) : null
   const readValue = makePointValueReader(point)
   let dataMin = Infinity
   let dataMax = -Infinity
   let storageMin = Infinity
   let storageMax = -Infinity
+  let minXSeparationMs = Infinity
 
   for (let pointIndex = 0; pointIndex < pointCount; pointIndex++) {
     const row = rows[pointIndex]
     x[pointIndex] = (row[0] - xOriginMs) / 1000
+    if (pointIndex > 0) {
+      const separation = row[0] - rows[pointIndex - 1][0]
+      if (separation < minXSeparationMs) minXSeparationMs = separation
+    }
     let positive = 0
     let negative = 0
 
@@ -89,12 +97,15 @@ export const packDivergingStackedData = (
       const offset = pointIndex * seriesCount + seriesIndex
       const value = readValue(row[seriesIndex + 1])
       const valid = Boolean(visibleSeries[seriesIndex] && Number.isFinite(value))
-      if (pointIndex > 0) {
-        if (valid && !previousValid[seriesIndex]) gapEdgeIndexes[seriesIndex].push(pointIndex)
-        else if (!valid && previousValid[seriesIndex])
-          gapEdgeIndexes[seriesIndex].push(pointIndex - 1)
+      if (trackGapEdges) {
+        if (pointIndex > 0) {
+          if (valid && !previousValid[seriesIndex])
+            gapEdgeIndexes[seriesIndex].push(pointIndex)
+          else if (!valid && previousValid[seriesIndex])
+            gapEdgeIndexes[seriesIndex].push(pointIndex - 1)
+        }
+        previousValid[seriesIndex] = valid ? 1 : 0
       }
-      previousValid[seriesIndex] = valid ? 1 : 0
       if (!valid) {
         baseRaw[offset] = NaN
         continue
@@ -143,6 +154,7 @@ export const packDivergingStackedData = (
     sourceRows: rows,
     point,
     xOriginMs,
+    minXSeparationMs,
     yOrigin,
     yScale,
     x,
@@ -222,7 +234,7 @@ export const getVisibleStackedRange = ({ packed, afterMs, beforeMs }) => {
   return Number.isFinite(min) && Number.isFinite(max) ? [min, max] : null
 }
 
-export default chart => {
+export default (chart, options) => {
   let source = null
   let dimensionKey = null
   let pointSchema = null
@@ -257,7 +269,8 @@ export default chart => {
       data,
       dimensionIds.length,
       point,
-      visibleSeriesIndexes
+      visibleSeriesIndexes,
+      options
     )
     return packed
   }

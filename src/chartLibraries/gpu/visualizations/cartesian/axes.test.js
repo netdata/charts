@@ -46,9 +46,8 @@ describe("GPU Cartesian axes", () => {
   it("pads a finite value domain by the Dygraphs line padding", () => {
     const [min, max] = padValueRange(-90, 90, 484)
 
-    expect(min).toBeLessThan(-90)
-    expect(max).toBeGreaterThan(90)
-    expect(Math.abs(min)).toBeCloseTo(max)
+    expect(min).toBeCloseTo(-90 - (180 * 15) / 484)
+    expect(max).toBeCloseTo(90 + (180 * 15) / 484)
   })
 
   it("builds deterministic GPU grid and shaped text layers", () => {

@@ -36,8 +36,10 @@ if (
   throw new Error("BENCHMARK_RENDERERS must select webgpu and/or webgl2")
 const renderers = ["dygraph", ...candidateRenderers]
 const visualization = process.env.BENCHMARK_VISUALIZATION || "line"
-if (!new Set(["line", "area", "stacked"]).has(visualization))
-  throw new Error("BENCHMARK_VISUALIZATION must select line, area, or stacked")
+if (!new Set(["line", "area", "stacked", "stackedBar"]).has(visualization))
+  throw new Error(
+    "BENCHMARK_VISUALIZATION must select line, area, stacked, or stackedBar"
+  )
 
 const server = http.createServer((request, response) => {
   const file = request.url === "/benchmark.js" ? path.join(root, "benchmark.js") : indexPath
@@ -227,25 +229,37 @@ const validateFilledVisualization = async (
   const regularStats = captures.regular.drawStats
   const stepStats = captures.step.drawStats
   const gapStats = captures.gap.drawStats
-  const exactDraws = Boolean(
-    regularStats?.sourcePairs === 99 &&
-      regularStats.fillInstanceCount === 99 &&
-      regularStats.strokeInstanceCount === 99 &&
-      regularStats.instanceCount === 198 &&
-      stepStats?.sourcePairs === 99 &&
-      stepStats.fillInstanceCount === 99 &&
-      stepStats.strokeInstanceCount === 198 &&
-      stepStats.instanceCount === 297 &&
-      gapStats?.sourcePairs === 99 &&
-      gapStats.fillInstanceCount === 99 &&
-      gapStats.strokeInstanceCount === 99
-  )
+  const isBar = visualizationId === "stackedBar"
+  const exactDraws = isBar
+    ? [regularStats, stepStats, gapStats].every(
+        stats =>
+          stats?.barInstanceCount === 100 &&
+          stats.fillInstanceCount === 100 &&
+          stats.strokeInstanceCount === 0 &&
+          stats.instanceCount === 100
+      )
+    : Boolean(
+        regularStats?.sourcePairs === 99 &&
+          regularStats.fillInstanceCount === 99 &&
+          regularStats.strokeInstanceCount === 99 &&
+          regularStats.instanceCount === 198 &&
+          stepStats?.sourcePairs === 99 &&
+          stepStats.fillInstanceCount === 99 &&
+          stepStats.strokeInstanceCount === 198 &&
+          stepStats.instanceCount === 297 &&
+          gapStats?.sourcePairs === 99 &&
+          gapStats.fillInstanceCount === 99 &&
+          gapStats.strokeInstanceCount === 99
+      )
+  const stepPassed = isBar
+    ? captures.regular.sha256 === captures.step.sha256
+    : captures.regular.sha256 !== captures.step.sha256
   const passed = Boolean(
     exactDraws &&
       captures.regular.nonTransparentPixels > 0 &&
       captures.step.nonTransparentPixels > 0 &&
       captures.gap.nonTransparentPixels > 0 &&
-      captures.regular.sha256 !== captures.step.sha256 &&
+      stepPassed &&
       captures.gap.gapBandNonTransparentPixels === 0
   )
 
@@ -316,7 +330,12 @@ const validateAreaParity = async (browser, port, renderer, dygraphCapture) => {
   return { renderer, samples: capture.samplePixels, deltas, passed }
 }
 
-const captureStackedDiverging = async (browser, port, renderer) => {
+const captureStackedDiverging = async (
+  browser,
+  port,
+  renderer,
+  visualizationId = "stacked"
+) => {
   const context = await browser.newContext({
     viewport: { width: 1600, height: 500 },
     deviceScaleFactor: 1,
@@ -327,9 +346,9 @@ const captureStackedDiverging = async (browser, port, renderer) => {
     await page.waitForFunction(() => Boolean(window.__NETDATA_RENDERER_BENCHMARK__))
     await page.evaluate(input => window.__NETDATA_RENDERER_BENCHMARK__.prepare(input), {
       renderer,
-      visualization: "stacked",
+      visualization: visualizationId,
       dimensions: 3,
-      points: 100,
+      points: 101,
       profile: "stacked-diverging",
       range: [-3, 3],
       colors: {
@@ -344,15 +363,24 @@ const captureStackedDiverging = async (browser, port, renderer) => {
         enabledYAxis: false,
       })
     )
-    const capture = await page.evaluate(() =>
-      window.__NETDATA_RENDERER_BENCHMARK__.capturePreview({
-        samples: [
-          { name: "topPositive", xRatio: 0.5, yRatio: 0.25 },
-          { name: "bottomPositive", xRatio: 0.5, yRatio: 0.47 },
-          { name: "negative", xRatio: 0.5, yRatio: 0.58 },
-          { name: "empty", xRatio: 0.5, yRatio: 0.85 },
-        ],
-      })
+    const capture = await page.evaluate(
+      isBar =>
+        window.__NETDATA_RENDERER_BENCHMARK__.capturePreview({
+          samples: [
+            { name: "topPositive", xRatio: 0.5, yRatio: 0.25 },
+            { name: "bottomPositive", xRatio: 0.5, yRatio: 0.47 },
+            { name: "negative", xRatio: 0.5, yRatio: 0.58 },
+            { name: "empty", xRatio: 0.5, yRatio: 0.85 },
+            ...(isBar
+              ? [
+                  { name: "barBorder", xRatio: 0.5, xOffset: 4, yRatio: 0.25 },
+                  { name: "barEdge", xRatio: 0.5, xOffset: 5, yRatio: 0.25 },
+                  { name: "barOutside", xRatio: 0.5, xOffset: 7, yRatio: 0.25 },
+                ]
+              : []),
+          ],
+        }),
+      visualizationId === "stackedBar"
     )
     await page.evaluate(() => window.__NETDATA_RENDERER_BENCHMARK__.cleanup())
     return capture
@@ -361,8 +389,19 @@ const captureStackedDiverging = async (browser, port, renderer) => {
   }
 }
 
-const validateStackedParity = async (browser, port, renderer, dygraphCapture) => {
-  const capture = await captureStackedDiverging(browser, port, renderer)
+const validateStackedParity = async (
+  browser,
+  port,
+  renderer,
+  visualizationId,
+  dygraphCapture
+) => {
+  const capture = await captureStackedDiverging(
+    browser,
+    port,
+    renderer,
+    visualizationId
+  )
   const deltas = Object.fromEntries(
     Object.keys(dygraphCapture.samplePixels).map(name => [
       name,
@@ -374,14 +413,51 @@ const validateStackedParity = async (browser, port, renderer, dygraphCapture) =>
     ])
   )
   const samples = capture.samplePixels
+  const barRunWidth = capture.sampleRuns.topPositive?.width || 0
+  const dygraphBarRunWidth = dygraphCapture.sampleRuns.topPositive?.width || 0
+  const barRunWidthDelta = Math.abs(barRunWidth - dygraphBarRunWidth)
+  const barVerticalHeight = capture.sampleVerticalRuns.topPositive?.height || 0
+  const dygraphBarVerticalHeight =
+    dygraphCapture.sampleVerticalRuns.topPositive?.height || 0
+  const barVerticalHeightDelta = Math.abs(
+    barVerticalHeight - dygraphBarVerticalHeight
+  )
+  const barPixelsPassed =
+    visualizationId !== "stackedBar" ||
+    (samples.barBorder[0] > 0 &&
+      samples.barBorder[1] > 0 &&
+      samples.barOutside[3] === 0 &&
+      barRunWidth > 0 &&
+      barRunWidthDelta <= 1 &&
+      barVerticalHeight > 0 &&
+      barVerticalHeightDelta <= 2)
   const passed = Boolean(
     samples.topPositive[0] > samples.topPositive[2] &&
       samples.bottomPositive[2] > samples.bottomPositive[0] &&
       samples.negative[1] > samples.negative[0] &&
       samples.empty[3] === 0 &&
+      barPixelsPassed &&
       Object.values(deltas).every(delta => delta <= 3)
   )
-  return { renderer, samples, deltas, passed }
+  return {
+    renderer,
+    visualization: visualizationId,
+    samples,
+    deltas,
+    ...(visualizationId === "stackedBar" && {
+      dygraphBarBorder: dygraphCapture.samplePixels.barBorder,
+    }),
+    nonTransparentPixels: capture.nonTransparentPixels,
+    barRunWidth,
+    dygraphBarRunWidth,
+    barRunWidthDelta,
+    barVerticalHeight,
+    dygraphBarVerticalHeight,
+    barVerticalHeightDelta,
+    yAxisRange: capture.yAxisRange,
+    dygraphYAxisRange: dygraphCapture.yAxisRange,
+    passed,
+  }
 }
 
 const validateFallbackChain = async (browser, port, visualizationId) => {
@@ -534,6 +610,8 @@ const run = async () => {
   const areaParity = {}
   const stackedCorrectness = {}
   const stackedParity = {}
+  const stackedBarCorrectness = {}
+  const stackedBarParity = {}
   let fallbackChain = null
 
   try {
@@ -546,6 +624,12 @@ const run = async () => {
     }
     const dygraphArea = await captureAreaOverlap(browser, port, "dygraph")
     const dygraphStacked = await captureStackedDiverging(browser, port, "dygraph")
+    const dygraphStackedBar = await captureStackedDiverging(
+      browser,
+      port,
+      "dygraph",
+      "stackedBar"
+    )
     for (const renderer of candidateRenderers) {
       lineCorrectness[renderer] = await validateLine(browser, port, renderer)
       areaCorrectness[renderer] = await validateFilledVisualization(
@@ -565,7 +649,21 @@ const run = async () => {
         browser,
         port,
         renderer,
+        "stacked",
         dygraphStacked
+      )
+      stackedBarCorrectness[renderer] = await validateFilledVisualization(
+        browser,
+        port,
+        renderer,
+        "stackedBar"
+      )
+      stackedBarParity[renderer] = await validateStackedParity(
+        browser,
+        port,
+        renderer,
+        "stackedBar",
+        dygraphStackedBar
       )
     }
     if (candidateRenderers.includes("webgpu"))
@@ -582,6 +680,8 @@ const run = async () => {
     Object.values(areaParity).every(result => result.passed) &&
     Object.values(stackedCorrectness).every(result => result.passed) &&
     Object.values(stackedParity).every(result => result.passed) &&
+    Object.values(stackedBarCorrectness).every(result => result.passed) &&
+    Object.values(stackedBarParity).every(result => result.passed) &&
     (!fallbackChain || fallbackChain.passed) &&
     comparisons.every(
       result =>
@@ -618,6 +718,8 @@ const run = async () => {
       areaParity,
       stacked: stackedCorrectness,
       stackedParity,
+      stackedBar: stackedBarCorrectness,
+      stackedBarParity,
       fallbackChain,
     },
     comparisons,

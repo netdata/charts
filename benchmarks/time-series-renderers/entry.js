@@ -171,7 +171,7 @@ const prepare = async ({
   if (prepared) throw new Error("Benchmark state already prepared")
   if (!new Set(["dygraph", "webgpu", "webgl2"]).has(renderer))
     throw new Error("Unknown renderer")
-  if (!new Set(["line", "area", "stacked"]).has(visualization))
+  if (!new Set(["line", "area", "stacked", "stackedBar"]).has(visualization))
     throw new Error("Unknown visualization")
 
   setStatus(`Preparing ${renderer} ${visualization}: ${dimensions * points} values`)
@@ -501,10 +501,13 @@ const capturePreview = async ({ samples = [] } = {}) => {
   }
 
   const samplePixels = Object.fromEntries(
-    samples.map(({ name, xRatio, yRatio }) => {
+    samples.map(({ name, xRatio, yRatio, xOffset = 0 }) => {
       const x = Math.max(
         0,
-        Math.min(copy.width - 1, Math.round((plot.left + plot.width * xRatio) * dpr))
+        Math.min(
+          copy.width - 1,
+          Math.round((plot.left + plot.width * xRatio + xOffset) * dpr)
+        )
       )
       const y = Math.max(
         0,
@@ -515,10 +518,67 @@ const capturePreview = async ({ samples = [] } = {}) => {
     })
   )
 
+  const sampleRuns = Object.fromEntries(
+    samples.map(({ name, xRatio, yRatio, xOffset = 0 }) => {
+      const x = Math.max(
+        0,
+        Math.min(
+          copy.width - 1,
+          Math.round((plot.left + plot.width * xRatio + xOffset) * dpr)
+        )
+      )
+      const y = Math.max(
+        0,
+        Math.min(copy.height - 1, Math.round((plot.top + plot.height * yRatio) * dpr))
+      )
+      if (!pixels[(y * copy.width + x) * 4 + 3]) return [name, { width: 0 }]
+      let left = x
+      let right = x
+      while (left > 0 && pixels[(y * copy.width + left - 1) * 4 + 3]) left -= 1
+      while (
+        right + 1 < copy.width &&
+        pixels[(y * copy.width + right + 1) * 4 + 3]
+      )
+        right += 1
+      return [name, { left, right, width: right - left + 1 }]
+    })
+  )
+
+  const sampleVerticalRuns = Object.fromEntries(
+    samples.map(({ name, xRatio, yRatio, xOffset = 0 }) => {
+      const x = Math.max(
+        0,
+        Math.min(
+          copy.width - 1,
+          Math.round((plot.left + plot.width * xRatio + xOffset) * dpr)
+        )
+      )
+      const y = Math.max(
+        0,
+        Math.min(copy.height - 1, Math.round((plot.top + plot.height * yRatio) * dpr))
+      )
+      if (!pixels[(y * copy.width + x) * 4 + 3]) return [name, { height: 0 }]
+      let top = y
+      let bottom = y
+      while (top > 0 && pixels[((top - 1) * copy.width + x) * 4 + 3]) top -= 1
+      while (
+        bottom + 1 < copy.height &&
+        pixels[((bottom + 1) * copy.width + x) * 4 + 3]
+      )
+        bottom += 1
+      return [name, { top, bottom, height: bottom - top + 1 }]
+    })
+  )
+
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(dataUrl))
   const sha256 = Array.from(new Uint8Array(digest), byte =>
     byte.toString(16).padStart(2, "0")
   ).join("")
+
+  const yAxisRange =
+    preview.ui.getDygraph?.()?.yAxisRange?.() ||
+    preview.ui.getDrawStats?.()?.valueRange ||
+    null
 
   return {
     dataUrlBytes: dataUrl.length,
@@ -529,6 +589,9 @@ const capturePreview = async ({ samples = [] } = {}) => {
     gapBandNonTransparentPixels,
     gapBandWidth: gapHalfWidth * 2 + 1,
     samplePixels,
+    sampleRuns,
+    sampleVerticalRuns,
+    yAxisRange,
     drawStats: preview.ui.getDrawStats?.() || null,
   }
 }

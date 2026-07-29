@@ -4,14 +4,25 @@ import makeRectLayer from "@/chartLibraries/webgpu/primitives/rect"
 import makeTextLayer from "@/chartLibraries/webgpu/text"
 import makeKernel from "./kernel"
 
-export default async (runtime, canvas, { fillMode = null } = {}) => {
+const makeEmptyLayer = () => ({
+  destroy: () => {},
+  encode: () => false,
+  getBufferBytes: () => 0,
+  update: () => {},
+})
+
+export default async (
+  runtime,
+  canvas,
+  { fillMode = null, markers = true } = {}
+) => {
   const surface = makeSurface(runtime, canvas)
   const settled = await Promise.allSettled([
     makeRectLayer(runtime, surface, "grid"),
     makeRectLayer(runtime, surface, "interaction"),
     makeRectLayer(runtime, surface, "overlay"),
     makeKernel(runtime, surface, { fillMode }),
-    makeCircleLayer(runtime, surface),
+    markers ? makeCircleLayer(runtime, surface) : Promise.resolve(makeEmptyLayer()),
     makeTextLayer(runtime, surface),
   ])
   const failed = settled.find(result => result.status === "rejected")

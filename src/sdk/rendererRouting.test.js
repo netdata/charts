@@ -50,7 +50,7 @@ describe("time-series renderer routing", () => {
     expect(chart.getUI().getDygraph()).toBeNull()
   })
 
-  it.each(["area", "stacked"])(
+  it.each(["area", "stacked", "stackedBar"])(
     "routes the supported %s visualization through WebGPU",
     visualization => {
       const descriptor = Object.getOwnPropertyDescriptor(navigator, "gpu")
