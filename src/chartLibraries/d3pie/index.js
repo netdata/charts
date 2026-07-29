@@ -2,8 +2,8 @@ import makeChartUI from "@/sdk/makeChartUI"
 import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
 import makeExecuteLatest from "@/helpers/makeExecuteLatest"
-import { shortForLength } from "@/helpers/shorten"
 import d3pie from "./library"
+import { makeD3PieContent } from "./data"
 import getInitialOptions from "./getInitialOptions"
 
 export default (sdk, chart) => {
@@ -63,31 +63,11 @@ export default (sdk, chart) => {
   const getMinMax = () => chart.getAttribute("getValueRange")(chart)
 
   const render = () => {
-    const { hoverX, loaded } = chart.getAttributes()
+    const { loaded } = chart.getAttributes()
 
     if (!pie || !loaded) return false
 
-    const { data } = chart.getPayload()
-
-    let index = hoverX ? chart.getClosestRow(hoverX[0]) : -1
-    index = index === -1 ? data.length - 1 : index
-
-    const dimensionIds = chart.getVisibleDimensionIds()
-
-    const values = dimensionIds
-      .map(id => {
-        const signedValue = chart.getDimensionValue(id, index, { abs: false })
-
-        return {
-          label: shortForLength(id, 30),
-          value: Math.abs(signedValue),
-          signedValue,
-          color: chart.selectDimensionColor(id),
-          caption: id,
-          id,
-        }
-      })
-      .filter(v => !!v.value)
+    const values = makeD3PieContent(chart, chartUI)
 
     let [min, max] = getMinMax()
 
@@ -98,15 +78,7 @@ export default (sdk, chart) => {
     prevMin = min
     prevMax = max
 
-    pie.options.data.content = values.length
-      ? values
-      : [
-          {
-            label: "No data",
-            value: 1,
-            color: chartUI.chart.getThemeAttribute("themeD3pieSmallColor"),
-          },
-        ]
+    pie.options.data.content = values
     pie.options.labels = getInitialOptions(chartUI).labels
 
     window.requestAnimationFrame(() => {

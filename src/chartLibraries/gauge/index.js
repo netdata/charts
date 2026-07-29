@@ -32,11 +32,19 @@ export default (sdk, chart) => {
   let prevMin
   let prevMax
   let resizeObserver
+  let gaugeCanvas = null
+  let ownsCanvas = false
 
   const mount = element => {
     if (gauge) return
 
     chartUI.mount(element)
+
+    gaugeCanvas = element.firstElementChild?.tagName === "CANVAS"
+      ? element.firstElementChild
+      : document.createElement("canvas")
+    ownsCanvas = !gaugeCanvas.parentNode
+    if (ownsCanvas) element.appendChild(gaugeCanvas)
 
     const { color, strokeColor } = makeThemingOptions()
     const { staticZones, gaugeLineWidth, gaugeGradient, gaugeThresholds } = chart.getAttributes()
@@ -67,7 +75,7 @@ export default (sdk, chart) => {
       }),
     })
 
-    gauge = new Gauge(element.firstChild).setOptions(makeGaugeOptions())
+    gauge = new Gauge(gaugeCanvas).setOptions(makeGaugeOptions())
 
     gauge.maxValue = 100
     gauge.animationSpeed = Number.MAX_VALUE
@@ -78,11 +86,11 @@ export default (sdk, chart) => {
       () => {
         const minWidth = element.clientWidth
         const height = (element.clientHeight > minWidth ? minWidth : element.clientHeight) * 0.9
-        element.firstChild.G__height = height
-        element.firstChild.style.height = `${height}px`
+        gaugeCanvas.G__height = height
+        gaugeCanvas.style.height = `${height}px`
         const width = minWidth
-        element.firstChild.G__width = width
-        element.firstChild.style.width = `${width}px`
+        gaugeCanvas.G__width = width
+        gaugeCanvas.style.width = `${width}px`
 
         gauge.setOptions({})
         gauge.update(true)
@@ -97,6 +105,7 @@ export default (sdk, chart) => {
       chart.onAttributeChange("hoverX", render),
       !loaded && chart.onceAttributeChange("loaded", render),
       chart.onAttributeChange("gaugeThresholds", applyThresholds),
+      chart.onAttributeChange("staticZones", () => chart.reconcileChartLibrary()),
       chart.onAttributeChange("theme", () => {
         const { color, strokeColor } = makeThemingOptions()
         const updatedDimensionColor = chart.selectDimensionColor()
@@ -119,11 +128,11 @@ export default (sdk, chart) => {
 
     const minWidth = element.clientWidth
     const height = (element.clientHeight > minWidth ? minWidth : element.clientHeight) * 0.9
-    element.firstChild.G__height = height
-    element.firstChild.style.height = `${height}px`
+    gaugeCanvas.G__height = height
+    gaugeCanvas.style.height = `${height}px`
     const width = minWidth
-    element.firstChild.G__width = width
-    element.firstChild.style.width = `${width}px`
+    gaugeCanvas.G__width = width
+    gaugeCanvas.style.width = `${width}px`
 
     gauge.setOptions({})
     render()
@@ -208,6 +217,9 @@ export default (sdk, chart) => {
 
     if (resizeObserver) resizeObserver()
     gauge = null
+    if (ownsCanvas) gaugeCanvas?.remove()
+    gaugeCanvas = null
+    ownsCanvas = false
     prevMin = null
     prevMax = null
 

@@ -210,37 +210,56 @@ describe("time-series renderer routing", () => {
     expect(chart.getAttribute("chartLibrary")).toBe("gauge")
   })
 
-  it("routes an implemented standalone visualization through WebGPU", () => {
-    const descriptor = Object.getOwnPropertyDescriptor(navigator, "gpu")
-    Object.defineProperty(navigator, "gpu", { configurable: true, value: {} })
+  it.each(["d3pie", "easypiechart", "gauge"])(
+    "routes the implemented %s standalone visualization through WebGPU",
+    visualization => {
+      const descriptor = Object.getOwnPropertyDescriptor(navigator, "gpu")
+      Object.defineProperty(navigator, "gpu", { configurable: true, value: {} })
 
-    try {
-      const sdk = makeDefaultSDK({
-        attributes: {
-          chartRenderersByVisualization: { easypiechart: "webgpu" },
-        },
-      })
-      const chart = sdk.makeChart({ attributes: { chartLibrary: "easypiechart" } })
-      sdk.appendChild(chart)
+      try {
+        const sdk = makeDefaultSDK({
+          attributes: {
+            chartRenderersByVisualization: { [visualization]: "webgpu" },
+          },
+        })
+        const chart = sdk.makeChart({ attributes: { chartLibrary: visualization } })
+        sdk.appendChild(chart)
 
-      expect(chart.getVisualizationType()).toBe("easypiechart")
-      expect(chart.getAttribute("chartLibrary")).toBe("webgpu")
-      expect(chart.isVisualizationRenderer()).toBe(true)
-      expect(chart.isTimeSeriesRenderer()).toBe(false)
-    } finally {
-      if (descriptor) Object.defineProperty(navigator, "gpu", descriptor)
-      else delete navigator.gpu
+        expect(chart.getVisualizationType()).toBe(visualization)
+        expect(chart.getAttribute("chartLibrary")).toBe("webgpu")
+        expect(chart.isVisualizationRenderer()).toBe(true)
+        expect(chart.isTimeSeriesRenderer()).toBe(false)
+      } finally {
+        if (descriptor) Object.defineProperty(navigator, "gpu", descriptor)
+        else delete navigator.gpu
+      }
     }
-  })
+  )
 
-  it("keeps a visualization on its legacy renderer when WebGPU has no adapter for it", () => {
+  it("routes unsupported Gauge static zones directly to the legacy renderer", () => {
     const sdk = makeDefaultSDK({
       attributes: { chartRenderersByVisualization: { gauge: "webgpu" } },
     })
-    const chart = sdk.makeChart({ attributes: { chartLibrary: "gauge" } })
+    const chart = sdk.makeChart({
+      attributes: {
+        chartLibrary: "gauge",
+        staticZones: [{ min: 0, max: 50, strokeStyle: "red" }],
+      },
+    })
     sdk.appendChild(chart)
 
     expect(chart.getVisualizationType()).toBe("gauge")
     expect(chart.getAttribute("chartLibrary")).toBe("gauge")
+  })
+
+  it("keeps a visualization on its legacy renderer when WebGPU has no adapter for it", () => {
+    const sdk = makeDefaultSDK({
+      attributes: { chartRenderersByVisualization: { table: "webgpu" } },
+    })
+    const chart = sdk.makeChart({ attributes: { chartLibrary: "table" } })
+    sdk.appendChild(chart)
+
+    expect(chart.getVisualizationType()).toBe("table")
+    expect(chart.getAttribute("chartLibrary")).toBe("table")
   })
 })

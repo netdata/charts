@@ -1,6 +1,6 @@
 # Time-series renderer benchmark
 
-This task-specific comparator measures Dygraphs and selected production GPU backends from the same checkout with identical deterministic Line, Area, Multi Column, diverging Stacked, or Stacked Bar data. WebGPU is preferred; WebGL2 is the accelerated compatibility fallback.
+This task-specific comparator measures legacy renderers and selected production GPU backends from the same checkout with identical deterministic Cartesian and radial data. It covers Line, Area, Multi Column, diverging Stacked, Stacked Bar, Heatmap, EasyPie/Circle, Gauge, and D3 Pie. WebGPU is preferred; WebGL2 is the accelerated compatibility fallback.
 
 ## Run
 
@@ -26,7 +26,7 @@ Evaluate WebGL2 on the browser's normal physical graphics path:
 BENCHMARK_HEADED=1 BENCHMARK_RENDERERS=webgl2 yarn benchmark:time-series
 ```
 
-Compare both GPU candidates in one browser run:
+Compare both GPU candidates in one browser run. The harness keeps one context, one window, and the same page for the entire suite; resets navigate that page without closing or replacing it:
 
 ```bash
 BENCHMARK_HEADED=1 BENCHMARK_RENDERERS=webgpu,webgl2 \
@@ -53,6 +53,14 @@ BENCHMARK_HEADED=1 BENCHMARK_VISUALIZATION=stackedBar \
   yarn benchmark:time-series
 ```
 
+Run only radial parity and fallback checks, without Cartesian performance workloads:
+
+```bash
+BENCHMARK_HEADED=1 BENCHMARK_RADIAL_ONLY=1 \
+  BENCHMARK_RENDERERS=webgpu,webgl2 CHROMIUM_OZONE_PLATFORM=wayland \
+  yarn benchmark:time-series
+```
+
 Headless Chromium can run correctness checks with its software adapter:
 
 ```bash
@@ -67,7 +75,7 @@ The command prints JSON and exits non-zero unless every selected GPU candidate r
 - 1,000,000 values: median prewarmed frame-settled mount and repeated full-data updates are at least 5x faster than Dygraphs.
 - Each GPU workload exports a non-empty PNG data URL and mounts, updates, and tears down four charts without leaking WebGPU runtime leases or WebGL2 contexts.
 
-Both GPU backends use the same production visualization/data/interaction model, including precision-normalized values, exact null gaps, line step/smooth geometry, Area baseline trapezoids, Multi Column grouped rectangles, diverging Stacked base/end bands, Stacked Bar rectangles, axes, text, overlays, and interactions. Filled-line correctness requires one exact band per adjacent source pair, a fully empty null-gap band, and distinct regular/step pixels. Multi Column and Stacked Bar require one instance per source value, exact null omission, and no response to line step mode. Pixel probes require Dygraphs RGBA parity for Area reverse overlap/baseline behavior, Multi Column historical grouped overlap and visibility reflow, Stacked reverse-order positive/negative bands, and Stacked Bar range, width, fill, subpixel border, and empty pixels. WebGL2 owns only its GLSL shaders, textures/buffers, shared context/program runtime, presentation surface, and context-loss handling.
+Both GPU backends use the same production visualization/data/interaction model, including precision-normalized values, exact null gaps, line step/smooth geometry, Area baseline trapezoids, Multi Column grouped rectangles, diverging Stacked base/end bands, Stacked Bar rectangles, Heatmap cells, analytic EasyPie and Gauge geometry, D3 Pie wedges, axes, text, overlays, and interactions. Filled-line correctness requires one exact band per adjacent source pair, a fully empty null-gap band, and distinct regular/step pixels. Multi Column and Stacked Bar require one instance per source value, exact null omission, and no response to line step mode. Pixel probes require Dygraphs RGBA parity for Area reverse overlap/baseline behavior, Multi Column historical grouped overlap and visibility reflow, Stacked reverse-order positive/negative bands, and Stacked Bar range, width, fill, subpixel border, and empty pixels. WebGL2 owns only its GLSL shaders, textures/buffers, shared context/program runtime, presentation surface, and context-loss handling.
 
 The one-frame gate allows 25% browser scheduling tolerance around the measured refresh interval. A frame-settled ratio is not used when both renderers already present on the same refresh boundary. Cold adapter/device initialization and first pipeline creation are reported separately.
 

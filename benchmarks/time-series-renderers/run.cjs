@@ -36,6 +36,7 @@ if (
   throw new Error("BENCHMARK_RENDERERS must select webgpu and/or webgl2")
 const renderers = ["dygraph", ...candidateRenderers]
 const visualization = process.env.BENCHMARK_VISUALIZATION || "line"
+const radialOnly = process.env.BENCHMARK_RADIAL_ONLY === "1"
 if (
   !new Set(["line", "area", "heatmap", "multiBar", "stacked", "stackedBar"]).has(
     visualization
@@ -772,6 +773,195 @@ const validateEasyPieParity = async (browser, port, renderer, references) => {
   }
 }
 
+const captureGauge = async (browser, port, renderer) => {
+  const context = await browser.newContext({
+    viewport: { width: 700, height: 700 },
+    deviceScaleFactor: 1,
+  })
+  const page = await context.newPage()
+  try {
+    await page.goto(`http://127.0.0.1:${port}`, { waitUntil: "load" })
+    await page.waitForFunction(() => Boolean(window.__NETDATA_RENDERER_BENCHMARK__))
+    await page.evaluate(input => window.__NETDATA_RENDERER_BENCHMARK__.prepare(input), {
+      renderer,
+      visualization: "gauge",
+      dimensions: 2,
+      points: 10,
+      profile: "easy-pie",
+      range: [0, 100],
+    })
+    await page.evaluate(() =>
+      window.__NETDATA_RENDERER_BENCHMARK__.mountPreview({ width: 500, height: 500 })
+    )
+    const capture = await page.evaluate(() =>
+      window.__NETDATA_RENDERER_BENCHMARK__.capturePreview({
+        samples: [
+          { name: "progress", xRatio: 0.112, yRatio: 0.39 },
+          { name: "track", xRatio: 0.884, yRatio: 0.39 },
+          { name: "pointerBody", xRatio: 0.5, yRatio: 0.1 },
+          { name: "pointerCenter", xRatio: 0.5, yRatio: 0.586 },
+          { name: "empty", xRatio: 0.5, yRatio: 0.95 },
+        ],
+      })
+    )
+    await page.evaluate(() => window.__NETDATA_RENDERER_BENCHMARK__.cleanup())
+    return capture
+  } finally {
+    await context.close()
+  }
+}
+
+const validateGaugeParity = async (browser, port, renderer, reference) => {
+  const capture = await captureGauge(browser, port, renderer)
+  const deltas = Object.fromEntries(
+    Object.keys(reference.samplePixels).map(name => [
+      name,
+      Math.max(
+        ...reference.samplePixels[name].map((value, index) =>
+          Math.abs(value - capture.samplePixels[name][index])
+        )
+      ),
+    ])
+  )
+  const pixelCountDelta = Math.abs(
+    capture.nonTransparentPixels - reference.nonTransparentPixels
+  )
+  const passed = Boolean(
+    capture.samplePixels.progress[3] > 0 &&
+      capture.samplePixels.track[3] > 0 &&
+      capture.samplePixels.pointerBody[3] > 0 &&
+      capture.samplePixels.pointerCenter[3] > 0 &&
+      capture.samplePixels.empty[3] === 0 &&
+      Object.values(deltas).every(delta => delta <= 4) &&
+      pixelCountDelta <= 1500
+  )
+  return {
+    renderer,
+    samples: capture.samplePixels,
+    referenceSamples: reference.samplePixels,
+    deltas,
+    pixelCountDelta,
+    drawStats: capture.drawStats,
+    passed,
+  }
+}
+
+const captureD3Pie = async (browser, port, renderer) => {
+  const context = await browser.newContext({
+    viewport: { width: 700, height: 700 },
+    deviceScaleFactor: 1,
+  })
+  const page = await context.newPage()
+  try {
+    await page.goto(`http://127.0.0.1:${port}`, { waitUntil: "load" })
+    await page.waitForFunction(() => Boolean(window.__NETDATA_RENDERER_BENCHMARK__))
+    await page.mouse.move(690, 690)
+    await page.evaluate(input => window.__NETDATA_RENDERER_BENCHMARK__.prepare(input), {
+      renderer,
+      visualization: "d3pie",
+      dimensions: 7,
+      points: 10,
+      profile: "d3-pie",
+      range: [0, 7],
+    })
+    await page.evaluate(() =>
+      window.__NETDATA_RENDERER_BENCHMARK__.mountPreview({ width: 500, height: 500 })
+    )
+    const sampleOptions = {
+      samples: [
+        { name: "series0", xRatio: 0.69, yRatio: 0.31 },
+        { name: "series2", xRatio: 0.706, yRatio: 0.674 },
+        { name: "series4", xRatio: 0.408, yRatio: 0.754 },
+        { name: "series5", xRatio: 0.246, yRatio: 0.592 },
+        { name: "series6", xRatio: 0.256, yRatio: 0.308 },
+        { name: "grouped", xRatio: 0.408, yRatio: 0.246 },
+        { name: "center", xRatio: 0.5, yRatio: 0.5 },
+        { name: "outside", xRatio: 0.5, yRatio: 0.05 },
+      ],
+    }
+    const initial = await page.evaluate(
+      options => window.__NETDATA_RENDERER_BENCHMARK__.capturePreview(options),
+      sampleOptions
+    )
+    const firstSegment = page.locator(
+      "[data-benchmark-chart] svg path[data-index='0']"
+    )
+    await firstSegment.hover({ force: true })
+    await page.waitForTimeout(50)
+    const hovered = await page.evaluate(
+      options => window.__NETDATA_RENDERER_BENCHMARK__.capturePreview(options),
+      sampleOptions
+    )
+    await firstSegment.click({ force: true })
+    await page.waitForTimeout(600)
+    const expanded = await page.evaluate(
+      options => window.__NETDATA_RENDERER_BENCHMARK__.capturePreview(options),
+      sampleOptions
+    )
+    await page.evaluate(() => window.__NETDATA_RENDERER_BENCHMARK__.cleanup())
+    return { initial, hovered, expanded }
+  } finally {
+    await context.close()
+  }
+}
+
+const validateD3PieParity = async (browser, port, renderer, reference) => {
+  const capture = await captureD3Pie(browser, port, renderer)
+  const deltas = Object.fromEntries(
+    Object.keys(reference.initial.samplePixels).map(name => [
+      name,
+      Math.max(
+        ...reference.initial.samplePixels[name].map((value, index) =>
+          Math.abs(value - capture.initial.samplePixels[name][index])
+        )
+      ),
+    ])
+  )
+  const hoverDelta = Math.max(
+    ...reference.hovered.samplePixels.series0.map((value, index) =>
+      Math.abs(value - capture.hovered.samplePixels.series0[index])
+    )
+  )
+  const pixelCountDelta = Math.abs(
+    capture.initial.nonTransparentPixels - reference.initial.nonTransparentPixels
+  )
+  const labelsMatch =
+    JSON.stringify(capture.initial.semanticLabels) ===
+    JSON.stringify(reference.initial.semanticLabels)
+  const expanded = capture.expanded.segmentTransforms.some(Boolean)
+  const gpuOffset =
+    renderer === "d3pie" ||
+    capture.expanded.drawStats?.expandedOffsetPixels > 0
+  const passed = Boolean(
+    capture.initial.samplePixels.center[3] === 0 &&
+      capture.initial.samplePixels.outside[3] === 0 &&
+      Object.values(deltas).every(delta => delta <= 4) &&
+      hoverDelta <= 4 &&
+      pixelCountDelta <= 1500 &&
+      labelsMatch &&
+      capture.initial.connectorCount === reference.initial.connectorCount &&
+      expanded &&
+      gpuOffset
+  )
+  return {
+    renderer,
+    samples: capture.initial.samplePixels,
+    referenceSamples: reference.initial.samplePixels,
+    deltas,
+    hoverDelta,
+    hoverFill: capture.hovered.segmentFills[0],
+    referenceHoverFill: reference.hovered.segmentFills[0],
+    pixelCountDelta,
+    labelsMatch,
+    connectorCount: capture.initial.connectorCount,
+    expanded,
+    expandedTransforms: capture.expanded.segmentTransforms,
+    expandedClasses: capture.expanded.segmentClasses,
+    drawStats: capture.expanded.drawStats,
+    passed,
+  }
+}
+
 const validateFallbackChain = async (browser, port, visualizationId) => {
   const context = await browser.newContext({
     viewport: { width: 1600, height: 500 },
@@ -799,7 +989,9 @@ const validateFallbackChain = async (browser, port, visualizationId) => {
       window.__NETDATA_RENDERER_BENCHMARK__.getActiveWebGL2Contexts()
     )
     const legacyRenderer =
-      visualizationId === "easypiechart" ? "easypiechart" : "dygraph"
+      { d3pie: "d3pie", easypiechart: "easypiechart", gauge: "gauge" }[
+        visualizationId
+      ] || "dygraph"
     return {
       deviceLoss,
       contextLoss,
@@ -922,17 +1114,12 @@ const run = async () => {
     viewport: { width: 1600, height: 500 },
     deviceScaleFactor: 1,
   })
-  let page = await context.newPage()
-  let logicalContexts = 0
+  const page = await context.newPage()
   const resetPage = async () => {
-    await page.close()
-    page = await context.newPage()
-    logicalContexts = 0
+    await page.goto("about:blank")
   }
   const benchmarkBrowser = {
     newContext: async () => {
-      if (logicalContexts >= 2) await resetPage()
-      logicalContexts += 1
       const sessions = []
       return {
         newPage: async () => page,
@@ -958,42 +1145,55 @@ const run = async () => {
   const stackedParity = {}
   const stackedBarCorrectness = {}
   const stackedBarParity = {}
+  const d3PieParity = {}
   const easyPieParity = {}
+  const gaugeParity = {}
   let fallbackChain = null
+  let d3PieFallbackChain = null
   let easyPieFallbackChain = null
+  let gaugeFallbackChain = null
 
   try {
-    for (const workload of workloads) {
-      for (const renderer of renderers) {
-        results.push(
-          await measureCase(benchmarkBrowser, port, {
-            ...workload,
-            renderer,
-            visualization,
-          })
-        )
+    let dygraphArea = null
+    let dygraphHeatmap = null
+    let dygraphMultiBar = null
+    let dygraphMultiBarReflow = null
+    let dygraphStacked = null
+    let dygraphStackedBar = null
+    if (!radialOnly) {
+      for (const workload of workloads) {
+        for (const renderer of renderers) {
+          results.push(
+            await measureCase(benchmarkBrowser, port, {
+              ...workload,
+              renderer,
+              visualization,
+            })
+          )
+        }
       }
+      dygraphArea = await captureAreaOverlap(benchmarkBrowser, port, "dygraph")
+      dygraphHeatmap = await captureHeatmap(benchmarkBrowser, port, "dygraph")
+      dygraphMultiBar = await captureMultiBar(benchmarkBrowser, port, "dygraph")
+      dygraphMultiBarReflow = await captureMultiBar(
+        benchmarkBrowser,
+        port,
+        "dygraph",
+        ["series-0", "series-2"]
+      )
+      dygraphStacked = await captureStackedDiverging(
+        benchmarkBrowser,
+        port,
+        "dygraph"
+      )
+      dygraphStackedBar = await captureStackedDiverging(
+        benchmarkBrowser,
+        port,
+        "dygraph",
+        "stackedBar"
+      )
     }
-    const dygraphArea = await captureAreaOverlap(benchmarkBrowser, port, "dygraph")
-    const dygraphHeatmap = await captureHeatmap(benchmarkBrowser, port, "dygraph")
-    const dygraphMultiBar = await captureMultiBar(benchmarkBrowser, port, "dygraph")
-    const dygraphMultiBarReflow = await captureMultiBar(
-      benchmarkBrowser,
-      port,
-      "dygraph",
-      ["series-0", "series-2"]
-    )
-    const dygraphStacked = await captureStackedDiverging(
-      benchmarkBrowser,
-      port,
-      "dygraph"
-    )
-    const dygraphStackedBar = await captureStackedDiverging(
-      benchmarkBrowser,
-      port,
-      "dygraph",
-      "stackedBar"
-    )
+    const d3PieReference = await captureD3Pie(benchmarkBrowser, port, "d3pie")
     const easyPieReferences = {
       positive: await captureEasyPie(
         benchmarkBrowser,
@@ -1008,71 +1208,84 @@ const run = async () => {
         "easy-pie-negative"
       ),
     }
+    const gaugeReference = await captureGauge(benchmarkBrowser, port, "gauge")
     for (const renderer of candidateRenderers) {
       await benchmarkBrowser.resetPage()
-      lineCorrectness[renderer] = await validateLine(benchmarkBrowser, port, renderer)
-      areaCorrectness[renderer] = await validateFilledVisualization(
+      if (!radialOnly) {
+        lineCorrectness[renderer] = await validateLine(
+          benchmarkBrowser,
+          port,
+          renderer
+        )
+        areaCorrectness[renderer] = await validateFilledVisualization(
+          benchmarkBrowser,
+          port,
+          renderer,
+          "area"
+        )
+        areaParity[renderer] = await validateAreaParity(
+          benchmarkBrowser,
+          port,
+          renderer,
+          dygraphArea
+        )
+        heatmapCorrectness[renderer] = await validateFilledVisualization(
+          benchmarkBrowser,
+          port,
+          renderer,
+          "heatmap"
+        )
+        heatmapParity[renderer] = await validateHeatmapParity(
+          benchmarkBrowser,
+          port,
+          renderer,
+          dygraphHeatmap
+        )
+        multiBarCorrectness[renderer] = await validateFilledVisualization(
+          benchmarkBrowser,
+          port,
+          renderer,
+          "multiBar"
+        )
+        multiBarParity[renderer] = await validateMultiBarParity(
+          benchmarkBrowser,
+          port,
+          renderer,
+          dygraphMultiBar,
+          dygraphMultiBarReflow
+        )
+        stackedCorrectness[renderer] = await validateFilledVisualization(
+          benchmarkBrowser,
+          port,
+          renderer,
+          "stacked"
+        )
+        stackedParity[renderer] = await validateStackedParity(
+          benchmarkBrowser,
+          port,
+          renderer,
+          "stacked",
+          dygraphStacked
+        )
+        stackedBarCorrectness[renderer] = await validateFilledVisualization(
+          benchmarkBrowser,
+          port,
+          renderer,
+          "stackedBar"
+        )
+        stackedBarParity[renderer] = await validateStackedParity(
+          benchmarkBrowser,
+          port,
+          renderer,
+          "stackedBar",
+          dygraphStackedBar
+        )
+      }
+      d3PieParity[renderer] = await validateD3PieParity(
         benchmarkBrowser,
         port,
         renderer,
-        "area"
-      )
-      areaParity[renderer] = await validateAreaParity(
-        benchmarkBrowser,
-        port,
-        renderer,
-        dygraphArea
-      )
-      heatmapCorrectness[renderer] = await validateFilledVisualization(
-        benchmarkBrowser,
-        port,
-        renderer,
-        "heatmap"
-      )
-      heatmapParity[renderer] = await validateHeatmapParity(
-        benchmarkBrowser,
-        port,
-        renderer,
-        dygraphHeatmap
-      )
-      multiBarCorrectness[renderer] = await validateFilledVisualization(
-        benchmarkBrowser,
-        port,
-        renderer,
-        "multiBar"
-      )
-      multiBarParity[renderer] = await validateMultiBarParity(
-        benchmarkBrowser,
-        port,
-        renderer,
-        dygraphMultiBar,
-        dygraphMultiBarReflow
-      )
-      stackedCorrectness[renderer] = await validateFilledVisualization(
-        benchmarkBrowser,
-        port,
-        renderer,
-        "stacked"
-      )
-      stackedParity[renderer] = await validateStackedParity(
-        benchmarkBrowser,
-        port,
-        renderer,
-        "stacked",
-        dygraphStacked
-      )
-      stackedBarCorrectness[renderer] = await validateFilledVisualization(
-        benchmarkBrowser,
-        port,
-        renderer,
-        "stackedBar"
-      )
-      stackedBarParity[renderer] = await validateStackedParity(
-        benchmarkBrowser,
-        port,
-        renderer,
-        "stackedBar",
-        dygraphStackedBar
+        d3PieReference
       )
       easyPieParity[renderer] = await validateEasyPieParity(
         benchmarkBrowser,
@@ -1080,18 +1293,35 @@ const run = async () => {
         renderer,
         easyPieReferences
       )
+      gaugeParity[renderer] = await validateGaugeParity(
+        benchmarkBrowser,
+        port,
+        renderer,
+        gaugeReference
+      )
     }
     if (candidateRenderers.includes("webgpu")) {
       await benchmarkBrowser.resetPage()
-      fallbackChain = await validateFallbackChain(
+      if (!radialOnly)
+        fallbackChain = await validateFallbackChain(
+          benchmarkBrowser,
+          port,
+          visualization
+        )
+      d3PieFallbackChain = await validateFallbackChain(
         benchmarkBrowser,
         port,
-        visualization
+        "d3pie"
       )
       easyPieFallbackChain = await validateFallbackChain(
         benchmarkBrowser,
         port,
         "easypiechart"
+      )
+      gaugeFallbackChain = await validateFallbackChain(
+        benchmarkBrowser,
+        port,
+        "gauge"
       )
     }
   } finally {
@@ -1100,7 +1330,7 @@ const run = async () => {
     await close()
   }
 
-  const comparisons = compare(results)
+  const comparisons = radialOnly ? [] : compare(results)
   const passed =
     Object.values(lineCorrectness).every(result => result.passed) &&
     Object.values(areaCorrectness).every(result => result.passed) &&
@@ -1113,9 +1343,13 @@ const run = async () => {
     Object.values(stackedParity).every(result => result.passed) &&
     Object.values(stackedBarCorrectness).every(result => result.passed) &&
     Object.values(stackedBarParity).every(result => result.passed) &&
+    Object.values(d3PieParity).every(result => result.passed) &&
     Object.values(easyPieParity).every(result => result.passed) &&
+    Object.values(gaugeParity).every(result => result.passed) &&
     (!fallbackChain || fallbackChain.passed) &&
+    (!d3PieFallbackChain || d3PieFallbackChain.passed) &&
     (!easyPieFallbackChain || easyPieFallbackChain.passed) &&
+    (!gaugeFallbackChain || gaugeFallbackChain.passed) &&
     comparisons.every(
       result =>
         result.mountPassed &&
@@ -1140,7 +1374,7 @@ const run = async () => {
       data: "deterministic row-major values; two pre-generated revisions alternated",
       canvas: "1600x500 CSS pixels at devicePixelRatio 1",
       browser:
-        "one shared Chromium context with at most one live page, reset between backend groups",
+        "one shared Chromium context, window, and persistent page; state reset by navigation",
       samples: "3 mounts, 2 warm-up updates, 10 measured updates, 3 seconds sustained updates",
       primaryLatency:
         "100k uses measured one-frame presentation/work completion plus synchronous speedup; 1M uses median frame-settled speedup",
@@ -1159,9 +1393,13 @@ const run = async () => {
       stackedParity,
       stackedBar: stackedBarCorrectness,
       stackedBarParity,
+      d3PieParity,
       easyPieParity,
+      gaugeParity,
       fallbackChain,
+      d3PieFallbackChain,
       easyPieFallbackChain,
+      gaugeFallbackChain,
     },
     comparisons,
     passed,

@@ -1,5 +1,6 @@
 import makeRenderer from "./engine/makeRenderer"
 import { isWebGL2Supported } from "./engine/runtime"
+import { isGaugeConfigurationSupported } from "@/chartLibraries/gpu/visualizations/radial/gauge"
 import { getVisualization, hasVisualization } from "./visualizations"
 
 const makeUnsupportedVisualization = visualization => () => ({
@@ -19,7 +20,9 @@ const makeWebGL2 = (sdk, chart) => {
   return makeRenderer({ sdk, chart, makeVisualization, visualizationId })
 }
 
-makeWebGL2.isSupported = (sdk, visualization = "line") =>
-  hasVisualization(visualization) && isWebGL2Supported(sdk)
+makeWebGL2.isSupported = (sdk, visualization = "line", chart) =>
+  hasVisualization(visualization) &&
+  (visualization !== "gauge" || isGaugeConfigurationSupported(chart)) &&
+  isWebGL2Supported(sdk)
 
 export default makeWebGL2

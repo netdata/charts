@@ -80,6 +80,10 @@ const makeData = (dimensions, points, revision, profile) => {
         row[dimensionIndex + 1] = [-75, 25][dimensionIndex % 2]
         continue
       }
+      if (profile === "d3-pie") {
+        row[dimensionIndex + 1] = [7, 1, 6, 2, 5, 3, 4][dimensionIndex % 7]
+        continue
+      }
       const phase = pointIndex * 0.017 + dimensionIndex * 0.031 + revision * 0.13
       row[dimensionIndex + 1] = Math.sin(phase) * 70 + Math.cos(phase * 0.37) * 20
     }
@@ -102,7 +106,7 @@ const makeChart = state => {
     tree: {},
   }))
   chart.getPayload = () => payloads[revision]
-  if (state.visualization === "heatmap")
+  if (new Set(["d3pie", "heatmap"]).has(state.visualization))
     chart.getDimensionValue = (id, index, options) =>
       chart.getRowDimensionValue(id, state.datasets[revision][index], options)
   chart.updateAttributes({
@@ -117,6 +121,7 @@ const makeChart = state => {
     max: state.range[1],
     valueRange: state.range,
     ...(state.colors && { colors: state.colors }),
+    ...state.chartAttributes,
     viewDimensions: {
       ids: state.ids,
       names: state.ids,
@@ -188,15 +193,18 @@ const prepare = async ({
   range = [-90, 90],
   colors = null,
   ids = null,
+  chartAttributes = null,
 }) => {
   if (prepared) throw new Error("Benchmark state already prepared")
-  if (!new Set(["dygraph", "easypiechart", "webgpu", "webgl2"]).has(renderer))
+  if (!new Set(["d3pie", "dygraph", "easypiechart", "gauge", "webgpu", "webgl2"]).has(renderer))
     throw new Error("Unknown renderer")
   if (
     !new Set([
       "line",
       "area",
+      "d3pie",
       "easypiechart",
+      "gauge",
       "heatmap",
       "multiBar",
       "stacked",
@@ -243,6 +251,7 @@ const prepare = async ({
     range,
     colors,
     ids: ids || Array.from({ length: dimensions }, (_, index) => `series-${index}`),
+    chartAttributes,
     datasets,
     sdk,
     runtime: null,
@@ -465,6 +474,7 @@ const mountPreview = async ({
   preview = makeChart(prepared)
   if (previewWidth) preview.element.style.width = `${previewWidth}px`
   if (previewHeight) preview.element.style.height = `${previewHeight}px`
+  if (prepared.renderer === "gauge") preview.element.appendChild(document.createElement("canvas"))
   preview.chart.updateAttribute("stepPlot", stepped)
   if (enabledXAxis !== undefined) preview.chart.updateAttribute("enabledXAxis", enabledXAxis)
   if (enabledYAxis !== undefined) preview.chart.updateAttribute("enabledYAxis", enabledYAxis)
@@ -498,16 +508,30 @@ const inspectPreview = () => {
 const capturePreview = async ({ samples = [] } = {}) => {
   if (!preview) throw new Error("A preview is required")
   const canvas = preview.ui.getCanvas?.() || preview.element.querySelector("canvas")
-  if (!canvas) throw new Error("The preview has no canvas")
-  const dataUrl = canvas.toDataURL("image/png")
+  const svg = !canvas && preview.element.querySelector("svg")
+  if (!canvas && !svg) throw new Error("The preview has no graphical surface")
+  let imageUrl
+  let revokeImageUrl = false
+  if (canvas) imageUrl = canvas.toDataURL("image/png")
+  else {
+    const graphicalSvg = svg.cloneNode(true)
+    Array.from(graphicalSvg.children).forEach(child => {
+      if (!child.getAttribute("class")?.endsWith("pieChart")) child.remove()
+    })
+    const source = new XMLSerializer().serializeToString(graphicalSvg)
+    imageUrl = URL.createObjectURL(new Blob([source], { type: "image/svg+xml" }))
+    revokeImageUrl = true
+  }
   const image = new Image()
-  image.src = dataUrl
+  image.src = imageUrl
   await image.decode()
   const copy = document.createElement("canvas")
-  copy.width = canvas.width
-  copy.height = canvas.height
+  copy.width = canvas?.width || Number(svg.getAttribute("width"))
+  copy.height = canvas?.height || Number(svg.getAttribute("height"))
   const context = copy.getContext("2d")
   context.drawImage(image, 0, 0)
+  if (revokeImageUrl) URL.revokeObjectURL(imageUrl)
+  const dataUrl = copy.toDataURL("image/png")
   const pixels = context.getImageData(0, 0, copy.width, copy.height).data
   let nonTransparentPixels = 0
   for (let offset = 3; offset < pixels.length; offset += 4) {
@@ -632,6 +656,22 @@ const capturePreview = async ({ samples = [] } = {}) => {
     sampleVerticalRuns,
     yAxisRange,
     drawStats: preview.ui.getDrawStats?.() || null,
+    semanticLabels: Array.from(preview.element.querySelectorAll("svg text"), element =>
+      element.textContent.trim()
+    ),
+    connectorCount: preview.element.querySelectorAll("svg g[class$='lineGroup'] path").length,
+    segmentTransforms: Array.from(
+      preview.element.querySelectorAll("svg path[data-index]"),
+      element => element.getAttribute("transform") || ""
+    ),
+    segmentFills: Array.from(
+      preview.element.querySelectorAll("svg path[data-index]"),
+      element => element.style.fill || element.getAttribute("fill") || ""
+    ),
+    segmentClasses: Array.from(
+      preview.element.querySelectorAll("svg path[data-index]"),
+      element => element.getAttribute("class") || ""
+    ),
   }
 }
 

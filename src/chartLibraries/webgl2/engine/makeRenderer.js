@@ -1,4 +1,5 @@
 import makeGPUResizeObserver from "@/chartLibraries/gpu/resize"
+import { isUnsupportedVisualizationConfiguration } from "@/chartLibraries/gpu/errors"
 import makeChartUI from "@/sdk/makeChartUI"
 import { getWebGL2Runtime, markWebGL2Failed } from "./runtime"
 
@@ -35,7 +36,7 @@ export default ({ sdk, chart, makeVisualization, visualizationId }) => {
   const fallback = error => {
     if (failureHandled) return false
     failureHandled = true
-    markWebGL2Failed(sdk)
+    if (!isUnsupportedVisualizationConfiguration(error)) markWebGL2Failed(sdk)
     const replaced = chart.fallbackChartLibrary?.("webgl2")
     sdk.trigger("rendererFallback", chart, "webgl2", error)
     chart.trigger("rendererFallback", "webgl2", error)

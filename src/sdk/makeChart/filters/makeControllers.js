@@ -174,7 +174,7 @@ export default (chart, getChartInstance = () => chart) => {
     const makeRenderer = chart.sdk.ui[renderer]
     if (
       makeRenderer &&
-      makeRenderer.isSupported?.(chart.sdk, visualization) !== false
+      makeRenderer.isSupported?.(chart.sdk, visualization, chart) !== false
     )
       return renderer
     return resolveRenderer(

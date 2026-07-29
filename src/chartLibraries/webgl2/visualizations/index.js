@@ -4,19 +4,25 @@ import makeLineVisualization from "@/chartLibraries/gpu/visualizations/cartesian
 import makeMultiBarVisualization from "@/chartLibraries/gpu/visualizations/cartesian/multiBar"
 import makeStackedVisualization from "@/chartLibraries/gpu/visualizations/cartesian/stacked"
 import makeStackedBarVisualization from "@/chartLibraries/gpu/visualizations/cartesian/stackedBar"
+import makeD3PieVisualization from "@/chartLibraries/gpu/visualizations/radial/d3Pie"
 import makeEasyPieVisualization from "@/chartLibraries/gpu/visualizations/radial/easyPie"
+import makeGaugeVisualization from "@/chartLibraries/gpu/visualizations/radial/gauge"
 import makeAreaResources from "./cartesian/area/resources"
 import makeHeatmapResources from "./cartesian/heatmap/resources"
 import makeLineResources from "./cartesian/line/resources"
 import makeMultiBarResources from "./cartesian/multiBar/resources"
 import makeStackedResources from "./cartesian/stacked/resources"
 import makeStackedBarResources from "./cartesian/stackedBar/resources"
+import makeD3PieResources from "./radial/d3Pie/resources"
 import makeEasyPieResources from "./radial/easyPie/resources"
+import makeGaugeResources from "./radial/gauge/resources"
 
 const visualizations = {
+  d3pie: options => makeD3PieVisualization({ ...options, makeResources: makeD3PieResources }),
   area: options => makeAreaVisualization({ ...options, makeResources: makeAreaResources }),
   easypiechart: options =>
     makeEasyPieVisualization({ ...options, makeResources: makeEasyPieResources }),
+  gauge: options => makeGaugeVisualization({ ...options, makeResources: makeGaugeResources }),
   heatmap: options => makeHeatmapVisualization({ ...options, makeResources: makeHeatmapResources }),
   line: options => makeLineVisualization({ ...options, makeResources: makeLineResources }),
   multiBar: options =>
