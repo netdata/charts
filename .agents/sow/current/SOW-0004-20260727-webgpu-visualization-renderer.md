@@ -4,7 +4,7 @@
 
 Status: in-progress
 
-Sub-state: The production-capable opt-in line renderer now passes physical WebGPU and WebGL2 gates. Visualization/renderer separation, shared exact line semantics/interactions, one-canvas presentation, `WebGPU -> WebGL2 -> Dygraphs` routing, exports, hover feedback, device/context-loss fallback, and shared-runtime multi-chart lifecycle are implemented. Runtime/power policy, authorized Windows/macOS coverage, rollout/defaulting, and later visualization adapters remain intentionally deferred; Dygraphs remains every default.
+Sub-state: The production-capable opt-in line renderer passes physical WebGPU and WebGL2 gates and has been transplanted onto a clean integration branch from current `origin/main`. Visualization/renderer separation, shared exact line semantics/interactions, one-canvas presentation, `WebGPU -> WebGL2 -> Dygraphs` routing, exports, hover feedback, device/context-loss fallback, and shared-runtime multi-chart lifecycle are implemented. The user approved migrating all remaining graphical chart families before the final cross-platform matrix; Area is next. Runtime/power policy and rollout/defaulting remain deferred, and Dygraphs remains every default.
 
 ## Requirements
 
@@ -18,6 +18,8 @@ Proceed with WebGPU as the preferred renderer direction after the native feasibi
 
 On 2026-07-29, the user approved two ordered hardening stages: repair and physically verify the missing WebGPU hover hairline/popover; then build an exact WebGL2 feasibility backend and promote it to the runtime chain `WebGPU -> WebGL2 -> Dygraphs` only if it passes the existing correctness, performance, export, and lifecycle gates.
 
+After those stages passed, the user approved migrating every remaining graphical chart family before running the final Windows/macOS/browser matrix. The ordered scope is Area, Stacked, Stacked Bar, Multi Column, Heatmap, EasyPie/Circle, Gauge, and D3 Pie. Bars, Value, Group Boxes, and Table remain Netdata-native React/DOM visualizations because rasterizing semantic text and controls would add no material benefit and would regress accessibility.
+
 ### Assistant Understanding
 
 Facts:
@@ -25,7 +27,7 @@ Facts:
 - SOW-0002 proves the exact unsampled regular/step GPU kernel, shared runtime, payload packing, lifecycle fallback, device-loss recovery, and physical-GPU performance architecture.
 - WebGPU is a low-level browser GPU API, not a chart library. Netdata continues to own chart semantics and UI.
 - The feasibility prototype is internal opt-in; every default renderer mapping remains Dygraphs.
-- The opt-in ordinary-line tranche now implements smooth/step geometry, axes/text, overlays/decorations, complete pointer/touch interactions, direct/current html2canvas export behavior, and shared-runtime multi-chart ownership. Stacking, area, bars, heatmaps, radial/scalar/table/group/graph adapters, browser/device policy, batching policy, and rollout remain outside this tranche.
+- The opt-in ordinary-line tranche now implements smooth/step geometry, axes/text, overlays/decorations, complete pointer/touch interactions, direct/current html2canvas export behavior, and shared-runtime multi-chart ownership. The approved follow-on migrates graphical adapters in dependency order, beginning with Area, while browser/device policy, batching policy, and rollout remain deferred.
 - Public payloads, queries, attributes, events, timestamps, chart types, and visuals must remain compatible.
 - The current SDK conflates the selected visualization and its active chart library: time-series types use `chartType`, while gauge, pie, bars, number, group boxes, and table use `chartLibrary`. Current `chartLibrariesByType`, `isTimeSeriesRenderer`, and the WebGPU folder are therefore too time-series-specific for the approved direction.
 - Netdata's topology WebGL renderer already proves the preferred text pattern: Canvas2D rasterizes labels into bounded DPR-aware texture atlases, then GPU sprites render those textures without one visible DOM node per label.
@@ -43,8 +45,7 @@ Inferences:
 
 Unknowns:
 
-- The eventual migration order after line succeeds.
-- Browser/platform support, initialization/power, rollout/defaulting, and final performance policies; these are explicitly deferred.
+- Browser/platform support, initialization/power, rollout/defaulting, and final performance policies; these are explicitly deferred until graphical adapter migration is complete.
 - Whether profiling will justify workers or WASM for any CPU-side kernel.
 
 ### Acceptance Criteria
@@ -57,7 +58,8 @@ Unknowns:
 - Shared device/pipelines, prewarming, persistent buffers, multi-chart ownership, virtualization, resize, teardown, and device-loss recovery are validated without leaks or blank charts.
 - Existing payload/query/public timestamp contracts remain unchanged; compact point-schema values, null gaps, visibility, colors, corrected history, and full updates retain exact semantics.
 - The plot uses no visible per-label/tick/annotation DOM. Deterministic plot chrome and text are canvas/GPU layers, with bounded caches and explicit device, resize, theme, DPR, and teardown ownership.
-- The first line tranche validates regular, step, smooth, sparkline, axes, overlays, hover, pan, zoom, selection, touch, annotations, alerts, anomalies, and export behavior. Other visualization implementations remain out of this tranche but fit the same internal engine.
+- The completed line tranche validates regular, step, smooth, sparkline, axes, overlays, hover, pan, zoom, selection, touch, annotations, alerts, anomalies, and export behavior.
+- The follow-on migration implements Area, Stacked, Stacked Bar, Multi Column, Heatmap, EasyPie/Circle, Gauge, and D3 Pie through the same renderer chain without changing defaults. Each adapter must preserve its legacy baseline, stacking, gap, ordering, color, hover, axis, sparkline, export, and lifecycle behavior before the next dependent adapter begins.
 - Performance tests retain exact unsampled 100,000/1,000,000-value gates and add representative multi-chart, interaction, repeated-update, and teardown stability evidence without generalized production instrumentation.
 - CJS/ES6 builds, full tests with coverage, repository lint baseline, Storybook, physical browsers, and Cloud Frontend consumption pass before any default switch.
 - No worker, SharedArrayBuffer, WASM, payload protocol change, silent LOD, aggregation, or approximation is introduced without profiling evidence and explicit approval.
@@ -139,7 +141,9 @@ Implementation plan:
 5. Add production line data/range models: normalized precision-safe y storage, exact block min/max index for visible-window autoscaling, feature support checks, and existing public value/timestamp semantics.
 6. Add pixel-equivalent smooth Bézier tessellation in the GPU from every original point, preserving regular/step gaps and colors without data LOD or sampling.
 7. Move coordinate conversion, nearest-point lookup, hover/click, navigation, selection, and overlay contracts behind renderer-neutral interfaces, retaining the existing React legend/toolbox/popover surfaces.
-8. Build line parity incrementally behind opt-in routing with regression-first tests, rendered-pixel evidence, and real Cloud Frontend consumption. Evaluate runtime/power, multi-chart batching, export edge cases, browser matrix, rollout, and defaulting only from that working implementation.
+8. Build line parity incrementally behind opt-in routing with regression-first tests, rendered-pixel evidence, and real Cloud Frontend consumption.
+9. After line passes, migrate graphical adapters in the approved order: Area; Stacked; Stacked Bar; Multi Column; Heatmap; EasyPie/Circle; Gauge; D3 Pie. Reuse the existing exact buffers, triangle primitives, axes, text, interactions, and fallback lifecycle without silently approximating data. Keep Bars, Value, Group Boxes, and Table in React/DOM.
+10. Run the final authorized browser/device matrix only after graphical migration, unless an adapter introduces a genuinely new non-core GPU API dependency. Evaluate runtime/power, batching, rollout, and defaulting after that evidence.
 
 Validation plan:
 
@@ -176,7 +180,7 @@ Open-source reference evidence:
 
 Open decisions:
 
-1. **Deferred until the first production renderer works:** adapter/power policy, prewarming, batching, browser/device matrix, rollout/defaulting, and cross-platform authorization. No decisions are requested for these now.
+1. **Deferred until graphical adapter migration completes:** adapter/power policy, prewarming, batching, browser/device matrix, rollout/defaulting, and cross-platform authorization. No decision is required for Area because it uses the already-proven core buffer, triangle, blending, text, interaction, and fallback APIs.
 
 ## Implications And Decisions
 
@@ -192,17 +196,18 @@ Open decisions:
 10. Production architecture implementation is approved. Later runtime/platform/rollout policy remains deferred and does not block the opt-in renderer.
 11. **Hover regression repair:** approved. Treat `clickX` as active only when it contains a finite timestamp, otherwise render valid `hoverX`; forward WebGPU native pointer exit/motion through the renderer-neutral `chartUI` event contract so the existing React popover works unchanged.
 12. **WebGL2 fallback:** approved and implemented. The standalone feasibility and full production backend passed deterministic 100,000/1,000,000-value gates. Visualization/data/interaction logic is shared; shaders, GPU resources, surfaces, and loss handling remain backend-specific. The chain is `WebGPU -> WebGL2 -> Dygraphs`; no sampling, approximation, or WebGPU compatibility-mode assumption is allowed.
+13. **Migration before platform matrix:** approved. Complete the remaining graphical adapters before Windows/macOS/browser validation because no unresolved core API question blocks them. Pause only if an adapter requires a new non-core GPU feature.
+14. **Semantic visualizations remain DOM:** approved. Bars, Value, Group Boxes, and Table are already Netdata-native React/DOM surfaces. They are not GPU migration targets because accessibility, selection, and semantic controls outweigh rasterization.
+15. **Next adapter:** approved. Area reuses the exact line payload, axes, interactions, text, and lifecycle while adding per-segment baseline trapezoids. It preserves Dygraphs' reverse fill order, zero-or-nearest-edge baseline, straight/step geometry, gaps, fill opacity, stroke, and sparkline behavior.
 
 ## Plan
 
-1. Use completed feasibility commit `d9caf88` as the production base.
-2. Start with the one-canvas/offscreen-text-atlas boundary and keep it reversible behind stable layer contracts.
-3. Establish the renderer/visualization separation and shared engine seams with no behavior/default change.
-4. Implement and validate line as the first complete adapter.
-5. Repair and physically verify WebGPU hover hairline/popover behavior without changing the existing DOM boundary.
-6. Build and benchmark an exact WebGL2 feasibility backend before refactoring production routing.
-7. If WebGL2 passes the gates, integrate it behind shared visualization/data/interaction contracts and validate `WebGPU -> WebGL2 -> Dygraphs`, context loss, export, builds, and Cloud consumption.
-8. Evaluate runtime, browser, rollout, and the next visualization only after working evidence exists.
+1. Preserve the completed line branch as backup and transplant only project/GPU commits onto current `origin/main`, excluding duplicate prerequisite history.
+2. Revalidate the clean integration base with full Jest and CJS/ES6 builds.
+3. Implement Area as exact per-adjacent-pair baseline trapezoids sharing line data/color buffers. Draw fills in reverse series order before straight/step strokes, discard any pair touching a gap, clamp the zero baseline to the plot, and preserve Dygraphs opacity/include-zero/sparkline semantics.
+4. Validate Area routing, exact draw counts, gaps, overlap ordering, baseline behavior, step behavior, exports, interactions, runtime loss, multi-chart lifecycle, performance, Storybook, and Cloud consumption on local physical WebGPU and WebGL2 paths.
+5. Continue in order with Stacked, Stacked Bar, Multi Column, Heatmap, EasyPie/Circle, Gauge, and D3 Pie, applying the same adapter-specific parity gate each time.
+6. Run the authorized Windows/macOS/browser matrix after graphical migration, then decide runtime/power policy, prewarming, batching, rollout, and defaulting.
 
 ## Execution Log
 
@@ -271,6 +276,9 @@ Open decisions:
 - Implemented exact physical-pixel text placement for both atlases, immediate GPU-only ResizeObserver rendering, the correct WebGL2 `uniform4f` canvas update for primitive/text passes, and lazy thresholded desktop pan start/end. The legacy Dygraphs resize path and public interaction contracts are unchanged.
 - Fresh installed Cloud validation at DPR 1.25 passed both physical backends. X11/WebGL2 kept every horizontal grid within one pixel of the expected plot boundary through three 680-to-300-to-680 CSS-pixel cycles, rebuilt backing canvases within 50 ms, emitted integer atlas geometry, ignored zero-motion pan without changing relative `after`/`before`, and retained real drag panning. Wayland/WebGPU passed the same immediate resize and zero-motion pan gates with a complete visible grid. Evidence: `/tmp/webgl2-visual-hardening.json`, `/tmp/webgl2-real-pan-validation.json`, `/tmp/webgpu-visual-hardening.json`, and matching PNGs.
 - The final combined physical benchmark passed after visual hardening. At 1,000,000 values WebGPU retained 10.43x/7.52x mount/update frame speedups and WebGL2 retained 10.01x/7.57x; exact data, gaps, exports, four-chart lifecycle, forced WebGPU-to-WebGL2 device-loss transition, and WebGL2-to-Dygraphs context-loss transition all passed. Evidence: `/tmp/gpu-visual-hardening-benchmark.json`.
+- Verified prerequisite PRs #225, #226, #227, and #228 are merged in `origin/main` at `f36403e`. Created clean integration branch `codex/webgpu-charts-integration` from that commit and replayed only project/GPU changes as ten commits; the backup branch remains untouched. Tree comparison shows only current upstream changes, including merged gauge thresholds, differ from the backup.
+- Installed dependencies under the required Node 22.22.0 runtime and revalidated the clean base: 172 Jest suites passed with 1,588 tests passed and 2 skipped; CJS compiled 548 files and ES6 compiled 555 files; SOW audit and `git diff --check` passed.
+- The user approved completing graphical adapter migration before the final cross-platform matrix. Area is first because it introduces only baseline trapezoids over the proven exact line buffers and core triangle/blending APIs. Official Dygraphs source confirms fills are drawn in reverse series order before strokes, use straight/step segment tops, break at null gaps, and clamp the zero baseline to the plot. `ChartGPU/ChartGPU @ 4ee780e6ecb7d8bd938fb1dccec2db00695f64e1` independently confirms the six-vertex per-segment trapezoid and dual-endpoint NaN-discard pattern; its optional LOD is explicitly rejected for Netdata's exact mode.
 
 ## Validation
 
@@ -340,7 +348,7 @@ Follow-up mapping:
 
 ## Outcome
 
-The production-capable ordinary-line GPU adapter is implemented and physically validated behind opt-in routing on both preferred WebGPU and accelerated WebGL2 fallback paths. The next approved milestone remains broader authorized browser/device hardening. Runtime/power policy, rollout/default approval, and the next visualization tranche remain intentionally deferred.
+The production-capable ordinary-line GPU adapter is implemented, physically validated, and cleanly integrated on current `origin/main`. The approved next milestone is exact Area migration, followed by the remaining graphical adapters before broader browser/device hardening. Runtime/power policy and rollout/default approval remain intentionally deferred.
 
 ## Lessons Extracted
 
