@@ -18,8 +18,9 @@ const getTickGranularity = (ticks, index) => {
 }
 
 export const makePlotArea = (chart, width, height) => {
-  const enabledXAxis = chart.getAttribute("enabledXAxis")
-  const enabledYAxis = chart.getAttribute("enabledYAxis")
+  const sparkline = chart.isSparkline()
+  const enabledXAxis = !sparkline && chart.getAttribute("enabledXAxis")
+  const enabledYAxis = !sparkline && chart.getAttribute("enabledYAxis")
   const left = enabledYAxis
     ? (chart.getAttribute("yAxisLabelWidth") || DEFAULT_Y_AXIS_WIDTH) + Y_AXIS_GUTTER
     : 0
@@ -79,8 +80,9 @@ const makeXTicks = (chart, min, max, pixels) =>
 export const makeCartesianAxes = ({ chart, width, height, min, max, afterMs, beforeMs }) => {
   const plot = makePlotArea(chart, width, height)
   const [domainMin, domainMax] = padValueRange(min, max, plot.height)
-  const enabledXAxis = chart.getAttribute("enabledXAxis")
-  const enabledYAxis = chart.getAttribute("enabledYAxis")
+  const sparkline = chart.isSparkline()
+  const enabledXAxis = !sparkline && chart.getAttribute("enabledXAxis")
+  const enabledYAxis = !sparkline && chart.getAttribute("enabledYAxis")
   const gridColor = chart.getThemeAttribute("themeGridColor")
   const labelColor = chart.getThemeAttribute("themeLabelColor")
   const font = `${chart.getAttribute("axisLabelFontSize") || 10}px sans-serif`

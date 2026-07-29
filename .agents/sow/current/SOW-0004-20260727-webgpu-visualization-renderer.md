@@ -261,6 +261,9 @@ Open decisions:
 - A final combined Chromium 150/Wayland run passed both production backends and the complete runtime-loss chain. At 1,000,000 values WebGPU achieved 8.33x/7.54x mount/update frame speedups and WebGL2 achieved 12.09x/7.27x; both passed exports and shared-runtime lifecycle. Forced WebGPU device loss selected WebGL2, then forced WebGL2 context loss selected Dygraphs with no retained context. Evidence: `/tmp/gpu-production-benchmark-final.json`.
 - Rebuilt and installed the isolated Cloud consumer. Native Wayland retained WebGPU, while normal X11 reported no WebGPU adapter and automatically rendered ordinary lines through WebGL2. Physical WebGL2 hover produced a finite synchronized `hoverX`, a visible GPU hairline, an opening/closing React popover, and a non-empty PNG while `clickX` remained `[null, null]`. Evidence: `/tmp/gpu-cloud-wayland-validation.json`, `/tmp/webgl2-cloud-x11-validation.json`, `/tmp/webgl2-cloud-x11-hover-validation.json`, and `/tmp/webgl2-cloud-x11-hover-large.png`.
 - Both GPU-backed Cloud browser reloads emitted the same React development warning about an asynchronous state update before mount. No stack currently attributes it to Charts, but a non-GPU baseline was not rerun, so its ownership is unproven. It caused no page error, blank chart, unexpected fallback, or failed interaction; diagnose separately if it persists during rollout hardening.
+- Reproduced a Cloud sparkline parity defect on four live dashboard tiles: `sparkline` was true while both explicit axis flags remained true, so the GPU plot reserved 74 pixels for the y axis and 16 pixels for the x axis. Dygraphs independently overrides both axes off for sparklines; the shared GPU axis layer did not.
+- Added the same sparkline axis override to the backend-neutral GPU plot layout and axis generation, including reactive invalidation when `sparkline` changes. Normal charts and explicit axis flags retain their prior behavior.
+- Full Jest passed 169 suites with 1,559 passed and 2 skipped; changed-file ESLint and CJS/ES6 builds passed. Fresh installed Cloud validation passed on both physical paths: X11/WebGL2 and Wayland/WebGPU each rendered four live sparkline canvases with full-height, zero-gutter plots and no GPU axis pixels, while normal chart axes remained enabled. Evidence: `/tmp/webgl2-sparkline-axis-validation.json`, `/tmp/webgpu-sparkline-axis-validation.json`, and their matching canvas PNGs.
 
 ## Validation
 
@@ -273,7 +276,7 @@ Acceptance criteria evidence:
 
 Tests or equivalent validation:
 
-- Full Jest with coverage: 169 suites passed; 1,558 tests passed and 2 skipped. Coverage passed unchanged thresholds at 59.62% statements, 54.50% branches, 59.12% functions, and 60.59% lines.
+- Full Jest with coverage: 169 suites passed; 1,559 tests passed and 2 skipped. Coverage passed unchanged thresholds at 59.62% statements, 54.50% branches, 59.12% functions, and 60.59% lines.
 - Focused shared-GPU, WebGPU, WebGL2 primitive, routing, controller, hover, and default-SDK tests passed without new Jest mocks.
 - Clean CommonJS and ES6 distributions built with 541 files each; moved backend-neutral modules and both GPU backends were present, while stale pre-move paths were absent.
 - Changed-file ESLint passed. Repository lint retained 35 unrelated pre-existing errors and introduced none in changed files.
@@ -284,7 +287,7 @@ Real-use evidence:
 
 - Physical Chromium 150 acquired the local NVIDIA Blackwell adapter through Wayland without unsafe flags and rendered/exported the preferred WebGPU line backend.
 - The same Chromium build under normal X11 could not acquire WebGPU, automatically selected hardware WebGL2, and rendered/exported/interacted through the same line visualization without unsafe flags.
-- Isolated Cloud Frontend consumption passed its production agent build. The locally served `/v3/` Charts bundle matches the verified build at `sha256 02a1d906ff22f00c828bbf4324d83fd1a5b2728858f5155bf91a0289e2048114`; results from duplicate or shared checkouts are not accepted as evidence.
+- Isolated Cloud Frontend consumption passed its production agent build. The locally served `/v3/` Charts bundle matches the verified build at `sha256 47d0a8114a813ee462a15020612bcf4a643c45884882bdb37cda82b65f33f2da`; results from duplicate or shared checkouts are not accepted as evidence.
 
 Reviewer findings:
 
