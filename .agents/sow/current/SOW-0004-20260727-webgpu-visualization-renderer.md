@@ -225,8 +225,13 @@ Open decisions:
 - Final physical NVIDIA Blackwell/Chromium benchmark passed. At 100,000 values WebGPU completed mount work in 6.7 ms and update work in 4.9 ms, both presented within one measured frame. At 1,000,000 values frame-settled speedups were 9.28x mount and 6.27x update; sustained updates were 48.75/sec with 4,218,976 GPU-buffer bytes.
 - The benchmark exported non-empty PNGs (2,102,822 bytes at 100,000 values; 2,919,630 bytes at 1,000,000) and mounted/updated/tore down four charts on one SDK runtime. Runtime references returned from five during the four-chart run to the one explicit benchmark lease.
 - Direct current-renderer export and the existing html2canvas foreign-object path both retained rendered WebGPU pixels. A raw Canvas2D `drawImage(webgpuCanvas)` copy remains unsupported and is not used.
-- Added the Cloud Frontend renderer-neutral dispatch patch in `src/charts/index.js` and copied the final package distribution into its installed package. Scoped Cloud Frontend ESLint passed. Its full production build is independently blocked because declared dependency `pixi.js` is absent from the checkout's lock/install state; Webpack reached the application graph and reported that unrelated missing module.
+- Initial Cloud Frontend validation used the duplicate checkout at `/home/costa/src/netdata/cloud-frontend`; that evidence was invalid. Rechecking established `/home/costa/src/dashboard/cloud-frontend` as the active shared checkout, but touching it would conflict with another worker. All charts, Cloud Frontend, and netdata-ui work is now isolated under `/home/costa/src/PRs/webgpu-charts/`.
+- Applied renderer-neutral time-series component dispatch and updated the consumer charts skill in isolated Cloud Frontend commit `65b5d559e`. Scoped ESLint and the full `ENV=testing` production build passed against the local WebGPU charts distribution.
+- The first local-agent installation was invalid because `agent.sh` ran `yarn install` after the local package copy and restored the published charts package. Corrected the order: built and copied isolated netdata-ui and charts into Cloud Frontend, verified source/consumer file hashes, rebuilt Cloud Frontend without reinstalling dependencies, and ran `sudo ./agent.sh install`. `/v3/netdata.charts.js` now exactly matches the verified Cloud build (`sha256 497c8265890b4b006cc634572d10bda27621ebf42c72d46f772d3eb364752348`) and contains the WebGPU renderer.
+- Built the installed local `/v3/` demo with an ephemeral `line -> webgpu` preference so the user can inspect WebGPU without changing the committed default. The installed `app.js` matches the demo build (`sha256 48061a08137c840c3aa2f52feb85297ed1c660e4035a1ca9beecaf06f5cc9547`); the temporary source override was then removed, leaving all isolated branches clean.
+- The user's normal Chromium is explicitly forced to X11 and reports `No available adapters`; line charts correctly fell back to Dygraphs there while topology GPU rendering continued through its separate WebGL backend. A separate native-Wayland Chromium profile, without unsafe WebGPU flags, loaded the same `/v3/` build and proved `adapterAcquired: true`, preference `{ line: "webgpu" }`, 10 visible WebGPU canvases, 10 WebGPU chart instances, and 7 expected non-line Dygraphs instances.
 - Committed the production-capable opt-in line milestone with message `feat: add production WebGPU line renderer`.
+- The user selected line/Cloud/browser hardening before any rollout or next-visualization work.
 
 ## Validation
 
@@ -249,7 +254,7 @@ Tests or equivalent validation:
 Real-use evidence:
 
 - Physical Chromium 150 acquired the local NVIDIA Blackwell adapter through Wayland without unsafe flags and rendered/exported the production line adapter.
-- Cloud Frontend consumes the renderer-neutral chart identity patch and final local package; scoped lint passed. Full build remains blocked only by the checkout's unrelated absent `pixi.js` installation.
+- Isolated Cloud Frontend consumption passed scoped ESLint and full testing/agent builds. The locally served `/v3/` bundle matches the verified agent build and contains the WebGPU renderer; results from duplicate or shared checkouts are not accepted as evidence.
 
 Reviewer findings:
 
@@ -295,7 +300,7 @@ Follow-up mapping:
 
 ## Outcome
 
-The first production-capable ordinary-line WebGPU adapter is implemented and physically validated behind opt-in routing. The SOW remains in progress because runtime/power policy, browser/device matrix, Cloud Frontend's unrelated build dependency repair, rollout/default approval, and a decision on the next visualization tranche are intentionally separate follow-up milestones.
+The first production-capable ordinary-line WebGPU adapter is implemented and physically validated behind opt-in routing. The next approved milestone is line hardening through the active Cloud Frontend consumer and broader browser/device validation. Runtime/power policy, rollout/default approval, and the next visualization tranche remain intentionally deferred.
 
 ## Lessons Extracted
 
