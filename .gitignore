@@ -8,6 +8,5 @@ dist
 coverage
 storybook-static
 /.local/
-CLAUDE.md
 .superpowers
 docs/superpowers

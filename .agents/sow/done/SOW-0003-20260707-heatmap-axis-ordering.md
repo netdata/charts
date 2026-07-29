@@ -1,4 +1,10 @@
-# SOW: Heatmap Y-Axis Bucket Ordering and Label Scaling
+# SOW-0003 - Heatmap Y-Axis Bucket Ordering and Label Scaling
+
+## Status
+
+Status: completed
+
+Sub-state: Historical implementation and follow-up ledger completed before the project-local SOW framework was installed; preserved and normalized without rewriting its original narrative.
 
 ## Requirements (Purpose)
 
@@ -1063,3 +1069,21 @@ Non-heatmap popovers must not be affected.
   `sudo ./agent.sh install`
 - Repo-wide lint was checked with `yarn lint`; it still fails on unrelated
   existing errors outside this change.
+
+## Outcome
+
+The original heatmap ordering, scaling, synchronization, visibility, popover, color, and hover work recorded above was implemented and validated before SOW framework initialization. The historical ledger is retained as the evidence source for those changes.
+
+## Lessons Extracted
+
+- Heatmap behavior spans SDK attributes, payload indexing, renderer geometry, axis labels, hover, popovers, and live timing; validation must cover the complete interaction path rather than one helper in isolation.
+- Real chart instances and real payload flow catch indexing and lifecycle failures that hand-built chart doubles miss.
+- Repo-wide lint failures must be separated from scoped changed-file validation rather than silently claimed clean.
+
+## Followup
+
+The earlier superseded popover approach remains in the original narrative for historical context. Future regressions in outcomes claimed by this SOW must reopen this file rather than creating a replacement SOW.
+
+## Regression Log
+
+None recorded at framework normalization time.
