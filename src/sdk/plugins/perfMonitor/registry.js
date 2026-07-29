@@ -31,8 +31,9 @@ export const timeRender = (chartId, renderer, fn) => {
   if (!enabled) return fn()
 
   const start = performance.now()
-  fn()
+  const result = fn()
   queueMicrotask(() => record(chartId, renderer, performance.now() - start))
+  return result
 }
 
 export const sampleHeap = () => {
