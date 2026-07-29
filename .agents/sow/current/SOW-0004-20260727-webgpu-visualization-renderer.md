@@ -4,7 +4,7 @@
 
 Status: in-progress
 
-Sub-state: The first production-capable opt-in line renderer now works and passes its physical-GPU gates. Visualization/renderer separation, one-canvas rendering, exact line data semantics, interactions, fallback, exports, and shared-runtime multi-chart lifecycle are implemented. The active hardening milestone first repairs physically reproduced hover hairline/popover regressions, then evaluates an exact WebGL2 acceleration fallback for environments where WebGPU cannot acquire an adapter. Runtime/power policy, broader browser/device coverage, rollout/defaulting, and later visualization adapters remain intentionally deferred; Dygraphs remains every default.
+Sub-state: The production-capable opt-in line renderer now passes physical WebGPU and WebGL2 gates. Visualization/renderer separation, shared exact line semantics/interactions, one-canvas presentation, `WebGPU -> WebGL2 -> Dygraphs` routing, exports, hover feedback, device/context-loss fallback, and shared-runtime multi-chart lifecycle are implemented. Runtime/power policy, authorized Windows/macOS coverage, rollout/defaulting, and later visualization adapters remain intentionally deferred; Dygraphs remains every default.
 
 ## Requirements
 
@@ -52,7 +52,7 @@ Unknowns:
 - The internal engine separates visualization identity from rendering backend and provides shared runtime, surface/frame, ordered-layer, primitive, text-atlas, and interaction seams usable by all current visualization families without line/time-series assumptions.
 - The first implementation exercises those seams through exact visual and interaction parity for ordinary line charts; no empty future visualization adapters or unused speculative primitives are added.
 - Approved production scope has exact visual and interaction parity against Dygraphs for every enabled chart type and state.
-- WebGPU is preferred only for approved eligible chart types after capability and feature checks. A WebGL2 backend may become the accelerated compatibility fallback only after proving the same exact-data correctness, performance, export, and lifecycle gates; Dygraphs remains installed as the final compatibility fallback.
+- WebGPU is preferred only for approved eligible chart types after capability and feature checks. WebGL2 is the proven accelerated compatibility fallback for ordinary line charts, and Dygraphs remains installed as the final compatibility fallback.
 - Runtime routing never benchmarks renderers dynamically and never falls back solely because WebGPU requires more than one display frame.
 - Shared device/pipelines, prewarming, persistent buffers, multi-chart ownership, virtualization, resize, teardown, and device-loss recovery are validated without leaks or blank charts.
 - Existing payload/query/public timestamp contracts remain unchanged; compact point-schema values, null gaps, visibility, colors, corrected history, and full updates retain exact semantics.
@@ -180,7 +180,7 @@ Open decisions:
 
 ## Implications And Decisions
 
-1. **GPU direction:** approved. WebGPU remains the preferred production backend. WebGL2 is approved as a potential exact acceleration fallback—not a replacement or third-party chart library—subject to the existing benchmark and parity gates before production routing.
+1. **GPU direction:** approved and proven. WebGPU remains the preferred production backend. WebGL2 is the exact accelerated compatibility fallback—not a replacement or third-party chart library—and passed the production benchmark/parity gates before entering routing.
 2. **Runtime fallback meaning:** approved. Fallback is for capability, unsupported feature, initialization/pipeline failure, or device loss—not a one-frame performance threshold.
 3. **Current default:** approved. Dygraphs remains default until the production SOW proves and receives approval for a rollout milestone.
 4. **No silent approximation:** retained. Exact rendering remains mandatory unless a separate explicit product mode is designed and approved.
@@ -191,7 +191,7 @@ Open decisions:
 9. **Runtime, platforms, and rollout:** explicitly deferred by the user until a production-capable renderer works. Prototype fallback behavior remains unchanged in the meantime.
 10. Production architecture implementation is approved. Later runtime/platform/rollout policy remains deferred and does not block the opt-in renderer.
 11. **Hover regression repair:** approved. Treat `clickX` as active only when it contains a finite timestamp, otherwise render valid `hoverX`; forward WebGPU native pointer exit/motion through the renderer-neutral `chartUI` event contract so the existing React popover works unchanged.
-12. **WebGL2 fallback evaluation:** approved. First build an exact standalone feasibility backend against the existing deterministic 100,000/1,000,000-value workloads. If it passes, share visualization/data/interaction logic and keep only shaders, GPU resources, surfaces, and loss handling backend-specific. The intended chain is `WebGPU -> WebGL2 -> Dygraphs`; no sampling, approximation, or WebGPU compatibility-mode assumption is allowed.
+12. **WebGL2 fallback:** approved and implemented. The standalone feasibility and full production backend passed deterministic 100,000/1,000,000-value gates. Visualization/data/interaction logic is shared; shaders, GPU resources, surfaces, and loss handling remain backend-specific. The chain is `WebGPU -> WebGL2 -> Dygraphs`; no sampling, approximation, or WebGPU compatibility-mode assumption is allowed.
 
 ## Plan
 
@@ -254,6 +254,13 @@ Open decisions:
 - Physical Chromium 150/X11 on the NVIDIA RTX 5090 passed the WebGL2 feasibility gates. At 100,000 values, mount/update work completed in 14.8/2.1 ms within the measured frame budget with 6.06x/5.40x synchronous speedups. At 1,000,000 values, frame-settled mount/update speedups were 10.39x/7.20x and sustained updates reached 59.20/sec.
 - WebGL2 correctness checks rendered every source pair, distinct smooth/step output, an empty pixel band across an injected exact null gap, non-empty PNG exports, and four-chart mount/update/teardown with context references returning from four to zero. Final ephemeral evidence is `/tmp/webgl2-feasibility-benchmark-final.json`.
 - The feasibility gate is therefore passed. Production integration may proceed behind shared visualization/data/interaction contracts; final routing remains blocked until axes, text, overlays, interactions, export, context-loss fallback, tests, builds, Cloud consumption, and physical X11/Wayland validation pass.
+- Moved backend-neutral color, text shaping/cache, axes, overlays, exact payload/range logic, smooth/step layout, and interactions under `src/chartLibraries/gpu/`. WebGPU and WebGL2 now supply only runtime/surface/resource/shader implementations to the same line visualization.
+- Added recursive capability/runtime routing. A configured WebGPU line uses WebGL2 when WebGPU is unsupported or adapter/device/pipeline/render initialization fails; unsupported WebGL2 or context loss advances to Dygraphs without changing visualization identity or the mounted React Line component.
+- The first production WebGL2 implementation used one context/program set per chart and failed the 100,000-value mount gate at 31-37 ms. Replaced it with one SDK-owned shared context/program cache and exact per-chart Canvas2D presentation. This avoids browser context limits, retains one visible canvas per chart, improves direct/html2canvas export compatibility, and reduced 100,000-value mount work to 9.1 ms.
+- Final physical Chromium 150/X11 production benchmark passed: 100,000-value mount/update work was 9.1/2.0 ms; 1,000,000-value frame-settled mount/update speedups were 11.05x/7.02x; sustained updates were 59.97/sec. Exact smooth/step/gap pixels, PNG export, four-chart shared-runtime references, and forced context-loss fallback to Dygraphs passed. Evidence: `/tmp/webgl2-production-benchmark-final.json`.
+- A final combined Chromium 150/Wayland run passed both production backends and the complete runtime-loss chain. At 1,000,000 values WebGPU achieved 8.33x/7.54x mount/update frame speedups and WebGL2 achieved 12.09x/7.27x; both passed exports and shared-runtime lifecycle. Forced WebGPU device loss selected WebGL2, then forced WebGL2 context loss selected Dygraphs with no retained context. Evidence: `/tmp/gpu-production-benchmark-final.json`.
+- Rebuilt and installed the isolated Cloud consumer. Native Wayland retained WebGPU, while normal X11 reported no WebGPU adapter and automatically rendered ordinary lines through WebGL2. Physical WebGL2 hover produced a finite synchronized `hoverX`, a visible GPU hairline, an opening/closing React popover, and a non-empty PNG while `clickX` remained `[null, null]`. Evidence: `/tmp/gpu-cloud-wayland-validation.json`, `/tmp/webgl2-cloud-x11-validation.json`, `/tmp/webgl2-cloud-x11-hover-validation.json`, and `/tmp/webgl2-cloud-x11-hover-large.png`.
+- Both GPU-backed Cloud browser reloads emitted the same React development warning about an asynchronous state update before mount. No stack currently attributes it to Charts, but a non-GPU baseline was not rerun, so its ownership is unproven. It caused no page error, blank chart, unexpected fallback, or failed interaction; diagnose separately if it persists during rollout hardening.
 
 ## Validation
 
@@ -266,17 +273,18 @@ Acceptance criteria evidence:
 
 Tests or equivalent validation:
 
-- Full Jest with coverage: 167 suites passed; 1,552 tests passed and 2 skipped. Coverage passed unchanged thresholds at 61.86% statements, 55.60% branches, 61.33% functions, and 62.83% lines.
-- Focused WebGPU/routing/controller tests: 17 suites and 70 tests passed.
-- Clean CommonJS and ES6 distributions built with 518 files each; stale prototype kernel/shader outputs were absent.
+- Full Jest with coverage: 169 suites passed; 1,558 tests passed and 2 skipped. Coverage passed unchanged thresholds at 59.62% statements, 54.50% branches, 59.12% functions, and 60.59% lines.
+- Focused shared-GPU, WebGPU, WebGL2 primitive, routing, controller, hover, and default-SDK tests passed without new Jest mocks.
+- Clean CommonJS and ES6 distributions built with 541 files each; moved backend-neutral modules and both GPU backends were present, while stale pre-move paths were absent.
 - Changed-file ESLint passed. Repository lint retained 35 unrelated pre-existing errors and introduced none in changed files.
-- Storybook static build passed. SOW audit and `git diff --check` passed.
+- Storybook static build passed. The isolated Cloud production build and final agent installation passed. Mixed-size X11 WebGL2 canvases all exported non-empty frames without cropping or blanks (`/tmp/webgl2-cloud-x11-final.json` and matching narrow/large screenshots). SOW audit and `git diff --check` passed.
 - Physical benchmark passed one-frame 100,000-value mount/update work, greater-than-5x 1,000,000-value frame speedups, PNG export, sustained updates, and four-chart shared-runtime lifecycle gates.
 
 Real-use evidence:
 
-- Physical Chromium 150 acquired the local NVIDIA Blackwell adapter through Wayland without unsafe flags and rendered/exported the production line adapter.
-- Isolated Cloud Frontend consumption passed scoped ESLint and full testing/agent builds. The locally served `/v3/` bundle matches the verified agent build and contains the WebGPU renderer; results from duplicate or shared checkouts are not accepted as evidence.
+- Physical Chromium 150 acquired the local NVIDIA Blackwell adapter through Wayland without unsafe flags and rendered/exported the preferred WebGPU line backend.
+- The same Chromium build under normal X11 could not acquire WebGPU, automatically selected hardware WebGL2, and rendered/exported/interacted through the same line visualization without unsafe flags.
+- Isolated Cloud Frontend consumption passed its production agent build. The locally served `/v3/` Charts bundle matches the verified build at `sha256 02a1d906ff22f00c828bbf4324d83fd1a5b2728858f5155bf91a0289e2048114`; results from duplicate or shared checkouts are not accepted as evidence.
 
 Reviewer findings:
 
@@ -292,7 +300,7 @@ Sensitive data gate:
 
 Artifact maintenance gate:
 
-- Updated the current-reality consumer contract and project development/testing skills. No end-user documentation or operator skill changes are warranted while WebGPU remains internal opt-in and defaults are unchanged.
+- Updated the current-reality consumer contract, project development/testing skills, and isolated Cloud consumer references for the shared GPU model and `WebGPU -> WebGL2 -> Dygraphs` chain. No end-user documentation or operator skill changes are warranted while GPU rendering remains internal opt-in and defaults are unchanged.
 
 Specs update:
 
@@ -322,7 +330,7 @@ Follow-up mapping:
 
 ## Outcome
 
-The first production-capable ordinary-line WebGPU adapter is implemented and physically validated behind opt-in routing. The next approved milestone is line hardening through the active Cloud Frontend consumer and broader browser/device validation. Runtime/power policy, rollout/default approval, and the next visualization tranche remain intentionally deferred.
+The production-capable ordinary-line GPU adapter is implemented and physically validated behind opt-in routing on both preferred WebGPU and accelerated WebGL2 fallback paths. The next approved milestone remains broader authorized browser/device hardening. Runtime/power policy, rollout/default approval, and the next visualization tranche remain intentionally deferred.
 
 ## Lessons Extracted
 

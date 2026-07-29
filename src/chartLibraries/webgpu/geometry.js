@@ -1,1 +1,1 @@
-export * from "./visualizations/cartesian/line/geometry"
+export * from "@/chartLibraries/gpu/visualizations/cartesian/line/geometry"

@@ -1,19 +1,14 @@
 import { unregister } from "@/helpers/makeListeners"
-import makeSurface from "@/chartLibraries/webgpu/engine/surface"
-import makeCircleLayer from "@/chartLibraries/webgpu/primitives/circle"
-import makeRectLayer from "@/chartLibraries/webgpu/primitives/rect"
-import makeTextLayer from "@/chartLibraries/webgpu/text"
 import { makeCartesianAxes, makePlotArea } from "../axes"
 import { makeCrosshairRects } from "../interaction"
 import { makeOverlayRects } from "../overlays"
 import makeInteractions from "./interactions"
 import { makeDataDecorationRects, makeGapEdgeCircles } from "./decorations"
 import makePackedData from "./data"
-import makeKernel from "./kernel"
 import { getVisibleRange } from "./range"
 import { makeSeriesColors } from "./colors"
 
-export default ({ chart, chartUI }) => {
+export default ({ chart, chartUI, makeResources }) => {
   const packedData = makePackedData(chart)
   let resource = null
   let listeners = null
@@ -115,52 +110,10 @@ export default ({ chart, chartUI }) => {
     colorsDirty = true
   }
 
-  const createGPU = async (runtime, canvas) => {
-    const surface = makeSurface(runtime, canvas)
-    let grid = null
-    let interaction = null
-    let overlay = null
-    let line = null
-    let marker = null
-    let text = null
-    try {
-      grid = await makeRectLayer(runtime, surface, "grid")
-      interaction = await makeRectLayer(runtime, surface, "interaction")
-      overlay = await makeRectLayer(runtime, surface, "overlay")
-      line = await makeKernel(runtime, surface)
-      marker = await makeCircleLayer(runtime, surface)
-      text = await makeTextLayer(runtime, surface)
-      return {
-        surface,
-        grid,
-        interaction,
-        overlay,
-        line,
-        marker,
-        text,
-        destroy: () => {
-          grid.destroy()
-          interaction.destroy()
-          overlay.destroy()
-          line.destroy()
-          marker.destroy()
-          text.destroy()
-          surface.destroy()
-        },
-      }
-    } catch (error) {
-      grid?.destroy()
-      interaction?.destroy()
-      overlay?.destroy()
-      line?.destroy()
-      marker?.destroy()
-      text?.destroy()
-      surface.destroy()
-      throw error
-    }
-  }
+  const createResources = (runtime, canvas, onLost) =>
+    makeResources(runtime, canvas, onLost)
 
-  const attachGPU = nextResource => {
+  const attachResources = nextResource => {
     resource?.destroy()
     resource = nextResource
   }
@@ -339,13 +292,14 @@ export default ({ chart, chartUI }) => {
   return {
     mount,
     unmount,
-    createGPU,
-    attachGPU,
+    createResources,
+    attachResources,
     render,
     getPlotArea,
     getXAxisRange,
     getXCoord,
     getQueueDone: () => resource?.surface.getQueueDone(),
+    getDrawStats: () => resource?.line.getDrawStats?.() || null,
     getBufferBytes: () =>
       resource
         ? resource.grid.getBufferBytes() +

@@ -1,27 +1,25 @@
 import makeRenderer from "./engine/makeRenderer"
-import { isWebGPUSupported } from "./engine/runtime"
+import { isWebGL2Supported } from "./engine/runtime"
 import { getVisualization, hasVisualization } from "./visualizations"
 
 const makeUnsupportedVisualization = visualization => () => ({
   mount: () => {},
   unmount: () => {},
   createResources: () =>
-    Promise.reject(new Error(`Unsupported WebGPU visualization: ${visualization}`)),
+    Promise.reject(new Error(`Unsupported WebGL2 visualization: ${visualization}`)),
   attachResources: resource => resource.destroy?.(),
   render: () => false,
 })
 
-const makeWebGPU = (sdk, chart) => {
+const makeWebGL2 = (sdk, chart) => {
   const visualizationId =
     chart.getVisualizationType?.() || chart.getAttribute("chartType") || "line"
   const makeVisualization =
     getVisualization(visualizationId) || makeUnsupportedVisualization(visualizationId)
-
   return makeRenderer({ sdk, chart, makeVisualization, visualizationId })
 }
 
-makeWebGPU.isSupported = (sdk, visualization = "line") =>
-  hasVisualization(visualization) && isWebGPUSupported(sdk)
-makeWebGPU.fallbackRenderer = "webgl2"
+makeWebGL2.isSupported = (sdk, visualization = "line") =>
+  hasVisualization(visualization) && isWebGL2Supported(sdk)
 
-export default makeWebGPU
+export default makeWebGL2

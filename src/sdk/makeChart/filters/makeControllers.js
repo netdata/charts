@@ -168,14 +168,30 @@ export default (chart, getChartInstance = () => chart) => {
 
   const getVisualizationType = () => activeVisualization || inferVisualization()
 
-  const getRendererForVisualization = visualization => {
-    const fallbackRenderer = legacyRendererByVisualization[visualization] || "dygraph"
-    const renderer = getConfiguredRenderer(visualization) || fallbackRenderer
+  const resolveRenderer = (renderer, visualization, legacyRenderer, visited = new Set()) => {
+    if (!renderer || visited.has(renderer)) return legacyRenderer
+    visited.add(renderer)
     const makeRenderer = chart.sdk.ui[renderer]
-    if (!makeRenderer) return fallbackRenderer
-    return makeRenderer.isSupported?.(chart.sdk, visualization) === false
-      ? fallbackRenderer
-      : renderer
+    if (
+      makeRenderer &&
+      makeRenderer.isSupported?.(chart.sdk, visualization) !== false
+    )
+      return renderer
+    return resolveRenderer(
+      makeRenderer?.fallbackRenderer || legacyRenderer,
+      visualization,
+      legacyRenderer,
+      visited
+    )
+  }
+
+  const getRendererForVisualization = visualization => {
+    const legacyRenderer = legacyRendererByVisualization[visualization] || "dygraph"
+    return resolveRenderer(
+      getConfiguredRenderer(visualization) || legacyRenderer,
+      visualization,
+      legacyRenderer
+    )
   }
 
   const getRendererForChartType = getRendererForVisualization
@@ -235,7 +251,11 @@ export default (chart, getChartInstance = () => chart) => {
     const visualization = getVisualizationType()
     const legacyRenderer = legacyRendererByVisualization[visualization] || "dygraph"
     const requestedFallback = fallbackRenderer || legacyRenderer
-    const nextRenderer = requestedFallback in chart.sdk.ui ? requestedFallback : legacyRenderer
+    const nextRenderer = resolveRenderer(
+      requestedFallback,
+      visualization,
+      legacyRenderer
+    )
     if (nextRenderer === failedRenderer || !(nextRenderer in chart.sdk.ui)) return false
 
     chart.updateAttribute("chartLibrary", nextRenderer)

@@ -53,7 +53,7 @@ fn loadScreenPoint(seriesIndex: u32, pointIndex: u32) -> vec2<f32> {
 }
 
 fn validScreenPoint(point: vec2<f32>) -> bool {
-  return point.y == point.y && point.y != 0.0;
+  return point.y == point.y;
 }
 
 fn smoothControls(seriesIndex: u32, pointIndex: u32) -> SmoothControls {

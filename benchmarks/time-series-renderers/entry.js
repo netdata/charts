@@ -3,10 +3,11 @@ import {
   disposeWebGPURuntime,
   getWebGPURuntime,
 } from "@/chartLibraries/webgpu/runtime"
-import makeWebGL2BenchmarkUI, {
+import {
+  disposeWebGL2Runtime,
   getActiveWebGL2Contexts,
-  inspectWebGL2,
-} from "./webgl2"
+  getWebGL2Runtime,
+} from "@/chartLibraries/webgl2/engine/runtime"
 
 const width = 1600
 const height = 500
@@ -100,12 +101,7 @@ const makeChart = state => {
     },
   })
   chart.updateDimensions()
-  if (state.renderer === "webgl2") {
-    chart.updateAttribute("chartLibrary", "webgl2")
-    chart.setUI(makeWebGL2BenchmarkUI({ chart, width, height }))
-  } else {
-    chart.reconcileChartLibrary()
-  }
+  chart.reconcileChartLibrary()
 
   if (chart.getAttribute("chartLibrary") !== state.renderer) {
     throw new Error(`Expected ${state.renderer} but routed to ${chart.getAttribute("chartLibrary")}`)
@@ -211,10 +207,12 @@ const prepare = async ({ renderer, dimensions, points, gaps = false }) => {
       description: info.description || null,
     }
   } else if (renderer === "webgl2") {
+    prepared.runtime = getWebGL2Runtime(sdk)
     const startedAt = performance.now()
-    adapterInfo = inspectWebGL2()
+    await prepared.runtime.acquire()
     coldRuntimeMs = performance.now() - startedAt
-    if (!adapterInfo) throw new Error("WebGL2 is unavailable")
+    prepared.runtimeLease = true
+    adapterInfo = prepared.runtime.info
   }
 
   await forceGc()
@@ -246,8 +244,7 @@ const measureMultiChart = async (count = 4) => {
   await Promise.all(instances.map(instance => instance.ui.getQueueDone()))
   await nextFrame()
   const mountMs = performance.now() - mountStartedAt
-  const resourceReferencesDuring =
-    prepared.renderer === "webgpu" ? prepared.runtime.references : getActiveWebGL2Contexts()
+  const resourceReferencesDuring = prepared.runtime.references
 
   const updateStartedAt = performance.now()
   instances.forEach(instance => {
@@ -264,8 +261,7 @@ const measureMultiChart = async (count = 4) => {
   )
 
   instances.forEach(instance => instance.destroy())
-  const resourceReferencesAfter =
-    prepared.renderer === "webgpu" ? prepared.runtime.references : getActiveWebGL2Contexts()
+  const resourceReferencesAfter = prepared.runtime.references
   return {
     count,
     mountMs,
@@ -495,7 +491,26 @@ const exerciseDeviceLossFallback = async () => {
 
   return {
     renderer: preview.chart.getAttribute("chartLibrary"),
-    hasDygraph: Boolean(preview.ui.getDygraph?.()),
+    hasWebGL2: preview.chart.getAttribute("chartLibrary") === "webgl2",
+    hasDygraph: Boolean(preview.chart.getUI().getDygraph?.()),
+  }
+}
+
+const exerciseWebGL2ContextLossFallback = async () => {
+  const runtime = prepared?.sdk ? getWebGL2Runtime(prepared.sdk) : null
+  if (!preview || preview.chart.getAttribute("chartLibrary") !== "webgl2" || !runtime?.gl)
+    throw new Error("A WebGL2 preview is required")
+  const extension = runtime.gl.getExtension("WEBGL_lose_context")
+  if (!extension) throw new Error("WEBGL_lose_context is unavailable")
+
+  extension.loseContext()
+  const deadline = performance.now() + 2000
+  while (preview.chart.getAttribute("chartLibrary") === "webgl2" && performance.now() < deadline) {
+    await new Promise(resolve => setTimeout(resolve, 10))
+  }
+  return {
+    renderer: preview.chart.getAttribute("chartLibrary"),
+    hasDygraph: Boolean(preview.chart.getUI().getDygraph?.()),
   }
 }
 
@@ -503,7 +518,10 @@ const cleanup = async () => {
   preview?.destroy()
   preview = null
   if (prepared?.runtimeLease) prepared.runtime.release()
-  if (prepared?.renderer === "webgpu" && prepared.sdk) disposeWebGPURuntime(prepared.sdk)
+  if (prepared?.sdk) {
+    disposeWebGPURuntime(prepared.sdk)
+    disposeWebGL2Runtime(prepared.sdk)
+  }
   prepared = null
   document.querySelectorAll("[data-benchmark-chart]").forEach(element => element.remove())
   setStatus("Renderer benchmark is idle")
@@ -517,6 +535,7 @@ window.__NETDATA_RENDERER_BENCHMARK__ = {
   inspectPreview,
   capturePreview,
   exerciseDeviceLossFallback,
+  exerciseWebGL2ContextLossFallback,
   getActiveWebGL2Contexts,
   cleanup,
 }

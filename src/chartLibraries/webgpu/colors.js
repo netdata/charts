@@ -1,1 +1,1 @@
-export * from "./visualizations/cartesian/line/colors"
+export * from "@/chartLibraries/gpu/visualizations/cartesian/line/colors"

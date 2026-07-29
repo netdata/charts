@@ -4,19 +4,15 @@ import {
   makeTextCacheKey,
   rasterizeText,
 } from "@/chartLibraries/gpu/text"
-import retireAfterSubmission from "@/chartLibraries/webgpu/engine/retirement"
 
 const ATLAS_SIZE = 1024
 const ATLAS_PADDING = 2
 const CACHE_MAX = 1024
 
-export { makeTextCacheKey }
-
-export default runtime => {
-  const { device } = runtime
-  const size = Math.min(ATLAS_SIZE, device.limits.maxTextureDimension2D)
+export default gl => {
+  const size = Math.min(ATLAS_SIZE, gl.getParameter(gl.MAX_TEXTURE_SIZE))
   const canvas = makeRasterCanvas()
-  let texture = null
+  const texture = gl.createTexture()
   let generation = 0
   let x = ATLAS_PADDING
   let y = ATLAS_PADDING
@@ -24,26 +20,28 @@ export default runtime => {
   let destroyed = false
   const cache = makeBoundedCache(CACHE_MAX)
 
-  const createTexture = () =>
-    device.createTexture({
-      label: "netdata-text-atlas",
-      size: [size, size, 1],
-      format: "rgba8unorm",
-      usage:
-        GPUTextureUsage.TEXTURE_BINDING |
-        GPUTextureUsage.COPY_DST |
-        GPUTextureUsage.RENDER_ATTACHMENT,
-    })
-
   const reset = () => {
-    const previous = texture
-    texture = createTexture()
+    gl.bindTexture(gl.TEXTURE_2D, texture)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      size,
+      size,
+      0,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      null
+    )
     generation += 1
     x = ATLAS_PADDING
     y = ATLAS_PADDING
     rowHeight = 0
     cache.clear()
-    if (previous) retireAfterSubmission(device.queue.onSubmittedWorkDone(), previous)
   }
 
   const allocate = (width, height) => {
@@ -70,30 +68,33 @@ export default runtime => {
 
     const shaped = rasterizeText(canvas, { text, font, dpr })
     if (!shaped) return null
-    const { width: widthCss, height: heightCss, pixelWidth: width, pixelHeight: height } =
-      shaped
-
-    let allocation = allocate(width, height)
+    const { width, height, pixelWidth, pixelHeight } = shaped
+    let allocation = allocate(pixelWidth, pixelHeight)
     if (!allocation) {
       reset()
-      allocation = allocate(width, height)
+      allocation = allocate(pixelWidth, pixelHeight)
     }
     if (!allocation) return null
 
-    device.queue.copyExternalImageToTexture(
-      { source: canvas },
-      { texture, origin: { x: allocation.x, y: allocation.y } },
-      { width, height }
+    gl.bindTexture(gl.TEXTURE_2D, texture)
+    gl.texSubImage2D(
+      gl.TEXTURE_2D,
+      0,
+      allocation.x,
+      allocation.y,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      canvas
     )
 
     const entry = {
       generation,
-      width: widthCss,
-      height: heightCss,
+      width,
+      height,
       u0: allocation.x / size,
       v0: allocation.y / size,
-      u1: (allocation.x + width) / size,
-      v1: (allocation.y + height) / size,
+      u1: (allocation.x + pixelWidth) / size,
+      v1: (allocation.y + pixelHeight) / size,
     }
     cache.set(key, entry)
     return entry
@@ -103,23 +104,16 @@ export default runtime => {
     if (destroyed) return
     destroyed = true
     cache.clear()
-    texture?.destroy()
-    texture = null
+    gl.deleteTexture(texture)
   }
 
   reset()
-
   return {
+    texture,
     rasterize,
     destroy,
-    get texture() {
-      return texture
-    },
     get generation() {
       return generation
-    },
-    get size() {
-      return size
     },
   }
 }

@@ -1,4 +1,5 @@
-import { parseColor } from "@/chartLibraries/webgpu/engine/color"
+import { parseColor } from "@/chartLibraries/gpu/color"
+import { placeText } from "@/chartLibraries/gpu/text"
 import makeAtlas from "./atlas"
 import shader from "./shader"
 
@@ -8,12 +9,7 @@ const nextBufferSize = byteLength => {
   return size
 }
 
-export const placeText = ({ x, y, width, height, align = "left", verticalAlign = "top" }) => ({
-  x: align === "center" ? x - width / 2 : align === "right" ? x - width : x,
-  y: verticalAlign === "middle" ? y - height / 2 : verticalAlign === "bottom" ? y - height : y,
-  width,
-  height,
-})
+export { placeText }
 
 const makePipeline = async runtime => {
   const { device, format } = runtime

@@ -149,6 +149,16 @@ const validateWebGL2 = async (browser, port) => {
       )
       await page.evaluate(() => window.__NETDATA_RENDERER_BENCHMARK__.cleanup())
     }
+    await page.evaluate(input => window.__NETDATA_RENDERER_BENCHMARK__.prepare(input), {
+      renderer: "webgl2",
+      dimensions: 1,
+      points: 100,
+    })
+    await page.evaluate(() => window.__NETDATA_RENDERER_BENCHMARK__.mountPreview())
+    captures.contextLoss = await page.evaluate(() =>
+      window.__NETDATA_RENDERER_BENCHMARK__.exerciseWebGL2ContextLossFallback()
+    )
+    await page.evaluate(() => window.__NETDATA_RENDERER_BENCHMARK__.cleanup())
     captures.activeContextsAfter = await page.evaluate(() =>
       window.__NETDATA_RENDERER_BENCHMARK__.getActiveWebGL2Contexts()
     )
@@ -170,10 +180,54 @@ const validateWebGL2 = async (browser, port) => {
       captures.smooth.sha256 !== captures.step.sha256 &&
       captures.step.drawStats.segmentsPerPair === 2 &&
       captures.gap.gapBandNonTransparentPixels === 0 &&
+      captures.contextLoss.renderer === "dygraph" &&
+      captures.contextLoss.hasDygraph &&
       captures.activeContextsAfter === 0
   )
 
   return { captures, exactDraws, passed }
+}
+
+const validateFallbackChain = async (browser, port) => {
+  const context = await browser.newContext({
+    viewport: { width: 1600, height: 500 },
+    deviceScaleFactor: 1,
+  })
+  const page = await context.newPage()
+  try {
+    await page.goto(`http://127.0.0.1:${port}`, { waitUntil: "load" })
+    await page.waitForFunction(() => Boolean(window.__NETDATA_RENDERER_BENCHMARK__))
+    await page.evaluate(input => window.__NETDATA_RENDERER_BENCHMARK__.prepare(input), {
+      renderer: "webgpu",
+      dimensions: 1,
+      points: 100,
+    })
+    await page.evaluate(() => window.__NETDATA_RENDERER_BENCHMARK__.mountPreview())
+    const deviceLoss = await page.evaluate(() =>
+      window.__NETDATA_RENDERER_BENCHMARK__.exerciseDeviceLossFallback()
+    )
+    const contextLoss = await page.evaluate(() =>
+      window.__NETDATA_RENDERER_BENCHMARK__.exerciseWebGL2ContextLossFallback()
+    )
+    await page.evaluate(() => window.__NETDATA_RENDERER_BENCHMARK__.cleanup())
+    const activeWebGL2Contexts = await page.evaluate(() =>
+      window.__NETDATA_RENDERER_BENCHMARK__.getActiveWebGL2Contexts()
+    )
+    return {
+      deviceLoss,
+      contextLoss,
+      activeWebGL2Contexts,
+      passed:
+        deviceLoss.renderer === "webgl2" &&
+        deviceLoss.hasWebGL2 &&
+        !deviceLoss.hasDygraph &&
+        contextLoss.renderer === "dygraph" &&
+        contextLoss.hasDygraph &&
+        activeWebGL2Contexts === 0,
+    }
+  } finally {
+    await context.close()
+  }
 }
 
 const compare = results =>
@@ -185,9 +239,8 @@ const compare = results =>
       const candidate = results.find(
         result => result.renderer === candidateRenderer && result.values === values
       )
-      const expectedReferencesAfter = candidateRenderer === "webgpu" ? 1 : 0
-      const expectedReferencesDuring =
-        candidate.multiChart.count + expectedReferencesAfter
+      const expectedReferencesAfter = 1
+      const expectedReferencesDuring = candidate.multiChart.count + expectedReferencesAfter
       const multiChartPassed = Boolean(
         candidate.multiChart &&
           candidate.multiChart.resourceReferencesDuring === expectedReferencesDuring &&
@@ -280,15 +333,18 @@ const run = async () => {
   const browserVersion = browser.version()
   const results = []
   let webgl2Correctness = null
+  let fallbackChain = null
 
   try {
-    if (candidateRenderers.includes("webgl2"))
-      webgl2Correctness = await validateWebGL2(browser, port)
     for (const workload of workloads) {
       for (const renderer of renderers) {
         results.push(await measureCase(browser, port, { ...workload, renderer }))
       }
     }
+    if (candidateRenderers.includes("webgl2"))
+      webgl2Correctness = await validateWebGL2(browser, port)
+    if (candidateRenderers.includes("webgpu"))
+      fallbackChain = await validateFallbackChain(browser, port)
   } finally {
     await browser.close()
     await close()
@@ -297,6 +353,7 @@ const run = async () => {
   const comparisons = compare(results)
   const passed =
     (!webgl2Correctness || webgl2Correctness.passed) &&
+    (!fallbackChain || fallbackChain.passed) &&
     comparisons.every(
       result =>
         result.mountPassed &&
@@ -326,7 +383,7 @@ const run = async () => {
       memory: "Chromium usedJSHeapSize delta after forced GC; peak sampled after settled draws",
     },
     results,
-    correctness: { webgl2: webgl2Correctness },
+    correctness: { webgl2: webgl2Correctness, fallbackChain },
     comparisons,
     passed,
   }

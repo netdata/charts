@@ -1,5 +1,6 @@
 import dygraph from "./chartLibraries/dygraph"
 import webgpu from "./chartLibraries/webgpu"
+import webgl2 from "./chartLibraries/webgl2"
 import easypiechart from "./chartLibraries/easyPie"
 import gauge from "./chartLibraries/gauge"
 import number from "./chartLibraries/number"
@@ -22,7 +23,18 @@ const minutes15 = 15 * 60
 
 export default ({ attributes, ...options } = {}) =>
   makeSDK({
-    ui: { dygraph, webgpu, easypiechart, gauge, groupBoxes, number, d3pie, bars, table },
+    ui: {
+      dygraph,
+      webgpu,
+      webgl2,
+      easypiechart,
+      gauge,
+      groupBoxes,
+      number,
+      d3pie,
+      bars,
+      table,
+    },
     plugins: {
       // order matters
       move,

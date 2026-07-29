@@ -1,6 +1,6 @@
 import { enums, parts, check, colors, priorities } from "@/helpers/annotations"
 import { getRowPointValue } from "@/sdk/makeChart/getPointValue"
-import { parseColor } from "@/chartLibraries/webgpu/engine/color"
+import { parseColor } from "@/chartLibraries/gpu/color"
 
 const xPosition = (timestampMs, frame) =>
   frame.plot.left +

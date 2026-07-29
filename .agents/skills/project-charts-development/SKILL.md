@@ -31,9 +31,9 @@ Do not use this skill for:
 - Public SDK, component, attribute, event, chart-type, payload, and query behavior are compatibility surfaces even when implementation modules are deep imports. Evidence: `.agents/sow/specs/charts-public-consumer-contract.md`.
 - Renderer-specific behavior belongs behind chart-library/SDK seams. Do not spread renderer checks through unrelated React consumers. Evidence: `src/chartLibraries/`, `src/sdk/`, `.agents/sow/done/SOW-0002-20260727-native-gpu-renderer-prototype.md`.
 - Visualization identity and active renderer are separate. New internal routing uses `chartRenderersByVisualization`; `chartLibrariesByType` remains the time-series compatibility map. Consumers dispatch through `chart.getVisualizationType()` and `chart.isTimeSeriesRenderer()`, never renderer-name branches. Unavailable mappings fall back to each visualization's legacy renderer. Renderer replacement must use the chart UI replacement lifecycle rather than unmounting and assigning a UI directly. Evidence: `src/sdk/makeChart/filters/makeControllers.js`, `src/sdk/makeChart/index.js`.
-- The internal WebGPU renderer is opt-in and shares one adapter/device, pipeline cache, and bounded shaped-text atlas per SDK. Capability, unsupported-visualization, initialization/pipeline/render, uncaptured device-error, and device-loss failure must replace it with the legacy renderer; never leave a mounted blank canvas. Evidence: `src/chartLibraries/webgpu/engine/`, `src/chartLibraries/webgpu/index.js`.
-- The WebGPU line plot owns one visible GPU canvas for deterministic plot pixels. Browser-shaped complete strings are rasterized offscreen and uploaded to a bounded atlas; semantic legend/toolbox/menu/popover surfaces remain DOM-owned. Evidence: `src/chartLibraries/webgpu/text/`, `src/chartLibraries/webgpu/visualizations/cartesian/line/`.
-- Payload cells may be scalars, objects, or compact JSON2 arrays described by `payload.point`. Renderer conversion must use the shared point-value semantics rather than coercing cells directly. Evidence: `src/sdk/makeChart/getPointValue.js`, `src/chartLibraries/webgpu/visualizations/cartesian/line/data.js`.
+- GPU line backends are opt-in and resolve in the supported chain `WebGPU -> WebGL2 -> Dygraphs`. WebGPU shares one adapter/device and pipeline cache per SDK; WebGL2 shares one context/program cache per SDK. Capability, unsupported-visualization, initialization/pipeline/render, uncaptured device-error, device/context loss, and stale runtime failures must advance to the next supported backend without leaving a blank canvas. Evidence: `src/chartLibraries/{webgpu,webgl2}/`, `src/sdk/makeChart/filters/makeControllers.js`.
+- The shared GPU line visualization owns one visible canvas for deterministic plot pixels and keeps semantic legend/toolbox/menu/popover surfaces in DOM. WebGPU draws directly; WebGL2 renders on the shared context and copies the completed exact frame to the visible chart canvas to avoid per-chart context limits. Browser-shaped complete strings use shared Canvas2D shaping and backend-owned bounded atlases. Evidence: `src/chartLibraries/gpu/`, `src/chartLibraries/{webgpu,webgl2}/text/`.
+- Payload cells may be scalars, objects, or compact JSON2 arrays described by `payload.point`. Renderer conversion must use the shared point-value semantics rather than coercing cells directly. Evidence: `src/sdk/makeChart/getPointValue.js`, `src/chartLibraries/gpu/visualizations/cartesian/line/data.js`.
 - React code that subscribes to chart-UI events must use `useChartUI`; reading `chart.getUI()` once leaves the component subscribed to a destroyed renderer after replacement. Evidence: `src/components/provider/selectors.js`, `src/components/chartContainer.js`.
 - The package builds CJS and ES6 distributions. There is no current UMD build script. Evidence: `package.json`.
 
@@ -76,7 +76,7 @@ Before claiming done:
 
 - Focused behavioral tests cover the changed SDK/renderer/component path.
 - Listener/timer/observer/chart-node cleanup is exercised where applicable.
-- GPU resource sharing, buffer release, runtime failure, export, shared-runtime multi-chart teardown, and device-loss fallback are exercised in a real browser when WebGPU code changes.
+- GPU resource sharing, buffer release, runtime failure, export, shared-runtime multi-chart teardown, and device/context-loss fallback are exercised in real browsers when GPU backend code changes.
 - Unrelated chart libraries and ordinary charts retain their behavior.
 - `yarn test`, `yarn build`, and scoped/repo lint results are recorded accurately when dependencies are available.
 - Visual changes are checked in Storybook and in light/dark themes; consuming integration is checked when public behavior is affected.
@@ -89,8 +89,9 @@ Before claiming done:
 - `src/index.js`: root auto-mount behavior.
 - `src/makeDefaultSDK.js`: default libraries, plugins, and root attributes.
 - `src/sdk/`: node, attribute, plugin, and chart lifecycle architecture.
-- `src/chartLibraries/webgpu/`: shared engine/runtime, ordered layers, bounded text, exact line adapter, payload/range indexing, interactions, and fallback implementation.
-- `benchmarks/time-series-renderers/`: deterministic physical-GPU comparator and feasibility gates.
+- `src/chartLibraries/gpu/`: backend-neutral exact line visualization, payload/range indexing, axes, overlays, interactions, color, and text shaping.
+- `src/chartLibraries/webgpu/` and `src/chartLibraries/webgl2/`: backend-specific runtimes, resources, shaders, presentation, and failure handling.
+- `benchmarks/time-series-renderers/`: deterministic physical-GPU comparator and production gates.
 - `src/components/provider/selectors.js`: reactive attribute/provider hooks.
 - `.agents/sow/specs/charts-public-consumer-contract.md`: current consumer contract.
 - `netdata/cloud-frontend @ bf2ba8182cff`: verified deep-import consumption and SDK provider integration.

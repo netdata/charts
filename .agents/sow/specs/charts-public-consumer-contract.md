@@ -58,6 +58,7 @@ The package has three cooperating layers:
 
 - `dygraph`
 - `webgpu`
+- `webgl2`
 - `easypiechart`
 - `gauge`
 - `groupBoxes`
@@ -66,7 +67,7 @@ The package has three cooperating layers:
 - `bars`
 - `table`
 
-`webgpu` is an internal opt-in visualization renderer. No default renderer map selects it. It currently implements the ordinary `line` visualization; unsupported visualizations or capability, initialization/pipeline/render failure, uncaptured device error, and device loss fall back to the legacy renderer. Its registration does not make it a default or claim parity for other visualization families.
+`webgpu` and `webgl2` are internal opt-in visualization renderers. No default renderer map selects either one. They currently implement the ordinary `line` visualization through one shared visualization/data/interaction model. When WebGPU is preferred, unsupported capability/visualization or initialization/pipeline/render/device failure resolves through WebGL2 when available, then the visualization's legacy renderer. WebGL2 initialization/render/context-loss failure resolves to the legacy renderer. Registration does not make either GPU backend a default or claim parity for other visualization families.
 
 It registers these plugins in order:
 
@@ -101,7 +102,7 @@ Evidence: `src/makeDefaultSDK.js`, `src/sdk/`.
 - Event, listener, activation, deactivation, fetch, render, and destruction behavior are lifecycle contracts; changes require cleanup and remount validation.
 - Visualization identity is independent of the active renderer. `chart.getVisualizationType()`, `chart.isVisualizationRenderer()`, and `chart.isTimeSeriesRenderer()` expose renderer-neutral identity to internal consumers.
 - `chartRenderersByVisualization` is the internal renderer preference map for all visualization families. `chartLibrariesByType` remains the compatibility map for time-series types. Existing defaults and omitted or unavailable mappings resolve to each visualization's legacy renderer.
-- A selected renderer may declare visualization/capability support and may request runtime fallback. Fallback replaces the mounted UI without changing the visualization identity; WebGPU uses this path for unavailable devices, unsupported visualizations, initialization/pipeline/render failure, uncaptured device errors, and device loss.
+- A selected renderer may declare visualization/capability support and a fallback backend. Routing resolves the supported chain before construction and runtime fallback replaces the mounted UI without changing visualization identity. The ordinary-line chain is `WebGPU -> WebGL2 -> Dygraphs`; each backend may be skipped when unsupported and runtime GPU/context failure advances to the next backend.
 - Renderer reconciliation happens after parent attributes are inherited and after the first payload supplies `chartType`. User-facing chart-type controls and consuming React dispatch continue to use the visualization identity rather than the internal renderer name.
 - Replacing a mounted chart UI preserves its DOM mount, custom UI overrides, chart identity, and renderer-bound React subscriptions. Renderer-aware hooks use `useChartUI` so subscriptions move to the replacement UI.
 
@@ -131,7 +132,7 @@ Publicly observable behavior includes:
 
 An internal renderer change does not permit a visible or consumer-facing contract change unless a SOW explicitly defines and validates that change.
 
-The opt-in WebGPU line renderer owns one visible plot canvas for grid, axes, browser-shaped text, series, gap markers, data decorations, renderer overlays, crosshairs, and selections. Existing semantic and interactive React surfaces—including legend, toolbox, menus, processing state, and popovers—remain DOM-owned. This canvas/DOM placement is internal and does not change payloads, attributes, events, exports, or consumer component selection.
+The opt-in GPU line renderer owns one visible plot canvas per chart for grid, axes, browser-shaped text, series, gap markers, data decorations, renderer overlays, crosshairs, and selections. WebGPU renders directly to that canvas. WebGL2 renders through one SDK-owned shared context/program cache and copies the exact completed frame to the chart's visible canvas, avoiding per-chart WebGL context limits. Existing semantic and interactive React surfaces—including legend, toolbox, menus, processing state, and popovers—remain DOM-owned. This placement is internal and does not change payloads, attributes, events, exports, or consumer component selection.
 
 ## Distribution And Consumer Validation
 

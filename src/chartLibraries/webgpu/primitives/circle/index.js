@@ -1,4 +1,4 @@
-import { parseColor } from "@/chartLibraries/webgpu/engine/color"
+import { parseColor } from "@/chartLibraries/gpu/color"
 import makeInstancedLayer from "@/chartLibraries/webgpu/engine/makeInstancedLayer"
 import shader from "./shader"
 

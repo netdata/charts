@@ -1,4 +1,4 @@
-import { parseColor } from "@/chartLibraries/webgpu/engine/color"
+import { parseColor } from "@/chartLibraries/gpu/color"
 
 export { parseColor }
 

@@ -1,10 +1,10 @@
-import makeChartUI from "@/sdk/makeChartUI"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
-import { getWebGPURuntime, markWebGPUFailed } from "./runtime"
+import makeChartUI from "@/sdk/makeChartUI"
+import { getWebGL2Runtime, markWebGL2Failed } from "./runtime"
 
 const makeCanvas = element => {
   const canvas = document.createElement("canvas")
-  canvas.dataset.renderer = "webgpu"
+  canvas.dataset.renderer = "webgl2"
   canvas.style.display = "block"
   canvas.style.width = "100%"
   canvas.style.height = "100%"
@@ -20,7 +20,7 @@ export default ({ sdk, chart, makeVisualization, visualizationId }) => {
   let canvas = null
   let runtime = null
   let resizeObserver = null
-  let offDeviceLost = null
+  let offContextLost = null
   let leaseHeld = false
   let generation = 0
   let failureHandled = false
@@ -35,16 +35,15 @@ export default ({ sdk, chart, makeVisualization, visualizationId }) => {
   const fallback = error => {
     if (failureHandled) return false
     failureHandled = true
-    markWebGPUFailed(sdk)
-    const replaced = chart.fallbackChartLibrary?.("webgpu", "webgl2")
-    sdk.trigger("rendererFallback", chart, "webgpu", error)
-    chart.trigger("rendererFallback", "webgpu", error)
+    markWebGL2Failed(sdk)
+    const replaced = chart.fallbackChartLibrary?.("webgl2")
+    sdk.trigger("rendererFallback", chart, "webgl2", error)
+    chart.trigger("rendererFallback", "webgl2", error)
     return replaced
   }
 
   const renderFrame = () => {
     if (!element || !canvas) return false
-
     const rendered = visualization.render({
       width: chartUI.getChartWidth(),
       height: chartUI.getChartHeight(),
@@ -67,7 +66,7 @@ export default ({ sdk, chart, makeVisualization, visualizationId }) => {
   }
 
   const initialize = currentGeneration => {
-    runtime = getWebGPURuntime(sdk)
+    runtime = getWebGL2Runtime(sdk)
     ready = runtime
       .acquire()
       .then(async () => {
@@ -76,9 +75,8 @@ export default ({ sdk, chart, makeVisualization, visualizationId }) => {
           releaseRuntime()
           return false
         }
-
-        offDeviceLost = runtime.onLost(info =>
-          fallback(new Error(`WebGPU device lost: ${info.reason}: ${info.message}`))
+        offContextLost = runtime.onLost(info =>
+          fallback(new Error(`${info.reason}: ${info.message}`))
         )
         const resource = await visualization.createResources(runtime, canvas)
         if (currentGeneration !== generation || !canvas) {
@@ -86,7 +84,6 @@ export default ({ sdk, chart, makeVisualization, visualizationId }) => {
           releaseRuntime()
           return false
         }
-
         try {
           visualization.attachResources(resource)
         } catch (error) {
@@ -105,7 +102,6 @@ export default ({ sdk, chart, makeVisualization, visualizationId }) => {
 
   const mount = node => {
     if (element) return
-
     generation += 1
     const currentGeneration = generation
     failureHandled = false
@@ -125,8 +121,8 @@ export default ({ sdk, chart, makeVisualization, visualizationId }) => {
     generation += 1
     resizeObserver?.()
     resizeObserver = null
-    offDeviceLost?.()
-    offDeviceLost = null
+    offContextLost?.()
+    offContextLost = null
     visualization.unmount()
     canvas?.remove()
     canvas = null

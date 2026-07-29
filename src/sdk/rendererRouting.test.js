@@ -71,6 +71,44 @@ describe("time-series renderer routing", () => {
     expect(chart.getUI().getDygraph()).toBeNull()
   })
 
+  it("resolves an unsupported preferred renderer through its accelerated fallback", () => {
+    const primary = () => null
+    primary.isSupported = () => false
+    primary.fallbackRenderer = "secondary"
+    const secondary = (sdk, chart) => ({ sdk, chart })
+    secondary.isSupported = () => true
+    secondary.fallbackRenderer = "dygraph"
+    const sdk = makeDefaultSDK({
+      attributes: { chartRenderersByVisualization: { line: "primary" } },
+    })
+    sdk.addUI("primary", primary)
+    sdk.addUI("secondary", secondary)
+    const chart = sdk.makeChart({ attributes: { chartType: "line" } })
+    sdk.appendChild(chart)
+
+    expect(chart.getAttribute("chartLibrary")).toBe("secondary")
+    expect(chart.getVisualizationType()).toBe("line")
+    expect(chart.isTimeSeriesRenderer()).toBe(true)
+  })
+
+  it("skips an unsupported requested runtime fallback", () => {
+    const primary = (sdk, chart) => ({ sdk, chart })
+    primary.isSupported = () => true
+    const secondary = () => null
+    secondary.isSupported = () => false
+    secondary.fallbackRenderer = "dygraph"
+    const sdk = makeDefaultSDK({
+      attributes: { chartRenderersByVisualization: { line: "primary" } },
+    })
+    sdk.addUI("primary", primary)
+    sdk.addUI("secondary", secondary)
+    const chart = sdk.makeChart({ attributes: { chartType: "line" } })
+    sdk.appendChild(chart)
+
+    expect(chart.fallbackChartLibrary("primary", "secondary")).toBe(true)
+    expect(chart.getAttribute("chartLibrary")).toBe("dygraph")
+  })
+
   it("replaces a failed active renderer with dygraph", () => {
     const chart = makeChart({ line: "number" })
 

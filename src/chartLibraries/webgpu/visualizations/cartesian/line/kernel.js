@@ -1,5 +1,5 @@
+import { makeCurveSegments, makeDrawLayout } from "@/chartLibraries/gpu/visualizations/cartesian/line/geometry"
 import lineShader from "./shader"
-import { makeCurveSegments, makeDrawLayout } from "./geometry"
 
 const nextBufferSize = byteLength => {
   let size = 4

@@ -6,5 +6,4 @@ const visualizations = {
 }
 
 export const hasVisualization = visualization => visualization in visualizations
-
 export const getVisualization = visualization => visualizations[visualization]

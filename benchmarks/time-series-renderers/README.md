@@ -1,6 +1,6 @@
 # Time-series renderer benchmark
 
-This task-specific comparator measures the current Dygraphs line renderer and selected native GPU candidates from the same checkout with identical deterministic data. WebGPU uses the production opt-in adapter. WebGL2 uses an isolated exact line-kernel feasibility backend and is not registered as a production renderer.
+This task-specific comparator measures the current Dygraphs line renderer and selected production GPU backends from the same checkout with identical deterministic data. WebGPU is preferred; WebGL2 is the accelerated compatibility fallback.
 
 ## Run
 
@@ -47,7 +47,7 @@ The command prints JSON and exits non-zero unless every selected GPU candidate r
 - 1,000,000 values: median prewarmed frame-settled mount and repeated full-data updates are at least 5x faster than Dygraphs.
 - Each GPU workload exports a non-empty PNG data URL and mounts, updates, and tears down four charts without leaking WebGPU runtime leases or WebGL2 contexts.
 
-The WebGL2 feasibility backend ports the exact precision-normalized values, null gaps, step segments, monotonic smooth controls, screen-error-bounded tessellation, thick-line antialiasing, and deterministic colors. It intentionally excludes production axes, text, overlays, and interaction routing; passing proves the line kernel is worth integrating, not production parity.
+The WebGL2 backend uses the same production visualization/data/interaction model as WebGPU, including precision-normalized values, exact null gaps, step segments, monotonic smooth controls, screen-error-bounded tessellation, axes, text, overlays, and interactions. WebGL2 owns only its GLSL shaders, textures/buffers, shared context/program runtime, presentation surface, and context-loss handling.
 
 The one-frame gate allows 25% browser scheduling tolerance around the measured refresh interval. A frame-settled ratio is not used when both renderers already present on the same refresh boundary. Cold adapter/device initialization and first pipeline creation are reported separately.
 
@@ -61,6 +61,6 @@ The one-frame gate allows 25% browser scheduling tolerance around the measured r
 - Timing: synchronous adapter time, GPU queue completion, measured display refresh interval, and wall time through the next animation frame.
 - Memory: Chromium heap before mounting, sampled peak, post-teardown retained delta, and allocated GPU buffer bytes.
 - Browser task, script, and layout durations are collected through the Chromium DevTools protocol.
-- WebGL2 completion uses `gl.finish()`; its reported buffer bytes cover uploaded value/color textures.
+- WebGL2 uses one SDK-owned context/program cache and copies each completed shared-context frame into the chart's visible canvas. Its reported buffer bytes cover per-chart value/color textures and primitive buffers.
 
 This benchmark is not production instrumentation and is not included in package distributions.
