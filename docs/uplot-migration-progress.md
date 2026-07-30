@@ -91,10 +91,14 @@ Prioritized; each needs Storybook visual verification (jsdom can't paint).
    (mixed-sign) visually.
 5. **Multi-node / grouped payloads, groupBoxes/table/gauge/etc.** — untouched (still their own libs);
    only the time-series family is being moved.
-6. **Flip-the-default** — wire `chartLibrariesByType` into initial renderer selection + measure real
-   dashboard CPU/memory/frame-time/bundle delta before making uPlot the default `line` renderer,
-   then remove dygraph. **First local measurements now exist** (see "Perf measurements" below);
-   still Storybook-mock ratios, not a real dashboard.
+6. **Flip-the-default** — **flip wiring is DONE and tested** (`makeControllers.test.js:284–320`):
+   `chartLibrary` is the single selector, `chartLibrariesByType` defaults to `{}` and only overrides
+   per-type, `getRendererForChartType` falls back to `chartLibrary`, `isTimeSeriesRenderer` uses the
+   `["dygraph","uplot"]` set. So the flip is a **one-attribute change**: set root
+   `chartLibrary: "uplot"` — timeseries charts inherit it, gauge/pie/table keep their own. The shipped
+   default stays `"dygraph"` until the real-dashboard go/no-go (protocol below). `yarn build` compiles
+   clean on this branch (531 CJS / 533 ES6), so `yarn to-cloud` is ready. **Still owed:** the
+   real-dashboard measurement (maintainer's env — jsdom/jest can't paint, Playwright not installed).
 7. **Bundle** — uPlot now ships with `makeDefaultSDK` for all consumers (~48KB). Fine for now;
    revisit at flip time if bundle size matters.
 8. **ECharts consolidation (Phase B)** — pie/gauge/easyPie/bars → ECharts. Not started.
@@ -133,6 +137,39 @@ renderers. Heap is lower on uPlot but noisy (single end-of-window sample, no for
 production figures — only the dygraph/uPlot ratio under identical conditions is meaningful. One run
 per config, headless shell, one machine — no variance/repetition yet. Real absolute numbers need
 `yarn to-cloud` + the HUD on a live dashboard (`perfMonitor: true`).
+
+## Task 3 — real-dashboard measurement protocol (maintainer-run, many-runs for certainty)
+
+Why maintainer-run: real render+paint timing needs a real browser on a live streaming dashboard.
+jsdom/jest can't paint; the repo has no Playwright driver; the mock ratios above are not production
+numbers. The go/no-go is inherently an in-app measurement. The renderer + HUD are ready to ship it.
+
+Setup (once):
+1. `yarn to-cloud` from `charts/` (builds CJS+ES6 and copies into cloud-frontend `node_modules`).
+2. In cloud-frontend, set the dashboard SDK root attributes `chartLibrary: "uplot"` and
+   `perfMonitor: true` (the HUD self-mounts to `document.body`; A/B by toggling `chartLibrary` back to
+   `"dygraph"` for the paired run). Keep everything else identical between the two runs of a pair.
+
+Per data point (repeat for a matrix of dashboard sizes — e.g. a small ~10-chart view and a dense
+~50+ chart view, on the same page, same time window, same theme):
+1. Load the page, let it stream to steady state (~15s), then HUD **reset** to start a clean window.
+2. Stream a fixed window — **≥60s** — untouched (no interaction; interaction jank is out of scope).
+3. HUD **copy** → paste the JSON (per-renderer `count`, `p50`/`p95`/`max` ms, current+peak heap).
+4. Toggle `chartLibrary` to the other renderer, repeat 1–3 for the paired run.
+5. **Repeat the whole pair ≥5 times** (fresh reload each time) to get variance — report mean ± stddev
+   of the p50/p95 **ratio** (uPlot/dygraph), not single runs. The ratio cancels shared React/stream
+   overhead; the stddev is what turns "one number" into "certain."
+
+Go/no-go read: uPlot's p50 and p95 render cost should be ≤ dygraph's across every size, with the gap
+widening as chart density grows (the Storybook ratios predict 0.36–0.56× whole-tab, 0.06–0.17×
+isolated). Watch heap peak too (best-effort, Chrome-only). If uPlot wins consistently across the
+repeats, flip the shipped default to `chartLibrary: "uplot"` (one line in `makeDefaultSDK.js:42`);
+otherwise keep dygraph and file the regressions.
+
+Parity-consistency pass (run alongside perf, same build): with `chartLibrary: "uplot"`, walk the
+Storybook `Charts`/`RenderModes` stories and the real dashboard across all chart types (line, area,
+stacked, stackedBar, multiBar, heatmap, sparkline) and interactions (hover popover, cross-chart sync,
+pan/zoom/select, overlays) — the line charts now draw dygraph-identical smooth curves (`01eb4a1`).
 
 **Harness note:** the HUD (measure B) initially reported uPlot at ~0 ms because uPlot defers its paint
 to `microTask(_commit)`, outside the synchronous `timeRender` window, while dygraph paints
