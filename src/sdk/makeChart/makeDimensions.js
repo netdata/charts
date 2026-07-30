@@ -13,6 +13,12 @@ import groupBy from "lodash/groupBy"
 import isEmpty from "lodash/isEmpty"
 import { getPointValue } from "./getPointValue"
 
+const dimensionNameCollator = new Intl.Collator(undefined, {
+  sensitivity: "accent",
+  ignorePunctuation: true,
+})
+const defaultDimensionNameCollator = new Intl.Collator()
+
 export default (chart, sdk) => {
   let prevDimensionIds = []
   let dimensionsById = {}
@@ -62,11 +68,8 @@ export default (chart, sdk) => {
       if (secondary) return secondary
 
       return namesDescending
-        ? b.name.localeCompare(a.name)
-        : a.name.localeCompare(b.name, undefined, {
-            sensitivity: "accent",
-            ignorePunctuation: true,
-          })
+        ? defaultDimensionNameCollator.compare(b.name, a.name)
+        : dimensionNameCollator.compare(a.name, b.name)
     })
 
     return dimensions.map(({ id }) => id)

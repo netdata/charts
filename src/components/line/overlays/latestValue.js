@@ -65,7 +65,6 @@ const LatestValue = ({ dimensionId, textProps, ...rest }) => {
         {...defaultTextProps}
         color="textLite"
         {...textProps}
-        cacheKey={value}
       >
         {unit}
       </FontSizer>

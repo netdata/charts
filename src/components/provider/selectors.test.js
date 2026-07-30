@@ -321,9 +321,10 @@ describe("Chart Provider Selectors", () => {
 
       const { result } = renderHookWithChart(() => useLatestValue("dim1"), { chart })
 
-      act(() => {
+      await act(async () => {
         chart.focus()
         sdk.trigger("highlightHover", chart, 1000, "dim1")
+        await new Promise(resolve => setTimeout(resolve, 20))
       })
 
       expect(result.current).toBe(50)
