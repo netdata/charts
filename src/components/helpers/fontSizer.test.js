@@ -2,9 +2,9 @@ import React from "react"
 import { act, render } from "@testing-library/react"
 import FontSizer, { findFittedFontSize } from "./fontSizer"
 
-const TestText = React.forwardRef(({ truncate, ...rest }, ref) => (
+const TestText = ({ truncate, ref, ...rest }) => (
   <div data-truncate={truncate} ref={ref} {...rest} />
-))
+)
 
 describe("findFittedFontSize", () => {
   it("finds every fitting threshold with at most seven probes", () => {

@@ -112,7 +112,7 @@ describe("play plugin", () => {
     window.removeEventListener("focus", reconcileHover)
   })
 
-  it("manual reconciliation clears hover blockers but preserves other reasons", () => {
+  it("manual reconciliation cancels pending hover work and preserves other reasons", () => {
     const playback = makePlaybackSDK()
     chart = playback.chart
     sdk = playback.sdk
@@ -131,6 +131,11 @@ describe("play plugin", () => {
     expect(root.getAttribute("hoverX")).toBeNull()
     expect(root.getPauseReasons()).toEqual([{ reasonId: "modal-1", reasonType: "interaction" }])
     expect(root.getAttribute("paused")).toBe(true)
+
+    jest.advanceTimersByTime(16)
+
+    expect(chart.getAttribute("hoverX")).toBeNull()
+    expect(root.getAttribute("hoverX")).toBeNull()
 
     root.removePauseReason("modal-1")
     expect(root.getAttribute("paused")).toBe(false)

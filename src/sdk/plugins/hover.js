@@ -14,6 +14,10 @@ const requestFrame = callback => {
 export default sdk => {
   const pendingByGroup = new Map()
   const getGroup = chart => chart.getAncestor({ syncHover: true }) || chart
+  const cancelAllPending = () => {
+    pendingByGroup.forEach(({ cancel }) => cancel())
+    pendingByGroup.clear()
+  }
   const cancelPending = chart => {
     const group = getGroup(chart)
     pendingByGroup.get(group)?.cancel()
@@ -59,6 +63,9 @@ export default sdk => {
     .on("highlightBlur", chart => {
       clearHover(chart)
     })
+    .on("reconcilePlaybackState", options => {
+      if (options?.clearHover) cancelAllPending()
+    })
     .on("hoverChart", chart => {
       chart.getApplicableNodes({ syncHover: true }).forEach(node => {
         if (
@@ -87,8 +94,7 @@ export default sdk => {
     })
 
   return () => {
-    pendingByGroup.forEach(({ cancel }) => cancel())
-    pendingByGroup.clear()
+    cancelAllPending()
     unregister()
   }
 }
