@@ -3196,3 +3196,89 @@ describe("uplotChart render freshness contract (dygraph parity)", () => {
     teardown()
   })
 })
+
+describe("uplotChart smooth line paths (dygraph bezier parity)", () => {
+  const mount = async attributes => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType: "line",
+        after: 1617946860,
+        before: 1617946870,
+        ...attributes,
+      },
+    })
+    withLoadedPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    return {
+      instance,
+      u: instance.getUPlot(),
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  const lastIdx = u => u.data[0].length - 1
+
+  it("wires a bezier-curve path builder for a non-stepped line chart", async () => {
+    const { u, teardown } = await mount()
+
+    const builder = u.series[1].paths
+    expect(typeof builder).toBe("function")
+    expect(u.series[1].paths).toBe(u.series[2].paths)
+
+    const paths = builder(u, 1, 0, lastIdx(u))
+    expect(paths.stroke.moveTo.mock.calls.length).toBeGreaterThan(0)
+    expect(paths.stroke.bezierCurveTo.mock.calls.length).toBeGreaterThan(0)
+    expect(paths.stroke.lineTo.mock.calls.length).toBe(0)
+
+    teardown()
+  })
+
+  it("does not smooth a stepped line chart (straight steps, no beziers)", async () => {
+    const line = await mount()
+    const smoothBuilder = line.u.series[1].paths
+    line.teardown()
+
+    const { u, teardown } = await mount({ stepPlot: true })
+
+    expect(u.series[1].paths).not.toBe(smoothBuilder)
+
+    const paths = u.series[1].paths(u, 1, 0, lastIdx(u))
+    expect(paths.stroke.bezierCurveTo.mock.calls.length).toBe(0)
+    expect(paths.stroke.lineTo.mock.calls.length).toBeGreaterThan(0)
+
+    teardown()
+  })
+
+  it("does not smooth a stacked chart (null path builder)", async () => {
+    const { u, teardown } = await mount({ chartType: "stacked" })
+
+    expect(u.series[1].paths()).toBeNull()
+
+    teardown()
+  })
+
+  it("does not smooth an area chart (linear builder, no beziers)", async () => {
+    const line = await mount()
+    const smoothBuilder = line.u.series[1].paths
+    line.teardown()
+
+    const { u, teardown } = await mount({ chartType: "area" })
+
+    expect(u.series[1].paths).not.toBe(smoothBuilder)
+
+    const paths = u.series[1].paths(u, 1, 0, lastIdx(u))
+    expect(paths.stroke.bezierCurveTo.mock.calls.length).toBe(0)
+
+    teardown()
+  })
+})
