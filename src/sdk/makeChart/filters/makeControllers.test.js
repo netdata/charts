@@ -28,8 +28,9 @@ describe("makeControllers", () => {
     expect(controllers).toHaveProperty("removePristine")
     expect(controllers).toHaveProperty("toggleFullscreen")
     expect(controllers).toHaveProperty("getRendererForVisualization")
+    expect(controllers).toHaveProperty("getRendererState")
     expect(controllers).toHaveProperty("getVisualizationType")
-    expect(controllers).toHaveProperty("isVisualizationRenderer")
+    expect(controllers).toHaveProperty("reconcileRenderer")
   })
 
   it("updateAggregationMethodAttribute updates when value changes", () => {
@@ -129,28 +130,26 @@ describe("makeControllers", () => {
     expect(spy).toHaveBeenCalledWith("pristine", {})
   })
 
-  describe("time-series renderer routing", () => {
-    it("uses the configured renderer for a chart type", () => {
-      chart.updateAttribute("chartLibrariesByType", { line: "number" })
-
-      expect(controllers.getRendererForChartType("line")).toBe("number")
-      expect(controllers.isTimeSeriesRenderer("number")).toBe(true)
-    })
-
-    it("falls back to dygraph when the configured renderer is unavailable", () => {
-      chart.updateAttribute("chartLibrariesByType", { line: "missing-renderer" })
-
+  describe("renderer routing", () => {
+    it("uses the legacy renderer when no private policy prefers acceleration", () => {
       expect(controllers.getRendererForChartType("line")).toBe("dygraph")
+      expect(controllers.getRendererForChartType("gauge")).toBe("gauge")
     })
 
-    it("switches a time-series type to its configured renderer", () => {
-      chart.updateAttribute("chartLibrariesByType", { line: "number" })
-
+    it("keeps public chart identity stable when selecting a time-series type", () => {
       controllers.updateChartTypeAttribute("line")
 
       expect(chart.getAttribute("chartType")).toBe("line")
+      expect(chart.getAttribute("chartLibrary")).toBe("dygraph")
+      expect(controllers.getRendererState().active).toBe("dygraph")
+    })
+
+    it("uses the established public library for a standalone visualization", () => {
+      controllers.updateChartTypeAttribute("number")
+
       expect(chart.getAttribute("chartLibrary")).toBe("number")
-      expect(chart.getUI().getDygraph).toBeUndefined()
+      expect(controllers.getVisualizationType()).toBe("number")
+      expect(controllers.getRendererState().active).toBe("number")
     })
   })
 

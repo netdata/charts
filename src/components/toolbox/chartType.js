@@ -132,7 +132,7 @@ const ChartType = ({ disabled }) => {
   const chartType = useAttributeValue("chartType") || "line"
   const selectedValue =
     chart.getVisualizationType?.() ||
-    (chart.isTimeSeriesRenderer(chartLibrary) ? chartType : chartLibrary)
+    (chartLibrary === "dygraph" ? chartType : chartLibrary)
 
   const items = useItems(chart)
   const current =

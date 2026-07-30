@@ -7,10 +7,8 @@ import ChartType from "./chartType"
 describe("settings chart type", () => {
   it("shows the chart type when its internal renderer is not dygraph", () => {
     renderWithChart(<ChartType />, {
-      attributes: {
-        chartLibrariesByType: { line: "number" },
-        chartType: "line",
-      },
+      rendererPolicy: () => "number",
+      attributes: { chartType: "line" },
     })
 
     expect(screen.getByText("Line")).toBeInTheDocument()

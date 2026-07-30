@@ -37,7 +37,7 @@ export default ({ sdk, chart, makeVisualization, visualizationId }) => {
     if (failureHandled) return false
     failureHandled = true
     if (!isUnsupportedVisualizationConfiguration(error)) markWebGL2Failed(sdk)
-    const replaced = chart.fallbackChartLibrary?.("webgl2")
+    const replaced = chart.fallbackRenderer?.("webgl2", null, error)
     sdk.trigger("rendererFallback", chart, "webgl2", error)
     chart.trigger("rendererFallback", "webgl2", error)
     return replaced

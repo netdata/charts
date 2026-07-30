@@ -150,6 +150,7 @@ const installFixtureTransport = () => {
 
 const createChart = (action, renderer = "dygraph") => {
   const sdk = makeDefaultSDK({
+    rendererPolicy: () => renderer,
     attributes: {
       after: fixtureWindow.after,
       before: fixtureWindow.before,
@@ -168,7 +169,6 @@ const createChart = (action, renderer = "dygraph") => {
         tab: "window",
         showAdvancedStats: false,
       },
-      chartRenderersByVisualization: { line: renderer },
       overlays: {
         highlight: {
           type: "highlight",

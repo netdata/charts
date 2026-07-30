@@ -109,7 +109,7 @@ export default ({ chart, makeResources }) => {
       chart.onAttributeChange("gaugeThresholds", render),
       chart.onAttributeChange("gaugeGradient", render),
       chart.onAttributeChange("gaugeLineWidth", render),
-      chart.onAttributeChange("staticZones", () => chart.reconcileChartLibrary()),
+      chart.onAttributeChange("staticZones", () => chart.reconcileRenderer()),
       chart.onAttributeChange("theme", () => {
         updateColors()
         render()

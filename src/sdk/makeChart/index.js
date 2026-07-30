@@ -336,17 +336,21 @@ export default ({
     sdk.trigger("fullscreen", node, fullscreen)
   })
 
-  node.makeChartUI = (uiName, chartLibrary = node.getAttribute("chartLibrary"), force = false) => {
-    if (!(chartLibrary in sdk.ui))
+  node.makeChartUI = (
+    uiName,
+    renderer = node.getActiveRenderer?.() || node.getAttribute("chartLibrary"),
+    force = false
+  ) => {
+    if (!(renderer in sdk.ui))
       console.error(
-        `Chart library "${chartLibrary}" does not exist in ${Object.keys(sdk.ui).join(", ")}`
+        `Chart renderer "${renderer}" does not exist in ${Object.keys(sdk.ui).join(", ")}`
       )
 
     if (node.getUI(uiName) && !force) return
 
-    const makeChartLibrary = sdk.ui[chartLibrary]
+    const makeRenderer = sdk.ui[renderer]
 
-    const chartUi = makeChartLibrary(sdk, node)
+    const chartUi = makeRenderer(sdk, node)
     node.setUI(chartUi, uiName)
   }
 

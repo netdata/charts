@@ -3,6 +3,11 @@ import pristine, { pristineKey } from "@/sdk/pristine"
 import getInitialFilterAttributes from "./getInitialAttributes"
 import { isHeatmap } from "@/helpers/heatmap"
 import makeLog from "@/sdk/makeLog"
+import makeRendererController from "../renderers/makeController"
+import {
+  getPublicChartLibrary,
+  isTimeSeriesVisualization,
+} from "../renderers/metadata"
 
 export default (chart, getChartInstance = () => chart) => {
   const log = ({ value, ...rest }) =>
@@ -108,180 +113,19 @@ export default (chart, getChartInstance = () => chart) => {
     })
   }
 
-  const legacyRendererByVisualization = {
-    line: "dygraph",
-    stacked: "dygraph",
-    area: "dygraph",
-    stackedBar: "dygraph",
-    multiBar: "dygraph",
-    heatmap: "dygraph",
-    easypiechart: "easypiechart",
-    gauge: "gauge",
-    number: "number",
-    d3pie: "d3pie",
-    bars: "bars",
-    groupBoxes: "groupBoxes",
-    table: "table",
-  }
-  const timeSeriesVisualizations = {
-    line: true,
-    stacked: true,
-    area: true,
-    stackedBar: true,
-    multiBar: true,
-    heatmap: true,
-  }
-
-  const getChartLibrariesByType = () => chart.getAttribute("chartLibrariesByType") || {}
-  const getChartRenderersByVisualization = () =>
-    chart.getAttribute("chartRenderersByVisualization") || {}
-
-  const getConfiguredRenderer = visualization =>
-    getChartRenderersByVisualization()[visualization] ||
-    (timeSeriesVisualizations[visualization]
-      ? getChartLibrariesByType()[visualization]
-      : null) ||
-    legacyRendererByVisualization[visualization]
-
-  const inferVisualization = () => {
-    const chartLibrary = chart.getAttribute("chartLibrary")
-    const chartType = chart.getAttribute("chartType")
-
-    if (
-      chartLibrary &&
-      legacyRendererByVisualization[chartLibrary] === chartLibrary &&
-      !timeSeriesVisualizations[chartLibrary]
-    )
-      return chartLibrary
-
-    if (
-      chartType &&
-      (chartLibrary === legacyRendererByVisualization[chartType] ||
-        chartLibrary === getConfiguredRenderer(chartType))
-    )
-      return chartType
-
-    return null
-  }
-
-  let activeVisualization = inferVisualization()
-
-  const getVisualizationType = () => activeVisualization || inferVisualization()
-
-  const resolveRenderer = (renderer, visualization, legacyRenderer, visited = new Set()) => {
-    if (!renderer || visited.has(renderer)) return legacyRenderer
-    visited.add(renderer)
-    const makeRenderer = chart.sdk.ui[renderer]
-    if (
-      makeRenderer &&
-      makeRenderer.isSupported?.(chart.sdk, visualization, chart) !== false
-    )
-      return renderer
-    return resolveRenderer(
-      makeRenderer?.fallbackRenderer || legacyRenderer,
-      visualization,
-      legacyRenderer,
-      visited
-    )
-  }
-
-  const getRendererForVisualization = visualization => {
-    const legacyRenderer = legacyRendererByVisualization[visualization] || "dygraph"
-    return resolveRenderer(
-      getConfiguredRenderer(visualization) || legacyRenderer,
-      visualization,
-      legacyRenderer
-    )
-  }
-
-  const getRendererForChartType = getRendererForVisualization
-
-  const isVisualizationRenderer = (
-    chartLibrary = chart.getAttribute("chartLibrary")
-  ) => {
-    const visualization = getVisualizationType()
-    if (!visualization) return false
-    return (
-      chartLibrary === chart.getAttribute("chartLibrary") ||
-      chartLibrary === getConfiguredRenderer(visualization) ||
-      chartLibrary === legacyRendererByVisualization[visualization]
-    )
-  }
-
-  const isTimeSeriesRenderer = (
-    chartLibrary = chart.getAttribute("chartLibrary")
-  ) => {
-    const visualization = getVisualizationType()
-    if (visualization)
-      return !!timeSeriesVisualizations[visualization] && isVisualizationRenderer(chartLibrary)
-
-    return (
-      chartLibrary === "dygraph" || Object.values(getChartLibrariesByType()).includes(chartLibrary)
-    )
-  }
-
-  const replaceChartUI = () => {
-    const chartInstance = getChartInstance()
-    return chart.replaceUI(
-      { ...chart.sdk.makeChartUI(chartInstance), ...(chart.ui || {}) },
-      "default"
-    )
-  }
-
-  const reconcileChartLibrary = (chartType = chart.getAttribute("chartType")) => {
-    const prevChartLibrary = chart.getAttribute("chartLibrary")
-    const prevVisualization = getVisualizationType()
-    let visualization = prevVisualization
-
-    if (!visualization && chartType) visualization = chartType
-    else if (timeSeriesVisualizations[visualization] && chartType) visualization = chartType
-    if (!visualization) return false
-
-    const nextChartLibrary = getRendererForVisualization(visualization)
-    const visualizationChanged = prevVisualization !== visualization
-    activeVisualization = visualization
-    if (prevChartLibrary === nextChartLibrary && !visualizationChanged) return false
-
-    if (prevChartLibrary !== nextChartLibrary)
-      chart.updateAttribute("chartLibrary", nextChartLibrary)
-    replaceChartUI()
-    return true
-  }
-
-  const fallbackChartLibrary = (failedRenderer, fallbackRenderer) => {
-    if (chart.getAttribute("chartLibrary") !== failedRenderer) return false
-
-    const visualization = getVisualizationType()
-    const legacyRenderer = legacyRendererByVisualization[visualization] || "dygraph"
-    const requestedFallback = fallbackRenderer || legacyRenderer
-    const nextRenderer = resolveRenderer(
-      requestedFallback,
-      visualization,
-      legacyRenderer
-    )
-    if (nextRenderer === failedRenderer || !(nextRenderer in chart.sdk.ui)) return false
-
-    chart.updateAttribute("chartLibrary", nextRenderer)
-    replaceChartUI()
-    return true
-  }
+  const rendererController = makeRendererController(chart, getChartInstance)
 
   const updateChartTypeAttribute = selected => {
-    const prevChartLibrary = chart.getAttribute("chartLibrary")
-    const prevVisualization = getVisualizationType()
     const prevGroupBy = chart.getAttribute("groupBy")
-    const isTimeSeries = !!timeSeriesVisualizations[selected]
-    const nextChartLibrary = getRendererForVisualization(selected)
-    activeVisualization = selected
+    const isTimeSeries = isTimeSeriesVisualization(selected)
 
     chart.updateAttributes({
-      chartLibrary: nextChartLibrary,
+      chartLibrary: getPublicChartLibrary(selected),
       processing: true,
       ...(isTimeSeries && { chartType: selected }),
       ...(isHeatmap(selected) && { dimensionsSort: "default" }),
     })
-    if (prevChartLibrary !== nextChartLibrary || prevVisualization !== selected)
-      replaceChartUI()
+    rendererController.reconcileRenderer(selected)
 
     if (isHeatmap(selected)) {
       updateGroupByAttribute(["dimension"])
@@ -451,18 +295,14 @@ export default (chart, getChartInstance = () => chart) => {
     const attributes = chart.getAttributes()
     const prev = { ...attributes[pristineKey] }
 
-    const hasChangedLibrary =
-      "chartLibrary" in prev && attributes.chartLibrary !== prev.chartLibrary
-
     pristine.reset(attributes)
-    activeVisualization = inferVisualization()
     chart.attributeListeners.trigger(pristineKey, attributes[pristineKey], prev)
     chart.sdk.trigger("pristineChanged", chart, pristineKey, attributes[pristineKey], prev)
     Object.keys(prev).forEach(key =>
       chart.attributeListeners.trigger(key, attributes[key], prev[key])
     )
 
-    if (hasChangedLibrary) replaceChartUI()
+    rendererController.reconcileRenderer()
     chart.trigger("fetch", { processing: true })
   }
 
@@ -496,12 +336,6 @@ export default (chart, getChartInstance = () => chart) => {
     removePristine,
     toggleFullscreen,
     baseUpdateGroupBy,
-    getRendererForChartType,
-    getRendererForVisualization,
-    getVisualizationType,
-    isVisualizationRenderer,
-    isTimeSeriesRenderer,
-    reconcileChartLibrary,
-    fallbackChartLibrary,
+    ...rendererController,
   }
 }

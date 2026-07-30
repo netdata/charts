@@ -3,289 +3,251 @@ import systemLoadLine from "../../fixtures/systemLoadLine"
 
 const marker = () => "preserved"
 
-const makeChart = (chartLibrariesByType, chartType = "line") => {
-  const sdk = makeDefaultSDK({ attributes: { chartLibrariesByType } })
-  const chart = sdk.makeChart({ attributes: { chartType }, ui: { marker } })
-  sdk.appendChild(chart)
-  return chart
+const withNavigatorGPU = run => {
+  const descriptor = Object.getOwnPropertyDescriptor(navigator, "gpu")
+  Object.defineProperty(navigator, "gpu", { configurable: true, value: {} })
+
+  try {
+    return run()
+  } finally {
+    if (descriptor) Object.defineProperty(navigator, "gpu", descriptor)
+    else delete navigator.gpu
+  }
 }
 
-describe("time-series renderer routing", () => {
-  it("reconciles the renderer after root attributes are inherited", () => {
-    const chart = makeChart({ line: "number" })
+const makeChart = ({ chartType = "line", chartLibrary, rendererPolicy } = {}) => {
+  const sdk = makeDefaultSDK({ rendererPolicy })
+  const chart = sdk.makeChart({
+    attributes: {
+      ...(chartType && { chartType }),
+      ...(chartLibrary && { chartLibrary }),
+    },
+    ui: { marker },
+  })
+  sdk.appendChild(chart)
+  return { chart, sdk }
+}
 
-    expect(chart.getAttribute("chartLibrary")).toBe("number")
-    expect(chart.getUI().getDygraph).toBeUndefined()
-    expect(chart.getUI().chart).toBe(chart)
+const addRenderer = (sdk, name, { supported = true, fallbackRenderer } = {}) => {
+  const renderer = (rendererSDK, chart) => ({
+    chart,
+    rendererSDK,
+    getRendererId: () => name,
+    mount: () => {},
+    render: () => {},
+    unmount: () => {},
+  })
+  renderer.isSupported = () => supported
+  renderer.fallbackRenderer = fallbackRenderer
+  sdk.addUI(name, renderer)
+  return renderer
+}
+
+describe("internal renderer routing", () => {
+  it("keeps the established public identity on the default renderer", () => {
+    const { chart } = makeChart()
+
+    expect(chart.getAttribute("chartLibrary")).toBe("dygraph")
+    expect(chart.getVisualizationType()).toBe("line")
+    expect(chart.getRendererState()).toEqual({
+      visualization: "line",
+      requested: "dygraph",
+      active: "dygraph",
+      fallbackReason: null,
+    })
+    expect(chart.getUI().getDygraph()).toBeNull()
     expect(chart.getUI().marker()).toBe("preserved")
-    expect(chart.isVisualizationRenderer()).toBe(true)
-    expect(chart.isTimeSeriesRenderer()).toBe(true)
   })
 
-  it("switches a routed chart back to dygraph", () => {
-    const chart = makeChart({ line: "number" })
-
-    chart.updateAttribute("chartLibrariesByType", { line: "dygraph" })
-    chart.reconcileChartLibrary()
-
-    expect(chart.getAttribute("chartLibrary")).toBe("dygraph")
-    expect(chart.getUI().getDygraph()).toBeNull()
-    expect(chart.getUI().chart).toBe(chart)
-  })
-
-  it("does not reroute a renderer selected as a standalone chart library", () => {
-    const chart = makeChart({ line: "number" })
-
-    chart.updateChartTypeAttribute("number")
-
-    expect(chart.isTimeSeriesRenderer("number")).toBe(false)
-    expect(chart.reconcileChartLibrary()).toBe(false)
-    expect(chart.getAttribute("chartLibrary")).toBe("number")
-  })
-
-  it("keeps unmapped time-series types on dygraph", () => {
-    const chart = makeChart({ line: "number" }, "area")
-
-    expect(chart.getAttribute("chartLibrary")).toBe("dygraph")
-    expect(chart.getUI().getDygraph()).toBeNull()
-  })
-
-  it.each(["area", "heatmap", "multiBar", "stacked", "stackedBar"])(
-    "routes the supported %s visualization through WebGPU",
-    visualization => {
-      const descriptor = Object.getOwnPropertyDescriptor(navigator, "gpu")
-      Object.defineProperty(navigator, "gpu", { configurable: true, value: {} })
-
-      try {
-        const sdk = makeDefaultSDK({
-          attributes: {
-            chartRenderersByVisualization: { [visualization]: "webgpu" },
-          },
+  it.each(["line", "area", "heatmap", "multiBar", "stacked", "stackedBar"])(
+    "routes accelerated %s internally without changing chartLibrary",
+    visualization =>
+      withNavigatorGPU(() => {
+        const { chart } = makeChart({
+          chartType: visualization,
+          rendererPolicy: () => "webgpu",
         })
-        const chart = sdk.makeChart({ attributes: { chartType: visualization } })
-        sdk.appendChild(chart)
 
         expect(chart.getVisualizationType()).toBe(visualization)
-        expect(chart.getAttribute("chartLibrary")).toBe("webgpu")
-        expect(chart.isTimeSeriesRenderer()).toBe(true)
-      } finally {
-        if (descriptor) Object.defineProperty(navigator, "gpu", descriptor)
-        else delete navigator.gpu
-      }
-    }
+        expect(chart.getAttribute("chartLibrary")).toBe("dygraph")
+        expect(chart.getRendererState().active).toBe("webgpu")
+        expect(chart.getUI().getVisualizationId()).toBe(visualization)
+      })
   )
 
-  it("falls back to dygraph when a mapped renderer is not registered", () => {
-    const chart = makeChart({ line: "missing-renderer" })
+  it.each(["d3pie", "easypiechart", "gauge"])(
+    "routes accelerated %s internally without changing chartLibrary",
+    visualization =>
+      withNavigatorGPU(() => {
+        const { chart } = makeChart({
+          chartType: null,
+          chartLibrary: visualization,
+          rendererPolicy: () => "webgpu",
+        })
 
-    expect(chart.getAttribute("chartLibrary")).toBe("dygraph")
-    expect(chart.getUI().getDygraph()).toBeNull()
-  })
+        expect(chart.getVisualizationType()).toBe(visualization)
+        expect(chart.getAttribute("chartLibrary")).toBe(visualization)
+        expect(chart.getRendererState().active).toBe("webgpu")
+        expect(chart.getUI().getVisualizationId()).toBe(visualization)
+      })
+  )
 
-  it("falls back before construction when a registered renderer is unsupported", () => {
-    const unsupported = () => null
-    unsupported.isSupported = () => false
-    const sdk = makeDefaultSDK({
-      attributes: { chartLibrariesByType: { line: "unsupported" } },
+  it("resolves unsupported renderers through their private fallback chain", () => {
+    const sdk = makeDefaultSDK({ rendererPolicy: () => "primary" })
+    addRenderer(sdk, "primary", {
+      supported: false,
+      fallbackRenderer: "secondary",
     })
-    sdk.addUI("unsupported", unsupported)
+    addRenderer(sdk, "secondary", {
+      fallbackRenderer: "dygraph",
+    })
     const chart = sdk.makeChart({ attributes: { chartType: "line" } })
     sdk.appendChild(chart)
 
     expect(chart.getAttribute("chartLibrary")).toBe("dygraph")
-    expect(chart.getUI().getDygraph()).toBeNull()
-  })
-
-  it("resolves an unsupported preferred renderer through its accelerated fallback", () => {
-    const primary = () => null
-    primary.isSupported = () => false
-    primary.fallbackRenderer = "secondary"
-    const secondary = (sdk, chart) => ({ sdk, chart })
-    secondary.isSupported = () => true
-    secondary.fallbackRenderer = "dygraph"
-    const sdk = makeDefaultSDK({
-      attributes: { chartRenderersByVisualization: { line: "primary" } },
+    expect(chart.getRendererState()).toEqual({
+      visualization: "line",
+      requested: "primary",
+      active: "secondary",
+      fallbackReason: null,
     })
-    sdk.addUI("primary", primary)
-    sdk.addUI("secondary", secondary)
-    const chart = sdk.makeChart({ attributes: { chartType: "line" } })
-    sdk.appendChild(chart)
-
-    expect(chart.getAttribute("chartLibrary")).toBe("secondary")
-    expect(chart.getVisualizationType()).toBe("line")
-    expect(chart.isTimeSeriesRenderer()).toBe(true)
+    expect(chart.getUI().getRendererId()).toBe("secondary")
   })
 
   it("skips an unsupported requested runtime fallback", () => {
-    const primary = (sdk, chart) => ({ sdk, chart })
-    primary.isSupported = () => true
-    const secondary = () => null
-    secondary.isSupported = () => false
-    secondary.fallbackRenderer = "dygraph"
-    const sdk = makeDefaultSDK({
-      attributes: { chartRenderersByVisualization: { line: "primary" } },
+    const sdk = makeDefaultSDK({ rendererPolicy: () => "primary" })
+    addRenderer(sdk, "primary")
+    addRenderer(sdk, "secondary", {
+      supported: false,
+      fallbackRenderer: "dygraph",
     })
-    sdk.addUI("primary", primary)
-    sdk.addUI("secondary", secondary)
     const chart = sdk.makeChart({ attributes: { chartType: "line" } })
     sdk.appendChild(chart)
 
-    expect(chart.fallbackChartLibrary("primary", "secondary")).toBe(true)
+    expect(
+      chart.fallbackRenderer("primary", "secondary", new Error("primary failed"))
+    ).toBe(true)
     expect(chart.getAttribute("chartLibrary")).toBe("dygraph")
+    expect(chart.getRendererState()).toEqual({
+      visualization: "line",
+      requested: "primary",
+      active: "dygraph",
+      fallbackReason: "primary failed",
+    })
+    expect(chart.getUI().getDygraph()).toBeNull()
   })
 
-  it("replaces a failed active renderer with dygraph", () => {
-    const chart = makeChart({ line: "number" })
+  it("preserves custom UI additions when replacing a failed renderer", () => {
+    const sdk = makeDefaultSDK({ rendererPolicy: () => "primary" })
+    addRenderer(sdk, "primary")
+    const chart = sdk.makeChart({
+      attributes: { chartType: "line" },
+      ui: { marker },
+    })
+    sdk.appendChild(chart)
 
-    expect(chart.fallbackChartLibrary("number")).toBe(true)
+    expect(chart.fallbackRenderer("primary", null, new Error("failed"))).toBe(true)
     expect(chart.getAttribute("chartLibrary")).toBe("dygraph")
     expect(chart.getUI().getDygraph()).toBeNull()
     expect(chart.getUI().marker()).toBe("preserved")
   })
 
   it("ignores a stale failure from a renderer that is no longer active", () => {
-    const chart = makeChart({ line: "number" })
-    chart.updateAttribute("chartLibrariesByType", { line: "dygraph" })
-    chart.reconcileChartLibrary()
+    const sdk = makeDefaultSDK({ rendererPolicy: () => "primary" })
+    addRenderer(sdk, "primary")
+    const chart = sdk.makeChart({ attributes: { chartType: "line" } })
+    sdk.appendChild(chart)
 
-    expect(chart.fallbackChartLibrary("number")).toBe(false)
-    expect(chart.getAttribute("chartLibrary")).toBe("dygraph")
+    expect(chart.fallbackRenderer("primary", null, new Error("failed"))).toBe(true)
+    expect(chart.fallbackRenderer("primary", null, new Error("stale"))).toBe(false)
+    expect(chart.getRendererState().active).toBe("dygraph")
   })
 
-  it("reconciles after the first payload supplies the chart type", async () => {
-    const sdk = makeDefaultSDK({
-      attributes: { chartLibrariesByType: { line: "number" } },
-    })
+  it("reconciles after the first payload supplies visualization identity", async () => {
+    const sdk = makeDefaultSDK({ rendererPolicy: () => "number" })
     const chart = sdk.makeChart()
     sdk.appendChild(chart)
 
     expect(chart.getAttribute("chartLibrary")).toBe("dygraph")
+    expect(chart.getRendererState().active).toBe("dygraph")
 
     chart.doneFetch(systemLoadLine[0])
     await new Promise(resolve => setTimeout(resolve))
 
     expect(chart.getAttribute("chartType")).toBe("line")
-    expect(chart.getAttribute("chartLibrary")).toBe("number")
+    expect(chart.getAttribute("chartLibrary")).toBe("dygraph")
+    expect(chart.getRendererState().active).toBe("number")
     expect(chart.getUI().getDygraph).toBeUndefined()
   })
 
   it("reconciles charts appended through a nested container", () => {
-    const sdk = makeDefaultSDK({
-      attributes: { chartLibrariesByType: { line: "number" } },
-    })
+    const sdk = makeDefaultSDK({ rendererPolicy: () => "number" })
     const container = sdk.makeContainer({ attributes: { id: "container" } })
     const chart = sdk.makeChart({ attributes: { chartType: "line" } })
 
     sdk.appendChild(container)
     container.appendChild(chart)
 
-    expect(chart.getAttribute("chartLibrary")).toBe("number")
+    expect(chart.getAttribute("chartLibrary")).toBe("dygraph")
+    expect(chart.getRendererState().active).toBe("number")
     expect(chart.getUI().getDygraph).toBeUndefined()
   })
 
-  it("routes a standalone visualization independently from its renderer", () => {
-    const sdk = makeDefaultSDK({
-      attributes: { chartRenderersByVisualization: { gauge: "number" } },
-    })
-    const chart = sdk.makeChart({ attributes: { chartLibrary: "gauge" } })
-    sdk.appendChild(chart)
-
-    expect(chart.getVisualizationType()).toBe("gauge")
-    expect(chart.getAttribute("chartLibrary")).toBe("number")
-    expect(chart.isVisualizationRenderer("number")).toBe(true)
-    expect(chart.isVisualizationRenderer()).toBe(true)
-    expect(chart.isTimeSeriesRenderer("number")).toBe(false)
-    expect(chart.isTimeSeriesRenderer()).toBe(false)
-  })
-
-  it("falls a standalone visualization back to its legacy renderer", () => {
-    const sdk = makeDefaultSDK({
-      attributes: { chartRenderersByVisualization: { gauge: "number" } },
-    })
-    const chart = sdk.makeChart({ attributes: { chartLibrary: "gauge" } })
-    sdk.appendChild(chart)
-
-    expect(chart.fallbackChartLibrary("number")).toBe(true)
-    expect(chart.getVisualizationType()).toBe("gauge")
-    expect(chart.getAttribute("chartLibrary")).toBe("gauge")
-  })
-
-  it.each(["d3pie", "easypiechart", "gauge"])(
-    "routes the implemented %s standalone visualization through WebGPU",
-    visualization => {
-      const descriptor = Object.getOwnPropertyDescriptor(navigator, "gpu")
-      Object.defineProperty(navigator, "gpu", { configurable: true, value: {} })
-
-      try {
-        const sdk = makeDefaultSDK({
-          attributes: {
-            chartRenderersByVisualization: { [visualization]: "webgpu" },
-          },
-        })
-        const chart = sdk.makeChart({ attributes: { chartLibrary: visualization } })
-        sdk.appendChild(chart)
-
-        expect(chart.getVisualizationType()).toBe(visualization)
-        expect(chart.getAttribute("chartLibrary")).toBe("webgpu")
-        expect(chart.isVisualizationRenderer()).toBe(true)
-        expect(chart.isTimeSeriesRenderer()).toBe(false)
-      } finally {
-        if (descriptor) Object.defineProperty(navigator, "gpu", descriptor)
-        else delete navigator.gpu
-      }
-    }
-  )
-
-  it("replaces the adapter when visualization changes on the same renderer", () => {
-    const descriptor = Object.getOwnPropertyDescriptor(navigator, "gpu")
-    Object.defineProperty(navigator, "gpu", { configurable: true, value: {} })
-
-    try {
-      const sdk = makeDefaultSDK({
-        attributes: {
-          chartRenderersByVisualization: { gauge: "webgpu", d3pie: "webgpu" },
-        },
+  it("replaces an adapter when visualization changes on the same backend", () =>
+    withNavigatorGPU(() => {
+      const { chart } = makeChart({
+        chartType: null,
+        chartLibrary: "gauge",
+        rendererPolicy: () => "webgpu",
       })
-      const chart = sdk.makeChart({ attributes: { chartLibrary: "gauge" } })
-      sdk.appendChild(chart)
       const gaugeUI = chart.getUI()
 
       chart.updateChartTypeAttribute("d3pie")
 
       expect(chart.getVisualizationType()).toBe("d3pie")
-      expect(chart.getAttribute("chartLibrary")).toBe("webgpu")
+      expect(chart.getAttribute("chartLibrary")).toBe("d3pie")
+      expect(chart.getRendererState().active).toBe("webgpu")
       expect(chart.getUI()).not.toBe(gaugeUI)
       expect(chart.getUI().getVisualizationId()).toBe("d3pie")
-    } finally {
-      if (descriptor) Object.defineProperty(navigator, "gpu", descriptor)
-      else delete navigator.gpu
-    }
-  })
+    }))
 
-  it("routes unsupported Gauge static zones directly to the legacy renderer", () => {
-    const sdk = makeDefaultSDK({
-      attributes: { chartRenderersByVisualization: { gauge: "webgpu" } },
+  it("routes unsupported Gauge static zones directly to legacy Gauge", () => {
+    const { chart } = makeChart({
+      chartType: null,
+      chartLibrary: "gauge",
+      rendererPolicy: () => "webgpu",
     })
-    const chart = sdk.makeChart({
-      attributes: {
-        chartLibrary: "gauge",
-        staticZones: [{ min: 0, max: 50, strokeStyle: "red" }],
-      },
-    })
-    sdk.appendChild(chart)
+    chart.updateAttribute("staticZones", [
+      { min: 0, max: 50, strokeStyle: "red" },
+    ])
+    chart.reconcileRenderer()
 
     expect(chart.getVisualizationType()).toBe("gauge")
     expect(chart.getAttribute("chartLibrary")).toBe("gauge")
+    expect(chart.getRendererState().active).toBe("gauge")
   })
 
-  it("keeps a visualization on its legacy renderer when WebGPU has no adapter for it", () => {
-    const sdk = makeDefaultSDK({
-      attributes: { chartRenderersByVisualization: { table: "webgpu" } },
+  it("keeps unsupported visualizations on their legacy implementation", () => {
+    const { chart } = makeChart({
+      chartType: null,
+      chartLibrary: "table",
+      rendererPolicy: () => "webgpu",
     })
-    const chart = sdk.makeChart({ attributes: { chartLibrary: "table" } })
-    sdk.appendChild(chart)
 
     expect(chart.getVisualizationType()).toBe("table")
     expect(chart.getAttribute("chartLibrary")).toBe("table")
+    expect(chart.getRendererState().active).toBe("table")
   })
+
+  it("does not expose backend selection through chart attributes", () =>
+    withNavigatorGPU(() => {
+      const { chart } = makeChart({ rendererPolicy: () => "webgpu" })
+      const attributes = chart.getAttributes()
+
+      expect(attributes.chartLibrary).toBe("dygraph")
+      expect(attributes).not.toHaveProperty("chartRenderersByVisualization")
+      expect(attributes).not.toHaveProperty("chartLibrariesByType")
+      expect(Object.values(attributes)).not.toContain("webgpu")
+      expect(Object.values(attributes)).not.toContain("webgl2")
+    }))
 })

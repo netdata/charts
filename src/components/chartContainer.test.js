@@ -85,15 +85,15 @@ describe("ChartContainer", () => {
 
     act(() => {
       chart.updateAttribute("chartLibrary", "number")
-      chart.replaceUI(chart.sdk.makeChartUI(chart))
+      chart.reconcileRenderer("number")
     })
 
     expect(chart.getUI().getElement()).toBe(container)
     expect(container.querySelector("canvas")).not.toBeInTheDocument()
 
     act(() => {
-      chart.updateAttribute("chartLibrary", "dygraph")
-      chart.replaceUI(chart.sdk.makeChartUI(chart))
+      chart.updateAttributes({ chartLibrary: "dygraph", chartType: "line" })
+      chart.reconcileRenderer("line")
     })
 
     expect(chart.getUI().getElement()).toBe(container)

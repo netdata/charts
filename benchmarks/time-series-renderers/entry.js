@@ -135,7 +135,7 @@ const makeChart = state => {
     },
   })
   chart.updateDimensions()
-  chart.reconcileChartLibrary()
+  chart.reconcileRenderer()
 
   if (chart.getAttribute("chartLibrary") !== state.renderer) {
     throw new Error(`Expected ${state.renderer} but routed to ${chart.getAttribute("chartLibrary")}`)
@@ -226,6 +226,7 @@ const prepare = async ({
   }
   const fallbackErrors = []
   const sdk = makeDefaultSDK({
+    rendererPolicy: () => renderer,
     on: {
       rendererFallback: (chart, failedRenderer, error) => {
         const message = `${failedRenderer} fallback: ${error?.stack || error}`
@@ -237,7 +238,6 @@ const prepare = async ({
       autofetch: false,
       after: datasets[0][0][0] / 1000,
       before: datasets[0][points - 1][0] / 1000,
-      chartRenderersByVisualization: { [visualization]: renderer },
       themeGridColor: ["transparent", "transparent"],
     },
   })

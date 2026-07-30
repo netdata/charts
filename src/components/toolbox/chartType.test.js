@@ -36,10 +36,8 @@ describe("ChartType component", () => {
 
   it("shows the chart type when its internal renderer is not dygraph", async () => {
     const { user } = renderWithChart(<ChartType disabled={false} />, {
-      attributes: {
-        chartLibrariesByType: { line: "number" },
-        chartType: "line",
-      },
+      rendererPolicy: () => "number",
+      attributes: { chartType: "line" },
     })
 
     await user.hover(screen.getByTestId("chartHeaderToolbox-chartType"))
