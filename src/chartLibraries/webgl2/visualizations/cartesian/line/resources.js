@@ -1,3 +1,4 @@
+import createResourceSet from "@/chartLibraries/gpu/engine/createResourceSet"
 import makeSurface from "@/chartLibraries/webgl2/engine/surface"
 import makeCircleLayer from "@/chartLibraries/webgl2/primitives/circle"
 import makeRectLayer from "@/chartLibraries/webgl2/primitives/rect"
@@ -11,46 +12,19 @@ const makeEmptyLayer = () => ({
   update: () => {},
 })
 
-export default async (
+export default (
   runtime,
   canvas,
   { fillMode = null, markers = true } = {}
 ) => {
   const surface = makeSurface(runtime, canvas)
-  const settled = await Promise.allSettled([
-    makeRectLayer(surface),
-    makeRectLayer(surface),
-    makeRectLayer(surface),
-    makeKernel(surface, { fillMode }),
-    markers ? makeCircleLayer(surface) : Promise.resolve(makeEmptyLayer()),
-    makeTextLayer(surface),
-  ])
-  const failed = settled.find(result => result.status === "rejected")
-  if (failed) {
-    settled.forEach(result => result.status === "fulfilled" && result.value.destroy())
-    surface.destroy()
-    throw failed.reason
-  }
-
-  const [grid, interaction, overlay, line, marker, text] = settled.map(
-    result => result.value
-  )
-  return {
-    surface,
-    grid,
-    interaction,
-    overlay,
-    line,
-    marker,
-    text,
-    destroy: () => {
-      grid.destroy()
-      interaction.destroy()
-      overlay.destroy()
-      line.destroy()
-      marker.destroy()
-      text.destroy()
-      surface.destroy()
-    },
-  }
+  return createResourceSet(surface, {
+    grid: () => makeRectLayer(surface),
+    interaction: () => makeRectLayer(surface),
+    overlay: () => makeRectLayer(surface),
+    line: () => makeKernel(surface, { fillMode }),
+    marker: () =>
+      markers ? makeCircleLayer(surface) : Promise.resolve(makeEmptyLayer()),
+    text: () => makeTextLayer(surface),
+  })
 }

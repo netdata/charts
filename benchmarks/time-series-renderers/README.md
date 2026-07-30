@@ -7,7 +7,7 @@ This task-specific comparator measures legacy renderers and selected production 
 Prerequisites:
 
 - Chromium at `/usr/bin/chromium`, or set `CHROMIUM_EXECUTABLE`.
-- The `playwright` Node package available to Node's module resolver.
+- The pinned `playwright-core` development dependency installed with `yarn install`.
 - A physical WebGPU adapter for performance results.
 
 ```bash
@@ -61,13 +61,21 @@ BENCHMARK_HEADED=1 BENCHMARK_RADIAL_ONLY=1 \
   yarn benchmark:time-series
 ```
 
-Headless Chromium can run correctness checks with its software adapter:
+Headless Chromium can run correctness without enforcing physical performance gates:
 
 ```bash
-WEBGPU_SOFTWARE=1 yarn benchmark:time-series
+BENCHMARK_CORRECTNESS_ONLY=1 BENCHMARK_RENDERERS=webgl2 \
+  yarn benchmark:time-series
 ```
 
-Software-adapter results are not valid performance evidence.
+A software WebGPU adapter may be requested explicitly when the installed Chromium exposes one:
+
+```bash
+BENCHMARK_CORRECTNESS_ONLY=1 WEBGPU_SOFTWARE=1 \
+  yarn benchmark:time-series
+```
+
+Software-adapter results are correctness evidence only and are never valid performance evidence.
 
 The command prints JSON and exits non-zero unless every selected GPU candidate reaches both feasibility gates:
 

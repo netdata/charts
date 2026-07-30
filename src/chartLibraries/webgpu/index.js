@@ -1,5 +1,5 @@
 import makeRenderer from "./engine/makeRenderer"
-import { isWebGPUSupported } from "./engine/runtime"
+import { getWebGPUDiagnostics, isWebGPUSupported } from "./engine/runtime"
 import { isGaugeConfigurationSupported } from "@/chartLibraries/gpu/visualizations/radial/gauge"
 import { getVisualization, hasVisualization } from "./visualizations"
 
@@ -26,5 +26,6 @@ makeWebGPU.isSupported = (sdk, visualization = "line", chart) =>
   (visualization !== "gauge" || isGaugeConfigurationSupported(chart)) &&
   isWebGPUSupported(sdk)
 makeWebGPU.fallbackRenderer = "webgl2"
+makeWebGPU.getDiagnostics = getWebGPUDiagnostics
 
 export default makeWebGPU

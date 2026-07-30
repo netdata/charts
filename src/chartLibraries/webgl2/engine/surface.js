@@ -58,6 +58,7 @@ export default (runtime, canvas) => {
     draw,
     destroy,
     getProgram: (...args) => runtime.getProgram(...args),
+    getResource: (...args) => runtime.getResource(...args),
     getQueueDone: () => Promise.resolve(),
   }
 }

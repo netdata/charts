@@ -1,7 +1,7 @@
 import { parseColor } from "@/chartLibraries/gpu/color"
 import { placeRasterizedText } from "@/chartLibraries/gpu/text"
+import { getSharedVisualizationProgram } from "@/chartLibraries/webgl2/engine/programs"
 import makeAtlas from "./atlas"
-import { fragmentShader, vertexShader } from "./shader"
 
 const nextBufferSize = byteLength => {
   let size = 4
@@ -23,8 +23,8 @@ const resolveEntries = (atlas, labels, dpr) => {
 export default async surface => {
   const { gl } = surface
   const [program, atlas] = await Promise.all([
-    surface.getProgram("gpu", vertexShader, fragmentShader),
-    Promise.resolve(makeAtlas(gl)),
+    getSharedVisualizationProgram(surface),
+    surface.getResource("netdata-text-atlas-v1", () => makeAtlas(gl)),
   ])
   const vertexArray = gl.createVertexArray()
   const instances = gl.createBuffer()
@@ -105,7 +105,6 @@ export default async surface => {
   }
 
   const destroy = () => {
-    atlas.destroy()
     gl.deleteBuffer(instances)
     gl.deleteVertexArray(vertexArray)
     capacity = 0

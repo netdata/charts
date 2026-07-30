@@ -1,3 +1,5 @@
+import makeResourceCache from "@/chartLibraries/gpu/engine/makeResourceCache"
+
 const runtimes = new WeakMap()
 const failedSDKs = new WeakSet()
 const idleDisposeMs = 30000
@@ -18,7 +20,7 @@ const makeRuntime = sdk => {
   let uncapturedErrorListener = null
   let lastFailure = null
   const pipelinePromises = new Map()
-  const resourceRecords = new Map()
+  const resourceCache = makeResourceCache()
   const lostListeners = new Set()
 
   const dispose = () => {
@@ -27,11 +29,7 @@ const makeRuntime = sdk => {
     clearTimeout(disposeTimer)
     disposeTimer = null
     pipelinePromises.clear()
-    resourceRecords.forEach(record => {
-      if (record.value) record.value.destroy?.()
-      else record.promise.then(value => value.destroy?.(), () => {})
-    })
-    resourceRecords.clear()
+    resourceCache.destroy()
     lostListeners.clear()
     if (device && uncapturedErrorListener)
       device.removeEventListener("uncapturederror", uncapturedErrorListener)
@@ -114,18 +112,10 @@ const makeRuntime = sdk => {
 
   const getResource = (key, create) => {
     if (!device) throw new Error("WebGPU runtime is not initialized")
-    if (!resourceRecords.has(key)) {
-      const record = { value: null, promise: null }
-      record.promise = Promise.resolve()
-        .then(create)
-        .then(value => {
-          record.value = value
-          return value
-        })
-      resourceRecords.set(key, record)
-    }
-    return resourceRecords.get(key).promise
+    return resourceCache.get(key, create)
   }
+
+  const getResourceBytes = resourceCache.getBytes
 
   const onLost = listener => {
     lostListeners.add(listener)
@@ -138,6 +128,7 @@ const makeRuntime = sdk => {
     dispose,
     getPipeline,
     getResource,
+    getResourceBytes,
     onLost,
     get adapter() {
       return adapter
@@ -159,7 +150,17 @@ const makeRuntime = sdk => {
   return instance
 }
 
-export const markWebGPUFailed = sdk => failedSDKs.add(sdk)
+export const getWebGPUDiagnostics = sdk => {
+  const runtime = runtimes.get(sdk)
+  return {
+    supported: isWebGPUSupported(sdk),
+    initialized: Boolean(runtime?.device),
+    adapter: runtime?.adapter?.info || null,
+    references: runtime?.references || 0,
+    sharedResourceBytes: runtime?.getResourceBytes?.() || 0,
+    lastFailure: runtime?.lastFailure || null,
+  }
+}
 
 export const getWebGPURuntime = sdk => {
   if (!runtimes.has(sdk)) runtimes.set(sdk, makeRuntime(sdk))

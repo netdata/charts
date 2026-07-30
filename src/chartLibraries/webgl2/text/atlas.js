@@ -114,6 +114,7 @@ export default gl => {
     texture,
     rasterize,
     destroy,
+    getGPUBytes: () => size * size * 4,
     get generation() {
       return generation
     },

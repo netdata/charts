@@ -1,5 +1,5 @@
 import makeRenderer from "./engine/makeRenderer"
-import { isWebGL2Supported } from "./engine/runtime"
+import { getWebGL2Diagnostics, isWebGL2Supported } from "./engine/runtime"
 import { isGaugeConfigurationSupported } from "@/chartLibraries/gpu/visualizations/radial/gauge"
 import { getVisualization, hasVisualization } from "./visualizations"
 
@@ -24,5 +24,6 @@ makeWebGL2.isSupported = (sdk, visualization = "line", chart) =>
   hasVisualization(visualization) &&
   (visualization !== "gauge" || isGaugeConfigurationSupported(chart)) &&
   isWebGL2Supported(sdk)
+makeWebGL2.getDiagnostics = getWebGL2Diagnostics
 
 export default makeWebGL2

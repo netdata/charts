@@ -239,6 +239,27 @@ describe("internal renderer routing", () => {
     expect(chart.getRendererState().active).toBe("table")
   })
 
+  it("exposes optional backend diagnostics without changing chart state", () => {
+    const { chart, sdk } = makeChart()
+    const diagnostics = sdk.getRendererDiagnostics()
+
+    expect(diagnostics.webgpu).toEqual(
+      expect.objectContaining({
+        initialized: false,
+        references: 0,
+        sharedResourceBytes: 0,
+      })
+    )
+    expect(diagnostics.webgl2).toEqual(
+      expect.objectContaining({
+        initialized: false,
+        references: 0,
+        sharedResourceBytes: 0,
+      })
+    )
+    expect(chart.getAttribute("chartLibrary")).toBe("dygraph")
+  })
+
   it("does not expose backend selection through chart attributes", () =>
     withNavigatorGPU(() => {
       const { chart } = makeChart({ rendererPolicy: () => "webgpu" })

@@ -2,76 +2,20 @@ import {
   makeCurveSegments,
   makeDrawLayout,
 } from "@/chartLibraries/gpu/visualizations/cartesian/line/geometry"
+import { getSharedVisualizationProgram } from "@/chartLibraries/webgl2/engine/programs"
+import makeUniformWriter from "@/chartLibraries/webgl2/engine/uniforms"
+import { updateTexture } from "./textures"
+import makeUniformValues from "./uniforms"
 import {
   fragmentShader as heatmapFragmentShader,
   vertexShader as heatmapVertexShader,
 } from "../heatmap/shader"
-import { fragmentShader, vertexShader } from "./shader"
 
 const normalizeRange = (min, max) => {
   if (!Number.isFinite(min) || !Number.isFinite(max)) return [-1, 1]
   if (min !== max) return [min, max]
   const padding = Math.abs(min || 1) * 0.01
   return [min - padding, max + padding]
-}
-
-const makeTextureLayout = (values, components, maxTextureSize) => {
-  const texelCount = Math.max(1, Math.ceil(values.length / components))
-  const width = Math.min(maxTextureSize, texelCount)
-  const height = Math.ceil(texelCount / width)
-  if (height > maxTextureSize) throw new Error("WebGL2 texture capacity exceeded")
-
-  const valueCount = width * height * components
-  if (values.length === valueCount) return { width, height, values }
-  const padded = new values.constructor(valueCount)
-  padded.set(values)
-  return { width, height, values: padded }
-}
-
-const updateTexture = ({
-  gl,
-  texture,
-  state,
-  values,
-  components,
-  internalFormat,
-  format,
-  maxTextureSize,
-}) => {
-  const layout = makeTextureLayout(values, components, maxTextureSize)
-  gl.bindTexture(gl.TEXTURE_2D, texture)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-  if (state.width !== layout.width || state.height !== layout.height) {
-    gl.texImage2D(
-      gl.TEXTURE_2D,
-      0,
-      internalFormat,
-      layout.width,
-      layout.height,
-      0,
-      format,
-      gl.FLOAT,
-      layout.values
-    )
-  } else {
-    gl.texSubImage2D(
-      gl.TEXTURE_2D,
-      0,
-      0,
-      0,
-      layout.width,
-      layout.height,
-      format,
-      gl.FLOAT,
-      layout.values
-    )
-  }
-  state.width = layout.width
-  state.height = layout.height
-  state.byteLength = layout.values.byteLength
 }
 
 export default async (surface, { fillMode = null } = {}) => {
@@ -86,7 +30,7 @@ export default async (surface, { fillMode = null } = {}) => {
         heatmapVertexShader,
         heatmapFragmentShader
       )
-    : await surface.getProgram("gpu", vertexShader, fragmentShader)
+    : await getSharedVisualizationProgram(surface)
   const vertexArray = gl.createVertexArray()
   const textures = {
     x: gl.createTexture(),
@@ -103,24 +47,22 @@ export default async (surface, { fillMode = null } = {}) => {
     }),
   }
   const maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE)
-  const uniforms = Object.fromEntries(
-    [
-      "uPassType",
-      "uXValues",
-      "uYValues",
-      "uSeriesColors",
-      "uBaseValues",
-      "uXTextureSize",
-      "uYTextureSize",
-      "uColorTextureSize",
-      "uBaseTextureSize",
-      "uDomain",
-      "uPlot",
-      "uCanvas",
-      "uFill",
-      "uCounts",
-    ].map(name => [name, gl.getUniformLocation(program, name)])
-  )
+  const writeUniforms = makeUniformWriter(gl, program, {
+    uPassType: "int",
+    uXValues: "int",
+    uYValues: "int",
+    uSeriesColors: "int",
+    uBaseValues: "int",
+    uXTextureSize: "ivec2",
+    uYTextureSize: "ivec2",
+    uColorTextureSize: "ivec2",
+    uBaseTextureSize: "ivec2",
+    uDomain: "vec4",
+    uPlot: "vec4",
+    uCanvas: "vec4",
+    uFill: isHeatmap ? "vec4" : "vec3",
+    uCounts: "uvec4",
+  })
   let drawState = null
   let bufferBytes = 0
 
@@ -226,27 +168,41 @@ export default async (surface, { fillMode = null } = {}) => {
         })
     const [rawRangeMin, rawRangeMax] = normalizeRange(min, max)
     drawState = {
-      domain: [
-        (afterMs - packed.xOriginMs) / 1000,
-        (beforeMs - packed.xOriginMs) / 1000,
-        (rawRangeMin - packed.yOrigin) / packed.yScale,
-        (rawRangeMax - packed.yOrigin) / packed.yScale,
-      ],
-      plot: [plotLeft, plotTop, plotWidth, plotHeight],
-      canvas: [canvasWidth, canvasHeight, lineWidth * dpr, stepped ? 1 : smooth ? 2 : 0],
-      fill: [
-        isBar ? barWidth * dpr : (0 - packed.yOrigin) / packed.yScale,
-        isMultiBar ? (0 - packed.yOrigin) / packed.yScale : fillAlpha,
-        usesStackedData ? 1 : isMultiBar ? 2 : isHeatmap ? 3 : 0,
-        isHeatmap ? heatmapMax : 0,
-      ],
+      domain: {
+        after: (afterMs - packed.xOriginMs) / 1000,
+        before: (beforeMs - packed.xOriginMs) / 1000,
+        minimum: (rawRangeMin - packed.yOrigin) / packed.yScale,
+        maximum: (rawRangeMax - packed.yOrigin) / packed.yScale,
+      },
+      plot: {
+        left: plotLeft,
+        top: plotTop,
+        width: plotWidth,
+        height: plotHeight,
+      },
+      canvas: {
+        width: canvasWidth,
+        height: canvasHeight,
+        lineWidth: lineWidth * dpr,
+        mode: stepped ? 1 : smooth ? 2 : 0,
+      },
+      fill: {
+        baseline: isBar
+          ? barWidth * dpr
+          : (0 - packed.yOrigin) / packed.yScale,
+        opacity: isMultiBar
+          ? (0 - packed.yOrigin) / packed.yScale
+          : fillAlpha,
+        mode: usesStackedData ? 1 : isMultiBar ? 2 : isHeatmap ? 3 : 0,
+        heatmapMaximum: isHeatmap ? heatmapMax : 0,
+      },
       fillPass: fillMode === "stacked" ? 3 : isBar ? 4 : 2,
-      counts: [
-        packed.pointCount,
-        packed.seriesCount,
-        drawLayout.segmentsPerPair,
-        drawLayout.segmentsPerSeries,
-      ],
+      counts: {
+        points: packed.pointCount,
+        series: packed.seriesCount,
+        segmentsPerPair: drawLayout.segmentsPerPair,
+        segmentsPerSeries: drawLayout.segmentsPerSeries,
+      },
       fillInstanceCount: drawLayout.fillInstanceCount,
       strokeInstanceCount: drawLayout.strokeInstanceCount,
       instanceCount: drawLayout.instanceCount,
@@ -279,50 +235,24 @@ export default async (surface, { fillMode = null } = {}) => {
       gl.activeTexture(gl.TEXTURE3)
       gl.bindTexture(gl.TEXTURE_2D, textures.y)
     }
-    gl.uniform1i(uniforms.uXValues, 0)
-    gl.uniform1i(uniforms.uYValues, 1)
-    gl.uniform1i(uniforms.uSeriesColors, 2)
-    if (usesStackedData || isMultiBar) gl.uniform1i(uniforms.uBaseValues, 3)
-    gl.uniform2i(uniforms.uXTextureSize, textureStates.x.width, textureStates.x.height)
-    gl.uniform2i(uniforms.uYTextureSize, textureStates.y.width, textureStates.y.height)
-    gl.uniform2i(
-      uniforms.uColorTextureSize,
-      textureStates.color.width,
-      textureStates.color.height
+    writeUniforms(
+      makeUniformValues({
+        frame: drawState,
+        textureStates,
+        usesStackedData,
+        isMultiBar,
+        isHeatmap,
+      })
     )
-    if (usesStackedData)
-      gl.uniform2i(
-        uniforms.uBaseTextureSize,
-        textureStates.base.width,
-        textureStates.base.height
-      )
-    else if (isMultiBar)
-      gl.uniform2i(
-        uniforms.uBaseTextureSize,
-        textureStates.y.width,
-        textureStates.y.height
-      )
-    gl.uniform4fv(uniforms.uDomain, drawState.domain)
-    gl.uniform4fv(uniforms.uPlot, drawState.plot)
-    gl.uniform4fv(uniforms.uCanvas, drawState.canvas)
-    if (isHeatmap) gl.uniform4fv(uniforms.uFill, drawState.fill)
-    else
-      gl.uniform3f(
-        uniforms.uFill,
-        drawState.fill[0],
-        drawState.fill[1],
-        drawState.fill[2]
-      )
-    gl.uniform4uiv(uniforms.uCounts, drawState.counts)
     gl.enable(gl.SCISSOR_TEST)
     gl.scissor(
-      drawState.plot[0],
-      size.height - drawState.plot[1] - drawState.plot[3],
-      drawState.plot[2],
-      drawState.plot[3]
+      drawState.plot.left,
+      size.height - drawState.plot.top - drawState.plot.height,
+      drawState.plot.width,
+      drawState.plot.height
     )
     if (drawState.fillInstanceCount) {
-      gl.uniform1i(uniforms.uPassType, drawState.fillPass)
+      writeUniforms({ uPassType: drawState.fillPass })
       gl.drawArraysInstanced(
         isHeatmap ? gl.TRIANGLE_STRIP : gl.TRIANGLES,
         0,
@@ -331,7 +261,7 @@ export default async (surface, { fillMode = null } = {}) => {
       )
     }
     if (drawState.strokeInstanceCount) {
-      gl.uniform1i(uniforms.uPassType, 0)
+      writeUniforms({ uPassType: 0 })
       gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, drawState.strokeInstanceCount)
     }
     gl.bindVertexArray(null)

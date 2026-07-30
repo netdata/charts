@@ -60,6 +60,13 @@ export default ({
     return makeRenderer(instance, chart)
   }
 
+  const getRendererDiagnostics = () =>
+    Object.fromEntries(
+      Object.entries(attributes.ui)
+        .filter(([, makeRenderer]) => makeRenderer.getDiagnostics)
+        .map(([name, makeRenderer]) => [name, makeRenderer.getDiagnostics(instance)])
+    )
+
   const makeSDKChart = (options = {}) => {
     const chart = makeChartCore(options)
     const chartUi = makeChartUI(chart)
@@ -87,6 +94,7 @@ export default ({
     unregister,
     addUI,
     getPreferredRenderer,
+    getRendererDiagnostics,
     makeChartCore,
     makeChartUI,
     makeChart: makeSDKChart,

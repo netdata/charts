@@ -114,6 +114,7 @@ export default runtime => {
   return {
     rasterize,
     destroy,
+    getGPUBytes: () => size * size * 4,
     get texture() {
       return texture
     },

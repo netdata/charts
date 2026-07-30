@@ -1,3 +1,4 @@
+import makeResourceCache from "@/chartLibraries/gpu/engine/makeResourceCache"
 import makeProgram from "./program"
 
 const runtimes = new WeakMap()
@@ -60,6 +61,7 @@ const makeRuntime = sdk => {
   let contextLostListener = null
   let lastFailure = null
   const programs = new Map()
+  const resourceCache = makeResourceCache()
   const lostListeners = new Set()
 
   const initialize = () => {
@@ -116,6 +118,13 @@ const makeRuntime = sdk => {
     return programs.get(key).promise
   }
 
+  const getResource = (key, create) => {
+    if (!gl) throw new Error("WebGL2 runtime is not initialized")
+    return resourceCache.get(key, create)
+  }
+
+  const getResourceBytes = resourceCache.getBytes
+
   const onLost = listener => {
     lostListeners.add(listener)
     return () => lostListeners.delete(listener)
@@ -132,6 +141,7 @@ const makeRuntime = sdk => {
       else record.promise.then(program => gl?.deleteProgram(program), () => {})
     })
     programs.clear()
+    resourceCache.destroy()
     if (canvas && contextLostListener)
       canvas.removeEventListener("webglcontextlost", contextLostListener)
     contextLostListener = null
@@ -150,6 +160,8 @@ const makeRuntime = sdk => {
     release,
     dispose,
     getProgram,
+    getResource,
+    getResourceBytes,
     onLost,
     get canvas() {
       return canvas
@@ -170,7 +182,17 @@ const makeRuntime = sdk => {
   return instance
 }
 
-export const markWebGL2Failed = sdk => failedSDKs.add(sdk)
+export const getWebGL2Diagnostics = sdk => {
+  const runtime = runtimes.get(sdk)
+  return {
+    supported: isWebGL2Supported(sdk),
+    initialized: Boolean(runtime?.gl),
+    context: runtime?.info || null,
+    references: runtime?.references || 0,
+    sharedResourceBytes: runtime?.getResourceBytes?.() || 0,
+    lastFailure: runtime?.lastFailure || null,
+  }
+}
 export const getWebGL2Runtime = sdk => {
   if (!runtimes.has(sdk)) runtimes.set(sdk, makeRuntime(sdk))
   return runtimes.get(sdk)

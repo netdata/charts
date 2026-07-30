@@ -4,6 +4,11 @@ import heatmapShader from "../heatmap/shader"
 import stackedShader from "../stacked/shader"
 import stackedBarShader from "../stackedBar/shader"
 import lineShader from "./shader"
+import {
+  makeScissor,
+  makeUniformData,
+  uniformByteLength,
+} from "./uniforms"
 
 const nextBufferSize = byteLength => {
   let size = 4
@@ -136,7 +141,11 @@ export default async (runtime, surface, { fillMode = null } = {}) => {
     const plotWidth = Math.max(1, Math.round(plot.width * dpr))
     const plotHeight = Math.max(1, Math.round(plot.height * dpr))
 
-    const uniform = ensureBuffer("uniform", 80, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST)
+    const uniform = ensureBuffer(
+      "uniform",
+      uniformByteLength,
+      GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+    )
     const x = ensureBuffer("x", packed.x.byteLength, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST)
     const y = ensureBuffer("y", packed.y.byteLength, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST)
     const color = ensureBuffer(
@@ -192,43 +201,42 @@ export default async (runtime, surface, { fillMode = null } = {}) => {
     const [rawRangeMin, rawRangeMax] = normalizeRange(min, max)
     const rangeMin = (rawRangeMin - packed.yOrigin) / packed.yScale
     const rangeMax = (rawRangeMax - packed.yOrigin) / packed.yScale
-    const uniformData = new ArrayBuffer(80)
-    const floats = new Float32Array(uniformData)
-    const integers = new Uint32Array(uniformData)
-    floats.set([
-      (afterMs - packed.xOriginMs) / 1000,
-      (beforeMs - packed.xOriginMs) / 1000,
-      rangeMin,
-      rangeMax,
-      plotLeft,
-      plotTop,
-      plotWidth,
-      plotHeight,
-      canvasWidth,
-      canvasHeight,
-      lineWidth * dpr,
-      stepped ? 1 : smooth ? 2 : 0,
-      isBar ? barWidth * dpr : (0 - packed.yOrigin) / packed.yScale,
-      isMultiBar ? (0 - packed.yOrigin) / packed.yScale : fillAlpha,
-      usesStackedData ? 1 : isMultiBar ? 2 : isHeatmap ? 3 : 0,
-      isHeatmap ? heatmapMax : 0,
-    ])
-    integers.set(
-      [
-        packed.pointCount,
-        packed.seriesCount,
-        drawLayout.segmentsPerPair,
-        drawLayout.segmentsPerSeries,
-      ],
-      16
-    )
-    device.queue.writeBuffer(uniform, 0, uniformData)
-    scissor = {
-      left: Math.min(plotLeft, canvasWidth - 1),
-      top: Math.min(plotTop, canvasHeight - 1),
-      width: Math.max(1, Math.min(plotWidth, canvasWidth - plotLeft)),
-      height: Math.max(1, Math.min(plotHeight, canvasHeight - plotTop)),
+    const frame = {
+      domain: {
+        after: (afterMs - packed.xOriginMs) / 1000,
+        before: (beforeMs - packed.xOriginMs) / 1000,
+        minimum: rangeMin,
+        maximum: rangeMax,
+      },
+      plot: {
+        left: plotLeft,
+        top: plotTop,
+        width: plotWidth,
+        height: plotHeight,
+      },
+      canvas: {
+        width: canvasWidth,
+        height: canvasHeight,
+        lineWidth: lineWidth * dpr,
+        mode: stepped ? 1 : smooth ? 2 : 0,
+      },
+      fill: {
+        baseline: isBar
+          ? barWidth * dpr
+          : (0 - packed.yOrigin) / packed.yScale,
+        opacity: isMultiBar
+          ? (0 - packed.yOrigin) / packed.yScale
+          : fillAlpha,
+        mode: usesStackedData ? 1 : isMultiBar ? 2 : isHeatmap ? 3 : 0,
+        heatmapMaximum: isHeatmap ? heatmapMax : 0,
+      },
     }
+    device.queue.writeBuffer(
+      uniform,
+      0,
+      makeUniformData({ packed, drawLayout, ...frame })
+    )
+    scissor = makeScissor(frame)
 
     const makeBindGroup = (pipeline, includeBase = false) => {
       const entries = [

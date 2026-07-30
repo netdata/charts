@@ -85,8 +85,6 @@ Default root attributes include:
 
 - `_v: "v3"`
 - `chartLibrary: "dygraph"`
-- an empty `chartRenderersByVisualization` map
-- `chartLibrariesByType`, mapping `line`, `stacked`, `area`, `stackedBar`, `multiBar`, and `heatmap` to `dygraph`
 - `navigation: "pan"`
 - `after: -900`
 - `overlays.proceeded.type: "proceeded"`
@@ -102,7 +100,7 @@ Evidence: `src/makeDefaultSDK.js`, `src/sdk/`.
 - Event, listener, activation, deactivation, fetch, render, and destruction behavior are lifecycle contracts; changes require cleanup and remount validation.
 - Visualization identity is independent of the active renderer. `chart.getVisualizationType()` may expose semantic visualization identity, but consumers must never need the active backend to select or keep a React component mounted.
 - Public `chartLibrary` retains its established consumer/component identity and must never change to `webgpu` or `webgl2`. Requested and active backend, health, fallback reason, and recovery state are private renderer-controller state rather than public chart attributes.
-- Backend preference is SDK-internal rollout/test policy. `chartLibrariesByType` remains the compatibility map for time-series types, and existing defaults and unavailable accelerated backends resolve to each visualization's legacy implementation without changing consumer dispatch.
+- Backend preference is SDK-internal rollout/test policy. Existing defaults and unavailable accelerated backends resolve to each visualization's legacy implementation without changing consumer dispatch.
 - A renderer may declare visualization/capability support and a private fallback backend. Routing resolves the supported chain before construction, and runtime fallback replaces only the package-owned mounted chart UI. The accelerated chain is `WebGPU -> WebGL2 -> visualization-specific legacy`; each backend may be skipped or lost without changing public `chartLibrary`, visualization identity, or the caller's React tree.
 - Renderer reconciliation happens after parent attributes are inherited and after the first payload supplies `chartType`. User-facing chart-type controls and consuming React dispatch retain their established contract and do not use internal renderer names.
 - Replacing a mounted chart UI preserves its DOM mount, custom UI overrides, chart identity, and renderer-bound package subscriptions. The package-owned `ChartContainer` follows `chartUIChanged`; external consumers are not required to subscribe to renderer replacement.

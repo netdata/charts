@@ -1,3 +1,5 @@
+import { getSharedVisualizationProgram } from "./programs"
+
 const nextBufferSize = byteLength => {
   let size = 4
   while (size < byteLength) size *= 2
@@ -16,9 +18,9 @@ const makeScissor = ({ scissor, width, height, dpr }) => {
   }
 }
 
-export default async ({ surface, key, vertexShader, fragmentShader, pack }) => {
+export default async ({ surface, pack }) => {
   const { gl } = surface
-  const program = await surface.getProgram(key, vertexShader, fragmentShader)
+  const program = await getSharedVisualizationProgram(surface)
   const vertexArray = gl.createVertexArray()
   const instances = gl.createBuffer()
   const canvasLocation = gl.getUniformLocation(program, "uCanvas")

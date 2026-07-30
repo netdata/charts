@@ -2,7 +2,7 @@ import makeDefaultSDK from "@/makeDefaultSDK"
 import {
   disposeWebGPURuntime,
   getWebGPURuntime,
-} from "@/chartLibraries/webgpu/runtime"
+} from "@/chartLibraries/webgpu/engine/runtime"
 import {
   disposeWebGL2Runtime,
   getActiveWebGL2Contexts,
@@ -12,6 +12,9 @@ import {
 const width = 1600
 const height = 500
 const intervalMs = 1000
+
+const getActiveRenderer = chart =>
+  chart.getRendererState?.().active || chart.getAttribute("chartLibrary")
 
 const quantile = (values, fraction) => {
   const sorted = [...values].sort((a, b) => a - b)
@@ -137,8 +140,8 @@ const makeChart = state => {
   chart.updateDimensions()
   chart.reconcileRenderer()
 
-  if (chart.getAttribute("chartLibrary") !== state.renderer) {
-    throw new Error(`Expected ${state.renderer} but routed to ${chart.getAttribute("chartLibrary")}`)
+  if (getActiveRenderer(chart) !== state.renderer) {
+    throw new Error(`Expected ${state.renderer} but routed to ${getActiveRenderer(chart)}`)
   }
 
   const element = document.createElement("div")
@@ -166,12 +169,12 @@ const makeChart = state => {
 
 const settle = async (instance, startedAt = performance.now()) => {
   await instance.ui.whenReady?.()
-  if (instance.chart.getAttribute("chartLibrary") !== prepared.renderer) {
+  if (getActiveRenderer(instance.chart) !== prepared.renderer) {
     const runtimeFailure = prepared.runtime?.lastFailure
     throw new Error(
       prepared.fallbackErrors.at(-1) ||
         (runtimeFailure && `${runtimeFailure.reason}: ${runtimeFailure.message}`) ||
-        `Renderer fell back to ${instance.chart.getAttribute("chartLibrary")}`
+        `Renderer fell back to ${getActiveRenderer(instance.chart)}`
     )
   }
   await instance.ui.getQueueDone?.()
@@ -306,7 +309,7 @@ const measureMultiChart = async (count = 4) => {
   await Promise.all(instances.map(instance => instance.ui.whenReady()))
   if (
     instances.some(
-      instance => instance.chart.getAttribute("chartLibrary") !== prepared.renderer
+      instance => getActiveRenderer(instance.chart) !== prepared.renderer
     )
   )
     throw new Error(`A multi-chart ${prepared.renderer} instance failed`)
@@ -314,6 +317,7 @@ const measureMultiChart = async (count = 4) => {
   await nextFrame()
   const mountMs = performance.now() - mountStartedAt
   const resourceReferencesDuring = prepared.runtime.references
+  const sharedResourceBytes = prepared.runtime.getResourceBytes?.() || 0
 
   const updateStartedAt = performance.now()
   instances.forEach(instance => {
@@ -336,6 +340,7 @@ const measureMultiChart = async (count = 4) => {
     mountMs,
     updateMs,
     gpuBufferBytes,
+    sharedResourceBytes,
     resourceReferencesDuring,
     resourceReferencesAfter,
   }
@@ -484,7 +489,7 @@ const mountPreview = async ({
   preview.ui.mount(preview.element)
   await settle(preview)
   return {
-    renderer: preview.chart.getAttribute("chartLibrary"),
+    renderer: getActiveRenderer(preview.chart),
     canvas: preview.ui.getCanvas?.()?.dataset.renderer || "dygraph",
     runtimeReferences: prepared.runtime?.references || 0,
   }
@@ -680,32 +685,50 @@ const exerciseDeviceLossFallback = async () => {
 
   prepared.runtime.device.destroy()
   const deadline = performance.now() + 2000
-  while (preview.chart.getAttribute("chartLibrary") === "webgpu" && performance.now() < deadline) {
+  while (getActiveRenderer(preview.chart) === "webgpu" && performance.now() < deadline) {
     await new Promise(resolve => setTimeout(resolve, 10))
   }
 
   return {
-    renderer: preview.chart.getAttribute("chartLibrary"),
-    hasWebGL2: preview.chart.getAttribute("chartLibrary") === "webgl2",
+    renderer: getActiveRenderer(preview.chart),
+    hasWebGL2: getActiveRenderer(preview.chart) === "webgl2",
     hasDygraph: Boolean(preview.chart.getUI().getDygraph?.()),
   }
 }
 
 const exerciseWebGL2ContextLossFallback = async () => {
   const runtime = prepared?.sdk ? getWebGL2Runtime(prepared.sdk) : null
-  if (!preview || preview.chart.getAttribute("chartLibrary") !== "webgl2" || !runtime?.gl)
+  if (!preview || getActiveRenderer(preview.chart) !== "webgl2" || !runtime?.gl)
     throw new Error("A WebGL2 preview is required")
   const extension = runtime.gl.getExtension("WEBGL_lose_context")
   if (!extension) throw new Error("WEBGL_lose_context is unavailable")
 
   extension.loseContext()
   const deadline = performance.now() + 2000
-  while (preview.chart.getAttribute("chartLibrary") === "webgl2" && performance.now() < deadline) {
+  while (getActiveRenderer(preview.chart) === "webgl2" && performance.now() < deadline) {
     await new Promise(resolve => setTimeout(resolve, 10))
   }
   return {
-    renderer: preview.chart.getAttribute("chartLibrary"),
+    renderer: getActiveRenderer(preview.chart),
     hasDygraph: Boolean(preview.chart.getUI().getDygraph?.()),
+  }
+}
+
+const exerciseInitializationUnmount = async () => {
+  if (!prepared || prepared.renderer === "dygraph")
+    throw new Error("An accelerated renderer must be prepared")
+
+  const instance = makeChart(prepared)
+  instance.ui.mount(instance.element)
+  const ready = instance.ui.whenReady()
+  instance.destroy()
+  await ready
+  await nextFrame()
+
+  return {
+    elementConnected: instance.element.isConnected,
+    canvasConnected: Boolean(instance.ui.getCanvas?.()?.isConnected),
+    resourceReferences: prepared.runtime.references,
   }
 }
 
@@ -731,6 +754,7 @@ window.__NETDATA_RENDERER_BENCHMARK__ = {
   capturePreview,
   exerciseDeviceLossFallback,
   exerciseWebGL2ContextLossFallback,
+  exerciseInitializationUnmount,
   getActiveWebGL2Contexts,
   cleanup,
 }

@@ -1,6 +1,5 @@
 import { parseColor } from "@/chartLibraries/gpu/color"
 import makeInstancedLayer from "@/chartLibraries/webgl2/engine/makeInstancedLayer"
-import { fragmentShader, vertexShader } from "./shader"
 
 export const packRects = (rects, dpr = 1) => {
   const packed = new Float32Array(rects.length * 16)
@@ -16,9 +15,6 @@ export const packRects = (rects, dpr = 1) => {
 export default async surface => {
   const layer = await makeInstancedLayer({
     surface,
-    key: "gpu",
-    vertexShader,
-    fragmentShader,
     pack: packRects,
   })
   return {
