@@ -1,7 +1,4 @@
-import {
-  makeCurveSegments,
-  makeDrawLayout,
-} from "@/chartLibraries/gpu/visualizations/cartesian/line/geometry"
+import makeRenderState from "@/chartLibraries/gpu/visualizations/cartesian/line/renderState"
 import { getSharedVisualizationProgram } from "@/chartLibraries/webgl2/engine/programs"
 import makeUniformWriter from "@/chartLibraries/webgl2/engine/uniforms"
 import { updateTexture } from "./textures"
@@ -11,18 +8,10 @@ import {
   vertexShader as heatmapVertexShader,
 } from "../heatmap/shader"
 
-const normalizeRange = (min, max) => {
-  if (!Number.isFinite(min) || !Number.isFinite(max)) return [-1, 1]
-  if (min !== max) return [min, max]
-  const padding = Math.abs(min || 1) * 0.01
-  return [min - padding, max + padding]
-}
-
 export default async (surface, { fillMode = null } = {}) => {
   const { gl } = surface
   const isMultiBar = fillMode === "multiBar"
   const isHeatmap = fillMode === "heatmap"
-  const isBar = fillMode === "stackedBar" || isMultiBar || isHeatmap
   const usesStackedData = fillMode === "stacked" || fillMode === "stackedBar"
   const program = isHeatmap
     ? await surface.getProgram(
@@ -86,13 +75,6 @@ export default async (surface, { fillMode = null } = {}) => {
     stepped,
     smooth,
   }) => {
-    const canvasWidth = Math.max(1, Math.round(width * dpr))
-    const canvasHeight = Math.max(1, Math.round(height * dpr))
-    const plotLeft = Math.max(0, Math.round(plot.left * dpr))
-    const plotTop = Math.max(0, Math.round(plot.top * dpr))
-    const plotWidth = Math.max(1, Math.round(plot.width * dpr))
-    const plotHeight = Math.max(1, Math.round(plot.height * dpr))
-
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1)
     if (dataChanged) {
       gl.activeTexture(gl.TEXTURE0)
@@ -149,73 +131,24 @@ export default async (surface, { fillMode = null } = {}) => {
       0
     )
 
-    const drawLayout = isBar
-      ? {
-          instanceCount: packed.pointCount * packed.seriesCount,
-          fillInstanceCount: packed.pointCount * packed.seriesCount,
-          strokeInstanceCount: 0,
-          segmentsPerPair: 0,
-          segmentsPerSeries: 0,
-        }
-      : makeDrawLayout({
-          pointCount: packed.pointCount,
-          seriesCount: packed.seriesCount,
-          stepped,
-          smooth,
-          curveSegments: makeCurveSegments({ pointCount: packed.pointCount, plotWidth }),
-          filled: Boolean(fillMode && fillAlpha > 0),
-          stroke: lineWidth > 0,
-        })
-    const [rawRangeMin, rawRangeMax] = normalizeRange(min, max)
-    drawState = {
-      domain: {
-        after: (afterMs - packed.xOriginMs) / 1000,
-        before: (beforeMs - packed.xOriginMs) / 1000,
-        minimum: (rawRangeMin - packed.yOrigin) / packed.yScale,
-        maximum: (rawRangeMax - packed.yOrigin) / packed.yScale,
-      },
-      plot: {
-        left: plotLeft,
-        top: plotTop,
-        width: plotWidth,
-        height: plotHeight,
-      },
-      canvas: {
-        width: canvasWidth,
-        height: canvasHeight,
-        lineWidth: lineWidth * dpr,
-        mode: stepped ? 1 : smooth ? 2 : 0,
-      },
-      fill: {
-        baseline: isBar
-          ? barWidth * dpr
-          : (0 - packed.yOrigin) / packed.yScale,
-        opacity: isMultiBar
-          ? (0 - packed.yOrigin) / packed.yScale
-          : fillAlpha,
-        mode: usesStackedData ? 1 : isMultiBar ? 2 : isHeatmap ? 3 : 0,
-        heatmapMaximum: isHeatmap ? heatmapMax : 0,
-      },
-      fillPass: fillMode === "stacked" ? 3 : isBar ? 4 : 2,
-      counts: {
-        points: packed.pointCount,
-        series: packed.seriesCount,
-        segmentsPerPair: drawLayout.segmentsPerPair,
-        segmentsPerSeries: drawLayout.segmentsPerSeries,
-      },
-      fillInstanceCount: drawLayout.fillInstanceCount,
-      strokeInstanceCount: drawLayout.strokeInstanceCount,
-      instanceCount: drawLayout.instanceCount,
-      drawStats: {
-        pointCount: packed.pointCount,
-        seriesCount: packed.seriesCount,
-        sourcePairs: Math.max(0, packed.pointCount - 1) * packed.seriesCount,
-        barInstanceCount: isBar ? packed.pointCount * packed.seriesCount : 0,
-        barWidth: isBar ? barWidth : null,
-        valueRange: [min, max],
-        ...drawLayout,
-      },
-    }
+    drawState = makeRenderState({
+      packed,
+      fillMode,
+      afterMs,
+      beforeMs,
+      minimum: min,
+      maximum: max,
+      width,
+      height,
+      dpr,
+      plot,
+      fillAlpha,
+      lineWidth,
+      barWidth,
+      heatmapMaximum: heatmapMax,
+      stepped,
+      smooth,
+    })
   }
 
   const draw = size => {

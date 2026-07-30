@@ -68,345 +68,77 @@ const listen = () =>
   })
 
 const close = () => new Promise(resolve => server.close(resolve))
-const { measureCase, validateLine } = require("./runner/measurements.cjs")
-const {
-  validateFilledVisualization,
-  captureAreaOverlap,
-  validateAreaParity,
-  captureStackedDiverging,
-  validateStackedParity,
-} = require("./runner/filled.cjs")
-const {
-  captureMultiBar,
-  validateMultiBarParity,
-} = require("./runner/bars.cjs")
-const {
-  captureHeatmap,
-  validateHeatmapParity,
-} = require("./runner/heatmap.cjs")
-const {
-  captureEasyPie,
-  validateEasyPieParity,
-  captureGauge,
-  validateGaugeParity,
-  captureD3Pie,
-  validateD3PieParity,
-} = require("./runner/radial.cjs")
-const {
-  validateFallbackChain,
-  validateWebGL2Fallback,
-} = require("./runner/fallback.cjs")
-const compare = require("./runner/compare.cjs")
 const createPageHarness = require("./runner/browser.cjs")
-const {
-  validateCorrectnessMeasurement,
-  validateInitializationUnmount,
-} = require("./runner/lifecycle.cjs")
+const runSuite = require("./runner/suite.cjs")
 
-const run = async () => {
-  const port = await listen()
-  const browserArgs = [
+const makeBrowserArgs = () => {
+  const args = [
     "--enable-precise-memory-info",
     "--js-flags=--expose-gc",
     "--disable-background-timer-throttling",
     "--disable-renderer-backgrounding",
   ]
   if (process.env.CHROMIUM_OZONE_PLATFORM)
-    browserArgs.push(`--ozone-platform=${process.env.CHROMIUM_OZONE_PLATFORM}`)
-  if (process.env.WEBGPU_UNSAFE === "1") browserArgs.push("--enable-unsafe-webgpu")
-  if (process.env.WEBGPU_VULKAN === "1") {
-    browserArgs.push(
+    args.push(`--ozone-platform=${process.env.CHROMIUM_OZONE_PLATFORM}`)
+  if (process.env.WEBGPU_UNSAFE === "1") args.push("--enable-unsafe-webgpu")
+  if (process.env.WEBGPU_VULKAN === "1")
+    args.push(
       "--enable-unsafe-webgpu",
       "--ozone-platform=wayland",
       "--use-angle=vulkan",
       "--enable-features=Vulkan,VulkanFromANGLE"
     )
-  }
-  if (process.env.WEBGPU_SOFTWARE === "1") {
-    browserArgs.push("--enable-unsafe-webgpu", "--use-angle=swiftshader-webgl")
-  }
+  if (process.env.WEBGPU_SOFTWARE === "1")
+    args.push("--enable-unsafe-webgpu", "--use-angle=swiftshader-webgl")
+  return args
+}
 
+const getChromiumExecutable = () => {
   const systemChromium = "/usr/bin/chromium"
-  const browser = await chromium.launch({
-    headless: process.env.BENCHMARK_HEADED !== "1",
-    executablePath:
-      process.env.CHROMIUM_EXECUTABLE ||
-      (fs.existsSync(systemChromium) ? systemChromium : chromium.executablePath()),
-    args: browserArgs,
-  })
-  const browserVersion = browser.version()
-  const context = await browser.newContext({
-    viewport: { width: 1600, height: 500 },
-    deviceScaleFactor: 1,
-  })
-  const page = await context.newPage()
-  const pageHarness = createPageHarness({ context, page })
-  const results = []
-  const lineCorrectness = {}
-  const areaCorrectness = {}
-  const areaParity = {}
-  const heatmapCorrectness = {}
-  const heatmapParity = {}
-  const multiBarCorrectness = {}
-  const multiBarParity = {}
-  const stackedCorrectness = {}
-  const stackedParity = {}
-  const stackedBarCorrectness = {}
-  const stackedBarParity = {}
-  const d3PieParity = {}
-  const easyPieParity = {}
-  const gaugeParity = {}
-  let fallbackChain = null
-  let d3PieFallbackChain = null
-  let easyPieFallbackChain = null
-  let gaugeFallbackChain = null
-  const webGL2Fallbacks = {}
-  const initializationUnmount = {}
+  return (
+    process.env.CHROMIUM_EXECUTABLE ||
+    (fs.existsSync(systemChromium) ? systemChromium : chromium.executablePath())
+  )
+}
+
+const run = async () => {
+  const port = await listen()
+  let browser
+  let context
+  let browserVersion
+  let suite
 
   try {
-    let dygraphArea = null
-    let dygraphHeatmap = null
-    let dygraphMultiBar = null
-    let dygraphMultiBarReflow = null
-    let dygraphStacked = null
-    let dygraphStackedBar = null
-    if (!radialOnly) {
-      if (correctnessOnly) {
-        for (const renderer of candidateRenderers)
-          results.push(
-            await measureCase(pageHarness, port, {
-              dimensions: 10,
-              points: 100,
-              renderer,
-              visualization,
-            })
-          )
-      } else {
-        for (const workload of workloads) {
-          for (const renderer of renderers) {
-            results.push(
-              await measureCase(pageHarness, port, {
-                ...workload,
-                renderer,
-                visualization,
-              })
-            )
-          }
-        }
-      }
-      dygraphArea = await captureAreaOverlap(pageHarness, port, "dygraph")
-      dygraphHeatmap = await captureHeatmap(pageHarness, port, "dygraph")
-      dygraphMultiBar = await captureMultiBar(pageHarness, port, "dygraph")
-      dygraphMultiBarReflow = await captureMultiBar(
-        pageHarness,
-        port,
-        "dygraph",
-        ["series-0", "series-2"]
-      )
-      dygraphStacked = await captureStackedDiverging(
-        pageHarness,
-        port,
-        "dygraph"
-      )
-      dygraphStackedBar = await captureStackedDiverging(
-        pageHarness,
-        port,
-        "dygraph",
-        "stackedBar"
-      )
-    }
-    const d3PieReference = await captureD3Pie(pageHarness, port, "d3pie")
-    const easyPieReferences = {
-      positive: await captureEasyPie(
-        pageHarness,
-        port,
-        "easypiechart",
-        "easy-pie"
-      ),
-      negative: await captureEasyPie(
-        pageHarness,
-        port,
-        "easypiechart",
-        "easy-pie-negative"
-      ),
-    }
-    const gaugeReference = await captureGauge(pageHarness, port, "gauge")
-    for (const renderer of candidateRenderers) {
-      await pageHarness.resetPage()
-      if (!radialOnly) {
-        lineCorrectness[renderer] = await validateLine(
-          pageHarness,
-          port,
-          renderer
-        )
-        areaCorrectness[renderer] = await validateFilledVisualization(
-          pageHarness,
-          port,
-          renderer,
-          "area"
-        )
-        areaParity[renderer] = await validateAreaParity(
-          pageHarness,
-          port,
-          renderer,
-          dygraphArea
-        )
-        heatmapCorrectness[renderer] = await validateFilledVisualization(
-          pageHarness,
-          port,
-          renderer,
-          "heatmap"
-        )
-        heatmapParity[renderer] = await validateHeatmapParity(
-          pageHarness,
-          port,
-          renderer,
-          dygraphHeatmap
-        )
-        multiBarCorrectness[renderer] = await validateFilledVisualization(
-          pageHarness,
-          port,
-          renderer,
-          "multiBar"
-        )
-        multiBarParity[renderer] = await validateMultiBarParity(
-          pageHarness,
-          port,
-          renderer,
-          dygraphMultiBar,
-          dygraphMultiBarReflow
-        )
-        stackedCorrectness[renderer] = await validateFilledVisualization(
-          pageHarness,
-          port,
-          renderer,
-          "stacked"
-        )
-        stackedParity[renderer] = await validateStackedParity(
-          pageHarness,
-          port,
-          renderer,
-          "stacked",
-          dygraphStacked
-        )
-        stackedBarCorrectness[renderer] = await validateFilledVisualization(
-          pageHarness,
-          port,
-          renderer,
-          "stackedBar"
-        )
-        stackedBarParity[renderer] = await validateStackedParity(
-          pageHarness,
-          port,
-          renderer,
-          "stackedBar",
-          dygraphStackedBar
-        )
-      }
-      d3PieParity[renderer] = await validateD3PieParity(
-        pageHarness,
-        port,
-        renderer,
-        d3PieReference
-      )
-      easyPieParity[renderer] = await validateEasyPieParity(
-        pageHarness,
-        port,
-        renderer,
-        easyPieReferences
-      )
-      gaugeParity[renderer] = await validateGaugeParity(
-        pageHarness,
-        port,
-        renderer,
-        gaugeReference
-      )
-    }
-    for (const renderer of candidateRenderers)
-      initializationUnmount[renderer] = await validateInitializationUnmount(
-        pageHarness,
-        port,
-        renderer
-      )
-    if (candidateRenderers.includes("webgl2")) {
-      await pageHarness.resetPage()
-      for (const visualizationId of [
-        "line",
-        "d3pie",
-        "easypiechart",
-        "gauge",
-      ])
-        webGL2Fallbacks[visualizationId] = await validateWebGL2Fallback(
-          pageHarness,
-          port,
-          visualizationId
-        )
-    }
-    if (candidateRenderers.includes("webgpu")) {
-      await pageHarness.resetPage()
-      if (!radialOnly)
-        fallbackChain = await validateFallbackChain(
-          pageHarness,
-          port,
-          visualization
-        )
-      d3PieFallbackChain = await validateFallbackChain(
-        pageHarness,
-        port,
-        "d3pie"
-      )
-      easyPieFallbackChain = await validateFallbackChain(
-        pageHarness,
-        port,
-        "easypiechart"
-      )
-      gaugeFallbackChain = await validateFallbackChain(
-        pageHarness,
-        port,
-        "gauge"
-      )
-    }
+    browser = await chromium.launch({
+      headless: process.env.BENCHMARK_HEADED !== "1",
+      executablePath: getChromiumExecutable(),
+      args: makeBrowserArgs(),
+    })
+    browserVersion = browser.version()
+    context = await browser.newContext({
+      viewport: { width: 1600, height: 500 },
+      deviceScaleFactor: 1,
+    })
+    const page = await context.newPage()
+    const harness = createPageHarness({ context, page })
+    suite = await runSuite({
+      harness,
+      port,
+      config: {
+        workloads,
+        renderers,
+        candidateRenderers,
+        visualization,
+        radialOnly,
+        correctnessOnly,
+      },
+    })
   } finally {
-    await context.close()
-    await browser.close()
+    await context?.close()
+    await browser?.close()
     await close()
   }
 
-  const comparisons =
-    radialOnly || correctnessOnly
-      ? []
-      : compare(results, { workloads, candidateRenderers })
-  const correctnessPassed = result =>
-    result.passed || (correctnessOnly && result.portablePassed)
-  const passed =
-    Object.values(lineCorrectness).every(correctnessPassed) &&
-    Object.values(areaCorrectness).every(correctnessPassed) &&
-    Object.values(areaParity).every(correctnessPassed) &&
-    Object.values(heatmapCorrectness).every(correctnessPassed) &&
-    Object.values(heatmapParity).every(correctnessPassed) &&
-    Object.values(multiBarCorrectness).every(correctnessPassed) &&
-    Object.values(multiBarParity).every(correctnessPassed) &&
-    Object.values(stackedCorrectness).every(correctnessPassed) &&
-    Object.values(stackedParity).every(correctnessPassed) &&
-    Object.values(stackedBarCorrectness).every(correctnessPassed) &&
-    Object.values(stackedBarParity).every(correctnessPassed) &&
-    Object.values(d3PieParity).every(correctnessPassed) &&
-    Object.values(easyPieParity).every(correctnessPassed) &&
-    Object.values(gaugeParity).every(correctnessPassed) &&
-    (!fallbackChain || fallbackChain.passed) &&
-    (!d3PieFallbackChain || d3PieFallbackChain.passed) &&
-    (!easyPieFallbackChain || easyPieFallbackChain.passed) &&
-    (!gaugeFallbackChain || gaugeFallbackChain.passed) &&
-    Object.values(webGL2Fallbacks).every(result => result.passed) &&
-    Object.values(initializationUnmount).every(result => result.passed) &&
-    (!correctnessOnly || results.every(validateCorrectnessMeasurement)) &&
-    comparisons.every(
-      result =>
-        result.mountPassed &&
-        result.updatePassed &&
-        result.exportPassed &&
-        result.multiChartPassed
-    )
   const output = {
     generatedAt: new Date().toISOString(),
     runtime: {
@@ -431,35 +163,11 @@ const run = async () => {
         "100k uses measured one-frame presentation/work completion plus synchronous speedup; 1M uses median frame-settled speedup",
       memory: "Chromium usedJSHeapSize delta after forced GC; peak sampled after settled draws",
     },
-    results,
-    correctness: {
-      line: lineCorrectness,
-      area: areaCorrectness,
-      areaParity,
-      heatmap: heatmapCorrectness,
-      heatmapParity,
-      multiBar: multiBarCorrectness,
-      multiBarParity,
-      stacked: stackedCorrectness,
-      stackedParity,
-      stackedBar: stackedBarCorrectness,
-      stackedBarParity,
-      d3PieParity,
-      easyPieParity,
-      gaugeParity,
-      fallbackChain,
-      d3PieFallbackChain,
-      easyPieFallbackChain,
-      gaugeFallbackChain,
-      webGL2Fallbacks,
-      initializationUnmount,
-    },
-    comparisons,
-    passed,
+    ...suite,
   }
 
   process.stdout.write(`${JSON.stringify(output, null, 2)}\n`)
-  if (!passed) process.exitCode = 1
+  if (!suite.passed) process.exitCode = 1
 }
 
 run().catch(error => {

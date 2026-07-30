@@ -362,6 +362,7 @@ All items below remain inside the single integrated Charts PR. The PR stays dire
 - Removed the broken standalone WebGL2 feasibility file and unreleased dead compatibility wrappers. Split the browser harness into explicit browser, measurement, Cartesian parity, radial parity, fallback, lifecycle, comparison, and reporting modules while retaining exactly one Chromium context/page.
 - Added a pinned `playwright-core` dependency, pull-request CI for tests/lint/builds/Storybook, a real-browser correctness mode, maintainer architecture documentation, and a deterministic Storybook gallery for every accelerated visualization and forced legacy fallback.
 - Headless Chromium WebGL2 correctness passed every visualization, PNG export, four-chart lifecycle, one shared text atlas, immediate-unmount initialization race, and context-loss fallback to each visualization-specific legacy renderer. Full Jest passed 191 suites with 1,662 tests and 2 skipped; CJS/ES6 builds and Storybook passed.
+- Further separated benchmark orchestration into a bounded suite coordinator, moved shared Cartesian physical/domain/draw-layout planning into one backend-neutral render-state model, and consolidated the repeated EasyPie/Gauge lifecycle. The resulting WebGPU and WebGL2 kernels retain backend-specific buffer/texture and draw logic while consuming the same named frame contract. Headless browser correctness remained green and full Jest increased to 192 suites with 1,664 tests and 2 skipped.
 
 ## Validation
 

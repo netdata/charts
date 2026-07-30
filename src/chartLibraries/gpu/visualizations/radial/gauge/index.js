@@ -1,6 +1,6 @@
 import { parseColor } from "@/chartLibraries/gpu/color"
 import { UnsupportedVisualizationConfigurationError } from "@/chartLibraries/gpu/errors"
-import { unregister } from "@/helpers/makeListeners"
+import makeSimpleVisualization from "../makeSimpleVisualization"
 import lightenColor from "@/chartLibraries/gauge/makeGradientColors"
 import makeThresholdStops from "@/chartLibraries/gauge/makeThresholdStops"
 import { getEasyPieValue } from "../easyPie"
@@ -84,84 +84,33 @@ export const makeGaugeFrame = (chart, { width, height, dpr, colors }) => {
   }
 }
 
-export default ({ chart, makeResources }) => {
-  let resource = null
-  let listeners = null
-  let colors = null
-  let prevMin
-  let prevMax
-  let drawStats = null
-
-  const updateColors = () => {
-    colors = {
-      dimension: chart.selectDimensionColor(),
-      pointer: chart.getThemeAttribute("themeGaugePointer"),
-      track: chart.getThemeAttribute("themeGaugeStroke"),
-    }
-  }
-
-  const mount = ({ render }) => {
-    updateColors()
-    const { loaded } = chart.getAttributes()
-    listeners = unregister(
-      chart.onAttributeChange("hoverX", render),
-      !loaded && chart.onceAttributeChange("loaded", render),
-      chart.onAttributeChange("gaugeThresholds", render),
-      chart.onAttributeChange("gaugeGradient", render),
-      chart.onAttributeChange("gaugeLineWidth", render),
-      chart.onAttributeChange("staticZones", () => chart.reconcileRenderer()),
-      chart.onAttributeChange("theme", () => {
-        updateColors()
-        render()
-      })
-    )
-  }
-
-  const unmount = () => {
-    listeners?.()
-    listeners = null
-    resource?.destroy()
-    resource = null
-    colors = null
-    prevMin = null
-    prevMax = null
-    drawStats = null
-  }
-
-  const render = frame => {
-    if (!resource || !chart.getAttribute("loaded")) return false
-    const gaugeFrame = makeGaugeFrame(chart, { ...frame, colors })
-    if (!gaugeFrame) return false
-
-    const { min, max } = gaugeFrame
-    if (min !== prevMin || max !== prevMax) chart.trigger("yAxisChange", min, max)
-    prevMin = min
-    prevMax = max
-
-    resource.layer.update(gaugeFrame)
-    resource.surface.draw([resource.layer], frame)
-    drawStats = {
-      value: gaugeFrame.value,
-      percentage: gaugeFrame.percentage,
-      radius: gaugeFrame.radius,
-      lineWidth: gaugeFrame.lineWidth,
-      progressSweep: gaugeFrame.progressSweep,
-    }
-    return true
-  }
-
-  return {
-    mount,
-    unmount,
-    render,
-    createResources: (runtime, canvas) => makeResources(runtime, canvas),
-    attachResources: nextResource => {
-      resource?.destroy()
-      resource = nextResource
-    },
-    getBufferBytes: () => resource?.layer.getBufferBytes() || 0,
-    getDrawStats: () => drawStats,
-    getQueueDone: () => resource?.surface.getQueueDone?.() || Promise.resolve(),
-    getMinMax: () => chart.getAttribute("getValueRange")(chart),
-  }
-}
+export default ({ chart, makeResources }) =>
+  makeSimpleVisualization({
+    chart,
+    makeResources,
+    makeColors: target => ({
+      dimension: target.selectDimensionColor(),
+      pointer: target.getThemeAttribute("themeGaugePointer"),
+      track: target.getThemeAttribute("themeGaugeStroke"),
+    }),
+    makeFrame: ({ chart: target, frame }) =>
+      makeGaugeFrame(target, frame) || false,
+    makeDrawStats: frame => ({
+      value: frame.value,
+      percentage: frame.percentage,
+      radius: frame.radius,
+      lineWidth: frame.lineWidth,
+      progressSweep: frame.progressSweep,
+    }),
+    watchedAttributes: [
+      "gaugeThresholds",
+      "gaugeGradient",
+      "gaugeLineWidth",
+    ],
+    makeExtraListeners: ({ chart: target }) => [
+      target.onAttributeChange("staticZones", () =>
+        target.reconcileRenderer()
+      ),
+    ],
+    getMinMax: target => target.getAttribute("getValueRange")(target),
+  })

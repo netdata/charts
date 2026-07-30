@@ -1,5 +1,5 @@
 import { parseColor } from "@/chartLibraries/gpu/color"
-import { unregister } from "@/helpers/makeListeners"
+import makeSimpleVisualization from "../makeSimpleVisualization"
 
 const clampPercentage = percentage =>
   Math.min(Math.max(-1, percentage / 100 || 0), 1)
@@ -58,83 +58,28 @@ export const makeEasyPieFrame = (
   }
 }
 
-export default ({ chart, makeResources }) => {
-  let resource = null
-  let listeners = null
-  let colors = null
-  let prevMin
-  let prevMax
-  let drawStats = null
-
-  const updateColors = () => {
-    colors = {
-      bar: chart.selectDimensionColor(),
-      track: chart.getThemeAttribute("themeEasyPieTrackColor"),
-      scale: chart.getThemeAttribute("themeEasyPieScaleColor"),
-    }
-  }
-
-  const mount = ({ render }) => {
-    updateColors()
-    const { loaded } = chart.getAttributes()
-    listeners = unregister(
-      chart.onAttributeChange("hoverX", render),
-      !loaded && chart.onceAttributeChange("loaded", render),
-      chart.onAttributeChange("theme", () => {
-        updateColors()
-        render()
-      })
-    )
-  }
-
-  const unmount = () => {
-    listeners?.()
-    listeners = null
-    resource?.destroy()
-    resource = null
-    colors = null
-    prevMin = null
-    prevMax = null
-    drawStats = null
-  }
-
-  const render = frame => {
-    if (!resource || !chart.getAttribute("loaded")) return false
-    const value = getEasyPieValue(chart)
-    if (value === undefined) return false
-    if (value === null) return true
-    const easyPieFrame = makeEasyPieFrame(chart, { ...frame, colors }, value)
-
-    const { min, max } = easyPieFrame
-    if (min !== prevMin || max !== prevMax) chart.trigger("yAxisChange", min, max)
-    prevMin = min
-    prevMax = max
-
-    resource.layer.update(easyPieFrame)
-    resource.surface.draw([resource.layer], frame)
-    drawStats = {
-      value: easyPieFrame.value,
-      percentage: easyPieFrame.percentage,
-      sweep: easyPieFrame.sweep,
-      size: easyPieFrame.size,
-      radius: easyPieFrame.radius,
-      lineWidth: easyPieFrame.lineWidth,
-      scaleLength: easyPieFrame.scaleLength,
-    }
-    return true
-  }
-
-  return {
-    mount,
-    unmount,
-    render,
-    createResources: (runtime, canvas) => makeResources(runtime, canvas),
-    attachResources: nextResource => {
-      resource?.destroy()
-      resource = nextResource
+export default ({ chart, makeResources }) =>
+  makeSimpleVisualization({
+    chart,
+    makeResources,
+    makeColors: target => ({
+      bar: target.selectDimensionColor(),
+      track: target.getThemeAttribute("themeEasyPieTrackColor"),
+      scale: target.getThemeAttribute("themeEasyPieScaleColor"),
+    }),
+    makeFrame: ({ chart: target, frame }) => {
+      const value = getEasyPieValue(target)
+      if (value === undefined) return false
+      if (value === null) return true
+      return makeEasyPieFrame(target, frame, value)
     },
-    getBufferBytes: () => resource?.layer.getBufferBytes() || 0,
-    getDrawStats: () => drawStats,
-    getQueueDone: () => resource?.surface.getQueueDone?.() || Promise.resolve(),
-  }
-}
+    makeDrawStats: frame => ({
+      value: frame.value,
+      percentage: frame.percentage,
+      sweep: frame.sweep,
+      size: frame.size,
+      radius: frame.radius,
+      lineWidth: frame.lineWidth,
+      scaleLength: frame.scaleLength,
+    }),
+  })

@@ -1,4 +1,4 @@
-import { makeCurveSegments, makeDrawLayout } from "@/chartLibraries/gpu/visualizations/cartesian/line/geometry"
+import makeRenderState from "@/chartLibraries/gpu/visualizations/cartesian/line/renderState"
 import areaShader from "../area/shader"
 import heatmapShader from "../heatmap/shader"
 import stackedShader from "../stacked/shader"
@@ -14,13 +14,6 @@ const nextBufferSize = byteLength => {
   let size = 4
   while (size < byteLength) size *= 2
   return size
-}
-
-const normalizeRange = (min, max) => {
-  if (!Number.isFinite(min) || !Number.isFinite(max)) return [-1, 1]
-  if (min !== max) return [min, max]
-  const padding = Math.abs(min || 1) * 0.01
-  return [min - padding, max + padding]
 }
 
 const makePipeline = async (
@@ -92,7 +85,7 @@ export default async (runtime, surface, { fillMode = null } = {}) => {
     : null
   const buffers = {}
   const bindGroups = { fill: null, line: null }
-  let drawLayout = makeDrawLayout({ pointCount: 0, seriesCount: 0, stepped: false })
+  let drawLayout = { instanceCount: 0 }
   let drawStats = null
   let bufferBytes = 0
   let scissor = { left: 0, top: 0, width: 1, height: 1 }
@@ -134,13 +127,6 @@ export default async (runtime, surface, { fillMode = null } = {}) => {
     stepped,
     smooth,
   }) => {
-    const canvasWidth = Math.max(1, Math.round(width * dpr))
-    const canvasHeight = Math.max(1, Math.round(height * dpr))
-    const plotLeft = Math.max(0, Math.round(plot.left * dpr))
-    const plotTop = Math.max(0, Math.round(plot.top * dpr))
-    const plotWidth = Math.max(1, Math.round(plot.width * dpr))
-    const plotHeight = Math.max(1, Math.round(plot.height * dpr))
-
     const uniform = ensureBuffer(
       "uniform",
       uniformByteLength,
@@ -169,74 +155,32 @@ export default async (runtime, surface, { fillMode = null } = {}) => {
     }
     if (colorsChanged) device.queue.writeBuffer(color, 0, colors)
 
-    drawLayout = isBar
-      ? {
-          instanceCount: packed.pointCount * packed.seriesCount,
-          fillInstanceCount: packed.pointCount * packed.seriesCount,
-          strokeInstanceCount: 0,
-          segmentsPerPair: 0,
-          segmentsPerSeries: 0,
-        }
-      : makeDrawLayout({
-          pointCount: packed.pointCount,
-          seriesCount: packed.seriesCount,
-          stepped,
-          smooth,
-          curveSegments: makeCurveSegments({
-            pointCount: packed.pointCount,
-            plotWidth: plotWidth,
-          }),
-          filled: Boolean(fillMode && fillAlpha > 0),
-          stroke: lineWidth > 0,
-        })
-    drawStats = {
-      pointCount: packed.pointCount,
-      seriesCount: packed.seriesCount,
-      sourcePairs: Math.max(0, packed.pointCount - 1) * packed.seriesCount,
-      barInstanceCount: isBar ? packed.pointCount * packed.seriesCount : 0,
-      barWidth: isBar ? barWidth : null,
-      valueRange: [min, max],
-      ...drawLayout,
-    }
-    const [rawRangeMin, rawRangeMax] = normalizeRange(min, max)
-    const rangeMin = (rawRangeMin - packed.yOrigin) / packed.yScale
-    const rangeMax = (rawRangeMax - packed.yOrigin) / packed.yScale
-    const frame = {
-      domain: {
-        after: (afterMs - packed.xOriginMs) / 1000,
-        before: (beforeMs - packed.xOriginMs) / 1000,
-        minimum: rangeMin,
-        maximum: rangeMax,
-      },
-      plot: {
-        left: plotLeft,
-        top: plotTop,
-        width: plotWidth,
-        height: plotHeight,
-      },
-      canvas: {
-        width: canvasWidth,
-        height: canvasHeight,
-        lineWidth: lineWidth * dpr,
-        mode: stepped ? 1 : smooth ? 2 : 0,
-      },
-      fill: {
-        baseline: isBar
-          ? barWidth * dpr
-          : (0 - packed.yOrigin) / packed.yScale,
-        opacity: isMultiBar
-          ? (0 - packed.yOrigin) / packed.yScale
-          : fillAlpha,
-        mode: usesStackedData ? 1 : isMultiBar ? 2 : isHeatmap ? 3 : 0,
-        heatmapMaximum: isHeatmap ? heatmapMax : 0,
-      },
-    }
+    const renderState = makeRenderState({
+      packed,
+      fillMode,
+      afterMs,
+      beforeMs,
+      minimum: min,
+      maximum: max,
+      width,
+      height,
+      dpr,
+      plot,
+      fillAlpha,
+      lineWidth,
+      barWidth,
+      heatmapMaximum: heatmapMax,
+      stepped,
+      smooth,
+    })
+    drawLayout = renderState.drawLayout
+    drawStats = renderState.drawStats
     device.queue.writeBuffer(
       uniform,
       0,
-      makeUniformData({ packed, drawLayout, ...frame })
+      makeUniformData({ packed, drawLayout, ...renderState })
     )
-    scissor = makeScissor(frame)
+    scissor = makeScissor(renderState)
 
     const makeBindGroup = (pipeline, includeBase = false) => {
       const entries = [
@@ -279,7 +223,7 @@ export default async (runtime, surface, { fillMode = null } = {}) => {
     Object.keys(buffers).forEach(name => delete buffers[name])
     bindGroups.fill = null
     bindGroups.line = null
-    drawLayout = makeDrawLayout({ pointCount: 0, seriesCount: 0, stepped: false })
+    drawLayout = { instanceCount: 0 }
     drawStats = null
     bufferBytes = 0
   }
