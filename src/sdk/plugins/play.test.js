@@ -69,6 +69,7 @@ describe("play plugin", () => {
 
     chart.focus()
     sdk.trigger("highlightHover", chart, 1000, "dimension")
+    jest.advanceTimersByTime(16)
     expect(root.getAttribute("hovering")).toBe(true)
     expect(root.getAttribute("hoverX")).toEqual([1000, "dimension"])
 
