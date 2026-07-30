@@ -1167,17 +1167,17 @@ export default (sdk, chart) => {
   }
 
   const render = () => {
-    if (!element) return
+    if (!element) return false
 
     const { highlighting, panning, processing } = chart.getAttributes()
-    if (highlighting || panning || processing) return
+    if (highlighting || panning || processing) return false
 
     chartUI.render()
 
     const data = getData()
     if (!data && !chart.getAttribute("loaded")) {
       destroyChart()
-      return
+      return false
     }
 
     const frameData = data || [[0]]
@@ -1187,6 +1187,7 @@ export default (sdk, chart) => {
     else u.setData(frameData)
 
     chartUI.trigger("rendered")
+    return true
   }
 
   const mount = el => {

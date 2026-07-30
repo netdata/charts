@@ -3125,3 +3125,74 @@ describe("uplotChart duration-nice y-axis splits (dygraph parity)", () => {
     teardown()
   })
 })
+
+describe("uplotChart render freshness contract (dygraph parity)", () => {
+  const mountLoaded = () => {
+    const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType: "line" } })
+    withLoadedPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    return {
+      sdk,
+      chart,
+      instance,
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  it("returns true from render when mounted, loaded and unblocked", () => {
+    const { instance, teardown } = mountLoaded()
+
+    expect(instance.render()).toBe(true)
+
+    teardown()
+  })
+
+  it("returns false from render while highlighting, panning or processing", () => {
+    const { chart, instance, teardown } = mountLoaded()
+
+    chart.updateAttribute("highlighting", true)
+    expect(instance.render()).toBe(false)
+    chart.updateAttribute("highlighting", false)
+
+    chart.updateAttribute("panning", true)
+    expect(instance.render()).toBe(false)
+    chart.updateAttribute("panning", false)
+
+    chart.updateAttribute("processing", true)
+    expect(instance.render()).toBe(false)
+    chart.updateAttribute("processing", false)
+
+    teardown()
+  })
+
+  it("returns false from render before mount when there is no element", () => {
+    const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType: "line" } })
+    withLoadedPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+
+    expect(instance.render()).toBe(false)
+  })
+
+  it("stays stale after a blocked render and goes fresh once the block clears", () => {
+    const { chart, instance, teardown } = mountLoaded()
+
+    chart.updateAttribute("processing", true)
+    instance.invalidateRender()
+    expect(instance.renderIfStale(instance.render)).toBe(false)
+    expect(instance.isRenderStale()).toBe(true)
+
+    chart.updateAttribute("processing", false)
+    expect(instance.renderIfStale(instance.render)).toBe(true)
+    expect(instance.isRenderStale()).toBe(false)
+
+    teardown()
+  })
+})
