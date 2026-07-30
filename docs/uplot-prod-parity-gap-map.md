@@ -5,7 +5,7 @@
 > navigation work. Status: `✓` = verified against source this session (file:line shown); `⧖` =
 > audit-reported, individual spot-check still pending.
 
-## STATUS: COMPLETE — all P0/P1 landed; P2 done except two documented deferrals
+## STATUS: COMPLETE — all P0/P1 landed; P2 done except two documented deferrals; rebased onto main (#222–#229) with #222 + smooth-line ported (see RECONCILED section)
 
 Every P0 and P1 item is implemented, unit-tested (no mocks), adversarially reviewed, and gated by
 the full suite (1575 passing, 167 suites) with the maintainer's concurrent WIP files never touched.
@@ -41,6 +41,34 @@ Commits on `explore/uplot-spike`:
 **Remaining before flipping the default renderer:** visual verification in the app is the
 maintainer's (per their workflow); the Storybook `Charts`/`RenderModes` stories exercise
 `chartLibrary:"uplot"` across all chart types and interactions.
+
+## RECONCILED ONTO main (#222–#229) + drift re-audit
+
+`explore/uplot-spike` was rebased onto `main` (fork point `b8f3d08`; main had added #222–#229).
+Conflicts resolved in `jest/setup.js` (matchMedia stub kept inside main's window guard), `package.json`
+(uplot dep + version), and `src/sdk/makeChart/index.js` (perf `timeRender` seam nested inside main's
+`renderIfStale` render loop). `timeRender` now forwards the wrapped render's return value so the
+freshness bookkeeping still sees a renderer's `false` "declined" signal (`8ea77ba`).
+
+Each of #222–#229 was audited for dygraph behavior the uPlot renderer must also match:
+
+- **#222** (bound high-cardinality render) — **PORTED** `b811b15`. The new `renderIfStale` contract
+  requires `render()` to return `false` when declining to draw (stay stale) and `true` on success.
+  dygraph honored it; uPlot returned `undefined`, so declining under highlighting/panning/processing
+  marked the UI fresh and could skip a redraw dygraph would perform. Now mirrors dygraph's returns.
+- **line-chart smooth curves** — **PORTED** `01eb4a1`. A pre-existing gap this doc had NOT captured:
+  dygraph draws non-stepped `chartType:"line"` as smoothed bezier curves (`plotters/linePlotter.js`,
+  applied for `chartType==="line" && !stepPlot`); uPlot drew straight polylines. Real payloads carry
+  `chart_type:"line"`, so this was the dominant visible case. `smoothLinePath.js` ports dygraph's
+  control-point math line-for-line and an oracle test drives dygraph's real `smoothLinePlotter` to
+  assert byte-identical op sequences.
+- **#223** (reuse dygraph line data), **#224** (popover dimension windowing), **#225** (lightweight
+  SDK queries + correlate sparklines), **#226** (playback recovery / frozen-window gaps), **#227**
+  (skip hidden dygraph series extraction), **#228** (smooth-plotter allocation reduction), **#229**
+  (gauge value thresholds) — all **NO-OP for uPlot**: dygraph-internal perf, renderer-agnostic SDK
+  changes that apply to both renderers automatically, self-gated gauge/settings-only code, or an
+  optimization whose output is byte-identical (#228 changed no curve geometry — the parity target is
+  unchanged). Evidence recorded per-commit in the session audit.
 
 ---
 

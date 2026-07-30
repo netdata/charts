@@ -1,6 +1,11 @@
 # uPlot migration — progress & handoff
 
-> Working branch: `explore/uplot-spike`. Last updated: 2026-07-15.
+> Working branch: `explore/uplot-spike`. Last updated: 2026-07-30.
+>
+> **Rebased onto `main` (#222–#229).** All of #222–#229 audited for uPlot parity drift: #222
+> (renderIfStale boolean contract) and non-stepped line smooth curves were ported (`b811b15`,
+> `01eb4a1`); the rest are NO-OP for uPlot. Full record: `docs/uplot-prod-parity-gap-map.md`
+> (RECONCILED section). Next: Task 3 — flip-the-default + real-dashboard perf (§6 below).
 > Background/decision: `docs/charting-library-exploration.md`. Design: `docs/uplot-migration-design.md`.
 > Phase 0 plan: `docs/uplot-phase0-plan.md`.
 > uPlot source reference (demos used throughout): `/Users/novykh/Projects/uPlot`.
