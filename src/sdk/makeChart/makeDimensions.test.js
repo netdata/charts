@@ -1027,4 +1027,17 @@ describe("makeDimensions heatmap bucket ordering", () => {
 
     expect(sorted).toEqual(["memory", "disk", "cpu"])
   })
+
+  it("preserves locale-aware name ordering when values are tied", async () => {
+    const ids = ["zulu", "alpha-value", "alpha_value", "Éclair", "eclair"]
+    const chart = await makeLineChart(ids, [ids.map(() => 1)])
+    const expected = [...ids].sort((left, right) =>
+      left.localeCompare(right, undefined, {
+        sensitivity: "accent",
+        ignorePunctuation: true,
+      })
+    )
+
+    expect(chart.onHoverSortDimensions(0, "valueDesc")).toEqual(expected)
+  })
 })
