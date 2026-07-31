@@ -700,10 +700,20 @@ export default (sdk, chart) => {
     if (!u || !overlayCanvas) return
 
     const mainCanvas = u.ctx.canvas
-    overlayCanvas.width = mainCanvas.width
-    overlayCanvas.height = mainCanvas.height
+
+    // reassigning width/height clears the layer, so only touch it on a real size change
+    if (overlayCanvas.width !== mainCanvas.width) overlayCanvas.width = mainCanvas.width
+    if (overlayCanvas.height !== mainCanvas.height) overlayCanvas.height = mainCanvas.height
+
     overlayCanvas.style.width = mainCanvas.style.width
     overlayCanvas.style.height = mainCanvas.style.height
+  }
+
+  // uPlot defers scale/size convergence to its commit cycle, so the crosshair layer is
+  // re-derived from the draw hook (after convergence) rather than at the call sites.
+  const drawCrosshairLayer = () => {
+    syncOverlaySize()
+    renderCrosshair()
   }
 
   const destroyOverlay = () => {
@@ -1179,6 +1189,7 @@ export default (sdk, chart) => {
                 drawBars,
                 drawAnomaly,
                 drawAnnotations,
+                drawCrosshairLayer,
               ],
               setSelect: [onSetSelect],
             },

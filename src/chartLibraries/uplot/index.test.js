@@ -2741,6 +2741,50 @@ describe("uplotChart crosshair overlay (separate canvas, no main redraw)", () =>
     teardown()
   })
 
+  it("sizes the overlay backing store to match the main canvas once uPlot converges", async () => {
+    const { u, element, teardown } = await mount("line")
+
+    const overlay = element.querySelector(".netdata-crosshair-overlay")
+
+    expect(overlay.width).toBe(u.ctx.canvas.width)
+    expect(overlay.height).toBe(u.ctx.canvas.height)
+
+    teardown()
+  })
+
+  it("draws the crosshair at the converged x position after a render shifts the window", async () => {
+    const { chart, instance, element, u, teardown } = await mount("line")
+
+    chart.updateAttribute("clickX", [1617946865000, null])
+    await Promise.resolve()
+    await Promise.resolve()
+
+    chart.getPayload = () => ({
+      data: [
+        [1617946865000, 12, 18, 28],
+        [1617946870000, 11, 22, 31],
+        [1617946875000, 13, 19, 29],
+      ],
+      labels: ["time", "load1", "load5", "load15"],
+    })
+    chart.updateAttributes({ after: 1617946865, before: 1617946875 })
+
+    const octx = element.querySelector(".netdata-crosshair-overlay").getContext("2d")
+    const moveToSpy = jest.spyOn(octx, "moveTo")
+
+    instance.render()
+    await Promise.resolve()
+    await Promise.resolve()
+
+    const expectedX = u.valToPos(1617946865, "x", true)
+    const drawnX = moveToSpy.mock.calls.map(call => call[0])
+
+    expect(drawnX).toContain(expectedX)
+
+    moveToSpy.mockRestore()
+    teardown()
+  })
+
   it("re-renders the overlay crosshair dots when staticValueRange rescales the y-axis", async () => {
     const { chart, element, teardown } = await mount("line")
 
