@@ -12,18 +12,23 @@ export const makeVerticalDashRects = ({ x, plot, color, dash = [5, 5] }) => {
 }
 
 export const makeCrosshairRects = (chart, frame) => {
-  const clickX = chart.getAttribute("clickX")
-  const hoverX = chart.getAttribute("hoverX")
-  const click = Array.isArray(clickX) && Number.isFinite(clickX[0])
-  const dimensions = click ? clickX : hoverX
-  if (!Array.isArray(dimensions) || !Number.isFinite(dimensions[0])) return []
-  const x = xPosition(dimensions[0], frame.afterMs, frame.beforeMs, frame.plot)
-  if (x < frame.plot.left || x > frame.plot.left + frame.plot.width) return []
+  const selections = [
+    { dimensions: chart.getAttribute("clickX"), click: true },
+    { dimensions: chart.getAttribute("hoverX"), click: false },
+  ]
 
-  return makeVerticalDashRects({
-    x,
-    plot: frame.plot,
-    color: chart.getThemeAttribute(click ? "themeNetdata" : "themeCrosshair"),
-    dash: click ? [2, 2] : [5, 5],
-  })
+  for (const { dimensions, click } of selections) {
+    if (!Array.isArray(dimensions) || !Number.isFinite(dimensions[0])) continue
+    const x = xPosition(dimensions[0], frame.afterMs, frame.beforeMs, frame.plot)
+    if (x < frame.plot.left || x > frame.plot.left + frame.plot.width) continue
+
+    return makeVerticalDashRects({
+      x,
+      plot: frame.plot,
+      color: chart.getThemeAttribute(click ? "themeNetdata" : "themeCrosshair"),
+      dash: click ? [2, 2] : [5, 5],
+    })
+  }
+
+  return []
 }

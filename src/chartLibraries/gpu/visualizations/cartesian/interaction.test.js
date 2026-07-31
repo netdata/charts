@@ -18,7 +18,7 @@ describe("WebGPU Cartesian interaction layer", () => {
     ])
   })
 
-  it("gives a finite click selection priority over hover", () => {
+  it("gives a visible click selection priority over hover", () => {
     const { chart } = makeTestChart()
     chart.updateAttributes({ clickX: [1250, "dimension"], hoverX: [1750, "dimension"] })
     const frame = {
@@ -29,6 +29,21 @@ describe("WebGPU Cartesian interaction layer", () => {
 
     expect(makeCrosshairRects(chart, frame)).toEqual([
       { x: 35, y: 5, width: 1, height: 2, color: "#00AB44" },
+    ])
+  })
+
+  it("uses hover when a stale click selection is outside the visible window", () => {
+    const { chart } = makeTestChart()
+    chart.updateAttributes({ clickX: [500, "dimension"], hoverX: [1750, "dimension"] })
+    const frame = {
+      afterMs: 1000,
+      beforeMs: 2000,
+      plot: { left: 10, top: 5, width: 100, height: 20 },
+    }
+
+    expect(makeCrosshairRects(chart, frame)).toEqual([
+      { x: 85, y: 5, width: 1, height: 5, color: "#536775" },
+      { x: 85, y: 15, width: 1, height: 5, color: "#536775" },
     ])
   })
 
