@@ -2658,6 +2658,106 @@ describe("uplotChart hover popover events (dygraph mouse-forwarding parity)", ()
   })
 })
 
+describe("uplotChart crosshair overlay (separate canvas, no main redraw)", () => {
+  const withOverlayPayload = chart => {
+    chart.getPayload = () => ({
+      data: [
+        [1617946860000, 10, 20, 30],
+        [1617946865000, 12, 18, 28],
+        [1617946870000, 11, 22, 31],
+      ],
+      labels: ["time", "load1", "load5", "load15"],
+    })
+    chart.getPayloadDimensionIds = () => ["load1", "load5", "load15"]
+    chart.getVisibleDimensionIds = () => ["load1", "load5", "load15"]
+    chart.isDimensionVisible = () => true
+    chart.selectDimensionColor = () => "#3366CC"
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getConvertedValueWithUnit = value => `${value}`
+    chart.getClosestRow = tsMs => chart.getPayload().data.findIndex(row => row[0] === tsMs)
+  }
+
+  const mount = async (chartType, attributes = {}) => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType,
+        after: 1617946860,
+        before: 1617946870,
+        min: 10,
+        max: 31,
+        ...attributes,
+      },
+    })
+    withOverlayPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    return {
+      chart,
+      instance,
+      element,
+      u: instance.getUPlot(),
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  it("does not redraw the stacked main canvas when hoverX changes", async () => {
+    const { chart, u, teardown } = await mount("stacked")
+
+    const redrawSpy = jest.spyOn(u, "redraw")
+    chart.updateAttribute("hoverX", [1617946865000])
+
+    expect(redrawSpy).not.toHaveBeenCalled()
+
+    redrawSpy.mockRestore()
+    teardown()
+  })
+
+  it("draws the line crosshair on the overlay canvas, not the main canvas", async () => {
+    const { chart, u, element, teardown } = await mount("line")
+
+    const octx = element.querySelector(".netdata-crosshair-overlay").getContext("2d")
+    const overlayLineToSpy = jest.spyOn(octx, "lineTo")
+    const overlayArcSpy = jest.spyOn(octx, "arc")
+    const mainArcSpy = jest.spyOn(u.ctx, "arc")
+
+    chart.updateAttribute("hoverX", [1617946865000])
+
+    expect(overlayLineToSpy).toHaveBeenCalled()
+    expect(overlayArcSpy).toHaveBeenCalledTimes(3)
+    expect(mainArcSpy).not.toHaveBeenCalled()
+
+    overlayLineToSpy.mockRestore()
+    overlayArcSpy.mockRestore()
+    mainArcSpy.mockRestore()
+    teardown()
+  })
+
+  it("re-renders the overlay crosshair dots when staticValueRange rescales the y-axis", async () => {
+    const { chart, element, teardown } = await mount("line")
+
+    chart.updateAttribute("hoverX", [1617946865000])
+
+    const octx = element.querySelector(".netdata-crosshair-overlay").getContext("2d")
+    const overlayArcSpy = jest.spyOn(octx, "arc")
+
+    chart.updateAttribute("staticValueRange", [0, 100])
+
+    expect(overlayArcSpy).toHaveBeenCalled()
+
+    overlayArcSpy.mockRestore()
+    teardown()
+  })
+})
+
 describe("uplotChart hover dots (dygraph highlight-circle parity)", () => {
   const mountLine = async (attributes = {}) => {
     const { sdk, chart } = makeTestChart({
@@ -2694,12 +2794,12 @@ describe("uplotChart hover dots (dygraph highlight-circle parity)", () => {
 
   it("plots one filled dot per visible dimension at the hovered row, at radius 4", async () => {
     const { chart, u, teardown } = await mountLine()
+
+    const octx = u.root.querySelector(".netdata-crosshair-overlay").getContext("2d")
+    const arcSpy = jest.spyOn(octx, "arc")
+    const fillSpy = jest.spyOn(octx, "fill")
+
     chart.updateAttribute("hoverX", [1617946865000])
-
-    const arcSpy = jest.spyOn(u.ctx, "arc")
-    const fillSpy = jest.spyOn(u.ctx, "fill")
-
-    u.hooks.draw.forEach(hook => hook(u))
 
     expect(arcSpy).toHaveBeenCalledTimes(3)
     expect(fillSpy).toHaveBeenCalled()
@@ -2713,10 +2813,10 @@ describe("uplotChart hover dots (dygraph highlight-circle parity)", () => {
   it("draws a dot only for visible dimensions, skipping hidden ones", async () => {
     const { chart, u, teardown } = await mountLine()
     chart.isDimensionVisible = id => id === "load5"
-    chart.updateAttribute("hoverX", [1617946865000])
 
-    const arcSpy = jest.spyOn(u.ctx, "arc")
-    u.hooks.draw.forEach(hook => hook(u))
+    const octx = u.root.querySelector(".netdata-crosshair-overlay").getContext("2d")
+    const arcSpy = jest.spyOn(octx, "arc")
+    chart.updateAttribute("hoverX", [1617946865000])
 
     expect(arcSpy).toHaveBeenCalledTimes(1)
 
@@ -2726,10 +2826,10 @@ describe("uplotChart hover dots (dygraph highlight-circle parity)", () => {
 
   it("draws no dots when hoverX is null", async () => {
     const { chart, u, teardown } = await mountLine()
-    chart.updateAttribute("hoverX", null)
 
-    const arcSpy = jest.spyOn(u.ctx, "arc")
-    u.hooks.draw.forEach(hook => hook(u))
+    const octx = u.root.querySelector(".netdata-crosshair-overlay").getContext("2d")
+    const arcSpy = jest.spyOn(octx, "arc")
+    chart.updateAttribute("hoverX", null)
 
     expect(arcSpy).not.toHaveBeenCalled()
 
@@ -2739,10 +2839,10 @@ describe("uplotChart hover dots (dygraph highlight-circle parity)", () => {
 
   it("plots the dots for the clicked row too", async () => {
     const { chart, u, teardown } = await mountLine()
-    chart.updateAttribute("clickX", [1617946860000])
 
-    const arcSpy = jest.spyOn(u.ctx, "arc")
-    u.hooks.draw.forEach(hook => hook(u))
+    const octx = u.root.querySelector(".netdata-crosshair-overlay").getContext("2d")
+    const arcSpy = jest.spyOn(octx, "arc")
+    chart.updateAttribute("clickX", [1617946860000])
 
     expect(arcSpy).toHaveBeenCalledTimes(3)
 
@@ -2752,10 +2852,10 @@ describe("uplotChart hover dots (dygraph highlight-circle parity)", () => {
 
   it("uses the smaller sparkline dot radius of 3", async () => {
     const { chart, u, teardown } = await mountLine({ sparkline: true })
-    chart.updateAttribute("hoverX", [1617946865000])
 
-    const arcSpy = jest.spyOn(u.ctx, "arc")
-    u.hooks.draw.forEach(hook => hook(u))
+    const octx = u.root.querySelector(".netdata-crosshair-overlay").getContext("2d")
+    const arcSpy = jest.spyOn(octx, "arc")
+    chart.updateAttribute("hoverX", [1617946865000])
 
     expect(arcSpy).toHaveBeenCalledTimes(3)
     expect(arcSpy.mock.calls[0][2]).toBe(3)
@@ -2805,10 +2905,9 @@ describe("uplotChart hover dots (dygraph highlight-circle parity)", () => {
     instance.mount(element)
 
     const u = instance.getUPlot()
+    const octx = u.root.querySelector(".netdata-crosshair-overlay").getContext("2d")
+    const arcSpy = jest.spyOn(octx, "arc")
     chart.updateAttribute("hoverX", [1617946860000])
-
-    const arcSpy = jest.spyOn(u.ctx, "arc")
-    u.hooks.draw.forEach(hook => hook(u))
 
     expect(arcSpy).not.toHaveBeenCalled()
 
@@ -2865,18 +2964,23 @@ describe("uplotChart overlay z-order (drawClear behind series, dygraph underlay 
     expect(Array.isArray(u.hooks.draw)).toBe(true)
     expect(u.hooks.draw).not.toContain(u.hooks.drawClear[0])
 
+    const octx = u.root.querySelector(".netdata-crosshair-overlay").getContext("2d")
+    const overlayArcSpy = jest.spyOn(octx, "arc")
+    const mainArcSpy = jest.spyOn(u.ctx, "arc")
+
     chart.updateAttribute("hoverX", [1617946865000])
+    expect(overlayArcSpy).toHaveBeenCalledTimes(3)
 
-    const arcSpy = jest.spyOn(u.ctx, "arc")
-
+    mainArcSpy.mockClear()
     u.hooks.drawClear.forEach(hook => hook(u))
-    expect(arcSpy).not.toHaveBeenCalled()
+    expect(mainArcSpy).not.toHaveBeenCalled()
 
-    arcSpy.mockClear()
+    mainArcSpy.mockClear()
     u.hooks.draw.forEach(hook => hook(u))
-    expect(arcSpy).toHaveBeenCalledTimes(3)
+    expect(mainArcSpy).not.toHaveBeenCalled()
 
-    arcSpy.mockRestore()
+    overlayArcSpy.mockRestore()
+    mainArcSpy.mockRestore()
     teardown()
   })
 

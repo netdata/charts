@@ -99,6 +99,8 @@ const padYRange = (self, min, max) => {
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
   let u = null
+  let overlayCanvas = null
+  let overlayCtx = null
   let element = null
   let listeners
   let resizeObserver
@@ -392,7 +394,7 @@ export default (sdk, chart) => {
     return [xAxis, yAxis]
   }
 
-  const drawVerticalLine = (self, dimensions, color, dash) => {
+  const drawVerticalLine = (self, ctx, dimensions, color, dash) => {
     if (!Array.isArray(dimensions)) return
 
     const timestamp = dimensions[0]
@@ -401,7 +403,6 @@ export default (sdk, chart) => {
     const left = self.valToPos(timestamp / 1000, "x", true)
     const { top, height } = self.bbox
 
-    const ctx = self.ctx
     ctx.save()
     ctx.beginPath()
     if (dash) ctx.setLineDash(dash)
@@ -621,7 +622,7 @@ export default (sdk, chart) => {
     chart.trigger("yAxisChange", min, max)
   }
 
-  const drawHoverDots = (self, dimensions) => {
+  const drawHoverDots = (self, ctx, dimensions) => {
     if (!Array.isArray(dimensions)) return
 
     const timestamp = dimensions[0]
@@ -640,7 +641,6 @@ export default (sdk, chart) => {
     const dpr = self.pxRatio || 1
     const radius = (chart.isSparkline() ? sparklineHoverDotRadius : hoverDotRadius) * dpr
     const dimensionIds = chart.getPayloadDimensionIds()
-    const { ctx } = self
 
     ctx.save()
 
@@ -663,15 +663,54 @@ export default (sdk, chart) => {
     ctx.restore()
   }
 
-  const draw = self => {
+  const renderCrosshair = () => {
+    if (!u || !overlayCtx) return
+
+    overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height)
+
     const crosshairColor = chart.getThemeAttribute("themeCrosshair")
     const hoverX = chart.getAttribute("hoverX")
     const clickX = chart.getAttribute("clickX")
 
-    drawVerticalLine(self, hoverX, crosshairColor, [4, 4])
-    drawVerticalLine(self, clickX, crosshairColor, null)
-    drawHoverDots(self, hoverX)
-    drawHoverDots(self, clickX)
+    drawVerticalLine(u, overlayCtx, hoverX, crosshairColor, [4, 4])
+    drawVerticalLine(u, overlayCtx, clickX, crosshairColor, null)
+    drawHoverDots(u, overlayCtx, hoverX)
+    drawHoverDots(u, overlayCtx, clickX)
+  }
+
+  const createOverlay = () => {
+    if (!u) return
+
+    const mainCanvas = u.ctx.canvas
+    overlayCanvas = document.createElement("canvas")
+    overlayCanvas.className = "netdata-crosshair-overlay"
+    overlayCanvas.width = mainCanvas.width
+    overlayCanvas.height = mainCanvas.height
+    overlayCanvas.style.width = mainCanvas.style.width
+    overlayCanvas.style.height = mainCanvas.style.height
+    overlayCanvas.style.position = "absolute"
+    overlayCanvas.style.top = mainCanvas.style.top || "0"
+    overlayCanvas.style.left = mainCanvas.style.left || "0"
+    overlayCanvas.style.pointerEvents = "none"
+    overlayCtx = overlayCanvas.getContext("2d")
+    mainCanvas.parentNode.appendChild(overlayCanvas)
+  }
+
+  const syncOverlaySize = () => {
+    if (!u || !overlayCanvas) return
+
+    const mainCanvas = u.ctx.canvas
+    overlayCanvas.width = mainCanvas.width
+    overlayCanvas.height = mainCanvas.height
+    overlayCanvas.style.width = mainCanvas.style.width
+    overlayCanvas.style.height = mainCanvas.style.height
+  }
+
+  const destroyOverlay = () => {
+    if (overlayCanvas && overlayCanvas.parentNode)
+      overlayCanvas.parentNode.removeChild(overlayCanvas)
+    overlayCanvas = null
+    overlayCtx = null
   }
 
   const drawOverlays = self => overlays && overlays.draw(self)
@@ -1140,7 +1179,6 @@ export default (sdk, chart) => {
                 drawBars,
                 drawAnomaly,
                 drawAnnotations,
-                draw,
               ],
               setSelect: [onSetSelect],
             },
@@ -1148,6 +1186,9 @@ export default (sdk, chart) => {
       empty ? [[0]] : data,
       element
     )
+
+    createOverlay()
+    renderCrosshair()
 
     detachNavigation = attachNavigation()
   }
@@ -1160,6 +1201,7 @@ export default (sdk, chart) => {
       detachNavigation = null
     }
 
+    destroyOverlay()
     u.destroy()
     u = null
   }
@@ -1189,6 +1231,7 @@ export default (sdk, chart) => {
     else if (u.series.length !== frameData.length) rebuild()
     else u.setData(frameData)
 
+    renderCrosshair()
     chartUI.trigger("rendered")
     return true
   }
@@ -1210,10 +1253,13 @@ export default (sdk, chart) => {
 
     listeners = unregister(
       chartUI.on("resize", () => {
-        if (u) u.setSize({ width: chartUI.getChartWidth(), height: chartUI.getChartHeight() })
+        if (!u) return
+        u.setSize({ width: chartUI.getChartWidth(), height: chartUI.getChartHeight() })
+        syncOverlaySize()
+        renderCrosshair()
       }),
-      chart.onAttributeChange("hoverX", () => u && u.redraw(false, false)),
-      chart.onAttributeChange("clickX", () => u && u.redraw(false, false)),
+      chart.onAttributeChange("hoverX", () => renderCrosshair()),
+      chart.onAttributeChange("clickX", () => renderCrosshair()),
       chart.onAttributeChange("overlays", overlays.toggle),
       chart.onAttributeChange("draftAnnotation", overlays.toggle),
       chart.onAttributeChange("selectedLegendDimensions", rebuild),
@@ -1222,7 +1268,11 @@ export default (sdk, chart) => {
       chart.onAttributeChange("enabledNavigation", rebuild),
       chart.onAttributeChange("enabledXAxis", rebuild),
       chart.onAttributeChange("enabledYAxis", rebuild),
-      chart.onAttributeChange("staticValueRange", () => u && u.setData(u.data, true)),
+      chart.onAttributeChange("staticValueRange", () => {
+        if (!u) return
+        u.setData(u.data, true)
+        renderCrosshair()
+      }),
       chart.onAttributeChange("timezone", () => u && u.redraw()),
       chart.onAttributeChange("unitsConversionPrefix", () => u && u.redraw()),
       chart.onAttributeChange("theme", (next, prev) => {
