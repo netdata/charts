@@ -20,6 +20,7 @@ export default ({
   rendererId,
   fallbackRenderer,
   getRuntime,
+  isRuntimeSupported = () => true,
   makeLossError,
 }) => {
   const chartUI = makeChartUI(sdk, chart)
@@ -40,16 +41,34 @@ export default ({
     runtime?.release()
   }
 
-  const fallback = error => {
-    if (failureHandled) return false
-    failureHandled = true
-    const replaced = chart.fallbackRenderer?.(
+  const fallbackChart = (target, error) => {
+    const replaced = target.fallbackRenderer?.(
       rendererId,
       fallbackRenderer,
       error
     )
-    sdk.trigger("rendererFallback", chart, rendererId, error)
-    chart.trigger("rendererFallback", rendererId, error)
+    sdk.trigger("rendererFallback", target, rendererId, error)
+    target.trigger("rendererFallback", rendererId, error)
+    return replaced
+  }
+
+  const propagateRuntimeFallback = error => {
+    if (isRuntimeSupported(sdk)) return
+
+    sdk.getNodes()
+      .filter(target =>
+        target !== chart &&
+        target.type === "chart" &&
+        target.getRendererState?.().active === rendererId
+      )
+      .forEach(target => fallbackChart(target, error))
+  }
+
+  const fallback = error => {
+    if (failureHandled) return false
+    failureHandled = true
+    const replaced = fallbackChart(chart, error)
+    if (replaced) propagateRuntimeFallback(error)
     return replaced
   }
 

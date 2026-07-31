@@ -1,4 +1,6 @@
 import makeDefaultSDK from "@/makeDefaultSDK"
+import { disposeWebGPURuntime } from "@/chartLibraries/webgpu/engine/runtime"
+import { disposeWebGL2Runtime } from "@/chartLibraries/webgl2/engine/runtime"
 import systemLoadLine from "../../fixtures/systemLoadLine"
 
 const marker = () => "preserved"
@@ -9,6 +11,21 @@ const withNavigatorGPU = run => {
 
   try {
     return run()
+  } finally {
+    if (descriptor) Object.defineProperty(navigator, "gpu", descriptor)
+    else delete navigator.gpu
+  }
+}
+
+const withUnavailableNavigatorGPU = async run => {
+  const descriptor = Object.getOwnPropertyDescriptor(navigator, "gpu")
+  Object.defineProperty(navigator, "gpu", {
+    configurable: true,
+    value: { requestAdapter: () => Promise.resolve(null) },
+  })
+
+  try {
+    return await run()
   } finally {
     if (descriptor) Object.defineProperty(navigator, "gpu", descriptor)
     else delete navigator.gpu
@@ -136,6 +153,60 @@ describe("internal renderer routing", () => {
     })
     expect(chart.getUI().getDygraph()).toBeNull()
   })
+
+  it("propagates backend-wide runtime fallback to cached chart renderers", async () =>
+    withUnavailableNavigatorGPU(async () => {
+      const sdk = makeDefaultSDK({ rendererPolicy: () => "webgpu" })
+      const charts = Array.from({ length: 128 }, () =>
+        sdk.makeChart({ attributes: { chartType: "line" } })
+      )
+      charts.forEach(chart => sdk.appendChild(chart))
+
+      const [first, ...cachedCharts] = charts
+      const cachedWebGPU = new Map(
+        cachedCharts.map(chart => [chart, chart.getUI()])
+      )
+      const fallbackEvents = []
+      const offFallback = sdk.on("rendererFallback", (chart, renderer) => {
+        fallbackEvents.push({ chart, renderer })
+      })
+      const element = document.createElement("div")
+      element.style.padding = "0px"
+      document.body.appendChild(element)
+
+      try {
+        first.getUI().mount(element)
+        await first.getUI().whenReady()
+        await new Promise(resolve => setTimeout(resolve))
+
+        expect(first.getRendererState()).toEqual(
+          expect.objectContaining({
+            active: "dygraph",
+            fallbackReason: "WebGPU adapter acquisition failed",
+          })
+        )
+        cachedCharts.forEach(chart => {
+          expect(chart.getRendererState()).toEqual(
+            expect.objectContaining({
+              active: "dygraph",
+              fallbackReason: "WebGPU adapter acquisition failed",
+            })
+          )
+          expect(chart.getUI()).not.toBe(cachedWebGPU.get(chart))
+        })
+        expect(
+          fallbackEvents
+            .filter(({ renderer }) => renderer === "webgpu")
+            .map(({ chart }) => chart)
+        ).toEqual(charts)
+      } finally {
+        offFallback()
+        first.getUI().unmount()
+        disposeWebGPURuntime(sdk)
+        disposeWebGL2Runtime(sdk)
+        element.remove()
+      }
+    }))
 
   it("preserves custom UI additions when replacing a failed renderer", () => {
     const sdk = makeDefaultSDK({ rendererPolicy: () => "primary" })

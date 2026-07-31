@@ -1,5 +1,5 @@
 import makeRenderer from "@/chartLibraries/gpu/engine/makeRenderer"
-import { getWebGPURuntime } from "./runtime"
+import { getWebGPURuntime, isWebGPUSupported } from "./runtime"
 
 export default options =>
   makeRenderer({
@@ -7,6 +7,7 @@ export default options =>
     rendererId: "webgpu",
     fallbackRenderer: "webgl2",
     getRuntime: getWebGPURuntime,
+    isRuntimeSupported: isWebGPUSupported,
     makeLossError: info =>
       new Error(`WebGPU device lost: ${info.reason}: ${info.message}`),
   })
