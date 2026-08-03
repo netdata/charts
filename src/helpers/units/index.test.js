@@ -13,6 +13,8 @@ import unitConverter, {
   getUnitsString,
   isRateUnit,
   stripRateUnit,
+  isStateUnits,
+  stateUnits,
 } from "."
 import scalableUnits from "./scalableUnits"
 
@@ -658,6 +660,59 @@ describe("units helpers", () => {
       expect(stripRateUnit("requests")).toBe("requests")
       expect(stripRateUnit("/s")).toBe("")
       expect(stripRateUnit(undefined)).toBe(undefined)
+    })
+  })
+  describe("state units", () => {
+    it("detects the canonical state unit names", () => {
+      expect(isStateUnits("state")).toBe(true)
+      expect(isStateUnits("status")).toBe(true)
+      expect(isStateUnits("boolean")).toBe(true)
+    })
+
+    it("detects the curly forms", () => {
+      expect(isStateUnits("{state}")).toBe(true)
+      expect(isStateUnits("{status}")).toBe(true)
+      expect(isStateUnits("{boolean}")).toBe(true)
+    })
+
+    it("resolves collector-specific spellings through the alias table", () => {
+      expect(isStateUnits("app pool status")).toBe(true)
+      expect(isStateUnits("exit status")).toBe(true)
+    })
+
+    it("is case-insensitive and tolerates padding", () => {
+      expect(isStateUnits("Status")).toBe(true)
+      expect(isStateUnits(" STATE ")).toBe(true)
+    })
+
+    it("rejects counter, rate, duration and percentage units", () => {
+      expect(isStateUnits("containers")).toBe(false)
+      expect(isStateUnits("queries/s")).toBe(false)
+      expect(isStateUnits("sessions")).toBe(false)
+      expect(isStateUnits("connections")).toBe(false)
+      expect(isStateUnits("seconds")).toBe(false)
+      expect(isStateUnits("%")).toBe(false)
+      expect(isStateUnits("bytes/s")).toBe(false)
+    })
+
+    it("requires every unit in an array to be a state unit", () => {
+      expect(isStateUnits(["state"])).toBe(true)
+      expect(isStateUnits(["status", "boolean"])).toBe(true)
+      expect(isStateUnits(["state", "bytes/s"])).toBe(false)
+    })
+
+    it("rejects empty, missing and non-string units", () => {
+      expect(isStateUnits([])).toBe(false)
+      expect(isStateUnits([""])).toBe(false)
+      expect(isStateUnits(undefined)).toBe(false)
+      expect(isStateUnits(null)).toBe(false)
+      expect(isStateUnits(42)).toBe(false)
+    })
+
+    it("exposes the canonical alias set", () => {
+      expect(stateUnits.has("{state}")).toBe(true)
+      expect(stateUnits.has("{status}")).toBe(true)
+      expect(stateUnits.has("{boolean}")).toBe(true)
     })
   })
 })
