@@ -1,7 +1,7 @@
 import React from "react"
 import { createRoot } from "react-dom/client"
 import PerfOverlay from "@/components/perf"
-import { setEnabled, sampleHeap, reset } from "./registry"
+import { setEnabled, sampleHeap, reset, snapshot } from "./registry"
 
 export default sdk => {
   let container = null
@@ -15,6 +15,9 @@ export default sdk => {
     setEnabled(true)
     heapId = setInterval(sampleHeap, 1000)
 
+    // benchmark drivers read exact stats from here; the HUD only renders rounded values
+    if (typeof window !== "undefined") window.__netdataPerf = { snapshot, reset }
+
     container = document.createElement("div")
     container.setAttribute("data-testid", "perfOverlay-root")
     document.body.appendChild(container)
@@ -25,6 +28,8 @@ export default sdk => {
 
   const unmount = () => {
     setEnabled(false)
+
+    if (typeof window !== "undefined") delete window.__netdataPerf
 
     if (heapId) {
       clearInterval(heapId)

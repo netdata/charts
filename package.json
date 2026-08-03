@@ -24,6 +24,8 @@
     "to-cloud": "yarn build:cjs && yarn build:es6 && yarn cp-cloud",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
+    "perf:bench": "yarn build-storybook --quiet && node scripts/perf-bench.mjs",
+    "perf:bench:quick": "node scripts/perf-bench.mjs --quick",
     "format": "prettier --write \"**/*.{js,mjs}\""
   },
   "keywords": [
@@ -69,6 +71,7 @@
     "jest": "^30.2.0",
     "jest-canvas-mock": "^2.5.2",
     "jest-environment-jsdom": "^30.2.0",
+    "playwright": "^1.62.1",
     "prettier": "^3.8.1",
     "raw-loader": "^4.0.2",
     "react": "^19.2.4",
