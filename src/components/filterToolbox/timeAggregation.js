@@ -3,7 +3,7 @@ import { Flex, TextMicro } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart } from "@/components/provider"
 import Dropdown from "./dropdownSingleSelect"
 
-const useMenuItems = (chart, perTier = []) => {
+export const useMenuItems = (chart, perTier = []) => {
   const [firstTier, ...restTiers] = perTier
   return useMemo(
     () =>
@@ -37,6 +37,19 @@ const useMenuItems = (chart, perTier = []) => {
             "Provide the sum of the points that are aggregated over time. Use it when a sense of volume is needed over the aggregation period. It may not be sensible to use this function on all data types.",
           short: "SUM()",
           "data-track": chart.track("time-aggregation-sum"),
+        },
+        {
+          justDesc: true,
+          description:
+            "The function below does not combine values at all. Use it for metrics that represent a state rather than a quantity.",
+        },
+        {
+          value: "latest",
+          label: "Latest value",
+          description:
+            "Show the last database value in each point instead of combining them. Use it for states, statuses and boolean metrics, where a combined value such as 0.5 is meaningless. Requires a recent Netdata agent; older agents fall back to average.",
+          short: "LATEST()",
+          "data-track": chart.track("time-aggregation-latest"),
         },
         Array.isArray(restTiers) &&
           typeof firstTier?.points !== "undefined" && {
