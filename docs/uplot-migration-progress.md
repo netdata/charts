@@ -138,6 +138,38 @@ production figures — only the dygraph/uPlot ratio under identical conditions i
 per config, headless shell, one machine — no variance/repetition yet. Real absolute numbers need
 `yarn to-cloud` + the HUD on a live dashboard (`perfMonitor: true`).
 
+## Headless benchmark results (2026-08-03, `yarn perf:bench`)
+
+210 paired runs, 0 failures, 5 cells skipped by the 3M-point cap (logged in the report). Each cell:
+4s warmup, 10s measured window, 5 repeats per renderer, synthetic payload sized by rows × dims.
+Full table: `.perf-results/summary.md`; raw per-run data: `.perf-results/raw.json`.
+
+**Read `task/render`, not `total task`.** The two renderers do not render the same number of times.
+Target cadence is 1 render/chart/s, so 10 charts × 10s ≈ 100 renders. dygraph falls to 84 renders
+(100 dims) and 72 (5000 rows) while uPlot holds 88–100 — dygraph sheds frames under load, which
+*lowers* its total-task figure while showing staler charts. Cells where uPlot's total looks worse are
+cells where uPlot kept up:
+
+| cell | dygraph | uPlot | verdict |
+|---|---|---|---|
+| line 300×100×50 | 222 renders, 24.6 ms/render | 339 renders, 23.1 ms/render | uPlot cheaper per render, +53% throughput |
+| line 1000×100×10 | 84 renders, 31.4 ms/render | 100 renders, 35.7 ms/render | uPlot ~14% dearer per render (only real per-render loss) |
+| line 5000×20×10 | 72 renders, 88.2 ms/render | 88 renders, 85.8 ms/render | parity per render, +22% throughput |
+| stacked 1000×20×25 | 125 renders, 67.3 ms/render (p50 60.6 ms) | 254 renders, 18.1 ms/render (p50 4.3 ms) | uPlot 3.7× cheaper per render at 2× throughput |
+
+Clean apples-to-apples cells (render counts matched within ~2%) — total-task ratio uPlot/dygraph:
+300×3×10 **0.70**, 300×3×50 **0.52**, 300×20×10 **0.89**, 300×100×10 **0.95**, 1000×3×10 **0.77**,
+1000×3×50 **0.60**, 1000×20×10 **0.88**, 5000×3×10 **0.96**, heatmap 1000×20×25 **0.75**.
+uPlot wins every one, but **the margin narrows as dimension count grows** — roughly parity at 100 dims.
+
+Hover (phase B/C): total main-thread cost is consistently **0.20–0.65×** dygraph, consistent with the
+crosshair overlay change. Treat the per-render columns there as unreliable — hovering pauses autofetch,
+so those cells collect only ~9–33 renders and the per-render stddev exceeds the mean in places.
+
+**Caveats:** Storybook + synthetic mock in headless Chromium on one machine, not a real dashboard;
+absolute ms are not production figures. The remaining unknown is a real cloud-frontend dashboard —
+protocol below.
+
 ## Task 3 — real-dashboard measurement protocol (maintainer-run, many-runs for certainty)
 
 Why maintainer-run: real render+paint timing needs a real browser on a live streaming dashboard.

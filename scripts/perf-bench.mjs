@@ -83,14 +83,9 @@ const driveHover = async (page, deadline) => {
   }
 }
 
-const runOnce = async (browser, port, config, scenario) => {
-  const context = await browser.newContext({ viewport: { width: 1600, height: 1200 } })
-  const page = await context.newPage()
-
+// one page reused across runs: a cold context per run spends ~80s re-parsing the bundle
+const runOnce = async ({ page, client }, port, config, scenario) => {
   try {
-    const client = await context.newCDPSession(page)
-    await client.send("Performance.enable")
-
     await page.goto(storyUrl(port, config), { waitUntil: "load", timeout: RUN_TIMEOUT_MS })
     await page.waitForFunction(() => !!window.__netdataPerf, null, { timeout: RUN_TIMEOUT_MS })
     await page.waitForFunction(() => window.__netdataPerf.snapshot().overall.count > 0, null, {
@@ -125,8 +120,6 @@ const runOnce = async (browser, port, config, scenario) => {
     }
   } catch (error) {
     return { ok: false, error: error.message.split("\n")[0] }
-  } finally {
-    await context.close()
   }
 }
 
@@ -150,7 +143,7 @@ const buildCells = () => {
   // B: synced hover, where the fan-out cost shows up
   for (const rows of [1000, 5000])
     for (const dims of [20, 100])
-      cells.push({ phase: "B-hover", rows, dims, count: 50, chartType: "line", scenario: "hover" })
+      cells.push({ phase: "B-hover", rows, dims, count: 25, chartType: "line", scenario: "hover" })
 
   // C: expensive geometry chart types
   for (const chartType of ["stacked", "heatmap"])
@@ -170,6 +163,11 @@ const main = async () => {
 
   const { server, port } = await serveStatic()
   const browser = await chromium.launch({ args: ["--no-sandbox"] })
+  const context = await browser.newContext({ viewport: { width: 1600, height: 1200 } })
+  const page = await context.newPage()
+  const client = await context.newCDPSession(page)
+  await client.send("Performance.enable")
+  const session = { page, client }
 
   const quick = process.argv.includes("--quick")
   const allCells = quick
@@ -200,7 +198,7 @@ const main = async () => {
     for (let repeat = 0; repeat < repeats; repeat++) {
       for (const chartLibrary of ["dygraph", "uplot"]) {
         const config = { ...cell, chartLibrary }
-        const run = await runOnce(browser, port, config, cell.scenario)
+        const run = await runOnce(session, port, config, cell.scenario)
         results.push({ ...config, repeat, ...run })
 
         console.log(
