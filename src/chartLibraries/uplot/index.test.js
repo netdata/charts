@@ -3426,6 +3426,7 @@ describe("uplotChart smooth line paths (dygraph bezier parity)", () => {
     await Promise.resolve()
 
     return {
+      chart,
       instance,
       u: instance.getUPlot(),
       teardown: () => (instance.unmount(), document.body.removeChild(element)),
@@ -3484,6 +3485,50 @@ describe("uplotChart smooth line paths (dygraph bezier parity)", () => {
 
     const paths = u.series[1].paths(u, 1, 0, lastIdx(u))
     expect(paths.stroke.bezierCurveTo.mock.calls.length).toBe(0)
+
+    teardown()
+  })
+
+  it("switches to the stepped builder when stepPlot turns on mid-session", async () => {
+    const { chart, instance, u, teardown } = await mount()
+
+    const smoothBuilder = u.series[1].paths
+    const smoothPaths = smoothBuilder(u, 1, 0, lastIdx(u))
+    expect(smoothPaths.stroke.bezierCurveTo.mock.calls.length).toBeGreaterThan(0)
+    expect(smoothPaths.stroke.lineTo.mock.calls.length).toBe(0)
+
+    chart.updateAttribute("stepPlot", true)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    const next = instance.getUPlot()
+    expect(next.series[1].paths).not.toBe(smoothBuilder)
+
+    const steppedPaths = next.series[1].paths(next, 1, 0, lastIdx(next))
+    expect(steppedPaths.stroke.bezierCurveTo.mock.calls.length).toBe(0)
+    expect(steppedPaths.stroke.lineTo.mock.calls.length).toBeGreaterThan(0)
+
+    teardown()
+  })
+
+  it("restores the smooth builder when stepPlot turns off mid-session", async () => {
+    const { chart, instance, u, teardown } = await mount({ stepPlot: true })
+
+    const steppedBuilder = u.series[1].paths
+    const steppedPaths = steppedBuilder(u, 1, 0, lastIdx(u))
+    expect(steppedPaths.stroke.bezierCurveTo.mock.calls.length).toBe(0)
+    expect(steppedPaths.stroke.lineTo.mock.calls.length).toBeGreaterThan(0)
+
+    chart.updateAttribute("stepPlot", false)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    const next = instance.getUPlot()
+    expect(next.series[1].paths).not.toBe(steppedBuilder)
+
+    const smoothPaths = next.series[1].paths(next, 1, 0, lastIdx(next))
+    expect(smoothPaths.stroke.bezierCurveTo.mock.calls.length).toBeGreaterThan(0)
+    expect(smoothPaths.stroke.lineTo.mock.calls.length).toBe(0)
 
     teardown()
   })

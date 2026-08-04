@@ -1277,6 +1277,8 @@ export default (sdk, chart) => {
       chart.onAttributeChange("draftAnnotation", overlays.toggle),
       chart.onAttributeChange("selectedLegendDimensions", rebuild),
       chart.onAttributeChange("chartType", rebuild),
+      // the path builder is resolved at create time, so a mid-session flip needs a rebuild
+      chart.onAttributeChange("stepPlot", rebuild),
       chart.onAttributeChange("navigation", updateCursorDrag),
       chart.onAttributeChange("enabledNavigation", rebuild),
       chart.onAttributeChange("enabledXAxis", rebuild),
