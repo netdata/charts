@@ -2,13 +2,28 @@ import React, { useMemo, useState, useEffect } from "react"
 import { Flex, TextSmall, TextInput, Select } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart } from "@/components/provider"
 import { getScales, getUnitConfig, isScalable } from "@/helpers/units"
-import conversableUnits, { keys as conversableKeys } from "@/helpers/units/conversableUnits"
+import conversableUnits, {
+  keys as conversableKeys,
+  isTemperatureUnit,
+} from "@/helpers/units/conversableUnits"
+
+const symbolOf = unit => getUnitConfig(unit).print_symbol || unit
+
+// what "auto" resolves to right now, asked of the converter itself rather than restated here
+const resolvePreferred = (chart, unit) => {
+  const target = (conversableKeys[unit] || []).find(key =>
+    conversableUnits[unit][key].check(chart, 0)
+  )
+
+  return symbolOf(target || unit)
+}
 
 const NumberFormat = () => {
   const chart = useChart()
   const units = useAttributeValue("units")
   const desiredUnitsAttr = useAttributeValue("desiredUnits") || ["auto"]
   const staticFractionDigitsAttr = useAttributeValue("staticFractionDigits")
+  const temperature = useAttributeValue("temperature")
 
   const [selectedUnitIndex, setSelectedUnitIndex] = useState(0)
 
@@ -25,17 +40,28 @@ const NumberFormat = () => {
   )
 
   const scaleOptions = useMemo(() => {
+    if (isTemperatureUnit(selectedUnit)) {
+      return [
+        { value: "auto", label: `Follow preference (${resolvePreferred(chart, selectedUnit)})` },
+        { value: "original", label: symbolOf(selectedUnit) },
+        ...(conversableKeys[selectedUnit] || []).map(key => ({
+          value: key,
+          label: symbolOf(key),
+        })),
+      ]
+    }
+
     const options = [
       { value: "auto", label: "Auto scale" },
       { value: "original", label: "No conversion" },
     ]
 
-    if (isScalable(selectedUnit)) {
+    if (isScalable(selectedUnit) || conversableUnits[selectedUnit]) {
       if (conversableUnits[selectedUnit]) {
         const scaleKeys =
           conversableKeys[selectedUnit] || Object.keys(conversableUnits[selectedUnit])
         scaleKeys.forEach(key => {
-          options.push({ value: key, label: key })
+          options.push({ value: key, label: symbolOf(key) })
         })
       } else {
         const [scaleKeys] = getScales(selectedUnit)
@@ -50,7 +76,7 @@ const NumberFormat = () => {
     }
 
     return options
-  }, [selectedUnit])
+  }, [chart, selectedUnit, temperature])
 
   useEffect(() => {
     setDesiredUnits(desiredUnitsAttr[selectedUnitIndex] || "auto")
@@ -76,6 +102,7 @@ const NumberFormat = () => {
     setStaticFractionDigits(value)
     update({ staticFractionDigits: value })
   }
+
 
   return (
     <Flex column gap={2}>

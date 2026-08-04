@@ -15,3 +15,30 @@ it("labels scale options with the base unit, not the incoming prefixed unit", as
   expect(screen.getByText("Mi By/s")).toBeInTheDocument()
   expect(screen.queryByText("Ki KiBy/s")).not.toBeInTheDocument()
 })
+
+// temperature units render a Temperature select ahead of Scale
+const openScale = async user => {
+  const selects = screen.getAllByRole("combobox")
+  await user.click(selects[selects.length - 1])
+}
+
+it("offers Fahrenheit for a Celsius chart, labelled by its symbol", async () => {
+  const { user } = renderWithChart(<NumberFormat />, {
+    attributes: { units: ["Cel"], desiredUnits: ["auto"] },
+  })
+
+  await openScale(user)
+
+  expect(screen.getByText("°F")).toBeInTheDocument()
+  expect(screen.queryByText("[degF]")).not.toBeInTheDocument()
+})
+
+it("offers Celsius for a Fahrenheit chart", async () => {
+  const { user } = renderWithChart(<NumberFormat />, {
+    attributes: { units: ["[degF]"], desiredUnits: ["auto"] },
+  })
+
+  await openScale(user)
+
+  expect(screen.getByText("°C")).toBeInTheDocument()
+})

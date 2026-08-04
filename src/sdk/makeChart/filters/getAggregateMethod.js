@@ -1,4 +1,4 @@
-import { stateUnits } from "@/helpers/stepped"
+import { isStateUnits } from "@/helpers/units"
 
 const averageUnits = new Set([
   "%",
@@ -66,7 +66,7 @@ export default chart => {
   let lowerUnit = unit.toLowerCase()
   if (averageUnits.has(unit) || averageRegex.test(lowerUnit)) return "avg"
 
-  if (stateUnits.has(unit) || stateUnits.has(lowerUnit)) return "sum"
+  if (isStateUnits(unit)) return "sum"
 
   return "avg"
 }

@@ -3,7 +3,13 @@ import conversableUnits, {
   keys as conversableKeys,
 } from "@/helpers/units/conversableUnits"
 import { shouldUseExponential } from "@/helpers/formatNumber"
-import convert, { getScales, getUnitConfig, isScalable, getExponent } from "@/helpers/units"
+import convert, {
+  getScales,
+  getUnitConfig,
+  isScalable,
+  getExponent,
+  unitLabelModes,
+} from "@/helpers/units"
 
 const selfOrExponent = (u, scaleByKey) => {
   const exponent = getExponent(u)
@@ -100,7 +106,7 @@ const conversable = (chart, units, min, max, desiredUnits, maxDecimals) => {
 
   if (desiredUnits && desiredUnits !== "auto" && desiredUnits !== "original") {
     return desiredUnits in scales
-      ? [makeConversableKey(units, desiredUnits), undefined, desiredUnits]
+      ? [makeConversableKey(units, desiredUnits), undefined, "", desiredUnits, unitLabelModes.full]
       : ["original"]
   }
 
@@ -117,13 +123,14 @@ const conversable = (chart, units, min, max, desiredUnits, maxDecimals) => {
   const candidates = scaleKeys
     .slice(0, scaleIndex + 1)
     .reverse()
-    .map(key => [makeConversableKey(units, key), null, "", key])
+    .map(key => [makeConversableKey(units, key), null, "", key, unitLabelModes.full])
 
   return choosePrecisionCandidate(chart, candidates, min, max, maxDecimals)
 }
 
 const getMethod = (chart, units, min, max, maxDecimals) => {
-  if (!isScalable(units)) return ["original"]
+  // conversable units may be non-scalable (Cel, [degF]) yet still convertible
+  if (!isScalable(units) && !conversableUnits[units]) return ["original"]
 
   const allUnits = chart.getAttribute("units")
   const desiredUnitsArray = chart.getAttribute("desiredUnits") || ["auto"]
@@ -140,7 +147,7 @@ const getMethod = (chart, units, min, max, maxDecimals) => {
 }
 
 const makeConversionAttributes = (chart, unit, candidate, min, max, maxDecimals) => {
-  const [method, divider, prefix = "", base = ""] = candidate
+  const [method, divider, prefix = "", base = "", labelMode] = candidate
   const cMin = convert(chart, method, min, divider)
   const cMax = convert(chart, method, max, divider)
   const delta = Math.abs(cMin === cMax ? cMin : cMax - cMin)
@@ -152,6 +159,7 @@ const makeConversionAttributes = (chart, unit, candidate, min, max, maxDecimals)
     fractionDigits: fractionDigits > maxDecimals ? maxDecimals : fractionDigits,
     prefix,
     base,
+    labelMode,
     unit,
   }
 }
@@ -198,7 +206,7 @@ const getConversionUnits = (chart, unitsKey, options = {}) => {
 
   return units.reduce(
     (h, unit) => {
-      const { method, divider, fractionDigits, prefix, base } = getConversionAttributes(
+      const { method, divider, fractionDigits, prefix, base, labelMode } = getConversionAttributes(
         chart,
         unit,
         options
@@ -209,10 +217,11 @@ const getConversionUnits = (chart, unitsKey, options = {}) => {
       h.fractionDigits.push(fractionDigits)
       h.prefix.push(prefix)
       h.base.push(base)
+      h.labelMode.push(labelMode)
 
       return h
     },
-    { method: [], fractionDigits: [], prefix: [], base: [], divider: [] }
+    { method: [], fractionDigits: [], prefix: [], base: [], divider: [], labelMode: [] }
   )
 }
 

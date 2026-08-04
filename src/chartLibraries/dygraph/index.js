@@ -152,6 +152,15 @@ export default (sdk, chart) => {
     hoverX.toggle(attributes.enabledHover)
     navigation.toggle(attributes.enabledNavigation, attributes.navigation)
 
+    const onUnitsConversionChange = () =>
+      updateOptions({
+        ...makeChartTypeOptions(),
+        digitsAfterDecimal:
+          chart.getAttribute("unitsConversionFractionDigits")[0] < 0
+            ? 0
+            : chart.getAttribute("unitsConversionFractionDigits")[0],
+      })
+
     listeners = [
       chartUI.on("resize", () => dygraph.resize()),
       chart.onAttributeChange("hoverX", dimensions => {
@@ -183,15 +192,9 @@ export default (sdk, chart) => {
 
         updateOptions(makeChartTypeOptions())
       }),
-      chart.onAttributeChange("unitsConversionPrefix", () => {
-        updateOptions({
-          ...makeChartTypeOptions(),
-          digitsAfterDecimal:
-            chart.getAttribute("unitsConversionFractionDigits")[0] < 0
-              ? 0
-              : chart.getAttribute("unitsConversionFractionDigits")[0],
-        })
-      }),
+      // scalable conversions move the prefix, conversable ones move the base
+      chart.onAttributeChange("unitsConversionPrefix", onUnitsConversionChange),
+      chart.onAttributeChange("unitsConversionBase", onUnitsConversionChange),
       chart.onAttributeChange("selectedLegendDimensions", () => {
         if (chart.getAttribute("processing")) return
 

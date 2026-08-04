@@ -110,8 +110,13 @@ const makeSecondSourceConverters = multiplier =>
 const millisecondKeys = ["ns", "us", "ms", "s", "a:mo:d", "mo:d:h", "d:h:mm", "h:mm:ss", "mm:ss"]
 const secondKeys = [...millisecondKeys, "dHH:MM:ss"]
 
+export const temperatureUnits = new Set(["Cel", "[degF]"])
+
+export const isTemperatureUnit = unit => temperatureUnits.has(unit)
+
 export const keys = {
   Cel: ["[degF]"],
+  "[degF]": ["Cel"],
   ns: ["ns", "us", "ms", "s"],
   ms: millisecondKeys,
   s: secondKeys,
@@ -128,6 +133,12 @@ export default {
     "[degF]": {
       check: chart => chart.getAttribute("temperature") === "fahrenheit",
       convert: value => (value * 9) / 5 + 32,
+    },
+  },
+  "[degF]": {
+    Cel: {
+      check: chart => chart.getAttribute("temperature") === "celsius",
+      convert: value => ((value - 32) * 5) / 9,
     },
   },
   ns: {

@@ -9,7 +9,7 @@ export default chart =>
     unitAttributes,
     value,
   } = {}) => {
-    const { base, prefix, unit } =
+    const { base, prefix, unit, labelMode } =
       unitAttributes ||
       (typeof value === "undefined"
         ? chart.getUnitAttributes(dimensionId, key)
@@ -17,5 +17,5 @@ export default chart =>
 
     if (withoutConversion) return getNormalizedUnitConfig(unit).name
 
-    return getUnitsString(unit, prefix, base, long)
+    return getUnitsString(unit, prefix, base, long, { mode: labelMode })
   })

@@ -47,6 +47,25 @@ const findCurly = u => {
 
 export const getAlias = u => allUnits.aliases[u] || (allUnits.units[u] ? u : findCurly(u))
 
+export const stateUnits = new Set(["{state}", "{status}", "{boolean}"])
+
+const isStateUnit = unit => {
+  if (typeof unit !== "string") return false
+
+  const trimmed = unit.trim()
+  if (!trimmed) return false
+
+  return (
+    stateUnits.has(getAlias(trimmed)) || stateUnits.has(getAlias(trimmed.toLowerCase()))
+  )
+}
+
+export const isStateUnits = units => {
+  const list = (Array.isArray(units) ? units : [units]).filter(Boolean)
+
+  return list.length > 0 && list.every(isStateUnit)
+}
+
 export const getNormalizedUnit = u => {
   const alias = getAlias(u)
   const config = getUnitConfig(alias)

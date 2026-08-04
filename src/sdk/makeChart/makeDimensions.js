@@ -409,9 +409,10 @@ export default (chart, sdk) => {
     const method = chart.getAttribute(`${key}ConversionMethod`)[unitIndex]
     const fractionDigits = chart.getAttribute(`${key}ConversionFractionDigits`)[unitIndex]
     const divider = chart.getAttribute(`${key}ConversionDivider`)[unitIndex]
+    const labelMode = chart.getAttribute(`${key}ConversionLabelMode`)?.[unitIndex]
     const unit = chart.getAttribute(key)[unitIndex]
 
-    return { method, fractionDigits, base, prefix, divider, unit }
+    return { method, fractionDigits, base, prefix, divider, labelMode, unit }
   }
 
   chart.getUnitAttributesForValue = (

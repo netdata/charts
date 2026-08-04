@@ -1,6 +1,5 @@
 import { heatmapOrChartType } from "@/helpers/heatmap"
-import { isStateUnits } from "@/helpers/stepped"
-import { getAlias } from "@/helpers/units"
+import { getAlias, isStateUnits } from "@/helpers/units"
 import normalizeSelectedInstances from "@/helpers/normalizeSelectedInstances"
 import { getPointValue } from "./getPointValue"
 
