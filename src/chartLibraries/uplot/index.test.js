@@ -238,6 +238,64 @@ describe("uplotChart", () => {
     document.body.removeChild(element)
   })
 
+  const mountWithLabelCounter = async () => {
+    const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType: "line" } })
+    withLoadedPayload(chart)
+
+    const counter = { calls: 0, suffix: "" }
+    chart.getConvertedValueWithUnit = value => {
+      counter.calls += 1
+      return `${value}${counter.suffix}`
+    }
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    return {
+      chart,
+      counter,
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  it("re-renders y-axis labels when a conversable conversion changes the base unit", async () => {
+    const { chart, counter, teardown } = await mountWithLabelCounter()
+
+    const before = counter.calls
+    expect(before).toBeGreaterThan(0)
+
+    counter.suffix = "[degF]"
+    chart.updateAttribute("unitsConversionBase", ["[degF]"])
+    await Promise.resolve()
+    await Promise.resolve()
+
+    expect(counter.calls).toBeGreaterThan(before)
+
+    teardown()
+  })
+
+  it("re-renders y-axis labels when a scalable conversion changes the prefix", async () => {
+    const { chart, counter, teardown } = await mountWithLabelCounter()
+
+    const before = counter.calls
+    expect(before).toBeGreaterThan(0)
+
+    counter.suffix = "milli"
+    chart.updateAttribute("unitsConversionPrefix", "milli")
+    await Promise.resolve()
+    await Promise.resolve()
+
+    expect(counter.calls).toBeGreaterThan(before)
+
+    teardown()
+  })
+
   it("emits highlightHover and highlightBlur on the sdk bus as the cursor moves", () => {
     const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType: "line" } })
     withLoadedPayload(chart)

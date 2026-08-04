@@ -1222,6 +1222,8 @@ export default (sdk, chart) => {
     create()
   }
 
+  const onUnitsConversionChange = () => u && rebuild()
+
   const render = () => {
     if (!element) return false
 
@@ -1285,7 +1287,10 @@ export default (sdk, chart) => {
         renderCrosshair()
       }),
       chart.onAttributeChange("timezone", () => u && u.redraw()),
-      chart.onAttributeChange("unitsConversionPrefix", () => u && u.redraw()),
+      // axis config (duration ticks, units) is captured at create time, and a plain
+      // redraw reuses cached tick strings, so re-derive it like dygraph does
+      chart.onAttributeChange("unitsConversionPrefix", onUnitsConversionChange),
+      chart.onAttributeChange("unitsConversionBase", onUnitsConversionChange),
       chart.onAttributeChange("theme", (next, prev) => {
         element.classList.remove(prev)
         element.classList.add(next)
