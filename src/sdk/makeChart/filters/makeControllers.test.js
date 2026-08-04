@@ -27,6 +27,10 @@ describe("makeControllers", () => {
     expect(controllers).toHaveProperty("resetPristine")
     expect(controllers).toHaveProperty("removePristine")
     expect(controllers).toHaveProperty("toggleFullscreen")
+    expect(controllers).toHaveProperty("getRendererForVisualization")
+    expect(controllers).toHaveProperty("getRendererState")
+    expect(controllers).toHaveProperty("getVisualizationType")
+    expect(controllers).toHaveProperty("reconcileRenderer")
   })
 
   it("updateAggregationMethodAttribute updates when value changes", () => {
@@ -124,6 +128,29 @@ describe("makeControllers", () => {
     controllers.removePristine()
 
     expect(spy).toHaveBeenCalledWith("pristine", {})
+  })
+
+  describe("renderer routing", () => {
+    it("uses the legacy renderer when no private policy prefers acceleration", () => {
+      expect(controllers.getRendererForChartType("line")).toBe("dygraph")
+      expect(controllers.getRendererForChartType("gauge")).toBe("gauge")
+    })
+
+    it("keeps public chart identity stable when selecting a time-series type", () => {
+      controllers.updateChartTypeAttribute("line")
+
+      expect(chart.getAttribute("chartType")).toBe("line")
+      expect(chart.getAttribute("chartLibrary")).toBe("dygraph")
+      expect(controllers.getRendererState().active).toBe("dygraph")
+    })
+
+    it("uses the established public library for a standalone visualization", () => {
+      controllers.updateChartTypeAttribute("number")
+
+      expect(chart.getAttribute("chartLibrary")).toBe("number")
+      expect(controllers.getVisualizationType()).toBe("number")
+      expect(controllers.getRendererState().active).toBe("number")
+    })
   })
 
   describe("updateGroupByAttribute", () => {

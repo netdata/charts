@@ -11,9 +11,9 @@ export default (chartUI, id) => {
 
   if (!outOfLimits && (!firstEntry || firstEntry > beforeSecs) && !error) return
 
-  const range = outOfLimits || error ? [before, before] : [firstEntry, firstEntry]
+  const range = outOfLimits || error ? [beforeSecs, beforeSecs] : [firstEntry, firstEntry]
 
-  const area = getArea(dygraph, range)
+  const area = getArea(chartUI, range)
 
   trigger(chartUI, id, area)
 }

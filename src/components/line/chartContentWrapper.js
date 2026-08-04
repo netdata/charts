@@ -39,13 +39,12 @@ const chartLibraries = {
         border: 1px solid;
       }
     }
-
-    ${cursorStyle}
   `,
 }
 
 const StyledContainer = styled(Flex)`
   ${({ chartLibrary }) => chartLibraries[chartLibrary] || ""}
+  ${cursorStyle}
 `
 
 export const ContentWrapper = props => (

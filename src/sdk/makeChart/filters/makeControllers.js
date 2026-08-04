@@ -3,8 +3,13 @@ import pristine, { pristineKey } from "@/sdk/pristine"
 import getInitialFilterAttributes from "./getInitialAttributes"
 import { isHeatmap } from "@/helpers/heatmap"
 import makeLog from "@/sdk/makeLog"
+import makeRendererController from "../renderers/makeController"
+import {
+  getPublicChartLibrary,
+  isTimeSeriesVisualization,
+} from "../renderers/metadata"
 
-export default chart => {
+export default (chart, getChartInstance = () => chart) => {
   const log = ({ value, ...rest }) =>
     makeLog(chart)({
       ...rest,
@@ -108,41 +113,19 @@ export default chart => {
     })
   }
 
-  const chartLibraries = {
-    dygraph: true,
-    easypiechart: true,
-    gauge: true,
-    number: true,
-    d3pie: true,
-    bars: true,
-    groupBoxes: true,
-    table: true,
-  }
+  const rendererController = makeRendererController(chart, getChartInstance)
 
   const updateChartTypeAttribute = selected => {
-    const prevChartLibrary = chart.getAttribute("chartLibrary")
     const prevGroupBy = chart.getAttribute("groupBy")
+    const isTimeSeries = isTimeSeriesVisualization(selected)
 
-    if (!chartLibraries[selected]) {
-      chart.updateAttributes({
-        chartLibrary: "dygraph",
-        chartType: selected,
-        processing: true,
-      })
-      if (prevChartLibrary !== "dygraph") {
-        chart.getUI().unmount()
-        chart.setUI({ ...chart.sdk.makeChartUI(chart), ...(chart.ui || {}) }, "default")
-      }
-    } else {
-      chart.updateAttributes({
-        chartLibrary: selected,
-        processing: true,
-        ...(isHeatmap(selected) && { dimensionsSort: "default" }),
-      })
-      chart.getUI().unmount()
-      chart.setUI({ ...chart.sdk.makeChartUI(chart), ...(chart.ui || {}) }, "default")
-    }
-    chartLibraries[selected]
+    chart.updateAttributes({
+      chartLibrary: getPublicChartLibrary(selected),
+      processing: true,
+      ...(isTimeSeries && { chartType: selected }),
+      ...(isHeatmap(selected) && { dimensionsSort: "default" }),
+    })
+    rendererController.reconcileRenderer(selected)
 
     if (isHeatmap(selected)) {
       updateGroupByAttribute(["dimension"])
@@ -312,9 +295,6 @@ export default chart => {
     const attributes = chart.getAttributes()
     const prev = { ...attributes[pristineKey] }
 
-    const hasChangedLibrary =
-      "chartLibrary" in prev && attributes.chartLibrary !== prev.chartLibrary
-
     pristine.reset(attributes)
     chart.attributeListeners.trigger(pristineKey, attributes[pristineKey], prev)
     chart.sdk.trigger("pristineChanged", chart, pristineKey, attributes[pristineKey], prev)
@@ -322,10 +302,7 @@ export default chart => {
       chart.attributeListeners.trigger(key, attributes[key], prev[key])
     )
 
-    if (hasChangedLibrary) {
-      chart.getUI().unmount()
-      chart.setUI({ ...chart.sdk.makeChartUI(chart), ...(chart.ui || {}) }, "default")
-    }
+    rendererController.reconcileRenderer()
     chart.trigger("fetch", { processing: true })
   }
 
@@ -359,5 +336,6 @@ export default chart => {
     removePristine,
     toggleFullscreen,
     baseUpdateGroupBy,
+    ...rendererController,
   }
 }

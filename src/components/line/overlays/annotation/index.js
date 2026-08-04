@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useState } from "react"
 import Icon, { Button } from "@/components/icon"
-import { useAttributeValue, useChart } from "@/components/provider"
+import { useAttributeValue, useChart, useChartUI } from "@/components/provider"
 import Tooltip from "@/components/tooltip"
 import { Flex, TextSmall, TextMicro } from "@netdata/netdata-ui"
 import expandIcon from "@netdata/netdata-ui/dist/components/icon/assets/chevron_expand.svg"
@@ -231,7 +231,7 @@ const AnnotationActions = memo(({ id, annotation, onEdit }) => {
         event: "annotation_url_copied",
         annotationId: id,
       })
-    } catch (err) {
+    } catch {
       makeLog(chart)({
         event: "annotation_url_copy_failed",
         annotationId: id,
@@ -395,6 +395,7 @@ const AnnotationActions = memo(({ id, annotation, onEdit }) => {
 
 const Annotation = ({ id }) => {
   const chart = useChart()
+  const chartUI = useChartUI()
   const overlays = useAttributeValue("overlays")
   const [ref, popoverHovered] = useHovered({}, [id, overlays])
   const [mouseHovered, setMouseHovered] = useState(false)
@@ -405,40 +406,27 @@ const Annotation = ({ id }) => {
   const isSynced = !!annotation?.originallyFrom
 
   useEffect(() => {
-    if (
-      !annotation ||
-      !annotation.timestamp ||
-      !chart ||
-      chart.getAttribute("chartLibrary") !== "dygraph"
-    )
-      return
+    if (!annotation || !annotation.timestamp || !chartUI) return
 
-    const chartUI = chart.getUI()
-    if (!chartUI) return
-
-    const dygraph = chartUI.getDygraph()
-    if (!dygraph) return
+    const element = chartUI.getElement()
+    if (!element) return
 
     const handleMouseMove = event => {
-      const canvas = dygraph.canvas_
-      const rect = canvas.getBoundingClientRect()
+      const rect = element.getBoundingClientRect()
       const offsetX = event.clientX - rect.left
-
-      const annotationX = dygraph.toDomXCoord(annotation.timestamp * 1000)
-
-      const isNearAnnotation = Math.abs(offsetX - annotationX) < hoverTolerance
-      setMouseHovered(isNearAnnotation)
+      const annotationX = chartUI.getXCoord(annotation.timestamp * 1000)
+      setMouseHovered(Math.abs(offsetX - annotationX) < hoverTolerance)
     }
+    const handleMouseLeave = () => setMouseHovered(false)
 
-    const canvas = dygraph.canvas_
-    canvas.addEventListener("mousemove", handleMouseMove)
-    canvas.addEventListener("mouseleave", () => setMouseHovered(false))
+    element.addEventListener("mousemove", handleMouseMove)
+    element.addEventListener("mouseleave", handleMouseLeave)
 
     return () => {
-      canvas.removeEventListener("mousemove", handleMouseMove)
-      canvas.removeEventListener("mouseleave", () => setMouseHovered(false))
+      element.removeEventListener("mousemove", handleMouseMove)
+      element.removeEventListener("mouseleave", handleMouseLeave)
     }
-  }, [annotation, annotation?.timestamp, chart, id])
+  }, [annotation, annotation?.timestamp, chartUI, id])
 
   useEffect(() => {
     const hovered = mouseHovered || popoverHovered

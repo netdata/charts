@@ -15,7 +15,7 @@ export default (chartUI, id) => {
   const { h } = dygraph.getArea()
   const { hidden_ctx_: ctx } = dygraph
 
-  const area = getArea(dygraph, [when, when])
+  const area = getArea(chartUI, [when, when])
 
   if (!area) return trigger(chartUI, id)
 

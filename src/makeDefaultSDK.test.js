@@ -19,6 +19,8 @@ describe("makeDefaultSDK", () => {
     expect(makeSDK).toHaveBeenCalledWith({
       ui: expect.objectContaining({
         dygraph: expect.any(Function),
+        webgpu: expect.any(Function),
+        webgl2: expect.any(Function),
         easypiechart: expect.any(Function),
         gauge: expect.any(Function),
         groupBoxes: expect.any(Function),
@@ -44,6 +46,7 @@ describe("makeDefaultSDK", () => {
         after: -900,
         overlays: { proceeded: { type: "proceeded" } },
       }),
+      rendererPolicy: null,
     })
   })
 
@@ -67,6 +70,15 @@ describe("makeDefaultSDK", () => {
         }),
       })
     )
+  })
+
+  it("enables acceleration without exposing backend attributes", () => {
+    makeDefaultSDK({ acceleratedRendering: true })
+
+    const options = makeSDK.mock.calls[0][0]
+    expect(options.rendererPolicy()).toBe("webgpu")
+    expect(options.attributes).not.toHaveProperty("chartRenderersByVisualization")
+    expect(options.attributes).not.toHaveProperty("chartLibrariesByType")
   })
 
   it("passes through additional options", () => {
