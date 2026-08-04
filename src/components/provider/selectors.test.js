@@ -17,6 +17,7 @@ import {
   useLatestDisplayValue,
   useLatestDisplayValueWithUnit,
   useLatestValue,
+  useValueWithUnit,
   getValueByPeriod,
 } from "./selectors"
 
@@ -415,6 +416,24 @@ describe("Chart Provider Selectors", () => {
       expect(result.current.display).toBe(-1536)
       expect(result.current.formatted.convertedValue).toBe("-1.5")
       expect(result.current.formatted.convertedUnit).toBe("KiB")
+    })
+  })
+
+  describe("useValueWithUnit", () => {
+    it("reconverts when the temperature preference changes", () => {
+      const { result, chart } = renderHookWithChart(
+        () => useValueWithUnit(100, { scaleByValue: true }),
+        { attributes: { units: ["Cel"], desiredUnits: ["auto"] } }
+      )
+
+      expect(result.current.convertedUnit).toBe("°C")
+
+      act(() => {
+        chart.updateAttribute("temperature", "fahrenheit")
+      })
+
+      expect(result.current.convertedUnit).toBe("°F")
+      expect(result.current.convertedValue).toBe("212")
     })
   })
 })

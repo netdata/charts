@@ -300,10 +300,14 @@ export const useUnits = (key = "units") => {
 
   const forceUpdate = useForceUpdate()
 
-  useImmediateListener(
-    () => chart.onAttributeChange(`${key}ConversionPrefix`, forceUpdate),
-    [chart, key]
-  )
+  useImmediateListener(() => {
+    const offListeners = [
+      chart.onAttributeChange(`${key}ConversionPrefix`, forceUpdate),
+      chart.onAttributeChange(`${key}ConversionBase`, forceUpdate),
+    ]
+
+    return () => offListeners.forEach(off => off())
+  }, [chart, key])
 
   return chart.getUnits(key)
 }
@@ -367,6 +371,7 @@ export const useValueUnitAttributes = (
   const units = useAttributeValue(unitsKey)
   const desiredUnits = useAttributeValue("desiredUnits")
   const secondsAsTime = useAttributeValue("secondsAsTime")
+  const temperature = useAttributeValue("temperature")
   const viewDimensions = useAttributeValue("viewDimensions")
 
   return useMemo(() => {
@@ -387,6 +392,7 @@ export const useValueUnitAttributes = (
     units,
     desiredUnits,
     secondsAsTime,
+    temperature,
     viewDimensions,
   ])
 }
@@ -620,7 +626,8 @@ export const useValue = (
     return unregister(
       chart.onAttributeChange("hoverX", () => setState(getValue())),
       chart.on("dimensionChanged", () => setState(getValue())),
-      chart.onAttributeChange(`${unitsKey}Conversion`, () => setState(getValue())),
+      chart.onAttributeChange(`${unitsKey}ConversionPrefix`, () => setState(getValue())),
+      chart.onAttributeChange(`${unitsKey}ConversionBase`, () => setState(getValue())),
       chart.on("successFetch", () => setState(getValue()))
     )
   }, [chart, id, valueKey, period, unitsKey, abs, allowNull])

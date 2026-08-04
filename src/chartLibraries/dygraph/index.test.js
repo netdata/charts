@@ -160,6 +160,34 @@ describe("dygraphChart", () => {
     expect(mockDygraph.updateOptions.mock.calls[1][1]).toBe(true)
   })
 
+  it("redraws when a conversable conversion changes the base unit", () => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        highlighting: false,
+        panning: false,
+        processing: false,
+      },
+    })
+
+    chart.getPayload = () => ({
+      data: [[1617946860000, 10]],
+      labels: ["time", "value"],
+    })
+    chart.getDateWindow = () => [1617946860000, 1617947750000]
+    chart.formatXAxis = x => x.toString()
+    chart.getThemeAttribute = () => "#333"
+    chart.getUnitSign = () => ""
+
+    const instance = dygraphChart(sdk, chart)
+    instance.mount(document.createElement("div"))
+    instance.render()
+    mockDygraph.updateOptions.mockClear()
+
+    chart.updateAttribute("unitsConversionBase", ["[degF]"])
+
+    expect(mockDygraph.updateOptions).toHaveBeenCalled()
+  })
+
   it("skips render when highlighting, panning, or processing", () => {
     const { sdk, chart } = makeTestChart({
       attributes: {
