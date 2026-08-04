@@ -35,6 +35,7 @@ const baseConvert = (chart, unitsKey = "units", min, max) => {
     prefix = "",
     base = "",
     divider,
+    labelMode,
   } = getConversionUnits(chart, unitsKey, { min, max })
 
   const unitsStsByContext = chart.getAttribute(`${unitsKey}StsByContext`)
@@ -55,6 +56,7 @@ const baseConvert = (chart, unitsKey = "units", min, max) => {
     [`${unitsKey}ConversionMethod`]: method,
     [`${unitsKey}ConversionPrefix`]: prefix,
     [`${unitsKey}ConversionBase`]: base,
+    [`${unitsKey}ConversionLabelMode`]: labelMode,
     [`${unitsKey}ConversionFractionDigits`]: fractionDigits,
     [`${unitsKey}ConversionDivider`]: divider,
   })
@@ -106,9 +108,14 @@ export default chart => {
 
   const offVisibleDimensionsChanged = chart.on("visibleDimensionsChanged", () => onConvert())
   const offYAxisChange = chart.on("yAxisChange", onConvert)
+  // unit preferences feed the conversable checks, so they must re-run conversion themselves
+  const offTemperature = chart.onAttributeChange("temperature", () => onConvert())
+  const offSecondsAsTime = chart.onAttributeChange("secondsAsTime", () => onConvert())
 
   return () => {
     offYAxisChange()
     offVisibleDimensionsChanged()
+    offTemperature()
+    offSecondsAsTime()
   }
 }

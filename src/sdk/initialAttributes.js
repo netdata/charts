@@ -100,14 +100,17 @@ export default {
   unitsConversionFractionDigits: [0],
   unitsConversionPrefix: [""],
   unitsConversionBase: [""],
+  unitsConversionLabelMode: [""],
 
   dbUnitsConversionMethod: [""],
   dbUnitsConversionDivider: [-1],
   dbUnitsConversionFractionDigits: [0],
   dbUnitsConversionPrefix: [""],
   dbUnitsConversionBase: [""],
+  dbUnitsConversionLabelMode: [""],
 
-  temperature: "celsius",
+  // unset means "render whatever the agent reported"; only an explicit choice converts
+  temperature: undefined,
   secondsAsTime: true,
   timezone: undefined,
   locale: undefined,

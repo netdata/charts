@@ -112,6 +112,7 @@ const secondKeys = [...millisecondKeys, "dHH:MM:ss"]
 
 export const keys = {
   Cel: ["[degF]"],
+  "[degF]": ["Cel"],
   ns: ["ns", "us", "ms", "s"],
   ms: millisecondKeys,
   s: secondKeys,
@@ -128,6 +129,12 @@ export default {
     "[degF]": {
       check: chart => chart.getAttribute("temperature") === "fahrenheit",
       convert: value => (value * 9) / 5 + 32,
+    },
+  },
+  "[degF]": {
+    Cel: {
+      check: chart => chart.getAttribute("temperature") === "celsius",
+      convert: value => ((value - 32) * 5) / 9,
     },
   },
   ns: {

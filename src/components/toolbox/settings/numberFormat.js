@@ -30,12 +30,12 @@ const NumberFormat = () => {
       { value: "original", label: "No conversion" },
     ]
 
-    if (isScalable(selectedUnit)) {
+    if (isScalable(selectedUnit) || conversableUnits[selectedUnit]) {
       if (conversableUnits[selectedUnit]) {
         const scaleKeys =
           conversableKeys[selectedUnit] || Object.keys(conversableUnits[selectedUnit])
         scaleKeys.forEach(key => {
-          options.push({ value: key, label: key })
+          options.push({ value: key, label: getUnitConfig(key).print_symbol || key })
         })
       } else {
         const [scaleKeys] = getScales(selectedUnit)
