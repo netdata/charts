@@ -3562,3 +3562,64 @@ describe("uplotChart smooth line paths (dygraph bezier parity)", () => {
     teardown()
   })
 })
+
+describe("uplotChart short-chart plot area (dygraph interaction parity)", () => {
+  const mountAtHeight = async height => {
+    const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType: "line" } })
+    withLoadedPayload(chart)
+
+    const hovered = []
+    sdk.on("highlightHover", (c, x) => hovered.push(x))
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = height
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    return {
+      chart,
+      hovered,
+      u: instance.getUPlot(),
+      instance,
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  it("keeps a usable plot area on a short chart", async () => {
+    const { u, teardown } = await mountAtHeight("52px")
+
+    expect(u.bbox.height).toBeGreaterThan(0)
+
+    teardown()
+  })
+
+  it("shrinks the x-axis budget instead of collapsing the plot on a short chart", async () => {
+    const { u, teardown } = await mountAtHeight("52px")
+
+    expect(u.axes[0]._size).toBeLessThan(50)
+
+    teardown()
+  })
+
+  it("still emits hover on a short chart", async () => {
+    const { u, hovered, teardown } = await mountAtHeight("52px")
+
+    u.setCursor({ left: 400, top: 10 }, true)
+    expect(hovered.length).toBeGreaterThan(0)
+
+    teardown()
+  })
+
+  it("leaves a normal-height chart on the uPlot default axis budget", async () => {
+    const { u, teardown } = await mountAtHeight("300px")
+
+    expect(u.axes[0]._size).toBe(50)
+    expect(u.bbox.height).toBeGreaterThan(0)
+
+    teardown()
+  })
+})

@@ -23,6 +23,10 @@ const minDragPx = 5
 const axisFontFamily = "'IBM Plex Sans', sans-serif"
 const defaultAxisFontSize = 11
 const defaultYAxisSize = 60
+// uPlot's own defaults: xAxisOpts.size, and autoPadSide's round(xAxisOpts.size / 3) top pad
+const defaultXAxisSize = 50
+const defaultTopPad = 17
+const minPlotHeight = 20
 const yPixelsPerLabel = 15
 const tickSize = 4
 const axisGap = 6
@@ -308,6 +312,16 @@ export default (sdk, chart) => {
     },
   })
 
+  // left to uPlot's defaults the chrome is a fixed 67px, so a short chart gets a negative
+  // plot height and a zero-height overlay that never receives pointer events
+  const getVerticalBudget = () => {
+    const height = chartUI.getChartHeight()
+    const topPad = Math.min(defaultTopPad, Math.max(0, height - minPlotHeight))
+    const xAxisSize = Math.min(defaultXAxisSize, Math.max(0, height - topPad - minPlotHeight))
+
+    return { topPad, xAxisSize }
+  }
+
   const getAxes = () => {
     if (chart.isSparkline()) return [{ show: false }, { show: false }]
 
@@ -331,9 +345,10 @@ export default (sdk, chart) => {
       grid: { stroke: gridColor, width: 1 },
       space: xTickSpace,
       gap: axisGap,
-      ...(enabledXAxis
+      ...(enabledXAxis && getVerticalBudget().xAxisSize > 0
         ? {
             ticks: { stroke: gridColor, width: 1, size: tickSize },
+            size: getVerticalBudget().xAxisSize,
             values: (self, splits) =>
               splits.map(value => chart.formatXAxis(new Date(value * 1000))),
           }
@@ -1170,6 +1185,8 @@ export default (sdk, chart) => {
       {
         width: chartUI.getChartWidth(),
         height: chartUI.getChartHeight(),
+        // null sides keep uPlot's autoPadSide behaviour
+        padding: [getVerticalBudget().topPad, null, null, null],
         legend: { show: false },
         cursor: getCursor(),
         scales,
