@@ -737,14 +737,12 @@ export default (sdk, chart) => {
       hovering = false
       sdk.trigger("highlightBlur", chart)
       chart.trigger("highlightBlur")
-      sdk.trigger("blurChart", chart)
       return
     }
 
-    if (!hovering) {
-      hovering = true
-      sdk.trigger("hoverChart", chart)
-    }
+    // hoverChart/blurChart belong to the container's element-scoped hover (like dygraph);
+    // firing them from the cursor blurs the synced group when it crosses the axis gutter
+    if (!hovering) hovering = true
 
     const timestamp = self.data[0][idx] * 1000
     const dimensionId = getHoverDimension(self)

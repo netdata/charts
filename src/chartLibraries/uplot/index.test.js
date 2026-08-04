@@ -324,6 +324,35 @@ describe("uplotChart", () => {
     document.body.removeChild(element)
   })
 
+  it("leaves hoverChart/blurChart to the container, like dygraph, when the cursor exits the plot", () => {
+    const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType: "line" } })
+    withLoadedPayload(chart)
+
+    const hoverCharts = []
+    const blurCharts = []
+    const blurred = []
+    sdk.on("hoverChart", () => hoverCharts.push(true))
+    sdk.on("blurChart", () => blurCharts.push(true))
+    sdk.on("highlightBlur", () => blurred.push(true))
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    instance.getUPlot().setCursor({ left: 400, top: 100 }, true)
+    instance.getUPlot().setCursor({ left: -10, top: -10 }, true)
+
+    expect(blurred.length).toBeGreaterThan(0)
+    expect(hoverCharts).toHaveLength(0)
+    expect(blurCharts).toHaveLength(0)
+
+    instance.unmount()
+    document.body.removeChild(element)
+  })
+
   it("emits highlightHover and highlightBlur on the chart bus too, with the nearest dimension", () => {
     const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType: "line" } })
     withLoadedPayload(chart)
@@ -812,7 +841,7 @@ describe("uplotChart bars", () => {
   })
 
   it.each(["multiBar", "stackedBar"])(
-    "emits hoverChart and highlightHover through the shared setCursor for %s",
+    "emits highlightHover through the shared setCursor for %s, leaving hoverChart to the container",
     chartType => {
       const { sdk, instance, element } = mountBars(chartType, positiveData)
 
@@ -825,7 +854,7 @@ describe("uplotChart bars", () => {
       expect(hovered.length).toBeGreaterThan(0)
       expect(hovered[0]).toBeGreaterThanOrEqual(1617946860000)
       expect(hovered[0]).toBeLessThanOrEqual(1617946870000)
-      expect(hoverCharts.length).toBeGreaterThan(0)
+      expect(hoverCharts).toHaveLength(0)
 
       cleanup(instance, element)
     }
