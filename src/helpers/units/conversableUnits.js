@@ -110,6 +110,10 @@ const makeSecondSourceConverters = multiplier =>
 const millisecondKeys = ["ns", "us", "ms", "s", "a:mo:d", "mo:d:h", "d:h:mm", "h:mm:ss", "mm:ss"]
 const secondKeys = [...millisecondKeys, "dHH:MM:ss"]
 
+export const temperatureUnits = new Set(["Cel", "[degF]"])
+
+export const isTemperatureUnit = unit => temperatureUnits.has(unit)
+
 export const keys = {
   Cel: ["[degF]"],
   "[degF]": ["Cel"],
