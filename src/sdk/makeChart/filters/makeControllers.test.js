@@ -275,7 +275,7 @@ describe("makeControllers", () => {
   })
 
   describe("renderer resolution", () => {
-    it("resolves the configured renderer for a chart type, defaulting to dygraph", () => {
+    it("resolves the configured renderer for a chart type, falling back to chartLibrary", () => {
       const { chart: c } = makeTestChart({
         attributes: { chartLibrariesByType: { line: "table", heatmap: "dygraph" } },
       })
@@ -283,7 +283,7 @@ describe("makeControllers", () => {
 
       expect(ctrl.getRendererForChartType("line")).toBe("table")
       expect(ctrl.getRendererForChartType("heatmap")).toBe("dygraph")
-      expect(ctrl.getRendererForChartType("area")).toBe("dygraph")
+      expect(ctrl.getRendererForChartType("area")).toBe("uplot")
     })
 
     it("identifies which libraries are time-series renderers", () => {
@@ -336,13 +336,13 @@ describe("makeControllers", () => {
       expect(c.getAttribute("chartType")).toBe("line")
     })
 
-    it("defaults an unmapped time-series type to dygraph", () => {
+    it("defaults an unmapped time-series type to the configured chartLibrary", () => {
       const { chart: c } = makeTestChart()
       const ctrl = makeControllers(c)
 
       ctrl.updateChartTypeAttribute("area")
 
-      expect(c.getAttribute("chartLibrary")).toBe("dygraph")
+      expect(c.getAttribute("chartLibrary")).toBe("uplot")
       expect(c.getAttribute("chartType")).toBe("area")
     })
 

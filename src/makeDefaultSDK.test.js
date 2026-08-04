@@ -39,7 +39,7 @@ describe("makeDefaultSDK", () => {
       }),
       attributes: expect.objectContaining({
         _v: "v3",
-        chartLibrary: "dygraph",
+        chartLibrary: "uplot",
         navigation: "pan",
         after: -900,
         overlays: { proceeded: { type: "proceeded" } },
@@ -101,7 +101,7 @@ describe("makeDefaultSDK", () => {
       expect.objectContaining({
         attributes: expect.objectContaining({
           _v: "v3",
-          chartLibrary: "dygraph",
+          chartLibrary: "uplot",
           navigation: "pan",
           after: -900,
         }),

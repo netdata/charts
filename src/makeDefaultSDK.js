@@ -39,7 +39,7 @@ export default ({ attributes, ...options } = {}) =>
     },
     attributes: {
       _v: "v3",
-      chartLibrary: "dygraph",
+      chartLibrary: "uplot",
       chartLibrariesByType: {},
       navigation: "pan",
       after: -1 * minutes15,
