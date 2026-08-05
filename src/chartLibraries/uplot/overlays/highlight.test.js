@@ -47,7 +47,11 @@ const mountUplot = async overlays => {
   await Promise.resolve()
   await Promise.resolve()
 
-  return { chart, instance, teardown: () => (instance.unmount(), document.body.removeChild(element)) }
+  return {
+    chart,
+    instance,
+    teardown: () => (instance.unmount(), document.body.removeChild(element)),
+  }
 }
 
 describe("uplot highlight overlay", () => {
@@ -68,6 +72,32 @@ describe("uplot highlight overlay", () => {
       width: expect.any(Number),
     })
     expect(area.width).toBeGreaterThan(0)
+
+    teardown()
+  })
+
+  // container.js anchors the highlight box - and cloud-frontend's metrics-correlation button - with
+  // style.right = calc(100% - <from + width>px) against the element, so these x coordinates must
+  // include the y-axis gutter, the way dygraph's toDomXCoord does. Plot-relative values would drag
+  // the button a gutter's width to the left.
+  it("reports x coordinates in element space, including the axis gutter", async () => {
+    const { instance, teardown } = await mountUplot({
+      highlight: { type: "highlight", range: [after, after + 300] },
+    })
+
+    let area
+    instance.on("overlayedAreaChanged:highlight", next => (area = next))
+
+    highlight(instance, "highlight")
+    await nextFrame()
+
+    const { left: plotLeft, width: plotWidth } = instance.getPlotArea()
+    expect(plotLeft).toBeGreaterThan(0)
+
+    // the range starts at the window start, so its left edge is the plot's left edge
+    expect(area.from).toBeCloseTo(plotLeft, 0)
+    expect(area.to).toBeGreaterThan(plotLeft)
+    expect(area.to).toBeLessThanOrEqual(plotLeft + plotWidth + 1)
 
     teardown()
   })

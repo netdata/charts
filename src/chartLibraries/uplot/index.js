@@ -951,12 +951,26 @@ export default (sdk, chart) => {
     moveXDebounced(fixedAfter, fixedBefore)
   }
 
+  // the offsets are synthesised because .u-over is inset by the axis gutter, but the viewport
+  // coordinates have to survive too: the hover popover positions from clientX/clientY and only falls
+  // back to element-relative offsets (components/line/popover/index.js:41-52), which it then compares
+  // against the viewport - so dropping them pinned the popover near the top-left of the window
+  // instead of the cursor. dygraph forwards the native event, which has them.
   const emitPointer = name => event => {
     const rect = u.over.getBoundingClientRect()
     const dpr = u.pxRatio || 1
     const offsetX = event.clientX - rect.left + u.bbox.left / dpr
     const offsetY = event.clientY - rect.top + u.bbox.top / dpr
-    chartUI.trigger(name, { offsetX, offsetY, layerX: offsetX, layerY: offsetY })
+    chartUI.trigger(name, {
+      offsetX,
+      offsetY,
+      layerX: offsetX,
+      layerY: offsetY,
+      clientX: event.clientX,
+      clientY: event.clientY,
+      pageX: event.pageX,
+      pageY: event.pageY,
+    })
   }
 
   const attachNavigation = () => {

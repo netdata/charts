@@ -2787,6 +2787,39 @@ describe("uplotChart hover popover events (dygraph mouse-forwarding parity)", ()
 
     teardown()
   })
+
+  // The popover places itself in viewport space. A chart at the viewport origin hides the bug,
+  // because the element-relative offset happens to equal clientX there - so offset the chart.
+  it("positions the hover Popover at the cursor when the chart is offset in the page", () => {
+    const { chart, instance, u, teardown } = mountLine()
+    chart.getUI = () => instance
+
+    const dpr = u.pxRatio || 1
+    const chartLeft = 500
+    const chartTop = 200
+    u.over.getBoundingClientRect = () => ({
+      left: chartLeft + u.bbox.left / dpr,
+      top: chartTop + u.bbox.top / dpr,
+      width: 800,
+      height: 300,
+      right: chartLeft + u.bbox.left / dpr + 800,
+      bottom: chartTop + u.bbox.top / dpr + 300,
+    })
+
+    renderWithChart(<Popover uiName="default" />, { chart })
+
+    act(() => {
+      u.over.dispatchEvent(
+        new MouseEvent("mousemove", { clientX: 640, clientY: 360, bubbles: true })
+      )
+    })
+
+    const drop = screen.queryByTestId("drop")
+    expect(drop).not.toBeNull()
+    expect(drop.style.transform).toBe("translate3d(640px, 360px, 0)")
+
+    teardown()
+  })
 })
 
 describe("uplotChart crosshair overlay (separate canvas, no main redraw)", () => {
