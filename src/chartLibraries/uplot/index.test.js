@@ -2515,7 +2515,7 @@ describe("uplotChart sparkline series styling (dygraph parity)", () => {
     instance.mount(element)
 
     const u = instance.getUPlot()
-    expect(u.series[1].width).toBe(2)
+    expect(u.series[1].width).toBe(1.5)
     expect(u.series[1].fill(u, 1)).toBeNull()
 
     instance.unmount()
@@ -4047,5 +4047,97 @@ describe("uplotChart gesture teardown", () => {
 
     instance.unmount()
     document.body.removeChild(element)
+  })
+})
+
+describe("uplotChart series styling (dygraph parity)", () => {
+  const mountStyled = async (chartType, data, dims, attributes = {}) => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType,
+        chartLibrary: "uplot",
+        after: 1617946860,
+        before: 1617946875,
+        ...attributes,
+      },
+    })
+    chart.getPayload = () => ({ data, labels: ["time", ...dims] })
+    chart.getPayloadDimensionIds = () => dims
+    chart.getVisibleDimensionIds = () => dims
+    chart.isDimensionVisible = () => true
+    chart.selectDimensionColor = () => "#3366CC"
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getConvertedValueWithUnit = value => `${value}`
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    return {
+      chart,
+      u: instance.getUPlot(),
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  const lineRows = [
+    [1617946860000, 10],
+    [1617946865000, 12],
+    [1617946870000, 11],
+  ]
+
+  it("strokes an area edge thinner than a line, at dygraph's widths", async () => {
+    const line = await mountStyled("line", lineRows, ["a"])
+    expect(line.u.series[1].width).toBe(1.5)
+    line.teardown()
+
+    const area = await mountStyled("area", lineRows, ["a"])
+    expect(area.u.series[1].width).toBe(0.7)
+    area.teardown()
+  })
+
+  it("marks samples adjacent to a gap and leaves the series edges alone", async () => {
+    const { u, teardown } = await mountStyled(
+      "line",
+      [
+        [1617946860000, 10],
+        [1617946865000, null],
+        [1617946870000, 12],
+        [1617946875000, 13],
+      ],
+      ["a"]
+    )
+
+    expect(u.series[1].points.show(u, 1)).toBe(false)
+    expect(u.series[1].points.filter(u, 1)).toEqual([0, 2])
+
+    teardown()
+  })
+
+  it("draws no gap markers when the series has no gaps", async () => {
+    const { u, teardown } = await mountStyled("line", lineRows, ["a"])
+
+    expect(u.series[1].points.filter(u, 1)).toBeNull()
+
+    teardown()
+  })
+
+  it("outlines bars with a darkened stroke", async () => {
+    const { u, teardown } = await mountStyled("multiBar", lineRows, ["a"])
+
+    const strokeSpy = jest.spyOn(u.ctx, "strokeRect")
+    u.redraw()
+
+    expect(strokeSpy).toHaveBeenCalled()
+    expect(u.ctx.strokeStyle).not.toBe("#3366cc")
+
+    strokeSpy.mockRestore()
+    teardown()
   })
 })

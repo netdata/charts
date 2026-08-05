@@ -1,4 +1,4 @@
-import { darkenColor } from "./helpers"
+import { darkenColor } from "./color"
 
 describe("darkenColor", () => {
   it("darkens RGB color strings", () => {

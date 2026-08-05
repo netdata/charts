@@ -6,6 +6,7 @@ import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
 import limitRange from "@/helpers/limitRange"
 import { makeGetColor, withoutPrefix } from "@/helpers/heatmap"
+import { darkenColor } from "@/chartLibraries/helpers/color"
 import { formatHeatmapLabel } from "@/helpers/heatmapScale"
 import {
   getSeriesStackBounds,
@@ -38,8 +39,8 @@ const xTickSpace = 80
 const heatmapPixelsPerLabel = 15
 const heatmapRowPad = 0.5
 
-const lineWidth = 2
-const areaLineWidth = 1.5
+const lineWidth = 1.5
+const areaLineWidth = 0.7
 const hoverDotRadius = 4
 const sparklineHoverDotRadius = 3
 const areaGradientTopAlpha = "59"
@@ -78,6 +79,21 @@ const makeAreaFill = color => self => {
 }
 
 const makeSolidFill = color => () => color
+
+const gapEdgeIndexes = (self, seriesIdx) => {
+  const values = self.data[seriesIdx]
+  if (!values) return null
+
+  const last = values.length - 1
+  const indexes = []
+
+  for (let i = 0; i <= last; i++) {
+    if (values[i] == null) continue
+    if ((i > 0 && values[i - 1] == null) || (i < last && values[i + 1] == null)) indexes.push(i)
+  }
+
+  return indexes.length ? indexes : null
+}
 
 const traceStackTop = (self, ctx, xs, series, start, end, stepped) => {
   for (let row = start; row <= end; row++) {
@@ -184,6 +200,7 @@ export default (sdk, chart) => {
     const filled = chartType === "area"
     const heatmap = chartType === "heatmap"
     const bar = isBarType(chartType)
+    const stacked = chartType === "stacked"
     const paths = getPaths()
 
     return [
@@ -209,7 +226,8 @@ export default (sdk, chart) => {
           width: filled ? areaLineWidth : lineWidth,
           ...(paths && { paths }),
           ...(filled && { fill: makeAreaFill(color) }),
-          ...((heatmap || bar) && { points: { show: false } }),
+          points:
+            heatmap || bar || stacked ? { show: false } : { show: false, filter: gapEdgeIndexes },
         }
       }),
     ]
@@ -571,7 +589,10 @@ export default (sdk, chart) => {
 
       const values = self.data[index + 1]
       const barIndex = visibleIds.indexOf(id)
-      ctx.fillStyle = chart.selectDimensionColor(id)
+      const color = chart.selectDimensionColor(id)
+      ctx.fillStyle = color
+      ctx.strokeStyle = darkenColor(color)
+      ctx.lineWidth = self.pxRatio || 1
 
       for (let row = 0; row < xs.length; row++) {
         const value = values[row]
@@ -579,8 +600,11 @@ export default (sdk, chart) => {
 
         const valuePos = self.valToPos(value, "y", true)
         const left = self.valToPos(xs[row], "x", true) - groupWidth / 2 + barIndex * barWidth
+        const top = Math.min(y0, valuePos)
+        const height = Math.abs(valuePos - y0)
 
-        ctx.fillRect(left, Math.min(y0, valuePos), barWidth, Math.abs(valuePos - y0))
+        ctx.fillRect(left, top, barWidth, height)
+        ctx.strokeRect(left, top, barWidth, height)
       }
     })
   }
@@ -595,7 +619,10 @@ export default (sdk, chart) => {
       const columnBounds = bounds[index]
       if (!columnBounds) return
 
-      ctx.fillStyle = chart.selectDimensionColor(id)
+      const color = chart.selectDimensionColor(id)
+      ctx.fillStyle = color
+      ctx.strokeStyle = darkenColor(color)
+      ctx.lineWidth = self.pxRatio || 1
 
       for (let row = 0; row < xs.length; row++) {
         const bound = columnBounds[row]
@@ -605,7 +632,11 @@ export default (sdk, chart) => {
         const basePos = self.valToPos(bound[0], "y", true)
         const left = self.valToPos(xs[row], "x", true) - groupWidth / 2
 
-        ctx.fillRect(left, Math.min(topPos, basePos), groupWidth, Math.abs(topPos - basePos))
+        const top = Math.min(topPos, basePos)
+        const height = Math.abs(topPos - basePos)
+
+        ctx.fillRect(left, top, groupWidth, height)
+        ctx.strokeRect(left, top, groupWidth, height)
       }
     })
   }
@@ -703,12 +734,11 @@ export default (sdk, chart) => {
 
     overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height)
 
-    const crosshairColor = chart.getThemeAttribute("themeCrosshair")
     const hoverX = chart.getAttribute("hoverX")
     const clickX = chart.getAttribute("clickX")
 
-    drawVerticalLine(u, overlayCtx, hoverX, crosshairColor, [4, 4])
-    drawVerticalLine(u, overlayCtx, clickX, crosshairColor, null)
+    drawVerticalLine(u, overlayCtx, hoverX, chart.getThemeAttribute("themeCrosshair"), [5, 5])
+    drawVerticalLine(u, overlayCtx, clickX, chart.getThemeAttribute("themeNetdata"), [2, 2])
     drawHoverDots(u, overlayCtx, hoverX)
     drawHoverDots(u, overlayCtx, clickX)
   }
