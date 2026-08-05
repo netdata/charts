@@ -92,6 +92,35 @@ being actioned.
 | `97a82e5b` | **§2 stacking** — order reversed to dygraph's, one sign-aware accumulator for area and bar stacks, `staticValueRange` honoured exactly for every chart type, `includeZero` no longer widens an explicit range |
 | `1af02428` | **§3 + §4** — gesture finishers (rebuild emits the end event, unmount clears state directly), click-to-annotate gated on `navigation === "pan"`, timestamp snapped to the closest row, clicked dimension from the hover resolver |
 
+## Browser-verified geometry (`node scripts/parity-probe.mjs`, after `yarn build-storybook`)
+
+Perf story, `line`, 300 rows × 3 dims, one chart. uPlot's plot box is measured exactly from
+`.u-over`; dygraph's has no DOM counterpart (`dygraph.getArea()`), so it is derived from the axis
+label divs and reads ~3px tall because its x label sits `axisTickSize` below the plot edge.
+
+| story height | mount el | dygraph top / h | uPlot top / h | dygraph left / w | uPlot left / w |
+|---|---|---|---|---|---|
+| 400px | 252 | 85 / 239 | 90 / 231 | 72 / 247 | 69 / 250 |
+| 300px | 152 | 85 / 139 | 90 / 131 | 72 / 247 | 69 / 250 |
+| 200px | 52 | 85 / 39 | 90 / 31 | 72 / 247 | 69 / 250 |
+| 120px | 0 / 320 | no plot | no plot | — | — |
+
+- **§1 confirmed.** uPlot's plot box is now within ~5px of dygraph's (the deliberate top pad), where
+  the pre-fix audit measured it 51px short at 400px. It is also 3px *wider* — right pad 0 recovers
+  uPlot's 25px `autoPadSide` without clipping the last x label.
+- **No label clipping at any height**: the topmost y label and the x labels render fully with a 5px
+  top pad and a 16px x axis. Q1-C and Q2-A hold visually.
+- **120px/100px is a story artifact, not a renderer difference.** The legend and toolbox take ~148px,
+  so the mount element computes to ≤ 0. Neither renderer shows a plot: uPlot honours the zero;
+  dygraph keeps a 320px canvas that nothing displays. Both budget formulas, old and new, yield 0 at a
+  0-height element, so this is pre-existing and out of §1's scope.
+- **Finding that changes a decision:** at 300px dygraph draws **7** y labels (step 5) where uPlot
+  draws **4** (step 10). D5 had kept uPlot's sparser spacing on the grounds that dygraph's
+  `pixelsPerLabel: 15` only costs paint — but side by side, dygraph's axis is materially easier to
+  read values off, and 3 extra gridline strokes is not a real cost. **§5 now adopts dygraph's y-tick
+  density as well as its nice-step logic.** X-axis cadence stays as it is: both renderers drew 2 x
+  labels here, so the audit's 4-vs-8 claim did not reproduce.
+
 ## Corrections to this document's own premises (found while implementing)
 
 1. **Line references in the sections below are stale by 20–60 lines** — the audits predate the three
