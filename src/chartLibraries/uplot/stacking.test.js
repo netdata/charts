@@ -6,8 +6,6 @@ import {
 } from "./stacking"
 
 describe("getStackBounds", () => {
-  // dygraph accumulates last series first (dygraphs/src/dygraph.js:2249-2253), so the last
-  // dimension owns the bottom band and the first is drawn on top
   it("accumulates the last column from a zero base", () => {
     const data = [
       [0, 10, 20, 30],
@@ -41,7 +39,6 @@ describe("getStackBounds", () => {
 })
 
 describe("getSeriesStackBounds", () => {
-  // same accumulation over uPlot's column-major layout
   it("matches the row-major bounds for the same values", () => {
     const seriesData = [
       [0, 1],
@@ -73,7 +70,6 @@ describe("getStackValueRange", () => {
     expect(getStackValueRange(bounds)).toEqual([-5, 9])
   })
 
-  // dygraph would range this as [18, 28], leaving the bottom band entirely below the axis
   it("keeps zero in range so the bottom band stays visible", () => {
     const data = [[0, 10, 18]]
     const bounds = getStackBounds(data, ["a", "b"])
