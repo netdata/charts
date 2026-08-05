@@ -806,7 +806,9 @@ export default (sdk, chart) => {
           ? { x: true, y: false, setScale: false }
           : { x: false, y: false }
 
-    return { focus: { prox: 16 }, drag }
+    // dygraph draws one themed vertical line and its own dots; uPlot's native cursor would
+    // stack a second (hardcoded #607d8b) vertical line, a horizontal line and DOM points on top
+    return { focus: { prox: 16 }, drag, x: false, y: false, points: { show: false } }
   }
 
   const updateCursorDrag = () => {

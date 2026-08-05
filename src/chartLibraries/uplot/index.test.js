@@ -3623,3 +3623,41 @@ describe("uplotChart short-chart plot area (dygraph interaction parity)", () => 
     teardown()
   })
 })
+
+describe("uplotChart native cursor suppression (dygraph crosshair parity)", () => {
+  const mount = async () => {
+    const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType: "line" } })
+    withLoadedPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    return {
+      u: instance.getUPlot(),
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  it("draws no uPlot cursor lines, so only the themed overlay crosshair shows", async () => {
+    const { u, teardown } = await mount()
+
+    expect(u.over.querySelector(".u-cursor-x")).toBeNull()
+    expect(u.over.querySelector(".u-cursor-y")).toBeNull()
+
+    teardown()
+  })
+
+  it("draws no uPlot cursor points, so only the canvas hover dots show", async () => {
+    const { u, teardown } = await mount()
+
+    expect(u.over.querySelectorAll(".u-cursor-pt")).toHaveLength(0)
+
+    teardown()
+  })
+})
