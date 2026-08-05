@@ -1,7 +1,7 @@
 import uPlot from "uplot"
 import { debounce } from "throttle-debounce"
 import makeChartUI from "@/sdk/makeChartUI"
-import { isDurationAxis, makeAxisTicks } from "@/helpers/ticks"
+import { makeAxisTicks } from "@/helpers/ticks"
 import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
 import limitRange from "@/helpers/limitRange"
@@ -31,14 +31,12 @@ const minPlotHeight = 20
 const yPixelsPerLabel = 15
 const tickSize = 4
 const axisGap = 6
-// dygraph's x chrome is axisLabelFontSize + 2 * axisTickSize, with the label sitting axisTickSize
-// below the tick (dygraphs/src/plugins/axes.js:57-64, :263-271)
 const xTickSize = 3
 const xAxisGap = 3
-// uPlot's autoPadSide reserves round(yAxisOpts.size / 2) = 25px on a side whose axis it never draws
 const rightPad = 0
 const xTickSpace = 80
 const heatmapPixelsPerLabel = 15
+const heatmapRowPad = 0.5
 
 const lineWidth = 2
 const areaLineWidth = 1.5
@@ -221,15 +219,15 @@ export default (sdk, chart) => {
     const staticValueRange = chart.getAttribute("staticValueRange")
     if (staticValueRange) return [Math.ceil(staticValueRange[0]), Math.ceil(staticValueRange[1])]
 
-    return [0, chart.getVisibleHeatmapIds().length || 1]
+    const count = chart.getVisibleHeatmapIds().length || 1
+    return [-heatmapRowPad, count - heatmapRowPad]
   }
 
   const getEmptyValueRange = () => {
     const staticValueRange = chart.getAttribute("staticValueRange")
     if (staticValueRange) return staticValueRange
 
-    if (chart.getAttribute("chartType") === "heatmap")
-      return [0, chart.getVisibleHeatmapIds().length || 1]
+    if (chart.getAttribute("chartType") === "heatmap") return getHeatmapValueRange()
 
     const [min, max] = chart.getAttribute("getValueRange")(chart)
     if (Number.isFinite(min) && Number.isFinite(max) && min !== max) return [min, max]
@@ -239,8 +237,6 @@ export default (sdk, chart) => {
 
   const padAwayFromZero = value => (value === 0 ? 0 : value * 1.05)
 
-  // bars stay anchored to zero even though dygraph's multiBar ranges over the data extremes: a bar
-  // cut off from its baseline exaggerates the differences between bars
   const getBarValueRange = (self, chartType, dataMin, dataMax) => {
     if (chartType === "stackedBar") {
       const [stackMin, stackMax] = getStackValueRange(seriesStackBounds(self))
@@ -277,8 +273,6 @@ export default (sdk, chart) => {
 
         if (chartType === "heatmap") return getHeatmapValueRange()
 
-        // an explicit range is a contract, so it is honoured exactly. dygraph pads it by yRangePad
-        // and lets includeZero widen it further, which silently ignores what the caller asked for
         const staticValueRange = chart.getAttribute("staticValueRange")
         if (staticValueRange) return staticValueRange
 
@@ -288,7 +282,6 @@ export default (sdk, chart) => {
         let max
 
         if (chartType === "stacked") {
-          // the stack range already spans zero, so no includeZero step is needed on top
           ;[min, max] = getStackValueRange(stackBounds())
         } else {
           // the dygraph flag yields [null, null] when the range should not pin the axis, which
@@ -298,7 +291,6 @@ export default (sdk, chart) => {
           max = rangeMax == null ? dataMax : rangeMax
         }
 
-        // dygraph sets forceIncludeZero for area (dygraph/index.js:308)
         if (chartType === "area" ? forceIncludesZero() : chart.getAttribute("includeZero")) {
           min = Math.min(0, min)
           max = Math.max(0, max)
@@ -335,10 +327,8 @@ export default (sdk, chart) => {
     },
   })
 
-  // left to uPlot's defaults the chrome is a fixed 67px, so a short chart gets a negative plot
-  // height and a zero-height overlay that never receives pointer events. dygraph reserves nothing
-  // at the top because its axis labels are DOM nodes clamped into view (plugins/axes.js:195-196);
-  // canvas text centred on the topmost tick needs half a line of headroom instead of clipping.
+  // left to uPlot's defaults the chrome is a fixed 67px, so a short chart gets a negative
+  // plot height and a zero-height overlay that never receives pointer events
   const getVerticalBudget = () => {
     if (chart.isSparkline()) return { topPad: 0, xAxisSize: 0 }
 
@@ -367,20 +357,20 @@ export default (sdk, chart) => {
     const yAxisSize = chart.getAttribute("yAxisLabelWidth") || defaultYAxisSize
     const secondsAsTime = chart.getAttribute("secondsAsTime")
     const units = visibleDimensionIds.map(id => chart.getDimensionUnit(id))
-    const durationAxis = isDurationAxis({ secondsAsTime, units })
+
+    const border = { show: true, stroke: gridColor, width: 1 }
 
     const xAxis = {
       show: true,
       font: axisFont,
       stroke: labelColor,
       grid: { stroke: gridColor, width: 1 },
+      border,
       space: xTickSpace,
       gap: xAxisGap,
       ...(enabledXAxis
         ? {
             ticks: { stroke: gridColor, width: 1, size: xTickSize },
-            // functions, so a resize re-derives the budget inside uPlot's own convergence cycle
-            // (uPlot.cjs.js:4522) rather than needing a rebuild
             size: () => getVerticalBudget().xAxisSize,
             values: (self, splits) =>
               getVerticalBudget().xAxisSize > 0
@@ -411,22 +401,21 @@ export default (sdk, chart) => {
       font: axisFont,
       stroke: labelColor,
       grid: { stroke: gridColor, width: 1 },
+      border,
       gap: axisGap,
       ...(enabledYAxis
         ? {
             ticks: { stroke: gridColor, width: 1, size: tickSize },
             size: yAxisSize,
-            ...(durationAxis && {
-              splits: (self, axisIdx, scaleMin, scaleMax) =>
-                makeAxisTicks({
-                  min: scaleMin,
-                  max: scaleMax,
-                  pixels: self.bbox.height / (self.pxRatio || 1),
-                  pixelsPerTick: yPixelsPerLabel,
-                  units,
-                  secondsAsTime,
-                }).map(tick => tick.v),
-            }),
+            splits: (self, axisIdx, scaleMin, scaleMax) =>
+              makeAxisTicks({
+                min: scaleMin,
+                max: scaleMax,
+                pixels: self.bbox.height / (self.pxRatio || 1),
+                pixelsPerTick: yPixelsPerLabel,
+                units,
+                secondsAsTime,
+              }).map(tick => tick.v),
             values: (self, splits) =>
               splits.map((value, index) => {
                 const tickStep = getSplitGranularity(splits, index)
@@ -798,10 +787,6 @@ export default (sdk, chart) => {
 
   const emitNav = (name, ...args) => sdk.trigger(name, chart, ...args)
 
-  // sdk/plugins/pan.js:3-6 and select.js/highlight.js disable hover across the synced group when a
-  // gesture starts. A teardown mid-gesture must not emit the end event — panEnd moves the date
-  // window and refetches from a chart that is being destroyed — so the attributes are restored
-  // directly instead
   const clearPanState = () =>
     chart
       .getApplicableNodes({ syncPanning: true })
@@ -951,11 +936,6 @@ export default (sdk, chart) => {
     moveXDebounced(fixedAfter, fixedBefore)
   }
 
-  // the offsets are synthesised because .u-over is inset by the axis gutter, but the viewport
-  // coordinates have to survive too: the hover popover positions from clientX/clientY and only falls
-  // back to element-relative offsets (components/line/popover/index.js:41-52), which it then compares
-  // against the viewport - so dropping them pinned the popover near the top-left of the window
-  // instead of the cursor. dygraph forwards the native event, which has them.
   const emitPointer = name => event => {
     const rect = u.over.getBoundingClientRect()
     const dpr = u.pxRatio || 1
@@ -977,9 +957,6 @@ export default (sdk, chart) => {
     const over = u.over
     let detachDoc = null
 
-    // a gesture's end event lives on a document listener, which a rebuild or unmount removes. Left
-    // unfinished it strands panning/highlighting true and enabledHover false across the synced group
-    // — the chart then never renders again, because render() bails on panning
     const activeGestures = new Set()
 
     const finishActiveGestures = emit => {
@@ -1071,15 +1048,12 @@ export default (sdk, chart) => {
 
       if (wasDrag) return
       if (!chart.getAttribute("enabledNavigation")) return
-      // dygraph reaches a click only through endPan (dygraph-interaction-model.js:236, 303-361), so
-      // a modifier drag that selects or highlights must never also drop an annotation
       if (chart.getAttribute("navigation") !== "pan") return
 
       const rect = over.getBoundingClientRect()
       const offsetX = event.clientX - rect.left
       if (offsetX < 0 || offsetX > rect.width) return
 
-      // dygraph reports the row it snapped to (g.lastx_), not the raw pointer position
       const rawMs = u.posToVal(offsetX, "x") * 1000
       const row = chart.getClosestRow(rawMs)
       const snappedX = row === -1 ? null : u.data[0]?.[row]
@@ -1087,7 +1061,6 @@ export default (sdk, chart) => {
 
       annotate(offsetX, xMs)
 
-      // dygraph picks the closest series, or the ANNOTATIONS/ANOMALY_RATE band (dygraph/hoverX.js:132-148)
       const dimensionId = getHoverDimension(u)
       emitNav("highlightClick", xMs, dimensionId)
       chart.trigger("highlightClick", xMs, dimensionId)
@@ -1294,9 +1267,7 @@ export default (sdk, chart) => {
       {
         width: chartUI.getChartWidth(),
         height: chartUI.getChartHeight(),
-        // null sides keep uPlot's autoPadSide behaviour; functions so a resize re-derives them in
-        // uPlot's convergence cycle (paddingCalc, uPlot.cjs.js:4531-4543) instead of stranding the
-        // budget at its create-time value
+        // null sides keep uPlot's autoPadSide behaviour
         padding: [() => getVerticalBudget().topPad, () => rightPad, null, null],
         legend: { show: false },
         cursor: getCursor(),
@@ -1343,8 +1314,6 @@ export default (sdk, chart) => {
     u = null
   }
 
-  // the chart survives a rebuild, so an in-flight gesture ends through its normal event and the sdk
-  // plugins get to restore their own state; an unmount clears that state directly instead
   const rebuild = () => {
     destroyChart({ emitGestureEnd: true })
     create()

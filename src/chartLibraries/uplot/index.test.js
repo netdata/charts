@@ -90,7 +90,6 @@ describe("uplotChart", () => {
     const u = instance.getUPlot()
     expect(u.scales.x.range()).toEqual([1617946860, 1617947760])
 
-    // an explicit staticValueRange is a contract: no yRangePad, no includeZero widening on top
     expect(u.scales.y.range(u, 0, 100)).toEqual([5, 40])
 
     const labels = u.axes[0].values(u, [1617946860])
@@ -656,7 +655,7 @@ describe("uplotChart heatmap", () => {
     cleanup(instance, element)
   })
 
-  it("sets the y value-range to [0, numBuckets] using visible heatmap ids", async () => {
+  it("straddles the outer half rows so no bucket is clipped", async () => {
     const { chart, instance, element } = await mountHeatmap()
 
     instance.mount(element)
@@ -664,7 +663,7 @@ describe("uplotChart heatmap", () => {
 
     const numBuckets = chart.getVisibleHeatmapIds().length
     expect(numBuckets).toBe(5)
-    expect(u.scales.y.range(u, 0, 100)).toEqual([0, numBuckets])
+    expect(u.scales.y.range(u, 0, 100)).toEqual([-0.5, numBuckets - 0.5])
 
     cleanup(instance, element)
   })
@@ -876,8 +875,6 @@ describe("uplotChart click-to-annotate", () => {
     chart.selectDimensionColor = () => "#3366CC"
     chart.getThemeAttribute = () => "#E4E8E8"
     chart.getConvertedValueWithUnit = value => `${value}`
-    // the real getClosestRow closes over the chart's own payload, so a stubbed getPayload alone
-    // stays invisible to it
     chart.getClosestRow = timestamp => {
       const { data } = chart.getPayload()
       let closest = 0
@@ -942,7 +939,6 @@ describe("uplotChart click-to-annotate", () => {
     }
   }
 
-  // annotation-on-click must work in the default navigation mode, or the feature is unreachable
   it("sets a draft annotation and fires annotationCreate on a plain click", async () => {
     const { sdk, chart, click, teardown } = await mount({ navigation: "pan" })
 
@@ -975,7 +971,6 @@ describe("uplotChart click-to-annotate", () => {
     teardown()
   })
 
-  // dygraph reports the row it snapped to (g.lastx_), never the raw pointer position
   it("snaps the click timestamp to the closest row", async () => {
     const { sdk, chart, click, teardown } = await mount({ navigation: "pan" })
 
@@ -1001,7 +996,6 @@ describe("uplotChart click-to-annotate", () => {
     teardown()
   })
 
-  // a modifier drag selects; dropping an annotation as well is a spurious side effect
   it("does not annotate while selecting", async () => {
     const { chart, click, teardown } = await mount({ navigation: "select" })
 
@@ -2788,8 +2782,6 @@ describe("uplotChart hover popover events (dygraph mouse-forwarding parity)", ()
     teardown()
   })
 
-  // The popover places itself in viewport space. A chart at the viewport origin hides the bug,
-  // because the element-relative offset happens to equal clientX there - so offset the chart.
   it("positions the hover Popover at the cursor when the chart is offset in the page", () => {
     const { chart, instance, u, teardown } = mountLine()
     chart.getUI = () => instance
@@ -3695,8 +3687,6 @@ describe("uplotChart short-chart plot area (dygraph interaction parity)", () => 
     teardown()
   })
 
-  // dygraph reserves axisLabelFontSize + 2 * axisTickSize = 16px for the x axis and nothing at the
-  // top; uPlot's own defaults would take 67px, costing 18% of a 300px chart's plot height
   it("gives a normal-height chart dygraph's vertical budget", async () => {
     const { u, instance, teardown } = await mountAtHeight("300px")
 
@@ -3713,7 +3703,6 @@ describe("uplotChart short-chart plot area (dygraph interaction parity)", () => 
 
     element.style.height = "40px"
     instance.trigger("resize")
-    // uPlot defers size convergence to a microtask (commit -> microTask(_commit))
     await Promise.resolve()
     await Promise.resolve()
 
@@ -3826,8 +3815,6 @@ describe("uplotChart stacked value range", () => {
     teardown()
   })
 
-  // one accumulator per sign, so a negative value drops below zero instead of cancelling the
-  // positive band it was stacked onto
   it("diverges mixed-sign stacked bars around zero", async () => {
     const { u, teardown } = await mountStacked("stackedBar", [
       [1617946860000, 10, -20],
@@ -4015,8 +4002,6 @@ describe("uplotChart gesture teardown", () => {
     }
   }
 
-  // the pan's mouseup lives on a document listener that a rebuild removes; the chart survives, so
-  // the gesture ends through its normal event and sdk/plugins/pan.js restores its own state
   it("ends an in-flight pan through panEnd when the chart rebuilds", async () => {
     const { chart, events, startPan, teardown } = await mountPannable()
 
@@ -4032,8 +4017,6 @@ describe("uplotChart gesture teardown", () => {
     teardown()
   })
 
-  // an unmount must not emit panEnd: it would move the date window and refetch from a chart being
-  // destroyed. The stranded state is cleared directly instead
   it("clears pan state without emitting panEnd when the chart unmounts", async () => {
     const { chart, instance, events, startPan } = await mountPannable()
 
@@ -4045,7 +4028,6 @@ describe("uplotChart gesture teardown", () => {
     expect(chart.getAttribute("enabledHover")).toBe(true)
   })
 
-  // panning left true made render() bail forever, so the chart never came back
   it("renders again after being unmounted mid-pan", async () => {
     const { instance, startPan } = await mountPannable()
 
