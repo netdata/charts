@@ -3,6 +3,7 @@ import {
   getStackBounds,
   getStackSegments,
   getStackValueRange,
+  selectStackRows,
 } from "./stacking"
 
 describe("getStackBounds", () => {
@@ -111,5 +112,29 @@ describe("getStackSegments", () => {
 
   it("returns no segments when every value is null", () => {
     expect(getStackSegments([null, null, null], 3)).toEqual([])
+  })
+})
+
+describe("selectStackRows", () => {
+  const flat = rows => [Array.from({ length: rows }, () => [0, 10])]
+
+  it("keeps every row when the data is no denser than the plot", () => {
+    expect(selectStackRows(flat(10), row => row, 0, 9, 800)).toBeNull()
+  })
+
+  it("thins a dense segment to at most six rows per pixel", () => {
+    const rows = selectStackRows(flat(100), row => Math.floor(row / 10), 0, 99, 2)
+
+    expect(rows).not.toBeNull()
+    expect(rows.length).toBeLessThanOrEqual(60)
+    expect(rows[0]).toBe(0)
+    expect(rows[rows.length - 1]).toBe(99)
+  })
+
+  it("keeps the row deviating most from the bucket chord", () => {
+    const bounds = Array.from({ length: 20 }, () => [0, 10])
+    bounds[7] = [0, 500]
+
+    expect(selectStackRows([bounds], () => 0, 0, 19, 2)).toContain(7)
   })
 })

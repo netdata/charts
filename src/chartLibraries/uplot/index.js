@@ -13,6 +13,7 @@ import {
   getStackBounds,
   getStackSegments,
   getStackValueRange,
+  selectStackRows,
 } from "./stacking"
 import makeOverlays from "./overlays"
 import makeAnomaly from "./plotters/anomaly"
@@ -80,6 +81,12 @@ const makeAreaFill = color => self => {
 
 const makeSolidFill = color => () => color
 
+const defaultRows = (start, end) => {
+  const rows = new Array(end - start + 1)
+  for (let i = 0; i < rows.length; i++) rows[i] = start + i
+  return rows
+}
+
 const gapEdgeIndexes = (self, seriesIdx) => {
   const values = self.data[seriesIdx]
   if (!values) return null
@@ -95,14 +102,15 @@ const gapEdgeIndexes = (self, seriesIdx) => {
   return indexes.length ? indexes : null
 }
 
-const traceStackTop = (self, ctx, xs, series, start, end, stepped) => {
-  for (let row = start; row <= end; row++) {
+const traceStackTop = (self, ctx, xs, series, rows, stepped) => {
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i]
     const x = self.valToPos(xs[row], "x", true)
     const y = self.valToPos(series[row][1], "y", true)
 
-    if (row === start) ctx.moveTo(x, y)
+    if (i === 0) ctx.moveTo(x, y)
     else if (stepped) {
-      ctx.lineTo(x, self.valToPos(series[row - 1][1], "y", true))
+      ctx.lineTo(x, self.valToPos(series[rows[i - 1]][1], "y", true))
       ctx.lineTo(x, y)
     } else ctx.lineTo(x, y)
   }
@@ -473,12 +481,13 @@ export default (sdk, chart) => {
     ctx.restore()
   }
 
-  const drawStackSegment = (self, ctx, xs, series, start, end, color, edgeWidth, stepped) => {
+  const drawStackSegment = (self, ctx, xs, series, rows, color, edgeWidth, stepped) => {
     ctx.beginPath()
 
-    traceStackTop(self, ctx, xs, series, start, end, stepped)
+    traceStackTop(self, ctx, xs, series, rows, stepped)
 
-    for (let row = end; row >= start; row--) {
+    for (let i = rows.length - 1; i >= 0; i--) {
+      const row = rows[i]
       ctx.lineTo(self.valToPos(xs[row], "x", true), self.valToPos(series[row][0], "y", true))
     }
 
@@ -488,7 +497,7 @@ export default (sdk, chart) => {
 
     ctx.beginPath()
 
-    traceStackTop(self, ctx, xs, series, start, end, stepped)
+    traceStackTop(self, ctx, xs, series, rows, stepped)
 
     ctx.lineWidth = edgeWidth
     ctx.strokeStyle = `${color}${stackedEdgeAlpha}`
@@ -510,6 +519,13 @@ export default (sdk, chart) => {
     ctx.clip()
 
     const edgeWidth = window.devicePixelRatio || 1
+    const plotWidth = self.bbox.width / (self.pxRatio || 1)
+    const visibleColumns = bounds.filter(Boolean)
+    const xPositions = new Array(xs.length)
+    const getX = row => {
+      if (xPositions[row] === undefined) xPositions[row] = self.valToPos(xs[row], "x", true)
+      return xPositions[row]
+    }
 
     dimensionIds.forEach((id, index) => {
       const series = bounds[index]
@@ -517,9 +533,12 @@ export default (sdk, chart) => {
 
       const color = chart.selectDimensionColor(id)
 
-      getStackSegments(series, xs.length).forEach(([start, end]) =>
-        drawStackSegment(self, ctx, xs, series, start, end, color, edgeWidth, stepped)
-      )
+      getStackSegments(series, xs.length).forEach(([start, end]) => {
+        const selected = selectStackRows(visibleColumns, getX, start, end, plotWidth)
+        const rows = selected || defaultRows(start, end)
+
+        drawStackSegment(self, ctx, xs, series, rows, color, edgeWidth, stepped)
+      })
     })
 
     ctx.restore()
