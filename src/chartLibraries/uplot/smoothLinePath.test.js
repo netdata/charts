@@ -28,7 +28,8 @@ const recordDygraphOps = points => {
     )
 }
 
-const toHelperPoints = points => points.map(p => (p == null ? null : { x: p.canvasx, y: p.canvasy }))
+const toHelperPoints = points =>
+  points.map(p => (p == null ? null : { x: p.canvasx, y: p.canvasy }))
 
 const expectOpsMatch = points => {
   const expected = recordDygraphOps(points)

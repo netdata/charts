@@ -47,7 +47,11 @@ const mountUplot = async overlays => {
   await Promise.resolve()
   await Promise.resolve()
 
-  return { chart, instance, teardown: () => (instance.unmount(), document.body.removeChild(element)) }
+  return {
+    chart,
+    instance,
+    teardown: () => (instance.unmount(), document.body.removeChild(element)),
+  }
 }
 
 describe("uplot alertTransitions overlay", () => {

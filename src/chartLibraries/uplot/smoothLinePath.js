@@ -117,9 +117,7 @@ export const makeSmoothLinePathBuilder = () => (u, seriesIdx, idx0, idx1) => {
     for (let i = start; i <= end; i++) {
       const value = ys[i]
       points.push(
-        value == null
-          ? null
-          : { x: u.valToPos(xs[i], "x", true), y: u.valToPos(value, "y", true) }
+        value == null ? null : { x: u.valToPos(xs[i], "x", true), y: u.valToPos(value, "y", true) }
       )
     }
 

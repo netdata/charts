@@ -4,8 +4,11 @@ import "@testing-library/jest-dom"
 import { renderWithChart } from "@jest/testUtilities"
 import overlayComponents from "@/components/line/overlays/types"
 
-const { alarm: AlarmOverlay, alarmRange: AlarmRangeOverlay, highlight: HighlightOverlay } =
-  overlayComponents
+const {
+  alarm: AlarmOverlay,
+  alarmRange: AlarmRangeOverlay,
+  highlight: HighlightOverlay,
+} = overlayComponents
 
 const emit = (chart, id, area) =>
   act(() => {
