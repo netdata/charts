@@ -1,5 +1,11 @@
 # uPlot migration — progress & handoff
 
+> **START HERE for open parity work: `docs/uplot-parity-worklist.md`.** It holds the results of a
+> four-domain systematic audit (options surface, interaction model, data path, lifecycle/overlays)
+> with per-item `file:line` evidence, a recommended order, and the session's gotchas. This file
+> remains the history + perf protocol; the older `uplot-prod-parity-gap-map.md` is superseded for
+> open items.
+
 > Working branch: `explore/uplot-spike`. Last updated: 2026-07-30.
 >
 > **Rebased onto `main` (#222–#229).** All of #222–#229 audited for uPlot parity drift: #222
