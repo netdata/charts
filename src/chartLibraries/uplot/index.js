@@ -284,7 +284,9 @@ export default (sdk, chart) => {
         if (chartType === "heatmap") return getHeatmapValueRange()
         if (isBarType(chartType)) return getBarValueRange(self, chartType, dataMin, dataMax)
 
-        const [rangeMin, rangeMax] = chart.getAttribute("getValueRange")(chart)
+        // the dygraph flag yields [null, null] when the range should not pin the axis, which
+        // is what lets dataMin/dataMax (uPlot's in-window extremes) take over, as dygraph does
+        const [rangeMin, rangeMax] = chart.getAttribute("getValueRange")(chart, { dygraph: true })
         let min = rangeMin == null ? dataMin : rangeMin
         let max = rangeMax == null ? dataMax : rangeMax
 
@@ -820,7 +822,15 @@ export default (sdk, chart) => {
 
     // dygraph draws one themed vertical line and its own dots; uPlot's native cursor would
     // stack a second (hardcoded #607d8b) vertical line, a horizontal line and DOM points on top
-    return { focus: { prox: 16 }, drag, x: false, y: false, points: { show: false } }
+    // alpha 1 because dygraph sets highlightSeriesBackgroundAlpha:1; uPlot would otherwise
+    // fade every non-focused series to its 0.3 default on hover
+    return {
+      focus: { prox: 16, alpha: 1 },
+      drag,
+      x: false,
+      y: false,
+      points: { show: false },
+    }
   }
 
   const updateCursorDrag = () => {

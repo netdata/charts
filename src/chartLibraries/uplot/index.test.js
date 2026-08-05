@@ -3716,3 +3716,64 @@ describe("uplotChart degenerate value range (dygraph parity)", () => {
     teardown()
   })
 })
+
+describe("uplotChart auto y-range source (dygraph parity)", () => {
+  it("ignores a valueRange that dygraph discards for grouped, non-avg aggregation", async () => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType: "line",
+        valueRange: [0, 100],
+        groupBy: ["node"],
+        aggregationMethod: "sum",
+      },
+    })
+    withLoadedPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    const u = instance.getUPlot()
+    const [min, max] = u.scales.y.range(u, 10, 31)
+
+    // dygraph gets [null, null] here and autoscales to the data, so the axis must not
+    // stretch to the discarded 0..100 range
+    expect(max).toBeLessThan(40)
+    expect(min).toBeGreaterThan(-10)
+
+    instance.unmount()
+    document.body.removeChild(element)
+  })
+})
+
+describe("uplotChart series focus (dygraph parity)", () => {
+  it("does not fade non-hovered series, matching highlightSeriesBackgroundAlpha 1", async () => {
+    const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType: "line" } })
+    withLoadedPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    const u = instance.getUPlot()
+    expect(u.focus.alpha).toBe(1)
+
+    u.setSeries(1, { focus: true })
+    const dataSeriesAlphas = u.series.slice(1).map(series => series.alpha)
+    expect(dataSeriesAlphas).toEqual(dataSeriesAlphas.map(() => 1))
+
+    instance.unmount()
+    document.body.removeChild(element)
+  })
+})
