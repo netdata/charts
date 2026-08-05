@@ -12,11 +12,11 @@ const getTimestampPosition = (chartUI, timestamp) => {
   return { x, timestampMs }
 }
 
-const drawAnnotationLine = (ctx, x, height, color, isDraft = false, isSynced = false) => {
+const drawAnnotationLine = (ctx, x, top, bottom, color, isDraft = false, isSynced = false) => {
   ctx.beginPath()
   if (isDraft || isSynced) ctx.setLineDash([5, 5])
-  ctx.moveTo(x, 0)
-  ctx.lineTo(x, height)
+  ctx.moveTo(x, top)
+  ctx.lineTo(x, bottom)
   ctx.lineWidth = 1
   ctx.strokeStyle = color
   ctx.globalAlpha = isSynced ? 0.7 : 1
@@ -37,7 +37,7 @@ export default (chartUI, id) => {
     const u = chartUI.getUPlot()
     if (!u) return
 
-    const { height: h } = chartUI.getPlotArea()
+    const { top, height: h } = chartUI.getPlotArea()
     const { ctx } = u
 
     const pos = getTimestampPosition(chartUI, timestamp)
@@ -49,10 +49,10 @@ export default (chartUI, id) => {
     trigger(chartUI, id, area)
 
     ctx.save()
-    drawAnnotationLine(ctx, x, h, color, true)
+    drawAnnotationLine(ctx, x, top, top + h, color, true)
 
     ctx.beginPath()
-    ctx.arc(x, 0, 2, 0, 1 * Math.PI)
+    ctx.arc(x, top, 2, 0, 1 * Math.PI)
     ctx.strokeStyle = color
     ctx.lineWidth = 1
     ctx.stroke()
@@ -74,7 +74,7 @@ export default (chartUI, id) => {
   const u = chartUI.getUPlot()
   if (!u) return
 
-  const { height: h } = chartUI.getPlotArea()
+  const { top, height: h } = chartUI.getPlotArea()
   const { ctx } = u
 
   const pos = getTimestampPosition(chartUI, timestamp)
@@ -90,10 +90,10 @@ export default (chartUI, id) => {
 
   ctx.save()
 
-  drawAnnotationLine(ctx, x, h, color, false, isSynced)
+  drawAnnotationLine(ctx, x, top, top + h, color, false, isSynced)
 
   ctx.beginPath()
-  ctx.arc(x, position === "top" ? 0 : h, 2, 0, 1 * Math.PI)
+  ctx.arc(x, position === "top" ? top : top + h, 2, 0, 1 * Math.PI)
   ctx.fillStyle = color
   ctx.globalAlpha = isSynced ? 0.7 : 1
   ctx.fill()

@@ -8,7 +8,7 @@ export default (chartUI, id) => {
 
   const u = chartUI.getUPlot()
 
-  const { height: h } = chartUI.getPlotArea()
+  const { top, height: h } = chartUI.getPlotArea()
   const { ctx } = u
 
   const area = getArea(chartUI, range)
@@ -22,13 +22,13 @@ export default (chartUI, id) => {
   ctx.save()
   ctx.beginPath()
 
-  ctx.rect(from, 0, width, h - 1)
+  ctx.rect(from, top, width, h - 1)
   ctx.fillStyle = "rgba(207, 213, 218, 0.12)"
   ctx.fill()
 
   ctx.beginPath()
-  ctx.rect(from, 0, 0, h - 1)
-  ctx.rect(from + width, 0, 0, h - 1)
+  ctx.rect(from, top, 0, h - 1)
+  ctx.rect(from + width, top, 0, h - 1)
   ctx.fill()
   ctx.setLineDash([2, 7])
   ctx.lineWidth = 1

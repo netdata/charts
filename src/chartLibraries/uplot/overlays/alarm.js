@@ -12,7 +12,7 @@ export default (chartUI, id) => {
 
   const u = chartUI.getUPlot()
 
-  const { height: h } = chartUI.getPlotArea()
+  const { top, height: h } = chartUI.getPlotArea()
   const { ctx } = u
 
   const area = getArea(chartUI, [when, when])
@@ -26,8 +26,8 @@ export default (chartUI, id) => {
 
   ctx.save()
   ctx.beginPath()
-  ctx.moveTo(from - lineWidth / 2, 0)
-  ctx.lineTo(from - lineWidth / 2, h)
+  ctx.moveTo(from - lineWidth / 2, top)
+  ctx.lineTo(from - lineWidth / 2, top + h)
   ctx.globalAlpha = 1
   ctx.lineWidth = lineWidth
   ctx.setLineDash([4, 4])

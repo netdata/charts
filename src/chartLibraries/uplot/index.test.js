@@ -3564,8 +3564,10 @@ describe("uplotChart smooth line paths (dygraph bezier parity)", () => {
 })
 
 describe("uplotChart short-chart plot area (dygraph interaction parity)", () => {
-  const mountAtHeight = async height => {
-    const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType: "line" } })
+  const mountAtHeight = async (height, attributes = {}) => {
+    const { sdk, chart } = makeTestChart({
+      attributes: { loaded: true, chartType: "line", ...attributes },
+    })
     withLoadedPayload(chart)
 
     const hovered = []
@@ -3583,6 +3585,7 @@ describe("uplotChart short-chart plot area (dygraph interaction parity)", () => 
     return {
       chart,
       hovered,
+      element,
       u: instance.getUPlot(),
       instance,
       teardown: () => (instance.unmount(), document.body.removeChild(element)),
@@ -3598,9 +3601,10 @@ describe("uplotChart short-chart plot area (dygraph interaction parity)", () => 
   })
 
   it("shrinks the x-axis budget instead of collapsing the plot on a short chart", async () => {
-    const { u, teardown } = await mountAtHeight("52px")
+    const { u, teardown } = await mountAtHeight("30px")
 
-    expect(u.axes[0]._size).toBeLessThan(50)
+    expect(u.axes[0]._size).toBeLessThan(16)
+    expect(u.bbox.height).toBeGreaterThan(0)
 
     teardown()
   })
@@ -3614,11 +3618,43 @@ describe("uplotChart short-chart plot area (dygraph interaction parity)", () => 
     teardown()
   })
 
-  it("leaves a normal-height chart on the uPlot default axis budget", async () => {
-    const { u, teardown } = await mountAtHeight("300px")
+  // dygraph reserves axisLabelFontSize + 2 * axisTickSize = 16px for the x axis and nothing at the
+  // top; uPlot's own defaults would take 67px, costing 18% of a 300px chart's plot height
+  it("gives a normal-height chart dygraph's vertical budget", async () => {
+    const { u, instance, teardown } = await mountAtHeight("300px")
 
-    expect(u.axes[0]._size).toBe(50)
-    expect(u.bbox.height).toBeGreaterThan(0)
+    expect(u.axes[0]._size).toBe(16)
+    expect(instance.getPlotArea()).toEqual(
+      expect.objectContaining({ top: 5, height: 300 - 5 - 16 })
+    )
+
+    teardown()
+  })
+
+  it("re-derives the vertical budget on resize", async () => {
+    const { u, instance, element, teardown } = await mountAtHeight("300px")
+
+    element.style.height = "40px"
+    instance.trigger("resize")
+    // uPlot defers size convergence to a microtask (commit -> microTask(_commit))
+    await Promise.resolve()
+    await Promise.resolve()
+
+    const { top, height } = instance.getPlotArea()
+
+    expect(u.axes[0]._size).toBe(15)
+    expect(top).toBe(5)
+    expect(height).toBe(20)
+
+    teardown()
+  })
+
+  it("gives a sparkline the whole element", async () => {
+    const { instance, teardown } = await mountAtHeight("300px", { sparkline: true })
+
+    expect(instance.getPlotArea()).toEqual(
+      expect.objectContaining({ top: 0, height: 300 })
+    )
 
     teardown()
   })

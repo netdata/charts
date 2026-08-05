@@ -23,13 +23,16 @@ const minDragPx = 5
 const axisFontFamily = "'IBM Plex Sans', sans-serif"
 const defaultAxisFontSize = 11
 const defaultYAxisSize = 60
-// uPlot's own defaults: xAxisOpts.size, and autoPadSide's round(xAxisOpts.size / 3) top pad
-const defaultXAxisSize = 50
-const defaultTopPad = 17
 const minPlotHeight = 20
 const yPixelsPerLabel = 15
 const tickSize = 4
 const axisGap = 6
+// dygraph's x chrome is axisLabelFontSize + 2 * axisTickSize, with the label sitting axisTickSize
+// below the tick (dygraphs/src/plugins/axes.js:57-64, :263-271)
+const xTickSize = 3
+const xAxisGap = 3
+// uPlot's autoPadSide reserves round(yAxisOpts.size / 2) = 25px on a side whose axis it never draws
+const rightPad = 0
 const xTickSpace = 80
 const heatmapPixelsPerLabel = 15
 
@@ -326,12 +329,20 @@ export default (sdk, chart) => {
     },
   })
 
-  // left to uPlot's defaults the chrome is a fixed 67px, so a short chart gets a negative
-  // plot height and a zero-height overlay that never receives pointer events
+  // left to uPlot's defaults the chrome is a fixed 67px, so a short chart gets a negative plot
+  // height and a zero-height overlay that never receives pointer events. dygraph reserves nothing
+  // at the top because its axis labels are DOM nodes clamped into view (plugins/axes.js:195-196);
+  // canvas text centred on the topmost tick needs half a line of headroom instead of clipping.
   const getVerticalBudget = () => {
+    if (chart.isSparkline()) return { topPad: 0, xAxisSize: 0 }
+
     const height = chartUI.getChartHeight()
-    const topPad = Math.min(defaultTopPad, Math.max(0, height - minPlotHeight))
-    const xAxisSize = Math.min(defaultXAxisSize, Math.max(0, height - topPad - minPlotHeight))
+    const fontSize = chart.getAttribute("axisLabelFontSize") || defaultAxisFontSize
+    const topPad = Math.min(Math.ceil(fontSize / 2), Math.max(0, height - minPlotHeight))
+    const xAxisSize = Math.min(
+      fontSize + xTickSize + xAxisGap,
+      Math.max(0, height - topPad - minPlotHeight)
+    )
 
     return { topPad, xAxisSize }
   }
@@ -358,13 +369,17 @@ export default (sdk, chart) => {
       stroke: labelColor,
       grid: { stroke: gridColor, width: 1 },
       space: xTickSpace,
-      gap: axisGap,
-      ...(enabledXAxis && getVerticalBudget().xAxisSize > 0
+      gap: xAxisGap,
+      ...(enabledXAxis
         ? {
-            ticks: { stroke: gridColor, width: 1, size: tickSize },
-            size: getVerticalBudget().xAxisSize,
+            ticks: { stroke: gridColor, width: 1, size: xTickSize },
+            // functions, so a resize re-derives the budget inside uPlot's own convergence cycle
+            // (uPlot.cjs.js:4522) rather than needing a rebuild
+            size: () => getVerticalBudget().xAxisSize,
             values: (self, splits) =>
-              splits.map(value => chart.formatXAxis(new Date(value * 1000))),
+              getVerticalBudget().xAxisSize > 0
+                ? splits.map(value => chart.formatXAxis(new Date(value * 1000)))
+                : [],
           }
         : { ticks: { show: false }, values: () => [], size: hiddenAxisSize }),
     }
@@ -1209,8 +1224,10 @@ export default (sdk, chart) => {
       {
         width: chartUI.getChartWidth(),
         height: chartUI.getChartHeight(),
-        // null sides keep uPlot's autoPadSide behaviour
-        padding: [getVerticalBudget().topPad, null, null, null],
+        // null sides keep uPlot's autoPadSide behaviour; functions so a resize re-derives them in
+        // uPlot's convergence cycle (paddingCalc, uPlot.cjs.js:4531-4543) instead of stranding the
+        // budget at its create-time value
+        padding: [() => getVerticalBudget().topPad, () => rightPad, null, null],
         legend: { show: false },
         cursor: getCursor(),
         scales,

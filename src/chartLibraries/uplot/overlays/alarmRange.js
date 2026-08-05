@@ -26,7 +26,7 @@ export default (chartUI, id) => {
 
   const u = chartUI.getUPlot()
 
-  const { height: h } = chartUI.getPlotArea()
+  const { top, height: h } = chartUI.getPlotArea()
   const { ctx } = u
 
   const area = getArea(chartUI, [whenTriggered, whenLast])
@@ -39,7 +39,7 @@ export default (chartUI, id) => {
   ctx.save()
   ctx.beginPath()
 
-  ctx.rect(from, 0, width, h - 1)
+  ctx.rect(from, top, width, h - 1)
   ctx.fillStyle = fillColorMap[status]
   ctx.globalAlpha = 0.1
   ctx.fill()
@@ -47,8 +47,8 @@ export default (chartUI, id) => {
   const borderWidth = 2
   // left border
   ctx.beginPath()
-  ctx.moveTo(from, 0)
-  ctx.lineTo(from, h)
+  ctx.moveTo(from, top)
+  ctx.lineTo(from, top + h)
   ctx.globalAlpha = 1
   ctx.lineWidth = borderWidth
   ctx.setLineDash([4, 4])
@@ -57,8 +57,8 @@ export default (chartUI, id) => {
 
   // right border
   ctx.beginPath()
-  ctx.moveTo(to - borderWidth, 0)
-  ctx.lineTo(to - borderWidth, h)
+  ctx.moveTo(to - borderWidth, top)
+  ctx.lineTo(to - borderWidth, top + h)
   ctx.strokeStyle = textColorMap[status]
   ctx.stroke()
 

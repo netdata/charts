@@ -35,7 +35,7 @@ export default (chartUI, id) => {
   if (!transitions.length) return trigger(chartUI, id)
 
   const u = chartUI.getUPlot()
-  const { height: h } = chartUI.getPlotArea()
+  const { top, height: h } = chartUI.getPlotArea()
   const { ctx } = u
   const [, viewEnd] = chartUI.getXAxisRange()
 
@@ -64,7 +64,7 @@ export default (chartUI, id) => {
     const { from, width } = area
 
     ctx.beginPath()
-    ctx.rect(from, 0, width, h)
+    ctx.rect(from, top, width, h)
     ctx.fillStyle = toColor
     ctx.fill()
     ctx.closePath()
