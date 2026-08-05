@@ -14,6 +14,8 @@ const MEASURE_MS = Number(process.env.PERF_MEASURE_MS || 10000)
 const REPEATS = Number(process.env.PERF_REPEATS || 5)
 const MAX_POINTS = Number(process.env.PERF_MAX_POINTS || 3000000)
 const RUN_TIMEOUT_MS = Number(process.env.PERF_RUN_TIMEOUT_MS || 120000)
+const HOVER_SETTLE_MS = Number(process.env.PERF_HOVER_SETTLE_MS || 2500)
+const MIN_SAMPLES = Number(process.env.PERF_MIN_SAMPLES || 30)
 
 const mimeTypes = {
   ".html": "text/html",
@@ -50,13 +52,21 @@ const serveStatic = () =>
     server.listen(0, "127.0.0.1", () => resolve({ server, port: server.address().port }))
   })
 
-const storyUrl = (port, { chartLibrary, count, rows, dims, chartType }) => {
+const storyUrl = (port, config) => {
+  const { chartLibrary, count, rows, dims, chartType, scenario } = config
+  // hoverInteraction isolates the cost of the gesture itself, with no streaming underneath
+  const streaming = scenario !== "hoverInteraction"
+  const autofetchOnHovering = scenario === "hoverStreaming"
+
   const args = [
     `chartLibrary:${chartLibrary}`,
     `count:${count}`,
     `rows:${rows}`,
     `dims:${dims}`,
     `chartType:${chartType}`,
+    `height:${config.height || "300px"}`,
+    `streaming:!${streaming}`,
+    `autofetchOnHovering:!${autofetchOnHovering}`,
   ].join(";")
 
   return `http://127.0.0.1:${port}/iframe.html?id=${STORY_ID}&viewMode=story&args=${encodeURIComponent(args)}`
@@ -68,16 +78,43 @@ const taskDuration = async client => {
   return entry ? entry.value : 0
 }
 
-const driveHover = async (page, deadline) => {
-  const box = await page.locator("[data-testid='perfBenchmark'] canvas").first().boundingBox()
-  if (!box) return
+// sweep strictly inside the plot rect: crossing the axis gutter changes hover semantics
+// read the DOM directly: locator.boundingBox auto-waits, and dygraph has no .u-over
+const getPlotRect = async page =>
+  page.evaluate(() => {
+    const rectOf = el => {
+      const r = el.getBoundingClientRect()
+      return { x: r.x, y: r.y, width: r.width, height: r.height }
+    }
 
-  const y = box.y + box.height / 2
+    const over = document.querySelector(".u-over")
+    if (over) {
+      const r = rectOf(over)
+      if (r.height > 0 && r.width > 0) return r
+    }
+
+    const canvas = document.querySelector("[data-testid='perfBenchmark'] canvas")
+    if (!canvas) return null
+
+    const r = rectOf(canvas)
+    if (r.height <= 0 || r.width <= 0) return null
+
+    // dygraph: inset to stay clear of its axis labels
+    return {
+      x: r.x + 60,
+      y: r.y + 8,
+      width: Math.max(10, r.width - 70),
+      height: Math.max(10, r.height - 24),
+    }
+  })
+
+const sweepHover = async (page, rect, deadline) => {
+  const y = rect.y + rect.height / 2
   let step = 0
 
   while (Date.now() < deadline) {
     const ratio = (Math.sin(step / 8) + 1) / 2
-    await page.mouse.move(box.x + 6 + ratio * (box.width - 12), y)
+    await page.mouse.move(rect.x + 4 + ratio * Math.max(1, rect.width - 8), y)
     await page.waitForTimeout(32)
     step++
   }
@@ -94,11 +131,22 @@ const runOnce = async ({ page, client }, port, config, scenario) => {
 
     await page.waitForTimeout(WARMUP_MS)
 
+    const hovering = scenario === "hoverStreaming" || scenario === "hoverInteraction"
+    let rect = null
+
+    if (hovering) {
+      rect = await getPlotRect(page)
+      if (!rect) return { ok: false, error: "no plot rect to hover" }
+
+      // settle hover BEFORE the window opens, else we only measure the onset transient
+      await sweepHover(page, rect, Date.now() + HOVER_SETTLE_MS)
+    }
+
     await page.evaluate(() => window.__netdataPerf.reset())
     const taskBefore = await taskDuration(client)
     const startedAt = Date.now()
 
-    if (scenario === "hover") await driveHover(page, startedAt + MEASURE_MS)
+    if (hovering) await sweepHover(page, rect, startedAt + MEASURE_MS)
     else await page.waitForTimeout(MEASURE_MS)
 
     const elapsedMs = Date.now() - startedAt
@@ -140,14 +188,15 @@ const buildCells = () => {
       for (const count of [10, 50])
         cells.push({ phase: "A-scaling", rows, dims, count, chartType: "line", scenario: "idle" })
 
-  // B: synced hover, where the fan-out cost shows up
-  for (const rows of [1000, 5000])
+  // B: synced hover. hoverStreaming keeps fetching while hovered (stress); hoverInteraction
+  // measures the gesture alone, which is what the crosshair/overlay work changed
+  for (const scenario of ["hoverStreaming", "hoverInteraction"])
     for (const dims of [20, 100])
-      cells.push({ phase: "B-hover", rows, dims, count: 25, chartType: "line", scenario: "hover" })
+      cells.push({ phase: "B-hover", rows: 1000, dims, count: 25, chartType: "line", scenario })
 
   // C: expensive geometry chart types
   for (const chartType of ["stacked", "heatmap"])
-    for (const scenario of ["idle", "hover"])
+    for (const scenario of ["idle", "hoverStreaming", "hoverInteraction"])
       cells.push({ phase: "C-types", rows: 1000, dims: 20, count: 25, chartType, scenario })
 
   return cells
@@ -256,10 +305,15 @@ const main = async () => {
       uplotRenders.push(pair.uplot.renders)
     })
 
+    // too few renders to characterise a distribution; report the total-window cost only
+    const lowSample =
+      mean(dygraphRenders) < MIN_SAMPLES || mean(uplotRenders) < MIN_SAMPLES
+
     summary.push({
       phase,
       chartType,
       scenario,
+      lowSample,
       rows: Number(rowCount),
       dims: Number(dims),
       count: Number(count),
@@ -288,9 +342,13 @@ const main = async () => {
       row =>
         `| ${row.phase} | ${row.chartType} | ${row.scenario} | ${row.rows} | ${row.dims} | ${row.count} | ${row.pairs} | ` +
         `${row.dygraphRenders.toFixed(0)}→${row.uplotRenders.toFixed(0)} | ` +
-        `${row.p50RatioMean.toFixed(3)} ± ${row.p50RatioSd.toFixed(3)} | ${row.taskRatioMean.toFixed(3)} ± ${row.taskRatioSd.toFixed(3)} | ` +
+        `${row.lowSample ? "n/a (low sample)" : `${row.p50RatioMean.toFixed(3)} ± ${row.p50RatioSd.toFixed(3)}`} | ` +
+        `${row.lowSample ? "n/a (low sample)" : `${row.taskRatioMean.toFixed(3)} ± ${row.taskRatioSd.toFixed(3)}`} | ` +
         `${row.totalTaskRatioMean.toFixed(3)} ± ${row.totalTaskRatioSd.toFixed(3)} |`
     ),
+    "",
+    `Cells marked low sample had under ${MIN_SAMPLES} renders for a renderer, so per-render`,
+    "statistics are not meaningful there; only the window-based total task ratio is reported.",
   ]
 
   if (skipped.length) {

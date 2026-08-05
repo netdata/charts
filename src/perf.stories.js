@@ -76,7 +76,19 @@ const makeSyntheticPayload = (rows, dims, chartType) => {
   }
 }
 
-export const Benchmark = ({ chartLibrary, count, rows, dims, chartType }) => {
+export const Benchmark = ({
+  chartLibrary,
+  count,
+  rows,
+  dims,
+  chartType,
+  height,
+  streaming,
+  autofetchOnHovering,
+}) => {
+  const isStreaming = streaming !== false && streaming !== "false"
+  const hoverKeepsFetching = autofetchOnHovering === true || autofetchOnHovering === "true"
+
   const charts = useMemo(() => {
     const numericCount = Number(count)
 
@@ -86,7 +98,12 @@ export const Benchmark = ({ chartLibrary, count, rows, dims, chartType }) => {
     )
 
     const sdk = makeDefaultSDK({
-      attributes: { chartLibrary, perfMonitor: true, syncHover: true },
+      attributes: {
+        chartLibrary,
+        perfMonitor: true,
+        syncHover: true,
+        autofetchOnHovering: hoverKeepsFetching,
+      },
     })
 
     return Array.from({ length: numericCount }, () => {
@@ -96,20 +113,20 @@ export const Benchmark = ({ chartLibrary, count, rows, dims, chartType }) => {
           contextScope: ["system.load"],
           chartType,
           syncHover: true,
-          autofetch: true,
+          autofetch: isStreaming,
           after: -600,
         },
       })
       sdk.appendChild(chart)
       return chart
     })
-  }, [chartLibrary, count, rows, dims, chartType])
+  }, [chartLibrary, count, rows, dims, chartType, isStreaming, hoverKeepsFetching])
 
   return (
     <ThemeProvider theme={DefaultTheme}>
       <Flex flexWrap gap={2} data-testid="perfBenchmark">
         {charts.map(chart => (
-          <Line key={chart.getId()} chart={chart} height="200px" width="320px" />
+          <Line key={chart.getId()} chart={chart} height={height} width="320px" />
         ))}
       </Flex>
     </ThemeProvider>
@@ -122,6 +139,9 @@ Benchmark.args = {
   rows: 300,
   dims: 3,
   chartType: "line",
+  height: "300px",
+  streaming: true,
+  autofetchOnHovering: false,
 }
 Benchmark.argTypes = {
   chartLibrary: { name: "Chart library", control: "select", options: ["dygraph", "uplot"] },
@@ -133,6 +153,9 @@ Benchmark.argTypes = {
     control: "select",
     options: ["line", "stacked", "heatmap", "stackedBar", "multiBar", "area"],
   },
+  height: { name: "Chart height", control: "text" },
+  streaming: { name: "Autofetch (streaming)", control: "boolean" },
+  autofetchOnHovering: { name: "Keep fetching while hovered", control: "boolean" },
 }
 
 export default {
