@@ -35,9 +35,7 @@ export default chartUI => {
     if (u) u.redraw()
   }
 
-  const destroy = () => render()
-
   const toggle = () => render()
 
-  return { toggle, destroy, draw }
+  return { toggle, draw }
 }

@@ -47,16 +47,19 @@ const mountUplot = async overlays => {
   await Promise.resolve()
   await Promise.resolve()
 
-  return { chart, instance, teardown: () => (instance.unmount(), document.body.removeChild(element)) }
+  return {
+    chart,
+    instance,
+    teardown: () => (instance.unmount(), document.body.removeChild(element)),
+  }
 }
 
 describe("uplot overlays orchestration", () => {
-  it("exposes toggle, destroy and draw", () => {
+  it("exposes toggle and draw", () => {
     const { sdk, chart } = makeTestChart({ attributes: { chartLibrary: "uplot" } })
     const overlays = makeOverlays(uplotChart(sdk, chart))
 
     expect(typeof overlays.toggle).toBe("function")
-    expect(typeof overlays.destroy).toBe("function")
     expect(typeof overlays.draw).toBe("function")
   })
 

@@ -34,39 +34,23 @@ const getNearestSeries = (chart, self, top, idx) => {
   return closestId ?? chart.getVisibleDimensionIds()?.[0]
 }
 
-const getNearestStackedSeries = (chart, self, top, idx) => {
-  const dimensionIds = chart.getPayloadDimensionIds()
-  const bounds = getStackBounds(chart.getPayload().data, dimensionIds, id =>
+// area and bar stacks differ only in where their bounds come from: the payload is row-major, uPlot's
+// series are column-major
+const getStackedBounds = chart =>
+  getStackBounds(chart.getPayload().data, chart.getPayloadDimensionIds(), id =>
     chart.isDimensionVisible(id)
   )
 
-  let closestId
-  let closestDistance = Infinity
-
-  dimensionIds.forEach((id, index) => {
-    const bound = bounds[index]?.[idx]
-    if (!bound) return
-
-    const distance = bandDistance(top, self.valToPos(bound[0], "y"), self.valToPos(bound[1], "y"))
-    if (distance < closestDistance) {
-      closestDistance = distance
-      closestId = id
-    }
-  })
-
-  return closestId ?? chart.getVisibleDimensionIds()?.[0]
+const getStackedBarBounds = (chart, self) => {
+  const dimensionIds = chart.getPayloadDimensionIds()
+  return getSeriesStackBounds(self.data, index => chart.isDimensionVisible(dimensionIds[index]))
 }
 
-const getNearestStackedBarSeries = (chart, self, top, idx) => {
-  const dimensionIds = chart.getPayloadDimensionIds()
-  const bounds = getSeriesStackBounds(self.data, index =>
-    chart.isDimensionVisible(dimensionIds[index])
-  )
-
+const getNearestBandSeries = (chart, self, top, idx, bounds) => {
   let closestId
   let closestDistance = Infinity
 
-  dimensionIds.forEach((id, index) => {
+  chart.getPayloadDimensionIds().forEach((id, index) => {
     const bound = bounds[index]?.[idx]
     if (!bound) return
 
@@ -117,8 +101,10 @@ export default chart => self => {
   const chartType = chart.getAttribute("chartType")
 
   if (chartType === "heatmap") return getNearestHeatmapBucket(chart, self, top)
-  if (chartType === "stacked") return getNearestStackedSeries(chart, self, top, idx)
-  if (chartType === "stackedBar") return getNearestStackedBarSeries(chart, self, top, idx)
+  if (chartType === "stacked")
+    return getNearestBandSeries(chart, self, top, idx, getStackedBounds(chart))
+  if (chartType === "stackedBar")
+    return getNearestBandSeries(chart, self, top, idx, getStackedBarBounds(chart, self))
 
   return getNearestSeries(chart, self, top, idx)
 }
