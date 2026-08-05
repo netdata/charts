@@ -1,8 +1,3 @@
-// dygraph walks the series from last to first — "because if they're stacked that's how we
-// accumulate the values" (dygraphs/src/dygraph.js:2249-2253) — so the last visible dimension sits at
-// the bottom of the stack, and hidden ones are skipped before a base is chosen (:2254). Positive and
-// negative values get separate accumulators (dygraph/divergingStack.js:92) so mixed-sign series
-// diverge from zero instead of cancelling each other out.
 const accumulate = ({ columns, rows, getValue, isVisible }) => {
   const positive = new Array(rows).fill(0)
   const negative = new Array(rows).fill(0)
@@ -37,7 +32,6 @@ const accumulate = ({ columns, rows, getValue, isVisible }) => {
   return bounds
 }
 
-// the payload is row-major: data[row][column + 1]
 export const getStackBounds = (data, columns, isVisible) =>
   accumulate({
     columns: columns.length,
@@ -46,7 +40,6 @@ export const getStackBounds = (data, columns, isVisible) =>
     isVisible: isVisible && (index => isVisible(columns[index], index)),
   })
 
-// uPlot keeps series column-major: data[series + 1][row]
 export const getSeriesStackBounds = (seriesData, isVisible) =>
   accumulate({
     columns: seriesData.length - 1,
@@ -75,11 +68,6 @@ export const getStackSegments = (series, length) => {
   return segments
 }
 
-// Deliberately unlike dygraph, which ranges over the stack ends alone
-// (dygraph/divergingStack.js:100-107) and so renders a stack of 10 + 20 as [20, 30] — the bottom
-// band falls entirely below the axis and the visible areas stop encoding their magnitudes. A stacked
-// chart is about composition, so zero stays in range. Only the ends are scanned; every base is
-// itself an end of the band below, or zero.
 export const getStackValueRange = stackBounds => {
   let min = 0
   let max = 0

@@ -1,10 +1,3 @@
-// Re-runnable geometry evidence for the uPlot <-> dygraph parity work.
-//
-// jsdom cannot settle layout, pointer hit-testing or paint, so every claim about plot geometry and
-// axis-label legibility has to come from a real browser. This serves storybook-static, loads the
-// perf benchmark story once per renderer and height, reports the plot rect each renderer settles on,
-// and writes a screenshot per cell for visual review.
-//
 //   yarn build-storybook && node scripts/parity-probe.mjs
 //   PARITY_HEIGHTS=300,120 node scripts/parity-probe.mjs
 import http from "node:http"
@@ -74,9 +67,6 @@ const storyUrl = (port, chartLibrary, height) => {
   return `http://127.0.0.1:${port}/iframe.html?id=${STORY_ID}&viewMode=story&args=${encodeURIComponent(args)}`
 }
 
-// uPlot's plot box is a real element (.u-over), so it is measured exactly. dygraph's is
-// dygraph.getArea() with no DOM counterpart, so it is derived from the axis labels it renders as
-// divs - the same edges a reader perceives. The two are not identically sourced; the table says so.
 const measure = async page =>
   page.evaluate(() => {
     const container = document.querySelector("[data-testid='perfBenchmark']")
@@ -147,7 +137,6 @@ const run = async () => {
 
       try {
         await page.goto(storyUrl(port, chartLibrary, height), { waitUntil: "load" })
-        // "attached", not "visible": a zero-height canvas is exactly the case worth reporting
         await page.waitForSelector("[data-testid='perfBenchmark'] canvas", {
           state: "attached",
           timeout: 30000,
@@ -184,7 +173,10 @@ const run = async () => {
   console.table(rows)
 
   const jsonFile = path.join(outDir, `geometry-${CHART_TYPE}.json`)
-  fs.writeFileSync(jsonFile, JSON.stringify({ chartType: CHART_TYPE, rows: ROWS, dims: DIMS, results }, null, 2))
+  fs.writeFileSync(
+    jsonFile,
+    JSON.stringify({ chartType: CHART_TYPE, rows: ROWS, dims: DIMS, results }, null, 2)
+  )
   console.log(`\nscreenshots + json: ${outDir}`)
 }
 

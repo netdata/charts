@@ -34,8 +34,6 @@ const getNearestSeries = (chart, self, top, idx) => {
   return closestId ?? chart.getVisibleDimensionIds()?.[0]
 }
 
-// area and bar stacks differ only in where their bounds come from: the payload is row-major, uPlot's
-// series are column-major
 const getStackedBounds = chart =>
   getStackBounds(chart.getPayload().data, chart.getPayloadDimensionIds(), id =>
     chart.isDimensionVisible(id)
