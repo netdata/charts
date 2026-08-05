@@ -352,13 +352,34 @@ dygraph also ends a pan on `mouseout` (`navigation/pan.js:10`) — uPlot does no
    stack order from §2), and the anomaly-rate y-axis badge (`tickers/numeric.js:62`, injected as
    SVG into an HTML axis label; uPlot paints axes on canvas so this needs a Path2D in the gutter or
    a resynced DOM node).
-2. **Authoritative perf sweep.** Harness is committed and both hover scenarios work. The last sweep
-   was stopped at 55/240 because it measured a pre-fix build and geometry work will invalidate it.
-   Re-run `yarn perf:bench` once §1–§2 land. Prior valid result (idle only, render-count matched):
-   uPlot totals **0.52–0.96×** dygraph, margin narrowing toward parity as dimension count grows;
-   **3.7× cheaper per render on stacked**. Earlier hover numbers were **retracted** — they measured
-   uPlot doing nothing (0px plot area, 0 hoverX writes).
-3. **Screenshot pairs** (task #5) for maintainer visual review.
+2. ~~**Authoritative perf sweep.**~~ **DONE** — full `yarn perf:bench` on the finished branch,
+   28 cells x 5 repeats x 2 renderers = 280 runs. Raw output in `.perf-results/` (gitignored).
+   Ratios below are uPlot/dygraph; under 1.000 means uPlot is cheaper.
+
+   | measure | result |
+   |---|---|
+   | p50 per render | uPlot cheaper nearly everywhere: **0.09x on stacked** (60.4ms -> 5.4ms), 0.42-0.95x on line, 0.52x on heatmap. Two cells worse: 300 rows/100 dims/10 charts (1.09x) and 5000 rows/20 dims/10 charts (1.26x) |
+   | whole-tab main-thread total (the flip decider) | **0.52-1.66x**. Better under load: 50-chart cells 0.57-0.96x, hover-with-streaming 0.52x and 0.77x. Worse on light cells: 10 charts at 3-20 dims run **1.16-1.66x**. Heatmap 1.06-1.10x. Stacked ~parity at 0.955x |
+   | hover gesture alone (`hoverInteraction`, 0 renders both sides) | **0.975x / 0.984x** — parity. This replaces the retracted numbers, which had measured uPlot doing nothing |
+
+   Four cells were skipped by the 3M-point cap: 1000x100x50, 5000x20x50, 5000x100x10, 5000x100x50.
+
+   **Two findings worth chasing, both stable across all 5 repeats:**
+   - **uPlot renders 1.5x more often than dygraph on stacked** (150 vs 100 renders over the same
+     10s window, every repeat). Its render is 11x cheaper, and the extra renders spend the entire
+     win — total lands at parity. Finding and removing the surplus renders would make stacked
+     dramatically cheaper. Suspects: the `fireYAxisChange` -> unit-conversion path, and the
+     `staticValueRange` / `selectedLegendDimensions` listeners.
+   - **Per-draw hook overhead dominates light charts.** At 300 rows/20 dims/10 charts the render
+     counts match (102 vs 101) and uPlot's own render is cheaper (2.6ms vs 4.0ms p50), yet whole-tab
+     task per render is 25.7ms vs 15.3ms. The work is outside the render call, in the draw hooks.
+     Prime suspect: `plotters/anomaly.js` calls `chart.getClosestRow` **per x value per draw**, so
+     300 rows x 10 charts x 100 renders is ~300k binary searches, and it runs even when every
+     anomaly rate is zero (`showAnomalies` defaults true). dygraph's plotter walks its points array
+     with no such lookup.
+3. **Screenshot pairs** (task #5) — **DONE** via `src/parity.stories.js` (`Charts/uPlot/Parity`),
+   which renders both renderers per chart type. `scripts/parity-probe.mjs` writes PNG pairs and the
+   geometry table to `.parity-results/`.
 4. **Real-dashboard measurement** — `yarn to-cloud` + the protocol in
    `docs/uplot-migration-progress.md`. Maintainer's environment.
 
