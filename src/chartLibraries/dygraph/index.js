@@ -519,18 +519,6 @@ export default (sdk, chart) => {
     return true
   }
 
-  const getPreceded = () => {
-    if (!dygraph) return -1
-
-    const firstEntryMs = chart.getFirstEntry() * 1000
-    const [after] = dygraph.xAxisRange()
-
-    if (firstEntryMs < after) return -1
-
-    const [afterExtreme] = dygraph.xAxisExtremes()
-    return dygraph.toDomXCoord(afterExtreme)
-  }
-
   const getChartWidth = () => (dygraph ? dygraph.getArea().w : chartUI.getChartWidth())
   const getChartHeight = () => (dygraph ? dygraph.getArea().h : 100)
 
@@ -549,7 +537,6 @@ export default (sdk, chart) => {
     ...chartUI,
     getChartWidth,
     getChartHeight,
-    getPreceded,
     mount,
     unmount,
     getDygraph,
