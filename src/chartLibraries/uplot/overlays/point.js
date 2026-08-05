@@ -1,3 +1,5 @@
+import { isVisibleDimension } from "@/chartLibraries/helpers/dimensionVisibility"
+
 const hoverDotRadius = 4
 const sparklineHoverDotRadius = 3
 
@@ -15,7 +17,7 @@ const drawMarkers = (chartUI, u, x, row) => {
   ctx.save()
 
   dimensionIds.forEach((id, index) => {
-    if (!chart.isDimensionVisible(id)) return
+    if (!isVisibleDimension(chart, id)) return
 
     const series = u.data[index + 1]
     const value = series && series[row]

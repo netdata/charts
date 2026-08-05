@@ -2364,7 +2364,7 @@ describe("uplotChart yRangePad (dygraph parity)", () => {
     document.body.removeChild(element)
   })
 
-  it("pads a stacked chart y-range beyond the raw stack extent (dygraph inherits yRangePad)", () => {
+  it("pads a stacked chart above the stack but not below its zero baseline", () => {
     const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType: "stacked" } })
     withLoadedPayload(chart)
 
@@ -2384,7 +2384,8 @@ describe("uplotChart yRangePad (dygraph parity)", () => {
     const [rawMin, rawMax] = getStackValueRange(bounds)
 
     const [min, max] = u.scales.y.range(u, 0, 0)
-    expect(min).toBeLessThan(rawMin)
+    expect(rawMin).toBe(0)
+    expect(min).toBe(0)
     expect(max).toBeGreaterThan(rawMax)
 
     instance.unmount()
@@ -3011,15 +3012,15 @@ describe("uplotChart hover dots (dygraph highlight-circle parity)", () => {
     teardown()
   })
 
-  it("draws a dot only for visible dimensions, skipping hidden ones", async () => {
+  it("draws a dot for every dimension while no legend selection is active", async () => {
     const { chart, u, teardown } = await mountLine()
-    chart.isDimensionVisible = id => id === "load5"
+    chart.isDimensionVisible = () => false
 
     const octx = u.root.querySelector(".netdata-crosshair-overlay").getContext("2d")
     const arcSpy = jest.spyOn(octx, "arc")
     chart.updateAttribute("hoverX", [1617946865000])
 
-    expect(arcSpy).toHaveBeenCalledTimes(1)
+    expect(arcSpy).toHaveBeenCalledTimes(3)
 
     arcSpy.mockRestore()
     teardown()
@@ -4464,6 +4465,95 @@ describe("uplotChart anomaly axis badge", () => {
     const { u, teardown } = await mountBadged({ showAnomalies: true, enabledYAxis: false })
 
     expect(countPathFills(u)).toHaveLength(0)
+
+    teardown()
+  })
+})
+
+describe("uplotChart dimension visibility (dygraph parity)", () => {
+  const mountVisible = async ({ attributes = {}, visibleIds = [], color = "#3366CC" } = {}) => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType: "line",
+        chartLibrary: "uplot",
+        after: 1617946860,
+        before: 1617946870,
+        ...attributes,
+      },
+    })
+    chart.getPayload = () => ({
+      data: [
+        [1617946860000, 10, 20],
+        [1617946865000, 12, 18],
+      ],
+      labels: ["time", "load1", "load5"],
+    })
+    chart.getPayloadDimensionIds = () => ["load1", "load5"]
+    chart.getVisibleDimensionIds = () => ["load1", "load5"]
+    chart.isDimensionVisible = id => visibleIds.includes(id)
+    chart.selectDimensionColor = () => color
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getConvertedValueWithUnit = value => `${value}`
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    return {
+      u: instance.getUPlot(),
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  it("shows every series while no legend selection exists", async () => {
+    const { u, teardown } = await mountVisible({ visibleIds: [] })
+
+    expect(u.series.slice(1).map(s => s.show)).toEqual([true, true])
+
+    teardown()
+  })
+
+  it("hides the deselected series once a legend selection exists", async () => {
+    const { u, teardown } = await mountVisible({
+      attributes: { selectedLegendDimensions: ["load5"] },
+      visibleIds: ["load5"],
+    })
+
+    expect(u.series.slice(1).map(s => s.show)).toEqual([false, true])
+
+    teardown()
+  })
+
+  it("paints a sparkline whose dimension has no palette colour", async () => {
+    const { u, teardown } = await mountVisible({
+      attributes: { sparkline: true },
+      visibleIds: [],
+      color: null,
+    })
+
+    const series = u.series[1]
+    const stroke = typeof series.stroke === "function" ? series.stroke(u, 1) : series.stroke
+    const fill = typeof series.fill === "function" ? series.fill(u, 1) : series.fill
+
+    expect(stroke).toBeTruthy()
+    expect(fill).toBeTruthy()
+
+    teardown()
+  })
+
+  it("shows a sparkline whose synthetic dimension is not in the visible set", async () => {
+    const { u, teardown } = await mountVisible({
+      attributes: { sparkline: true },
+      visibleIds: [],
+    })
+
+    expect(u.series.slice(1).every(s => s.show)).toBe(true)
 
     teardown()
   })

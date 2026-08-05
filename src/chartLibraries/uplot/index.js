@@ -7,6 +7,7 @@ import makeResizeObserver from "@/helpers/makeResizeObserver"
 import limitRange from "@/helpers/limitRange"
 import { makeGetColor, withoutPrefix } from "@/helpers/heatmap"
 import { darkenColor } from "@/chartLibraries/helpers/color"
+import { isVisibleDimension } from "@/chartLibraries/helpers/dimensionVisibility"
 import { formatHeatmapLabel } from "@/helpers/heatmapScale"
 import {
   getSeriesStackBounds,
@@ -183,14 +184,14 @@ export default (sdk, chart) => {
     return [x, ...series]
   }
 
+  const isVisible = id => isVisibleDimension(chart, id)
+
   const stackBounds = () =>
-    getStackBounds(chart.getPayload().data, chart.getPayloadDimensionIds(), id =>
-      chart.isDimensionVisible(id)
-    )
+    getStackBounds(chart.getPayload().data, chart.getPayloadDimensionIds(), isVisible)
 
   const seriesStackBounds = self => {
     const dimensionIds = chart.getPayloadDimensionIds()
-    return getSeriesStackBounds(self.data, index => chart.isDimensionVisible(dimensionIds[index]))
+    return getSeriesStackBounds(self.data, index => isVisible(dimensionIds[index]))
   }
 
   const isBarType = chartType => chartType === "multiBar" || chartType === "stackedBar"
@@ -217,12 +218,14 @@ export default (sdk, chart) => {
     return [
       {},
       ...chart.getPayloadDimensionIds().map(id => {
-        const color = chart.selectDimensionColor(id)
+        // a sparkline's synthetic dimension has no palette entry, and uPlot paints nothing without
+        // a colour, where dygraph falls back to its own palette
+        const color = chart.selectDimensionColor(id) || chart.getThemeAttribute("themeNetdata")
 
         if (sparkline)
           return {
             label: id,
-            show: chart.isDimensionVisible(id),
+            show: isVisible(id),
             stroke: color,
             width: 0,
             fill: makeSolidFill(color),
@@ -232,7 +235,7 @@ export default (sdk, chart) => {
 
         return {
           label: id,
-          show: chart.isDimensionVisible(id),
+          show: isVisible(id),
           stroke: color,
           width: filled ? areaLineWidth : lineWidth,
           ...(paths && { paths }),
@@ -325,7 +328,12 @@ export default (sdk, chart) => {
           max = Math.max(0, max)
         }
 
-        return padYRange(self, min, max)
+        const padded = padYRange(self, min, max)
+
+        // an all-positive stack cannot reach below its baseline, so padding there is dead space
+        if (min === 0 && padded[0] < 0) padded[0] = 0
+
+        return padded
       },
     },
   })
@@ -602,12 +610,12 @@ export default (sdk, chart) => {
     const { ctx } = self
     const y0 = self.valToPos(0, "y", true)
 
-    const visibleIds = dimensionIds.filter(id => chart.isDimensionVisible(id))
+    const visibleIds = dimensionIds.filter(isVisible)
     const barCount = visibleIds.length || 1
     const barWidth = groupWidth / barCount
 
     dimensionIds.forEach((id, index) => {
-      if (!chart.isDimensionVisible(id)) return
+      if (!isVisible(id)) return
 
       const values = self.data[index + 1]
       const barIndex = visibleIds.indexOf(id)
@@ -734,7 +742,7 @@ export default (sdk, chart) => {
     ctx.save()
 
     dimensionIds.forEach((id, index) => {
-      if (!chart.isDimensionVisible(id)) return
+      if (!isVisible(id)) return
 
       const series = self.data[index + 1]
       const value = series && series[row]

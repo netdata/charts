@@ -1,3 +1,4 @@
+import { isVisibleDimension } from "@/chartLibraries/helpers/dimensionVisibility"
 import { getSeriesStackBounds, getStackBounds } from "./stacking"
 
 const anomalyBand = 15
@@ -16,7 +17,7 @@ const getNearestSeries = (chart, self, top, idx) => {
   let closestDistance = Infinity
 
   dimensionIds.forEach((id, index) => {
-    if (!chart.isDimensionVisible(id)) return
+    if (!isVisibleDimension(chart, id)) return
 
     const value = self.data[index + 1]?.[idx]
     if (value == null) return
@@ -36,12 +37,12 @@ const getNearestSeries = (chart, self, top, idx) => {
 
 const getStackedBounds = chart =>
   getStackBounds(chart.getPayload().data, chart.getPayloadDimensionIds(), id =>
-    chart.isDimensionVisible(id)
+    isVisibleDimension(chart, id)
   )
 
 const getStackedBarBounds = (chart, self) => {
   const dimensionIds = chart.getPayloadDimensionIds()
-  return getSeriesStackBounds(self.data, index => chart.isDimensionVisible(dimensionIds[index]))
+  return getSeriesStackBounds(self.data, index => isVisibleDimension(chart, dimensionIds[index]))
 }
 
 const getNearestBandSeries = (chart, self, top, idx, bounds) => {
