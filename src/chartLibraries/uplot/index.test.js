@@ -2647,8 +2647,9 @@ describe("uplotChart framed-empty overlays + y-range (dygraph parity)", () => {
 
     const u = instance.getUPlot()
     expect(u.series).toHaveLength(1)
-    expect(u.hooks.draw).toBeUndefined()
+    expect(u.hooks.draw).toHaveLength(1)
     expect(() => u.hooks.drawClear.forEach(hook => hook(u))).not.toThrow()
+    expect(() => u.hooks.draw.forEach(hook => hook(u))).not.toThrow()
 
     teardown()
   })
@@ -3209,7 +3210,7 @@ describe("uplotChart overlay z-order (drawClear behind series, dygraph underlay 
     const u = instance.getUPlot()
     expect(u.series).toHaveLength(1)
     expect(Array.isArray(u.hooks.drawClear)).toBe(true)
-    expect(u.hooks.draw).toBeUndefined()
+    expect(u.hooks.draw).toHaveLength(1)
 
     const areas = []
     instance.on("overlayedAreaChanged:proceeded", () => areas.push(true))
@@ -4138,6 +4139,253 @@ describe("uplotChart series styling (dygraph parity)", () => {
     expect(u.ctx.strokeStyle).not.toBe("#3366cc")
 
     strokeSpy.mockRestore()
+    teardown()
+  })
+})
+
+describe("uplotChart mount lifecycle", () => {
+  const makeUnloaded = (attributes = {}) =>
+    makeTestChart({
+      attributes: { loaded: false, chartType: "line", chartLibrary: "uplot", ...attributes },
+    })
+
+  const attach = () => {
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    return element
+  }
+
+  it("mounts once even while the chart is still loading", () => {
+    const { sdk, chart } = makeUnloaded()
+    const mounts = []
+    sdk.on("mountChartUI", () => mounts.push(true))
+
+    const instance = uplotChart(sdk, chart)
+    const element = attach()
+
+    instance.mount(element)
+    instance.mount(element)
+
+    expect(instance.getUPlot()).toBeNull()
+    expect(mounts).toHaveLength(1)
+
+    instance.unmount()
+    document.body.removeChild(element)
+  })
+
+  it("ignores unmount on an instance that never mounted", () => {
+    const { sdk, chart } = makeUnloaded()
+    const unmounts = []
+    sdk.on("unmountChartUI", () => unmounts.push(true))
+
+    uplotChart(sdk, chart).unmount()
+
+    expect(unmounts).toHaveLength(0)
+  })
+
+  it("survives a theme change after unmount", () => {
+    const { sdk, chart } = makeUnloaded()
+    const instance = uplotChart(sdk, chart)
+    const element = attach()
+
+    instance.mount(element)
+    instance.mount(element)
+    instance.unmount()
+
+    expect(() => chart.updateAttribute("theme", "dark")).not.toThrow()
+
+    document.body.removeChild(element)
+  })
+
+  it("emits highlightEnd from an empty chart", async () => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType: "line",
+        chartLibrary: "uplot",
+        navigation: "select",
+        after: 1617946860,
+        before: 1617946870,
+      },
+    })
+    chart.getPayload = () => ({ data: [], labels: [] })
+    chart.getPayloadDimensionIds = () => []
+    chart.getThemeAttribute = () => "#E4E8E8"
+
+    const instance = uplotChart(sdk, chart)
+    const element = attach()
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    const u = instance.getUPlot()
+    expect(u).not.toBeNull()
+    expect(u.series).toHaveLength(1)
+
+    const ranges = []
+    sdk.on("highlightEnd", (c, range) => ranges.push(range))
+
+    u.setSelect({ left: 100, top: 0, width: 200, height: 200 }, true)
+
+    expect(ranges).toHaveLength(1)
+
+    instance.unmount()
+    document.body.removeChild(element)
+  })
+})
+
+describe("uplotChart interaction hygiene (dygraph parity)", () => {
+  const mountInteractive = async (attributes = {}) => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType: "line",
+        chartLibrary: "uplot",
+        after: 1617946860,
+        before: 1617946870,
+        ...attributes,
+      },
+    })
+    chart.getPayload = () => ({
+      data: [
+        [1617946860000, 10, 20],
+        [1617946865000, 12, 18],
+        [1617946870000, 11, 22],
+      ],
+      labels: ["time", "load1", "load5"],
+    })
+    chart.getPayloadDimensionIds = () => ["load1", "load5"]
+    chart.getVisibleDimensionIds = () => ["load1", "load5"]
+    chart.isDimensionVisible = () => true
+    chart.selectDimensionColor = () => "#3366CC"
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getConvertedValueWithUnit = value => `${value}`
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    return {
+      sdk,
+      chart,
+      instance,
+      u: instance.getUPlot(),
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  const touchEventWith = (type, xs) => {
+    const event = new Event(type, { bubbles: true, cancelable: true })
+    const touches = xs.map(x => ({ clientX: x, clientY: 100, pageX: x, pageY: 100 }))
+    event.touches = type === "touchend" ? [] : touches
+    event.changedTouches = touches
+    return event
+  }
+
+  it("emits one hover per row, not per pixel", async () => {
+    const { sdk, u, teardown } = await mountInteractive()
+
+    const hovers = []
+    sdk.on("highlightHover", (c, timestamp) => hovers.push(timestamp))
+
+    for (let left = 300; left < 320; left++) u.setCursor({ left, top: 100 }, true)
+
+    expect(hovers.length).toBeGreaterThan(0)
+    expect(new Set(hovers).size).toBe(hovers.length)
+
+    teardown()
+  })
+
+  it("re-emits when the row is unchanged but the hovered dimension changes", async () => {
+    const { sdk, chart, u, teardown } = await mountInteractive()
+
+    const hovers = []
+    sdk.on("highlightHover", (c, timestamp, dimensionId) => hovers.push(dimensionId))
+
+    u.setCursor({ left: 300, top: u.valToPos(20, "y") }, true)
+    u.setCursor({ left: 300, top: u.valToPos(12, "y") }, true)
+
+    expect(new Set(hovers).size).toBeGreaterThan(1)
+    expect(chart.getAttribute("chartType")).toBe("line")
+
+    teardown()
+  })
+
+  it("ignores a double click when navigation is disabled", async () => {
+    const { chart, u, teardown } = await mountInteractive({ enabledNavigation: false })
+
+    const resets = []
+    chart.resetNavigation = () => resets.push(true)
+
+    u.over.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }))
+
+    expect(resets).toHaveLength(0)
+
+    teardown()
+  })
+
+  it("zooms the x range about the pinch midpoint on a two-finger gesture", async () => {
+    const { u, teardown } = await mountInteractive({ before: 1617946860 + 600 })
+
+    const span = u.scales.x.max - u.scales.x.min
+
+    u.over.dispatchEvent(touchEventWith("touchstart", [300, 500]))
+    u.over.dispatchEvent(touchEventWith("touchmove", [200, 600]))
+    await Promise.resolve()
+    await Promise.resolve()
+
+    expect(u.scales.x.max - u.scales.x.min).toBeLessThan(span)
+
+    u.over.dispatchEvent(touchEventWith("touchend", []))
+    teardown()
+  })
+
+  it("does not pan while pinching", async () => {
+    const { sdk, u, teardown } = await mountInteractive()
+
+    const pans = []
+    sdk.on("panStart", () => pans.push(true))
+
+    u.over.dispatchEvent(touchEventWith("touchstart", [300, 500]))
+    u.over.dispatchEvent(touchEventWith("touchmove", [280, 520]))
+
+    expect(pans).toHaveLength(0)
+
+    u.over.dispatchEvent(touchEventWith("touchend", []))
+    teardown()
+  })
+
+  it("prevents the default on every touch event it handles", async () => {
+    const { u, teardown } = await mountInteractive()
+
+    const start = touchEventWith("touchstart", [300])
+    u.over.dispatchEvent(start)
+    expect(start.defaultPrevented).toBe(true)
+
+    const end = touchEventWith("touchend", [])
+    u.over.dispatchEvent(end)
+    expect(end.defaultPrevented).toBe(true)
+
+    teardown()
+  })
+
+  it("leaves a wheel over the axis gutter to the page", async () => {
+    const { u, teardown } = await mountInteractive()
+
+    u.setCursor({ left: -10, top: 100 }, true)
+
+    const wheel = new WheelEvent("wheel", { deltaY: 120, shiftKey: true, cancelable: true })
+    u.over.dispatchEvent(wheel)
+
+    expect(wheel.defaultPrevented).toBe(false)
+
     teardown()
   })
 })

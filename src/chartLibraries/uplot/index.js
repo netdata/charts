@@ -142,6 +142,8 @@ export default (sdk, chart) => {
   let listeners
   let resizeObserver
   let hovering = false
+  let lastHoverTimestamp = null
+  let lastHoverDimension = null
   let detachNavigation = null
   let overlays = null
   let xRangeOverride = null
@@ -797,6 +799,9 @@ export default (sdk, chart) => {
     const outside = left == null || left < 0 || idx == null
 
     if (outside) {
+      lastHoverTimestamp = null
+      lastHoverDimension = null
+
       if (!hovering) return
 
       hovering = false
@@ -811,6 +816,12 @@ export default (sdk, chart) => {
 
     const timestamp = self.data[0][idx] * 1000
     const dimensionId = getHoverDimension(self)
+
+    if (timestamp === lastHoverTimestamp && dimensionId === lastHoverDimension) return
+
+    lastHoverTimestamp = timestamp
+    lastHoverDimension = dimensionId
+
     sdk.trigger("highlightHover", chart, timestamp, dimensionId)
     chart.trigger("highlightHover", timestamp, dimensionId)
   }
@@ -928,13 +939,13 @@ export default (sdk, chart) => {
   const onWheel = event => {
     if (!chart.getAttribute("enabledNavigation")) return
     if (!event.shiftKey && !event.altKey) return
-
-    event.preventDefault()
-
     if (event.deltaY === 0) return
 
     const left = u.cursor.left
     if (left == null || left < 0) return
+
+    event.preventDefault()
+    event.stopPropagation()
 
     const rect = u.over.getBoundingClientRect()
     const bias = rect.width === 0 ? 0 : left / rect.width
@@ -1045,7 +1056,11 @@ export default (sdk, chart) => {
       }
     }
 
-    const onDblClick = () => chart.resetNavigation()
+    const onDblClick = () => {
+      if (!chart.getAttribute("enabledNavigation")) return
+
+      chart.resetNavigation()
+    }
 
     let downX = null
     let downY = null
@@ -1103,6 +1118,33 @@ export default (sdk, chart) => {
     let touchMin0 = 0
     let touchMax0 = 0
     let touchUnitsPerPx = 0
+    let pinching = false
+    let pinchStartDistance = 0
+    let pinchAnchor = 0
+
+    const touchSpread = touches => Math.abs(touches[1].clientX - touches[0].clientX)
+
+    const setXRange = (after, before) => {
+      const { fixedAfter, fixedBefore } = limitRange({
+        after: Math.round(after),
+        before: Math.round(before),
+      })
+      if (fixedBefore - fixedAfter < 1) return
+
+      xRangeOverride = [fixedAfter, fixedBefore]
+      u.setScale("x", { min: fixedAfter, max: fixedBefore })
+      moveXDebounced(fixedAfter, fixedBefore)
+    }
+
+    const startPinch = touches => {
+      pinching = true
+      pinchStartDistance = touchSpread(touches)
+      const rect = over.getBoundingClientRect()
+      const midX = (touches[0].clientX + touches[1].clientX) / 2
+      pinchAnchor = u.posToVal(midX - rect.left, "x")
+      touchMin0 = u.scales.x.min
+      touchMax0 = u.scales.x.max
+    }
 
     const finishTouchPan = emit => {
       touchPanning = false
@@ -1121,10 +1163,19 @@ export default (sdk, chart) => {
       const touch = event.touches[0]
       if (!touch) return
 
+      event.preventDefault()
+
       moveXDebounced.cancel({ upcomingOnly: true })
 
       touchMoved = false
       touchPanning = false
+      pinching = false
+
+      if (event.touches.length > 1) {
+        startPinch(event.touches)
+        return
+      }
+
       touchStartX = touch.clientX
       touchMin0 = u.scales.x.min
       touchMax0 = u.scales.x.max
@@ -1138,6 +1189,23 @@ export default (sdk, chart) => {
       if (!touch) return
 
       event.preventDefault()
+
+      if (event.touches.length > 1) {
+        if (!pinching) startPinch(event.touches)
+
+        touchMoved = true
+        const spread = touchSpread(event.touches)
+        if (!spread || !pinchStartDistance) return
+
+        const scale = pinchStartDistance / spread
+        setXRange(
+          pinchAnchor - (pinchAnchor - touchMin0) * scale,
+          pinchAnchor + (touchMax0 - pinchAnchor) * scale
+        )
+        return
+      }
+
+      if (pinching) return
 
       if (!touchMoved) {
         touchMoved = true
@@ -1153,6 +1221,14 @@ export default (sdk, chart) => {
 
     const onTouchEnd = event => {
       if (!chart.getAttribute("enabledNavigation")) return
+
+      event.preventDefault()
+
+      if (pinching) {
+        if (event.touches.length < 2) pinching = false
+        lastTouchEndTime = Date.now()
+        return
+      }
 
       const now = Date.now()
 
@@ -1304,12 +1380,13 @@ export default (sdk, chart) => {
         scales,
         series: empty ? [{}] : getSeries(),
         axes: getAxes(),
-        hooks: empty
-          ? { drawClear: [drawOverlays], setCursor: [setCursor] }
-          : {
-              setCursor: [setCursor],
-              drawClear: [drawOverlays],
-              draw: [
+        hooks: {
+          setCursor: [setCursor],
+          drawClear: [drawOverlays],
+          setSelect: [onSetSelect],
+          draw: empty
+            ? [fireYAxisChange]
+            : [
                 fireYAxisChange,
                 drawStacked,
                 drawHeatmap,
@@ -1318,8 +1395,7 @@ export default (sdk, chart) => {
                 drawAnnotations,
                 drawCrosshairLayer,
               ],
-              setSelect: [onSetSelect],
-            },
+        },
       },
       empty ? [[0]] : data,
       element
@@ -1357,8 +1433,6 @@ export default (sdk, chart) => {
     const { highlighting, panning, processing } = chart.getAttributes()
     if (highlighting || panning || processing) return false
 
-    chartUI.render()
-
     const data = getData()
     if (!data && !chart.getAttribute("loaded")) {
       destroyChart()
@@ -1371,13 +1445,14 @@ export default (sdk, chart) => {
     else if (u.series.length !== frameData.length) rebuild()
     else u.setData(frameData)
 
+    chartUI.render()
     renderCrosshair()
     chartUI.trigger("rendered")
     return true
   }
 
   const mount = el => {
-    if (u) return
+    if (element) return
 
     element = el
     chartUI.mount(el)
@@ -1421,6 +1496,8 @@ export default (sdk, chart) => {
       chart.onAttributeChange("unitsConversionPrefix", onUnitsConversionChange),
       chart.onAttributeChange("unitsConversionBase", onUnitsConversionChange),
       chart.onAttributeChange("theme", (next, prev) => {
+        if (!element) return
+
         element.classList.remove(prev)
         element.classList.add(next)
         rebuild()
@@ -1432,11 +1509,15 @@ export default (sdk, chart) => {
   }
 
   const unmount = () => {
+    if (!element) return
+
     if (listeners) listeners()
     if (resizeObserver) resizeObserver()
 
     destroyChart()
     hovering = false
+    lastHoverTimestamp = null
+    lastHoverDimension = null
     element = null
     chartUI.unmount()
   }
