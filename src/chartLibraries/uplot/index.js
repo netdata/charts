@@ -7,8 +7,12 @@ import makeResizeObserver from "@/helpers/makeResizeObserver"
 import limitRange from "@/helpers/limitRange"
 import { makeGetColor, withoutPrefix } from "@/helpers/heatmap"
 import { formatHeatmapLabel } from "@/helpers/heatmapScale"
-import { getStackBounds, getStackSegments, getStackValueRange } from "./stacking"
-import { stack } from "./bars/stack"
+import {
+  getSeriesStackBounds,
+  getStackBounds,
+  getStackSegments,
+  getStackValueRange,
+} from "./stacking"
 import makeOverlays from "./overlays"
 import makeAnomaly from "./plotters/anomaly"
 import makeAnnotations from "./plotters/annotations"
@@ -159,6 +163,11 @@ export default (sdk, chart) => {
       chart.isDimensionVisible(id)
     )
 
+  const seriesStackBounds = self => {
+    const dimensionIds = chart.getPayloadDimensionIds()
+    return getSeriesStackBounds(self.data, index => chart.isDimensionVisible(dimensionIds[index]))
+  }
+
   const isBarType = chartType => chartType === "multiBar" || chartType === "stackedBar"
 
   const getPaths = () => {
@@ -230,37 +239,22 @@ export default (sdk, chart) => {
 
   const padAwayFromZero = value => (value === 0 ? 0 : value * 1.05)
 
+  // bars stay anchored to zero even though dygraph's multiBar ranges over the data extremes: a bar
+  // cut off from its baseline exaggerates the differences between bars
   const getBarValueRange = (self, chartType, dataMin, dataMax) => {
-    const staticValueRange = chart.getAttribute("staticValueRange")
-    if (staticValueRange) return staticValueRange
-
     if (chartType === "stackedBar") {
-      const dimensionIds = chart.getPayloadDimensionIds()
-      const omit = index => !chart.isDimensionVisible(dimensionIds[index - 1])
-      const { data } = stack(self.data, omit)
+      const [stackMin, stackMax] = getStackValueRange(seriesStackBounds(self))
 
-      let min = 0
-      let max = 0
-
-      for (let i = 1; i < data.length; i++) {
-        if (omit(i)) continue
-
-        const column = data[i]
-        for (let row = 0; row < column.length; row++) {
-          const value = column[row]
-          if (value == null) continue
-          if (value < min) min = value
-          if (value > max) max = value
-        }
-      }
-
-      return [padAwayFromZero(min), padAwayFromZero(max)]
+      return [
+        padAwayFromZero(Math.min(0, stackMin == null ? dataMin : stackMin)),
+        padAwayFromZero(Math.max(0, stackMax == null ? dataMax : stackMax)),
+      ]
     }
 
     return [padAwayFromZero(Math.min(0, dataMin)), padAwayFromZero(Math.max(0, dataMax))]
   }
 
-  const areaIncludesZero = () => {
+  const forceIncludesZero = () => {
     if (chart.getAttribute("includeZero")) return true
 
     const dimensionIds = chart.getPayloadDimensionIds()
@@ -280,20 +274,32 @@ export default (sdk, chart) => {
     y: {
       range: (self, dataMin, dataMax) => {
         const chartType = chart.getAttribute("chartType")
-        if (chartType === "stacked") {
-          const [stackMin, stackMax] = getStackValueRange(stackBounds())
-          return padYRange(self, stackMin, stackMax)
-        }
+
         if (chartType === "heatmap") return getHeatmapValueRange()
+
+        // an explicit range is a contract, so it is honoured exactly. dygraph pads it by yRangePad
+        // and lets includeZero widen it further, which silently ignores what the caller asked for
+        const staticValueRange = chart.getAttribute("staticValueRange")
+        if (staticValueRange) return staticValueRange
+
         if (isBarType(chartType)) return getBarValueRange(self, chartType, dataMin, dataMax)
 
-        // the dygraph flag yields [null, null] when the range should not pin the axis, which
-        // is what lets dataMin/dataMax (uPlot's in-window extremes) take over, as dygraph does
-        const [rangeMin, rangeMax] = chart.getAttribute("getValueRange")(chart, { dygraph: true })
-        let min = rangeMin == null ? dataMin : rangeMin
-        let max = rangeMax == null ? dataMax : rangeMax
+        let min
+        let max
 
-        if (chartType === "area" ? areaIncludesZero() : chart.getAttribute("includeZero")) {
+        if (chartType === "stacked") {
+          // the stack range already spans zero, so no includeZero step is needed on top
+          ;[min, max] = getStackValueRange(stackBounds())
+        } else {
+          // the dygraph flag yields [null, null] when the range should not pin the axis, which
+          // is what lets dataMin/dataMax (uPlot's in-window extremes) take over, as dygraph does
+          const [rangeMin, rangeMax] = chart.getAttribute("getValueRange")(chart, { dygraph: true })
+          min = rangeMin == null ? dataMin : rangeMin
+          max = rangeMax == null ? dataMax : rangeMax
+        }
+
+        // dygraph sets forceIncludeZero for area (dygraph/index.js:308)
+        if (chartType === "area" ? forceIncludesZero() : chart.getAttribute("includeZero")) {
           min = Math.min(0, min)
           max = Math.max(0, max)
         }
@@ -594,24 +600,20 @@ export default (sdk, chart) => {
     const xs = self.data[0]
     const { ctx } = self
 
-    const omit = index => !chart.isDimensionVisible(dimensionIds[index - 1])
-    const { data } = stack(self.data, omit)
+    const bounds = seriesStackBounds(self)
 
     dimensionIds.forEach((id, index) => {
-      const seriesIndex = index + 1
-      if (omit(seriesIndex)) return
+      const columnBounds = bounds[index]
+      if (!columnBounds) return
 
-      const tops = data[seriesIndex]
-      const raw = self.data[seriesIndex]
       ctx.fillStyle = chart.selectDimensionColor(id)
 
       for (let row = 0; row < xs.length; row++) {
-        const top = tops[row]
-        const value = raw[row]
-        if (top == null || value == null) continue
+        const bound = columnBounds[row]
+        if (!bound) continue
 
-        const topPos = self.valToPos(top, "y", true)
-        const basePos = self.valToPos(top - value, "y", true)
+        const topPos = self.valToPos(bound[1], "y", true)
+        const basePos = self.valToPos(bound[0], "y", true)
         const left = self.valToPos(xs[row], "x", true) - groupWidth / 2
 
         ctx.fillRect(left, Math.min(topPos, basePos), groupWidth, Math.abs(topPos - basePos))
@@ -1166,7 +1168,8 @@ export default (sdk, chart) => {
 
     const restoreNavigation = () => {
       const prevNavigation = chart.getAttribute("prevNavigation")
-      if (prevNavigation) chart.updateAttributes({ navigation: prevNavigation, prevNavigation: null })
+      if (prevNavigation)
+        chart.updateAttributes({ navigation: prevNavigation, prevNavigation: null })
     }
 
     const onModifierUp = () => setTimeout(restoreNavigation)

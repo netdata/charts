@@ -1,5 +1,4 @@
-import { getStackBounds } from "./stacking"
-import { stack } from "./bars/stack"
+import { getSeriesStackBounds, getStackBounds } from "./stacking"
 
 const anomalyBand = 15
 const annotationBand = 10
@@ -60,25 +59,18 @@ const getNearestStackedSeries = (chart, self, top, idx) => {
 
 const getNearestStackedBarSeries = (chart, self, top, idx) => {
   const dimensionIds = chart.getPayloadDimensionIds()
-  const omit = index => !chart.isDimensionVisible(dimensionIds[index - 1])
-  const { data } = stack(self.data, omit)
+  const bounds = getSeriesStackBounds(self.data, index =>
+    chart.isDimensionVisible(dimensionIds[index])
+  )
 
   let closestId
   let closestDistance = Infinity
 
   dimensionIds.forEach((id, index) => {
-    const seriesIndex = index + 1
-    if (omit(seriesIndex)) return
+    const bound = bounds[index]?.[idx]
+    if (!bound) return
 
-    const end = data[seriesIndex]?.[idx]
-    const value = self.data[seriesIndex]?.[idx]
-    if (end == null || value == null) return
-
-    const distance = bandDistance(
-      top,
-      self.valToPos(end - value, "y"),
-      self.valToPos(end, "y")
-    )
+    const distance = bandDistance(top, self.valToPos(bound[0], "y"), self.valToPos(bound[1], "y"))
     if (distance < closestDistance) {
       closestDistance = distance
       closestId = id

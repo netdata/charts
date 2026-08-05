@@ -90,9 +90,8 @@ describe("uplotChart", () => {
     const u = instance.getUPlot()
     expect(u.scales.x.range()).toEqual([1617946860, 1617947760])
 
-    const yRange = u.scales.y.range(u, 0, 100)
-    expect(yRange[0]).toBeLessThan(5)
-    expect(yRange[1]).toBeGreaterThan(40)
+    // an explicit staticValueRange is a contract: no yRangePad, no includeZero widening on top
+    expect(u.scales.y.range(u, 0, 100)).toEqual([5, 40])
 
     const labels = u.axes[0].values(u, [1617946860])
     expect(labels).toHaveLength(1)
@@ -2730,13 +2729,17 @@ describe("uplotChart hover popover events (dygraph mouse-forwarding parity)", ()
     expect(screen.queryByTestId("drop")).toBeNull()
 
     act(() => {
-      u.over.dispatchEvent(new MouseEvent("mousemove", { clientX: 400, clientY: 150, bubbles: true }))
+      u.over.dispatchEvent(
+        new MouseEvent("mousemove", { clientX: 400, clientY: 150, bubbles: true })
+      )
     })
 
     expect(screen.queryByTestId("drop")).not.toBeNull()
 
     act(() => {
-      u.over.dispatchEvent(new MouseEvent("mouseout", { clientX: 400, clientY: 150, bubbles: true }))
+      u.over.dispatchEvent(
+        new MouseEvent("mouseout", { clientX: 400, clientY: 150, bubbles: true })
+      )
     })
 
     expect(screen.queryByTestId("drop")).toBeNull()
@@ -3652,9 +3655,7 @@ describe("uplotChart short-chart plot area (dygraph interaction parity)", () => 
   it("gives a sparkline the whole element", async () => {
     const { instance, teardown } = await mountAtHeight("300px", { sparkline: true })
 
-    expect(instance.getPlotArea()).toEqual(
-      expect.objectContaining({ top: 0, height: 300 })
-    )
+    expect(instance.getPlotArea()).toEqual(expect.objectContaining({ top: 0, height: 300 }))
 
     teardown()
   })
@@ -3693,6 +3694,75 @@ describe("uplotChart native cursor suppression (dygraph crosshair parity)", () =
     const { u, teardown } = await mount()
 
     expect(u.over.querySelectorAll(".u-cursor-pt")).toHaveLength(0)
+
+    teardown()
+  })
+})
+
+describe("uplotChart stacked value range", () => {
+  const mountStacked = async (chartType, rows, attributes = {}) => {
+    const { sdk, chart } = makeTestChart({
+      attributes: { loaded: true, chartType, ...attributes },
+    })
+    chart.getPayload = () => ({ data: rows, labels: ["time", "a", "b"] })
+    chart.getPayloadDimensionIds = () => ["a", "b"]
+    chart.getVisibleDimensionIds = () => ["a", "b"]
+    chart.isDimensionVisible = () => true
+    chart.selectDimensionColor = () => "#3366CC"
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getConvertedValueWithUnit = v => `${v}`
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    return {
+      u: instance.getUPlot(),
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  const positiveRows = [
+    [1617946860000, 10, 20],
+    [1617946865000, 12, 18],
+  ]
+
+  it("honours staticValueRange instead of returning the stack range", async () => {
+    const { u, teardown } = await mountStacked("stacked", positiveRows, {
+      staticValueRange: [0, 1000],
+    })
+
+    expect(u.scales.y.range(u, 0, 100)).toEqual([0, 1000])
+
+    teardown()
+  })
+
+  it("spans the whole stack from zero", async () => {
+    const { u, teardown } = await mountStacked("stacked", positiveRows)
+
+    const [min, max] = u.scales.y.range(u, 0, 100)
+    expect(min).toBeLessThanOrEqual(0)
+    expect(max).toBeGreaterThanOrEqual(30)
+
+    teardown()
+  })
+
+  // one accumulator per sign, so a negative value drops below zero instead of cancelling the
+  // positive band it was stacked onto
+  it("diverges mixed-sign stacked bars around zero", async () => {
+    const { u, teardown } = await mountStacked("stackedBar", [
+      [1617946860000, 10, -20],
+      [1617946865000, 12, -18],
+    ])
+
+    const [min, max] = u.scales.y.range(u, 0, 100)
+    expect(min).toBeLessThanOrEqual(-20)
+    expect(max).toBeGreaterThanOrEqual(12)
 
     teardown()
   })

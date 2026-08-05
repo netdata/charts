@@ -101,11 +101,13 @@ describe("uplot hover dimension resolution", () => {
     const { chart, u, teardown } = await mount("stacked", stackedData, ["a", "b"])
     const getDim = makeGetHoverDimension(chart)
 
+    // b (20) owns the bottom band 0-20 and a (10) sits on top of it at 20-30, because the stack
+    // accumulates from the last dimension to the first (dygraphs/src/dygraph.js:2249-2253)
     u.cursor = { left: 100, top: u.valToPos(25, "y"), idx: 0 }
-    expect(getDim(u)).toBe("b")
+    expect(getDim(u)).toBe("a")
 
     u.cursor = { left: 100, top: u.valToPos(5, "y"), idx: 0 }
-    expect(getDim(u)).toBe("a")
+    expect(getDim(u)).toBe("b")
 
     teardown()
   })
@@ -122,10 +124,10 @@ describe("uplot hover dimension resolution", () => {
     const getDim = makeGetHoverDimension(chart)
 
     u.cursor = { left: 100, top: u.valToPos(25, "y"), idx: 0 }
-    expect(getDim(u)).toBe("b")
+    expect(getDim(u)).toBe("a")
 
     u.cursor = { left: 100, top: u.valToPos(5, "y"), idx: 0 }
-    expect(getDim(u)).toBe("a")
+    expect(getDim(u)).toBe("b")
 
     teardown()
   })
