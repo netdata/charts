@@ -4,8 +4,12 @@
 > Companion docs: `docs/uplot-prod-parity-gap-map.md` (older P0/P1/P2 map, now superseded by
 > this list for open items), `docs/uplot-migration-progress.md` (history + perf protocol).
 >
-> **Governing rule: uPlot must match dygraph exactly.** Where they differ, reproduce dygraph —
-> do not invent UX. dygraph source: `src/chartLibraries/dygraph/**` and `node_modules/dygraphs/`.
+> **Governing rule (revised 2026-08-05 — supersedes "match dygraph exactly"):** feature parity on
+> what is achievable, with **no missing data, information or functionality**. "Looks good" is the
+> visual bar, *not* pixel-perfect. **Where uPlot is deliberately better, keep the better version —
+> the contract matters more than the resemblance.** Making anything slower, heavier or worse for the
+> sake of similarity is wrong. dygraph remains the reference for *what the feature is*:
+> `src/chartLibraries/dygraph/**` and `node_modules/dygraphs/`.
 
 ## State
 
@@ -14,6 +18,56 @@
 - Verify with `yarn jest --config ./jest/config.js <path> --collectCoverage=false` and
   `yarn eslint <files>`. Gate every change on the FULL suite + eslint before committing.
 - Perf harness: `yarn perf:bench` (full sweep) / `yarn perf:bench:quick`. See §Perf below.
+
+## Decisions taken by the maintainer (2026-08-05)
+
+| # | Decision | Consequence for this list |
+|---|---|---|
+| D1 | Land **all of §1–§8**, then the perf sweep and screenshot pairs | Nothing in §1–§8 is deferred; commit per gate |
+| D2 | Match dygraph's **geometry, line widths, point markers and bar outlines**, but **keep uPlot's area gradient and filled sparkline** | §6: align widths (line 1.5, area 0.7, stacked edge 0.1), suppress auto point markers, add darkened bar outline, align crosshair dash/colour. **Do not** replace `makeAreaFill`'s gradient with dygraph's flat `fillAlpha 0.2`, and **do not** convert sparklines from fill to stroke. Screenshot pairs will differ on these two by design. |
+| D3 | Verify in a **real browser** (Playwright) and run the **full** `yarn perf:bench` | Geometry, click routing, touch and the UNVERIFIED timezone claim are browser-gated, not jsdom-gated |
+| D4 | **Grep `cloud-frontend` first** for `getPreceded` / chart-bus `highlightEnd`; implement only what is consumed | §7/§8: evidence-gated, not implemented unconditionally |
+
+Additional standing assumptions: the three click tests that encode the inverted contract
+(`uplot/index.test.js:936, :953, :1001`) get **rewritten, not deleted**; the uPlot default flip stays
+on this branch and is not merged to `main`.
+
+### D5 — the "better wins" ruling, applied item by item
+
+Resolved by verification, no work needed:
+
+- `getPreceded` and chart-bus `highlightEnd` have **no consumer** in `cloud-frontend/src` (grep, zero
+  hits) ⇒ both close as N/A.
+- `makeAxisTicks` already dispatches to `makeNumericTicks`, which picks base-1024 multipliers for
+  binary units (`src/helpers/ticks/index.js:206-210`, `:141-153`) ⇒ nothing to port.
+- Geometry needs no rebuild-on-resize: uPlot re-evaluates `padding` functions and calls
+  `axis.size(...)` every convergence cycle (`node_modules/uplot/dist/uPlot.cjs.js:4531-4543`, `:4522`).
+- Axis font already matches at 10px (`src/sdk/initialAttributes.js:154`).
+- dygraph draws **no** y tick marks (`node_modules/dygraphs/src/plugins/axes.js:184-190`) but does draw
+  3px x ticks (`:263-266`) and 1px border lines on both sides.
+
+| Item | Decision | Rationale under D5 |
+|---|---|---|
+| Top pad | `ceil(fontSize/2)` = **5px** | dygraph's `top:0` only works because its labels are DOM divs clamped by `if (top<0) top=0` (`plugins/axes.js:195-196`); uPlot's canvas label would clip. 5px beats both clipping and uPlot's 17px waste |
+| X-axis size | **16**, tickSize 3, gap 3 | dygraph's budget exactly, and its label offset is `y + axisTickSize` (`axes.js:271`) |
+| Right pad | **0** | Recovers uPlot's 25px `autoPadSide` (`uPlot.cjs.js:1613`, `:3803-3813`). dygraph's `-5` risks clipping the last label for 5px |
+| Sparklines | **no padding at all** | 43% of a sparkline's height is currently lost to chrome it never draws |
+| `staticValueRange` | **honour exactly — do NOT pad** | The caller's range is a contract. dygraph padding `[0,1000]` to `[-52.8,1052.8]` silently ignores it. Same ruling applies to `includeZero` never overriding an explicit range |
+| `yAxisChange` on axis-less charts | **keep firing** | Drives unit conversion (`src/helpers/unitConversion/index.js:110`); dygraph structurally cannot fire it under `drawAxis:false`. Correct units on sparklines is information gained |
+| Pan on pointer-leave | **keep the pan alive** | dygraph ends it (`dygraph/navigation/pan.js:10`); that interrupts a legitimate drag |
+| X tick cadence | **no change** | dygraph shows *fewer* labels (4 vs 8 on a 119-min window). Porting its granularity table would be work to become worse |
+| Y tick density | keep uPlot's `space`, adopt **only** the nice-step logic | Binary stepping (KiB → 32, not 50) is real quality; dygraph's `pixelsPerLabel:15` just doubles gridline paint |
+| Heatmap gridlines | keep at labelled rows | One line per bucket costs 100 strokes at 100 buckets and identifies nothing the labels don't |
+| Axis border strokes | **add** | Cheap, and an axis should read as an axis |
+| Pan cleanup on teardown | emit `panEnd` on `rebuild`, **clear state directly** on `unmount` | Emitting on unmount would fire `chart.moveX` from a teardown (`sdk/plugins/pan.js:8`) |
+| Gap-edge points | **implement** | A lone sample between nulls is invisible today — data loss |
+| Anomaly-rate badge | **paint on canvas in the gutter** | Verified feasible: `fire("draw")` (`:4891`) runs with no ambient clip; `drawSeries`' clips are balanced (`:4356-4380`). Falls back to a synced DOM node |
+| Pinch-zoom | x-only zoom about the midpoint, reusing the wheel→`moveX` path | Restores missing functionality; dygraph's own model is Dygraph-internal and not portable |
+| Render-while-loading | **N/A** | `src/components/line/chartContentWrapper.js:171-173` mounts the canvas only when `!initialLoading` and shows `<Skeleton/>` |
+| Series styling | keep the area gradient and filled sparkline; align widths (line 2→1.5, area 1.5→0.7, stacked edge 0.1), bar outlines, crosshair dash/colour | D2 plus D5 |
+| Browser evidence | commit one `scripts/parity-probe.mjs` | Makes the geometry table re-runnable |
+| Screenshots | side-by-side Storybook story + scratchpad PNGs | Durable, reviewable |
+| Cadence | commit **and push** per gate; tick items off in this file | This branch lost finished work once already |
 
 ## How this list was produced
 
