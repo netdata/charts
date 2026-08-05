@@ -876,6 +876,16 @@ describe("uplotChart click-to-annotate", () => {
     chart.selectDimensionColor = () => "#3366CC"
     chart.getThemeAttribute = () => "#E4E8E8"
     chart.getConvertedValueWithUnit = value => `${value}`
+    // the real getClosestRow closes over the chart's own payload, so a stubbed getPayload alone
+    // stays invisible to it
+    chart.getClosestRow = timestamp => {
+      const { data } = chart.getPayload()
+      let closest = 0
+      data.forEach((row, index) => {
+        if (Math.abs(row[0] - timestamp) < Math.abs(data[closest][0] - timestamp)) closest = index
+      })
+      return closest
+    }
   }
 
   const mount = async (attributes = {}) => {
@@ -932,8 +942,9 @@ describe("uplotChart click-to-annotate", () => {
     }
   }
 
+  // annotation-on-click must work in the default navigation mode, or the feature is unreachable
   it("sets a draft annotation and fires annotationCreate on a plain click", async () => {
-    const { sdk, chart, click, teardown } = await mount({ navigation: "select" })
+    const { sdk, chart, click, teardown } = await mount({ navigation: "pan" })
 
     const created = []
     sdk.on("annotationCreate", (c, ts) => created.push(ts))
@@ -950,7 +961,7 @@ describe("uplotChart click-to-annotate", () => {
   })
 
   it("fires highlightClick on the sdk bus on a plain click", async () => {
-    const { sdk, click, teardown } = await mount({ navigation: "select" })
+    const { sdk, click, teardown } = await mount({ navigation: "pan" })
 
     const clicks = []
     sdk.on("highlightClick", (c, ts) => clicks.push(ts))
@@ -964,8 +975,24 @@ describe("uplotChart click-to-annotate", () => {
     teardown()
   })
 
+  // dygraph reports the row it snapped to (g.lastx_), never the raw pointer position
+  it("snaps the click timestamp to the closest row", async () => {
+    const { sdk, chart, click, teardown } = await mount({ navigation: "pan" })
+
+    const clicks = []
+    sdk.on("highlightClick", (c, ts) => clicks.push(ts))
+
+    click(401)
+
+    const rows = chart.getPayload().data.map(row => row[0])
+    expect(rows).toContain(clicks[0])
+    expect(rows).toContain(chart.getAttribute("draftAnnotation").timestamp * 1000)
+
+    teardown()
+  })
+
   it("does not annotate when the click follows a drag", async () => {
-    const { chart, dragClick, teardown } = await mount({ navigation: "select" })
+    const { chart, dragClick, teardown } = await mount({ navigation: "pan" })
 
     dragClick(100, 300)
 
@@ -974,8 +1001,32 @@ describe("uplotChart click-to-annotate", () => {
     teardown()
   })
 
-  it("does not annotate when enabledHover is false", async () => {
-    const { chart, click, teardown } = await mount({ navigation: "select", enabledHover: false })
+  // a modifier drag selects; dropping an annotation as well is a spurious side effect
+  it("does not annotate while selecting", async () => {
+    const { chart, click, teardown } = await mount({ navigation: "select" })
+
+    click(400)
+
+    expect(chart.getAttribute("draftAnnotation")).toBeFalsy()
+
+    teardown()
+  })
+
+  it("does not annotate while highlighting", async () => {
+    const { chart, click, teardown } = await mount({ navigation: "highlight" })
+
+    click(400)
+
+    expect(chart.getAttribute("draftAnnotation")).toBeFalsy()
+
+    teardown()
+  })
+
+  it("does not annotate when navigation is disabled", async () => {
+    const { chart, click, teardown } = await mount({
+      navigation: "pan",
+      enabledNavigation: false,
+    })
 
     click(400)
 
@@ -986,7 +1037,7 @@ describe("uplotChart click-to-annotate", () => {
 
   it("does not create a draft when the click lands on an existing annotation", async () => {
     const { chart, u, click, teardown } = await mount({
-      navigation: "select",
+      navigation: "pan",
       overlays: { "ann-1": { type: "annotation", timestamp: 1617946865 } },
     })
 
@@ -997,18 +1048,8 @@ describe("uplotChart click-to-annotate", () => {
     teardown()
   })
 
-  it("does not annotate during a pan gesture, matching dygraph hover suppression", async () => {
-    const { chart, click, teardown } = await mount({ navigation: "pan" })
-
-    click(400)
-
-    expect(chart.getAttribute("draftAnnotation")).toBeFalsy()
-
-    teardown()
-  })
-
   it("annotates on a sub-5px pointer wobble (no 4px dead zone)", async () => {
-    const { chart, dragClick, teardown } = await mount({ navigation: "select" })
+    const { chart, dragClick, teardown } = await mount({ navigation: "pan" })
 
     dragClick(100, 104)
 
@@ -1018,7 +1059,7 @@ describe("uplotChart click-to-annotate", () => {
   })
 
   it("does not annotate on a movement at the 5px drag threshold", async () => {
-    const { chart, dragClick, teardown } = await mount({ navigation: "select" })
+    const { chart, dragClick, teardown } = await mount({ navigation: "pan" })
 
     dragClick(100, 105)
 
@@ -3878,6 +3919,116 @@ describe("uplotChart series focus (dygraph parity)", () => {
     u.setSeries(1, { focus: true })
     const dataSeriesAlphas = u.series.slice(1).map(series => series.alpha)
     expect(dataSeriesAlphas).toEqual(dataSeriesAlphas.map(() => 1))
+
+    instance.unmount()
+    document.body.removeChild(element)
+  })
+})
+
+describe("uplotChart gesture teardown", () => {
+  const mountPannable = async () => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType: "line",
+        chartLibrary: "uplot",
+        navigation: "pan",
+        after: 1617946860,
+        before: 1617946870,
+      },
+    })
+    chart.getPayload = () => ({
+      data: [
+        [1617946860000, 10],
+        [1617946865000, 12],
+        [1617946870000, 11],
+      ],
+      labels: ["time", "load1"],
+    })
+    chart.getPayloadDimensionIds = () => ["load1"]
+    chart.getVisibleDimensionIds = () => ["load1"]
+    chart.isDimensionVisible = () => true
+    chart.selectDimensionColor = () => "#3366CC"
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getConvertedValueWithUnit = value => `${value}`
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    const events = []
+    sdk.on("panStart", () => events.push("panStart"))
+    sdk.on("panEnd", () => events.push("panEnd"))
+
+    const startPan = () => {
+      instance
+        .getUPlot()
+        .over.dispatchEvent(new MouseEvent("mousedown", { clientX: 100, clientY: 100, button: 0 }))
+      document.dispatchEvent(new MouseEvent("mousemove", { clientX: 200, clientY: 100 }))
+    }
+
+    return {
+      sdk,
+      chart,
+      instance,
+      events,
+      startPan,
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  // the pan's mouseup lives on a document listener that a rebuild removes; the chart survives, so
+  // the gesture ends through its normal event and sdk/plugins/pan.js restores its own state
+  it("ends an in-flight pan through panEnd when the chart rebuilds", async () => {
+    const { chart, events, startPan, teardown } = await mountPannable()
+
+    startPan()
+    expect(chart.getAttribute("panning")).toBe(true)
+
+    chart.updateAttribute("theme", "dark")
+
+    expect(events).toEqual(["panStart", "panEnd"])
+    expect(chart.getAttribute("panning")).toBe(false)
+    expect(chart.getAttribute("enabledHover")).toBe(true)
+
+    teardown()
+  })
+
+  // an unmount must not emit panEnd: it would move the date window and refetch from a chart being
+  // destroyed. The stranded state is cleared directly instead
+  it("clears pan state without emitting panEnd when the chart unmounts", async () => {
+    const { chart, instance, events, startPan } = await mountPannable()
+
+    startPan()
+    instance.unmount()
+
+    expect(events).toEqual(["panStart"])
+    expect(chart.getAttribute("panning")).toBe(false)
+    expect(chart.getAttribute("enabledHover")).toBe(true)
+  })
+
+  // panning left true made render() bail forever, so the chart never came back
+  it("renders again after being unmounted mid-pan", async () => {
+    const { instance, startPan } = await mountPannable()
+
+    startPan()
+    instance.unmount()
+
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    expect(instance.getUPlot()).not.toBeNull()
+    expect(instance.getXAxisRange()).not.toBeNull()
 
     instance.unmount()
     document.body.removeChild(element)

@@ -798,6 +798,20 @@ export default (sdk, chart) => {
 
   const emitNav = (name, ...args) => sdk.trigger(name, chart, ...args)
 
+  // sdk/plugins/pan.js:3-6 and select.js/highlight.js disable hover across the synced group when a
+  // gesture starts. A teardown mid-gesture must not emit the end event — panEnd moves the date
+  // window and refetches from a chart that is being destroyed — so the attributes are restored
+  // directly instead
+  const clearPanState = () =>
+    chart
+      .getApplicableNodes({ syncPanning: true })
+      .forEach(node => node.updateAttributes({ enabledHover: true, panning: false }))
+
+  const clearHighlightState = () =>
+    chart
+      .getApplicableNodes({ syncHighlight: true })
+      .forEach(node => node.updateAttributes({ enabledHover: true, highlighting: false }))
+
   const isNearAnnotation = offsetX => {
     const overlays = chart.getAttribute("overlays")
 
@@ -949,6 +963,17 @@ export default (sdk, chart) => {
     const over = u.over
     let detachDoc = null
 
+    // a gesture's end event lives on a document listener, which a rebuild or unmount removes. Left
+    // unfinished it strands panning/highlighting true and enabledHover false across the synced group
+    // — the chart then never renders again, because render() bails on panning
+    const activeGestures = new Set()
+
+    const finishActiveGestures = emit => {
+      const gestures = [...activeGestures]
+      activeGestures.clear()
+      gestures.forEach(finish => finish(emit))
+    }
+
     const onOverMove = emitPointer("mousemove")
     const onOverOut = emitPointer("mouseout")
     const onOverOver = emitPointer("mouseover")
@@ -975,15 +1000,22 @@ export default (sdk, chart) => {
         u.setScale("x", { min: min0 - dx, max: max0 - dx })
       }
 
-      const onUp = () => {
+      const finish = emit => {
         document.removeEventListener("mousemove", onMove)
         document.removeEventListener("mouseup", onUp)
         detachDoc = null
+        activeGestures.delete(finish)
+
         const [rangeMin, rangeMax] = xRangeOverride || [u.scales.x.min, u.scales.x.max]
-        emitNav("panEnd", [rangeMin * 1000, rangeMax * 1000])
         xRangeOverride = null
+
+        if (emit) emitNav("panEnd", [rangeMin * 1000, rangeMax * 1000])
+        else clearPanState()
       }
 
+      const onUp = () => finish(true)
+
+      activeGestures.add(finish)
       document.addEventListener("mousemove", onMove)
       document.addEventListener("mouseup", onUp)
       detachDoc = () => {
@@ -998,7 +1030,6 @@ export default (sdk, chart) => {
     let downY = null
     let dragged = false
     let downedOnOver = false
-    let enabledHoverAtDown = false
 
     const onDownTrack = event => {
       if (event.button !== 0) return
@@ -1006,7 +1037,6 @@ export default (sdk, chart) => {
       downY = event.clientY
       dragged = false
       downedOnOver = true
-      enabledHoverAtDown = chart.getAttribute("enabledHover")
     }
 
     const onMoveTrack = event => {
@@ -1026,17 +1056,25 @@ export default (sdk, chart) => {
       dragged = false
 
       if (wasDrag) return
-      if (!enabledHoverAtDown) return
+      if (!chart.getAttribute("enabledNavigation")) return
+      // dygraph reaches a click only through endPan (dygraph-interaction-model.js:236, 303-361), so
+      // a modifier drag that selects or highlights must never also drop an annotation
+      if (chart.getAttribute("navigation") !== "pan") return
 
       const rect = over.getBoundingClientRect()
       const offsetX = event.clientX - rect.left
       if (offsetX < 0 || offsetX > rect.width) return
 
-      const xMs = u.posToVal(offsetX, "x") * 1000
+      // dygraph reports the row it snapped to (g.lastx_), not the raw pointer position
+      const rawMs = u.posToVal(offsetX, "x") * 1000
+      const row = chart.getClosestRow(rawMs)
+      const snappedX = row === -1 ? null : u.data[0]?.[row]
+      const xMs = snappedX == null ? rawMs : snappedX * 1000
 
       annotate(offsetX, xMs)
 
-      const dimensionId = chart.getVisibleDimensionIds()?.[0]
+      // dygraph picks the closest series, or the ANNOTATIONS/ANOMALY_RATE band (dygraph/hoverX.js:132-148)
+      const dimensionId = getHoverDimension(u)
       emitNav("highlightClick", xMs, dimensionId)
       chart.trigger("highlightClick", xMs, dimensionId)
     }
@@ -1048,6 +1086,17 @@ export default (sdk, chart) => {
     let touchMin0 = 0
     let touchMax0 = 0
     let touchUnitsPerPx = 0
+
+    const finishTouchPan = emit => {
+      touchPanning = false
+      activeGestures.delete(finishTouchPan)
+
+      const [rangeMin, rangeMax] = xRangeOverride || [u.scales.x.min, u.scales.x.max]
+      xRangeOverride = null
+
+      if (emit) emitNav("panEnd", [rangeMin * 1000, rangeMax * 1000])
+      else clearPanState()
+    }
 
     const onTouchStart = event => {
       if (!chart.getAttribute("enabledNavigation")) return
@@ -1077,6 +1126,7 @@ export default (sdk, chart) => {
         touchMoved = true
         touchPanning = true
         emitNav("panStart")
+        activeGestures.add(finishTouchPan)
       }
 
       const dx = touchUnitsPerPx * (touch.clientX - touchStartX)
@@ -1108,12 +1158,7 @@ export default (sdk, chart) => {
         return
       }
 
-      if (touchPanning) {
-        touchPanning = false
-        const [rangeMin, rangeMax] = xRangeOverride || [u.scales.x.min, u.scales.x.max]
-        emitNav("panEnd", [rangeMin * 1000, rangeMax * 1000])
-        xRangeOverride = null
-      }
+      if (touchPanning) finishTouchPan(true)
     }
 
     let detachSelectUp = null
@@ -1129,14 +1174,20 @@ export default (sdk, chart) => {
       selectEnded = false
       emitNav(vertical ? "highlightVerticalStart" : "highlightStart")
 
-      const onSelectUp = () => {
+      const finish = emit => {
         document.removeEventListener("mouseup", onSelectUp)
         detachSelectUp = null
+        activeGestures.delete(finish)
         if (selectEnded) return
         selectEnded = true
-        emitNav(vertical ? "highlightVerticalEnd" : "highlightEnd", null)
+
+        if (emit) emitNav(vertical ? "highlightVerticalEnd" : "highlightEnd", null)
+        else clearHighlightState()
       }
 
+      const onSelectUp = () => finish(true)
+
+      activeGestures.add(finish)
       document.addEventListener("mouseup", onSelectUp)
       detachSelectUp = () => document.removeEventListener("mouseup", onSelectUp)
     }
@@ -1192,7 +1243,9 @@ export default (sdk, chart) => {
     over.addEventListener("mouseout", onOverOut)
     over.addEventListener("mouseover", onOverOver)
 
-    return () => {
+    return ({ emitGestureEnd = false } = {}) => {
+      finishActiveGestures(emitGestureEnd)
+
       switchTarget.removeEventListener("mousedown", onModifierDown, true)
       over.removeEventListener("mousedown", onDown)
       over.removeEventListener("mousedown", onDownTrack)
@@ -1263,11 +1316,11 @@ export default (sdk, chart) => {
     detachNavigation = attachNavigation()
   }
 
-  const destroyChart = () => {
+  const destroyChart = ({ emitGestureEnd = false } = {}) => {
     if (!u) return
 
     if (detachNavigation) {
-      detachNavigation()
+      detachNavigation({ emitGestureEnd })
       detachNavigation = null
     }
 
@@ -1276,8 +1329,10 @@ export default (sdk, chart) => {
     u = null
   }
 
+  // the chart survives a rebuild, so an in-flight gesture ends through its normal event and the sdk
+  // plugins get to restore their own state; an unmount clears that state directly instead
   const rebuild = () => {
-    destroyChart()
+    destroyChart({ emitGestureEnd: true })
     create()
   }
 
