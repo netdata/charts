@@ -88,6 +88,28 @@ being actioned.
 | `491b5f09` | uPlot's native cursor suppressed (was drawing a 2nd vertical line, a horizontal line, and DOM points over ours) |
 | `b09e95bc` | **P0** collapsed y-range (constant series) — chart never painted, burned 6169ms per render |
 | `18125feb` | y-axis rescales to the window (`getValueRange` `{dygraph:true}` flag); series no longer fade to 30% on hover |
+| `1cde7984` | **§1 geometry** — dygraph's vertical budget (5px top pad, 16px x axis, no right pad), sparklines get the whole element, budget re-derived on resize via padding/size functions, all six overlays offset by the plot top |
+| `97a82e5b` | **§2 stacking** — order reversed to dygraph's, one sign-aware accumulator for area and bar stacks, `staticValueRange` honoured exactly for every chart type, `includeZero` no longer widens an explicit range |
+| `1af02428` | **§3 + §4** — gesture finishers (rebuild emits the end event, unmount clears state directly), click-to-annotate gated on `navigation === "pan"`, timestamp snapped to the closest row, clicked dimension from the hover resolver |
+
+## Corrections to this document's own premises (found while implementing)
+
+1. **Line references in the sections below are stale by 20–60 lines** — the audits predate the three
+   fixes that landed before this list was written. Verify every claim against current source; several
+   citations point at the wrong function now.
+2. **"Stacked y-range always includes zero" was filed as a uPlot bug. It is the correct behaviour.**
+   dygraph ranges over stack ends alone (`divergingStack.js:100-107`), so a 10 + 20 stack plots as
+   `[20, 30]`: the bottom band sits entirely below the axis and the visible areas stop encoding their
+   magnitudes. Adopting dygraph's version broke a hover test — the cursor at value 5 landed outside
+   the plot. uPlot keeps zero, deliberately. Same reasoning keeps bars anchored to zero.
+3. **"dygraph creates an annotation on a plain click" is doubtful.** dygraph registers its `click`
+   handler only while hover is enabled (`dygraph/hoverX.js` `toggle`), and `sdk/plugins/pan.js`
+   disables hover synchronously at `panStart` — `getApplicableNodes` returns `[instance]` even when
+   the chart does not match (`makeContainer.js:61`), so the chart's own hover does go off.
+   `maybeTreatMouseOpAsClick` also requires `g.lastx_`, which only a prior hover sets. So dygraph
+   probably cannot annotate in pan mode either. The uPlot behaviour was therefore chosen on intent —
+   a plain click in the default navigation mode must annotate, or the feature is unreachable — not on
+   dygraph parity. **Confirm dygraph's actual behaviour during the browser pass.**
 
 ---
 
