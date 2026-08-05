@@ -3661,3 +3661,58 @@ describe("uplotChart native cursor suppression (dygraph crosshair parity)", () =
     teardown()
   })
 })
+
+describe("uplotChart degenerate value range (dygraph parity)", () => {
+  const mountConstant = async value => {
+    const { sdk, chart } = makeTestChart({
+      attributes: { loaded: true, chartType: "line", min: value, max: value },
+    })
+    chart.getPayload = () => ({
+      data: [
+        [1617946860000, value],
+        [1617946865000, value],
+        [1617946870000, value],
+      ],
+      labels: ["time", "a"],
+    })
+    chart.getPayloadDimensionIds = () => ["a"]
+    chart.getVisibleDimensionIds = () => ["a"]
+    chart.isDimensionVisible = () => true
+    chart.selectDimensionColor = () => "#3366CC"
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getConvertedValueWithUnit = v => `${v}`
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    return {
+      u: instance.getUPlot(),
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  it("centres a constant non-zero series instead of collapsing the scale", async () => {
+    const { u, teardown } = await mountConstant(5)
+
+    expect(u.scales.y.min).toBeLessThan(5)
+    expect(u.scales.y.max).toBeGreaterThan(5)
+    expect(Number.isFinite(u.valToPos(5, "y"))).toBe(true)
+
+    teardown()
+  })
+
+  it("gives a constant all-zero series a plottable range", async () => {
+    const { u, teardown } = await mountConstant(0)
+
+    expect(u.scales.y.max).toBeGreaterThan(0)
+    expect(Number.isFinite(u.valToPos(0, "y"))).toBe(true)
+
+    teardown()
+  })
+})

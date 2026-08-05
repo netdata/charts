@@ -87,8 +87,20 @@ const traceStackTop = (self, ctx, xs, series, start, end, stepped) => {
   }
 }
 
-const padYRange = (self, min, max) => {
-  if (!Number.isFinite(min) || !Number.isFinite(max)) return [min, max]
+// dygraph.js:2612 — a collapsed range has no sense of scale, so centre on the sole value.
+// Left collapsed, uPlot's tick search never converges (seconds of spin) and valToPos is infinite.
+const expandDegenerate = (min, max) => {
+  if (min !== max) return [min, max]
+  if (min === 0) return [0, 1]
+
+  const delta = Math.abs(min / 10)
+  return [min - delta, max + delta]
+}
+
+const padYRange = (self, rawMin, rawMax) => {
+  if (!Number.isFinite(rawMin) || !Number.isFinite(rawMax)) return [rawMin, rawMax]
+
+  const [min, max] = expandDegenerate(rawMin, rawMax)
 
   const span = max - min
   if (span <= 0) return [min, max]
