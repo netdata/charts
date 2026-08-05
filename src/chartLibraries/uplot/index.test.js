@@ -4389,3 +4389,82 @@ describe("uplotChart interaction hygiene (dygraph parity)", () => {
     teardown()
   })
 })
+
+describe("uplotChart anomaly axis badge", () => {
+  const mountBadged = async (attributes = {}) => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType: "line",
+        chartLibrary: "uplot",
+        after: 1617946860,
+        before: 1617946870,
+        ...attributes,
+      },
+    })
+    chart.getPayload = () => ({
+      data: [
+        [1617946860000, 10],
+        [1617946865000, 12],
+        [1617946870000, 11],
+      ],
+      labels: ["time", "load1"],
+    })
+    chart.getPayloadDimensionIds = () => ["load1"]
+    chart.getVisibleDimensionIds = () => ["load1"]
+    chart.isDimensionVisible = () => true
+    chart.selectDimensionColor = () => "#3366CC"
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getConvertedValueWithUnit = value => `${value}`
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    return {
+      chart,
+      u: instance.getUPlot(),
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  const countPathFills = u => {
+    const spy = jest.spyOn(u.ctx, "fill")
+    u.redraw()
+    const calls = spy.mock.calls.filter(([shape]) => shape instanceof Path2D)
+    spy.mockRestore()
+    return calls
+  }
+
+  it("fills the badge inside the y-axis gutter", async () => {
+    const { u, teardown } = await mountBadged({ showAnomalies: true })
+
+    const calls = countPathFills(u)
+
+    expect(calls).toHaveLength(1)
+    expect(calls[0][1]).toBe("evenodd")
+
+    teardown()
+  })
+
+  it("draws no badge when anomalies are off", async () => {
+    const { u, teardown } = await mountBadged({ showAnomalies: false })
+
+    expect(countPathFills(u)).toHaveLength(0)
+
+    teardown()
+  })
+
+  it("draws no badge when the y axis is hidden", async () => {
+    const { u, teardown } = await mountBadged({ showAnomalies: true, enabledYAxis: false })
+
+    expect(countPathFills(u)).toHaveLength(0)
+
+    teardown()
+  })
+})

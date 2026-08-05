@@ -17,6 +17,7 @@ import {
 } from "./stacking"
 import makeOverlays from "./overlays"
 import makeAnomaly from "./plotters/anomaly"
+import makeAnomalyBadge from "./plotters/anomalyBadge"
 import makeAnnotations from "./plotters/annotations"
 import makeGetHoverDimension from "./hover"
 import { makeSmoothLinePathBuilder } from "./smoothLinePath"
@@ -685,6 +686,7 @@ export default (sdk, chart) => {
   }
 
   const drawAnomaly = makeAnomaly(chartUI)
+  const drawAnomalyBadge = makeAnomalyBadge(chartUI)
   const drawAnnotations = makeAnnotations(chartUI)
   const getHoverDimension = makeGetHoverDimension(chart)
 
@@ -1411,6 +1413,7 @@ export default (sdk, chart) => {
                 drawHeatmap,
                 drawBars,
                 drawAnomaly,
+                drawAnomalyBadge,
                 drawAnnotations,
                 drawCrosshairLayer,
               ],
