@@ -67,7 +67,7 @@ describe("uplot annotations strip draw hook", () => {
     teardown()
   })
 
-  it("draws the transparent background strip plus colored strips for flagged rows", () => {
+  it("draws a colored strip per flagged annotation part", () => {
     const { instance, teardown } = mountUplot()
     const u = instance.getUPlot()
 
@@ -82,6 +82,25 @@ describe("uplot annotations strip draw hook", () => {
 
     fillSpy.mockRestore()
     strokeSpy.mockRestore()
+    teardown()
+  })
+
+  it("draws nothing for rows carrying no annotation", () => {
+    const { chart, instance, teardown } = mountUplot()
+    const u = instance.getUPlot()
+    const payload = chart.getPayload()
+    chart.getPayload = () => ({
+      ...payload,
+      all: payload.data.map(row => [row[0], {}, {}, {}]),
+    })
+
+    const fillSpy = jest.spyOn(u.ctx, "fillRect")
+
+    makeAnnotations(instance)(u)
+
+    expect(fillSpy).not.toHaveBeenCalled()
+
+    fillSpy.mockRestore()
     teardown()
   })
 

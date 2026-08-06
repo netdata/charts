@@ -90,16 +90,42 @@ describe("uplot anomaly ribbon draw hook", () => {
     const { instance, teardown } = mountUplot()
     const u = instance.getUPlot()
 
-    const colorSpy = jest.spyOn(u.ctx, "fillRect")
-    const closestSpy = jest.spyOn(instance.chart, "getClosestRow")
+    const fills = []
+    const colorSpy = jest.spyOn(u.ctx, "fillRect").mockImplementation(() => {
+      fills.push(u.ctx.fillStyle)
+    })
 
     makeAnomaly(instance)(u)
 
-    expect(closestSpy).toHaveBeenCalled()
-    expect(colorSpy).toHaveBeenCalled()
+    // row maxima are 50, 100 and 90, so each row gets its own shade and none is transparent
+    expect(fills).toHaveLength(3)
+    expect(new Set(fills).size).toBe(3)
+    fills.forEach(fill => expect(fill).not.toMatch(/^(transparent|rgba\(0, 0, 0, 0\))$/))
 
     colorSpy.mockRestore()
-    closestSpy.mockRestore()
+    teardown()
+  })
+
+  it("skips rows whose every selected dimension reports no anomaly", () => {
+    const { chart, instance, teardown } = mountUplot()
+    const u = instance.getUPlot()
+    const payload = chart.getPayload()
+    chart.getPayload = () => ({
+      ...payload,
+      all: [
+        [after * 1000, { arp: 0 }, { arp: 0 }, { arp: 0 }],
+        [(after + 5) * 1000, { arp: 0 }, { arp: 40 }, { arp: 0 }],
+        [(after + 10) * 1000, { arp: 0 }, { arp: 0 }, { arp: 0 }],
+      ],
+    })
+
+    const fillSpy = jest.spyOn(u.ctx, "fillRect")
+
+    makeAnomaly(instance)(u)
+
+    expect(fillSpy).toHaveBeenCalledTimes(1)
+
+    fillSpy.mockRestore()
     teardown()
   })
 

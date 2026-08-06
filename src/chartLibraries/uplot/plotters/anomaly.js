@@ -1,11 +1,14 @@
 import { scaleLinear } from "d3-scale"
 import { getRowPointValue } from "@/sdk/makeChart/getPointValue"
+import { isVisibleDimension } from "@/chartLibraries/helpers/dimensionVisibility"
 
 const ribbonHeight = 15
 
 export default chartUI => self => {
   if (!chartUI) return
-  if (!chartUI.chart.getAttribute("showAnomalies")) return
+
+  const { chart } = chartUI
+  if (!chart.getAttribute("showAnomalies")) return
 
   const xs = self.data[0]
   if (!xs || !xs[1]) return
@@ -18,21 +21,13 @@ export default chartUI => self => {
 
   const getColor = scaleLinear()
     .domain([0, 100])
-    .range(["transparent", chartUI.chart.getThemeAttribute("themeAnomalyScaleColor")])
+    .range(["transparent", chart.getThemeAttribute("themeAnomalyScaleColor")])
 
-  const dimensionIds = chartUI.chart.getPayloadDimensionIds()
-  const selectedLegendDimensions = chartUI.chart.getAttribute("selectedLegendDimensions")
+  const columns = chart
+    .getPayloadDimensionIds()
+    .reduce((acc, id, index) => (isVisibleDimension(chart, id) ? acc.concat(index + 1) : acc), [])
 
-  const selectedIdsSet = dimensionIds.reduce((h, id, index) => {
-    if (!selectedLegendDimensions.length) {
-      h.add(index)
-    } else {
-      if (chartUI.chart.isDimensionVisible(id)) h.add(index)
-    }
-    return h
-  }, new Set())
-
-  const { all, point } = chartUI.chart.getPayload()
+  const { all, point } = chart.getPayload()
   if (!all) return
 
   const top = self.bbox.top
@@ -40,22 +35,27 @@ export default chartUI => self => {
 
   ctx.save()
 
-  xs.forEach(x => {
-    const centerX = self.valToPos(x, "x", true)
-
-    const row = chartUI.chart.getClosestRow(x * 1000)
+  // all is row-aligned with the payload data, and getData maps every row into xs, so the loop
+  // index is the row - a per-point getClosestRow binary search was pure overhead
+  for (let row = 0; row < xs.length; row++) {
     const pointData = all[row]
+    if (!pointData) continue
+
     let value = 0
 
-    selectedIdsSet.forEach(index => {
-      const anomalyRate = getRowPointValue(pointData, index + 1, point, "arp") || 0
+    for (let i = 0; i < columns.length; i++) {
+      const anomalyRate = getRowPointValue(pointData, columns[i], point, "arp") || 0
       if (anomalyRate > value) value = anomalyRate
-    })
+    }
+
+    if (value === 0) continue
+
+    const centerX = self.valToPos(xs[row], "x", true)
 
     ctx.strokeStyle = ctx.fillStyle = getColor(value)
     ctx.fillRect(centerX - barWidth / 2, top, barWidth, height)
     ctx.strokeRect(centerX - barWidth / 2, top, barWidth, height)
-  })
+  }
 
   ctx.restore()
 }
