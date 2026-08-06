@@ -92,6 +92,13 @@ being actioned.
 | `97a82e5b` | **§2 stacking** — order reversed to dygraph's, one sign-aware accumulator for area and bar stacks, `staticValueRange` honoured exactly for every chart type, `includeZero` no longer widens an explicit range |
 | `1af02428` | **§3 + §4** — gesture finishers (rebuild emits the end event, unmount clears state directly), click-to-annotate gated on `navigation === "pan"`, timestamp snapped to the closest row, clicked dimension from the hover resolver |
 
+## ⚠️ ALL PERF NUMBERS BELOW THIS LINE PREDATE 2026-08-06 AND ARE INVALID
+
+Every measurement taken before commit `1053b85a` was measuring a chart that destroyed and
+reconstructed its uPlot instance roughly eight times per second while streaming. Treat the sweep
+table, the ratios and the per-render figures in the sections below as void. The only trustworthy
+numbers are in the "Perf, after the rebuild fix" section at the end of this document.
+
 ## Browser-verified geometry (`node scripts/parity-probe.mjs`, after `yarn build-storybook`)
 
 Perf story, `line`, 300 rows × 3 dims, one chart. uPlot's plot box is measured exactly from
@@ -453,3 +460,110 @@ dygraph also ends a pan on `mouseout` (`navigation/pan.js:10`) — uPlot does no
   `rows`/`dims` args.
 - Hover **disables autofetch by default** (`autofetchOnHovering:false` ⇒ `play.js` clears the render
   tick), so "hover renders" are 0 for both renderers unless the story opts in.
+
+
+# Perf, after the rebuild fix (2026-08-06)
+
+## The defect that invalidated every earlier measurement
+
+`onUnitsConversionChange` called `rebuild()`, which destroys the uPlot instance and constructs a new
+one. Unit conversion re-runs whenever the y range changes, and `fireYAxisChange` runs on **every
+draw**, so a streaming chart reconstructed itself continuously:
+
+    draw -> yAxisChange -> conversion updates unitsConversionPrefix/Base
+         -> onUnitsConversionChange -> rebuild -> new uPlot -> draw -> ...
+
+Found by counting canvas clears against the render counter, then capturing the stack where each
+commit is scheduled:
+
+    queueMicrotask <- commit <- setScale <- _setScale <- autoScaleX <- _init
+                   <- new <- create <- rebuild <- onUnitsConversionChange
+
+Fix (`1053b85a`): `u.redraw(false, true)`. The `recalcAxes` flag re-derives the cached tick strings,
+which is the only thing the rebuild was ever for (see `4a66b43a`); the two tests added with that
+commit still pass.
+
+| 1000 rows x 20 dims x 25 charts | before | after |
+|---|---|---|
+| heatmap draws per render | 5.00 | **1.00** |
+| heatmap renders in 10s | 137 | **250** (dygraph 225) |
+| heatmap fillRect calls | 13.7M | **5.0M** (dygraph 4.9M) |
+| heatmap total task vs dygraph | 1.040x | **0.544x** |
+| line total task vs dygraph | — | **0.874x**, 258 renders vs 229 |
+
+**This also explains the render-count behaviour retracted earlier in this document.** The rebuild loop
+blocked the task queue, so `makeExecuteLatest` coalesced away render requests, and its severity varied
+by chart type and data — which is why counts moved in both directions with no monotonic relation to
+per-render cost. The retraction stands; the mechanism is now known.
+
+## Other perf work landed today
+
+- `66c1cd65` — replaced the custom dygraph-exact smooth path builder with uPlot's built-in
+  `spline()`. It cost ~7x dygraph for the same visible curve (computeSmoothOps 120ms +
+  bezierCurveTo 60ms + Path2D 26ms + 191ms anonymous, against dygraph's 18ms), because per series per
+  draw it allocated a point object per row, an op object per segment and a Path2D, after building and
+  discarding uPlot's linear stroke. `smoothLinePath.js` and its test are deleted. The curve is now a
+  monotone cubic — a deliberate divergence.
+- `2a3c0bb3` — the anomaly and annotation ribbon plotters ran a `getClosestRow` binary search per x
+  value per draw, though `all` is row-aligned with `data` (verified: equal lengths, matching
+  timestamps), so the loop index is the row. Both also painted rows with nothing to show.
+- `cf61fd95` — heatmap: payload fetched once per draw instead of per cell, transparent cells skipped,
+  rows outside the visible scale range skipped. Careful: uPlot's scales are `null` until first
+  convergence and comparing a timestamp against null coerces to 0, which silently skipped every cell.
+
+## Tooling for the next session
+
+- `scripts/profile-probe.mjs` — CPU profile per renderer for any perf-bench cell, attributing
+  main-thread self time to named functions. Our function names survive the Storybook build.
+- `scripts/parity-probe.mjs` — plot geometry table plus screenshot pairs per renderer and height.
+- `src/parity.stories.js` — `Charts/uPlot/Parity`, both renderers side by side per chart type. Found
+  three defects on its first run.
+- Counting technique that found the rebuild loop: wrap `CanvasRenderingContext2D.prototype.clearRect`
+  in an init script and compare the count against `window.__netdataPerf.snapshot()`. uPlot issues
+  exactly one main-canvas clear per draw, so clears / renders = draws per render. To find *why* a draw
+  happens, wrap `window.queueMicrotask` and capture `new Error().stack` for schedules whose stack
+  contains `commit` — the draw itself is a microtask, so stacks taken inside the draw are truncated.
+
+# Queued work (in priority order)
+
+1. **Re-run the full sweep.** `yarn perf:bench`, ~75-95 min, 28 cells x 5 repeats x 2 renderers.
+   Every number in this document above the banner is void. Do not rebuild Storybook while it runs.
+2. **Replace the custom crosshair with uPlot's built-in cursor.** Ours is `createOverlay` /
+   `syncOverlaySize` / `renderCrosshair` / `drawVerticalLine` / `drawHoverDots` /
+   `drawCrosshairLayer` — roughly 150 lines plus a second canvas per chart. Measured cost of what
+   would be removed is small (`clearRect` 27ms per 10s profile), so this is a simplification, not a
+   speed fix.
+   - Must not lose: the line renders from **SDK-synced** `hoverX`, not the local pointer
+     (`sdk/plugins/hover.js:32-39` writes it to every `syncHover` node). Covered by
+     `cursor: { x: true, points: { show: true } }` plus `u.setCursor({left, top})`, which only moves
+     DOM (`uPlot.cjs.js:5221` -> `updateCursor`, no commit).
+   - Must not lose: the persistent click marker from `clickX`, set only by touch taps
+     (`uplot/index.js:1290`, `dygraph/navigation/generic.js:135`), read only by the two renderers.
+     uPlot has a single cursor, so draw this one on uPlot's own canvas in the existing draw hook —
+     the second canvas still goes away.
+   - Risk to measure after: uPlot's cursor points are DOM nodes **per series**. At 100 dimensions
+     that is 100 elements repositioned per hover against 100 canvas arcs today. Check the 100-dim
+     cells before concluding it is faster.
+   - 11 tests in `uplot/index.test.js` assert against `.netdata-crosshair-overlay`.
+3. **Built-ins we may still be reimplementing** (audited against uPlot's type surface, none measured):
+   - Bars: `uPlot.paths.bars({ disp: { y0, y1, size, fill, stroke }, each })` — `disp.y0/y1` is
+     exactly our diverging stack base/top, and `each` reports each bar's bbox, which is what
+     `hover.js` recomputes by hand. Strongest remaining candidate.
+   - Stacked area: uPlot `bands` (`Band.Bounds = [fromSeriesIdx, toSeriesIdx]`) with `addGap`/
+     `clipGaps`. Lower confidence: diverging positive/negative stacks may not map.
+   - Axis ticks: axis `incrs` expresses binary and duration steps declaratively, but `helpers/ticks`
+     is shared with dygraph, so this would split the two renderers.
+   - `padYRange`/`expandDegenerate` vs `uPlot.rangeNum` — ours is pixel-based, uPlot's `pad` is
+     fractional, so only the degenerate handling is a clean swap.
+   - Heatmap colour batching: the latency-heatmap demo builds one `Path2D` per palette entry and
+     fills once per colour. `makeGetColor` interpolates a **continuous** scale, so this only pays
+     when cell values repeat. Worth testing with a real histogram payload, not synthetic data.
+   - Checked and keep as-is: pan/wheel/pinch navigation (uPlot's drag-zoom sets local scales only),
+     cross-chart hover sync (the SDK bus spans both renderers and non-chart consumers).
+4. **Streaming replaces the whole window every tick.** `doneFetch` camelizes the whole response and
+   replaces the payload (`makeDataFetch.js:124-145`); there is no append or delta path. Renderer-side
+   cost is negligible — `getData`'s transposition measured 13ms across a 10s profile, and uPlot
+   repaints the full canvas per draw regardless — so an append path is an SDK and API change, not a
+   chart-library one. The upstream cost (transfer, `camelizePayload`, payload processing) is
+   **unmeasured**.
+5. **Real-dashboard measurement.** `yarn to-cloud` plus the protocol in `docs/uplot-migration-progress.md`.
