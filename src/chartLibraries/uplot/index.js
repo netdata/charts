@@ -1466,7 +1466,9 @@ export default (sdk, chart) => {
     create()
   }
 
-  const onUnitsConversionChange = () => u && rebuild()
+  // recalcAxes re-derives the cached tick strings, which a plain redraw leaves alone; rebuilding
+  // the instance for this reconstructed every chart on every streaming tick
+  const onUnitsConversionChange = () => u && u.redraw(false, true)
 
   const render = () => {
     if (!element) return false
