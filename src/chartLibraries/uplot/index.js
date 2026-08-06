@@ -21,7 +21,6 @@ import makeAnomaly from "./plotters/anomaly"
 import makeAnomalyBadge from "./plotters/anomalyBadge"
 import makeAnnotations from "./plotters/annotations"
 import makeGetHoverDimension from "./hover"
-import { makeSmoothLinePathBuilder } from "./smoothLinePath"
 
 const barGroupWidth = 0.6
 
@@ -57,7 +56,7 @@ const yRangePadFallbackRatio = 0.05
 const hiddenAxisSize = 0
 
 const steppedPathBuilder = uPlot.paths.stepped && uPlot.paths.stepped({ align: 1 })
-const smoothLinePathBuilder = makeSmoothLinePathBuilder()
+const splinePathBuilder = uPlot.paths.spline && uPlot.paths.spline()
 const nullPathBuilder = () => null
 
 const makeAxisFont = fontSize => `${fontSize}px ${axisFontFamily}`
@@ -201,7 +200,7 @@ export default (sdk, chart) => {
     if (chartType === "stacked" || chartType === "heatmap" || isBarType(chartType))
       return nullPathBuilder
     if (chart.getAttribute("stepPlot")) return steppedPathBuilder
-    if (chartType === "line") return smoothLinePathBuilder
+    if (chartType === "line") return splinePathBuilder
 
     return undefined
   }
