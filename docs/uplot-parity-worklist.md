@@ -365,11 +365,17 @@ dygraph also ends a pan on `mouseout` (`navigation/pan.js:10`) — uPlot does no
    Four cells were skipped by the 3M-point cap: 1000x100x50, 5000x20x50, 5000x100x10, 5000x100x50.
 
    **Two findings worth chasing, both stable across all 5 repeats:**
-   - **uPlot renders 1.5x more often than dygraph on stacked** (150 vs 100 renders over the same
-     10s window, every repeat). Its render is 11x cheaper, and the extra renders spend the entire
-     win — total lands at parity. Finding and removing the surplus renders would make stacked
-     dramatically cheaper. Suspects: the `fireYAxisChange` -> unit-conversion path, and the
-     `staticValueRange` / `selectedLegendDimensions` listeners.
+   - **Render counts differ per cell in BOTH directions and are confounded by design. Do not read
+     them as work done.** `makeExecuteLatest` (`src/helpers/makeExecuteLatest/index.js`) drops all
+     but the latest pending render request — each call `clearTimeout`s the previous — so a renderer
+     that blocks the task queue longer has more requests collapse into one. Stacked: uPlot is 11x
+     cheaper per render and renders *more* (100 -> 150). But 300 rows/3 dims/50 charts: uPlot is 5x
+     cheaper per render and renders *fewer* (501 -> 301); 300 rows/100 dims/10 charts: uPlot is
+     slower and renders far fewer (103 -> 39). No monotonic relationship, so the mechanism is not
+     just coalescing. **An earlier draft of this document claimed stacked hides a 10x win behind
+     surplus renders — that was unsupported and is retracted.** Only the whole-tab total over a
+     fixed wall-clock window is comparable across renderers. A decisive experiment would be to slow
+     uPlot's render artificially and see whether the counts converge.
    - **Per-draw hook overhead dominates light charts.** At 300 rows/20 dims/10 charts the render
      counts match (102 vs 101) and uPlot's own render is cheaper (2.6ms vs 4.0ms p50), yet whole-tab
      task per render is 25.7ms vs 15.3ms. The work is outside the render call, in the draw hooks.
@@ -377,6 +383,21 @@ dygraph also ends a pan on `mouseout` (`navigation/pan.js:10`) — uPlot does no
      300 rows x 10 charts x 100 renders is ~300k binary searches, and it runs even when every
      anomaly rate is zero (`showAnomalies` defaults true). dygraph's plotter walks its points array
      with no such lookup.
+
+   **Tested and resolved (2026-08-06):**
+   - The per-point lookup was real and is fixed (`2a3c0bb3`): the payload's `all` is row-aligned
+     with `data` (verified: equal lengths, matching timestamps), so the loop index is the row. Both
+     ribbon plotters also stopped painting rows with nothing to show. Measured on 300 rows/20
+     dims/10 charts, 3 runs each side: p50 per render **2.78ms -> 2.33ms**. **Whole-tab total did
+     not move beyond noise**, so the plotters were NOT the source of the light-chart overhead.
+   - Second hypothesis, also **wrong**: that the `padding`/`axis.size` functions added in §1 force a
+     layout reflow per convergence cycle by reading `offsetHeight`. Caching the measurement on
+     resize edges gave 24.2ms mean against 22.5ms before it — no improvement. Reverted rather than
+     keep unproven complexity.
+   - **The light-chart overhead is still unexplained.** What is established: render counts match
+     (102 vs 101), uPlot's own render is ~1.7x cheaper, whole-tab task per render is ~1.55x higher.
+     So roughly 10ms per render of main-thread work sits outside the render call. Finding it needs a
+     real profile with call-tree attribution (CDP Profiler or a Chrome trace), not more guessing.
 3. **Screenshot pairs** (task #5) — **DONE** via `src/parity.stories.js` (`Charts/uPlot/Parity`),
    which renders both renderers per chart type. `scripts/parity-probe.mjs` writes PNG pairs and the
    geometry table to `.parity-results/`.
