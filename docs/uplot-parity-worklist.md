@@ -93,6 +93,7 @@ being actioned.
 | `1af02428` | **§3 + §4** — gesture finishers (rebuild emits the end event, unmount clears state directly), click-to-annotate gated on `navigation === "pan"`, timestamp snapped to the closest row, clicked dimension from the hover resolver |
 
 ## ⚠️ ALL PERF NUMBERS BELOW THIS LINE PREDATE 2026-08-06 AND ARE INVALID
+##    The authoritative sweep is the last section of this document.
 
 Every measurement taken before commit `1053b85a` was measuring a chart that destroyed and
 reconstructed its uPlot instance roughly eight times per second while streaming. Treat the sweep
@@ -567,3 +568,65 @@ per-render cost. The retraction stands; the mechanism is now known.
    chart-library one. The upstream cost (transfer, `camelizePayload`, payload processing) is
    **unmeasured**.
 5. **Real-dashboard measurement.** `yarn to-cloud` plus the protocol in `docs/uplot-migration-progress.md`.
+
+
+# AUTHORITATIVE PERF SWEEP (2026-08-06, HEAD a1bd7ea2)
+
+Full `yarn perf:bench`: 28 cells x 5 repeats x 2 renderers. Raw output in `.perf-results/`
+(gitignored). Ratios are uPlot/dygraph; under 1.000 means uPlot is cheaper. This supersedes every
+earlier number in this document.
+
+**Read three metrics, not one:**
+
+| metric | what it means | result |
+|---|---|---|
+| p50 per render | cost of one render call | uPlot cheaper in every cell: **0.028 - 0.644** (1.6x to 36x) |
+| task/render | whole-tab main-thread ms **per frame delivered** | uPlot cheaper in **all 20** rendering cells: **0.219 - 0.880** |
+| total task | whole-tab ms over a fixed wall-clock window | uPlot cheaper in **14 of 20**; higher in 6 |
+
+**All six cells where uPlot's total CPU is higher are cells where it delivered more frames:**
+
+| cell | total task | per frame | frames dyg -> uplot |
+|---|---|---|---|
+| stacked/hoverStreaming r1000 d20 c25 | 1.506 | 0.562 | 89 -> 240 (+170%) |
+| line/idle r1000 d100 c10 | 1.373 | 0.839 | 60 -> 98 (+63%) |
+| line/hoverStreaming r1000 d100 c25 | 1.241 | 0.726 | 85 -> 145 (+71%) |
+| line/hoverStreaming r1000 d20 c25 | 1.139 | 0.880 | 178 -> 230 (+29%) |
+| line/idle r5000 d3 c50 | 1.076 | 0.813 | 176 -> 234 (+33%) |
+| line/idle r5000 d20 c10 | 1.073 | 0.858 | 80 -> 100 (+25%) |
+
+The perf story streams at `update_every: 1`, so the target is **1.00 frame per chart per second**.
+Measured on the 25-chart cells:
+
+| cell | dygraph | uPlot |
+|---|---|---|
+| stacked/idle | 0.40/s | **1.01/s** |
+| stacked/hoverStreaming | 0.36/s | **0.96/s** |
+| heatmap/idle | 0.90/s | **1.03/s** |
+| heatmap/hoverStreaming | 0.96/s | **1.00/s** |
+| line/hoverStreaming d20 | 0.71/s | **0.92/s** |
+| line/hoverStreaming d100 | 0.34/s | **0.58/s** |
+
+uPlot is not over-rendering; it meets the requested update rate while dygraph drops up to 60% of
+frames. So the six "higher total CPU" cells are cells where dygraph was silently skipping work.
+
+**Hover gesture alone** (`hoverInteraction`, 0 renders on both sides): 0.955, 0.987, 1.020, 1.063 —
+parity.
+
+**Before and after the rebuild fix**, total task ratio:
+
+| cell | void sweep | now |
+|---|---|---|
+| line/idle r300 d3 c10 | 1.603 | **0.662** |
+| line/idle r300 d20 c10 | 1.657 | **0.657** |
+| line/idle r1000 d3 c10 | 1.518 | **0.659** |
+| stacked/idle | 0.955 | **0.551** |
+| heatmap/idle | 1.097 | **0.600** |
+
+Four cells remain skipped by the harness's 3M-point cap: 1000x100x50, 5000x20x50, 5000x100x10,
+5000x100x50.
+
+**Open question:** whether ~1 frame/s/chart is the right target, or whether frame delivery should be
+throttled independently of what the renderer can keep up with. That is a product decision, not a
+renderer one — dygraph's lower totals in those six cells come from dropping frames, not from being
+more efficient.
