@@ -394,7 +394,38 @@ dygraph also ends a pan on `mouseout` (`navigation/pan.js:10`) — uPlot does no
      layout reflow per convergence cycle by reading `offsetHeight`. Caching the measurement on
      resize edges gave 24.2ms mean against 22.5ms before it — no improvement. Reverted rather than
      keep unproven complexity.
-   - **The light-chart overhead is still unexplained.** What is established: render counts match
+   - **Profiled and fixed (2026-08-06, `66c1cd65`).** `scripts/profile-probe.mjs` attributes
+     main-thread self time per function per renderer. On 300 rows/20 dims/10 charts it named the
+     cost immediately: our custom smooth path builder, which existed only to reproduce dygraph's
+     control points exactly. computeSmoothOps 120ms + bezierCurveTo 60ms + Path2D 26ms + 191ms
+     anonymous in our bundle, against dygraph's 18ms `smoothLinePlotter` — roughly 7x the cost for
+     the same visible curve, because per series per draw it allocated a point object per row, an op
+     object per segment and a Path2D, after building and discarding uPlot's linear stroke. That is
+     also what put GC at 85ms against dygraph's 47ms.
+
+     Replaced with uPlot's built-in `spline()`: `_monotoneCubic` 51ms, bezierCurveTo 39ms, our
+     bundle's anonymous time 29ms, GC 75ms. Same cell, three runs each side:
+
+     | | baseline | after ribbon plotters | after spline |
+     |---|---|---|---|
+     | uPlot p50 per render | 2.78ms | 2.33ms | **1.70ms** |
+     | uPlot whole-tab task/render | 24.16ms | 22.52ms | **19.12ms** |
+     | ratio vs dygraph | 1.57x | 1.55x | **1.30x** |
+
+     The curve is now a monotone cubic rather than dygraph's clamped control points — a deliberate
+     divergence, visually smooth with no overshoot. `smoothLinePath.js` and its test are deleted.
+
+     **The sweep table above predates these two commits and now understates uPlot on every line
+     chart.** Re-run `yarn perf:bench` for a definitive table.
+
+   - **What remains on that cell**, from the post-swap profile (uPlot busy 2618ms vs dygraph 1927ms):
+     uPlot's spline + Path2D still costs ~116ms more than dygraph drawing straight to the context,
+     uPlot internals ~63ms, `getChartHeight` 40ms (the padding/size functions — measured at ~1.5%,
+     which is why caching it gave no win), canvas `fillText` for axis labels 22ms where dygraph uses
+     DOM, `clearRect` 27ms, GC ~28ms. Diminishing returns; the architectural difference is that
+     dygraph streams to the context while uPlot builds Path2D objects.
+
+   - **The light-chart overhead was unexplained until the profile.** What is established: render counts match
      (102 vs 101), uPlot's own render is ~1.7x cheaper, whole-tab task per render is ~1.55x higher.
      So roughly 10ms per render of main-thread work sits outside the render call. Finding it needs a
      real profile with call-tree attribution (CDP Profiler or a Chrome trace), not more guessing.
