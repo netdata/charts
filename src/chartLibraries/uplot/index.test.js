@@ -674,7 +674,7 @@ describe("uplotChart heatmap", () => {
     const visibleSpy = jest.spyOn(chart, "getVisibleHeatmapIds")
     const yIndexSpy = jest.spyOn(chart, "getHeatmapYIndex")
     const scaleSpy = jest.spyOn(chart, "getHeatmapScale")
-    const valueSpy = jest.spyOn(chart, "getDimensionValue")
+    const valueSpy = jest.spyOn(chart, "getRowDimensionValue")
 
     instance.mount(element)
     const u = instance.getUPlot()
@@ -685,7 +685,7 @@ describe("uplotChart heatmap", () => {
     expect(visibleSpy).toHaveBeenCalled()
     expect(yIndexSpy).toHaveBeenCalled()
     expect(scaleSpy).toHaveBeenCalled()
-    expect(valueSpy).toHaveBeenCalledWith(expect.any(String), expect.any(Number), {
+    expect(valueSpy).toHaveBeenCalledWith(expect.any(String), expect.anything(), {
       allowNull: true,
     })
 

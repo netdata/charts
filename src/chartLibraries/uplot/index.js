@@ -570,6 +570,12 @@ export default (sdk, chart) => {
 
     const barWidth = Number.isFinite(minWidthSep) ? Math.floor(minWidthSep) : self.bbox.width
     const rowHeight = Math.abs(self.valToPos(1, "y", true) - self.valToPos(0, "y", true))
+    const { all } = chart.getPayload()
+    if (!all) return
+
+    const { min: xMin, max: xMax } = self.scales.x
+    // the scales are null until uPlot's first convergence, and comparing against null coerces to 0
+    const clipToWindow = Number.isFinite(xMin) && Number.isFinite(xMax)
 
     ctx.save()
     ctx.beginPath()
@@ -583,9 +589,15 @@ export default (sdk, chart) => {
       const yTop = self.valToPos(yIndex, "y", true) - rowHeight / 2
 
       for (let row = 0; row < xs.length; row++) {
-        const value = chart.getDimensionValue(id, row, { allowNull: true })
-        ctx.fillStyle = getColor(value)
-        ctx.fillRect(self.valToPos(xs[row], "x", true) - barWidth / 2, yTop, barWidth, rowHeight)
+        const x = xs[row]
+        if (clipToWindow && (x < xMin || x > xMax)) continue
+
+        const value = chart.getRowDimensionValue(id, all[row], { allowNull: true })
+        const color = getColor(value)
+        if (color === "transparent") continue
+
+        ctx.fillStyle = color
+        ctx.fillRect(self.valToPos(x, "x", true) - barWidth / 2, yTop, barWidth, rowHeight)
       }
     })
 
