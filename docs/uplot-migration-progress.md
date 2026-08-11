@@ -176,6 +176,75 @@ so those cells collect only ~9–33 renders and the per-render stddev exceeds th
 absolute ms are not production figures. The remaining unknown is a real cloud-frontend dashboard —
 protocol below.
 
+**These numbers were measured on a software rasteriser.** This run predates `--use-angle=metal` in the
+driver, and headless Chromium with only `--no-sandbox` resolves WebGL through ANGLE **SwiftShader**
+(CPU), not the GPU. Canvas2D — which both dygraph and uPlot draw through — is affected by that stack.
+Re-measured under ANGLE Metal (see the 2026-08-11 section), the ratios move modestly *in uPlot's
+favour*: `300 d20 c10` 0.89→0.747, `300 d100 c10` 0.95→0.793, `5000 d3 c10` 0.96→0.698. The verdict
+here (uPlot wins every clean cell) holds and was, if anything, pessimistic. Treat this table as a
+historical record; anything measured after the flag landed is not comparable to it.
+
+**Render/fetch *counts* are harness-bound — do not read them as a product signal.** The mock resolves
+via a main-thread timer (`perf.stories.js:97` → `makeMockPayload/index.js:14`), so at high chart counts
+every chart's 300 ms delay queues behind every other chart's render work. Since the per-chart fetch
+loop schedules on `max(updateEvery, response + processing)` (`makeChart/index.js:121-138`), the heavier
+renderer posts fewer cycles *because* it renders heavier — the harness measures its own contention.
+Production fetches are off-thread, so this effect does not exist there. Compare **per-render cost**
+across renderers; use the real-dashboard protocol below for anything cadence-related.
+
+## CPU-throttled comparison incl. GPU renderers (2026-08-11)
+
+Run on branch `explore/gpu-renderers-perf` — this branch merged with PR #230 (ktsaou, WebGPU/WebGL2
+renderers) so all four renderers could be compared on one workload. Cell: **50 charts × 100 dims ×
+300 rows**, line, streaming, 10s window, **5 repeats**, ANGLE Metal, throttling via CDP
+`Emulation.setCPUThrottlingRate`. `busy%` is CDP `TaskDuration` over wall-clock.
+
+| renderer | CPU | busy% | renders | p50 ms | p95 ms |
+|---|---|---|---|---|---|
+| dygraph | 1× | 75.2±22.8 | 405±23 | 11.29±0.41 | 15.98±3.72 |
+| uplot | 1× | 64.7±13.7 | 448±44 | 2.86±0.14 | 4.85±0.17 |
+| webgl2 | 1× | 71.2±6.1 | 440±49 | 1.70±0.14 | 3.51±0.14 |
+| dygraph | 4× | (unreliable) | 119±16 | 47.18±3.31 | 57.95±7.93 |
+| uplot | 4× | 99.1±0.4 | 201±79 | 13.51±1.18 | 20.00±2.24 |
+| webgl2 | 4× | 99.3±0.6 | 293±67 | 6.60±0.24 | 10.14±0.64 |
+| dygraph | 6× | 99.4±0.2 | 60±29 | 73.42±1.89 | 83.92±2.23 |
+| uplot | 6× | 98.8±0.2 | 157±28 | 26.80±2.93 | 41.34±4.01 |
+| webgl2 | 6× | 99.7±0.1 | 172±78 | 16.64±5.38 | 24.51±7.92 |
+
+`dygraph 4×` busy came out 79.7**±39.4** — meaningless for a bounded percentage; that one cell is not
+trustworthy. Its render count and p50 are tight and stand.
+
+**1. At full speed the renderer does not affect frame count.** 405 / 448 / 440 renders are within
+noise of each other while dygraph costs **6.6× more per render** than webgl2. Throughput here is set by
+the fetch cadence, not by drawing — the same conclusion the harness-bound caveat above reaches from the
+other direction. ~0.9 frames/chart/s against a 1/s target.
+
+**2. dygraph → uPlot is unambiguous.** 2.7–3.9× cheaper per render at every throttle level with tight
+error bars, and once the machine saturates it converts into frames: at 6×, 60±29 → 157±28 (2.6×,
+non-overlapping).
+
+**3. uPlot → webgl2 buys latency, not throughput.** Per-render cost is solidly 1.6–2.1× cheaper, but
+frame counts never separate (4×: 201±79 vs 293±67; 6×: 157±28 vs 172±78 — overlapping). What does
+separate is p95 at 6×: **41.34±4.01 vs 24.51±7.92**, i.e. less worst-case jank, not more frames.
+
+**Retracted:** an earlier single run of this cell was read as "webgl2 delivers 1.7× more frames at 4×".
+Repeats put it at 1.46× with overlapping error bars, and at parity at 6×. Single runs of this cell are
+not usable — uPlot at 1× measured 64.7%±13.7 busy, and two separate single runs put idle at 53.2% and
+28.6%. Under saturation the measurement becomes stable (sd ≤ 0.6).
+
+**Caveats.** `setCPUThrottlingRate` throttles the **CPU only** — the GPU stays at full M2 Max speed,
+so every webgl2 figure here flatters it relative to a real low-end machine with a weak integrated GPU.
+The mock's main-thread delay (see caveat above) still contaminates anything cadence-related. Not a real
+dashboard; absolute ms are not production figures.
+
+**GPU heatmap defect (PR #230, not ours).** webgl2 and webgpu record **0 renders** for heatmap while
+dygraph records ~204 and uPlot ~250 on the same build — their lower main-thread cost is the cost of not
+drawing, and reads as a 2.3× win if taken at face value. Reproduced in isolation: 2 charts over 9s,
+webgl2 heatmap renders **once** (0.2 ms) vs uPlot's 16, with no console or page errors and no renderer
+fallback. Localized (dygraph+uPlot heatmap work; GPU line works; only GPU+heatmap fails) but **not
+root-caused**. PR #230's own benchmark cannot catch this class of bug — it mounts a static preview and
+captures pixels, so "renders once then stops" is invisible to it.
+
 ## Task 3 — real-dashboard measurement protocol (maintainer-run, many-runs for certainty)
 
 Why maintainer-run: real render+paint timing needs a real browser on a live streaming dashboard.
