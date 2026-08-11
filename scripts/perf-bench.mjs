@@ -211,7 +211,11 @@ const main = async () => {
   fs.mkdirSync(outDir, { recursive: true })
 
   const { server, port } = await serveStatic()
-  const browser = await chromium.launch({ args: ["--no-sandbox"] })
+  // without an explicit ANGLE backend headless Chromium resolves WebGL through SwiftShader (CPU),
+  // which also drags down the Canvas2D path both renderers draw on
+  const browser = await chromium.launch({
+    args: ["--no-sandbox", `--use-angle=${process.env.PERF_ANGLE || "metal"}`],
+  })
   const context = await browser.newContext({ viewport: { width: 1600, height: 1200 } })
   const page = await context.newPage()
   const client = await context.newCDPSession(page)
