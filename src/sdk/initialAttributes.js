@@ -143,7 +143,7 @@ export default {
   hasToolbox: true,
   hideTitle: false,
   hideName: false,
-  hideUnits: false,
+  hideUnits: null,
   hasHoverPopover: true,
   expandable: true,
   showAnnotations: true,

@@ -43,7 +43,7 @@ export const Title = () => {
   const chart = useChart()
   const title = useTitle()
   const units = useUnitSign({ withoutConversion: true, long: true })
-  const hideUnits = useAttributeValue("hideUnits")
+  const hideUnits = useAttributeValue("hideUnits") ?? true
   const isMinimal = useIsMinimal()
 
   const onClick = event => {
