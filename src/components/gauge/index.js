@@ -148,9 +148,7 @@ export const Gauge = ({ uiName, ref, ...rest }) => {
             alignItems="center"
             overflow="hidden"
             {...rest}
-          >
-            <canvas />
-          </ChartContainer>
+          />
           <Stats uiName={uiName} />
         </>
       ) : (

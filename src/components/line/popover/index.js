@@ -3,7 +3,7 @@ import ReactDOM from "react-dom"
 import DropContainer from "@netdata/netdata-ui/dist/components/drops/drop/container"
 import useDropElement from "@netdata/netdata-ui/dist/hooks/useDropElement"
 import { unregister } from "@/helpers/makeListeners"
-import { useChart } from "@/components/provider"
+import { useChart, useChartUI } from "@/components/provider"
 import Dimensions from "./dimensions"
 
 const leftTopAlign = { right: "left", bottom: "top" }
@@ -70,6 +70,7 @@ const getObservedSize = entry => {
 
 const Popover = ({ uiName }) => {
   const chart = useChart()
+  const chartUI = useChartUI(uiName)
   const dropRef = useRef()
   const alignRef = useRef(rightBottomAlign)
   const frameRef = useRef(null)
@@ -134,7 +135,7 @@ const Popover = ({ uiName }) => {
       setOpen(false)
     }
     const off = unregister(
-      chart.getUI(uiName).on("mousemove", event => {
+      chartUI.on("mousemove", event => {
         if (
           chart.sdk.getRoot().getAttribute("autofetchOnHovering") ||
           chart.getAttribute("panning") ||
@@ -146,7 +147,7 @@ const Popover = ({ uiName }) => {
         setOpen(true)
         schedulePositionRef.current()
       }),
-      chart.getUI(uiName).on("mouseout", close),
+      chartUI.on("mouseout", close),
       chart.onAttributeChange("panning", panning => panning && close()),
       chart.onAttributeChange("highlighting", highlighting => highlighting && close())
     )
@@ -155,7 +156,7 @@ const Popover = ({ uiName }) => {
       close()
       off()
     }
-  }, [chart, uiName])
+  }, [chart, chartUI])
 
   useLayoutEffect(() => {
     const drop = dropRef.current

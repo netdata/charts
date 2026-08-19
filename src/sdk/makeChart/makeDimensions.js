@@ -322,7 +322,11 @@ export default (chart, sdk) => {
     const key = getMemKey()
     const colorsAttr = chart.getAttribute("colors")
     const sparkline = chart.isSparkline()
-    if (sparkline && Array.isArray(colorsAttr)) return colorsAttr[0]
+    if (sparkline && Array.isArray(colorsAttr)) {
+      const color = colorsAttr[0]
+      if (typeof color === "string" || !Array.isArray(color)) return color
+      return color[chart.getThemeIndex()]
+    }
 
     const keyedColors = colorsAttr && !Array.isArray(colorsAttr) ? colorsAttr : null
 

@@ -130,10 +130,16 @@ const ChartType = ({ disabled }) => {
   const chart = useChart()
   const chartLibrary = useAttributeValue("chartLibrary") || "dygraph"
   const chartType = useAttributeValue("chartType") || "line"
-  const value = chartLibrary === "dygraph" ? chartType : chartLibrary
+  const selectedValue =
+    chart.getVisualizationType?.() ||
+    (chartLibrary === "dygraph" ? chartType : chartLibrary)
 
   const items = useItems(chart)
-  const { label, svg } = items.find(({ value: v }) => v === value)
+  const current =
+    items.find(({ value }) => value === selectedValue) ||
+    items.find(({ value }) => value === chartType) ||
+    items.find(({ value }) => value)
+  const { label, svg, value } = current
 
   return (
     <Menu
