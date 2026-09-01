@@ -129,6 +129,16 @@ describe("ChartType component", () => {
     expect(chart.getHeatmapType).toBeDefined()
   })
 
+  it("does not throw when the time-series renderer is non-dygraph", () => {
+    const { chart } = makeTestChart({
+      attributes: { chartLibrariesByType: { line: "uplot" } },
+    })
+    chart.updateAttributes({ chartLibrary: "uplot", chartType: "line" })
+
+    expect(() => renderWithChart(<ChartType disabled={false} />, { chart })).not.toThrow()
+    expect(screen.getByTestId("chartHeaderToolbox-chartType")).toBeInTheDocument()
+  })
+
   it("excludes heatmap option when disabled", () => {
     renderWithChart(<ChartType disabled={false} />, {
       attributes: {

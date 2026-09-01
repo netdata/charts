@@ -119,17 +119,28 @@ export default chart => {
     table: true,
   }
 
+  const timeSeriesRenderers = ["dygraph", "uplot"]
+
+  const getRendererForChartType = chartType =>
+    (chart.getAttribute("chartLibrariesByType") || {})[chartType] ||
+    chart.getAttribute("chartLibrary")
+
+  const isTimeSeriesRenderer = chartLibrary =>
+    timeSeriesRenderers.includes(chartLibrary) ||
+    Object.values(chart.getAttribute("chartLibrariesByType") || {}).includes(chartLibrary)
+
   const updateChartTypeAttribute = selected => {
     const prevChartLibrary = chart.getAttribute("chartLibrary")
     const prevGroupBy = chart.getAttribute("groupBy")
 
     if (!chartLibraries[selected]) {
+      const nextChartLibrary = getRendererForChartType(selected)
       chart.updateAttributes({
-        chartLibrary: "dygraph",
+        chartLibrary: nextChartLibrary,
         chartType: selected,
         processing: true,
       })
-      if (prevChartLibrary !== "dygraph") {
+      if (prevChartLibrary !== nextChartLibrary) {
         chart.getUI().unmount()
         chart.setUI({ ...chart.sdk.makeChartUI(chart), ...(chart.ui || {}) }, "default")
       }
@@ -346,6 +357,8 @@ export default chart => {
     updateGroupByAttribute,
     updatePostGroupByAttribute,
     updateChartTypeAttribute,
+    getRendererForChartType,
+    isTimeSeriesRenderer,
     updateNodesAttribute,
     updateInstancesAttribute,
     updateDimensionsAttribute,
