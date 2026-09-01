@@ -38,8 +38,10 @@ describe("ChartContainer", () => {
     expect(container).toHaveAttribute("height", "300px")
   })
 
+  // chartContentWrapper only mounts the renderer once loaded, so the pre-load
+  // state this used to assert is one the app never shows
   it("renders chart canvas when mounted", () => {
-    renderWithChart(<ChartContainer uiName="default" />)
+    renderWithChart(<ChartContainer uiName="default" />, { attributes: { loaded: true } })
 
     const container = screen.getByTestId("chartContent")
     const canvas = container.querySelector("canvas")

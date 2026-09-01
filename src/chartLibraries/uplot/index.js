@@ -1,0 +1,1609 @@
+import uPlot from "uplot"
+import { debounce } from "throttle-debounce"
+import makeChartUI from "@/sdk/makeChartUI"
+import { makeAxisTicks } from "@/helpers/ticks"
+import { unregister } from "@/helpers/makeListeners"
+import makeResizeObserver from "@/helpers/makeResizeObserver"
+import limitRange from "@/helpers/limitRange"
+import { makeGetColor, withoutPrefix } from "@/helpers/heatmap"
+import { darkenColor } from "@/chartLibraries/helpers/color"
+import { isVisibleDimension } from "@/chartLibraries/helpers/dimensionVisibility"
+import { formatHeatmapLabel } from "@/helpers/heatmapScale"
+import {
+  getSeriesStackBounds,
+  getStackBounds,
+  getStackSegments,
+  getStackValueRange,
+  selectStackRows,
+} from "./stacking"
+import makeOverlays from "./overlays"
+import makeAnomaly from "./plotters/anomaly"
+import makeAnomalyBadge from "./plotters/anomalyBadge"
+import makeAnnotations from "./plotters/annotations"
+import makeGetHoverDimension from "./hover"
+
+const barGroupWidth = 0.6
+
+const doubleTapDelay = 300
+const minDragPx = 5
+
+const axisFontFamily = "'IBM Plex Sans', sans-serif"
+const defaultAxisFontSize = 11
+const defaultYAxisSize = 60
+const minPlotHeight = 20
+const yPixelsPerLabel = 15
+const tickSize = 4
+const axisGap = 6
+const xTickSize = 3
+const xAxisGap = 3
+const rightPad = 0
+const xTickSpace = 80
+const heatmapPixelsPerLabel = 15
+const heatmapRowPad = 0.5
+
+const lineWidth = 1.5
+const areaLineWidth = 0.7
+const hoverDotRadius = 4
+const sparklineHoverDotRadius = 3
+const areaGradientTopAlpha = "59"
+const areaGradientBottomAlpha = "00"
+const stackedFillAlpha = "CC"
+const stackedEdgeAlpha = "E6"
+
+const yRangePadPx = 15
+const yRangePadFallbackRatio = 0.05
+
+const hiddenAxisSize = 0
+
+const steppedPathBuilder = uPlot.paths.stepped && uPlot.paths.stepped({ align: 1 })
+const splinePathBuilder = uPlot.paths.spline && uPlot.paths.spline()
+const nullPathBuilder = () => null
+
+const makeAxisFont = fontSize => `${fontSize}px ${axisFontFamily}`
+
+const getSplitGranularity = (splits, index) => {
+  const value = splits[index]
+  const previous = splits[index - 1]
+  const next = splits[index + 1]
+  const previousStep = typeof previous === "number" ? Math.abs(value - previous) : Infinity
+  const nextStep = typeof next === "number" ? Math.abs(next - value) : Infinity
+  const step = Math.min(previousStep, nextStep)
+
+  return Number.isFinite(step) ? step : 0
+}
+
+const makeAreaFill = color => self => {
+  const { ctx, bbox } = self
+  const gradient = ctx.createLinearGradient(0, bbox.top, 0, bbox.top + bbox.height)
+  gradient.addColorStop(0, `${color}${areaGradientTopAlpha}`)
+  gradient.addColorStop(1, `${color}${areaGradientBottomAlpha}`)
+  return gradient
+}
+
+const makeSolidFill = color => () => color
+
+const defaultRows = (start, end) => {
+  const rows = new Array(end - start + 1)
+  for (let i = 0; i < rows.length; i++) rows[i] = start + i
+  return rows
+}
+
+const gapEdgeIndexes = (self, seriesIdx) => {
+  const values = self.data[seriesIdx]
+  if (!values) return null
+
+  const last = values.length - 1
+  const indexes = []
+
+  for (let i = 0; i <= last; i++) {
+    if (values[i] == null) continue
+    if ((i > 0 && values[i - 1] == null) || (i < last && values[i + 1] == null)) indexes.push(i)
+  }
+
+  return indexes.length ? indexes : null
+}
+
+const traceStackTop = (self, ctx, xs, series, rows, stepped) => {
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i]
+    const x = self.valToPos(xs[row], "x", true)
+    const y = self.valToPos(series[row][1], "y", true)
+
+    if (i === 0) ctx.moveTo(x, y)
+    else if (stepped) {
+      ctx.lineTo(x, self.valToPos(series[rows[i - 1]][1], "y", true))
+      ctx.lineTo(x, y)
+    } else ctx.lineTo(x, y)
+  }
+}
+
+// dygraph.js:2612 — a collapsed range has no sense of scale, so centre on the sole value.
+// Left collapsed, uPlot's tick search never converges (seconds of spin) and valToPos is infinite.
+const expandDegenerate = (min, max) => {
+  if (min !== max) return [min, max]
+  if (min === 0) return [0, 1]
+
+  const delta = Math.abs(min / 10)
+  return [min - delta, max + delta]
+}
+
+const padYRange = (self, rawMin, rawMax) => {
+  if (!Number.isFinite(rawMin) || !Number.isFinite(rawMax)) return [rawMin, rawMax]
+
+  const [min, max] = expandDegenerate(rawMin, rawMax)
+
+  const span = max - min
+  if (span <= 0) return [min, max]
+
+  const height = self && self.bbox ? self.bbox.height / (self.pxRatio || 1) : 0
+  const ratio = height > 0 ? yRangePadPx / height : yRangePadFallbackRatio
+  const pad = span * ratio
+
+  return [min - pad, max + pad]
+}
+
+export default (sdk, chart) => {
+  const chartUI = makeChartUI(sdk, chart)
+  let u = null
+  let overlayCanvas = null
+  let overlayCtx = null
+  let element = null
+  let listeners
+  let resizeObserver
+  let hovering = false
+  let lastHoverTimestamp = null
+  let lastHoverDimension = null
+  let detachNavigation = null
+  let overlays = null
+  let xRangeOverride = null
+  let selectEnded = false
+  let prevYMin
+  let prevYMax
+
+  const getData = () => {
+    const { data } = chart.getPayload()
+    const dimensionIds = chart.getPayloadDimensionIds()
+
+    if (chart.getAttribute("outOfLimits") || !data?.length || !dimensionIds.length) return null
+
+    const rows = data.length
+    const x = new Array(rows)
+    const series = dimensionIds.map(() => new Array(rows))
+
+    for (let r = 0; r < rows; r++) {
+      const row = data[r]
+      x[r] = row[0] / 1000
+
+      for (let d = 0; d < dimensionIds.length; d++) {
+        const value = row[d + 1]
+        series[d][r] = value == null ? null : value
+      }
+    }
+
+    return [x, ...series]
+  }
+
+  const isVisible = id => isVisibleDimension(chart, id)
+
+  const stackBounds = () =>
+    getStackBounds(chart.getPayload().data, chart.getPayloadDimensionIds(), isVisible)
+
+  const seriesStackBounds = self => {
+    const dimensionIds = chart.getPayloadDimensionIds()
+    return getSeriesStackBounds(self.data, index => isVisible(dimensionIds[index]))
+  }
+
+  const isBarType = chartType => chartType === "multiBar" || chartType === "stackedBar"
+
+  const getPaths = () => {
+    const chartType = chart.getAttribute("chartType")
+    if (chartType === "stacked" || chartType === "heatmap" || isBarType(chartType))
+      return nullPathBuilder
+    if (chart.getAttribute("stepPlot")) return steppedPathBuilder
+    if (chartType === "line") return splinePathBuilder
+
+    return undefined
+  }
+
+  const getSeries = () => {
+    const chartType = chart.getAttribute("chartType")
+    const sparkline = chart.isSparkline()
+    const filled = chartType === "area"
+    const heatmap = chartType === "heatmap"
+    const bar = isBarType(chartType)
+    const stacked = chartType === "stacked"
+    const paths = getPaths()
+
+    return [
+      {},
+      ...chart.getPayloadDimensionIds().map(id => {
+        // a sparkline's synthetic dimension has no palette entry, and uPlot paints nothing without
+        // a colour, where dygraph falls back to its own palette
+        const color = chart.selectDimensionColor(id) || chart.getThemeAttribute("themeNetdata")
+
+        if (sparkline)
+          return {
+            label: id,
+            show: isVisible(id),
+            stroke: color,
+            width: 0,
+            fill: makeSolidFill(color),
+            points: { show: false },
+            ...(paths && { paths }),
+          }
+
+        return {
+          label: id,
+          show: isVisible(id),
+          stroke: color,
+          width: filled ? areaLineWidth : lineWidth,
+          ...(paths && { paths }),
+          ...(filled && { fill: makeAreaFill(color) }),
+          points:
+            heatmap || bar || stacked ? { show: false } : { show: false, filter: gapEdgeIndexes },
+        }
+      }),
+    ]
+  }
+
+  const getHeatmapValueRange = () => {
+    const staticValueRange = chart.getAttribute("staticValueRange")
+    if (staticValueRange) return [Math.ceil(staticValueRange[0]), Math.ceil(staticValueRange[1])]
+
+    const count = chart.getVisibleHeatmapIds().length || 1
+    return [-heatmapRowPad, count - heatmapRowPad]
+  }
+
+  const getEmptyValueRange = () => {
+    const staticValueRange = chart.getAttribute("staticValueRange")
+    if (staticValueRange) return staticValueRange
+
+    if (chart.getAttribute("chartType") === "heatmap") return getHeatmapValueRange()
+
+    const [min, max] = chart.getAttribute("getValueRange")(chart)
+    if (Number.isFinite(min) && Number.isFinite(max) && min !== max) return [min, max]
+
+    return [0, 1]
+  }
+
+  const padAwayFromZero = value => (value === 0 ? 0 : value * 1.05)
+
+  const getBarValueRange = (self, chartType, dataMin, dataMax) => {
+    if (chartType === "stackedBar") {
+      const [stackMin, stackMax] = getStackValueRange(seriesStackBounds(self))
+
+      return [
+        padAwayFromZero(Math.min(0, stackMin == null ? dataMin : stackMin)),
+        padAwayFromZero(Math.max(0, stackMax == null ? dataMax : stackMax)),
+      ]
+    }
+
+    return [padAwayFromZero(Math.min(0, dataMin)), padAwayFromZero(Math.max(0, dataMax))]
+  }
+
+  const forceIncludesZero = () => {
+    if (chart.getAttribute("includeZero")) return true
+
+    const dimensionIds = chart.getPayloadDimensionIds()
+    const selectedLegendDimensions = chart.getAttribute("selectedLegendDimensions")
+    return dimensionIds.length > 1 && selectedLegendDimensions.length > 1
+  }
+
+  const getScales = () => ({
+    x: {
+      time: true,
+      range: () => {
+        if (xRangeOverride) return xRangeOverride
+        const [after, before] = chart.getDateWindow()
+        return [after / 1000, before / 1000]
+      },
+    },
+    y: {
+      range: (self, dataMin, dataMax) => {
+        const chartType = chart.getAttribute("chartType")
+
+        if (chartType === "heatmap") return getHeatmapValueRange()
+
+        const staticValueRange = chart.getAttribute("staticValueRange")
+        if (staticValueRange) return staticValueRange
+
+        if (isBarType(chartType)) return getBarValueRange(self, chartType, dataMin, dataMax)
+
+        let min
+        let max
+
+        if (chartType === "stacked") {
+          ;[min, max] = getStackValueRange(stackBounds())
+        } else {
+          // the dygraph flag yields [null, null] when the range should not pin the axis, which
+          // is what lets dataMin/dataMax (uPlot's in-window extremes) take over, as dygraph does
+          const [rangeMin, rangeMax] = chart.getAttribute("getValueRange")(chart, { dygraph: true })
+          min = rangeMin == null ? dataMin : rangeMin
+          max = rangeMax == null ? dataMax : rangeMax
+        }
+
+        if (chartType === "area" ? forceIncludesZero() : chart.getAttribute("includeZero")) {
+          min = Math.min(0, min)
+          max = Math.max(0, max)
+        }
+
+        const padded = padYRange(self, min, max)
+
+        // an all-positive stack cannot reach below its baseline, so padding there is dead space
+        if (min === 0 && padded[0] < 0) padded[0] = 0
+
+        return padded
+      },
+    },
+  })
+
+  const getHeatmapYAxis = (gridColor, labelColor, font, size) => ({
+    font,
+    stroke: labelColor,
+    grid: { stroke: gridColor, width: 1 },
+    ticks: { stroke: gridColor, width: 1, size: tickSize },
+    size,
+    gap: axisGap,
+    splits: self => {
+      const count = chart.getVisibleHeatmapIds().length
+      if (!count) return []
+
+      const heightPx = self.bbox.height / (self.pxRatio || 1)
+      const maxTicks = Math.max(1, Math.floor(heightPx / heatmapPixelsPerLabel))
+      const step = Math.max(1, Math.ceil(count / Math.max(1, maxTicks - 1)))
+
+      const splits = []
+      for (let i = 0; i < count; i++) if (i % step === 0) splits.push(i)
+      return splits
+    },
+    values: (self, splits) => {
+      const ids = chart.getVisibleHeatmapIds()
+      const scale = chart.getHeatmapScale()
+      return splits.map(index => formatHeatmapLabel(withoutPrefix(ids[index]), scale))
+    },
+  })
+
+  // left to uPlot's defaults the chrome is a fixed 67px, so a short chart gets a negative
+  // plot height and a zero-height overlay that never receives pointer events
+  const getVerticalBudget = () => {
+    if (chart.isSparkline()) return { topPad: 0, xAxisSize: 0 }
+
+    const height = chartUI.getChartHeight()
+    const fontSize = chart.getAttribute("axisLabelFontSize") || defaultAxisFontSize
+    const topPad = Math.min(Math.ceil(fontSize / 2), Math.max(0, height - minPlotHeight))
+    const xAxisSize = Math.min(
+      fontSize + xTickSize + xAxisGap,
+      Math.max(0, height - topPad - minPlotHeight)
+    )
+
+    return { topPad, xAxisSize }
+  }
+
+  const getAxes = () => {
+    if (chart.isSparkline()) return [{ show: false }, { show: false }]
+
+    const enabledXAxis = chart.getAttribute("enabledXAxis") !== false
+    const enabledYAxis = chart.getAttribute("enabledYAxis") !== false
+    const gridColor = chart.getThemeAttribute("themeGridColor")
+    const labelColor = chart.getThemeAttribute("themeLabelColor")
+    const visibleDimensionIds = chart.getVisibleDimensionIds() || []
+    const dimensionId = visibleDimensionIds[0]
+
+    const axisFont = makeAxisFont(chart.getAttribute("axisLabelFontSize") || defaultAxisFontSize)
+    const yAxisSize = chart.getAttribute("yAxisLabelWidth") || defaultYAxisSize
+    const secondsAsTime = chart.getAttribute("secondsAsTime")
+    const units = visibleDimensionIds.map(id => chart.getDimensionUnit(id))
+
+    const border = { show: true, stroke: gridColor, width: 1 }
+
+    const xAxis = {
+      show: true,
+      font: axisFont,
+      stroke: labelColor,
+      grid: { stroke: gridColor, width: 1 },
+      border,
+      space: xTickSpace,
+      gap: xAxisGap,
+      ...(enabledXAxis
+        ? {
+            ticks: { stroke: gridColor, width: 1, size: xTickSize },
+            size: () => getVerticalBudget().xAxisSize,
+            values: (self, splits) =>
+              getVerticalBudget().xAxisSize > 0
+                ? splits.map(value => chart.formatXAxis(new Date(value * 1000)))
+                : [],
+          }
+        : { ticks: { show: false }, values: () => [], size: hiddenAxisSize }),
+    }
+
+    if (chart.getAttribute("chartType") === "heatmap") {
+      const heatmapYAxis = getHeatmapYAxis(gridColor, labelColor, axisFont, yAxisSize)
+      return [
+        xAxis,
+        enabledYAxis
+          ? { show: true, ...heatmapYAxis }
+          : {
+              show: true,
+              ...heatmapYAxis,
+              ticks: { show: false },
+              values: () => [],
+              size: hiddenAxisSize,
+            },
+      ]
+    }
+
+    const yAxis = {
+      show: true,
+      font: axisFont,
+      stroke: labelColor,
+      grid: { stroke: gridColor, width: 1 },
+      border,
+      gap: axisGap,
+      ...(enabledYAxis
+        ? {
+            ticks: { stroke: gridColor, width: 1, size: tickSize },
+            size: yAxisSize,
+            splits: (self, axisIdx, scaleMin, scaleMax) =>
+              makeAxisTicks({
+                min: scaleMin,
+                max: scaleMax,
+                pixels: self.bbox.height / (self.pxRatio || 1),
+                pixelsPerTick: yPixelsPerLabel,
+                units,
+                secondsAsTime,
+              }).map(tick => tick.v),
+            values: (self, splits) =>
+              splits.map((value, index) => {
+                const tickStep = getSplitGranularity(splits, index)
+                const range = tickStep ? { min: value, max: value + tickStep } : {}
+                const unitAttributes = chart.getUnitAttributesForValue(value, {
+                  dimensionId,
+                  ...range,
+                })
+                return chart.getConvertedValueWithUnit(value, { dimensionId, unitAttributes })
+              }),
+          }
+        : { ticks: { show: false }, values: () => [], size: hiddenAxisSize }),
+    }
+
+    return [xAxis, yAxis]
+  }
+
+  const drawVerticalLine = (self, ctx, dimensions, color, dash) => {
+    if (!Array.isArray(dimensions)) return
+
+    const timestamp = dimensions[0]
+    if (timestamp == null) return
+
+    const left = self.valToPos(timestamp / 1000, "x", true)
+    const { top, height } = self.bbox
+
+    ctx.save()
+    ctx.beginPath()
+    if (dash) ctx.setLineDash(dash)
+    ctx.strokeStyle = color
+    ctx.lineWidth = 1
+    ctx.moveTo(left, top)
+    ctx.lineTo(left, top + height)
+    ctx.stroke()
+    ctx.restore()
+  }
+
+  const drawStackSegment = (self, ctx, xs, series, rows, color, edgeWidth, stepped) => {
+    ctx.beginPath()
+
+    traceStackTop(self, ctx, xs, series, rows, stepped)
+
+    for (let i = rows.length - 1; i >= 0; i--) {
+      const row = rows[i]
+      ctx.lineTo(self.valToPos(xs[row], "x", true), self.valToPos(series[row][0], "y", true))
+    }
+
+    ctx.closePath()
+    ctx.fillStyle = `${color}${stackedFillAlpha}`
+    ctx.fill()
+
+    ctx.beginPath()
+
+    traceStackTop(self, ctx, xs, series, rows, stepped)
+
+    ctx.lineWidth = edgeWidth
+    ctx.strokeStyle = `${color}${stackedEdgeAlpha}`
+    ctx.stroke()
+  }
+
+  const drawStacked = self => {
+    if (chart.getAttribute("chartType") !== "stacked") return
+
+    const dimensionIds = chart.getPayloadDimensionIds()
+    const bounds = stackBounds()
+    const xs = self.data[0]
+    const { ctx } = self
+    const stepped = chart.getAttribute("stepPlot")
+
+    ctx.save()
+    ctx.beginPath()
+    ctx.rect(self.bbox.left, self.bbox.top, self.bbox.width, self.bbox.height)
+    ctx.clip()
+
+    const edgeWidth = window.devicePixelRatio || 1
+    const plotWidth = self.bbox.width / (self.pxRatio || 1)
+    const visibleColumns = bounds.filter(Boolean)
+    const xPositions = new Array(xs.length)
+    const getX = row => {
+      if (xPositions[row] === undefined) xPositions[row] = self.valToPos(xs[row], "x", true)
+      return xPositions[row]
+    }
+
+    dimensionIds.forEach((id, index) => {
+      const series = bounds[index]
+      if (!series) return
+
+      const color = chart.selectDimensionColor(id)
+
+      getStackSegments(series, xs.length).forEach(([start, end]) => {
+        const selected = selectStackRows(visibleColumns, getX, start, end, plotWidth)
+        const rows = selected || defaultRows(start, end)
+
+        drawStackSegment(self, ctx, xs, series, rows, color, edgeWidth, stepped)
+      })
+    })
+
+    ctx.restore()
+  }
+
+  const drawHeatmap = self => {
+    if (chart.getAttribute("chartType") !== "heatmap") return
+
+    const dimensionIds = chart.getPayloadDimensionIds()
+    const xs = self.data[0]
+    if (!xs || !xs.length) return
+
+    const { ctx } = self
+    const getColor = makeGetColor(chart)
+
+    let minWidthSep = Infinity
+    for (let i = 1; i < xs.length; i++) {
+      const sep = self.valToPos(xs[i], "x", true) - self.valToPos(xs[i - 1], "x", true)
+      if (sep < minWidthSep) minWidthSep = sep
+    }
+
+    const barWidth = Number.isFinite(minWidthSep) ? Math.floor(minWidthSep) : self.bbox.width
+    const rowHeight = Math.abs(self.valToPos(1, "y", true) - self.valToPos(0, "y", true))
+    const { all } = chart.getPayload()
+    if (!all) return
+
+    const { min: xMin, max: xMax } = self.scales.x
+    // the scales are null until uPlot's first convergence, and comparing against null coerces to 0
+    const clipToWindow = Number.isFinite(xMin) && Number.isFinite(xMax)
+
+    ctx.save()
+    ctx.beginPath()
+    ctx.rect(self.bbox.left, self.bbox.top, self.bbox.width, self.bbox.height)
+    ctx.clip()
+
+    dimensionIds.forEach(id => {
+      const yIndex = chart.getHeatmapYIndex(id)
+      if (yIndex === -1) return
+
+      const yTop = self.valToPos(yIndex, "y", true) - rowHeight / 2
+
+      for (let row = 0; row < xs.length; row++) {
+        const x = xs[row]
+        if (clipToWindow && (x < xMin || x > xMax)) continue
+
+        const value = chart.getRowDimensionValue(id, all[row], { allowNull: true })
+        const color = getColor(value)
+        if (color === "transparent") continue
+
+        ctx.fillStyle = color
+        ctx.fillRect(self.valToPos(x, "x", true) - barWidth / 2, yTop, barWidth, rowHeight)
+      }
+    })
+
+    ctx.restore()
+  }
+
+  const getBarSlotWidth = self => {
+    const xs = self.data[0]
+
+    let minSep = Infinity
+    for (let i = 1; i < xs.length; i++) {
+      const sep = self.valToPos(xs[i], "x", true) - self.valToPos(xs[i - 1], "x", true)
+      if (sep < minSep) minSep = sep
+    }
+
+    return Number.isFinite(minSep) ? minSep : self.bbox.width
+  }
+
+  const drawGroupedBars = (self, dimensionIds, groupWidth) => {
+    const xs = self.data[0]
+    const { ctx } = self
+    const y0 = self.valToPos(0, "y", true)
+
+    const visibleIds = dimensionIds.filter(isVisible)
+    const barCount = visibleIds.length || 1
+    const barWidth = groupWidth / barCount
+
+    dimensionIds.forEach((id, index) => {
+      if (!isVisible(id)) return
+
+      const values = self.data[index + 1]
+      const barIndex = visibleIds.indexOf(id)
+      const color = chart.selectDimensionColor(id)
+      ctx.fillStyle = color
+      ctx.strokeStyle = darkenColor(color)
+      ctx.lineWidth = self.pxRatio || 1
+
+      for (let row = 0; row < xs.length; row++) {
+        const value = values[row]
+        if (value == null) continue
+
+        const valuePos = self.valToPos(value, "y", true)
+        const left = self.valToPos(xs[row], "x", true) - groupWidth / 2 + barIndex * barWidth
+        const top = Math.min(y0, valuePos)
+        const height = Math.abs(valuePos - y0)
+
+        ctx.fillRect(left, top, barWidth, height)
+        ctx.strokeRect(left, top, barWidth, height)
+      }
+    })
+  }
+
+  const drawStackedBars = (self, dimensionIds, groupWidth) => {
+    const xs = self.data[0]
+    const { ctx } = self
+
+    const bounds = seriesStackBounds(self)
+
+    dimensionIds.forEach((id, index) => {
+      const columnBounds = bounds[index]
+      if (!columnBounds) return
+
+      const color = chart.selectDimensionColor(id)
+      ctx.fillStyle = color
+      ctx.strokeStyle = darkenColor(color)
+      ctx.lineWidth = self.pxRatio || 1
+
+      for (let row = 0; row < xs.length; row++) {
+        const bound = columnBounds[row]
+        if (!bound) continue
+
+        const topPos = self.valToPos(bound[1], "y", true)
+        const basePos = self.valToPos(bound[0], "y", true)
+        const left = self.valToPos(xs[row], "x", true) - groupWidth / 2
+
+        const top = Math.min(topPos, basePos)
+        const height = Math.abs(topPos - basePos)
+
+        ctx.fillRect(left, top, groupWidth, height)
+        ctx.strokeRect(left, top, groupWidth, height)
+      }
+    })
+  }
+
+  const drawBars = self => {
+    const chartType = chart.getAttribute("chartType")
+    if (!isBarType(chartType)) return
+
+    const xs = self.data[0]
+    if (!xs || !xs.length) return
+
+    const dimensionIds = chart.getPayloadDimensionIds()
+    const groupWidth = Math.max(1, getBarSlotWidth(self) * barGroupWidth)
+    const { ctx } = self
+
+    ctx.save()
+    ctx.beginPath()
+    ctx.rect(self.bbox.left, self.bbox.top, self.bbox.width, self.bbox.height)
+    ctx.clip()
+
+    if (chartType === "stackedBar") drawStackedBars(self, dimensionIds, groupWidth)
+    else drawGroupedBars(self, dimensionIds, groupWidth)
+
+    ctx.restore()
+  }
+
+  const drawAnomaly = makeAnomaly(chartUI)
+  const drawAnomalyBadge = makeAnomalyBadge(chartUI)
+  const drawAnnotations = makeAnnotations(chartUI)
+  const getHoverDimension = makeGetHoverDimension(chart)
+
+  const getYAxisValueRange = () => {
+    if (chart.getAttribute("chartType") === "heatmap")
+      return [chart.getAttribute("min"), chart.getAttribute("max")]
+
+    const [min, max] = chart.getAttribute("getValueRange")(chart, { dygraph: true })
+    return [
+      min === null ? chart.getAttribute("min") : min,
+      max === null ? chart.getAttribute("max") : max,
+    ]
+  }
+
+  const fireYAxisChange = () => {
+    const [min, max] = getYAxisValueRange()
+    if (min == null || max == null) return
+    if (min === prevYMin && max === prevYMax) return
+
+    prevYMin = min
+    prevYMax = max
+    chart.trigger("yAxisChange", min, max)
+  }
+
+  const drawHoverDots = (self, ctx, dimensions) => {
+    if (!Array.isArray(dimensions)) return
+
+    const timestamp = dimensions[0]
+    if (timestamp == null) return
+    if (chart.getAttribute("chartType") === "heatmap") return
+
+    const row = chart.getClosestRow(timestamp)
+    if (row === -1) return
+
+    const xs = self.data[0]
+    if (!xs || xs[row] == null) return
+
+    const x = self.valToPos(xs[row], "x", true)
+    if (!Number.isFinite(x)) return
+
+    const dpr = self.pxRatio || 1
+    const radius = (chart.isSparkline() ? sparklineHoverDotRadius : hoverDotRadius) * dpr
+    const dimensionIds = chart.getPayloadDimensionIds()
+
+    ctx.save()
+
+    dimensionIds.forEach((id, index) => {
+      if (!isVisible(id)) return
+
+      const series = self.data[index + 1]
+      const value = series && series[row]
+      if (value == null) return
+
+      const y = self.valToPos(value, "y", true)
+      if (!Number.isFinite(y)) return
+
+      ctx.beginPath()
+      ctx.fillStyle = chart.selectDimensionColor(id)
+      ctx.arc(x, y, radius, 0, 2 * Math.PI)
+      ctx.fill()
+    })
+
+    ctx.restore()
+  }
+
+  const renderCrosshair = () => {
+    if (!u || !overlayCtx) return
+
+    overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height)
+
+    const hoverX = chart.getAttribute("hoverX")
+    const clickX = chart.getAttribute("clickX")
+
+    drawVerticalLine(u, overlayCtx, hoverX, chart.getThemeAttribute("themeCrosshair"), [5, 5])
+    drawVerticalLine(u, overlayCtx, clickX, chart.getThemeAttribute("themeNetdata"), [2, 2])
+    drawHoverDots(u, overlayCtx, hoverX)
+    drawHoverDots(u, overlayCtx, clickX)
+  }
+
+  const createOverlay = () => {
+    if (!u) return
+
+    const mainCanvas = u.ctx.canvas
+    overlayCanvas = document.createElement("canvas")
+    overlayCanvas.className = "netdata-crosshair-overlay"
+    overlayCanvas.width = mainCanvas.width
+    overlayCanvas.height = mainCanvas.height
+    overlayCanvas.style.width = mainCanvas.style.width
+    overlayCanvas.style.height = mainCanvas.style.height
+    overlayCanvas.style.position = "absolute"
+    overlayCanvas.style.top = mainCanvas.style.top || "0"
+    overlayCanvas.style.left = mainCanvas.style.left || "0"
+    overlayCanvas.style.pointerEvents = "none"
+    overlayCtx = overlayCanvas.getContext("2d")
+    mainCanvas.parentNode.appendChild(overlayCanvas)
+  }
+
+  const syncOverlaySize = () => {
+    if (!u || !overlayCanvas) return
+
+    const mainCanvas = u.ctx.canvas
+
+    // reassigning width/height clears the layer, so only touch it on a real size change
+    if (overlayCanvas.width !== mainCanvas.width) overlayCanvas.width = mainCanvas.width
+    if (overlayCanvas.height !== mainCanvas.height) overlayCanvas.height = mainCanvas.height
+
+    overlayCanvas.style.width = mainCanvas.style.width
+    overlayCanvas.style.height = mainCanvas.style.height
+  }
+
+  // uPlot defers scale/size convergence to its commit cycle, so the crosshair layer is
+  // re-derived from the draw hook (after convergence) rather than at the call sites.
+  const drawCrosshairLayer = () => {
+    syncOverlaySize()
+    renderCrosshair()
+  }
+
+  const destroyOverlay = () => {
+    if (overlayCanvas && overlayCanvas.parentNode)
+      overlayCanvas.parentNode.removeChild(overlayCanvas)
+    overlayCanvas = null
+    overlayCtx = null
+  }
+
+  const drawOverlays = self => overlays && overlays.draw(self)
+
+  const setCursor = self => {
+    if (!chart.getAttribute("enabledHover")) return
+
+    const { left, idx } = self.cursor
+    const outside = left == null || left < 0 || idx == null
+
+    if (outside) {
+      lastHoverTimestamp = null
+      lastHoverDimension = null
+
+      if (!hovering) return
+
+      hovering = false
+      sdk.trigger("highlightBlur", chart)
+      chart.trigger("highlightBlur")
+      return
+    }
+
+    // hoverChart/blurChart belong to the container's element-scoped hover (like dygraph);
+    // firing them from the cursor blurs the synced group when it crosses the axis gutter
+    if (!hovering) hovering = true
+
+    const timestamp = self.data[0][idx] * 1000
+    const dimensionId = getHoverDimension(self)
+
+    if (timestamp === lastHoverTimestamp && dimensionId === lastHoverDimension) return
+
+    lastHoverTimestamp = timestamp
+    lastHoverDimension = dimensionId
+
+    sdk.trigger("highlightHover", chart, timestamp, dimensionId)
+    chart.trigger("highlightHover", timestamp, dimensionId)
+  }
+
+  const emitNav = (name, ...args) => sdk.trigger(name, chart, ...args)
+
+  const clearPanState = () =>
+    chart
+      .getApplicableNodes({ syncPanning: true })
+      .forEach(node => node.updateAttributes({ enabledHover: true, panning: false }))
+
+  const clearHighlightState = () =>
+    chart
+      .getApplicableNodes({ syncHighlight: true })
+      .forEach(node => node.updateAttributes({ enabledHover: true, highlighting: false }))
+
+  const isNearAnnotation = offsetX => {
+    const overlays = chart.getAttribute("overlays")
+
+    for (const overlayId in overlays) {
+      const overlay = overlays[overlayId]
+      if (overlay.type !== "annotation") continue
+
+      const annotationX = u.valToPos(overlay.timestamp, "x")
+      if (Math.abs(offsetX - annotationX) < 10) return true
+    }
+
+    return false
+  }
+
+  const annotate = (offsetX, xMs) => {
+    if (isNearAnnotation(offsetX)) return
+
+    const existingDraft = chart.getAttribute("draftAnnotation")
+    if (existingDraft && existingDraft.status === "editing") return
+
+    chart.updateAttribute("draftAnnotation", {
+      timestamp: xMs / 1000,
+      createdAt: new Date(),
+      status: "draft",
+    })
+
+    emitNav("annotationCreate", xMs / 1000)
+    chart.trigger("annotationCreate", xMs / 1000)
+  }
+
+  const getCursor = () => {
+    const nav = chart.getAttribute("enabledNavigation") ? chart.getAttribute("navigation") : null
+    const drag =
+      nav === "selectVertical"
+        ? { x: false, y: true, setScale: false }
+        : nav === "select" || nav === "highlight"
+          ? { x: true, y: false, setScale: false }
+          : { x: false, y: false }
+
+    // dygraph draws one themed vertical line and its own dots; uPlot's native cursor would
+    // stack a second (hardcoded #607d8b) vertical line, a horizontal line and DOM points on top
+    // alpha 1 because dygraph sets highlightSeriesBackgroundAlpha:1; uPlot would otherwise
+    // fade every non-focused series to its 0.3 default on hover
+    return {
+      focus: { prox: 16, alpha: 1 },
+      drag,
+      x: false,
+      y: false,
+      points: { show: false },
+    }
+  }
+
+  const updateCursorDrag = () => {
+    if (!u) return
+
+    const { drag } = getCursor()
+    u.cursor.drag.x = !!drag.x
+    u.cursor.drag.y = !!drag.y
+    u.cursor.drag.setScale = false
+    u.redraw(false, false)
+  }
+
+  const onSetSelect = self => {
+    if (!chart.getAttribute("enabledNavigation")) return
+
+    const nav = chart.getAttribute("navigation")
+    const vertical = nav === "selectVertical"
+    if (nav !== "select" && nav !== "highlight" && !vertical) return
+    if (selectEnded) return
+    selectEnded = true
+
+    const { select } = self
+
+    if (vertical) {
+      const range =
+        select.height >= minDragPx
+          ? [self.posToVal(select.top + select.height, "y"), self.posToVal(select.top, "y")]
+          : null
+      emitNav("highlightVerticalEnd", range)
+    } else {
+      const range =
+        select.width >= minDragPx
+          ? [
+              Math.round(self.posToVal(select.left, "x")),
+              Math.round(self.posToVal(select.left + select.width, "x")),
+            ]
+          : null
+      emitNav("highlightEnd", range)
+    }
+
+    self.setSelect({ left: 0, top: 0, width: 0, height: 0 }, false)
+  }
+
+  const moveXDebounced = debounce(300, (after, before) => {
+    chart.moveX(after, before)
+    xRangeOverride = null
+  })
+
+  const onWheel = event => {
+    if (!chart.getAttribute("enabledNavigation")) return
+    if (!event.shiftKey && !event.altKey) return
+    if (event.deltaY === 0) return
+
+    const left = u.cursor.left
+    if (left == null || left < 0) return
+
+    event.preventDefault()
+    event.stopPropagation()
+
+    const rect = u.over.getBoundingClientRect()
+    const bias = rect.width === 0 ? 0 : left / rect.width
+
+    const normalDef =
+      typeof event.wheelDelta === "number" && !Number.isNaN(event.wheelDelta)
+        ? event.wheelDelta / 40
+        : event.deltaY * -1.2
+    const normal = event.detail ? event.detail * -1 : normalDef
+    const percentage = normal / 50
+
+    const afterAxis = u.scales.x.min * 1000
+    const beforeAxis = u.scales.x.max * 1000
+
+    const delta = beforeAxis - afterAxis
+    const increment = delta * percentage
+    const afterIncrement = increment * bias
+    const beforeIncrement = increment * (1 - bias)
+
+    const afterSeconds = Math.round((afterAxis + afterIncrement) / 1000)
+    const beforeSeconds = Math.round((beforeAxis - beforeIncrement) / 1000)
+
+    const { fixedAfter, fixedBefore } = limitRange({ after: afterSeconds, before: beforeSeconds })
+
+    if (fixedAfter * 1000 === afterAxis && fixedBefore * 1000 === beforeAxis) return
+
+    xRangeOverride = [fixedAfter, fixedBefore]
+    u.setScale("x", { min: fixedAfter, max: fixedBefore })
+    moveXDebounced(fixedAfter, fixedBefore)
+  }
+
+  const emitPointer = name => event => {
+    const rect = u.over.getBoundingClientRect()
+    const dpr = u.pxRatio || 1
+    const offsetX = event.clientX - rect.left + u.bbox.left / dpr
+    const offsetY = event.clientY - rect.top + u.bbox.top / dpr
+    chartUI.trigger(name, {
+      offsetX,
+      offsetY,
+      layerX: offsetX,
+      layerY: offsetY,
+      clientX: event.clientX,
+      clientY: event.clientY,
+      pageX: event.pageX,
+      pageY: event.pageY,
+    })
+  }
+
+  const attachNavigation = () => {
+    const over = u.over
+    let detachDoc = null
+
+    const activeGestures = new Set()
+
+    const finishActiveGestures = emit => {
+      const gestures = [...activeGestures]
+      activeGestures.clear()
+      gestures.forEach(finish => finish(emit))
+    }
+
+    const onOverMove = emitPointer("mousemove")
+    const onOverOut = emitPointer("mouseout")
+    const onOverOver = emitPointer("mouseover")
+
+    const onDown = event => {
+      if (event.button !== 0) return
+      if (!chart.getAttribute("enabledNavigation")) return
+      if (chart.getAttribute("navigation") !== "pan") return
+
+      event.preventDefault()
+
+      moveXDebounced.cancel({ upcomingOnly: true })
+
+      const left0 = event.clientX
+      const min0 = u.scales.x.min
+      const max0 = u.scales.x.max
+      const unitsPerPx = u.posToVal(1, "x") - u.posToVal(0, "x")
+
+      emitNav("panStart")
+
+      const onMove = ev => {
+        const dx = unitsPerPx * (ev.clientX - left0)
+        xRangeOverride = [min0 - dx, max0 - dx]
+        u.setScale("x", { min: min0 - dx, max: max0 - dx })
+      }
+
+      const finish = emit => {
+        document.removeEventListener("mousemove", onMove)
+        document.removeEventListener("mouseup", onUp)
+        detachDoc = null
+        activeGestures.delete(finish)
+
+        const [rangeMin, rangeMax] = xRangeOverride || [u.scales.x.min, u.scales.x.max]
+        xRangeOverride = null
+
+        if (emit) emitNav("panEnd", [rangeMin * 1000, rangeMax * 1000])
+        else clearPanState()
+      }
+
+      const onUp = () => finish(true)
+
+      activeGestures.add(finish)
+      document.addEventListener("mousemove", onMove)
+      document.addEventListener("mouseup", onUp)
+      detachDoc = () => {
+        document.removeEventListener("mousemove", onMove)
+        document.removeEventListener("mouseup", onUp)
+      }
+    }
+
+    const onDblClick = () => {
+      if (!chart.getAttribute("enabledNavigation")) return
+
+      chart.resetNavigation()
+    }
+
+    let downX = null
+    let downY = null
+    let dragged = false
+    let downedOnOver = false
+
+    const onDownTrack = event => {
+      if (event.button !== 0) return
+      downX = event.clientX
+      downY = event.clientY
+      dragged = false
+      downedOnOver = true
+    }
+
+    const onMoveTrack = event => {
+      if (!downedOnOver) return
+      if (
+        Math.abs(event.clientX - downX) >= minDragPx ||
+        Math.abs(event.clientY - downY) >= minDragPx
+      )
+        dragged = true
+    }
+
+    const onUpTrack = event => {
+      if (!downedOnOver) return
+
+      const wasDrag = dragged
+      downedOnOver = false
+      dragged = false
+
+      if (wasDrag) return
+      if (!chart.getAttribute("enabledNavigation")) return
+      if (chart.getAttribute("navigation") !== "pan") return
+
+      const rect = over.getBoundingClientRect()
+      const offsetX = event.clientX - rect.left
+      if (offsetX < 0 || offsetX > rect.width) return
+
+      const rawMs = u.posToVal(offsetX, "x") * 1000
+      const row = chart.getClosestRow(rawMs)
+      const snappedX = row === -1 ? null : u.data[0]?.[row]
+      const xMs = snappedX == null ? rawMs : snappedX * 1000
+
+      annotate(offsetX, xMs)
+
+      const dimensionId = getHoverDimension(u)
+      emitNav("highlightClick", xMs, dimensionId)
+      chart.trigger("highlightClick", xMs, dimensionId)
+    }
+
+    let lastTouchEndTime = 0
+    let touchMoved = false
+    let touchPanning = false
+    let touchStartX = 0
+    let touchMin0 = 0
+    let touchMax0 = 0
+    let touchUnitsPerPx = 0
+    let pinching = false
+    let pinchStartDistance = 0
+    let pinchAnchor = 0
+
+    const touchSpread = touches => Math.abs(touches[1].clientX - touches[0].clientX)
+
+    const setXRange = (after, before) => {
+      const { fixedAfter, fixedBefore } = limitRange({
+        after: Math.round(after),
+        before: Math.round(before),
+      })
+      if (fixedBefore - fixedAfter < 1) return
+
+      xRangeOverride = [fixedAfter, fixedBefore]
+      u.setScale("x", { min: fixedAfter, max: fixedBefore })
+      moveXDebounced(fixedAfter, fixedBefore)
+    }
+
+    const startPinch = touches => {
+      pinching = true
+      pinchStartDistance = touchSpread(touches)
+      const rect = over.getBoundingClientRect()
+      const midX = (touches[0].clientX + touches[1].clientX) / 2
+      pinchAnchor = u.posToVal(midX - rect.left, "x")
+      touchMin0 = u.scales.x.min
+      touchMax0 = u.scales.x.max
+    }
+
+    const finishTouchPan = emit => {
+      touchPanning = false
+      activeGestures.delete(finishTouchPan)
+
+      const [rangeMin, rangeMax] = xRangeOverride || [u.scales.x.min, u.scales.x.max]
+      xRangeOverride = null
+
+      if (emit) emitNav("panEnd", [rangeMin * 1000, rangeMax * 1000])
+      else clearPanState()
+    }
+
+    const onTouchStart = event => {
+      if (!chart.getAttribute("enabledNavigation")) return
+
+      const touch = event.touches[0]
+      if (!touch) return
+
+      event.preventDefault()
+
+      moveXDebounced.cancel({ upcomingOnly: true })
+
+      touchMoved = false
+      touchPanning = false
+      pinching = false
+
+      if (event.touches.length > 1) {
+        startPinch(event.touches)
+        return
+      }
+
+      touchStartX = touch.clientX
+      touchMin0 = u.scales.x.min
+      touchMax0 = u.scales.x.max
+      touchUnitsPerPx = u.posToVal(1, "x") - u.posToVal(0, "x")
+    }
+
+    const onTouchMove = event => {
+      if (!chart.getAttribute("enabledNavigation")) return
+
+      const touch = event.touches[0]
+      if (!touch) return
+
+      event.preventDefault()
+
+      if (event.touches.length > 1) {
+        if (!pinching) startPinch(event.touches)
+
+        touchMoved = true
+        const spread = touchSpread(event.touches)
+        if (!spread || !pinchStartDistance) return
+
+        const scale = pinchStartDistance / spread
+        setXRange(
+          pinchAnchor - (pinchAnchor - touchMin0) * scale,
+          pinchAnchor + (touchMax0 - pinchAnchor) * scale
+        )
+        return
+      }
+
+      if (pinching) return
+
+      if (!touchMoved) {
+        touchMoved = true
+        touchPanning = true
+        emitNav("panStart")
+        activeGestures.add(finishTouchPan)
+      }
+
+      const dx = touchUnitsPerPx * (touch.clientX - touchStartX)
+      xRangeOverride = [touchMin0 - dx, touchMax0 - dx]
+      u.setScale("x", { min: touchMin0 - dx, max: touchMax0 - dx })
+    }
+
+    const onTouchEnd = event => {
+      if (!chart.getAttribute("enabledNavigation")) return
+
+      event.preventDefault()
+
+      if (pinching) {
+        if (event.touches.length < 2) pinching = false
+        lastTouchEndTime = Date.now()
+        return
+      }
+
+      const now = Date.now()
+
+      if (now - lastTouchEndTime < doubleTapDelay) {
+        lastTouchEndTime = now
+        xRangeOverride = null
+        chart.resetNavigation()
+        return
+      }
+
+      lastTouchEndTime = now
+
+      if (!touchMoved) {
+        const touch = event.changedTouches?.[0]
+        if (!touch) return
+
+        const rect = over.getBoundingClientRect()
+        const offsetX = touch.clientX - rect.left
+        chart.updateAttribute("clickX", [u.posToVal(offsetX, "x") * 1000, null])
+        return
+      }
+
+      if (touchPanning) finishTouchPan(true)
+    }
+
+    let detachSelectUp = null
+
+    const onSelectDown = event => {
+      if (event.button !== 0) return
+      if (!chart.getAttribute("enabledNavigation")) return
+
+      const nav = chart.getAttribute("navigation")
+      const vertical = nav === "selectVertical"
+      if (nav !== "select" && nav !== "highlight" && !vertical) return
+
+      selectEnded = false
+      emitNav(vertical ? "highlightVerticalStart" : "highlightStart")
+
+      const finish = emit => {
+        document.removeEventListener("mouseup", onSelectUp)
+        detachSelectUp = null
+        activeGestures.delete(finish)
+        if (selectEnded) return
+        selectEnded = true
+
+        if (emit) emitNav(vertical ? "highlightVerticalEnd" : "highlightEnd", null)
+        else clearHighlightState()
+      }
+
+      const onSelectUp = () => finish(true)
+
+      activeGestures.add(finish)
+      document.addEventListener("mouseup", onSelectUp)
+      detachSelectUp = () => document.removeEventListener("mouseup", onSelectUp)
+    }
+
+    const modifierNavigation = event => {
+      if (event.shiftKey && event.altKey) return "selectVertical"
+      if (event.altKey) return "highlight"
+      if (event.shiftKey) return "select"
+      return null
+    }
+
+    const isSelectNavigation = navigation =>
+      navigation === "select" || navigation === "highlight" || navigation === "selectVertical"
+
+    const onModifierDown = event => {
+      if (event.button !== 0) return
+      if (!chart.getAttribute("enabledNavigation")) return
+
+      const navigation = modifierNavigation(event)
+      if (!navigation) return
+
+      const current = chart.getAttribute("navigation")
+      if (current === navigation) return
+
+      const prevNavigation = chart.getAttribute("prevNavigation") || current
+      if (isSelectNavigation(navigation)) selectEnded = false
+      chart.updateAttributes({ navigation, prevNavigation })
+    }
+
+    const restoreNavigation = () => {
+      const prevNavigation = chart.getAttribute("prevNavigation")
+      if (prevNavigation)
+        chart.updateAttributes({ navigation: prevNavigation, prevNavigation: null })
+    }
+
+    const onModifierUp = () => setTimeout(restoreNavigation)
+
+    const switchTarget = over.parentNode || over
+
+    switchTarget.addEventListener("mousedown", onModifierDown, true)
+    over.addEventListener("mousedown", onDown)
+    over.addEventListener("mousedown", onDownTrack)
+    over.addEventListener("mousedown", onSelectDown)
+    document.addEventListener("mousemove", onMoveTrack)
+    document.addEventListener("mouseup", onUpTrack)
+    document.addEventListener("mouseup", onModifierUp)
+    over.addEventListener("wheel", onWheel, { passive: false })
+    over.addEventListener("dblclick", onDblClick)
+    over.addEventListener("touchstart", onTouchStart, { passive: false })
+    over.addEventListener("touchmove", onTouchMove, { passive: false })
+    over.addEventListener("touchend", onTouchEnd)
+    over.addEventListener("mousemove", onOverMove)
+    over.addEventListener("mouseout", onOverOut)
+    over.addEventListener("mouseover", onOverOver)
+
+    return ({ emitGestureEnd = false } = {}) => {
+      finishActiveGestures(emitGestureEnd)
+
+      switchTarget.removeEventListener("mousedown", onModifierDown, true)
+      over.removeEventListener("mousedown", onDown)
+      over.removeEventListener("mousedown", onDownTrack)
+      over.removeEventListener("mousedown", onSelectDown)
+      document.removeEventListener("mousemove", onMoveTrack)
+      document.removeEventListener("mouseup", onUpTrack)
+      document.removeEventListener("mouseup", onModifierUp)
+      over.removeEventListener("touchstart", onTouchStart)
+      over.removeEventListener("touchmove", onTouchMove)
+      over.removeEventListener("touchend", onTouchEnd)
+      over.removeEventListener("wheel", onWheel)
+      over.removeEventListener("dblclick", onDblClick)
+      over.removeEventListener("mousemove", onOverMove)
+      over.removeEventListener("mouseout", onOverOut)
+      over.removeEventListener("mouseover", onOverOver)
+      if (detachDoc) detachDoc()
+      if (detachSelectUp) detachSelectUp()
+    }
+  }
+
+  const create = () => {
+    if (!element) return
+
+    const data = getData()
+    const empty = !data
+    if (empty && !chart.getAttribute("loaded")) return
+
+    const scales = getScales()
+    if (empty) scales.y = { range: () => getEmptyValueRange() }
+
+    u = new uPlot(
+      {
+        width: chartUI.getChartWidth(),
+        height: chartUI.getChartHeight(),
+        // null sides keep uPlot's autoPadSide behaviour
+        padding: [() => getVerticalBudget().topPad, () => rightPad, null, null],
+        legend: { show: false },
+        cursor: getCursor(),
+        scales,
+        series: empty ? [{}] : getSeries(),
+        axes: getAxes(),
+        hooks: {
+          setCursor: [setCursor],
+          drawClear: [drawOverlays],
+          setSelect: [onSetSelect],
+          draw: empty
+            ? [fireYAxisChange]
+            : [
+                fireYAxisChange,
+                drawStacked,
+                drawHeatmap,
+                drawBars,
+                drawAnomaly,
+                drawAnomalyBadge,
+                drawAnnotations,
+                drawCrosshairLayer,
+              ],
+        },
+      },
+      empty ? [[0]] : data,
+      element
+    )
+
+    createOverlay()
+    renderCrosshair()
+
+    detachNavigation = attachNavigation()
+  }
+
+  const destroyChart = ({ emitGestureEnd = false } = {}) => {
+    if (!u) return
+
+    if (detachNavigation) {
+      detachNavigation({ emitGestureEnd })
+      detachNavigation = null
+    }
+
+    destroyOverlay()
+    u.destroy()
+    u = null
+  }
+
+  const rebuild = () => {
+    destroyChart({ emitGestureEnd: true })
+    create()
+  }
+
+  // recalcAxes re-derives the cached tick strings, which a plain redraw leaves alone; rebuilding
+  // the instance for this reconstructed every chart on every streaming tick
+  const onUnitsConversionChange = () => u && u.redraw(false, true)
+
+  const render = () => {
+    if (!element) return false
+
+    const { highlighting, panning, processing } = chart.getAttributes()
+    if (highlighting || panning || processing) return false
+
+    const data = getData()
+    if (!data && !chart.getAttribute("loaded")) {
+      destroyChart()
+      return false
+    }
+
+    const frameData = data || [[0]]
+
+    if (!u) create()
+    else if (u.series.length !== frameData.length) rebuild()
+    else u.setData(frameData)
+
+    chartUI.render()
+    renderCrosshair()
+    chartUI.trigger("rendered")
+    return true
+  }
+
+  const mount = el => {
+    if (element) return
+
+    element = el
+    chartUI.mount(el)
+    element.classList.add(chart.getAttribute("theme"))
+
+    resizeObserver = makeResizeObserver(
+      element,
+      () => chartUI.trigger("resize"),
+      () => chartUI.trigger("resize")
+    )
+
+    const { loaded } = chart.getAttributes()
+
+    listeners = unregister(
+      chartUI.on("resize", () => {
+        if (!u) return
+        u.setSize({ width: chartUI.getChartWidth(), height: chartUI.getChartHeight() })
+        syncOverlaySize()
+        renderCrosshair()
+      }),
+      chart.onAttributeChange("hoverX", () => renderCrosshair()),
+      chart.onAttributeChange("clickX", () => renderCrosshair()),
+      chart.onAttributeChange("overlays", overlays.toggle),
+      chart.onAttributeChange("draftAnnotation", overlays.toggle),
+      chart.onAttributeChange("selectedLegendDimensions", rebuild),
+      chart.onAttributeChange("chartType", rebuild),
+      // the path builder is resolved at create time, so a mid-session flip needs a rebuild
+      chart.onAttributeChange("stepPlot", rebuild),
+      chart.onAttributeChange("navigation", updateCursorDrag),
+      chart.onAttributeChange("enabledNavigation", rebuild),
+      chart.onAttributeChange("enabledXAxis", rebuild),
+      chart.onAttributeChange("enabledYAxis", rebuild),
+      chart.onAttributeChange("staticValueRange", () => {
+        if (!u) return
+        u.setData(u.data, true)
+        renderCrosshair()
+      }),
+      chart.onAttributeChange("timezone", () => u && u.redraw()),
+      // axis config (duration ticks, units) is captured at create time, and a plain
+      // redraw reuses cached tick strings, so re-derive it like dygraph does
+      chart.onAttributeChange("unitsConversionPrefix", onUnitsConversionChange),
+      chart.onAttributeChange("unitsConversionBase", onUnitsConversionChange),
+      chart.onAttributeChange("theme", (next, prev) => {
+        if (!element) return
+
+        element.classList.remove(prev)
+        element.classList.add(next)
+        rebuild()
+      }),
+      !loaded && chart.onceAttributeChange("loaded", render)
+    )
+
+    render()
+  }
+
+  const unmount = () => {
+    if (!element) return
+
+    if (listeners) listeners()
+    if (resizeObserver) resizeObserver()
+
+    destroyChart()
+    hovering = false
+    lastHoverTimestamp = null
+    lastHoverDimension = null
+    element = null
+    chartUI.unmount()
+  }
+
+  const getUPlot = () => u
+
+  const getChartWidth = () => (u ? u.over.clientWidth : chartUI.getChartWidth())
+
+  const getChartHeight = () => (u ? u.over.clientHeight : chartUI.getChartHeight())
+
+  const getXAxisRange = () => (u ? [u.scales.x.min * 1000, u.scales.x.max * 1000] : null)
+
+  const getPlotArea = () => {
+    if (!u) return { left: 0, top: 0, width: 0, height: 0 }
+    const dpr = u.pxRatio || 1
+    return {
+      left: u.bbox.left / dpr,
+      top: u.bbox.top / dpr,
+      width: u.bbox.width / dpr,
+      height: u.bbox.height / dpr,
+    }
+  }
+
+  const getXCoord = timestampMs => {
+    if (!u) return 0
+    const dpr = u.pxRatio || 1
+    return u.bbox.left / dpr + u.valToPos(timestampMs / 1000, "x")
+  }
+
+  const instance = {
+    ...chartUI,
+    getChartWidth,
+    getChartHeight,
+    mount,
+    unmount,
+    render,
+    getUPlot,
+    getXAxisRange,
+    getPlotArea,
+    getXCoord,
+  }
+
+  overlays = makeOverlays(instance)
+
+  return instance
+}
