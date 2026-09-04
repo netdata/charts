@@ -7,7 +7,9 @@ node_modules
 dist
 coverage
 storybook-static
+.perf-results
 /.local/
 CLAUDE.md
 .superpowers
 docs/superpowers
+.parity-results

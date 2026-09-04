@@ -1,0 +1,632 @@
+# uPlot ↔ dygraph parity — audit worklist & handoff
+
+> Branch `explore/uplot-spike`, rebased on `main` @ `5a69d342` (#232). Written 2026-08-05.
+> Companion docs: `docs/uplot-prod-parity-gap-map.md` (older P0/P1/P2 map, now superseded by
+> this list for open items), `docs/uplot-migration-progress.md` (history + perf protocol).
+>
+> **Governing rule (revised 2026-08-05 — supersedes "match dygraph exactly"):** feature parity on
+> what is achievable, with **no missing data, information or functionality**. "Looks good" is the
+> visual bar, *not* pixel-perfect. **Where uPlot is deliberately better, keep the better version —
+> the contract matters more than the resemblance.** Making anything slower, heavier or worse for the
+> sake of similarity is wrong. dygraph remains the reference for *what the feature is*:
+> `src/chartLibraries/dygraph/**` and `node_modules/dygraphs/`.
+
+## State
+
+- Default renderer is **already flipped to uPlot** (`src/makeDefaultSDK.js:42`) on this branch only.
+- Suite green: **185 suites / 1899 passing / 2 skipped**. eslint clean.
+- Verify with `yarn jest --config ./jest/config.js <path> --collectCoverage=false` and
+  `yarn eslint <files>`. Gate every change on the FULL suite + eslint before committing.
+- Perf harness: `yarn perf:bench` (full sweep) / `yarn perf:bench:quick`. See §Perf below.
+
+## Decisions taken by the maintainer (2026-08-05)
+
+| # | Decision | Consequence for this list |
+|---|---|---|
+| D1 | Land **all of §1–§8**, then the perf sweep and screenshot pairs | Nothing in §1–§8 is deferred; commit per gate |
+| D2 | Match dygraph's **geometry, line widths, point markers and bar outlines**, but **keep uPlot's area gradient and filled sparkline** | §6: align widths (line 1.5, area 0.7, stacked edge 0.1), suppress auto point markers, add darkened bar outline, align crosshair dash/colour. **Do not** replace `makeAreaFill`'s gradient with dygraph's flat `fillAlpha 0.2`, and **do not** convert sparklines from fill to stroke. Screenshot pairs will differ on these two by design. |
+| D3 | Verify in a **real browser** (Playwright) and run the **full** `yarn perf:bench` | Geometry, click routing, touch and the UNVERIFIED timezone claim are browser-gated, not jsdom-gated |
+| D4 | **Grep `cloud-frontend` first** for `getPreceded` / chart-bus `highlightEnd`; implement only what is consumed | §7/§8: evidence-gated, not implemented unconditionally |
+
+Additional standing assumptions: the three click tests that encode the inverted contract
+(`uplot/index.test.js:936, :953, :1001`) get **rewritten, not deleted**; the uPlot default flip stays
+on this branch and is not merged to `main`.
+
+### D5 — the "better wins" ruling, applied item by item
+
+Resolved by verification, no work needed:
+
+- `getPreceded` and chart-bus `highlightEnd` have **no consumer** in `cloud-frontend/src` (grep, zero
+  hits) ⇒ both close as N/A.
+- `makeAxisTicks` already dispatches to `makeNumericTicks`, which picks base-1024 multipliers for
+  binary units (`src/helpers/ticks/index.js:206-210`, `:141-153`) ⇒ nothing to port.
+- Geometry needs no rebuild-on-resize: uPlot re-evaluates `padding` functions and calls
+  `axis.size(...)` every convergence cycle (`node_modules/uplot/dist/uPlot.cjs.js:4531-4543`, `:4522`).
+- Axis font already matches at 10px (`src/sdk/initialAttributes.js:154`).
+- dygraph draws **no** y tick marks (`node_modules/dygraphs/src/plugins/axes.js:184-190`) but does draw
+  3px x ticks (`:263-266`) and 1px border lines on both sides.
+
+| Item | Decision | Rationale under D5 |
+|---|---|---|
+| Top pad | `ceil(fontSize/2)` = **5px** | dygraph's `top:0` only works because its labels are DOM divs clamped by `if (top<0) top=0` (`plugins/axes.js:195-196`); uPlot's canvas label would clip. 5px beats both clipping and uPlot's 17px waste |
+| X-axis size | **16**, tickSize 3, gap 3 | dygraph's budget exactly, and its label offset is `y + axisTickSize` (`axes.js:271`) |
+| Right pad | **0** | Recovers uPlot's 25px `autoPadSide` (`uPlot.cjs.js:1613`, `:3803-3813`). dygraph's `-5` risks clipping the last label for 5px |
+| Sparklines | **no padding at all** | 43% of a sparkline's height is currently lost to chrome it never draws |
+| `staticValueRange` | **honour exactly — do NOT pad** | The caller's range is a contract. dygraph padding `[0,1000]` to `[-52.8,1052.8]` silently ignores it. Same ruling applies to `includeZero` never overriding an explicit range |
+| `yAxisChange` on axis-less charts | **keep firing** | Drives unit conversion (`src/helpers/unitConversion/index.js:110`); dygraph structurally cannot fire it under `drawAxis:false`. Correct units on sparklines is information gained |
+| Pan on pointer-leave | **keep the pan alive** | dygraph ends it (`dygraph/navigation/pan.js:10`); that interrupts a legitimate drag |
+| X tick cadence | **no change** | dygraph shows *fewer* labels (4 vs 8 on a 119-min window). Porting its granularity table would be work to become worse |
+| Y tick density | keep uPlot's `space`, adopt **only** the nice-step logic | Binary stepping (KiB → 32, not 50) is real quality; dygraph's `pixelsPerLabel:15` just doubles gridline paint |
+| Heatmap gridlines | keep at labelled rows | One line per bucket costs 100 strokes at 100 buckets and identifies nothing the labels don't |
+| Axis border strokes | **add** | Cheap, and an axis should read as an axis |
+| Pan cleanup on teardown | emit `panEnd` on `rebuild`, **clear state directly** on `unmount` | Emitting on unmount would fire `chart.moveX` from a teardown (`sdk/plugins/pan.js:8`) |
+| Gap-edge points | **implement** | A lone sample between nulls is invisible today — data loss |
+| Anomaly-rate badge | **paint on canvas in the gutter** | Verified feasible: `fire("draw")` (`:4891`) runs with no ambient clip; `drawSeries`' clips are balanced (`:4356-4380`). Falls back to a synced DOM node |
+| Pinch-zoom | x-only zoom about the midpoint, reusing the wheel→`moveX` path | Restores missing functionality; dygraph's own model is Dygraph-internal and not portable |
+| Render-while-loading | **N/A** | `src/components/line/chartContentWrapper.js:171-173` mounts the canvas only when `!initialLoading` and shows `<Skeleton/>` |
+| Series styling | keep the area gradient and filled sparkline; align widths (line 2→1.5, area 1.5→0.7, stacked edge 0.1), bar outlines, crosshair dash/colour | D2 plus D5 |
+| Browser evidence | commit one `scripts/parity-probe.mjs` | Makes the geometry table re-runnable |
+| Screenshots | side-by-side Storybook story + scratchpad PNGs | Durable, reviewable |
+| Cadence | commit **and push** per gate; tick items off in this file | This branch lost finished work once already |
+
+## How this list was produced
+
+Four parallel read-only Opus audits, one per domain (dygraph options surface; interaction model;
+data path & value ranges; lifecycle/sizing/overlays). Each compared source on both sides and ran
+probes against **real** dygraph and **real** uPlot via `makeTestChart`. Everything below carries
+`file:line` evidence. Items marked UNVERIFIED were not reproducible and must be confirmed before
+being actioned.
+
+## Already fixed on this branch (do not re-report)
+
+| Commit | Fix |
+|---|---|
+| `4a66b43a` | uPlot re-derives axis config on unit-conversion change (#232 port; `u.redraw()` was a no-op for cached tick strings) |
+| `9cc5dc7c` | stepPlot flip re-resolves the path builder |
+| `ff0a78d4` | removed uPlot's cursor-level `hoverChart`/`blurChart` (blurred the synced group at the axis gutter) |
+| `674e1bcf` | short-chart plot area no longer collapses (`.u-over` was 0px tall ⇒ dead hover) |
+| `491b5f09` | uPlot's native cursor suppressed (was drawing a 2nd vertical line, a horizontal line, and DOM points over ours) |
+| `b09e95bc` | **P0** collapsed y-range (constant series) — chart never painted, burned 6169ms per render |
+| `18125feb` | y-axis rescales to the window (`getValueRange` `{dygraph:true}` flag); series no longer fade to 30% on hover |
+| `1cde7984` | **§1 geometry** — dygraph's vertical budget (5px top pad, 16px x axis, no right pad), sparklines get the whole element, budget re-derived on resize via padding/size functions, all six overlays offset by the plot top |
+| `97a82e5b` | **§2 stacking** — order reversed to dygraph's, one sign-aware accumulator for area and bar stacks, `staticValueRange` honoured exactly for every chart type, `includeZero` no longer widens an explicit range |
+| `1af02428` | **§3 + §4** — gesture finishers (rebuild emits the end event, unmount clears state directly), click-to-annotate gated on `navigation === "pan"`, timestamp snapped to the closest row, clicked dimension from the hover resolver |
+
+## ⚠️ ALL PERF NUMBERS BELOW THIS LINE PREDATE 2026-08-06 AND ARE INVALID
+##    The authoritative sweep is the last section of this document.
+
+Every measurement taken before commit `1053b85a` was measuring a chart that destroyed and
+reconstructed its uPlot instance roughly eight times per second while streaming. Treat the sweep
+table, the ratios and the per-render figures in the sections below as void. The only trustworthy
+numbers are in the "Perf, after the rebuild fix" section at the end of this document.
+
+## Browser-verified geometry (`node scripts/parity-probe.mjs`, after `yarn build-storybook`)
+
+Perf story, `line`, 300 rows × 3 dims, one chart. uPlot's plot box is measured exactly from
+`.u-over`; dygraph's has no DOM counterpart (`dygraph.getArea()`), so it is derived from the axis
+label divs and reads ~3px tall because its x label sits `axisTickSize` below the plot edge.
+
+| story height | mount el | dygraph top / h | uPlot top / h | dygraph left / w | uPlot left / w |
+|---|---|---|---|---|---|
+| 400px | 252 | 85 / 239 | 90 / 231 | 72 / 247 | 69 / 250 |
+| 300px | 152 | 85 / 139 | 90 / 131 | 72 / 247 | 69 / 250 |
+| 200px | 52 | 85 / 39 | 90 / 31 | 72 / 247 | 69 / 250 |
+| 120px | 0 / 320 | no plot | no plot | — | — |
+
+- **§1 confirmed.** uPlot's plot box is now within ~5px of dygraph's (the deliberate top pad), where
+  the pre-fix audit measured it 51px short at 400px. It is also 3px *wider* — right pad 0 recovers
+  uPlot's 25px `autoPadSide` without clipping the last x label.
+- **No label clipping at any height**: the topmost y label and the x labels render fully with a 5px
+  top pad and a 16px x axis. Q1-C and Q2-A hold visually.
+- **120px/100px is a story artifact, not a renderer difference.** The legend and toolbox take ~148px,
+  so the mount element computes to ≤ 0. Neither renderer shows a plot: uPlot honours the zero;
+  dygraph keeps a 320px canvas that nothing displays. Both budget formulas, old and new, yield 0 at a
+  0-height element, so this is pre-existing and out of §1's scope.
+- **Finding that changes a decision:** at 300px dygraph draws **7** y labels (step 5) where uPlot
+  draws **4** (step 10). D5 had kept uPlot's sparser spacing on the grounds that dygraph's
+  `pixelsPerLabel: 15` only costs paint — but side by side, dygraph's axis is materially easier to
+  read values off, and 3 extra gridline strokes is not a real cost. **§5 now adopts dygraph's y-tick
+  density as well as its nice-step logic.** X-axis cadence stays as it is: both renderers drew 2 x
+  labels here, so the audit's 4-vs-8 claim did not reproduce.
+
+## Corrections to this document's own premises (found while implementing)
+
+1. **Line references in the sections below are stale by 20–60 lines** — the audits predate the three
+   fixes that landed before this list was written. Verify every claim against current source; several
+   citations point at the wrong function now.
+2. **"Stacked y-range always includes zero" was filed as a uPlot bug. It is the correct behaviour.**
+   dygraph ranges over stack ends alone (`divergingStack.js:100-107`), so a 10 + 20 stack plots as
+   `[20, 30]`: the bottom band sits entirely below the axis and the visible areas stop encoding their
+   magnitudes. Adopting dygraph's version broke a hover test — the cursor at value 5 landed outside
+   the plot. uPlot keeps zero, deliberately. Same reasoning keeps bars anchored to zero.
+3. **"dygraph creates an annotation on a plain click" is doubtful.** dygraph registers its `click`
+   handler only while hover is enabled (`dygraph/hoverX.js` `toggle`), and `sdk/plugins/pan.js`
+   disables hover synchronously at `panStart` — `getApplicableNodes` returns `[instance]` even when
+   the chart does not match (`makeContainer.js:61`), so the chart's own hover does go off.
+   `maybeTreatMouseOpAsClick` also requires `g.lastx_`, which only a prior hover sets. So dygraph
+   probably cannot annotate in pan mode either. The uPlot behaviour was therefore chosen on intent —
+   a plain click in the default navigation mode must annotate, or the feature is unreachable — not on
+   dygraph parity. **Confirm dygraph's actual behaviour during the browser pass.**
+
+---
+
+# OPEN WORK, in recommended order
+
+## 1. Geometry convergence — THE KEYSTONE (do first)
+
+uPlot reserves **67px** of vertical chrome (`defaultTopPad 17` + `defaultXAxisSize 50`,
+`uplot/index.js:27-28`) plus a **25px right pad** (uPlot's `autoPadSide` returns
+`round(yAxisOpts.size/2)`, `node_modules/uplot/dist/uPlot.cjs.js:3803-3813`).
+dygraph reserves ~16px bottom (`axisLabelFontSize 10 + 2*axisTickSize 3`,
+`node_modules/dygraphs/src/plugins/axes.js:57-64`), **top = 0**
+(`dygraph-layout.js:81-84`), and right `rightGap: -5` (`dygraph/index.js:126`).
+
+Measured plot areas (800px wide, both renderers, same element):
+
+| element height | dygraph top/height | uPlot top/height | height lost |
+|---|---|---|---|
+| 400 | 0 / 384 | 17 / 333 | 13% |
+| 300 | 0 / 284 | 17 / 233 | 18% |
+| 200 | 0 / 184 | 17 / 133 | 28% |
+| 120 | 0 / 104 | 17 / 53 | 49% |
+| 100 | 0 / 84 | 17 / 33 | 61% |
+
+Horizontal: dygraph `left 74, width 731`; uPlot `left 68, width 707`.
+
+**Fixing this also fixes, for free:**
+- **All six overlays draw 17px too high.** They assume the plot origin is `y=0` (true for dygraph)
+  and draw `0 → h`: `uplot/overlays/alarm.js:29-30`, `alarmRange.js:42,50-51,60-61`,
+  `highlight.js:25,30-31`, `alertTransitions.js:67`, `annotation.js:52,93,96`,
+  `point.js:56-57` (its line uses `0→h` while its own dots use `top + valToPos` — internally
+  inconsistent). Note `plotters/anomaly.js:38` and `plotters/annotations.js:36` already use
+  `self.bbox.top` correctly — that is the right idiom.
+- **Sparklines lose 43% of their height** to a top pad they should not have (`getAxes` returns
+  `[{show:false},{show:false}]` at `uplot/index.js:326`, but the padding at `:1189` still applies).
+- **Exact y-range parity is untestable until this lands** — dygraph's pad ratio is `15/284 = 5.28%`
+  vs uPlot's `15/233 = 6.44%`, so every correct range still differs ~1%.
+
+**Also required:** the vertical budget is only computed in `create()` (`:1189`) and `getAxes()`
+(`:348`); the resize listener (`:1283-1288`) only calls `u.setSize`. Probe: mount 800×300 then
+resize to 40px ⇒ `getPlotArea()` = `{top:17, height:-27}` (dygraph: `{top:0, height:24}`).
+**The already-shipped short-chart fix is bypassed on the resize path.**
+
+Target: `padding: [0, -5, null, null]`, x-axis `size ≈ 16` (font-derived), y-axis
+`size = yAxisLabelWidth + 6`, no padding at all for sparklines, and recompute on resize.
+
+## 2. Stacking cluster (every stacked chart is wrong today)
+
+- **Stack order is REVERSED.** dygraph accumulates last→first (`dygraph.js:2253`
+  `for (seriesIdx = num_series; seriesIdx >= 1; seriesIdx--)`; `divergingStack.js:61` resets on the
+  last visible series). uPlot accumulates first→last (`stacking.js:6-30`, `bars/stack.js:9-10`).
+  Probe with `a=[10,12] b=[20,18]`: dygraph puts **b** at the bottom, uPlot puts **a**. Bands and
+  legend order are upside down. Hidden dims must be skipped *before* choosing the base.
+- **Stacked y-range always includes zero.** `stacking.js:54-55` seeds `min=0,max=0` and scans
+  bases. dygraph uses stack **ends** only (`divergingStack.js:100-107`) and adds zero only under
+  `includeZero || (forceIncludeZero && dims>1 && selectedLegendDimensions.length>1)`
+  (`dygraph/index.js:386-388`). Probe (a=10–12, b=18–22): dygraph `[17.2, 33.8]`, uPlot `[-2.1, 35.1]`.
+- **`staticValueRange` ignored for `chartType:"stacked"`** — `uplot/index.js:268-271` returns the
+  stack range before checking it. Probe with `[0,1000]`: dygraph `[-52.8, 1052.8]`, uPlot `[-25, 414]`.
+- **Bars use a different algorithm.** `getBarValueRange` (`uplot/index.js:218-246`) always forces
+  zero and pads ×1.05; dygraph uses data extremes (multiBar → `default` options, no
+  `forceIncludeZero`) or stack ends, then `yRangePad:15`, and pads `staticValueRange` too.
+  Probe: multiBar dygraph `[-5.3, 315.3]` vs uPlot `[0, 315]`.
+- **stackedBar loses sign separation.** `bars/stack.js:10` uses one accumulator
+  (`accum[idx] += +v`, and `+null`→0, `+NaN` poisons it); dygraph splits positive/negative
+  (`divergingStack.js:92`). Mixed-sign bars overlap instead of diverging. Fix by reusing
+  `stacking.js#getStackBounds`, which already splits signs and guards non-finite.
+
+## 3. Pan-state stranding (HIGH — permanent freeze)
+
+`panEnd` lives only in the `document mouseup` handler (`uplot/index.js:937-944`), which
+`detachNavigation()` removes (`:1158-1159, :1169`). Every `rebuild()` and `unmount()` calls it.
+Probe A: mousedown+mousemove, then `chart.updateAttribute("theme","dark")`, then mouseup ⇒ only
+`panStart` fired, `panning === true` stuck. Probe B: unmount mid-pan ⇒ `panning:true`; remount ⇒
+`getXAxisRange() === null` — **the chart never renders again** (`render()` bails on `panning`,
+`:1246`). `sdk/plugins/pan.js:5` also leaves `enabledHover:false`.
+Note: **this got easier to hit** because `stepPlot` and `unitsConversion*` now trigger `rebuild`.
+Fix: on `destroyChart()`/`unmount()`, terminate any active gesture (emit the end event, or at
+minimum clear `panning`/`highlighting`/`xRangeOverride`) before detaching.
+dygraph also ends a pan on `mouseout` (`navigation/pan.js:10`) — uPlot does not (P7 below).
+
+## 4. Click semantics (HIGH — inverted today)
+
+- **Click-to-annotate is inverted.** With the shipped default `navigation:"pan"`, clicking a uPlot
+  chart does **nothing**; with shift/alt (select/highlight) it creates a **spurious** annotation
+  dygraph never creates. Cause: `over.addEventListener("mousedown", onDown)` (`:1138`) runs before
+  `onDownTrack` (`:1139`), and `sdk/plugins/pan.js:2-6` sets `enabledHover:false` synchronously
+  inside `onDown`, so `onUpTrack`'s `enabledHover` check reads the wrong value.
+  dygraph routes clicks only through `endPan` (`dygraph-interaction-model.js:236, 303-361`).
+  Fix: gate `onUpTrack` on `navigation === "pan"`, and capture hover-enabled state before `onDown`.
+  **This inverts existing tests** at `uplot/index.test.js:936, :953, :1001`, which encode the wrong
+  contract.
+- **Wrong dimension + unsnapped timestamp.** `uplot/index.js:998` always uses
+  `getVisibleDimensionIds()[0]`; dygraph picks the closest series / ANNOTATIONS / ANOMALY_RATE band
+  (`dygraph/hoverX.js:132-148`). Timestamp: dygraph snaps to a row (`g.lastx_`), uPlot uses raw
+  `posToVal` (`:994`). Fix: reuse the existing `getHoverDimension(u)` (`uplot/hover.js:115-132`)
+  and snap via `chart.getClosestRow`.
+
+## 5. Axis rendering
+
+- **y-axis ticker bypassed for non-duration axes.** dygraph always installs `numericTicker`
+  (`dygraph/index.js:282-285`) with `pixelsPerLabel:15` (`:407`), which selects **binary**
+  multipliers (base 1024) for KiB/MiB (`helpers/ticks/index.js:142-152`). uPlot only uses
+  `makeAxisTicks` when `isDurationAxis` (`uplot/index.js:384-393`), otherwise uPlot's default
+  `space:30`. Probe: KiB ⇒ dygraph step **32**, uPlot step **50**; and roughly half the gridlines
+  everywhere.
+- **No axis baseline strokes.** dygraph draws a 1px `axisLineColor` line down the left and along
+  the bottom (`dygraph/index.js:113, 418`; `plugins/axes.js:231-237, 289-296`). uPlot:
+  `axes[].border.show === false`. Fix: `border: { show: true, stroke: gridColor, width: 1 }`.
+- **Heatmap**: range unpadded (`getHeatmapValueRange` `:196-201` bypasses `padYRange`) so the bottom
+  row is half-clipped; and gridlines only at labelled rows — dygraph draws one per bucket
+  (`tickers/heatmap.js:13-16`).
+- **`includeZero` applied on top of an explicit range.** `uplot/index.js:279-282` applies it after
+  `rangeMin` is taken; dygraph applies it only while computing auto extremes
+  (`dygraph.js:2555-2558`) and then overwrites with the user range (`:2592-2596`). Probe
+  (`includeZero:true`, `staticValueRange:[50,100]`): dygraph `[47.4, 102.6]`, uPlot `[-6.4, 106.4]`.
+- **`yAxisChange` fires when the y-axis is disabled.** dygraph's trigger lives inside the axis
+  label formatter, which never runs with `drawAxis:false`. uPlot's `fireYAxisChange` is an
+  unconditional draw hook (`:1202`). It drives unit conversion, so units can change on axis-less
+  charts.
+- **x-axis tick cadence differs**: dygraph `pixelsPerLabel:70` + its granularity table vs uPlot
+  `space:80` + `timeIncrs`. 119-min window ⇒ dygraph 4 labels, uPlot 8.
+
+## 6. Series styling
+
+- **area**: dygraph flat `fillAlpha 0.2` under a **0.7px** line (`dygraph/index.js:250-251, 306`);
+  uPlot a top→bottom gradient (`makeAreaFill`, `:67-73`, `areaGradientTopAlpha "59"`) under a
+  **1.5px** line. Line width also differs for `line` (dygraph 1.5 vs uPlot 2) and stacked edges
+  (dygraph `strokeWidth 0.1` vs uPlot `devicePixelRatio`, `:468`).
+- **sparkline**: dygraph *strokes* (fillGraph stays false, `strokeWidth:0` renders as a 1px line);
+  uPlot *fills* with a solid colour (`:177-179`). Probe draw ops: dygraph `{stroke:6, fill:0}`,
+  uPlot `{fill:3, stroke:0}`. **Confirm the intended look with the maintainer before changing.**
+- **bars have no darkened outline**: dygraph `strokeRect` with `darkenColor`
+  (`plotters/multiColumnBar.js:20,31`, `plotters/stackedBar.js:39,50`); uPlot only `fillRect`
+  (`:559, :588`).
+- **click crosshair style**: dygraph click = `themeNetdata` + dash `[2,2]`, hover = `themeCrosshair`
+  + `[5,5]` (`dygraph/crosshair.js:2-11`). uPlot uses `themeCrosshair` solid for click and `[4,4]`
+  for hover (`:690-691`).
+- **point markers**: uPlot auto-shows a dot per sample on sparse data (uPlot's density default);
+  dygraph never does for `chartType:"line"`. Conversely dygraph draws **gap-edge** points on
+  `area`/`stepPlot` (`drawGapEdgePoints:true`, `dygraph/index.js:117`) and uPlot draws none, so a
+  lone sample between nulls is invisible. Fix: `points:{show:false}` for line/area, plus an
+  explicit gap-edge `points.filter` if that parity is wanted.
+
+## 7. Lifecycle hygiene
+
+- **`mount()` is not idempotent while loading.** `if (u) return` (`:1268`) never fires because `u`
+  stays null when `empty && !loaded`. Probe: two mounts ⇒ `mountChartUI` 2×, ResizeObserver
+  `observe:2 / disconnect:1`; after one unmount the orphaned `theme` listener throws
+  `Cannot read properties of null (reading 'classList')` at `:1312` — inside a `Set.forEach`, so
+  **every later theme listener on that chart is skipped**. Fix: guard on `element`, null-guard the
+  theme handler.
+- **`unmount()` on a never-mounted instance fires `unmountChartUI`** (dygraph guards with
+  `if (!dygraph) return`, `:481`). Reachable via `makeControllers.js:144,153,337`.
+- **Nothing renders while loading**: dygraph always constructs with `[[0]]`/`["X"]`
+  (`dygraph/index.js:63-69`); uPlot bails (`:1179`) so `overlays/proceeded.js:5` never emits and the
+  loading/error box never appears. **Note:** in the normal app path `chartContentWrapper.js:171-173`
+  only mounts `ChartContainer` when `!initialLoading`, so this may be unreachable in production —
+  verify before fixing.
+- **Empty/out-of-limits charts** get only `drawClear`+`setCursor` hooks (`:1195-1196`), so
+  drag-select yields `highlightEnd:null` and `yAxisChange` never fires.
+- **`getPreceded` missing** from uPlot's surface (`dygraph/index.js:522-532`). No in-repo caller;
+  check `cloud-frontend` before closing as N/A.
+- **`getChartHeight()` fallback** differs: dygraph `100`, uPlot `offsetHeight`/300. Feeds
+  `overlays/latestValue.js:27` text sizing.
+- `render()` calls `chartUI.render()` at `:1248` *before* it can `return false` at `:1253`, so a
+  declined frame can still be marked clean. dygraph marks last (`:517`). Only reachable pre-load.
+
+## 8. Interaction odds and ends
+
+- **Pinch-zoom missing** — only `touches[0]` is used (`:1011-1044`), so a two-finger pinch is
+  misread as a pan. dygraph delegates to Dygraph's touch model with `touchDirections {x:true,y:false}`
+  (`navigation/generic.js:104-119`).
+- **Touch events not `preventDefault`ed** except `touchmove` (`:1033`), so every tap also runs the
+  synthetic mouse path (and a double-tap resets twice). dygraph prevents all three on the element
+  (`dygraph/index.js:142-150`).
+- **`highlightHover` fires per pixel** — 20 events per 20px sweep vs dygraph's 1. dygraph dedupes on
+  row change (`hoverX.js:82`) plus a 5px dead zone (`:150-152`).
+- **Missing chart-level `highlightEnd`** — dygraph fires on both buses (`navigation/select.js:62-63`),
+  uPlot only on the sdk bus (`:847`). No in-repo consumer; `cloud-frontend` may have one.
+- **Double-click resets even when `enabledNavigation:false`** (`:954` always attached; dygraph
+  registers it only while navigation is enabled).
+- **Shift/Alt+wheel over the gutter swallows the scroll** without zooming — `preventDefault()` at
+  `:862` runs before the `left < 0` bail at `:866-867`.
+- **Pan does not end when the pointer leaves the chart** (dygraph: `navigation/pan.js:10`).
+- Wheel debounce 300ms vs dygraph 500ms; no `stopPropagation` (dygraph has it,
+  `navigation/generic.js:50`). Click dead zone 5px latched vs dygraph 2px measured at mouseup.
+
+## Divergences where uPlot is BETTER — record, do not "fix"
+
+- Right-click + modifier does not hijack navigation (dygraph has no button filter).
+- Mouseup outside ends a selection (dygraph leaves `highlighting:true`/`enabledHover:false` stuck).
+- The chart stays drawn during a drag-select (dygraph blanks the canvas every mousemove,
+  `navigation/select.js:38`).
+- Navigation restore is document-scoped and `prevNavigation` survives nested switches.
+
+## UNVERIFIED — confirm before acting
+
+- **Timezone change leaves uPlot's x-labels stale.** Mechanism is plausible (`u.redraw()` sets
+  `shouldConvergeSize=false`, so `axis._values` is never rebuilt — the same hazard fixed for
+  `unitsConversionBase`), but in jsdom **neither** renderer refreshed its labels, so no divergence
+  was demonstrated. Needs a browser check.
+- `logscale` is never set anywhere in `src/` — treated as N/A.
+
+---
+
+# Still owed (non-audit)
+
+1. **Two deferrals the maintainer asked for** (tasks #2/#3): port dygraph's stacked-area per-pixel
+   point reduction (`dygraph/plotters/stackedArea.js:73-115` — note it must respect the corrected
+   stack order from §2), and the anomaly-rate y-axis badge (`tickers/numeric.js:62`, injected as
+   SVG into an HTML axis label; uPlot paints axes on canvas so this needs a Path2D in the gutter or
+   a resynced DOM node).
+2. ~~**Authoritative perf sweep.**~~ **DONE** — full `yarn perf:bench` on the finished branch,
+   28 cells x 5 repeats x 2 renderers = 280 runs. Raw output in `.perf-results/` (gitignored).
+   Ratios below are uPlot/dygraph; under 1.000 means uPlot is cheaper.
+
+   | measure | result |
+   |---|---|
+   | p50 per render | uPlot cheaper nearly everywhere: **0.09x on stacked** (60.4ms -> 5.4ms), 0.42-0.95x on line, 0.52x on heatmap. Two cells worse: 300 rows/100 dims/10 charts (1.09x) and 5000 rows/20 dims/10 charts (1.26x) |
+   | whole-tab main-thread total (the flip decider) | **0.52-1.66x**. Better under load: 50-chart cells 0.57-0.96x, hover-with-streaming 0.52x and 0.77x. Worse on light cells: 10 charts at 3-20 dims run **1.16-1.66x**. Heatmap 1.06-1.10x. Stacked ~parity at 0.955x |
+   | hover gesture alone (`hoverInteraction`, 0 renders both sides) | **0.975x / 0.984x** — parity. This replaces the retracted numbers, which had measured uPlot doing nothing |
+
+   Four cells were skipped by the 3M-point cap: 1000x100x50, 5000x20x50, 5000x100x10, 5000x100x50.
+
+   **Two findings worth chasing, both stable across all 5 repeats:**
+   - **Render counts differ per cell in BOTH directions and are confounded by design. Do not read
+     them as work done.** `makeExecuteLatest` (`src/helpers/makeExecuteLatest/index.js`) drops all
+     but the latest pending render request — each call `clearTimeout`s the previous — so a renderer
+     that blocks the task queue longer has more requests collapse into one. Stacked: uPlot is 11x
+     cheaper per render and renders *more* (100 -> 150). But 300 rows/3 dims/50 charts: uPlot is 5x
+     cheaper per render and renders *fewer* (501 -> 301); 300 rows/100 dims/10 charts: uPlot is
+     slower and renders far fewer (103 -> 39). No monotonic relationship, so the mechanism is not
+     just coalescing. **An earlier draft of this document claimed stacked hides a 10x win behind
+     surplus renders — that was unsupported and is retracted.** Only the whole-tab total over a
+     fixed wall-clock window is comparable across renderers. A decisive experiment would be to slow
+     uPlot's render artificially and see whether the counts converge.
+   - **Per-draw hook overhead dominates light charts.** At 300 rows/20 dims/10 charts the render
+     counts match (102 vs 101) and uPlot's own render is cheaper (2.6ms vs 4.0ms p50), yet whole-tab
+     task per render is 25.7ms vs 15.3ms. The work is outside the render call, in the draw hooks.
+     Prime suspect: `plotters/anomaly.js` calls `chart.getClosestRow` **per x value per draw**, so
+     300 rows x 10 charts x 100 renders is ~300k binary searches, and it runs even when every
+     anomaly rate is zero (`showAnomalies` defaults true). dygraph's plotter walks its points array
+     with no such lookup.
+
+   **Tested and resolved (2026-08-06):**
+   - The per-point lookup was real and is fixed (`2a3c0bb3`): the payload's `all` is row-aligned
+     with `data` (verified: equal lengths, matching timestamps), so the loop index is the row. Both
+     ribbon plotters also stopped painting rows with nothing to show. Measured on 300 rows/20
+     dims/10 charts, 3 runs each side: p50 per render **2.78ms -> 2.33ms**. **Whole-tab total did
+     not move beyond noise**, so the plotters were NOT the source of the light-chart overhead.
+   - Second hypothesis, also **wrong**: that the `padding`/`axis.size` functions added in §1 force a
+     layout reflow per convergence cycle by reading `offsetHeight`. Caching the measurement on
+     resize edges gave 24.2ms mean against 22.5ms before it — no improvement. Reverted rather than
+     keep unproven complexity.
+   - **Profiled and fixed (2026-08-06, `66c1cd65`).** `scripts/profile-probe.mjs` attributes
+     main-thread self time per function per renderer. On 300 rows/20 dims/10 charts it named the
+     cost immediately: our custom smooth path builder, which existed only to reproduce dygraph's
+     control points exactly. computeSmoothOps 120ms + bezierCurveTo 60ms + Path2D 26ms + 191ms
+     anonymous in our bundle, against dygraph's 18ms `smoothLinePlotter` — roughly 7x the cost for
+     the same visible curve, because per series per draw it allocated a point object per row, an op
+     object per segment and a Path2D, after building and discarding uPlot's linear stroke. That is
+     also what put GC at 85ms against dygraph's 47ms.
+
+     Replaced with uPlot's built-in `spline()`: `_monotoneCubic` 51ms, bezierCurveTo 39ms, our
+     bundle's anonymous time 29ms, GC 75ms. Same cell, three runs each side:
+
+     | | baseline | after ribbon plotters | after spline |
+     |---|---|---|---|
+     | uPlot p50 per render | 2.78ms | 2.33ms | **1.70ms** |
+     | uPlot whole-tab task/render | 24.16ms | 22.52ms | **19.12ms** |
+     | ratio vs dygraph | 1.57x | 1.55x | **1.30x** |
+
+     The curve is now a monotone cubic rather than dygraph's clamped control points — a deliberate
+     divergence, visually smooth with no overshoot. `smoothLinePath.js` and its test are deleted.
+
+     **The sweep table above predates these two commits and now understates uPlot on every line
+     chart.** Re-run `yarn perf:bench` for a definitive table.
+
+   - **What remains on that cell**, from the post-swap profile (uPlot busy 2618ms vs dygraph 1927ms):
+     uPlot's spline + Path2D still costs ~116ms more than dygraph drawing straight to the context,
+     uPlot internals ~63ms, `getChartHeight` 40ms (the padding/size functions — measured at ~1.5%,
+     which is why caching it gave no win), canvas `fillText` for axis labels 22ms where dygraph uses
+     DOM, `clearRect` 27ms, GC ~28ms. Diminishing returns; the architectural difference is that
+     dygraph streams to the context while uPlot builds Path2D objects.
+
+   - **The light-chart overhead was unexplained until the profile.** What is established: render counts match
+     (102 vs 101), uPlot's own render is ~1.7x cheaper, whole-tab task per render is ~1.55x higher.
+     So roughly 10ms per render of main-thread work sits outside the render call. Finding it needs a
+     real profile with call-tree attribution (CDP Profiler or a Chrome trace), not more guessing.
+3. **Screenshot pairs** (task #5) — **DONE** via `src/parity.stories.js` (`Charts/uPlot/Parity`),
+   which renders both renderers per chart type. `scripts/parity-probe.mjs` writes PNG pairs and the
+   geometry table to `.parity-results/`.
+4. **Real-dashboard measurement** — `yarn to-cloud` + the protocol in
+   `docs/uplot-migration-progress.md`. Maintainer's environment.
+
+# Session gotchas worth keeping
+
+- **Never leave verified work uncommitted.** An out-of-session `git reset` + branch switch wiped a
+  finished, green change once; only the commit would have saved it. Commit immediately after each
+  gate, then push.
+- **Don't rebuild Storybook while a sweep is running** — `perf-bench.mjs` serves `storybook-static`
+  from disk and a rebuild swaps files mid-measurement.
+- **Subagents stalled or no-op'd ~5 times** (watchdog at 600s, transient API 529s). For small,
+  fully-specified changes it is faster to implement directly. Give agents the already-fixed list so
+  they don't re-report.
+- **jsdom cannot settle geometry or visibility.** Anything about layout, pointer hit-testing or
+  paint must be verified in a real browser (Playwright is now a devDependency; probe scripts pattern
+  is in the session scratchpad — serve `storybook-static`, open `iframe.html?id=perf-benchmark--benchmark&args=...`).
+- `makeMockPayload` emits `data.length` rows and ignores the requested point count; the shared
+  fixture is only 231 rows × 3 dims. The perf story now generates synthetic payloads sized by
+  `rows`/`dims` args.
+- Hover **disables autofetch by default** (`autofetchOnHovering:false` ⇒ `play.js` clears the render
+  tick), so "hover renders" are 0 for both renderers unless the story opts in.
+
+
+# Perf, after the rebuild fix (2026-08-06)
+
+## The defect that invalidated every earlier measurement
+
+`onUnitsConversionChange` called `rebuild()`, which destroys the uPlot instance and constructs a new
+one. Unit conversion re-runs whenever the y range changes, and `fireYAxisChange` runs on **every
+draw**, so a streaming chart reconstructed itself continuously:
+
+    draw -> yAxisChange -> conversion updates unitsConversionPrefix/Base
+         -> onUnitsConversionChange -> rebuild -> new uPlot -> draw -> ...
+
+Found by counting canvas clears against the render counter, then capturing the stack where each
+commit is scheduled:
+
+    queueMicrotask <- commit <- setScale <- _setScale <- autoScaleX <- _init
+                   <- new <- create <- rebuild <- onUnitsConversionChange
+
+Fix (`1053b85a`): `u.redraw(false, true)`. The `recalcAxes` flag re-derives the cached tick strings,
+which is the only thing the rebuild was ever for (see `4a66b43a`); the two tests added with that
+commit still pass.
+
+| 1000 rows x 20 dims x 25 charts | before | after |
+|---|---|---|
+| heatmap draws per render | 5.00 | **1.00** |
+| heatmap renders in 10s | 137 | **250** (dygraph 225) |
+| heatmap fillRect calls | 13.7M | **5.0M** (dygraph 4.9M) |
+| heatmap total task vs dygraph | 1.040x | **0.544x** |
+| line total task vs dygraph | — | **0.874x**, 258 renders vs 229 |
+
+**This also explains the render-count behaviour retracted earlier in this document.** The rebuild loop
+blocked the task queue, so `makeExecuteLatest` coalesced away render requests, and its severity varied
+by chart type and data — which is why counts moved in both directions with no monotonic relation to
+per-render cost. The retraction stands; the mechanism is now known.
+
+## Other perf work landed today
+
+- `66c1cd65` — replaced the custom dygraph-exact smooth path builder with uPlot's built-in
+  `spline()`. It cost ~7x dygraph for the same visible curve (computeSmoothOps 120ms +
+  bezierCurveTo 60ms + Path2D 26ms + 191ms anonymous, against dygraph's 18ms), because per series per
+  draw it allocated a point object per row, an op object per segment and a Path2D, after building and
+  discarding uPlot's linear stroke. `smoothLinePath.js` and its test are deleted. The curve is now a
+  monotone cubic — a deliberate divergence.
+- `2a3c0bb3` — the anomaly and annotation ribbon plotters ran a `getClosestRow` binary search per x
+  value per draw, though `all` is row-aligned with `data` (verified: equal lengths, matching
+  timestamps), so the loop index is the row. Both also painted rows with nothing to show.
+- `cf61fd95` — heatmap: payload fetched once per draw instead of per cell, transparent cells skipped,
+  rows outside the visible scale range skipped. Careful: uPlot's scales are `null` until first
+  convergence and comparing a timestamp against null coerces to 0, which silently skipped every cell.
+
+## Tooling for the next session
+
+- `scripts/profile-probe.mjs` — CPU profile per renderer for any perf-bench cell, attributing
+  main-thread self time to named functions. Our function names survive the Storybook build.
+- `scripts/parity-probe.mjs` — plot geometry table plus screenshot pairs per renderer and height.
+- `src/parity.stories.js` — `Charts/uPlot/Parity`, both renderers side by side per chart type. Found
+  three defects on its first run.
+- Counting technique that found the rebuild loop: wrap `CanvasRenderingContext2D.prototype.clearRect`
+  in an init script and compare the count against `window.__netdataPerf.snapshot()`. uPlot issues
+  exactly one main-canvas clear per draw, so clears / renders = draws per render. To find *why* a draw
+  happens, wrap `window.queueMicrotask` and capture `new Error().stack` for schedules whose stack
+  contains `commit` — the draw itself is a microtask, so stacks taken inside the draw are truncated.
+
+# Queued work (in priority order)
+
+1. **Re-run the full sweep.** `yarn perf:bench`, ~75-95 min, 28 cells x 5 repeats x 2 renderers.
+   Every number in this document above the banner is void. Do not rebuild Storybook while it runs.
+2. **Replace the custom crosshair with uPlot's built-in cursor.** Ours is `createOverlay` /
+   `syncOverlaySize` / `renderCrosshair` / `drawVerticalLine` / `drawHoverDots` /
+   `drawCrosshairLayer` — roughly 150 lines plus a second canvas per chart. Measured cost of what
+   would be removed is small (`clearRect` 27ms per 10s profile), so this is a simplification, not a
+   speed fix.
+   - Must not lose: the line renders from **SDK-synced** `hoverX`, not the local pointer
+     (`sdk/plugins/hover.js:32-39` writes it to every `syncHover` node). Covered by
+     `cursor: { x: true, points: { show: true } }` plus `u.setCursor({left, top})`, which only moves
+     DOM (`uPlot.cjs.js:5221` -> `updateCursor`, no commit).
+   - Must not lose: the persistent click marker from `clickX`, set only by touch taps
+     (`uplot/index.js:1290`, `dygraph/navigation/generic.js:135`), read only by the two renderers.
+     uPlot has a single cursor, so draw this one on uPlot's own canvas in the existing draw hook —
+     the second canvas still goes away.
+   - Risk to measure after: uPlot's cursor points are DOM nodes **per series**. At 100 dimensions
+     that is 100 elements repositioned per hover against 100 canvas arcs today. Check the 100-dim
+     cells before concluding it is faster.
+   - 11 tests in `uplot/index.test.js` assert against `.netdata-crosshair-overlay`.
+3. **Built-ins we may still be reimplementing** (audited against uPlot's type surface, none measured):
+   - Bars: `uPlot.paths.bars({ disp: { y0, y1, size, fill, stroke }, each })` — `disp.y0/y1` is
+     exactly our diverging stack base/top, and `each` reports each bar's bbox, which is what
+     `hover.js` recomputes by hand. Strongest remaining candidate.
+   - Stacked area: uPlot `bands` (`Band.Bounds = [fromSeriesIdx, toSeriesIdx]`) with `addGap`/
+     `clipGaps`. Lower confidence: diverging positive/negative stacks may not map.
+   - Axis ticks: axis `incrs` expresses binary and duration steps declaratively, but `helpers/ticks`
+     is shared with dygraph, so this would split the two renderers.
+   - `padYRange`/`expandDegenerate` vs `uPlot.rangeNum` — ours is pixel-based, uPlot's `pad` is
+     fractional, so only the degenerate handling is a clean swap.
+   - Heatmap colour batching: the latency-heatmap demo builds one `Path2D` per palette entry and
+     fills once per colour. `makeGetColor` interpolates a **continuous** scale, so this only pays
+     when cell values repeat. Worth testing with a real histogram payload, not synthetic data.
+   - Checked and keep as-is: pan/wheel/pinch navigation (uPlot's drag-zoom sets local scales only),
+     cross-chart hover sync (the SDK bus spans both renderers and non-chart consumers).
+4. **Streaming replaces the whole window every tick.** `doneFetch` camelizes the whole response and
+   replaces the payload (`makeDataFetch.js:124-145`); there is no append or delta path. Renderer-side
+   cost is negligible — `getData`'s transposition measured 13ms across a 10s profile, and uPlot
+   repaints the full canvas per draw regardless — so an append path is an SDK and API change, not a
+   chart-library one. The upstream cost (transfer, `camelizePayload`, payload processing) is
+   **unmeasured**.
+5. **Real-dashboard measurement.** `yarn to-cloud` plus the protocol in `docs/uplot-migration-progress.md`.
+
+
+# AUTHORITATIVE PERF SWEEP (2026-08-06, HEAD a1bd7ea2)
+
+Full `yarn perf:bench`: 28 cells x 5 repeats x 2 renderers. Raw output in `.perf-results/`
+(gitignored). Ratios are uPlot/dygraph; under 1.000 means uPlot is cheaper. This supersedes every
+earlier number in this document.
+
+**Read three metrics, not one:**
+
+| metric | what it means | result |
+|---|---|---|
+| p50 per render | cost of one render call | uPlot cheaper in every cell: **0.028 - 0.644** (1.6x to 36x) |
+| task/render | whole-tab main-thread ms **per frame delivered** | uPlot cheaper in **all 20** rendering cells: **0.219 - 0.880** |
+| total task | whole-tab ms over a fixed wall-clock window | uPlot cheaper in **14 of 20**; higher in 6 |
+
+**All six cells where uPlot's total CPU is higher are cells where it delivered more frames:**
+
+| cell | total task | per frame | frames dyg -> uplot |
+|---|---|---|---|
+| stacked/hoverStreaming r1000 d20 c25 | 1.506 | 0.562 | 89 -> 240 (+170%) |
+| line/idle r1000 d100 c10 | 1.373 | 0.839 | 60 -> 98 (+63%) |
+| line/hoverStreaming r1000 d100 c25 | 1.241 | 0.726 | 85 -> 145 (+71%) |
+| line/hoverStreaming r1000 d20 c25 | 1.139 | 0.880 | 178 -> 230 (+29%) |
+| line/idle r5000 d3 c50 | 1.076 | 0.813 | 176 -> 234 (+33%) |
+| line/idle r5000 d20 c10 | 1.073 | 0.858 | 80 -> 100 (+25%) |
+
+The perf story streams at `update_every: 1`, so the target is **1.00 frame per chart per second**.
+Measured on the 25-chart cells:
+
+| cell | dygraph | uPlot |
+|---|---|---|
+| stacked/idle | 0.40/s | **1.01/s** |
+| stacked/hoverStreaming | 0.36/s | **0.96/s** |
+| heatmap/idle | 0.90/s | **1.03/s** |
+| heatmap/hoverStreaming | 0.96/s | **1.00/s** |
+| line/hoverStreaming d20 | 0.71/s | **0.92/s** |
+| line/hoverStreaming d100 | 0.34/s | **0.58/s** |
+
+uPlot is not over-rendering; it meets the requested update rate while dygraph drops up to 60% of
+frames. So the six "higher total CPU" cells are cells where dygraph was silently skipping work.
+
+**Hover gesture alone** (`hoverInteraction`, 0 renders on both sides): 0.955, 0.987, 1.020, 1.063 —
+parity.
+
+**Before and after the rebuild fix**, total task ratio:
+
+| cell | void sweep | now |
+|---|---|---|
+| line/idle r300 d3 c10 | 1.603 | **0.662** |
+| line/idle r300 d20 c10 | 1.657 | **0.657** |
+| line/idle r1000 d3 c10 | 1.518 | **0.659** |
+| stacked/idle | 0.955 | **0.551** |
+| heatmap/idle | 1.097 | **0.600** |
+
+Four cells remain skipped by the harness's 3M-point cap: 1000x100x50, 5000x20x50, 5000x100x10,
+5000x100x50.
+
+**Open question:** whether ~1 frame/s/chart is the right target, or whether frame delivery should be
+throttled independently of what the renderer can keep up with. That is a product decision, not a
+renderer one — dygraph's lower totals in those six cells come from dropping frames, not from being
+more efficient.

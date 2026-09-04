@@ -1,5 +1,6 @@
 import makeKeyboardListener from "@/helpers/makeKeyboardListener"
 import makeExecuteLatest from "@/helpers/makeExecuteLatest"
+import { timeRender } from "@/sdk/plugins/perfMonitor/registry"
 import formatNumber from "@/helpers/formatNumber"
 import convert from "@/helpers/units"
 import unitConversion from "@/helpers/unitConversion"
@@ -149,12 +150,15 @@ export default ({
       const chartUI = uiInstances[uiName]
       if (!chartUI?.render) return
 
+      const timedRender = () =>
+        timeRender(node.getId(), node.getAttribute("chartLibrary"), () => chartUI.render())
+
       if (chartUI.renderIfStale) {
-        chartUI.renderIfStale(chartUI.render)
+        chartUI.renderIfStale(timedRender)
         return
       }
 
-      chartUI.render()
+      timedRender()
     })
   })
 

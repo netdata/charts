@@ -1,0 +1,101 @@
+import {
+  setEnabled,
+  isEnabled,
+  record,
+  timeRender,
+  snapshot,
+  reset,
+  sampleHeap,
+} from "./registry"
+
+describe("perf registry", () => {
+  beforeEach(() => {
+    reset()
+    setEnabled(false)
+  })
+
+  it("records durations and computes per-renderer and overall stats", () => {
+    record("c1", "uplot", 10)
+    record("c1", "uplot", 20)
+    record("c1", "uplot", 30)
+
+    const snap = snapshot()
+    expect(snap.overall.count).toBe(3)
+    expect(snap.overall.p50).toBe(20)
+    expect(snap.overall.max).toBe(30)
+    expect(snap.renderers.uplot.count).toBe(3)
+  })
+
+  it("clears all samples on reset", () => {
+    record("c1", "dygraph", 5)
+    reset()
+    expect(snapshot().overall.count).toBe(0)
+  })
+
+  it("timeRender always calls fn but records only when enabled", async () => {
+    let calls = 0
+    const fn = () => {
+      calls++
+    }
+
+    timeRender("c1", "uplot", fn)
+    expect(calls).toBe(1)
+    expect(isEnabled()).toBe(false)
+    expect(snapshot().overall.count).toBe(0)
+
+    setEnabled(true)
+    expect(isEnabled()).toBe(true)
+    timeRender("c1", "uplot", fn)
+    expect(calls).toBe(2)
+
+    await Promise.resolve()
+    expect(snapshot().overall.count).toBe(1)
+  })
+
+  it("captures paint a renderer defers to a microtask during fn (batching renderers)", async () => {
+    setEnabled(true)
+
+    const busyWait = ms => {
+      const until = performance.now() + ms
+      while (performance.now() < until) {
+        /* spin */
+      }
+    }
+
+    timeRender("c1", "uplot", () => {
+      queueMicrotask(() => busyWait(5))
+    })
+
+    await Promise.resolve()
+    await Promise.resolve()
+
+    const snap = snapshot()
+    expect(snap.renderers.uplot.count).toBe(1)
+    expect(snap.renderers.uplot.max).toBeGreaterThanOrEqual(5)
+  })
+
+  it("reports heap unsupported when performance.memory is absent", () => {
+    sampleHeap()
+    expect(snapshot().heap.supported).toBe(false)
+  })
+
+  it("keeps stats separate when a chart id is recorded under two renderers", () => {
+    record("c1", "dygraph", 40)
+    record("c1", "uplot", 10)
+
+    const snap = snapshot()
+    expect(snap.renderers.dygraph.count).toBe(1)
+    expect(snap.renderers.dygraph.max).toBe(40)
+    expect(snap.renderers.uplot.count).toBe(1)
+    expect(snap.renderers.uplot.max).toBe(10)
+    expect(snap.overall.count).toBe(2)
+  })
+
+  it("caps stored samples per chart+renderer at 500 with FIFO eviction", () => {
+    Array.from({ length: 550 }, (_, i) => record("c1", "uplot", i))
+
+    const snap = snapshot()
+    expect(snap.renderers.uplot.count).toBe(500)
+    expect(snap.renderers.uplot.max).toBe(549)
+  })
+})
