@@ -6,21 +6,28 @@
 > remains the history + perf protocol; the older `uplot-prod-parity-gap-map.md` is superseded for
 > open items.
 
-> Working branch: `explore/uplot-spike`. Last updated: 2026-07-30.
+> Shipped as **PR #234** (branch `feat/uplot-renderer`), squashed from the `explore/uplot-spike`
+> spike branch, which is kept unsquashed as the history record. Last updated: 2026-09-04.
+>
+> **The renderer is opt-in; the shipped default stays `chartLibrary: "dygraph"`.** The flip is
+> deliberately out of the PR, gated on the real-dashboard measurement in "Task 3" below.
+>
+> Verified on the PR branch: full suite **184 suites / 1928 passing / 2 skipped**, of which the
+> uPlot renderer is **15 suites / 250 tests**; `yarn build` clean (537 CJS / 540 ES6).
 >
 > **Rebased onto `main` (#222–#229).** All of #222–#229 audited for uPlot parity drift: #222
 > (renderIfStale boolean contract) and non-stepped line smooth curves were ported (`b811b15`,
 > `01eb4a1`); the rest are NO-OP for uPlot. Full record: `docs/uplot-prod-parity-gap-map.md`
-> (RECONCILED section). Next: Task 3 — flip-the-default + real-dashboard perf (§6 below).
+> (RECONCILED section).
 > Background/decision: `docs/charting-library-exploration.md`. Design: `docs/uplot-migration-design.md`.
 > Phase 0 plan: `docs/uplot-phase0-plan.md`.
-> uPlot source reference (demos used throughout): `/Users/novykh/Projects/uPlot`.
+> uPlot source reference (demos used throughout): a local checkout of the uPlot repo.
 
 Goal: replace dygraphs with **uPlot** as the Netdata time-series renderer, incrementally, behind
 the SDK's `chartLibrary` abstraction. This doc is the pick-up point for a new session.
 
 ## Where it lives
-- Chart library: `src/chartLibraries/uplot/` (~930 LOC)
+- Chart library: `src/chartLibraries/uplot/` (~2,540 LOC excluding tests)
   - `index.js` — the chart-library module (the `(sdk, chart) => instance` contract)
   - `stacking.js` (+ `.test.js`) — pure diverging-stack math
   - `bars/` — vendored uPlot demo helpers: `quadtree.js`, `distr.js`, `stack.js`, `seriesBarsPlugin.js`
@@ -70,41 +77,80 @@ c09f56c feat: render modes — diverging stacked area + grouped/stacked bars
   longer throw on a non-dygraph renderer.
 
 ## Key gotchas / architecture notes
-- **uPlot needs its CSS** (`uplot/dist/uPlot.min.css`) — functional (layout/cursor), not cosmetic.
-  Loaded in `.storybook/preview.js`; a real consumer (cloud-frontend) must import it too.
-- **Bars use an ordinal x-scale** (`distr: 2`) via the plugin — a *different* uPlot config from the
-  line/area path (built in `createBars`, isolated from `create`). Bars therefore currently show
-  **raw timestamps on x** and don't emit SDK hover (the plugin owns its own cursor).
+- **uPlot's CSS is inlined, not imported.** The rules it actually needs (`.u-wrap`, `.u-over`,
+  `.u-under`, `.u-axis`, `.u-select`, `.u-cursor-*`, `.u-off`) live in
+  `components/line/chartContentWrapper.js`, scoped to the chart container. Upstream's remaining
+  selectors are legend/title chrome only, and the renderer sets `legend: { show: false }`
+  (`uplot/index.js:1418`) with no title — so **no consumer needs to import
+  `uplot/dist/uPlot.min.css`**. `.storybook/preview.js` imports it as well; that import is
+  redundant. (An earlier revision of this doc claimed consumers must import it. Wrong.)
+- **Bars no longer use a separate config.** The vendored `seriesBarsPlugin` and the isolated
+  `createBars` ordinal-x path are both gone; `isBarType` (`uplot/index.js:196`) branches inside the
+  single config, and bars share the time x-axis and the SDK hover bus — `highlightHover` fires from
+  `uplot/index.js:865-866` like every other type.
 - **The mock ignores requested points** (`makeMockPayload` emits `data.length` rows), so bars look
   dense in Storybook; production's 0.1 multiplier yields genuinely wide bars.
+- **A consumer's own component map must gain a `uplot` key — this fails silently.** A host that
+  maps `chartLibrary` → React component needs `uplot` pointing at the same generic
+  `components/line` component as dygraph (`components/line` has no renderer-specific branching; the
+  renderer is resolved from the attribute through `sdk.ui`). Verified in cloud-frontend:
+  `src/charts/index.js` has a `byType` map with a `dygraph` key and no `uplot` key, and its `Chart`
+  ends in `if (!Component) return null` — so setting `chartLibrary: "uplot"` renders **empty
+  containers with no console error and nothing thrown**. Cost us a debugging session; see Task 3
+  setup below.
 - **Renderer selection**: `chartLibrariesByType` maps a chart *type* → renderer. Auto-applying it at
   *initial* render (so a configured `line → uplot` applies before any toggle) is **deferred to the
   flip-the-default step** because `chartType` is payload-driven (`makeDataFetch.js:121`).
 
 ## Remaining work
-Prioritized; each needs Storybook visual verification (jsdom can't paint).
 
-1. **Heatmap** — not implemented. Reference: `uPlot/demos/latency-heatmap.html` (a `draw` hook
-   drawing colored cells with `valToPos` + `ctx`, series `paths: () => null` — same pattern as the
-   crosshair/stacked fills). Uses `chart.getHeatmapScale`/`getVisibleHeatmapIds`/`getHeatmapYIndex`.
-2. **Bars polish** — x-axis should show formatted time (currently raw timestamps); decide negative
-   handling (y is clamped `[0, max]`, so negatives are clipped); bars don't emit `highlightHover`
-   for cross-chart sync.
-3. **Overlays** — alert (alarm / alarmRange / alertTransitions / highlight), anomaly ribbon,
-   annotation strip are **dygraph-only**. Port to uPlot `draw` hooks (crosshair/stacked prove the
-   pattern). `components/line/overlays/annotation/index.js` is guarded by `chartLibrary === "dygraph"`.
-4. **Stacked area polish** — nulls are bridged (no gap handling); no top stroke; verify diverging
-   (mixed-sign) visually.
+> **Items 1–4 of this list were written 2026-07-15 (`efca3cc8`) and were never revised as the work
+> landed. They are corrected below.** If you are looking for open parity items, the live list is
+> `docs/uplot-parity-worklist.md` (§ "Queued work"), not this section.
+
+**Closed since that revision — do not re-report:**
+
+1. ~~**Heatmap** — not implemented.~~ **Done.** `drawHeatmap` (`uplot/index.js:555`), heatmap
+   y-axis, value range and tick density all present, following the `latency-heatmap` demo pattern.
+2. ~~**Bars polish** — raw timestamps on x; no `highlightHover`.~~ **Done.** The separate ordinal
+   config is gone; bars share the time x-axis and fire `highlightHover` (`uplot/index.js:865-866`).
+   Negative handling is resolved through `getBarValueRange` (`uplot/index.js:310`).
+3. ~~**Overlays** — alert / anomaly / annotation are dygraph-only.~~ **Done.** Seven overlays under
+   `chartLibraries/uplot/overlays/` (alarm, alarmRange, alertTransitions, annotation, highlight,
+   point, proceeded) plus the anomaly ribbon and anomaly-rate badge in `plotters/`, each with tests.
+   The `chartLibrary === "dygraph"` guard in `components/line/overlays/annotation/index.js` is gone.
+4. ~~**Stacked area polish** — nulls bridged, no top stroke.~~ **Done.** `traceStackTop`
+   (`uplot/index.js:106`, called at `:495`/`:508`) strokes the stack top; `gapEdgeIndexes`
+   (`uplot/index.js:91`, used at `:243`) handles gaps.
+
+**Still open:**
+
 5. **Multi-node / grouped payloads, groupBoxes/table/gauge/etc.** — untouched (still their own libs);
    only the time-series family is being moved.
-6. **Flip-the-default** — **flip wiring is DONE and tested** (`makeControllers.test.js:284–320`):
+6. **Flip-the-default.** The SDK-side wiring is DONE and tested (`makeControllers.test.js:277-355`):
    `chartLibrary` is the single selector, `chartLibrariesByType` defaults to `{}` and only overrides
    per-type, `getRendererForChartType` falls back to `chartLibrary`, `isTimeSeriesRenderer` uses the
-   `["dygraph","uplot"]` set. So the flip is a **one-attribute change**: set root
-   `chartLibrary: "uplot"` — timeseries charts inherit it, gauge/pie/table keep their own. The shipped
-   default stays `"dygraph"` until the real-dashboard go/no-go (protocol below). `yarn build` compiles
-   clean on this branch (531 CJS / 533 ES6), so `yarn to-cloud` is ready. **Still owed:** the
-   real-dashboard measurement (maintainer's env — jsdom/jest can't paint, Playwright not installed).
+   `["dygraph","uplot"]` set. Timeseries charts inherit the root attribute; gauge/pie/table keep
+   their own.
+
+   **Correction: this is NOT the "one-attribute change" earlier revisions of this doc claimed.** In
+   cloud-frontend it takes three changes, two of them permanent, and two of the three fail silently:
+   - `src/charts/index.js` — add `uplot: Line` to the `byType` map. Without it `Chart` hits
+     `if (!Component) return null` and every chart is an empty container, no console error.
+   - `src/domains/charts/toc/getMenuChartAttributes.js` — the returned attributes hardcode
+     `chartLibrary: "dygraph"`, spread into every menu chart by `getMenu.js:205`. It overrides the
+     root attribute, so without removing it the A/B measures dygraph on **both** runs.
+   - `src/components/sdkProvider/index.js` — the root `chartLibrary` attribute itself.
+
+   Roughly 33 further charts pin `chartLibrary: "dygraph"` per-context in cloud-frontend's
+   `contexts.js` and `taxonomy/*` and stay on dygraph regardless. That is not a blocker: the perf
+   HUD buckets samples per renderer (`perfMonitor/registry.js:23` keys on `chartId:renderer`), so a
+   single mixed run yields `renderers.uplot` and `renderers.dygraph` side by side on the same page.
+
+   The shipped default stays `"dygraph"` until the real-dashboard go/no-go (protocol below).
+   **Still owed:** that measurement. It needs a browser on a live streaming dashboard — jsdom/jest
+   cannot paint. Playwright *is* available (`playwright@1.62.1`, devDependency) and drives
+   `yarn perf:bench` against Storybook, but there is no driver for an authenticated cloud dashboard.
 7. **Bundle** — uPlot now ships with `makeDefaultSDK` for all consumers (~48KB). Fine for now;
    revisit at flip time if bundle size matters.
 8. **ECharts consolidation (Phase B)** — pie/gauge/easyPie/bars → ECharts. Not started.
@@ -248,20 +294,37 @@ captures pixels, so "renders once then stops" is invisible to it.
 ## Task 3 — real-dashboard measurement protocol (maintainer-run, many-runs for certainty)
 
 Why maintainer-run: real render+paint timing needs a real browser on a live streaming dashboard.
-jsdom/jest can't paint; the repo has no Playwright driver; the mock ratios above are not production
-numbers. The go/no-go is inherently an in-app measurement. The renderer + HUD are ready to ship it.
+jsdom/jest can't paint, and while Playwright is available (`playwright@1.62.1`) it only drives
+Storybook via `yarn perf:bench` — there is no driver for an authenticated cloud dashboard. The mock
+ratios above are not production numbers. The go/no-go is inherently an in-app measurement.
 
-Setup (once):
+Setup (once) — **all four steps verified 2026-09-04; steps 2 and 3 fail silently if skipped**:
 1. `yarn to-cloud` from `charts/` (builds CJS+ES6 and copies into cloud-frontend `node_modules`).
-2. In cloud-frontend, set the dashboard SDK root attributes `chartLibrary: "uplot"` and
-   `perfMonitor: true` (the HUD self-mounts to `document.body`; A/B by toggling `chartLibrary` back to
-   `"dygraph"` for the paired run). Keep everything else identical between the two runs of a pair.
+2. `cp -R node_modules/uplot ../cloud-frontend/node_modules/uplot`. `cp-cloud` copies `dist` only
+   and installs nothing, and the compiled renderer does `require("uplot")`
+   (`dist/chartLibraries/uplot/index.js`). Transitive resolution only kicks in after a real
+   publish + install, so for a local loop the module has to be physically present. No
+   `package.json` change is needed — see the CSS note in "Key gotchas": the stylesheet does *not*
+   need importing.
+3. In cloud-frontend, add `uplot: Line` to the `byType` map in `src/charts/index.js`, and remove the
+   hardcoded `chartLibrary: "dygraph"` from `src/domains/charts/toc/getMenuChartAttributes.js`.
+   Without the first, every chart is an empty container (`if (!Component) return null`, no error);
+   without the second, the per-chart attribute overrides the root one and both halves of the A/B
+   measure dygraph.
+4. Set the dashboard SDK root attributes `chartLibrary: "uplot"` and `perfMonitor: true` in
+   `src/components/sdkProvider/index.js` (the HUD self-mounts to `document.body`; A/B by toggling
+   `chartLibrary` back to `"dygraph"` for the paired run). Keep everything else identical between
+   the two runs of a pair. Do not run `yarn install` in cloud-frontend mid-measurement — it wipes
+   both the copied `dist` and `uplot`.
 
 Per data point (repeat for a matrix of dashboard sizes — e.g. a small ~10-chart view and a dense
 ~50+ chart view, on the same page, same time window, same theme):
 1. Load the page, let it stream to steady state (~15s), then HUD **reset** to start a clean window.
 2. Stream a fixed window — **≥60s** — untouched (no interaction; interaction jank is out of scope).
 3. HUD **copy** → paste the JSON (per-renderer `count`, `p50`/`p95`/`max` ms, current+peak heap).
+   Read the `renderers.<name>` entries, not `overall` — cloud-frontend pins ~33 charts to dygraph
+   per-context, so a run is mixed and `overall` blends both. `window.__netdataPerf.snapshot()` and
+   `.reset()` are exposed for driving this from the console instead of clicking.
 4. Toggle `chartLibrary` to the other renderer, repeat 1–3 for the paired run.
 5. **Repeat the whole pair ≥5 times** (fresh reload each time) to get variance — report mean ± stddev
    of the p50/p95 **ratio** (uPlot/dygraph), not single runs. The ratio cancels shared React/stream
@@ -270,8 +333,9 @@ Per data point (repeat for a matrix of dashboard sizes — e.g. a small ~10-char
 Go/no-go read: uPlot's p50 and p95 render cost should be ≤ dygraph's across every size, with the gap
 widening as chart density grows (the Storybook ratios predict 0.36–0.56× whole-tab, 0.06–0.17×
 isolated). Watch heap peak too (best-effort, Chrome-only). If uPlot wins consistently across the
-repeats, flip the shipped default to `chartLibrary: "uplot"` (one line in `makeDefaultSDK.js:42`);
-otherwise keep dygraph and file the regressions.
+repeats, flip the shipped default to `chartLibrary: "uplot"` (`makeDefaultSDK.js:42`) **and** land
+the permanent cloud-frontend changes from item 6 above; otherwise keep dygraph and file the
+regressions.
 
 Parity-consistency pass (run alongside perf, same build): with `chartLibrary: "uplot"`, walk the
 Storybook `Charts`/`RenderModes` stories and the real dashboard across all chart types (line, area,
@@ -285,10 +349,14 @@ timing spans the deferred paint (commit `8c8fbd2`).
 
 ## How to verify
 - Tests: `yarn jest --config ./jest/config.js src/chartLibraries/uplot/ --collectCoverage=false`
-  (24 renderer tests + 4 stacking-math tests). Full suite: `yarn jest --config ./jest/config.js`.
+  (**15 suites / 250 tests** as of 2026-09-04). Full suite: `yarn jest --config ./jest/config.js`
+  (**184 suites / 1928 passing / 2 skipped**). Build: `yarn build` (537 CJS / 540 ES6).
 - Visual: `yarn storybook` → any **Charts** story → toolbar **Chart library: uPlot** → switch chart
   types via the header toolbox. (Do NOT run dev servers on the maintainer's behalf — they verify.)
 
 ## Not ours (leave uncommitted)
-`src/components/toolbox/settings/numberFormat.js` (+ `.test.js`) are the maintainer's in-flight work;
-excluded from every commit.
+`docs/sre-exploration-audit.md` is the maintainer's own audit — untracked throughout and excluded
+from every commit.
+
+(Historical: `src/components/toolbox/settings/numberFormat.js` was listed here as in-flight
+maintainer work. It has since landed on `main` independently and is not part of this branch's diff.)
