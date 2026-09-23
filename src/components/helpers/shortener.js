@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react"
-import { mergeRefs } from "@netdata/netdata-ui"
+import { mergeRefs, Tooltip } from "@netdata/netdata-ui"
 import { shortenToWidth } from "@/helpers/shorten"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
-import Tooltip from "@/components/tooltip"
+import { DefaultContent } from "@/components/tooltip"
 
 const Shortener = ({ text, Component = "div", noTooltip, ref: forwardedRef, ...rest }) => {
   const [shortenText, setShortenText] = useState("")
@@ -27,7 +27,22 @@ const Shortener = ({ text, Component = "div", noTooltip, ref: forwardedRef, ...r
   }, [text, ref])
 
   return (
-    <Tooltip content={!noTooltip && shortenText ? text : ""} align="bottom" isBasic>
+    <Tooltip
+      plain
+      content={
+        !noTooltip && shortenText ? (
+          <DefaultContent align="bottom" isBasic>
+            {text}
+          </DefaultContent>
+        ) : (
+          ""
+        )
+      }
+      align="bottom"
+      isBasic
+      dropProps={{ "data-toolbox": undefined }}
+      zIndex={100}
+    >
       <Component truncate ref={mergeRefs(forwardedRef, setRef)} {...rest}>
         {text}
       </Component>
