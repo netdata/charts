@@ -38,8 +38,7 @@ export const Title = props => {
           text={contextScope && contextScope.length ? contextScope.join(", ") : name}
         >
           <TextSmall color="textLite" whiteSpace="nowrap">
-            {title ? "• " : ""}
-            {name}
+            {`${title ? "• " : ""}${name}`}
           </TextSmall>
         </CopyToClipboard>
       )}

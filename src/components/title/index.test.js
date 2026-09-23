@@ -1,8 +1,8 @@
 import React from "react"
-import { screen } from "@testing-library/react"
+import { screen, act } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { DarkTheme, DefaultTheme } from "@netdata/netdata-ui"
-import { renderWithChart } from "@jest/testUtilities"
+import { renderWithChart, simulateTranslate, collectRenderErrors } from "@jest/testUtilities"
 import { Title } from "./index"
 
 describe("Title component", () => {
@@ -237,5 +237,18 @@ describe("Title component", () => {
 
     expect(screen.getByText("Memory Usage")).toBeInTheDocument()
     expect(screen.queryByText(/\[.*\]/)).not.toBeInTheDocument()
+  })
+
+  it("survives page translation when the title arrives after the name", () => {
+    const { container, chart } = renderWithChart(<Title />, {
+      attributes: { title: "", name: "system.cpu", isMinimal: false },
+    })
+    simulateTranslate(container)
+
+    expect(
+      collectRenderErrors(() => act(() => chart.updateAttribute("title", "CPU Usage")))
+    ).toEqual([])
+    expect(screen.getByText(/system\.cpu/).textContent).toBe("• system.cpu")
+    expect(screen.getByTestId("chartHeaderStatus-title").textContent).toBe("CPU Usage• system.cpu")
   })
 })
