@@ -22,6 +22,6 @@ describe("AnnotationContent", () => {
     expect(
       collectRenderErrors(() => rerender(<AnnotationContent annotation={withoutAuthor} />))
     ).toEqual([])
-    expect(container).toHaveTextContent("• Info")
+    expect(container.textContent).toBe("DeployTue, Nov 14, 2023 • 22:13:20 • Info")
   })
 })

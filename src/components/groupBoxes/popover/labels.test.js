@@ -36,7 +36,6 @@ describe("groupBoxes popover Labels", () => {
         rerender(<Labels label="dimA" groupLabel="Group" data={[1700000000]} id="dimA" />)
       )
     ).toEqual([])
-    expect(container).toHaveTextContent("Group")
-    expect(container).toHaveTextContent("-")
+    expect(container.textContent).toBe("GroupdimA-")
   })
 })

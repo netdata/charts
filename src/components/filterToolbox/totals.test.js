@@ -12,7 +12,7 @@ describe("Totals", () => {
     simulateTranslate(container)
 
     expect(collectRenderErrors(() => rerender(<Totals {...after} />))).toEqual([])
-    expect(container).toHaveTextContent("5 queried+ 3failed of 10 selectedof 10 available")
+    expect(container.textContent).toBe("5 queried+ 3failed of 10 selectedof 10 available")
   })
 
   it("survives page translation when couldBeMore goes from false to true", () => {
@@ -23,6 +23,6 @@ describe("Totals", () => {
     simulateTranslate(container)
 
     expect(collectRenderErrors(() => rerender(<Totals {...after} />))).toEqual([])
-    expect(container).toHaveTextContent("7 of 10 nodes")
+    expect(container.textContent).toBe("7 of 10 nodes")
   })
 })
