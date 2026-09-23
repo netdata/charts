@@ -96,6 +96,41 @@ describe("Tooltip component", () => {
     // Tooltip should not appear when disabled
     expect(screen.queryByText("Should not show")).not.toBeInTheDocument()
   })
+
+  it("keeps the same child DOM node when content toggles empty/non-empty", () => {
+    const { rerender } = renderWithChart(
+      <Tooltip content="">
+        <button data-testid="target">Target</button>
+      </Tooltip>
+    )
+    const initial = screen.getByTestId("target")
+
+    rerender(
+      <Tooltip content="Now with content">
+        <button data-testid="target">Target</button>
+      </Tooltip>
+    )
+    expect(screen.getByTestId("target")).toBe(initial)
+
+    rerender(
+      <Tooltip content="">
+        <button data-testid="target">Target</button>
+      </Tooltip>
+    )
+    expect(screen.getByTestId("target")).toBe(initial)
+  })
+
+  it("shows no tooltip on hover when content is empty", async () => {
+    const { user } = renderWithChart(
+      <Tooltip content="">
+        <button>Hover target</button>
+      </Tooltip>
+    )
+
+    await user.hover(screen.getByText("Hover target"))
+
+    expect(screen.getByText("Hover target")).not.toHaveAttribute("aria-describedby")
+  })
 })
 
 describe("withTooltip HOC", () => {
@@ -139,6 +174,26 @@ describe("withTooltip HOC", () => {
     renderWithChart(<WrappedComponent>No tooltip</WrappedComponent>)
 
     expect(screen.getByTestId("no-title")).toBeInTheDocument()
+  })
+
+  it("shows the title as tooltip content on hover", async () => {
+    const TestComponent = props => <button {...props}>Target</button>
+    const WrappedComponent = withTooltip(TestComponent)
+
+    const { user } = renderWithChart(<WrappedComponent title="Wrapped title" />)
+    await user.hover(screen.getByText("Target"))
+
+    expect(await screen.findByText("Wrapped title")).toBeInTheDocument()
+  })
+
+  it("shows no tooltip on hover when title is absent", async () => {
+    const TestComponent = props => <button {...props}>Target</button>
+    const WrappedComponent = withTooltip(TestComponent)
+
+    const { user } = renderWithChart(<WrappedComponent />)
+    await user.hover(screen.getByText("Target"))
+
+    expect(screen.getByText("Target")).not.toHaveAttribute("aria-describedby")
   })
 })
 
