@@ -26,7 +26,7 @@ const Totals = ({
   return (
     <TextMicro color="textLite">
       <TextMicro color={teaser ? "text" : "primary"}>{queriedSelectedCount}</TextMicro>
-      {!teaser ? " queried" : " "}
+      <span>{!teaser ? " queried" : " "}</span>
       {!teaser && (
         <Icon
           margin={[-0.5, 1, -0.5, 0]}
@@ -38,9 +38,9 @@ const Totals = ({
       )}
       {!!fl && (
         <>
-          {!teaser ? "+ " : <TextMicro color="errorLite"> +</TextMicro>}
+          {!teaser ? <span>+ </span> : <TextMicro color="errorLite"> +</TextMicro>}
           <TextMicro color="errorLite">{fl}</TextMicro>
-          {!teaser ? "failed " : " "}
+          <span>{!teaser ? "failed " : " "}</span>
           <Icon
             margin={[-0.5, 1, -0.5, 0]}
             width="14px"
@@ -52,18 +52,23 @@ const Totals = ({
       )}
       {couldBeMore && (
         <>
-          of <TextMicro color={teaser ? "textLite" : "text"}>{possiblesCount}</TextMicro>
-          {!teaser ? " selected" : " "}
+          <span>of </span>
+          <TextMicro color={teaser ? "textLite" : "text"}>{possiblesCount}</TextMicro>
+          <span>{!teaser ? " selected" : " "}</span>
         </>
       )}
       {!teaser && qr !== total && (
         <>
-          of <TextMicro>{total}</TextMicro> available
+          <span>of </span>
+          <TextMicro>{total}</TextMicro>
+          <span> available</span>
         </>
       )}
-      {resourceName
-        ? chart.intl(resourceName, { count: couldBeMore ? possiblesCount : queriedSelectedCount })
-        : ""}
+      <span>
+        {resourceName
+          ? chart.intl(resourceName, { count: couldBeMore ? possiblesCount : queriedSelectedCount })
+          : ""}
+      </span>
     </TextMicro>
   )
 }

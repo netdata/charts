@@ -65,7 +65,9 @@ const Labels = ({ label, groupLabel, data, id, ref }) => {
             height="18px"
           />
           <TextMicro padding={[1.5, 2]} strong>
-            {convertedValue} {convertedValue !== "-" && convertedUnit}
+            {convertedValue !== "-" && convertedUnit
+              ? `${convertedValue} ${convertedUnit}`
+              : `${convertedValue}`}
           </TextMicro>
         </Flex>
       </Flex>

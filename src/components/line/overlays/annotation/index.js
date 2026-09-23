@@ -65,7 +65,7 @@ const StyledAnnotation = styled(Flex).attrs(({ isSynced }) => ({
   `}
 `
 
-const AnnotationContent = memo(({ annotation }) => {
+export const AnnotationContent = memo(({ annotation }) => {
   const chart = useChart()
   const { text, timestamp, author, color, priority } = annotation
 
@@ -87,8 +87,13 @@ const AnnotationContent = memo(({ annotation }) => {
           {text}
         </TextSmall>
         <TextMicro color="textLite">
-          {chart.formatDate(timestamp * 1000)} • {chart.formatTime(timestamp * 1000)}{" "}
-          {priorityInfo && `• ${priorityInfo.label}`} {author && `• ${author}`}
+          {[
+            `${chart.formatDate(timestamp * 1000)} • ${chart.formatTime(timestamp * 1000)}`,
+            priorityInfo && `• ${priorityInfo.label}`,
+            author && `• ${author}`,
+          ]
+            .filter(Boolean)
+            .join(" ")}
         </TextMicro>
       </Flex>
     </Flex>
