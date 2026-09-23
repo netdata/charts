@@ -10,7 +10,7 @@ export const tooltipStyleProps = {
   background: "tooltip",
 }
 
-export const DefaultContent = ({ children, ...rest }) => (
+const DefaultContent = ({ children, ...rest }) => (
   <Flex {...tooltipStyleProps} {...rest}>
     <TextSmall color="tooltipText" wordBreak="break-word">
       {children}
@@ -18,18 +18,15 @@ export const DefaultContent = ({ children, ...rest }) => (
   </Flex>
 )
 
-const Tooltip = ({ content, Content = DefaultContent, ...rest }) =>
-  content ? (
-    <BaseTooltip
-      plain
-      content={<Content {...rest}>{content}</Content>}
-      {...rest}
-      dropProps={{ "data-toolbox": rest["data-toolbox"] }}
-      zIndex={100}
-    />
-  ) : (
-    rest.children
-  )
+const Tooltip = ({ content, Content = DefaultContent, ...rest }) => (
+  <BaseTooltip
+    plain
+    content={content ? <Content {...rest}>{content}</Content> : ""}
+    {...rest}
+    dropProps={{ "data-toolbox": rest["data-toolbox"] }}
+    zIndex={100}
+  />
+)
 
 export const withTooltip =
   (Component, tooltipDefaultProps = {}) =>
