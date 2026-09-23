@@ -248,5 +248,7 @@ describe("Title component", () => {
     expect(
       collectRenderErrors(() => act(() => chart.updateAttribute("title", "CPU Usage")))
     ).toEqual([])
+    expect(screen.getByText(/system\.cpu/).textContent).toBe("• system.cpu")
+    expect(screen.getByTestId("chartHeaderStatus-title").textContent).toBe("CPU Usage• system.cpu")
   })
 })
