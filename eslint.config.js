@@ -2,6 +2,7 @@ const globals = require("globals")
 const pluginJs = require("@eslint/js")
 const pluginReact = require("eslint-plugin-react")
 const storybook = require("eslint-plugin-storybook")
+const translationSafeText = require("./eslint/rules/translationSafeText")
 
 module.exports = [
   { files: ["**/*.{js,mjs,cjs,jsx}"] },
@@ -25,6 +26,12 @@ module.exports = [
       "react/prop-types": "off",
       "react/display-name": "off",
     },
+  },
+  {
+    files: ["src/**/*.{js,jsx}"],
+    ignores: ["**/*.test.js", "**/*.stories.js"],
+    plugins: { local: { rules: { "translation-safe-text": translationSafeText } } },
+    rules: { "local/translation-safe-text": "error" },
   },
   {
     ignores: [
