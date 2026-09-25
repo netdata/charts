@@ -101,7 +101,15 @@ export default chartUI => {
   let dygraphLastTouchMove = 0
   let dygraphLastTouchPageX = 0
 
+  const hasValidTouchTargets = touches =>
+    Array.from(touches).every(touch => typeof touch.target?.getBoundingClientRect === "function")
+
   const touchStart = (event, dygraph, context) => {
+    if (!hasValidTouchTargets(event.touches)) {
+      context.initialTouches = null
+      return
+    }
+
     Dygraph.defaultInteractionModel.touchstart(event, dygraph, context)
 
     context.touchDirections = { x: true, y: false }
@@ -111,6 +119,8 @@ export default chartUI => {
   }
 
   const touchMove = (event, dygraph, context) => {
+    if (!context.initialTouches) return
+
     Dygraph.defaultInteractionModel.touchmove(event, dygraph, context)
 
     if (!dygraphLastTouchMove) chartUI.sdk.trigger("panStart", chartUI.chart)
@@ -129,7 +139,11 @@ export default chartUI => {
 
     lastTouchEndTime = now
 
-    Dygraph.defaultInteractionModel.touchend(event, dygraph, context)
+    if (event.touches.length > 0 && !hasValidTouchTargets(event.touches)) {
+      context.initialTouches = null
+    } else {
+      Dygraph.defaultInteractionModel.touchend(event, dygraph, context)
+    }
 
     if (dygraphLastTouchMove === 0 && dygraphLastTouchPageX !== 0) {
       chartUI.chart.updateAttribute("clickX", [context.initialTouches?.[0]?.dataX, null])
