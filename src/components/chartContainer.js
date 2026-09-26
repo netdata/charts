@@ -1,15 +1,16 @@
 import React, { useLayoutEffect, useRef } from "react"
 import { Flex } from "@netdata/netdata-ui"
-import { useChart } from "@/components/provider"
+import { useChartUI } from "@/components/provider"
 
 const ChartContainer = ({ uiName, ...rest }) => {
-  const chart = useChart()
+  const chartUI = useChartUI(uiName)
   const ref = useRef()
 
   useLayoutEffect(() => {
-    chart.getUI(uiName).mount(ref.current)
-    return () => chart.getUI(uiName) && chart.getUI(uiName).unmount()
-  }, [])
+    const element = ref.current
+    if (chartUI.getElement() !== element) chartUI.mount(element)
+    return () => chartUI.getElement() === element && chartUI.unmount()
+  }, [chartUI])
 
   return (
     <Flex

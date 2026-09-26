@@ -9,6 +9,7 @@ export default ({
   plugins: defaultPlugins = {},
   attributes: defaultAttributes = {},
   on = {},
+  rendererPolicy = null,
 }) => {
   const listeners = makeListeners()
   const attributes = { ui }
@@ -42,18 +43,29 @@ export default ({
 
   const makeChartCore = options => makeChart({ sdk: instance, ...options })
 
+  const getPreferredRenderer = (chart, visualization) =>
+    rendererPolicy?.({ chart, visualization, sdk: instance }) || null
+
   const makeChartUI = chart => {
     const chartLibrary = chart.getAttribute("chartLibrary", defaultAttributes.chartLibrary)
+    const renderer = chart.getActiveRenderer?.() || chartLibrary
 
-    if (!(chartLibrary in attributes.ui))
+    if (!(renderer in attributes.ui))
       console.error(
-        `Chart library "${chartLibrary}" does not exist in ${Object.keys(attributes.ui).join(", ")}`
+        `Chart renderer "${renderer}" does not exist in ${Object.keys(attributes.ui).join(", ")}`
       )
 
-    const makeChartLibrary = attributes.ui[chartLibrary]
+    const makeRenderer = attributes.ui[renderer]
 
-    return makeChartLibrary(instance, chart)
+    return makeRenderer(instance, chart)
   }
+
+  const getRendererDiagnostics = () =>
+    Object.fromEntries(
+      Object.entries(attributes.ui)
+        .filter(([, makeRenderer]) => makeRenderer.getDiagnostics)
+        .map(([name, makeRenderer]) => [name, makeRenderer.getDiagnostics(instance)])
+    )
 
   const makeSDKChart = (options = {}) => {
     const chart = makeChartCore(options)
@@ -81,6 +93,8 @@ export default ({
     register,
     unregister,
     addUI,
+    getPreferredRenderer,
+    getRendererDiagnostics,
     makeChartCore,
     makeChartUI,
     makeChart: makeSDKChart,

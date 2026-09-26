@@ -1,0 +1,760 @@
+import makeDefaultSDK from "@/makeDefaultSDK"
+import {
+  disposeWebGPURuntime,
+  getWebGPURuntime,
+} from "@/chartLibraries/webgpu/engine/runtime"
+import {
+  disposeWebGL2Runtime,
+  getActiveWebGL2Contexts,
+  getWebGL2Runtime,
+} from "@/chartLibraries/webgl2/engine/runtime"
+
+const width = 1600
+const height = 500
+const intervalMs = 1000
+
+const getActiveRenderer = chart =>
+  chart.getRendererState?.().active || chart.getAttribute("chartLibrary")
+
+const quantile = (values, fraction) => {
+  const sorted = [...values].sort((a, b) => a - b)
+  return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * fraction))]
+}
+
+const summarize = values => ({
+  count: values.length,
+  min: Math.min(...values),
+  median: quantile(values, 0.5),
+  p95: quantile(values, 0.95),
+  max: Math.max(...values),
+})
+
+const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve))
+const measureFrameInterval = async () => {
+  const timestamps = []
+  for (let index = 0; index < 8; index++) {
+    timestamps.push(await new Promise(resolve => requestAnimationFrame(resolve)))
+  }
+  return quantile(
+    timestamps.slice(1).map((timestamp, index) => timestamp - timestamps[index]),
+    0.5
+  )
+}
+const collectMemory = () => performance.memory?.usedJSHeapSize ?? null
+const setStatus = message => {
+  const status = document.getElementById("benchmark-status")
+  if (status) status.textContent = message
+}
+
+const forceGc = async () => {
+  if (typeof window.gc === "function") window.gc()
+  await new Promise(resolve => setTimeout(resolve, 25))
+  if (typeof window.gc === "function") window.gc()
+}
+
+const makeData = (dimensions, points, revision, profile) => {
+  const start = 1783630694000
+  return Array.from({ length: points }, (_, pointIndex) => {
+    const row = new Array(dimensions + 1)
+    row[0] = start + pointIndex * intervalMs
+
+    for (let dimensionIndex = 0; dimensionIndex < dimensions; dimensionIndex++) {
+      if (profile === "area-overlap") {
+        row[dimensionIndex + 1] = dimensionIndex === 0 ? 75 : 50
+        continue
+      }
+      if (profile === "stacked-diverging") {
+        row[dimensionIndex + 1] = [2, -1, 0.5][dimensionIndex % 3]
+        continue
+      }
+      if (profile === "multi-bar") {
+        row[dimensionIndex + 1] = [2, 1, -1][dimensionIndex % 3]
+        continue
+      }
+      if (profile === "heatmap") {
+        row[dimensionIndex + 1] = [90, 45, 0][dimensionIndex % 3]
+        continue
+      }
+      if (profile === "easy-pie") {
+        row[dimensionIndex + 1] = [75, -25][dimensionIndex % 2]
+        continue
+      }
+      if (profile === "easy-pie-negative") {
+        row[dimensionIndex + 1] = [-75, 25][dimensionIndex % 2]
+        continue
+      }
+      if (profile === "d3-pie") {
+        row[dimensionIndex + 1] = [7, 1, 6, 2, 5, 3, 4][dimensionIndex % 7]
+        continue
+      }
+      const phase = pointIndex * 0.017 + dimensionIndex * 0.031 + revision * 0.13
+      row[dimensionIndex + 1] = Math.sin(phase) * 70 + Math.cos(phase * 0.37) * 20
+    }
+    return row
+  })
+}
+
+const makeChart = state => {
+  const chart = state.sdk.makeChart()
+  chart.on("rendererFallback", (failedRenderer, error) => {
+    state.fallbackErrors.push(`${failedRenderer} fallback: ${error?.stack || error}`)
+  })
+  state.sdk.appendChild(chart)
+
+  let revision = 0
+  const payloads = state.datasets.map(data => ({
+    labels: ["time", ...state.ids],
+    data,
+    all: data,
+    tree: {},
+  }))
+  chart.getPayload = () => payloads[revision]
+  if (new Set(["d3pie", "heatmap"]).has(state.visualization))
+    chart.getDimensionValue = (id, index, options) =>
+      chart.getRowDimensionValue(id, state.datasets[revision][index], options)
+  chart.updateAttributes({
+    chartType: state.visualization,
+    loaded: true,
+    loading: false,
+    processing: false,
+    panning: false,
+    highlighting: false,
+    outOfLimits: false,
+    min: state.range[0],
+    max: state.range[1],
+    valueRange: state.range,
+    ...(state.colors && { colors: state.colors }),
+    ...state.chartAttributes,
+    viewDimensions: {
+      ids: state.ids,
+      names: state.ids,
+      count: state.ids.length,
+      priorities: state.ids.map((_, index) => index),
+      grouped: state.ids.map(() => "dimension"),
+      units: state.ids.map(() => "units"),
+      contexts: state.ids.map(() => "benchmark.context"),
+      sts: state.ids.map(() => 0),
+      algorithm: "absolute",
+    },
+  })
+  chart.updateDimensions()
+  chart.reconcileRenderer()
+
+  if (getActiveRenderer(chart) !== state.renderer) {
+    throw new Error(`Expected ${state.renderer} but routed to ${getActiveRenderer(chart)}`)
+  }
+
+  const element = document.createElement("div")
+  element.dataset.benchmarkChart = "true"
+  element.style.width = `${width}px`
+  element.style.height = `${height}px`
+  document.body.appendChild(element)
+
+  return {
+    chart,
+    element,
+    get ui() {
+      return chart.getUI()
+    },
+    setRevision: nextRevision => {
+      revision = nextRevision
+    },
+    destroy: () => {
+      chart.getUI().unmount()
+      state.sdk.removeChild(chart.getId())
+      element.remove()
+    },
+  }
+}
+
+const settle = async (instance, startedAt = performance.now()) => {
+  await instance.ui.whenReady?.()
+  if (getActiveRenderer(instance.chart) !== prepared.renderer) {
+    const runtimeFailure = prepared.runtime?.lastFailure
+    throw new Error(
+      prepared.fallbackErrors.at(-1) ||
+        (runtimeFailure && `${runtimeFailure.reason}: ${runtimeFailure.message}`) ||
+        `Renderer fell back to ${getActiveRenderer(instance.chart)}`
+    )
+  }
+  await instance.ui.getQueueDone?.()
+  const workCompletionMs = performance.now() - startedAt
+  await nextFrame()
+  return { workCompletionMs, frameMs: performance.now() - startedAt }
+}
+
+let prepared = null
+let preview = null
+
+const prepare = async ({
+  renderer,
+  dimensions,
+  points,
+  gaps = false,
+  visualization = "line",
+  profile = "wave",
+  range = [-90, 90],
+  colors = null,
+  ids = null,
+  chartAttributes = null,
+}) => {
+  if (prepared) throw new Error("Benchmark state already prepared")
+  if (!new Set(["d3pie", "dygraph", "easypiechart", "gauge", "webgpu", "webgl2"]).has(renderer))
+    throw new Error("Unknown renderer")
+  if (
+    !new Set([
+      "line",
+      "area",
+      "d3pie",
+      "easypiechart",
+      "gauge",
+      "heatmap",
+      "multiBar",
+      "stacked",
+      "stackedBar",
+    ]).has(visualization)
+  )
+    throw new Error("Unknown visualization")
+
+  setStatus(`Preparing ${renderer} ${visualization}: ${dimensions * points} values`)
+  const datasets = [
+    makeData(dimensions, points, 0, profile),
+    makeData(dimensions, points, 1, profile),
+  ]
+  if (gaps && points > 2) {
+    const gapIndex = Math.floor(points / 2)
+    datasets.forEach(data => {
+      data[gapIndex][1] = null
+    })
+  }
+  const fallbackErrors = []
+  const sdk = makeDefaultSDK({
+    rendererPolicy: () => renderer,
+    on: {
+      rendererFallback: (chart, failedRenderer, error) => {
+        const message = `${failedRenderer} fallback: ${error?.stack || error}`
+        fallbackErrors.push(message)
+        console.error(message)
+      },
+    },
+    attributes: {
+      autofetch: false,
+      after: datasets[0][0][0] / 1000,
+      before: datasets[0][points - 1][0] / 1000,
+      themeGridColor: ["transparent", "transparent"],
+    },
+  })
+  prepared = {
+    renderer,
+    visualization,
+    dimensions,
+    points,
+    gaps,
+    profile,
+    range,
+    colors,
+    ids: ids || Array.from({ length: dimensions }, (_, index) => `series-${index}`),
+    chartAttributes,
+    datasets,
+    sdk,
+    runtime: null,
+    runtimeLease: false,
+    fallbackErrors,
+  }
+
+  let coldRuntimeMs = null
+  let adapterInfo = null
+  if (renderer === "webgpu") {
+    prepared.runtime = getWebGPURuntime(sdk)
+    const startedAt = performance.now()
+    await prepared.runtime.acquire()
+    coldRuntimeMs = performance.now() - startedAt
+    prepared.runtimeLease = true
+    const { info = {} } = prepared.runtime.adapter
+    adapterInfo = {
+      vendor: info.vendor || null,
+      architecture: info.architecture || null,
+      device: info.device || null,
+      description: info.description || null,
+    }
+  } else if (renderer === "webgl2") {
+    prepared.runtime = getWebGL2Runtime(sdk)
+    const startedAt = performance.now()
+    await prepared.runtime.acquire()
+    coldRuntimeMs = performance.now() - startedAt
+    prepared.runtimeLease = true
+    adapterInfo = prepared.runtime.info
+  }
+
+  await forceGc()
+  const displayFrameIntervalMs = await measureFrameInterval()
+  return {
+    renderer,
+    visualization,
+    dimensions,
+    points,
+    values: dimensions * points,
+    coldRuntimeMs,
+    adapterInfo,
+    displayFrameIntervalMs,
+    memoryBefore: collectMemory(),
+  }
+}
+
+const measureMultiChart = async (count = 4) => {
+  if (prepared.renderer === "dygraph") return null
+  const instances = Array.from({ length: count }, () => makeChart(prepared))
+  const mountStartedAt = performance.now()
+  instances.forEach(instance => instance.ui.mount(instance.element))
+  await Promise.all(instances.map(instance => instance.ui.whenReady()))
+  if (
+    instances.some(
+      instance => getActiveRenderer(instance.chart) !== prepared.renderer
+    )
+  )
+    throw new Error(`A multi-chart ${prepared.renderer} instance failed`)
+  await Promise.all(instances.map(instance => instance.ui.getQueueDone()))
+  await nextFrame()
+  const mountMs = performance.now() - mountStartedAt
+  const resourceReferencesDuring = prepared.runtime.references
+  const sharedResourceBytes = prepared.runtime.getResourceBytes?.() || 0
+
+  const updateStartedAt = performance.now()
+  instances.forEach(instance => {
+    instance.setRevision(1)
+    instance.ui.invalidateRender()
+    instance.ui.render()
+  })
+  await Promise.all(instances.map(instance => instance.ui.getQueueDone()))
+  await nextFrame()
+  const updateMs = performance.now() - updateStartedAt
+  const gpuBufferBytes = instances.reduce(
+    (total, instance) => total + (instance.ui.getBufferBytes?.() || 0),
+    0
+  )
+
+  instances.forEach(instance => instance.destroy())
+  const resourceReferencesAfter = prepared.runtime.references
+  return {
+    count,
+    mountMs,
+    updateMs,
+    gpuBufferBytes,
+    sharedResourceBytes,
+    resourceReferencesDuring,
+    resourceReferencesAfter,
+  }
+}
+
+const measure = async ({ mountSamples = 3, updateSamples = 10, sustainedMs = 3000 } = {}) => {
+  if (!prepared) throw new Error("Benchmark state has not been prepared")
+  setStatus(
+    `Running ${prepared.renderer} ${prepared.visualization}: ${
+      prepared.dimensions * prepared.points
+    } values`
+  )
+
+  let pipelineWarmupMs = null
+  if (prepared.renderer !== "dygraph") {
+    const warmup = makeChart(prepared)
+    const startedAt = performance.now()
+    warmup.ui.mount(warmup.element)
+    await settle(warmup)
+    pipelineWarmupMs = performance.now() - startedAt
+    warmup.destroy()
+    await forceGc()
+  }
+
+  const mountSync = []
+  const mountWorkCompletion = []
+  const mountFrame = []
+  for (let index = 0; index < mountSamples; index++) {
+    const instance = makeChart(prepared)
+    await nextFrame()
+    const startedAt = performance.now()
+    instance.ui.mount(instance.element)
+    mountSync.push(performance.now() - startedAt)
+    const settlement = await settle(instance, startedAt)
+    mountWorkCompletion.push(settlement.workCompletionMs)
+    mountFrame.push(settlement.frameMs)
+    instance.destroy()
+    await forceGc()
+  }
+
+  const instance = makeChart(prepared)
+  instance.ui.mount(instance.element)
+  await settle(instance)
+  let peakMemory = collectMemory()
+
+  for (let index = 0; index < 2; index++) {
+    instance.setRevision((index + 1) % 2)
+    instance.ui.invalidateRender()
+    instance.ui.render()
+    await settle(instance)
+  }
+
+  const updateSync = []
+  const updateWorkCompletion = []
+  const updateFrame = []
+  for (let index = 0; index < updateSamples; index++) {
+    instance.setRevision(index % 2)
+    instance.ui.invalidateRender()
+    const startedAt = performance.now()
+    instance.ui.render()
+    updateSync.push(performance.now() - startedAt)
+    const settlement = await settle(instance, startedAt)
+    updateWorkCompletion.push(settlement.workCompletionMs)
+    updateFrame.push(settlement.frameMs)
+    peakMemory = Math.max(peakMemory || 0, collectMemory() || 0)
+  }
+
+  const sustainedDurations = []
+  const sustainedStartedAt = performance.now()
+  let sustainedUpdates = 0
+  while (performance.now() - sustainedStartedAt < sustainedMs) {
+    instance.setRevision(sustainedUpdates % 2)
+    instance.ui.invalidateRender()
+    const updateStartedAt = performance.now()
+    instance.ui.render()
+    await settle(instance)
+    sustainedDurations.push(performance.now() - updateStartedAt)
+    sustainedUpdates += 1
+    peakMemory = Math.max(peakMemory || 0, collectMemory() || 0)
+  }
+  const sustainedElapsedMs = performance.now() - sustainedStartedAt
+  const gpuBufferBytes = instance.ui.getBufferBytes?.() || 0
+  const exportCanvas = instance.ui.getCanvas?.() || instance.element.querySelector("canvas")
+  const exportDataUrlBytes = exportCanvas?.toDataURL("image/png").length || 0
+
+  instance.destroy()
+  const multiChart = await measureMultiChart()
+  await forceGc()
+  const retainedMemory = collectMemory()
+
+  setStatus(
+    `Completed ${prepared.renderer} ${prepared.visualization}: ${
+      prepared.dimensions * prepared.points
+    } values`
+  )
+  return {
+    renderer: prepared.renderer,
+    visualization: prepared.visualization,
+    dimensions: prepared.dimensions,
+    points: prepared.points,
+    values: prepared.dimensions * prepared.points,
+    canvas: { width, height, devicePixelRatio: window.devicePixelRatio },
+    pipelineWarmupMs,
+    mountSyncMs: summarize(mountSync),
+    mountWorkCompletionMs: summarize(mountWorkCompletion),
+    mountFrameMs: summarize(mountFrame),
+    updateSyncMs: summarize(updateSync),
+    updateWorkCompletionMs: summarize(updateWorkCompletion),
+    updateFrameMs: summarize(updateFrame),
+    sustained: {
+      elapsedMs: sustainedElapsedMs,
+      updates: sustainedUpdates,
+      updatesPerSecond: (sustainedUpdates * 1000) / sustainedElapsedMs,
+      updateFrameMs: summarize(sustainedDurations),
+      missedFrameBudget: sustainedDurations.filter(value => value > 1000 / 60).length,
+    },
+    gpuBufferBytes,
+    exportDataUrlBytes,
+    multiChart,
+    peakMemory,
+    retainedMemory,
+  }
+}
+
+const mountPreview = async ({
+  stepped = false,
+  visibleDimensionIds = null,
+  enabledXAxis,
+  enabledYAxis,
+  width: previewWidth,
+  height: previewHeight,
+} = {}) => {
+  if (!prepared) throw new Error("Benchmark state has not been prepared")
+  if (preview) throw new Error("Preview is already mounted")
+
+  preview = makeChart(prepared)
+  if (previewWidth) preview.element.style.width = `${previewWidth}px`
+  if (previewHeight) preview.element.style.height = `${previewHeight}px`
+  if (prepared.renderer === "gauge") preview.element.appendChild(document.createElement("canvas"))
+  preview.chart.updateAttribute("stepPlot", stepped)
+  if (enabledXAxis !== undefined) preview.chart.updateAttribute("enabledXAxis", enabledXAxis)
+  if (enabledYAxis !== undefined) preview.chart.updateAttribute("enabledYAxis", enabledYAxis)
+  if (visibleDimensionIds) {
+    preview.chart.updateAttribute("selectedLegendDimensions", visibleDimensionIds)
+  }
+  preview.ui.mount(preview.element)
+  await settle(preview)
+  return {
+    renderer: getActiveRenderer(preview.chart),
+    canvas: preview.ui.getCanvas?.()?.dataset.renderer || "dygraph",
+    runtimeReferences: prepared.runtime?.references || 0,
+  }
+}
+
+const inspectPreview = () => {
+  if (!preview) throw new Error("A preview is required")
+  const xAxisRange = preview.ui.getXAxisRange?.() || null
+  return {
+    plotArea: preview.ui.getPlotArea?.() || null,
+    xAxisRange,
+    xCoords: xAxisRange?.map(value => preview.ui.getXCoord?.(value)) || null,
+    hoverX: preview.chart.getAttribute("hoverX"),
+    clickX: preview.chart.getAttribute("clickX"),
+    navigation: preview.chart.getAttribute("navigation"),
+    panning: preview.chart.getAttribute("panning"),
+    enabledHover: preview.chart.getAttribute("enabledHover"),
+  }
+}
+
+const capturePreview = async ({ samples = [] } = {}) => {
+  if (!preview) throw new Error("A preview is required")
+  const canvas = preview.ui.getCanvas?.() || preview.element.querySelector("canvas")
+  const svg = !canvas && preview.element.querySelector("svg")
+  if (!canvas && !svg) throw new Error("The preview has no graphical surface")
+  let imageUrl
+  let revokeImageUrl = false
+  if (canvas) imageUrl = canvas.toDataURL("image/png")
+  else {
+    const graphicalSvg = svg.cloneNode(true)
+    Array.from(graphicalSvg.children).forEach(child => {
+      if (!child.getAttribute("class")?.endsWith("pieChart")) child.remove()
+    })
+    const source = new XMLSerializer().serializeToString(graphicalSvg)
+    imageUrl = URL.createObjectURL(new Blob([source], { type: "image/svg+xml" }))
+    revokeImageUrl = true
+  }
+  const image = new Image()
+  image.src = imageUrl
+  await image.decode()
+  const copy = document.createElement("canvas")
+  copy.width = canvas?.width || Number(svg.getAttribute("width"))
+  copy.height = canvas?.height || Number(svg.getAttribute("height"))
+  const context = copy.getContext("2d")
+  context.drawImage(image, 0, 0)
+  if (revokeImageUrl) URL.revokeObjectURL(imageUrl)
+  const dataUrl = copy.toDataURL("image/png")
+  const pixels = context.getImageData(0, 0, copy.width, copy.height).data
+  let nonTransparentPixels = 0
+  for (let offset = 3; offset < pixels.length; offset += 4) {
+    if (pixels[offset]) nonTransparentPixels += 1
+  }
+
+  const dpr = window.devicePixelRatio || 1
+  const plot = preview.ui.getPlotArea?.() || {
+    left: 0,
+    top: 0,
+    width: copy.width / dpr,
+    height: copy.height / dpr,
+  }
+  const gapIndex = Math.floor(prepared.points / 2)
+  const gapX = plot
+    ? Math.round((plot.left + (plot.width * gapIndex) / (prepared.points - 1)) * dpr)
+    : null
+  const spacing = plot ? (plot.width * dpr) / Math.max(prepared.points - 1, 1) : 0
+  const gapHalfWidth = Math.max(1, Math.floor(spacing * 0.35))
+  let gapBandNonTransparentPixels = null
+  if (gapX !== null) {
+    gapBandNonTransparentPixels = 0
+    for (let y = 0; y < copy.height; y += 1) {
+      for (
+        let x = Math.max(0, gapX - gapHalfWidth);
+        x <= Math.min(copy.width - 1, gapX + gapHalfWidth);
+        x += 1
+      ) {
+        if (pixels[(y * copy.width + x) * 4 + 3]) gapBandNonTransparentPixels += 1
+      }
+    }
+  }
+
+  const samplePixels = Object.fromEntries(
+    samples.map(({ name, xRatio, yRatio, xOffset = 0 }) => {
+      const x = Math.max(
+        0,
+        Math.min(
+          copy.width - 1,
+          Math.round((plot.left + plot.width * xRatio + xOffset) * dpr)
+        )
+      )
+      const y = Math.max(
+        0,
+        Math.min(copy.height - 1, Math.round((plot.top + plot.height * yRatio) * dpr))
+      )
+      const offset = (y * copy.width + x) * 4
+      return [name, Array.from(pixels.slice(offset, offset + 4))]
+    })
+  )
+
+  const sampleRuns = Object.fromEntries(
+    samples.map(({ name, xRatio, yRatio, xOffset = 0 }) => {
+      const x = Math.max(
+        0,
+        Math.min(
+          copy.width - 1,
+          Math.round((plot.left + plot.width * xRatio + xOffset) * dpr)
+        )
+      )
+      const y = Math.max(
+        0,
+        Math.min(copy.height - 1, Math.round((plot.top + plot.height * yRatio) * dpr))
+      )
+      if (!pixels[(y * copy.width + x) * 4 + 3]) return [name, { width: 0 }]
+      let left = x
+      let right = x
+      while (left > 0 && pixels[(y * copy.width + left - 1) * 4 + 3]) left -= 1
+      while (
+        right + 1 < copy.width &&
+        pixels[(y * copy.width + right + 1) * 4 + 3]
+      )
+        right += 1
+      return [name, { left, right, width: right - left + 1 }]
+    })
+  )
+
+  const sampleVerticalRuns = Object.fromEntries(
+    samples.map(({ name, xRatio, yRatio, xOffset = 0 }) => {
+      const x = Math.max(
+        0,
+        Math.min(
+          copy.width - 1,
+          Math.round((plot.left + plot.width * xRatio + xOffset) * dpr)
+        )
+      )
+      const y = Math.max(
+        0,
+        Math.min(copy.height - 1, Math.round((plot.top + plot.height * yRatio) * dpr))
+      )
+      if (!pixels[(y * copy.width + x) * 4 + 3]) return [name, { height: 0 }]
+      let top = y
+      let bottom = y
+      while (top > 0 && pixels[((top - 1) * copy.width + x) * 4 + 3]) top -= 1
+      while (
+        bottom + 1 < copy.height &&
+        pixels[((bottom + 1) * copy.width + x) * 4 + 3]
+      )
+        bottom += 1
+      return [name, { top, bottom, height: bottom - top + 1 }]
+    })
+  )
+
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(dataUrl))
+  const sha256 = Array.from(new Uint8Array(digest), byte =>
+    byte.toString(16).padStart(2, "0")
+  ).join("")
+
+  const dygraph = preview.ui.getDygraph?.()
+  const yAxisRange = dygraph?.yAxisRange?.() || preview.ui.getDrawStats?.()?.valueRange || null
+
+  return {
+    dataUrlBytes: dataUrl.length,
+    sha256,
+    width: copy.width,
+    height: copy.height,
+    nonTransparentPixels,
+    gapBandNonTransparentPixels,
+    gapBandWidth: gapHalfWidth * 2 + 1,
+    samplePixels,
+    sampleRuns,
+    sampleVerticalRuns,
+    yAxisRange,
+    drawStats: preview.ui.getDrawStats?.() || null,
+    semanticLabels: Array.from(preview.element.querySelectorAll("svg text"), element =>
+      element.textContent.trim()
+    ),
+    connectorCount: preview.element.querySelectorAll("svg g[class$='lineGroup'] path").length,
+    segmentTransforms: Array.from(
+      preview.element.querySelectorAll("svg path[data-index]"),
+      element => element.getAttribute("transform") || ""
+    ),
+    segmentFills: Array.from(
+      preview.element.querySelectorAll("svg path[data-index]"),
+      element => element.style.fill || element.getAttribute("fill") || ""
+    ),
+    segmentClasses: Array.from(
+      preview.element.querySelectorAll("svg path[data-index]"),
+      element => element.getAttribute("class") || ""
+    ),
+  }
+}
+
+const exerciseDeviceLossFallback = async () => {
+  if (!preview || !prepared?.runtime?.device) throw new Error("A WebGPU preview is required")
+
+  prepared.runtime.device.destroy()
+  const deadline = performance.now() + 2000
+  while (getActiveRenderer(preview.chart) === "webgpu" && performance.now() < deadline) {
+    await new Promise(resolve => setTimeout(resolve, 10))
+  }
+
+  return {
+    renderer: getActiveRenderer(preview.chart),
+    hasWebGL2: getActiveRenderer(preview.chart) === "webgl2",
+    hasDygraph: Boolean(preview.chart.getUI().getDygraph?.()),
+  }
+}
+
+const exerciseWebGL2ContextLossFallback = async () => {
+  const runtime = prepared?.sdk ? getWebGL2Runtime(prepared.sdk) : null
+  if (!preview || getActiveRenderer(preview.chart) !== "webgl2" || !runtime?.gl)
+    throw new Error("A WebGL2 preview is required")
+  const extension = runtime.gl.getExtension("WEBGL_lose_context")
+  if (!extension) throw new Error("WEBGL_lose_context is unavailable")
+
+  extension.loseContext()
+  const deadline = performance.now() + 2000
+  while (getActiveRenderer(preview.chart) === "webgl2" && performance.now() < deadline) {
+    await new Promise(resolve => setTimeout(resolve, 10))
+  }
+  return {
+    renderer: getActiveRenderer(preview.chart),
+    hasDygraph: Boolean(preview.chart.getUI().getDygraph?.()),
+  }
+}
+
+const exerciseInitializationUnmount = async () => {
+  if (!prepared || prepared.renderer === "dygraph")
+    throw new Error("An accelerated renderer must be prepared")
+
+  const instance = makeChart(prepared)
+  instance.ui.mount(instance.element)
+  const ready = instance.ui.whenReady()
+  instance.destroy()
+  await ready
+  await nextFrame()
+
+  return {
+    elementConnected: instance.element.isConnected,
+    canvasConnected: Boolean(instance.ui.getCanvas?.()?.isConnected),
+    resourceReferences: prepared.runtime.references,
+  }
+}
+
+const cleanup = async () => {
+  preview?.destroy()
+  preview = null
+  if (prepared?.runtimeLease) prepared.runtime.release()
+  if (prepared?.sdk) {
+    disposeWebGPURuntime(prepared.sdk)
+    disposeWebGL2Runtime(prepared.sdk)
+  }
+  prepared = null
+  document.querySelectorAll("[data-benchmark-chart]").forEach(element => element.remove())
+  setStatus("Renderer benchmark is idle")
+  await forceGc()
+}
+
+window.__NETDATA_RENDERER_BENCHMARK__ = {
+  prepare,
+  measure,
+  mountPreview,
+  inspectPreview,
+  capturePreview,
+  exerciseDeviceLossFallback,
+  exerciseWebGL2ContextLossFallback,
+  exerciseInitializationUnmount,
+  getActiveWebGL2Contexts,
+  cleanup,
+}

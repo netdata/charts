@@ -74,7 +74,7 @@ export default (chartUI, id) => {
   const pos = getTimestampPosition(dygraph, timestamp)
   if (!pos) return trigger(chartUI, id)
 
-  const area = getArea(dygraph, [timestamp, timestamp])
+  const area = getArea(chartUI, [timestamp, timestamp])
 
   if (!area) return trigger(chartUI, id)
 
