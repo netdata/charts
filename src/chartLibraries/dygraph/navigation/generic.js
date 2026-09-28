@@ -121,6 +121,11 @@ export default chartUI => {
   const touchMove = (event, dygraph, context) => {
     if (!context.initialTouches) return
 
+    if (event.touches.length > context.initialTouches.length) {
+      context.initialTouches = null
+      return
+    }
+
     Dygraph.defaultInteractionModel.touchmove(event, dygraph, context)
 
     if (!dygraphLastTouchMove) chartUI.sdk.trigger("panStart", chartUI.chart)

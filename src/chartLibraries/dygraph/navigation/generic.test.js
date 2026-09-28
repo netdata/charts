@@ -117,6 +117,46 @@ describe("generic navigation touch handling", () => {
     expect(() => touchMove(twoFingerMove, dygraph, context)).not.toThrow()
   })
 
+  it("drops a gesture whose second finger never reached the chart", () => {
+    const element = document.createElement("canvas")
+    touchStart(
+      makeTouchEvent([{ target: element, pageX: 10, pageY: 10, clientX: 10, clientY: 10 }]),
+      dygraph,
+      context
+    )
+    expect(context.initialTouches).toHaveLength(1)
+
+    const twoFingerMove = makeTouchEvent([
+      { pageX: 12, pageY: 12 },
+      { pageX: 60, pageY: 60 },
+    ])
+
+    expect(() => touchMove(twoFingerMove, dygraph, context)).not.toThrow()
+    expect(context.initialTouches).toBeNull()
+    expect(dygraph.drawGraph_).not.toHaveBeenCalled()
+    expect(chartUI.sdk.trigger).not.toHaveBeenCalledWith("panStart", expect.anything())
+  })
+
+  it("still delegates a pinch whose fingers both started on the chart", () => {
+    const element = document.createElement("canvas")
+    touchStart(
+      makeTouchEvent([
+        { target: element, pageX: 10, pageY: 10, clientX: 10, clientY: 10 },
+        { target: element, pageX: 50, pageY: 50, clientX: 50, clientY: 50 },
+      ]),
+      dygraph,
+      context
+    )
+
+    const pinch = makeTouchEvent([
+      { pageX: 5, pageY: 5 },
+      { pageX: 60, pageY: 60 },
+    ])
+
+    expect(() => touchMove(pinch, dygraph, context)).not.toThrow()
+    expect(dygraph.drawGraph_).toHaveBeenCalledWith(false)
+  })
+
   it("does not throw on touchend re-entry when a remaining touch has an invalid target", () => {
     const element = document.createElement("div")
     const startEvent = makeTouchEvent([
