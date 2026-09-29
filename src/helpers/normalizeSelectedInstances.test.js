@@ -79,10 +79,28 @@ describe("normalizeSelectedInstances", () => {
     expect(result.sort()).toEqual(["system.cpu@node1", "system.cpu@node2"])
   })
 
-  it("should omit selections that dont match anything", () => {
+  it("preserves unmatched selections alongside resolved selections", () => {
     const selected = ["nonexistent", "system.cpu"]
     const result = normalizeSelectedInstances(selected, mockInstances)
-    expect(result.sort()).toEqual(["system.cpu@node1", "system.cpu@node2"])
+    expect(result.sort()).toEqual(["nonexistent", "system.cpu@node1", "system.cpu@node2"])
+  })
+
+  it.each([{}, { "system.cpu@node2": mockInstances["system.cpu@node2"] }])(
+    "preserves the requested node when its instance is absent from the summary",
+    instances => {
+      const selected = ["system.cpu@node1"]
+      expect(normalizeSelectedInstances(selected, instances)).toEqual(selected)
+    }
+  )
+
+  it("preserves an unmatched pattern until metadata becomes available", () => {
+    const selected = ["system.cpu*"]
+    const pending = normalizeSelectedInstances(selected, {})
+    expect(pending).toEqual(selected)
+    expect(normalizeSelectedInstances(pending, mockInstances).sort()).toEqual([
+      "system.cpu@node1",
+      "system.cpu@node2",
+    ])
   })
 
   it("should handle multiple different selections", () => {
