@@ -53,7 +53,8 @@ const normalizeSelectedInstances = (selectedInstances, instances) => {
         matchesPattern(instance.nm, selection)
     })
 
-    matchedKeys.forEach(key => normalizedSet.add(key))
+    if (matchedKeys.length) matchedKeys.forEach(key => normalizedSet.add(key))
+    else normalizedSet.add(selection)
   })
 
   return Array.from(normalizedSet)
