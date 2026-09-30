@@ -4,12 +4,14 @@ import { Flex, Text } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
 import {
   useAttributeValue,
+  useIsModern,
   useLatestDisplayValueWithUnit,
   useOnResize,
   useVisibleDimensionIds,
 } from "@/components/provider"
 import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
+import ModernEasyPie from "@/components/modern/easyPie"
 import textAnimation from "../helpers/textAnimation"
 
 export const Label = styled(Text)`
@@ -75,6 +77,7 @@ export const Skeleton = styled(Flex).attrs(props => ({
 
 export const EasyPie = ({ uiName, ref, ...rest }) => {
   const loaded = useAttributeValue("loaded")
+  const isModern = useIsModern()
 
   const { width, height } = useOnResize(uiName)
   const size = width < height ? width : height
@@ -89,7 +92,7 @@ export const EasyPie = ({ uiName, ref, ...rest }) => {
           alignItems="center"
           {...rest}
         >
-          <Stats size={size} />
+          {isModern ? <ModernEasyPie uiName={uiName} size={size} /> : <Stats size={size} />}
         </ChartContainer>
       ) : (
         <Skeleton size={size} />
