@@ -4,17 +4,30 @@ import "@testing-library/jest-dom"
 import { makeTestChart, renderHookWithChart, renderWithChart } from "@jest/testUtilities"
 import { useLatestDisplayValueWithUnit } from "@/components/provider"
 import { getRingValue } from "@/chartLibraries/easyPie/ringValue"
+import { formatReadout } from "@/components/modern/format"
+import { makePayload } from "@/helpers/makeWavePayload"
 import systemLoadLine from "../../../../fixtures/systemLoadLine"
 import ModernEasyPie, { toFraction } from "./index"
 
-const loadChart = async (attributes = {}) => {
+const loadChart = async (attributes = {}, payload = systemLoadLine[0]) => {
   const { chart } = makeTestChart({
     attributes: { chartLibrary: "easypiechart", designFlavour: "modern", ...attributes },
   })
-  chart.doneFetch(systemLoadLine[0])
+  chart.doneFetch(payload)
   await new Promise(resolve => setTimeout(resolve, 0))
   return chart
 }
+
+const readLatest = (chart, id) =>
+  renderHookWithChart(() => useLatestDisplayValueWithUnit(id), { chart }).result.current
+
+const utilization = latest =>
+  makePayload({
+    context: "modern.cpu",
+    title: "cpu",
+    unit: "percentage",
+    dimensions: [{ id: "utilization", values: [...Array(96).fill(1.5), latest] }],
+  })
 
 describe("toFraction", () => {
   it("clamps the percentage into the ring", () => {
@@ -36,18 +49,29 @@ describe("ModernEasyPie", () => {
     renderWithChart(<ModernEasyPie size={120} />, { chart })
 
     const [id] = chart.getVisibleDimensionIds()
-    const { convertedValue, convertedUnit } = renderHookWithChart(
-      () => useLatestDisplayValueWithUnit(id),
-      { chart }
-    ).result.current
+    const { value, convertedUnit, unitAttributes } = readLatest(chart, id)
+    const readout = formatReadout(chart, value, { dimensionId: id, unitAttributes })
 
     expect(screen.getByTestId("modernEasyPie")).toHaveStyle({ width: "120px", height: "120px" })
-    expect(screen.getByTestId("modernEasyPieValue")).toHaveTextContent(convertedValue)
+    expect(screen.getByTestId("modernEasyPieValue")).toHaveTextContent(readout)
     expect(screen.getByTestId("modernEasyPieUnit")).toHaveTextContent(convertedUnit)
-    expect(screen.getByRole("img")).toHaveAttribute(
-      "aria-label",
-      `${convertedValue} ${convertedUnit}`
-    )
+    expect(screen.getByRole("img")).toHaveAttribute("aria-label", `${readout} ${convertedUnit}`)
+  })
+
+  it("keeps the centre value to at most two decimals", async () => {
+    const chart = await loadChart({}, utilization(1.8813))
+    renderWithChart(<ModernEasyPie size={120} />, { chart })
+
+    expect(readLatest(chart, "utilization").convertedValue).toBe("1.8813")
+    expect(screen.getByTestId("modernEasyPieValue")).toHaveTextContent(/^1\.88$/)
+    expect(screen.getByRole("img")).toHaveAttribute("aria-label", "1.88 %")
+  })
+
+  it("keeps the decimals the user chose in the centre value", async () => {
+    const chart = await loadChart({ staticFractionDigits: 3 }, utilization(1.8813))
+    renderWithChart(<ModernEasyPie size={120} />, { chart })
+
+    expect(screen.getByTestId("modernEasyPieValue")).toHaveTextContent(/^1\.881$/)
   })
 
   it("fills the arc by the same range position as the canvas ring", async () => {

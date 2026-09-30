@@ -4,14 +4,14 @@ import { Flex, Text } from "@netdata/netdata-ui"
 import {
   useAttributeValue,
   useChart,
-  useConverted,
   useLatestDisplayValueWithUnit,
   useOnResize,
   useVisibleDimensionIds,
 } from "@/components/provider"
 import { numeralsFont, radius } from "@/components/modern/tokens"
+import { formatReadout } from "@/components/modern/format"
 import Sparkline from "./sparkline"
-import { getAlertLabel, useAttention } from "./attention"
+import { getAlertLabel, getPillInk, useAttention } from "./attention"
 
 const clamp = (value, low, high) => Math.min(Math.max(value, low), high)
 
@@ -41,7 +41,7 @@ export const AttentionPill = ({ alert, ...rest }) => (
     {...rest}
   >
     <Text
-      color="mainChartBg"
+      color={getPillInk(alert.tone)}
       strong
       whiteSpace="nowrap"
       style={{ fontSize: "11px", lineHeight: "14px" }}
@@ -82,20 +82,14 @@ const ModernNumber = ({ uiName }) => {
   const [dimensionId] = useVisibleDimensionIds()
   const hoverX = useAttributeValue("hoverX")
 
-  const {
-    value,
-    convertedValue,
-    convertedUnit: unit,
-    unitAttributes,
-  } = useLatestDisplayValueWithUnit(dimensionId)
+  const { value, convertedUnit: unit, unitAttributes } = useLatestDisplayValueWithUnit(dimensionId)
+  const convertedValue = formatReadout(chart, value, { dimensionId, unitAttributes })
 
   const values = useWindowValues(dimensionId)
   const mean = getMean(values)
   const delta = toFinite(value) !== null && mean !== null ? value - mean : null
-  const convertedDelta = useConverted(delta === null ? null : Math.abs(delta), {
-    dimensionId,
-    unitAttributes,
-  })
+  const convertedDelta =
+    delta === null ? "-" : formatReadout(chart, Math.abs(delta), { dimensionId, unitAttributes })
 
   const [rangeMin] = chart.getAttribute("getValueRange")(chart)
   const { alert, color } = useAttention(toFinite(value), rangeMin)

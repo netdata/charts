@@ -1,7 +1,8 @@
 import React from "react"
 import { act, screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
-import { makeTestChart, renderWithChart } from "@jest/testUtilities"
+import { makeTestChart, renderHookWithChart, renderWithChart } from "@jest/testUtilities"
+import { useLatestDisplayValueWithUnit } from "@/components/provider"
 import systemLoadLine from "../../../fixtures/systemLoadLine"
 import { EasyPie } from "./index"
 
@@ -32,6 +33,11 @@ describe("EasyPie", () => {
       const content = screen.getByTestId("chartContent")
       expect(content.querySelector("canvas")).not.toBeNull()
       expect(content).toHaveTextContent(/^[\d.,-]+threads$/)
+      const [id] = chart.getVisibleDimensionIds()
+      const { convertedValue } = renderHookWithChart(() => useLatestDisplayValueWithUnit(id), {
+        chart,
+      }).result.current
+      expect(content).toHaveTextContent(`${convertedValue}threads`)
       expect(screen.queryByTestId("modernEasyPie")).not.toBeInTheDocument()
       expect(content.querySelector("svg")).toBeNull()
     }

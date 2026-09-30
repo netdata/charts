@@ -1,7 +1,8 @@
 import React from "react"
 import { act, screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
-import { renderWithChart, makeTestChart } from "@jest/testUtilities"
+import { renderHookWithChart, renderWithChart, makeTestChart } from "@jest/testUtilities"
+import { useLatestDisplayValueWithUnit } from "@/components/provider"
 import systemLoadLine from "../../../fixtures/systemLoadLine"
 import { NumberChart, Value, Unit } from "./index"
 
@@ -180,6 +181,11 @@ describe("NumberChart design flavours", () => {
     expect(content).toHaveStyle({ alignItems: "center", justifyContent: "center" })
     expect(content.children).toHaveLength(2)
     expect(content).toHaveTextContent(/^[\d.,-]+threads$/)
+    const [id] = chart.getVisibleDimensionIds()
+    const { convertedValue } = renderHookWithChart(() => useLatestDisplayValueWithUnit(id), {
+      chart,
+    }).result.current
+    expect(content).toHaveTextContent(`${convertedValue}threads`)
     expect(screen.queryByTestId("modernNumber")).not.toBeInTheDocument()
     expect(screen.queryByTestId("modernNumberSpark")).not.toBeInTheDocument()
     expect(screen.queryByTestId("modernAttentionPill")).not.toBeInTheDocument()

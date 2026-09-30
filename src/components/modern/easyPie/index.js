@@ -10,6 +10,7 @@ import {
 } from "@/components/provider"
 import { getRingValue } from "@/chartLibraries/easyPie/ringValue"
 import { numeralsFont } from "@/components/modern/tokens"
+import { formatReadout } from "@/components/modern/format"
 import { useAttention } from "@/components/modern/number/attention"
 
 const radius = 34
@@ -49,7 +50,8 @@ const ModernEasyPie = ({ uiName, size }) => {
   useAttributeValue("hoverX")
 
   const [dimensionId] = useVisibleDimensionIds()
-  const { convertedValue, convertedUnit: unit } = useLatestDisplayValueWithUnit(dimensionId)
+  const { value, convertedUnit: unit, unitAttributes } = useLatestDisplayValueWithUnit(dimensionId)
+  const convertedValue = formatReadout(chart, value, { dimensionId, unitAttributes })
 
   const ring = getRingValue(chart)
   const { color } = useAttention(ring?.value ?? null, ring?.min)

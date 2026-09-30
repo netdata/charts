@@ -17,11 +17,13 @@ const userDigits = chart => {
 export const formatReadout = (
   chart,
   value,
-  { dimensionId, key = "units", withUnit = false } = {}
+  { dimensionId, key = "units", withUnit = false, unitAttributes: scaled } = {}
 ) => {
   if (value === null || value === undefined || Number.isNaN(value)) return "-"
 
-  const unitAttributes = chart.getUnitAttributes(dimensionId, key)
+  // callers that scale by their own value (stat panels, rings) pass those attributes so the
+  // number and its unit stay on the same scale
+  const unitAttributes = scaled || chart.getUnitAttributes(dimensionId, key)
   const converted = convert(chart, unitAttributes.method, value, unitAttributes.divider)
   const fractionDigits =
     userDigits(chart) || typeof converted !== "number" ? undefined : readoutDigits(converted)

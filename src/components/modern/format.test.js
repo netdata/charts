@@ -22,6 +22,14 @@ describe("formatReadout", () => {
     expect(formatReadout(chart, 17.3459)).toBe("17.346")
   })
 
+  it("formats on the scale the caller passes", () => {
+    const { chart } = makeTestChart({ attributes: { units: "requests/s" } })
+    const unitAttributes = chart.getUnitAttributesForValue(2022.7)
+
+    expect(formatReadout(chart, 2022.7, { unitAttributes })).toBe("2.02")
+    expect(formatReadout(chart, 2022.7, { unitAttributes, withUnit: true })).toMatch(/^2\.02 K/)
+  })
+
   it("shows a dash for missing values", () => {
     const { chart } = makeTestChart()
     expect(formatReadout(chart, null)).toBe("-")
