@@ -8,21 +8,28 @@ import ScopeLine from "./scopeLine"
 import Actions from "./actions"
 import Attention from "./attention"
 
-// the default Status element moves into the scope line (states) and the More menu (reload);
-// consumer elements such as ChartOptions still render in the title row
-const useLeftElements = () => {
+const PlainStatus = () => <Status plain />
+
+// the default Status moves into the scope line (states) and the More menu (reload); without the
+// toolbox there is no More menu, so its reload control stays in the title row as in default
+const useLeftElements = hasToolbox => {
   const leftHeaderElements = useAttributeValue("leftHeaderElements") || []
-  return leftHeaderElements.filter(Element => Element !== Status)
+  if (hasToolbox) return leftHeaderElements.filter(Element => Element !== Status)
+  return leftHeaderElements.map(Element => (Element === Status ? PlainStatus : Element))
 }
 
 const ModernHeader = ({ hasFilters = false }) => {
-  const leftElements = useLeftElements()
   const hasToolbox = useAttributeValue("hasToolbox")
+  const leftElements = useLeftElements(hasToolbox)
   const hideTitle = useAttributeValue("hideTitle")
+  const sparkline = useAttributeValue("sparkline")
   const [filtersOpen, setFiltersOpen] = useAttribute("filtersOpen")
 
   const open = hasFilters && !!filtersOpen
   const toggleFilters = () => setFiltersOpen(prev => !prev)
+
+  // a sparkline is just the plot
+  if (sparkline) return null
 
   return (
     <Flex column gap={1} padding={[2, 3, 1]} data-testid="chartHeader" data-flavour="modern">

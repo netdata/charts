@@ -23,7 +23,7 @@ describe("Modern chart card chrome story", () => {
     await waitFor(() => expect(screen.getAllByTestId("chartScope").length).toBeGreaterThan(0))
 
     const flavours = screen.getAllByTestId("chartHeader").map(el => el.dataset.flavour)
-    expect(flavours.filter(flavour => flavour === "modern")).toHaveLength(3)
+    expect(flavours.filter(flavour => flavour === "modern")).toHaveLength(4)
     expect(flavours.filter(flavour => !flavour)).toHaveLength(1)
 
     await waitFor(() =>
@@ -32,5 +32,9 @@ describe("Modern chart card chrome story", () => {
       )
     )
     expect(screen.getByTestId("chartZoomChip")).toBeInTheDocument()
+    await waitFor(() =>
+      expect(screen.getByTestId("chartScope-hidden")).toHaveTextContent("2 hidden")
+    )
+    expect(screen.getByTestId("chartScope-showAll")).toBeInTheDocument()
   })
 })

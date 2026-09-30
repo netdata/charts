@@ -60,4 +60,31 @@ describe("Header flavours", () => {
     expect(screen.queryByTestId("chartHeaderStatus")).not.toBeInTheDocument()
     expect(screen.getByTestId("chartHeaderToolbox-more")).toBeInTheDocument()
   })
+
+  it.each(["default", "minimal"])("keeps the %s header on sparklines", flavour => {
+    renderWithChart(<Header hasFilters />, {
+      attributes: { title: "CPU Usage", designFlavour: flavour, sparkline: true },
+    })
+
+    expect(screen.getByTestId("chartHeader")).toBeInTheDocument()
+    expect(screen.getByText("CPU Usage")).toBeInTheDocument()
+  })
+
+  it.each(["default", "minimal"])("keeps the %s status badges without the toolbox", flavour => {
+    renderWithChart(<Header hasFilters />, {
+      attributes: { title: "CPU Usage", designFlavour: flavour, hasToolbox: false },
+    })
+
+    expect(screen.getByTestId("chartHeaderStatus")).toBeInTheDocument()
+    expect(screen.getByTestId("chartHeaderStatus-loading")).toBeInTheDocument()
+    expect(screen.queryByTestId("chartScope-loading")).not.toBeInTheDocument()
+  })
+
+  it("renders no modern header on a modern sparkline", () => {
+    renderWithChart(<Header hasFilters />, {
+      attributes: { title: "CPU Usage", designFlavour: "modern", sparkline: true },
+    })
+
+    expect(screen.queryByTestId("chartHeader")).not.toBeInTheDocument()
+  })
 })

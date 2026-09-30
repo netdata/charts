@@ -59,11 +59,16 @@ const ResetFooter = ({ resetKeys, onReset }) => {
   )
 }
 
-const SettingsContent = ({ onClose, initialTab }) => {
+const SettingsContent = ({ onClose, initialTab, initialIndex = 0 }) => {
   const chart = useChart()
   const settingsTabs = useAttributeValue("settingsTabs") || []
   const [activeIndex, setActiveIndex] = useState(() =>
-    Math.max(0, settingsTabs.findIndex(tab => tab.id === initialTab))
+    initialTab
+      ? Math.max(
+          0,
+          settingsTabs.findIndex(tab => tab.id === initialTab)
+        )
+      : initialIndex
   )
 
   const activeTab = settingsTabs[activeIndex] || settingsTabs[0]
@@ -108,12 +113,7 @@ const SettingsContent = ({ onClose, initialTab }) => {
   const showFooter = tabsHasFooter(activeTab.id)
 
   return (
-    <Flex
-      column
-      width={{ min: "320px", max: "420px" }}
-      height="400px"
-      data-testid="chartSettings"
-    >
+    <Flex column width={{ min: "320px", max: "420px" }} height="400px" data-testid="chartSettings">
       <Tabs selected={activeIndex} onChange={setActiveIndex} height="100%" overflow="hidden">
         {settingsTabs.map(tab => {
           const TabComponent = tab.Component
@@ -126,9 +126,7 @@ const SettingsContent = ({ onClose, initialTab }) => {
           )
         })}
       </Tabs>
-      {showFooter && (
-        <ResetFooter key={activeTab.id} resetKeys={resetKeys} onReset={handleReset} />
-      )}
+      {showFooter && <ResetFooter key={activeTab.id} resetKeys={resetKeys} onReset={handleReset} />}
     </Flex>
   )
 }
