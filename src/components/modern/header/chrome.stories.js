@@ -50,6 +50,11 @@ const cards = [
     payload: loadPayload,
     attributes: () => ({ after: nowSec() - 12 * 60, before: nowSec() - 4 * 60, filtersOpen: true }),
   },
+  {
+    label: "No toolbox, two dimensions hidden",
+    payload: loadPayload,
+    attributes: () => ({ hasToolbox: false, selectedLegendDimensions: ["load1"] }),
+  },
   { label: "Default flavour, for comparison", payload: loadPayload, flavour: "default" },
 ]
 

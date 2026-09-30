@@ -1,9 +1,17 @@
-import React, { useState } from "react"
+import React, { useMemo, useState } from "react"
 import styled from "styled-components"
 import { Flex, TextMicro, getColor } from "@netdata/netdata-ui"
-import { useAttribute, useAttributeValue, useChart } from "@/components/provider"
+import {
+  useAttribute,
+  useAttributeValue,
+  useChart,
+  useDimensionIds,
+  useVisibleDimensionIds,
+} from "@/components/provider"
 import makeLog from "@/sdk/makeLog"
 import { radius } from "@/components/modern/tokens"
+import { Swatch, onToggle } from "@/components/modern/legend/parts"
+import { showAllDimensions, useHiddenDimensionsCount } from "./hiddenDimensions"
 
 export const navigationModes = [
   { value: "pan", label: "Pan", title: "Drag to pan", track: "pan" },
@@ -80,7 +88,15 @@ const Check = styled.span`
   color: ${getColor("primary")};
 `
 
+const Content = styled.span`
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  overflow: hidden;
+`
+
 const Hint = styled.span`
+  flex-shrink: 0;
   color: ${getColor("textLite")};
   white-space: nowrap;
 `
@@ -104,6 +120,25 @@ const Segment = styled.button`
   color: ${getColor("text")};
 `
 
+const SearchInput = styled.input`
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid ${getColor("border")};
+  border-radius: ${radius.control};
+  padding: 4px 8px;
+  background: transparent;
+  font-family: inherit;
+  font-size: 12px;
+  color: ${getColor("text")};
+`
+
+const DimensionName = styled.span`
+  margin-left: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`
+
 const Label = ({ children }) => (
   <TextMicro color="textLite" padding={[2, 2.5, 0.5]}>
     {children}
@@ -112,10 +147,10 @@ const Label = ({ children }) => (
 
 const Item = ({ children, hint, check, ...rest }) => (
   <Row type="button" role="menuitem" {...rest}>
-    <span>
+    <Content>
       {check !== undefined && <Check>{check ? "✓" : ""}</Check>}
       {children}
-    </span>
+    </Content>
     {!!hint && <Hint>{hint}</Hint>}
   </Row>
 )
@@ -175,6 +210,92 @@ const DimensionSorts = ({ onChange }) => {
             {sort.label}
           </Item>
         ))}
+    </>
+  )
+}
+
+// the list renders at most this many rows; the search narrows larger sets
+export const dimensionsLimit = 50
+const searchThreshold = 10
+
+const Dimensions = () => {
+  const chart = useChart()
+  const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState("")
+  const dimensionIds = useDimensionIds() || []
+  const visibleIds = useVisibleDimensionIds() || []
+  const hidden = useHiddenDimensionsCount()
+
+  const matches = useMemo(() => {
+    const query = search.trim().toLowerCase()
+    if (!query) return dimensionIds
+    return dimensionIds.filter(id =>
+      `${chart.getDimensionName(id) || id}`.toLowerCase().includes(query)
+    )
+  }, [chart, dimensionIds, search])
+
+  if (!dimensionIds.length) return null
+
+  const shown = matches.slice(0, dimensionsLimit)
+  const more = matches.length - shown.length
+
+  return (
+    <>
+      <Item
+        hint={hidden ? `${visibleIds.length} of ${dimensionIds.length} shown` : "All shown"}
+        aria-expanded={open}
+        onClick={() => setOpen(prev => !prev)}
+        data-testid="chartMore-dimensions"
+      >
+        Dimensions
+      </Item>
+      {open && (
+        <>
+          <Item
+            disabled={!hidden}
+            data-testid="chartMore-dimensions-showAll"
+            data-track={chart.track("showAllDimensions")}
+            onClick={() => showAllDimensions(chart)}
+          >
+            Show all
+          </Item>
+          {dimensionIds.length > searchThreshold && (
+            <Flex padding={[0.5, 2.5]}>
+              <SearchInput
+                type="search"
+                value={search}
+                placeholder="Search dimensions"
+                aria-label="Search dimensions"
+                data-testid="chartMore-dimensions-search"
+                onChange={event => setSearch(event.target.value)}
+              />
+            </Flex>
+          )}
+          <Flex column overflow={{ vertical: "auto" }} height={{ max: "240px" }}>
+            {shown.map(id => (
+              <Item
+                key={id}
+                check={chart.isDimensionVisible(id)}
+                title={chart.getDimensionName(id) || id}
+                aria-checked={chart.isDimensionVisible(id)}
+                role="menuitemcheckbox"
+                data-testid="chartMore-dimension"
+                data-dimension={id}
+                data-track={chart.track("toggleDimension")}
+                onClick={onToggle(chart, id)}
+              >
+                <Swatch $color={chart.selectDimensionColor(id)} />
+                <DimensionName>{chart.getDimensionName(id) || id}</DimensionName>
+              </Item>
+            ))}
+          </Flex>
+          {more > 0 && (
+            <TextMicro color="textLite" padding={[1, 2.5]} data-testid="chartMore-dimensions-more">
+              {`${more} more, refine the search`}
+            </TextMicro>
+          )}
+        </>
+      )}
     </>
   )
 }
@@ -253,13 +374,14 @@ const MoreMenu = ({ onClose, onOpenTab }) => {
         Annotations
       </Item>
       <DimensionSorts onChange={value => chart.updateAttribute("dimensionsSort", value)} />
+      <Dimensions />
       <Divider />
-      {settingsTabs.map(tab => (
+      {settingsTabs.map((tab, index) => (
         <Item
-          key={tab.id}
-          data-testid={`chartMore-tab-${tab.id}`}
-          data-track={chart.track(`settings-${tab.id}`)}
-          onClick={() => onOpenTab(tab.id)}
+          key={tab.id || index}
+          data-testid={`chartMore-tab-${tab.id || index}`}
+          data-track={chart.track(`settings-${tab.id || index}`)}
+          onClick={() => onOpenTab(index)}
         >
           {tabLabels[tab.id] || `${tab.label}…`}
         </Item>

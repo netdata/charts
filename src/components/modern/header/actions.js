@@ -30,15 +30,18 @@ const Actions = ({ hasFilters, filtersOpen, onToggleFilters }) => {
   const moreRef = useRef()
   const focused = useAttributeValue("focused")
   const toolboxElements = useAttributeValue("toolboxElements")
+  const settingsTabs = useAttributeValue("settingsTabs") || []
   const [menuOpen, setMenuOpen] = useState(false)
-  const [tab, setTab] = useState(null)
+  const [tabIndex, setTabIndex] = useState(null)
 
   const closeMenu = () => setMenuOpen(false)
-  const closeTab = () => setTab(null)
-  const openTab = id => {
+  const closeTab = () => setTabIndex(null)
+  const openTab = index => {
     setMenuOpen(false)
-    setTab(id)
+    setTabIndex(index)
   }
+
+  const tabOpen = tabIndex !== null
 
   const disabled = !focused
 
@@ -46,7 +49,7 @@ const Actions = ({ hasFilters, filtersOpen, onToggleFilters }) => {
     <Container
       data-noprint
       data-testid="chartHeaderToolbox"
-      $visible={focused || menuOpen || !!tab || filtersOpen}
+      $visible={focused || menuOpen || tabOpen || filtersOpen}
     >
       {hasFilters && (
         <Button
@@ -83,7 +86,7 @@ const Actions = ({ hasFilters, filtersOpen, onToggleFilters }) => {
           <MoreMenu onClose={closeMenu} onOpenTab={openTab} />
         </Drop>
       )}
-      {moreRef.current && !!tab && (
+      {moreRef.current && tabOpen && (
         <Drop
           target={moreRef.current}
           onEsc={closeTab}
@@ -92,7 +95,12 @@ const Actions = ({ hasFilters, filtersOpen, onToggleFilters }) => {
           {...dropProps}
           background="modalBackground"
         >
-          <SettingsContent chart={chart} onClose={closeTab} initialTab={tab} />
+          <SettingsContent
+            chart={chart}
+            onClose={closeTab}
+            initialTab={settingsTabs[tabIndex]?.id}
+            initialIndex={tabIndex}
+          />
         </Drop>
       )}
     </Container>

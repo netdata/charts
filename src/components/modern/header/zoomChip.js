@@ -37,8 +37,9 @@ const ZoomChip = () => {
   const before = useAttributeValue("before")
   useAttributeValue("timezone")
   const enabledResetRange = useAttributeValue("enabledResetRange")
+  const sparkline = useAttributeValue("sparkline")
 
-  if (!enabledResetRange) return null
+  if (!enabledResetRange || sparkline) return null
 
   const label = getZoomLabel({ after, before, formatTime: chart.formatTime })
   if (!label) return null

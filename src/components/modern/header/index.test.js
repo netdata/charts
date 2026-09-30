@@ -1,9 +1,13 @@
 import React from "react"
-import { act, screen, waitFor, within } from "@testing-library/react"
+import { act, fireEvent, screen, waitFor, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { renderWithChart, makeTestChart } from "@jest/testUtilities"
+import { makePayload, makeWave } from "@/helpers/makeWavePayload"
 import Header from "@/components/header"
+import { Line } from "@/components/line"
 import ChartContentWrapper from "@/components/line/chartContentWrapper"
+import { getScopeParts } from "./scopeSummary"
+import { dimensionsLimit } from "./moreMenu"
 
 const AddToDashboard = ({ disabled }) => (
   <button type="button" disabled={disabled}>
@@ -208,6 +212,19 @@ describe("Modern More menu", () => {
     expect(screen.queryByTestId("chartMoreMenu")).not.toBeInTheDocument()
   })
 
+  it("opens a custom settings tab that has no id", async () => {
+    const CustomBody = () => <div data-testid="customTabBody">Custom</div>
+    const { chart } = makeModern({ focused: true })
+    const tabs = chart.getAttribute("settingsTabs")
+    chart.updateAttribute("settingsTabs", [...tabs, { label: "Custom", Component: CustomBody }])
+    const { user } = renderWithChart(<Header hasFilters />, { chart })
+    await openMenu(user)
+
+    await user.click(screen.getByTestId(`chartMore-tab-${tabs.length}`))
+
+    expect(await screen.findByTestId("customTabBody")).toBeInTheDocument()
+  })
+
   it("reloads the data", async () => {
     const { user, chart } = await renderModern({ focused: true })
     let fetches = 0
@@ -238,5 +255,224 @@ describe("Modern chart content", () => {
     await user.click(screen.getByTestId("chartZoomChip-reset"))
     await waitFor(() => expect(chart.getAttribute("after")).toBe(-900))
     expect(screen.queryByTestId("chartZoomChip")).not.toBeInTheDocument()
+  })
+})
+
+const manyPayload = count =>
+  makePayload({
+    context: "test.many",
+    title: "Many",
+    unit: "percentage",
+    dimensions: Array.from({ length: count }, (_, index) => ({
+      id: `dim${index}`,
+      values: makeWave({ center: 10 + index, amplitude: 2, phase: index }),
+    })),
+  })
+
+const renderLoaded = async (attributes, payload, props = { hasFilters: true }) => {
+  const { chart } = makeModern(attributes)
+  const result = renderWithChart(<Header {...props} />, { chart })
+  await act(async () => {
+    chart.doneFetch(payload)
+    await new Promise(resolve => setTimeout(resolve, 0))
+  })
+  return { ...result, chart }
+}
+
+const openDimensions = async user => {
+  await openMenu(user)
+  await user.click(screen.getByTestId("chartMore-dimensions"))
+}
+
+describe("Modern header without the toolbox", () => {
+  it("keeps the default reload control in the title row", async () => {
+    const { user, chart } = await renderModern({ hasToolbox: false, focused: true })
+    let fetches = 0
+    chart.on("finishFetch", () => (fetches += 1))
+
+    expect(screen.queryByTestId("chartHeaderToolbox-more")).not.toBeInTheDocument()
+    const status = screen.getByTestId("chartHeaderStatus")
+
+    await user.hover(status.firstChild)
+    fireEvent.click(await screen.findByTestId("chartHeaderStatus-reload"))
+
+    await waitFor(() => expect(fetches).toBeGreaterThan(0))
+  })
+
+  it("shows states only in the scope line, not as header badges", async () => {
+    const { chart } = makeTestChart({
+      attributes: { designFlavour: "modern", hasToolbox: false },
+      mockData: { errorMsgKey: "ErrQuery", errorMessage: "Query failed" },
+    })
+    renderWithChart(<Header hasFilters />, { chart })
+    act(() => {
+      chart.fetch()
+    })
+
+    expect(await screen.findByTestId("chartScope-error")).toBeInTheDocument()
+    expect(screen.getByTestId("chartHeaderStatus")).toBeInTheDocument()
+    expect(screen.queryByTestId("chartHeaderStatus-error")).not.toBeInTheDocument()
+  })
+
+  it("keeps consumer left elements and drops nothing else", async () => {
+    await renderModern({ hasToolbox: false, leftHeaderElements: [ChartOptions] })
+
+    expect(screen.getByText("Chart options")).toBeInTheDocument()
+    expect(screen.queryByTestId("chartHeaderStatus")).not.toBeInTheDocument()
+  })
+
+  it("opens the filters from the error state", async () => {
+    const { chart } = makeTestChart({
+      attributes: { designFlavour: "modern", hasToolbox: false },
+      mockData: { errorMsgKey: "ErrQuery", errorMessage: "Query failed" },
+    })
+    const { user } = renderWithChart(<Header hasFilters />, { chart })
+    act(() => {
+      chart.fetch()
+    })
+
+    await user.click(await screen.findByTestId("chartScope-error"))
+
+    expect(chart.getAttribute("filtersOpen")).toBe(true)
+    expect(screen.getByTestId("chartFilters")).toBeInTheDocument()
+  })
+
+  it("opens the filters from the loading and empty states", async () => {
+    const { chart } = makeModern({ hasToolbox: false })
+    const { user } = renderWithChart(<Header hasFilters />, { chart })
+
+    await user.click(screen.getByTestId("chartScope-loading"))
+    expect(chart.getAttribute("filtersOpen")).toBe(true)
+
+    const empty = makeTestChart({
+      attributes: { designFlavour: "modern", hasToolbox: false, loaded: true },
+    })
+    renderWithChart(<Header hasFilters />, { chart: empty.chart })
+
+    await user.click(screen.getByTestId("chartScope-empty"))
+    expect(empty.chart.getAttribute("filtersOpen")).toBe(true)
+  })
+
+  it("keeps the states as plain text when the card has no filters", () => {
+    const { chart } = makeModern({ hasToolbox: false })
+    renderWithChart(<Header hasFilters={false} />, { chart })
+
+    expect(screen.getByTestId("chartScope-loading").tagName).not.toBe("BUTTON")
+  })
+})
+
+describe("Modern dimensions", () => {
+  it("toggles dimensions from the More menu with the legend click semantics", async () => {
+    const { user, chart } = await renderModern({ focused: true })
+    await openDimensions(user)
+
+    const rows = screen.getAllByTestId("chartMore-dimension")
+    expect(rows.map(row => row.dataset.dimension)).toEqual(chart.getDimensionIds())
+    const [first, second] = chart.getDimensionIds()
+
+    await user.click(rows[0])
+    expect(chart.getAttribute("selectedLegendDimensions")).toEqual([first])
+
+    fireEvent.click(screen.getAllByTestId("chartMore-dimension")[1], { shiftKey: true })
+    expect(chart.getAttribute("selectedLegendDimensions")).toEqual([first, second])
+
+    fireEvent.click(screen.getAllByTestId("chartMore-dimension")[1], { metaKey: true })
+    expect(chart.getAttribute("selectedLegendDimensions")).toEqual([first])
+
+    expect(screen.getByTestId("chartMoreMenu")).toBeInTheDocument()
+    expect(screen.getAllByTestId("chartMore-dimension")[0]).toHaveAttribute("aria-checked", "true")
+    expect(screen.getAllByTestId("chartMore-dimension")[1]).toHaveAttribute("aria-checked", "false")
+
+    await user.click(screen.getByTestId("chartMore-dimensions-showAll"))
+    expect(chart.getAttribute("selectedLegendDimensions")).toEqual([])
+    expect(screen.getByTestId("chartMore-dimensions-showAll")).toBeDisabled()
+  })
+
+  it("hides everything but the clicked one with ctrl-click from the all-visible state", async () => {
+    const { user, chart } = await renderModern({ focused: true })
+    await openDimensions(user)
+    const [first, ...rest] = chart.getDimensionIds()
+
+    fireEvent.click(screen.getAllByTestId("chartMore-dimension")[0], { ctrlKey: true })
+
+    expect(chart.getAttribute("selectedLegendDimensions")).toEqual(rest)
+    expect(chart.isDimensionVisible(first)).toBe(false)
+  })
+
+  it("caps the list and narrows it with a search on high cardinality", async () => {
+    const count = 120
+    const { user } = await renderLoaded({ focused: true }, manyPayload(count))
+    await openDimensions(user)
+
+    expect(screen.getAllByTestId("chartMore-dimension")).toHaveLength(dimensionsLimit)
+    expect(screen.getByTestId("chartMore-dimensions-more")).toHaveTextContent(
+      `${count - dimensionsLimit} more`
+    )
+
+    await user.type(screen.getByTestId("chartMore-dimensions-search"), "dim11")
+
+    const names = screen.getAllByTestId("chartMore-dimension").map(row => row.dataset.dimension)
+    expect(names.sort()).toEqual(
+      [
+        "dim11",
+        "dim110",
+        "dim111",
+        "dim112",
+        "dim113",
+        "dim114",
+        "dim115",
+        "dim116",
+        "dim117",
+        "dim118",
+        "dim119",
+      ].sort()
+    )
+    expect(screen.queryByTestId("chartMore-dimensions-more")).not.toBeInTheDocument()
+  })
+
+  it("shows the hidden count and a show all action in the scope line", async () => {
+    const { user, chart } = await renderModern({ hasToolbox: false })
+
+    expect(screen.queryByTestId("chartScope-hidden")).not.toBeInTheDocument()
+
+    act(() => chart.toggleDimensionId(chart.getDimensionIds()[0]))
+
+    const hiddenCount = chart.getDimensionIds().length - 1
+    expect(screen.getByTestId("chartScope-hidden")).toHaveTextContent(`, ${hiddenCount} hidden,`)
+
+    await user.click(screen.getByTestId("chartScope-showAll"))
+
+    expect(chart.getAttribute("selectedLegendDimensions")).toEqual([])
+    expect(screen.queryByTestId("chartScope-hidden")).not.toBeInTheDocument()
+    expect(chart.getAttribute("filtersOpen")).toBeFalsy()
+  })
+})
+
+describe("Modern scope summary", () => {
+  it("separates the parts with commas", async () => {
+    const { chart } = await renderModern()
+
+    const parts = getScopeParts(chart.getAttributes(), chart.intl)
+    expect(parts.length).toBeGreaterThan(1)
+    expect(screen.getByTestId("chartScope")).toHaveTextContent(parts.join(", "))
+    expect(screen.getByTestId("chartScope").textContent).not.toContain("·")
+  })
+})
+
+describe("Modern sparklines", () => {
+  it("renders no header and no zoom chip on a sparkline", async () => {
+    const { chart } = makeModern({ sparkline: true })
+    renderWithChart(<Line />, { chart })
+    await act(async () => {
+      chart.fetch()
+    })
+
+    const now = Math.floor(Date.now() / 1000)
+    act(() => chart.updateAttributes({ after: now - 600, before: now - 300 }))
+
+    expect(screen.queryByTestId("chartHeader")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("chartScope")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("chartZoomChip")).not.toBeInTheDocument()
+    expect(screen.getByTestId("chartContentWrapper")).toBeInTheDocument()
   })
 })
