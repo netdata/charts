@@ -146,7 +146,7 @@ describe("BarsChart", () => {
       await renderBars({ designFlavour: "modern" }, decimalsPayload)
 
       const values = screen.getAllByTestId("modern-bars-value").map(el => el.textContent)
-      expect(values).toEqual(["64.1", "17.3", "4.00"])
+      expect(values).toEqual(["64.1", "17.3", "4"])
       screen.getAllByTestId("modern-bars-row").forEach(row => expect(row).toHaveTextContent(/%$/))
     })
 

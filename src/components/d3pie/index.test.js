@@ -78,7 +78,7 @@ describe("D3pie", () => {
 
       const rows = screen.getAllByTestId("donut-legend-row")
       expect(within(rows[0]).getByTestId("donut-legend-name")).toHaveTextContent("https")
-      expect(within(rows[0]).getByTestId("donut-legend-value")).toHaveTextContent(/^60\.0$/)
+      expect(within(rows[0]).getByTestId("donut-legend-value")).toHaveTextContent(/^60$/)
       expect(rows[0]).toHaveTextContent("60%")
       expect(within(rows[2]).getByTestId("donut-legend-name")).toHaveTextContent("http")
       expect(rows[2]).toHaveTextContent("10%")
@@ -104,12 +104,12 @@ describe("D3pie", () => {
       renderWithChart(<D3pie />, { chart })
 
       const values = screen.getAllByTestId("donut-legend-value").map(el => el.textContent)
-      expect(values).toEqual(["449", "31.7", "4.00"])
+      expect(values).toEqual(["449", "31.7", "4"])
       expect(screen.getByTestId("donut-center-value")).toHaveTextContent(/^485$/)
       expect(screen.getByTestId("donut-center-caption")).toHaveTextContent("threads total")
 
       fireEvent.mouseEnter(screen.getAllByTestId("donut-legend-row")[2])
-      expect(screen.getByTestId("donut-center-value")).toHaveTextContent("4.00 threads")
+      expect(screen.getByTestId("donut-center-value")).toHaveTextContent("4 threads")
     })
 
     it("keeps user decimals in the donut readouts", async () => {
@@ -155,7 +155,7 @@ describe("D3pie", () => {
       const slices = screen.getAllByTestId("donut-slice")
       fireEvent.mouseEnter(slices[1])
 
-      expect(screen.getByTestId("donut-center-value")).toHaveTextContent("30.0 GiB")
+      expect(screen.getByTestId("donut-center-value")).toHaveTextContent("30 GiB")
       expect(screen.getByTestId("donut-center-caption")).toHaveTextContent("grpc, 30%")
       expect(slices[0]).toHaveAttribute("opacity", "0.25")
       expect(slices[1]).toHaveAttribute("opacity", "1")

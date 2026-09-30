@@ -7,13 +7,23 @@ describe("readoutDigits", () => {
     expect(readoutDigits(17.3459)).toBe(1)
     expect(readoutDigits(-250.5)).toBe(0)
   })
+
+  it("decides after rounding", () => {
+    expect(readoutDigits(0)).toBe(0)
+    expect(readoutDigits(99.99)).toBe(0)
+    expect(readoutDigits(9.999)).toBe(0)
+    expect(readoutDigits(9.994)).toBe(2)
+  })
 })
 
 describe("formatReadout", () => {
   it("caps auto-scaled values instead of showing four decimals", () => {
     const { chart } = makeTestChart()
     expect(formatReadout(chart, 17.3459)).toBe("17.3")
-    expect(formatReadout(chart, 3.99561)).toBe("4.00")
+    expect(formatReadout(chart, 3.99561)).toBe("4")
+    expect(formatReadout(chart, 3.9912)).toBe("3.99")
+    expect(formatReadout(chart, 0)).toBe("0")
+    expect(formatReadout(chart, 99.99)).toBe("100")
     expect(formatReadout(chart, 449.12)).toBe("449")
   })
 
