@@ -2252,50 +2252,53 @@ describe("uplotChart axis visibility (enabledXAxis / enabledYAxis parity)", () =
     }
   }
 
-  it("shows both axes with ticks by default", () => {
+  it("shows both axes with labels, a horizontal grid only and no tick marks", () => {
     const { instance, teardown } = mountWith({})
     const u = instance.getUPlot()
 
     expect(u.axes[0].show).toBe(true)
     expect(u.axes[1].show).toBe(true)
-    expect(u.axes[0].ticks.show).not.toBe(false)
-    expect(u.axes[1].ticks.show).not.toBe(false)
+    expect(u.axes[0].ticks.show).toBe(false)
+    expect(u.axes[1].ticks.show).toBe(false)
+    expect(u.axes[0].grid.show).toBe(false)
+    expect(u.axes[1].grid.show).toBe(true)
+    expect(u.axes[0]._size).toBeGreaterThan(0)
+    expect(u.axes[1]._size).toBeGreaterThan(0)
 
     teardown()
   })
 
-  it("keeps y-axis gridlines but hides its ticks when enabledYAxis is false", () => {
+  it("keeps y-axis gridlines but collapses its labels when enabledYAxis is false", () => {
     const { instance, teardown } = mountWith({ enabledYAxis: false })
     const u = instance.getUPlot()
 
     expect(u.axes[1].show).toBe(true)
     expect(u.axes[1].grid.show).toBe(true)
-    expect(u.axes[1].ticks.show).toBe(false)
-    expect(u.axes[0].ticks.show).not.toBe(false)
+    expect(u.axes[1]._size).toBe(0)
+    expect(u.axes[0]._size).toBeGreaterThan(0)
 
     teardown()
   })
 
-  it("keeps x-axis gridlines but hides its ticks when enabledXAxis is false", () => {
+  it("collapses the x-axis labels when enabledXAxis is false", () => {
     const { instance, teardown } = mountWith({ enabledXAxis: false })
     const u = instance.getUPlot()
 
     expect(u.axes[0].show).toBe(true)
-    expect(u.axes[0].grid.show).toBe(true)
-    expect(u.axes[0].ticks.show).toBe(false)
-    expect(u.axes[1].ticks.show).not.toBe(false)
+    expect(u.axes[0]._size).toBe(0)
+    expect(u.axes[1]._size).toBeGreaterThan(0)
 
     teardown()
   })
 
-  it("re-renders and restores y-axis ticks when the attribute toggles", () => {
+  it("re-renders and restores y-axis labels when the attribute toggles", () => {
     const { chart, instance, teardown } = mountWith({ enabledYAxis: false })
-    expect(instance.getUPlot().axes[1].ticks.show).toBe(false)
+    expect(instance.getUPlot().axes[1]._size).toBe(0)
     expect(instance.getUPlot().axes[1].grid.show).toBe(true)
 
     chart.updateAttribute("enabledYAxis", true)
 
-    expect(instance.getUPlot().axes[1].ticks.show).not.toBe(false)
+    expect(instance.getUPlot().axes[1]._size).toBeGreaterThan(0)
 
     teardown()
   })
@@ -2516,7 +2519,7 @@ describe("uplotChart sparkline series styling (dygraph parity)", () => {
     instance.mount(element)
 
     const u = instance.getUPlot()
-    expect(u.series[1].width).toBe(1.5)
+    expect(u.series[1].width).toBe(2)
     expect(u.series[1].fill(u, 1)).toBeNull()
 
     instance.unmount()
@@ -4094,13 +4097,13 @@ describe("uplotChart series styling (dygraph parity)", () => {
     [1617946870000, 11],
   ]
 
-  it("strokes an area edge thinner than a line, at dygraph's widths", async () => {
+  it("strokes line and area edges at 2px", async () => {
     const line = await mountStyled("line", lineRows, ["a"])
-    expect(line.u.series[1].width).toBe(1.5)
+    expect(line.u.series[1].width).toBe(2)
     line.teardown()
 
     const area = await mountStyled("area", lineRows, ["a"])
-    expect(area.u.series[1].width).toBe(0.7)
+    expect(area.u.series[1].width).toBe(2)
     area.teardown()
   })
 
@@ -4556,5 +4559,34 @@ describe("uplotChart dimension visibility (dygraph parity)", () => {
     expect(u.series.slice(1).every(s => s.show)).toBe(true)
 
     teardown()
+  })
+})
+
+describe("uplotChart y-axis labels stay inside the plot", () => {
+  it("drops ticks the helper rounded past the scale range", async () => {
+    const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType: "line" } })
+    withLoadedPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    const u = instance.getUPlot()
+    const { min, max } = u.scales.y
+    const splits = u.axes[1]._splits
+
+    expect(splits.length).toBeGreaterThan(0)
+    splits.forEach(value => {
+      expect(value).toBeGreaterThanOrEqual(min)
+      expect(value).toBeLessThanOrEqual(max)
+    })
+
+    instance.unmount()
+    document.body.removeChild(element)
   })
 })

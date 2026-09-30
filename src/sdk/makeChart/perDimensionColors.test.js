@@ -1,4 +1,6 @@
 import { makeTestChart } from "@jest/testUtilities"
+import dimensionColors from "./theme/dimensionColors"
+import uplotDimensionColors from "./theme/uplotDimensionColors"
 
 describe("per-dimension custom colors", () => {
   it("array form: a late-arriving dimension cannot receive a named custom color", () => {
@@ -52,5 +54,30 @@ describe("per-dimension custom colors", () => {
 
     expect(a1.selectDimensionColor("a")).toBe(a2.selectDimensionColor("a"))
     expect(a1.selectDimensionColor("b")).toBe(a2.selectDimensionColor("b"))
+  })
+})
+
+describe("renderer palettes", () => {
+  it("gives uPlot charts the uPlot palette and leaves dygraph on the classic one", () => {
+    const uplot = makeTestChart({ attributes: { chartLibrary: "uplot" } }).chart
+    const dygraph = makeTestChart({ attributes: { chartLibrary: "dygraph" } }).chart
+
+    expect(uplot.selectDimensionColor("a")).toBe(uplotDimensionColors[0][0])
+    expect(dygraph.selectDimensionColor("a")).toBe(dimensionColors[0][0])
+  })
+
+  it("keeps each renderer's colours apart inside one container", () => {
+    const { sdk, chart: dygraph } = makeTestChart({ attributes: { chartLibrary: "dygraph" } })
+    const uplot = sdk.makeChart({ attributes: { chartLibrary: "uplot" } })
+    sdk.appendChild(uplot)
+
+    expect(dygraph.selectDimensionColor("a")).toBe(dimensionColors[0][0])
+    expect(uplot.selectDimensionColor("a")).toBe(uplotDimensionColors[0][0])
+  })
+
+  it("resolves a numeric colour index against the uPlot palette", () => {
+    const { chart } = makeTestChart({ attributes: { chartLibrary: "uplot", colors: { cpu: 2 } } })
+
+    expect(chart.selectDimensionColor("cpu")).toBe(uplotDimensionColors[2][0])
   })
 })

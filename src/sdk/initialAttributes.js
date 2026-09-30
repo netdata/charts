@@ -220,6 +220,7 @@ export default {
   themeInnerLabelColor: ["#F7F8F8", "#282827"],
 
   themeLabelColor: ["#35414a", "#ffffff"],
+  themeAxisLabelColor: ["#5C6C77", "#7C8C96"],
   themeBackground: ["#ffffff", "#282C34"],
   themeNeutralBackground: ["#DBE1E1", "#353F3F"],
   themeWarningBackground: ["#FFCC26", "#FFCC26"],

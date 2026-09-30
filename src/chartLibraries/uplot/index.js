@@ -32,7 +32,13 @@ const axisFontFamily = "'IBM Plex Sans', sans-serif"
 const defaultAxisFontSize = 11
 const defaultYAxisSize = 60
 const minPlotHeight = 20
-const yPixelsPerLabel = 15
+const yPixelsPerLabel = 30
+const rangeEpsilon = 1e-9
+
+const isWithinRange = (value, min, max) => {
+  const epsilon = Math.abs(max - min) * rangeEpsilon
+  return value >= min - epsilon && value <= max + epsilon
+}
 const tickSize = 4
 const axisGap = 6
 const xTickSize = 3
@@ -42,11 +48,11 @@ const xTickSpace = 80
 const heatmapPixelsPerLabel = 15
 const heatmapRowPad = 0.5
 
-const lineWidth = 1.5
-const areaLineWidth = 0.7
+const lineWidth = 2
+const areaLineWidth = 2
 const hoverDotRadius = 4
 const sparklineHoverDotRadius = 3
-const areaGradientTopAlpha = "59"
+const areaGradientTopAlpha = "73"
 const areaGradientBottomAlpha = "00"
 const stackedFillAlpha = "CC"
 const stackedEdgeAlpha = "E6"
@@ -73,12 +79,23 @@ const getSplitGranularity = (splits, index) => {
   return Number.isFinite(step) ? step : 0
 }
 
-const makeAreaFill = color => self => {
-  const { ctx, bbox } = self
-  const gradient = ctx.createLinearGradient(0, bbox.top, 0, bbox.top + bbox.height)
-  gradient.addColorStop(0, `${color}${areaGradientTopAlpha}`)
-  gradient.addColorStop(1, `${color}${areaGradientBottomAlpha}`)
-  return gradient
+// uPlot asks for the fill on every redraw; a gradient only depends on the plot's vertical extent
+const makeAreaFill = color => {
+  let cached = null
+  let cachedKey = ""
+
+  return self => {
+    const { ctx, bbox } = self
+    const key = `${bbox.top}:${bbox.height}`
+    if (cached && cachedKey === key) return cached
+
+    const gradient = ctx.createLinearGradient(0, bbox.top, 0, bbox.top + bbox.height)
+    gradient.addColorStop(0, `${color}${areaGradientTopAlpha}`)
+    gradient.addColorStop(1, `${color}${areaGradientBottomAlpha}`)
+    cached = gradient
+    cachedKey = key
+    return gradient
+  }
 }
 
 const makeSolidFill = color => () => color
@@ -386,7 +403,7 @@ export default (sdk, chart) => {
     const enabledXAxis = chart.getAttribute("enabledXAxis") !== false
     const enabledYAxis = chart.getAttribute("enabledYAxis") !== false
     const gridColor = chart.getThemeAttribute("themeGridColor")
-    const labelColor = chart.getThemeAttribute("themeLabelColor")
+    const labelColor = chart.getThemeAttribute("themeAxisLabelColor")
     const visibleDimensionIds = chart.getVisibleDimensionIds() || []
     const dimensionId = visibleDimensionIds[0]
 
@@ -395,19 +412,20 @@ export default (sdk, chart) => {
     const secondsAsTime = chart.getAttribute("secondsAsTime")
     const units = visibleDimensionIds.map(id => chart.getDimensionUnit(id))
 
-    const border = { show: true, stroke: gridColor, width: 1 }
+    // horizontal grid only: time ticks carry the x position, so vertical rules are noise
+    const border = { show: false }
 
     const xAxis = {
       show: true,
       font: axisFont,
       stroke: labelColor,
-      grid: { stroke: gridColor, width: 1 },
+      grid: { show: false },
       border,
       space: xTickSpace,
-      gap: xAxisGap,
+      gap: xAxisGap + xTickSize,
       ...(enabledXAxis
         ? {
-            ticks: { stroke: gridColor, width: 1, size: xTickSize },
+            ticks: { show: false },
             size: () => getVerticalBudget().xAxisSize,
             values: (self, splits) =>
               getVerticalBudget().xAxisSize > 0
@@ -439,10 +457,10 @@ export default (sdk, chart) => {
       stroke: labelColor,
       grid: { stroke: gridColor, width: 1 },
       border,
-      gap: axisGap,
+      gap: axisGap + tickSize,
       ...(enabledYAxis
         ? {
-            ticks: { stroke: gridColor, width: 1, size: tickSize },
+            ticks: { show: false },
             size: yAxisSize,
             splits: (self, axisIdx, scaleMin, scaleMax) =>
               makeAxisTicks({
@@ -452,7 +470,10 @@ export default (sdk, chart) => {
                 pixelsPerTick: yPixelsPerLabel,
                 units,
                 secondsAsTime,
-              }).map(tick => tick.v),
+              })
+                .map(tick => tick.v)
+                // the tick helper rounds outward, and a label past the plot edge gets clipped
+                .filter(value => isWithinRange(value, scaleMin, scaleMax)),
             values: (self, splits) =>
               splits.map((value, index) => {
                 const tickStep = getSplitGranularity(splits, index)
@@ -709,7 +730,6 @@ export default (sdk, chart) => {
   const drawAnomalyBadge = makeAnomalyBadge(chartUI)
   const drawAnnotations = makeAnnotations(chartUI)
   const getHoverDimension = makeGetHoverDimension(chart)
-
   const getYAxisValueRange = () => {
     if (chart.getAttribute("chartType") === "heatmap")
       return [chart.getAttribute("min"), chart.getAttribute("max")]
