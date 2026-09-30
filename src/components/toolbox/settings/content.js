@@ -59,10 +59,12 @@ const ResetFooter = ({ resetKeys, onReset }) => {
   )
 }
 
-const SettingsContent = ({ onClose }) => {
+const SettingsContent = ({ onClose, initialTab }) => {
   const chart = useChart()
   const settingsTabs = useAttributeValue("settingsTabs") || []
-  const [activeIndex, setActiveIndex] = useState(0)
+  const [activeIndex, setActiveIndex] = useState(() =>
+    Math.max(0, settingsTabs.findIndex(tab => tab.id === initialTab))
+  )
 
   const activeTab = settingsTabs[activeIndex] || settingsTabs[0]
   const resetKeys = activeTab?.resetKeys || []

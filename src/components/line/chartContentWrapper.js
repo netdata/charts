@@ -1,9 +1,10 @@
 import React from "react"
 import styled, { css } from "styled-components"
 import { Flex } from "@netdata/netdata-ui"
-import { useInitialLoading, useAttributeValue } from "@/components/provider"
+import { useInitialLoading, useAttributeValue, useIsModern } from "@/components/provider"
 import { useHovered } from "@/components/useHover"
 import ChartContainer from "@/components/chartContainer"
+import ZoomChip from "@/components/modern/header/zoomChip"
 import Popover from "./popover"
 import NavigationToolbox from "./navigationToolbox"
 import Skeleton from "./skeleton"
@@ -165,13 +166,15 @@ const ChartContentWrapper = ({ uiName }) => {
   const hasToolbox = useAttributeValue("hasToolbox")
   const hasHoverPopover = useAttributeValue("hasHoverPopover")
   const processing = useAttributeValue("processing")
+  const isModern = useIsModern()
 
   return (
     <Container ref={ref}>
       {!initialLoading && <ChartContainer />}
       {!initialLoading && <Overlays uiName={uiName} />}
       {initialLoading && <Skeleton />}
-      {hasToolbox && hovered && <NavigationToolbox />}
+      {hasToolbox && hovered && !isModern && <NavigationToolbox />}
+      {hasToolbox && isModern && <ZoomChip />}
       {processing && <Processing />}
       {hasHoverPopover && <Popover uiName={uiName} />}
     </Container>
