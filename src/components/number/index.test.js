@@ -1,8 +1,16 @@
 import React from "react"
-import { screen } from "@testing-library/react"
+import { act, screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { renderWithChart, makeTestChart } from "@jest/testUtilities"
+import systemLoadLine from "../../../fixtures/systemLoadLine"
 import { NumberChart, Value, Unit } from "./index"
+
+const loadChart = async (attributes = {}) => {
+  const { chart } = makeTestChart({ attributes: { chartLibrary: "number", ...attributes } })
+  chart.doneFetch(systemLoadLine[0])
+  await new Promise(resolve => setTimeout(resolve, 0))
+  return chart
+}
 
 describe("NumberChart", () => {
   it("renders chart container with value and unit", () => {
@@ -160,5 +168,44 @@ describe("Unit component", () => {
     })
 
     expect(container.firstChild).toBeNull()
+  })
+})
+
+describe("NumberChart design flavours", () => {
+  it.each(["default", "minimal"])("keeps the %s flavour value and unit layout", async flavour => {
+    const chart = await loadChart({ designFlavour: flavour })
+    renderWithChart(<NumberChart />, { chart })
+
+    const content = screen.getByTestId("chartContent")
+    expect(content).toHaveStyle({ alignItems: "center", justifyContent: "center" })
+    expect(content.children).toHaveLength(2)
+    expect(content).toHaveTextContent(/^[\d.,-]+threads$/)
+    expect(screen.queryByTestId("modernNumber")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("modernNumberSpark")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("modernAttentionPill")).not.toBeInTheDocument()
+  })
+
+  it("renders the stat panel in the modern flavour", async () => {
+    const chart = await loadChart({ designFlavour: "modern" })
+    renderWithChart(<NumberChart />, { chart })
+
+    const content = screen.getByTestId("chartContent")
+    expect(content).toHaveStyle({ alignItems: "stretch" })
+    expect(content.children).toHaveLength(1)
+    expect(screen.getByTestId("modernNumber")).toBeInTheDocument()
+    expect(screen.getByTestId("modernNumberValue")).toBeInTheDocument()
+  })
+
+  it("switches layouts when the flavour changes", async () => {
+    const chart = await loadChart()
+    renderWithChart(<NumberChart />, { chart })
+
+    expect(screen.queryByTestId("modernNumber")).not.toBeInTheDocument()
+
+    act(() => chart.updateAttribute("designFlavour", "modern"))
+    expect(screen.getByTestId("modernNumber")).toBeInTheDocument()
+
+    act(() => chart.updateAttribute("designFlavour", "default"))
+    expect(screen.queryByTestId("modernNumber")).not.toBeInTheDocument()
   })
 })
