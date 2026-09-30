@@ -9,9 +9,11 @@ import {
   useLatestDisplayValueWithUnit,
   useValueWithUnit,
   useVisibleDimensionIds,
+  useIsModern,
 } from "@/components/provider"
 import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
+import { ModernGauge } from "@/components/modern/gauge"
 import textAnimation from "../helpers/textAnimation"
 
 const Label = styled(Text)`
@@ -136,6 +138,9 @@ export const Skeleton = styled(Flex).attrs(props => ({
 
 export const Gauge = ({ uiName, ref, ...rest }) => {
   const loaded = useAttributeValue("loaded")
+  const isModern = useIsModern()
+
+  if (isModern) return <ModernGauge uiName={uiName} ref={ref} {...rest} />
 
   return (
     <ChartWrapper alignItems="center" justifyContent="center" column ref={ref} gap={0}>
