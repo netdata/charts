@@ -1,9 +1,10 @@
 import React from "react"
-import { act, fireEvent, screen } from "@testing-library/react"
+import { act, fireEvent, screen, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { makeTestChart, renderWithChart } from "@jest/testUtilities"
 import { makePayload } from "@/helpers/makeWavePayload"
-import { formatWithUnit } from "@/components/modern/donut/getDonutData"
+import { formatReadout } from "@/components/modern/format"
+import { getCenterFontSize } from "@/components/modern/donut"
 import { D3pie } from "./index"
 
 const flat = value => Array.from({ length: 97 }, () => value)
@@ -19,9 +20,9 @@ const payload = makePayload({
   ],
 })
 
-const loadChart = async designFlavour => {
+const loadChart = async (designFlavour, data = payload) => {
   const { chart } = makeTestChart({ attributes: { chartLibrary: "d3pie", designFlavour } })
-  chart.doneFetch(payload)
+  chart.doneFetch(data)
   await act(() => new Promise(resolve => setTimeout(resolve, 0)))
   return chart
 }
@@ -64,16 +65,87 @@ describe("D3pie", () => {
       expect(chart.getUI().getElement().querySelector(".d3pie")).toBeNull()
     })
 
-    it("lists the legend by value with value, unit and share", async () => {
+    it("caps the ring width so the legend keeps room for names", async () => {
+      const chart = await loadChart("modern")
+      renderWithChart(<D3pie />, { chart })
+
+      expect(screen.getByRole("img")).toHaveStyle({ maxWidth: "45%" })
+    })
+
+    it("lists the legend by value with name, bare value and share, naming the unit once", async () => {
       const chart = await loadChart("modern")
       renderWithChart(<D3pie />, { chart })
 
       const rows = screen.getAllByTestId("donut-legend-row")
-      expect(rows[0]).toHaveTextContent("https")
-      expect(rows[0]).toHaveTextContent("60 GiB")
+      expect(within(rows[0]).getByTestId("donut-legend-name")).toHaveTextContent("https")
+      expect(within(rows[0]).getByTestId("donut-legend-value")).toHaveTextContent(/^60\.0$/)
       expect(rows[0]).toHaveTextContent("60%")
-      expect(rows[2]).toHaveTextContent("http")
+      expect(within(rows[2]).getByTestId("donut-legend-name")).toHaveTextContent("http")
       expect(rows[2]).toHaveTextContent("10%")
+      rows.forEach(row => expect(row).not.toHaveTextContent("GiB"))
+      expect(screen.getAllByText(/GiB/)).toHaveLength(1)
+      expect(screen.getByTestId("donut-center-caption")).toHaveTextContent("GiB total")
+    })
+
+    it("formats slice and total readouts with capped decimals", async () => {
+      const chart = await loadChart(
+        "modern",
+        makePayload({
+          context: "test.load",
+          title: "Load",
+          unit: "load",
+          dimensions: [
+            { id: "running", values: flat(449.12) },
+            { id: "blocked", values: flat(31.7249) },
+            { id: "waiting", values: flat(3.99561) },
+          ],
+        })
+      )
+      renderWithChart(<D3pie />, { chart })
+
+      const values = screen.getAllByTestId("donut-legend-value").map(el => el.textContent)
+      expect(values).toEqual(["449", "31.7", "4.00"])
+      expect(screen.getByTestId("donut-center-value")).toHaveTextContent(/^485$/)
+      expect(screen.getByTestId("donut-center-caption")).toHaveTextContent("threads total")
+
+      fireEvent.mouseEnter(screen.getAllByTestId("donut-legend-row")[2])
+      expect(screen.getByTestId("donut-center-value")).toHaveTextContent("4.00 threads")
+    })
+
+    it("keeps user decimals in the donut readouts", async () => {
+      const { chart } = makeTestChart({
+        attributes: { chartLibrary: "d3pie", designFlavour: "modern", staticFractionDigits: 3 },
+      })
+      chart.doneFetch(payload)
+      await act(() => new Promise(resolve => setTimeout(resolve, 0)))
+      renderWithChart(<D3pie />, { chart })
+
+      expect(screen.getAllByTestId("donut-legend-value")[0]).toHaveTextContent("60.000")
+    })
+
+    it("truncates long dimension names with an ellipsis and keeps the full name in the title", async () => {
+      const longName = "a-very-long-dimension-name-that-cannot-fit-the-legend"
+      const chart = await loadChart(
+        "modern",
+        makePayload({
+          context: "test.names",
+          title: "Names",
+          unit: "GiB",
+          dimensions: [
+            { id: "long", name: longName, values: flat(60) },
+            { id: "short", values: flat(40) },
+          ],
+        })
+      )
+      renderWithChart(<D3pie />, { chart })
+
+      const [row] = screen.getAllByTestId("donut-legend-row")
+      expect(row).toHaveAttribute("title", longName)
+      expect(within(row).getByTestId("donut-legend-name")).toHaveStyle({
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+      })
     })
 
     it("switches the centre to the hovered slice and dims the rest", async () => {
@@ -83,7 +155,7 @@ describe("D3pie", () => {
       const slices = screen.getAllByTestId("donut-slice")
       fireEvent.mouseEnter(slices[1])
 
-      expect(screen.getByTestId("donut-center-value")).toHaveTextContent("30 GiB")
+      expect(screen.getByTestId("donut-center-value")).toHaveTextContent("30.0 GiB")
       expect(screen.getByTestId("donut-center-caption")).toHaveTextContent("grpc, 30%")
       expect(slices[0]).toHaveAttribute("opacity", "0.25")
       expect(slices[1]).toHaveAttribute("opacity", "1")
@@ -132,10 +204,20 @@ describe("D3pie", () => {
       await act(() => new Promise(resolve => setTimeout(resolve, 0)))
       renderWithChart(<D3pie />, { chart })
 
-      const { value, unit } = formatWithUnit(chart, 1300000)
-      expect(screen.getByTestId("donut-center-value")).toHaveTextContent(value)
+      const unit = chart.getUnitSign()
+      expect(screen.getByTestId("donut-center-value")).toHaveTextContent(
+        formatReadout(chart, 1300000)
+      )
       expect(screen.getByTestId("donut-center-caption")).toHaveTextContent(`${unit} total`)
       expect(unit).not.toBe("KiB")
+    })
+  })
+
+  describe("getCenterFontSize", () => {
+    it("keeps short readouts at full size and shrinks long ones to stay inside the ring", () => {
+      expect(getCenterFontSize("449")).toBe(28)
+      expect(getCenterFontSize("30.0 GiB")).toBeLessThan(28)
+      expect(getCenterFontSize("4.00 processes per second")).toBe(14)
     })
   })
 })

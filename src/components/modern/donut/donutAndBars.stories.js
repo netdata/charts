@@ -38,6 +38,21 @@ const processPayload = makePayload({
   ],
 })
 
+const volumePayload = makePayload({
+  context: "modern.disk.volumes",
+  title: "Space by volume",
+  unit: "GiB",
+  dimensions: [
+    {
+      id: "data",
+      name: "/var/lib/postgresql/data",
+      values: makeWave({ center: 449, amplitude: 4 }),
+    },
+    { id: "logs", name: "/var/log/journal", values: makeWave({ center: 31.7, amplitude: 1 }) },
+    { id: "tmp", name: "/tmp", values: makeWave({ center: 3.99, amplitude: 0.2 }) },
+  ],
+})
+
 const cards = [
   {
     label: "Donut, 7 dimensions (top 5 + grouped)",
@@ -50,6 +65,12 @@ const cards = [
     Component: D3pie,
     chartLibrary: "d3pie",
     payload: loadPayload,
+  },
+  {
+    label: "Donut, long names and mixed magnitudes",
+    Component: D3pie,
+    chartLibrary: "d3pie",
+    payload: volumePayload,
   },
   { label: "Ranked bars", Component: Bars, chartLibrary: "bars", payload: processPayload },
   {

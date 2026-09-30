@@ -10,13 +10,17 @@ import {
   useVisibleDimensionIds,
 } from "@/components/provider"
 import { numeralsFont, tabularNumbers } from "@/components/modern/tokens"
-import getDonutData, { formatWithUnit } from "./getDonutData"
+import { formatReadout } from "@/components/modern/format"
+import getDonutData from "./getDonutData"
 
 const size = 180
 const center = size / 2
 const ringRadius = 70
 const ringWidth = 20
 const gap = 0.025
+const centerFontSize = 28
+// Roughly how many centre characters fit inside the ring at the full font size.
+const centerFit = 7
 
 const polar = angle => [
   center + ringRadius * Math.cos(angle),
@@ -42,9 +46,11 @@ const toArcs = (slices, total) => {
   })
 }
 
+// The ring gives up width before the legend does, so dimension names stay readable.
 const Svg = styled.svg`
   height: 100%;
   max-height: 220px;
+  max-width: 45%;
   aspect-ratio: 1;
   flex-shrink: 0;
   overflow: visible;
@@ -60,7 +66,6 @@ const Slice = styled.path`
 const CenterValue = styled.text`
   fill: ${getColor("text")};
   font-family: ${numeralsFont};
-  font-size: 28px;
   font-weight: 600;
   ${tabularNumbers}
 `
@@ -77,7 +82,7 @@ const Numeral = styled(TextSmall)`
 
 const LegendRow = styled.div`
   display: grid;
-  grid-template-columns: 10px minmax(0, 1fr) auto 38px;
+  grid-template-columns: 10px minmax(24px, 1fr) auto 32px;
   gap: 8px;
   align-items: center;
   opacity: ${({ $dimmed }) => ($dimmed ? 0.4 : 1)};
@@ -92,7 +97,18 @@ const Swatch = styled.span`
   background: ${({ $color }) => $color};
 `
 
-const joinUnit = ({ value, unit }) => [value, unit].filter(Boolean).join(" ")
+const sliceDimensionId = slice => (slice.grouped ? undefined : slice.id)
+
+const formatSlice = (chart, slice, options) =>
+  formatReadout(chart, slice.signedValue ?? slice.value, {
+    dimensionId: sliceDimensionId(slice),
+    ...options,
+  })
+
+export const getCenterFontSize = text =>
+  text.length > centerFit
+    ? Math.max(14, Math.floor((centerFontSize * centerFit) / text.length))
+    : centerFontSize
 
 const formatShare = share => `${share < 1 && share > 0 ? "<1" : Math.round(share)}%`
 
@@ -106,11 +122,7 @@ const Legend = ({ chart, slices, focus, setFocus }) => (
     data-testid="donut-legend"
   >
     {slices.map(slice => {
-      const { value, unit } = formatWithUnit(
-        chart,
-        slice.signedValue ?? slice.value,
-        slice.grouped ? undefined : slice.id
-      )
+      const value = formatSlice(chart, slice)
 
       return (
         <LegendRow
@@ -122,13 +134,19 @@ const Legend = ({ chart, slices, focus, setFocus }) => (
           title={slice.grouped ? slice.grouped.join(", ") : slice.name}
         >
           <Swatch $color={slice.color} />
-          <TextSmall color="text" truncate>
+          <TextSmall color="text" truncate data-testid="donut-legend-name">
             {slice.name}
           </TextSmall>
-          <Numeral color="text" strong whiteSpace="nowrap" textAlign="right">
-            {joinUnit({ value, unit })}
+          <Numeral
+            color="text"
+            strong
+            whiteSpace="nowrap"
+            textAlign="right"
+            data-testid="donut-legend-value"
+          >
+            {value}
           </Numeral>
-          <Numeral color="textLite" textAlign="right">
+          <Numeral color="textLite" whiteSpace="nowrap" textAlign="right">
             {formatShare(slice.share)}
           </Numeral>
         </LegendRow>
@@ -146,40 +164,35 @@ const ModernDonut = ({ uiName }) => {
   useAttributeValue("theme")
   useVisibleDimensionIds()
   usePayload()
-  useUnitSign()
+  const unit = useUnitSign()
 
   const [focus, setFocus] = useState(null)
   const { slices, total } = getDonutData(chart)
   const arcs = toArcs(slices, total)
   const shown = focus ? arcs.find(arc => arc.id === focus) : null
-  const totalWithUnit = formatWithUnit(chart, total)
 
   // Width 0 means the element is not measured yet; only hide the legend when it is known to be tight.
   const showLegend = !!slices.length && !(width > 0 && width < 240)
 
+  // Rows carry bare numbers, so the unit is named once: in the caption for the total and next to
+  // the hovered slice's value.
   const headline = shown
-    ? joinUnit(
-        formatWithUnit(
-          chart,
-          shown.signedValue ?? shown.value,
-          shown.grouped ? undefined : shown.id
-        )
-      )
+    ? formatSlice(chart, shown, { withUnit: true })
     : slices.length
-      ? totalWithUnit.value
+      ? formatReadout(chart, total)
       : "-"
 
   const caption = shown
     ? `${shown.name}, ${formatShare(shown.share)}`
     : slices.length
-      ? [totalWithUnit.unit, "total"].filter(Boolean).join(" ")
+      ? [unit, "total"].filter(Boolean).join(" ")
       : "No data"
 
   return (
     <Flex
       alignItems="center"
       justifyContent="center"
-      gap={4}
+      gap={3}
       padding={[2, 3]}
       width="100%"
       height="100%"
@@ -225,7 +238,13 @@ const ModernDonut = ({ uiName }) => {
               data-testid="donut-slice"
             />
           ))}
-        <CenterValue x={center} y={center + 2} textAnchor="middle" data-testid="donut-center-value">
+        <CenterValue
+          x={center}
+          y={center + 2}
+          textAnchor="middle"
+          fontSize={getCenterFontSize(headline)}
+          data-testid="donut-center-value"
+        >
           {headline}
         </CenterValue>
         <CenterCaption
