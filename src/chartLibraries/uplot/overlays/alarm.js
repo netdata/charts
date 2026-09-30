@@ -1,4 +1,5 @@
 import { trigger, getArea } from "./helpers"
+import { crisp, getStatusColor, isModern } from "./modern"
 
 const textColorMap = {
   warning: "#F9A825",
@@ -26,12 +27,23 @@ export default (chartUI, id) => {
 
   ctx.save()
   ctx.beginPath()
-  ctx.moveTo(from - lineWidth / 2, top)
-  ctx.lineTo(from - lineWidth / 2, top + h)
-  ctx.globalAlpha = 1
-  ctx.lineWidth = lineWidth
-  ctx.setLineDash([4, 4])
-  ctx.strokeStyle = textColorMap[status]
+
+  if (isModern(chartUI.chart)) {
+    ctx.moveTo(crisp(from), top)
+    ctx.lineTo(crisp(from), top + h)
+    ctx.globalAlpha = 0.8
+    ctx.lineWidth = 1
+    ctx.setLineDash([3, 4])
+    ctx.strokeStyle = getStatusColor(chartUI.chart, status) || textColorMap[status]
+  } else {
+    ctx.moveTo(from - lineWidth / 2, top)
+    ctx.lineTo(from - lineWidth / 2, top + h)
+    ctx.globalAlpha = 1
+    ctx.lineWidth = lineWidth
+    ctx.setLineDash([4, 4])
+    ctx.strokeStyle = textColorMap[status]
+  }
+
   ctx.stroke()
 
   ctx.closePath()
