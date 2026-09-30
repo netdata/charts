@@ -4,7 +4,15 @@ import "@testing-library/jest-dom"
 import { DarkTheme } from "@netdata/netdata-ui"
 import { renderWithChart, makeTestChart } from "@jest/testUtilities"
 import { Gauge } from "@/components/gauge"
+import { formatReadout } from "@/components/modern/format"
 import { Attention } from "./index"
+import {
+  fitValueFontSize,
+  unitFontSize,
+  valueTextBox,
+  valueRadius,
+  valueBaseline,
+} from "./geometry"
 
 const green = ["#00AB44", "#00AB44"]
 const yellow = ["#FFCC26", "#FFCC26"]
@@ -138,6 +146,85 @@ describe("modern gauge", () => {
       "stroke",
       chart.selectDimensionColor()
     )
+  })
+
+  it("shows nothing when there are no thresholds and every alert is clear", async () => {
+    const { chart } = await load()
+
+    act(() => {
+      chart.updateAttribute("alerts", { load_average_15: { nm: "load_average_15", cl: 1 } })
+    })
+
+    expect(screen.queryByTestId("modernGauge-attention")).toBeNull()
+    expect(screen.queryByTestId("modernGauge-attentionRow")).toBeNull()
+    expect(screen.queryByText("Within thresholds")).toBeNull()
+  })
+
+  it("stays quiet with thresholds even when alerts are clear", async () => {
+    const { chart } = await load({ gaugeThresholds: [{ id: "c", from: 95, color: red }] })
+
+    act(() => {
+      chart.updateAttribute("alerts", { load_average_15: { nm: "load_average_15", cl: 1 } })
+    })
+
+    expect(screen.getByText("Within thresholds")).toBeInTheDocument()
+  })
+
+  it.each([
+    ["within thresholds", [{ id: "c", from: 95, color: red }]],
+    ["critical", [{ id: "c", from: 1, color: red }]],
+  ])("keeps the attention in its own row above the dial when %s", async (name, thresholds) => {
+    await load({ gaugeThresholds: thresholds })
+
+    const row = screen.getByTestId("modernGauge-attentionRow")
+    const content = screen.getByTestId("chartContent")
+    expect(row).toContainElement(screen.getByTestId("modernGauge-attention"))
+    expect(content).not.toContainElement(row)
+    expect(screen.getByTestId("modernGauge")).not.toContainElement(row)
+    expect(row.compareDocumentPosition(content) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(content).toHaveStyle({ flex: "1 1 0" })
+  })
+
+  it.each([
+    ["ok", {}],
+    ["critical", { gaugeThresholds: [{ id: "c", from: 1, color: red }] }],
+    [
+      "critical with long decimals",
+      { staticFractionDigits: 6, gaugeThresholds: [{ id: "c", from: 1, color: red }] },
+    ],
+  ])("sizes the number to fit inside the arc (%s)", async (name, attributes) => {
+    await load(attributes)
+
+    const number = screen.getByTestId("modernGauge-number")
+    const [value, unit] = number.childNodes
+    const size = Number(number.getAttribute("font-size"))
+    expect(size).toBe(fitValueFontSize(value.textContent, unit.textContent))
+    expect(Number(unit.getAttribute("font-size"))).toBe(unitFontSize(size))
+    const { width, height } = valueTextBox(value.textContent, unit.textContent, size)
+    expect(Math.hypot(width / 2, valueBaseline + height)).toBeLessThanOrEqual(valueRadius)
+    if (attributes.staticFractionDigits) expect(size).toBeLessThan(44)
+  })
+
+  it("formats the value and the range with the shared readout format", async () => {
+    const { chart } = await load()
+    const [dimensionId] = chart.getVisibleDimensionIds()
+    const [latest] = chart.getPayload().data.slice(-1)[0].slice(1)
+
+    const [value] = screen.getByTestId("modernGauge-number").childNodes
+    expect(value.textContent).toBe(formatReadout(chart, latest, { dimensionId }))
+    expect(screen.getByTestId("modernGauge-min").textContent).toBe(
+      formatReadout(chart, 0, { dimensionId })
+    )
+    expect(screen.getByTestId("modernGauge-max").textContent).toBe(
+      formatReadout(chart, 100, { dimensionId })
+    )
+  })
+
+  it("applies the user decimals to the range labels too", async () => {
+    await load({ staticFractionDigits: 3 })
+
+    expect(screen.getByTestId("modernGauge-min").textContent).toBe("0.000")
+    expect(screen.getByTestId("modernGauge-max").textContent).toBe("100.000")
   })
 
   it("renders in the dark theme", async () => {

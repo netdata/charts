@@ -53,3 +53,34 @@ export const sparklinePath = (values, { width, height, pad = 2 }) => {
 
   return { line, area: `${line} L${width},${height} L0,${height} Z` }
 }
+
+// the knob (r 7, stroke 3) reaches 8.5 inside the arc's centre line; keep a little air past it
+export const valueRadius = radius - 10
+
+export const valueBaseline = 2
+
+// jsdom and the first paint cannot measure SVG text, so widths come from character counts;
+// tabular numerals sit near 0.6em, which also covers the unit letters
+const charWidth = 0.6
+const capHeight = 0.74
+const unitGap = 3
+
+export const unitFontSize = size => Math.min(16, Math.max(8, Math.round(size * 0.37)))
+
+export const valueTextBox = (value, unit, size) => {
+  const valueWidth = String(value ?? "").length * charWidth * size
+  const unitText = String(unit ?? "")
+  const unitWidth = unitText ? unitGap + unitText.length * charWidth * unitFontSize(size) : 0
+  return { width: valueWidth + unitWidth, height: capHeight * size }
+}
+
+// the number is centred just above the arc centre, so its top corners are the points closest
+// to the arc; the largest size whose corners stay inside valueRadius wins
+export const fitValueFontSize = (value, unit, { max = 44, min = 8 } = {}) => {
+  for (let size = max; size > min; size -= 1) {
+    const { width, height } = valueTextBox(value, unit, size)
+    const top = valueBaseline + height
+    if ((width / 2) ** 2 + top ** 2 <= valueRadius ** 2) return size
+  }
+  return min
+}
