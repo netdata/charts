@@ -1,4 +1,5 @@
 import { trigger, getArea } from "./helpers"
+import { crisp, isModern } from "./modern"
 
 const getTimestampPosition = (chartUI, timestamp) => {
   const range = chartUI.getXAxisRange()
@@ -25,6 +26,53 @@ const drawAnnotationLine = (ctx, x, top, bottom, color, isDraft = false, isSynce
   if (isDraft || isSynced) ctx.setLineDash([])
 }
 
+const flagWidth = 7
+const flagHeight = 7
+
+const drawFlag = (ctx, x, top, color, hollow) => {
+  ctx.beginPath()
+  ctx.moveTo(x, top)
+  ctx.lineTo(x + flagWidth, top + flagHeight / 2)
+  ctx.lineTo(x, top + flagHeight)
+  ctx.closePath()
+
+  if (!hollow) {
+    ctx.fillStyle = color
+    ctx.fill()
+    return
+  }
+
+  ctx.lineWidth = 1
+  ctx.strokeStyle = color
+  ctx.stroke()
+}
+
+// a flag hangs from the plot top whatever the position, so nothing covers the time axis labels
+const drawModernAnnotation = (
+  ctx,
+  x,
+  top,
+  bottom,
+  color,
+  { isDraft = false, isSynced = false }
+) => {
+  const lineX = crisp(x)
+
+  ctx.beginPath()
+  if (isDraft || isSynced) ctx.setLineDash([3, 3])
+  ctx.moveTo(lineX, top)
+  ctx.lineTo(lineX, bottom)
+  ctx.lineWidth = 1
+  ctx.strokeStyle = color
+  ctx.globalAlpha = 0.5
+  ctx.stroke()
+  ctx.setLineDash([])
+
+  ctx.globalAlpha = isSynced ? 0.7 : 1
+  drawFlag(ctx, lineX - 0.5, top, color, isDraft)
+  ctx.globalAlpha = 1
+}
+
 export default (chartUI, id) => {
   const draftAnnotation = chartUI.chart.getAttribute("draftAnnotation")
 
@@ -49,6 +97,14 @@ export default (chartUI, id) => {
     trigger(chartUI, id, area)
 
     ctx.save()
+
+    if (isModern(chartUI.chart)) {
+      const modernColor = chartUI.chart.getThemeAttribute("themeAxisLabelColor")
+      drawModernAnnotation(ctx, x, top, top + h, modernColor, { isDraft: true })
+      ctx.restore()
+      return
+    }
+
     drawAnnotationLine(ctx, x, top, top + h, color, true)
 
     ctx.beginPath()
@@ -89,6 +145,12 @@ export default (chartUI, id) => {
   const { x } = pos
 
   ctx.save()
+
+  if (isModern(chartUI.chart)) {
+    drawModernAnnotation(ctx, x, top, top + h, color, { isSynced })
+    ctx.restore()
+    return
+  }
 
   drawAnnotationLine(ctx, x, top, top + h, color, false, isSynced)
 

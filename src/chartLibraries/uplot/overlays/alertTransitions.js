@@ -1,4 +1,5 @@
 import { trigger } from "./helpers"
+import { getStatusColor, isModern } from "./modern"
 
 const fillColorMap = {
   WARNING: "#FFC300",
@@ -7,6 +8,7 @@ const fillColorMap = {
 }
 
 const OVERLAY_ALPHA = 0.3
+const MODERN_OVERLAY_ALPHA = 0.1
 
 const getArea = (chartUI, startMs, endMs) => {
   const [viewStart, viewEnd] = chartUI.getXAxisRange()
@@ -43,8 +45,10 @@ export default (chartUI, id) => {
     (a, b) => parseTimestamp(a.timestamp) - parseTimestamp(b.timestamp)
   )
 
+  const modern = isModern(chartUI.chart)
+
   ctx.save()
-  ctx.globalAlpha = OVERLAY_ALPHA
+  ctx.globalAlpha = modern ? MODERN_OVERLAY_ALPHA : OVERLAY_ALPHA
 
   sortedTransitions.forEach((transition, index) => {
     const startMs = parseTimestamp(transition.timestamp)
@@ -52,7 +56,10 @@ export default (chartUI, id) => {
     const endMs = nextTransition ? parseTimestamp(nextTransition.timestamp) : viewEnd
 
     const toState = transition.to.toUpperCase()
-    const toColor = fillColorMap[toState]
+    const toColor =
+      fillColorMap[toState] && modern
+        ? getStatusColor(chartUI.chart, toState) || fillColorMap[toState]
+        : fillColorMap[toState]
 
     if (!toColor) return
     if (!showCleared && toState === "CLEAR") return

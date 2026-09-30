@@ -2,8 +2,22 @@ import { scaleLinear } from "d3-scale"
 import { getRowPointValue } from "@/sdk/makeChart/getPointValue"
 import { isVisibleDimension } from "@/chartLibraries/helpers/dimensionVisibility"
 import getPxRatio from "../pxRatio"
+import { isModern, roundedRectPath } from "../overlays/modern"
 
 const ribbonHeight = 15
+
+const markHeight = 3
+const markMaxWidth = 3
+const markGap = 1
+const markRadius = 1
+const markOffset = 5
+
+// opacity follows the rate, with a floor so a low rate is still visible
+export const getMarkAlpha = rate => Math.min(1, 0.35 + rate / 150)
+
+// marks sit in the top padding when there is room, otherwise just inside the plot
+const getStripTop = (self, dpr) =>
+  self.bbox.top >= markOffset * dpr ? self.bbox.top - markOffset * dpr : self.bbox.top + dpr
 
 export default chartUI => self => {
   if (!chartUI) return
@@ -31,8 +45,11 @@ export default chartUI => self => {
   const { all, point } = chart.getPayload()
   if (!all) return
 
-  const top = self.bbox.top
-  const height = ribbonHeight * dpr
+  const modern = isModern(chart)
+  const top = modern ? getStripTop(self, dpr) : self.bbox.top
+  const height = (modern ? markHeight : ribbonHeight) * dpr
+  const markWidth = Math.max(dpr, Math.min(markMaxWidth * dpr, barWidth - markGap * dpr))
+  const anomalyColor = chart.getThemeAttribute("themeAnomalyScaleColor")
 
   ctx.save()
 
@@ -52,6 +69,14 @@ export default chartUI => self => {
     if (value === 0) continue
 
     const centerX = self.valToPos(xs[row], "x", true)
+
+    if (modern) {
+      roundedRectPath(ctx, centerX - markWidth / 2, top, markWidth, height, markRadius * dpr)
+      ctx.globalAlpha = getMarkAlpha(value)
+      ctx.fillStyle = anomalyColor
+      ctx.fill()
+      continue
+    }
 
     ctx.strokeStyle = ctx.fillStyle = getColor(value)
     ctx.fillRect(centerX - barWidth / 2, top, barWidth, height)

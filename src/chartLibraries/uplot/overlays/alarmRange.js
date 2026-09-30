@@ -1,4 +1,5 @@
 import { trigger, getArea } from "./helpers"
+import { crisp, getStatusColor, isModern } from "./modern"
 
 const borderColorMap = {
   warning: "#FFF8E1",
@@ -20,6 +21,29 @@ const textColorMap = {
 
 const getNow = () => Math.floor(new Date().getTime() / 1000)
 
+const drawEdge = (ctx, x, top, h) => {
+  ctx.beginPath()
+  ctx.moveTo(crisp(x), top)
+  ctx.lineTo(crisp(x), top + h)
+  ctx.stroke()
+}
+
+const drawModern = (ctx, color, { from, to, width }, top, h) => {
+  ctx.save()
+  ctx.globalAlpha = 0.07
+  ctx.fillStyle = color
+  ctx.fillRect(from, top, width, h)
+
+  ctx.globalAlpha = 0.8
+  ctx.lineWidth = 1
+  ctx.setLineDash([3, 4])
+  ctx.strokeStyle = color
+  drawEdge(ctx, from, top, h)
+  drawEdge(ctx, to, top, h)
+
+  ctx.restore()
+}
+
 export default (chartUI, id) => {
   const overlays = chartUI.chart.getAttribute("overlays")
   const { whenTriggered, whenLast = getNow(), status } = overlays[id]
@@ -35,6 +59,11 @@ export default (chartUI, id) => {
 
   const { from, width, to } = area
   trigger(chartUI, id, area)
+
+  if (isModern(chartUI.chart)) {
+    const color = getStatusColor(chartUI.chart, status) || textColorMap[status]
+    return drawModern(ctx, color, area, top, h)
+  }
 
   ctx.save()
   ctx.beginPath()

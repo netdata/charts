@@ -228,6 +228,10 @@ export default {
 
   themeAnomalyScaleColor: ["#9F75F9", "#9F75F9"],
 
+  themeAlertWarning: ["#C98A00", "#E0A526"],
+  themeAlertCritical: ["#D63F3F", "#E5484D"],
+  themeAlertClear: ["#00914A", "#1FA35E"],
+
   themeGroupBoxesMin: ["#E4F1FF", "#000C18"],
   themeGroupBoxesMax: ["#0075F2", "#0075F2"],
 
