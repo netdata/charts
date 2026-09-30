@@ -19,6 +19,7 @@ import { numeralsFont, tabularNumbers } from "@/components/modern/tokens"
 import { StatusDot, getRowStatus } from "./status"
 import Meter from "./meter"
 import Trend, { useTrend } from "./trend"
+import { formatReadout } from "@/components/modern/format"
 
 const metricsByValue = {
   dimension: "dimensions",
@@ -129,10 +130,11 @@ const TooltipValue = ({ id }) => {
 const ModernValue = ({ id }) => {
   const chart = useChart()
   const value = useLatestDisplayValue(id, { allowNull: true })
-  const { convertedValue, convertedUnit } = useValueWithUnit(value, {
+  const { convertedUnit, unitAttributes } = useValueWithUnit(value, {
     dimensionId: id,
     scaleByValue: true,
   })
+  const convertedValue = formatReadout(chart, value, { dimensionId: id, unitAttributes })
   const trend = useTrend(id)
   const percent = isPercentUnit(chart.getDimensionUnit(id))
   const color = chart.selectDimensionColor(id)
