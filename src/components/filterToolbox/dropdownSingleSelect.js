@@ -1,12 +1,14 @@
 import React, { memo } from "react"
 import styled from "styled-components"
-import { useAttributeValue } from "@/components/provider"
+import { useAttributeValue, useIsModern } from "@/components/provider"
+import { radius } from "@/components/modern/tokens"
 import { Menu, Text, TextMicro, Flex, getColor, getRgbColor } from "@netdata/netdata-ui"
 import checkmark_s from "@netdata/netdata-ui/dist/components/icon/assets/checkmark_s.svg"
 import information from "@netdata/netdata-ui/dist/components/icon/assets/information.svg"
 import Icon from "@/components/icon"
 import Tooltip from "@/components/tooltip"
 import Label from "./label"
+import ModernItem from "./modern/item"
 
 const getBackground = ({ theme }) => {
   const { name } = theme
@@ -96,20 +98,31 @@ export const Item = ({ value: selectedValue, item, onItemClick, itemProps }) => 
   )
 }
 
+const defaultDropdownProps = { padding: [0, 0, 2, 0], height: { max: "60vh" } }
+
+const modernDropdownProps = {
+  padding: [1, 0],
+  height: { max: "60vh" },
+  round: radius.card,
+  border: { side: "all", color: "border" },
+  "data-testid": "modern-filter-single-select",
+}
+
 const DropdownSingleSelect = ({ labelProps, ...rest }) => {
   const id = useAttributeValue("id")
+  const isModern = useIsModern()
 
   return (
     <Menu
       {...rest}
-      Item={Item}
+      Item={isModern ? ModernItem : Item}
       dropProps={{
         align: { top: "bottom", left: "left" },
         "data-toolbox": id,
         width: "460px",
         zIndex: 100,
       }}
-      dropdownProps={{ padding: [0, 0, 2, 0], height: { max: "60vh" } }}
+      dropdownProps={isModern ? modernDropdownProps : defaultDropdownProps}
       {...rest}
     >
       <Label {...labelProps} data-value={`${rest.value || "No selection"}`} />
