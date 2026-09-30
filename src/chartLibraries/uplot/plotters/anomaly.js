@@ -24,6 +24,7 @@ export default chartUI => self => {
 
   const { chart } = chartUI
   if (!chart.getAttribute("showAnomalies")) return
+  if (isModern(chart) && chart.isSparkline()) return
 
   const xs = self.data[0]
   if (!xs || !xs[1]) return

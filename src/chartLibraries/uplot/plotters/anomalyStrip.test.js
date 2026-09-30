@@ -140,4 +140,26 @@ describe("anomaly plotter flavours", () => {
 
     teardown()
   })
+
+  it("draws nothing on a modern sparkline", async () => {
+    const { u, instance, teardown } = await mountUplot({ designFlavour: "modern", sparkline: true })
+    const calls = record(u.ctx)
+
+    makeAnomaly(instance)(u)
+
+    expect(calls).toHaveLength(0)
+
+    teardown()
+  })
+
+  it("keeps the ribbon on a default sparkline", async () => {
+    const { u, instance, teardown } = await mountUplot({ sparkline: true })
+    const calls = record(u.ctx)
+
+    makeAnomaly(instance)(u)
+
+    expect(only(calls, "fillRect")).toHaveLength(anomalousRows.length)
+
+    teardown()
+  })
 })

@@ -73,6 +73,9 @@ const drawModernAnnotation = (
   ctx.globalAlpha = 1
 }
 
+// a modern sparkline stays a bare plot; the area is still emitted so badges keep working
+const isModernSparkline = chart => isModern(chart) && chart.isSparkline()
+
 export default (chartUI, id) => {
   const draftAnnotation = chartUI.chart.getAttribute("draftAnnotation")
 
@@ -95,6 +98,8 @@ export default (chartUI, id) => {
     const area = { from: x, to: x, width: 0 }
 
     trigger(chartUI, id, area)
+
+    if (isModernSparkline(chartUI.chart)) return
 
     ctx.save()
 
@@ -141,6 +146,8 @@ export default (chartUI, id) => {
   if (!area) return trigger(chartUI, id)
 
   trigger(chartUI, id, area)
+
+  if (isModernSparkline(chartUI.chart)) return
 
   const { x } = pos
 

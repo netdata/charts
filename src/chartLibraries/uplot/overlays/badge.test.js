@@ -48,6 +48,75 @@ describe("uplot overlay badges", () => {
     expect(screen.getByText("7")).toBeInTheDocument()
   })
 
+  it("keeps the empty triggered value pill of an alarmRange in the default flavour", () => {
+    const { chart } = renderWithChart(<AlarmRangeOverlay id="range-1" />, {
+      attributes: {
+        chartLibrary: "uplot",
+        overlays: { "range-1": { type: "alarmRange", status: "warning" } },
+      },
+    })
+
+    emit(chart, "range-1", { from: 10, to: 120, width: 110 })
+
+    expect(screen.getByText(/Triggered value:/)).toBeInTheDocument()
+  })
+
+  it("omits the alarmRange pill without a triggered value in the modern flavour", () => {
+    const { chart } = renderWithChart(<AlarmRangeOverlay id="range-1" />, {
+      attributes: {
+        chartLibrary: "uplot",
+        designFlavour: "modern",
+        overlays: { "range-1": { type: "alarmRange", status: "warning" } },
+      },
+    })
+
+    emit(chart, "range-1", { from: 10, to: 120, width: 110 })
+
+    expect(screen.queryByText(/Triggered value:/)).toBeNull()
+  })
+
+  it("keeps the alarmRange pill with a triggered value in the modern flavour", () => {
+    const { chart } = renderWithChart(<AlarmRangeOverlay id="range-1" />, {
+      attributes: {
+        chartLibrary: "uplot",
+        designFlavour: "modern",
+        overlays: { "range-1": { type: "alarmRange", status: "warning", valueTriggered: 0 } },
+      },
+    })
+
+    emit(chart, "range-1", { from: 10, to: 120, width: 110 })
+
+    expect(screen.getByText(/Triggered value:/)).toBeInTheDocument()
+    expect(screen.getByText("0")).toBeInTheDocument()
+  })
+
+  it("omits the alarm pill without a value in the modern flavour", () => {
+    const { chart } = renderWithChart(<AlarmOverlay id="alarm-1" />, {
+      attributes: {
+        chartLibrary: "uplot",
+        designFlavour: "modern",
+        overlays: { "alarm-1": { type: "alarm", status: "critical", value: "" } },
+      },
+    })
+
+    emit(chart, "alarm-1", { from: 10, to: 50, width: 40 })
+
+    expect(screen.queryByText(/Triggered value:/)).toBeNull()
+  })
+
+  it("keeps the empty alarm pill in the default flavour", () => {
+    const { chart } = renderWithChart(<AlarmOverlay id="alarm-1" />, {
+      attributes: {
+        chartLibrary: "uplot",
+        overlays: { "alarm-1": { type: "alarm", status: "critical" } },
+      },
+    })
+
+    emit(chart, "alarm-1", { from: 10, to: 50, width: 40 })
+
+    expect(screen.getByText(/Triggered value:/)).toBeInTheDocument()
+  })
+
   it("renders the highlight badge for a focused uPlot chart once its area is emitted", () => {
     const { chart } = renderWithChart(<HighlightOverlay id="highlight" />, {
       attributes: {

@@ -5,8 +5,9 @@ import alarm from "./alarm"
 import alarmRange from "./alarmRange"
 import alertTransitions from "./alertTransitions"
 import annotation from "./annotation"
-import threshold, { formatThreshold, getLevels, placeLabels } from "./threshold"
+import threshold, { drawLabels, formatThreshold, getLevels, placeLabels } from "./threshold"
 import types from "./types"
+import makeOverlays from "./index"
 import { getStatusColor, isModern, roundedRectPath } from "./modern"
 
 const payload = makePayload({
@@ -70,6 +71,12 @@ const record = (ctx, names = ["stroke", "fill", "fillRect", "fillText", "arc", "
 }
 
 const only = (calls, name) => calls.filter(call => call.name === name)
+
+// the bands and lines run under the series, the labels over them
+const drawThreshold = (instance, id) => {
+  threshold(instance, id)
+  drawLabels(instance, id)
+}
 
 describe("modern overlay helpers", () => {
   it("is modern only for the modern flavour", async () => {
@@ -166,7 +173,7 @@ describe("threshold overlay", () => {
     const { u, instance, teardown } = await mountUplot({ overlays })
     const calls = record(u.ctx)
 
-    threshold(instance, "alert")
+    drawThreshold(instance, "alert")
 
     expect(calls).toHaveLength(0)
 
@@ -177,7 +184,7 @@ describe("threshold overlay", () => {
     const { u, instance, teardown } = await mountUplot({ overlays, designFlavour: "minimal" })
     const calls = record(u.ctx)
 
-    threshold(instance, "alert")
+    drawThreshold(instance, "alert")
 
     expect(calls).toHaveLength(0)
 
@@ -188,7 +195,7 @@ describe("threshold overlay", () => {
     const { u, instance, teardown } = await mountUplot({ overlays, designFlavour: "modern" })
     const calls = record(u.ctx)
 
-    threshold(instance, "alert")
+    drawThreshold(instance, "alert")
 
     const texts = only(calls, "fillText")
     expect(texts.map(call => call.args[0])).toEqual(["Warning at 60 %", "Critical at 70 %"])
@@ -242,6 +249,111 @@ describe("threshold overlay", () => {
     teardown()
   })
 
+  it("leaves the labels to the label pass so the series cannot cover them", async () => {
+    const { u, instance, teardown } = await mountUplot({ overlays, designFlavour: "modern" })
+    const calls = record(u.ctx)
+
+    threshold(instance, "alert")
+
+    expect(only(calls, "fillText")).toHaveLength(0)
+    expect(only(calls, "fill")).toHaveLength(0)
+
+    teardown()
+  })
+
+  it("fills each pill with the chart background before tinting it", async () => {
+    const { u, instance, teardown } = await mountUplot({ overlays, designFlavour: "modern" })
+    const calls = record(u.ctx)
+
+    drawLabels(instance, "alert")
+
+    const fills = only(calls, "fill")
+    expect(fills.map(call => call.fillStyle)).toEqual([
+      "#ffffff",
+      light.warning,
+      "#ffffff",
+      light.critical,
+    ])
+    expect(fills[0].globalAlpha).toBe(1)
+    expect(fills[1].globalAlpha).toBeCloseTo(0.12)
+    expect(only(calls, "stroke").every(call => call.dash.length === 0)).toBe(true)
+
+    teardown()
+  })
+
+  it("fills the pill with the dark chart background in the dark theme", async () => {
+    const { u, instance, teardown } = await mountUplot({
+      overlays,
+      designFlavour: "modern",
+      theme: "dark",
+    })
+    const calls = record(u.ctx)
+
+    drawLabels(instance, "alert")
+
+    expect(only(calls, "fill")[0].fillStyle).toBe("#282c34")
+
+    teardown()
+  })
+
+  it("draws the labels after the series on redraw", async () => {
+    const { u, teardown } = await mountUplot({ overlays, designFlavour: "modern" })
+    const calls = record(u.ctx)
+
+    u.redraw(false)
+    await Promise.resolve()
+
+    const seriesStroke = String(u.series[1]._stroke).toLowerCase()
+    const lastSeries = calls.map(
+      call => call.name === "stroke" && call.strokeStyle === seriesStroke
+    )
+    const lastSeriesIndex = lastSeries.lastIndexOf(true)
+    const firstLabelIndex = calls.findIndex(
+      call => call.name === "fillText" && / at /.test(call.args[0])
+    )
+    const firstBandIndex = calls.findIndex(
+      call => call.name === "fillRect" && call.fillStyle === light.warning
+    )
+
+    expect(lastSeriesIndex).toBeGreaterThan(-1)
+    expect(firstBandIndex).toBeLessThan(lastSeriesIndex)
+    expect(firstLabelIndex).toBeGreaterThan(lastSeriesIndex)
+
+    teardown()
+  })
+
+  it("runs no label pass in the default flavour", async () => {
+    const { u, instance, teardown } = await mountUplot({ overlays })
+    const calls = record(u.ctx)
+
+    makeOverlays(instance).drawLabels(u)
+
+    expect(calls).toHaveLength(0)
+
+    teardown()
+  })
+
+  it("runs the label pass for threshold overlays only", async () => {
+    const { u, instance, teardown } = await mountUplot({
+      overlays: {
+        ...overlays,
+        n: { type: "annotation", timestamp: middle, color: "#0075F2" },
+      },
+      designFlavour: "modern",
+    })
+    const calls = record(u.ctx)
+
+    makeOverlays(instance).drawLabels(u)
+
+    expect(only(calls, "fillText").map(call => call.args[0])).toEqual([
+      "Warning at 60 %",
+      "Critical at 70 %",
+    ])
+    expect(only(calls, "stroke").every(call => call.strokeStyle !== "#0075f2")).toBe(true)
+
+    teardown()
+  })
+
   it("offsets labels whose thresholds are close together", async () => {
     const { u, instance, teardown } = await mountUplot({
       overlays: { alert: { type: "threshold", warning: 60, critical: 61 } },
@@ -249,7 +361,7 @@ describe("threshold overlay", () => {
     })
     const calls = record(u.ctx)
 
-    threshold(instance, "alert")
+    drawThreshold(instance, "alert")
 
     const [warning, critical] = only(calls, "fillText")
     const warningPill = u.ctx.measureText(warning.args[0]).width + 12
@@ -284,7 +396,7 @@ describe("threshold overlay", () => {
     })
     const calls = record(u.ctx)
 
-    threshold(instance, "alert")
+    drawThreshold(instance, "alert")
 
     expect(only(calls, "fillText").map(call => call.args[0])).toEqual(["Warning at 80 %"])
     expect(only(calls, "fillRect")).toHaveLength(1)
@@ -292,7 +404,7 @@ describe("threshold overlay", () => {
     teardown()
   })
 
-  it("draws full lines without labels on a sparkline", async () => {
+  it("draws nothing on a sparkline", async () => {
     const { u, instance, teardown } = await mountUplot({
       overlays,
       designFlavour: "modern",
@@ -300,10 +412,9 @@ describe("threshold overlay", () => {
     })
     const calls = record(u.ctx)
 
-    threshold(instance, "alert")
+    drawThreshold(instance, "alert")
 
-    expect(only(calls, "fillText")).toHaveLength(0)
-    expect(only(calls, "stroke").filter(call => call.dash.join() === "3,4")).toHaveLength(2)
+    expect(calls).toHaveLength(0)
 
     teardown()
   })
@@ -316,7 +427,7 @@ describe("threshold overlay", () => {
     })
     const calls = record(u.ctx)
 
-    threshold(instance, "alert")
+    drawThreshold(instance, "alert")
 
     expect(only(calls, "fillText").map(call => call.fillStyle)).toEqual([
       dark.warning,
@@ -513,6 +624,52 @@ describe("annotation overlay flavours", () => {
     const strokes = only(calls, "stroke")
     expect(strokes).toHaveLength(2)
     strokes.forEach(call => expect(call.strokeStyle).toBe("#5c6c77"))
+
+    teardown()
+  })
+
+  it("draws nothing on a modern sparkline but still reports the area", async () => {
+    const { u, instance, teardown } = await mountUplot({
+      overlays,
+      designFlavour: "modern",
+      sparkline: true,
+    })
+    const areas = []
+    instance.on("overlayedAreaChanged:n", area => areas.push(area))
+    const calls = record(u.ctx)
+
+    annotation(instance, "n")
+    await new Promise(resolve => requestAnimationFrame(resolve))
+
+    expect(calls).toHaveLength(0)
+    expect(areas.length).toBeGreaterThan(0)
+    expect(areas[areas.length - 1]).toMatchObject({ width: 0 })
+
+    teardown()
+  })
+
+  it("draws no draft on a modern sparkline", async () => {
+    const { chart, u, instance, teardown } = await mountUplot({
+      designFlavour: "modern",
+      sparkline: true,
+    })
+    chart.updateAttribute("draftAnnotation", { timestamp: middle })
+    const calls = record(u.ctx)
+
+    annotation(instance, "draftAnnotation")
+
+    expect(calls).toHaveLength(0)
+
+    teardown()
+  })
+
+  it("keeps the round marker on a default sparkline", async () => {
+    const { u, instance, teardown } = await mountUplot({ overlays, sparkline: true })
+    const calls = record(u.ctx)
+
+    annotation(instance, "n")
+
+    expect(only(calls, "arc")).toHaveLength(1)
 
     teardown()
   })

@@ -1,5 +1,7 @@
 import types from "./types"
 import getPxRatio from "../pxRatio"
+import { drawLabels as drawThresholdLabels } from "./threshold"
+import { isModern } from "./modern"
 
 export default chartUI => {
   const drawOverlay = id => {
@@ -31,6 +33,23 @@ export default chartUI => {
     u.ctx.restore()
   }
 
+  // labels go over the series, which drawClear runs before
+  const drawLabels = u => {
+    if (!isModern(chartUI.chart)) return
+
+    const overlays = chartUI.chart.getAttribute("overlays") || {}
+    const ids = Object.keys(overlays).filter(id => overlays[id].type === "threshold")
+    if (!ids.length) return
+
+    const dpr = getPxRatio()
+    u.ctx.save()
+    u.ctx.scale(dpr, dpr)
+
+    ids.forEach(id => drawThresholdLabels(chartUI, id))
+
+    u.ctx.restore()
+  }
+
   const render = () => {
     const u = chartUI.getUPlot()
     if (u) u.redraw()
@@ -38,5 +57,5 @@ export default chartUI => {
 
   const toggle = () => render()
 
-  return { toggle, draw }
+  return { toggle, draw, drawLabels }
 }

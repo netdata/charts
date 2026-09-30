@@ -62,7 +62,20 @@ const rows = [
     }),
   },
   {
-    label: "Sparkline",
+    label: "Alert range with its triggered value",
+    payload: loadPayload,
+    overlays: now => ({
+      range: {
+        type: "alarmRange",
+        status: "critical",
+        valueTriggered: "3.4",
+        whenTriggered: now - 720,
+        whenLast: now - 540,
+      },
+    }),
+  },
+  {
+    label: "Sparkline: overlays stay off, like the default sparkline",
     payload: cpuPayload,
     height: "64px",
     attributes: { sparkline: true },
