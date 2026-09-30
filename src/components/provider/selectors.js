@@ -640,8 +640,7 @@ export const useLatestValue = (id, options = {}) => useValue(id, "latest", optio
 export const useDisplayValue = (id, period = "latest", options = {}) =>
   useValue(id, period, { ...options, abs: false })
 
-export const useLatestDisplayValue = (id, options = {}) =>
-  useDisplayValue(id, "latest", options)
+export const useLatestDisplayValue = (id, options = {}) => useDisplayValue(id, "latest", options)
 
 export const useConvertedValue = (id, period = "latest", options = {}) => {
   const value = useValue(id, period, options)
@@ -673,6 +672,8 @@ export const useLatestDisplayValueWithUnit = (id, options = {}) => {
 }
 
 export const useIsMinimal = () => useAttributeValue("designFlavour") === "minimal"
+
+export const useIsModern = () => useAttributeValue("designFlavour") === "modern"
 
 export const usePlotArea = (uiName = "default") => {
   const chart = useChart()
