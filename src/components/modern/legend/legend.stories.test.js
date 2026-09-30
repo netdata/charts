@@ -13,6 +13,6 @@ describe("Modern/Legend and hover story", () => {
     render(<Story {...Story.args} />)
     await act(tick)
 
-    expect(screen.getAllByTestId("modernBody")).toHaveLength(6)
+    expect(screen.getAllByTestId("modernBody")).toHaveLength(8)
   })
 })

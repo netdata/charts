@@ -2,9 +2,10 @@ const now = 1729763970000
 const points = 97
 const updateEvery = 5
 
+// reduce instead of spreading, so payloads with thousands of dimensions fit the call stack
 const range = values => ({
-  min: Math.min(...values),
-  max: Math.max(...values),
+  min: values.reduce((min, value) => Math.min(min, value), Infinity),
+  max: values.reduce((max, value) => Math.max(max, value), -Infinity),
   avg: values.reduce((sum, value) => sum + value, 0) / values.length,
 })
 

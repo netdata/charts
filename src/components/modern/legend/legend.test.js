@@ -5,6 +5,7 @@ import { makeTestChart, renderWithChart } from "@jest/testUtilities"
 import { makePayload, makeWave } from "@/helpers/makeWavePayload"
 import { Line } from "@/components/line"
 import Popover from "@/components/line/popover"
+import { formatReadout } from "@/components/modern/format"
 import systemLoadLine from "../../../../fixtures/systemLoadLine"
 import { resolveLegendMode } from "./mode"
 import { getWindowStats } from "./useLegendRows"
@@ -140,7 +141,7 @@ describe("modern line legend", () => {
     expect(within(table).getByText("Last")).toBeInTheDocument()
     expect(within(table).getByText("Mean")).toBeInTheDocument()
     expect(within(table).getByText("Max")).toBeInTheDocument()
-    expect(within(table).getByText("AR")).toBeInTheDocument()
+    expect(within(table).getByText("Anomaly")).toHaveAttribute("title", "Anomaly rate")
     expect(screen.queryByTestId("chartLegendDimension")).not.toBeInTheDocument()
   })
 
@@ -157,7 +158,8 @@ describe("modern line legend", () => {
     const load1 = screen
       .getAllByTestId("modernLegend-row")
       .find(node => node.getAttribute("data-dimension") === "load1")
-    const hovered = chart.getConvertedValue(
+    const hovered = formatReadout(
+      chart,
       chart.getDimensionValue("load1", row, { abs: false, allowNull: true }),
       { dimensionId: "load1" }
     )
