@@ -2,6 +2,7 @@ import React from "react"
 import styled from "styled-components"
 import { Flex, TextNano } from "@netdata/netdata-ui"
 import { useChart, useAttributeValue, useUnitSign } from "@/components/provider"
+import { formatReadout } from "@/components/modern/format"
 import { numeralsFont, tabularNumbers } from "@/components/modern/tokens"
 import { getScale, getThreshold, getThresholdColor } from "./scale"
 
@@ -47,13 +48,13 @@ const ModernLegend = () => {
         {selectedContexts && selectedContexts !== "*" ? selectedContexts : contextScope}
       </TextNano>
       <Flex gap={2} alignItems="center">
-        <Numeral color="textLite">{`${chart.getConvertedValue(min)} ${units}`}</Numeral>
+        <Numeral color="textLite">{formatReadout(chart, min, { withUnit: true })}</Numeral>
         <Ramp data-testid="groupBox-legend-scale">
           {scale.map(color => (
             <Swatch key={color} style={{ background: color }} />
           ))}
         </Ramp>
-        <Numeral color="textLite">{`${chart.getConvertedValue(max)} ${units}`}</Numeral>
+        <Numeral color="textLite">{formatReadout(chart, max, { withUnit: true })}</Numeral>
       </Flex>
       {threshold !== null && (
         <Flex gap={1} alignItems="center" data-testid="groupBox-legend-threshold">

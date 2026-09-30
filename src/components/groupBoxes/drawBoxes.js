@@ -9,6 +9,7 @@ import {
   getYPosition,
   getFullWidth,
   getFullHeight,
+  defaultCellSize,
 } from "./utilities"
 import registerEvents from "./events"
 
@@ -18,7 +19,25 @@ export const getWidth = (dimensions, { aspectRatio, cellSize } = {}) => {
   return getFullWidth(columns, cellSize)
 }
 
-const getCanvasAttributes = (dimensions, { aspectRatio, cellSize, padding } = {}) => {
+// When the caller gives the room it has, boxes fill that width row by row instead of keeping
+// the aspect ratio, so a wide card is not left mostly empty.
+const getFittedAttributes = (dimensions, availableWidth, { cellSize, padding } = {}) => {
+  const size = cellSize || defaultCellSize
+  const columns = Math.max(1, Math.min(dimensions.length, Math.floor(availableWidth / size)))
+  const rows = Math.max(1, Math.ceil(dimensions.length / columns))
+
+  return {
+    width: getFullWidth(columns, cellSize),
+    height: getFullHeight(rows, cellSize, padding),
+    columns,
+  }
+}
+
+const getCanvasAttributes = (dimensions, options = {}) => {
+  const { aspectRatio, cellSize, padding, getAvailableWidth } = options
+  const availableWidth = getAvailableWidth ? getAvailableWidth() : 0
+  if (availableWidth > 0) return getFittedAttributes(dimensions, availableWidth, options)
+
   const rows = getRows(dimensions, aspectRatio)
   const columns = getColumns(rows, aspectRatio)
   const width = getFullWidth(columns, cellSize)

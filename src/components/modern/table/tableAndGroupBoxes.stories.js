@@ -38,7 +38,8 @@ const cases = [
   {
     id: "group-boxes",
     title: "Node CPU",
-    description: "One hue, light to dark; boxes at or above 90% use the error colour.",
+    description:
+      "One hue, light to dark; boxes at or above 90% use the error colour and fill the row width.",
     Component: GroupBoxes,
     payload: heatPayload,
     height: "420px",
