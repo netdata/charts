@@ -21,6 +21,7 @@ import makeAnomaly from "./plotters/anomaly"
 import makeAnomalyBadge from "./plotters/anomalyBadge"
 import makeAnnotations from "./plotters/annotations"
 import makeGetHoverDimension from "./hover"
+import getPxRatio from "./pxRatio"
 
 const barGroupWidth = 0.6
 
@@ -135,7 +136,7 @@ const padYRange = (self, rawMin, rawMax) => {
   const span = max - min
   if (span <= 0) return [min, max]
 
-  const height = self && self.bbox ? self.bbox.height / (self.pxRatio || 1) : 0
+  const height = self && self.bbox ? self.bbox.height / getPxRatio() : 0
   const ratio = height > 0 ? yRangePadPx / height : yRangePadFallbackRatio
   const pad = span * ratio
 
@@ -348,7 +349,7 @@ export default (sdk, chart) => {
       const count = chart.getVisibleHeatmapIds().length
       if (!count) return []
 
-      const heightPx = self.bbox.height / (self.pxRatio || 1)
+      const heightPx = self.bbox.height / getPxRatio()
       const maxTicks = Math.max(1, Math.floor(heightPx / heatmapPixelsPerLabel))
       const step = Math.max(1, Math.ceil(count / Math.max(1, maxTicks - 1)))
 
@@ -447,7 +448,7 @@ export default (sdk, chart) => {
               makeAxisTicks({
                 min: scaleMin,
                 max: scaleMax,
-                pixels: self.bbox.height / (self.pxRatio || 1),
+                pixels: self.bbox.height / getPxRatio(),
                 pixelsPerTick: yPixelsPerLabel,
                 units,
                 secondsAsTime,
@@ -527,7 +528,7 @@ export default (sdk, chart) => {
     ctx.clip()
 
     const edgeWidth = window.devicePixelRatio || 1
-    const plotWidth = self.bbox.width / (self.pxRatio || 1)
+    const plotWidth = self.bbox.width / getPxRatio()
     const visibleColumns = bounds.filter(Boolean)
     const xPositions = new Array(xs.length)
     const getX = row => {
@@ -633,7 +634,7 @@ export default (sdk, chart) => {
       const color = chart.selectDimensionColor(id)
       ctx.fillStyle = color
       ctx.strokeStyle = darkenColor(color)
-      ctx.lineWidth = self.pxRatio || 1
+      ctx.lineWidth = getPxRatio()
 
       for (let row = 0; row < xs.length; row++) {
         const value = values[row]
@@ -663,7 +664,7 @@ export default (sdk, chart) => {
       const color = chart.selectDimensionColor(id)
       ctx.fillStyle = color
       ctx.strokeStyle = darkenColor(color)
-      ctx.lineWidth = self.pxRatio || 1
+      ctx.lineWidth = getPxRatio()
 
       for (let row = 0; row < xs.length; row++) {
         const bound = columnBounds[row]
@@ -746,7 +747,7 @@ export default (sdk, chart) => {
     const x = self.valToPos(xs[row], "x", true)
     if (!Number.isFinite(x)) return
 
-    const dpr = self.pxRatio || 1
+    const dpr = getPxRatio()
     const radius = (chart.isSparkline() ? sparklineHoverDotRadius : hoverDotRadius) * dpr
     const dimensionIds = chart.getPayloadDimensionIds()
 
@@ -1019,7 +1020,7 @@ export default (sdk, chart) => {
 
   const emitPointer = name => event => {
     const rect = u.over.getBoundingClientRect()
-    const dpr = u.pxRatio || 1
+    const dpr = getPxRatio()
     const offsetX = event.clientX - rect.left + u.bbox.left / dpr
     const offsetY = event.clientY - rect.top + u.bbox.top / dpr
     chartUI.trigger(name, {
@@ -1575,7 +1576,7 @@ export default (sdk, chart) => {
 
   const getPlotArea = () => {
     if (!u) return { left: 0, top: 0, width: 0, height: 0 }
-    const dpr = u.pxRatio || 1
+    const dpr = getPxRatio()
     return {
       left: u.bbox.left / dpr,
       top: u.bbox.top / dpr,
@@ -1586,7 +1587,7 @@ export default (sdk, chart) => {
 
   const getXCoord = timestampMs => {
     if (!u) return 0
-    const dpr = u.pxRatio || 1
+    const dpr = getPxRatio()
     return u.bbox.left / dpr + u.valToPos(timestampMs / 1000, "x")
   }
 

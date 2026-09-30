@@ -1,4 +1,5 @@
 import types from "./types"
+import getPxRatio from "../pxRatio"
 
 export default chartUI => {
   const drawOverlay = id => {
@@ -16,7 +17,7 @@ export default chartUI => {
 
     if (!ids.length && !draftAnnotation) return
 
-    const dpr = u.pxRatio || 1
+    const dpr = getPxRatio()
     u.ctx.save()
     u.ctx.scale(dpr, dpr)
 

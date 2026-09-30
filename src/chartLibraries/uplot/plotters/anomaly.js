@@ -1,6 +1,7 @@
 import { scaleLinear } from "d3-scale"
 import { getRowPointValue } from "@/sdk/makeChart/getPointValue"
 import { isVisibleDimension } from "@/chartLibraries/helpers/dimensionVisibility"
+import getPxRatio from "../pxRatio"
 
 const ribbonHeight = 15
 
@@ -13,7 +14,7 @@ export default chartUI => self => {
   const xs = self.data[0]
   if (!xs || !xs[1]) return
 
-  const dpr = self.pxRatio || 1
+  const dpr = getPxRatio()
   const ctx = self.ctx
 
   const minSep = self.valToPos(xs[1], "x", true) - self.valToPos(xs[0], "x", true) + 1
