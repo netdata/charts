@@ -61,6 +61,7 @@ const yRangePadPx = 15
 const yRangePadFallbackRatio = 0.05
 
 const hiddenAxisSize = 0
+const unfocusedAlpha = 0.15
 
 const steppedPathBuilder = uPlot.paths.stepped && uPlot.paths.stepped({ align: 1 })
 const splinePathBuilder = uPlot.paths.spline && uPlot.paths.spline()
@@ -213,6 +214,23 @@ export default (sdk, chart) => {
 
   const isBarType = chartType => chartType === "multiBar" || chartType === "stackedBar"
 
+  // the modern legend dims every series but the one its pointer is on
+  const isModern = () => chart.getAttribute("designFlavour") === "modern"
+  const getSeriesAlpha = id => {
+    const focused = chart.getAttribute("focusedDimensionId")
+    return focused && focused !== id ? unfocusedAlpha : 1
+  }
+
+  const applyFocus = () => {
+    if (!u || !isModern()) return
+
+    chart.getPayloadDimensionIds().forEach((id, index) => {
+      const series = u.series[index + 1]
+      if (series) series.alpha = getSeriesAlpha(id)
+    })
+    u.redraw(false, false)
+  }
+
   const getPaths = () => {
     const chartType = chart.getAttribute("chartType")
     if (chartType === "stacked" || chartType === "heatmap" || isBarType(chartType))
@@ -255,6 +273,7 @@ export default (sdk, chart) => {
           show: isVisible(id),
           stroke: color,
           width: filled ? areaLineWidth : lineWidth,
+          ...(isModern() && { alpha: getSeriesAlpha(id) }),
           ...(paths && { paths }),
           ...(filled && { fill: makeAreaFill(color) }),
           points:
@@ -562,6 +581,7 @@ export default (sdk, chart) => {
       if (!series) return
 
       const color = chart.selectDimensionColor(id)
+      if (isModern()) ctx.globalAlpha = getSeriesAlpha(id)
 
       getStackSegments(series, xs.length).forEach(([start, end]) => {
         const selected = selectStackRows(visibleColumns, getX, start, end, plotWidth)
@@ -656,6 +676,7 @@ export default (sdk, chart) => {
       ctx.fillStyle = color
       ctx.strokeStyle = darkenColor(color)
       ctx.lineWidth = getPxRatio()
+      if (isModern()) ctx.globalAlpha = getSeriesAlpha(id)
 
       for (let row = 0; row < xs.length; row++) {
         const value = values[row]
@@ -686,6 +707,7 @@ export default (sdk, chart) => {
       ctx.fillStyle = color
       ctx.strokeStyle = darkenColor(color)
       ctx.lineWidth = getPxRatio()
+      if (isModern()) ctx.globalAlpha = getSeriesAlpha(id)
 
       for (let row = 0; row < xs.length; row++) {
         const bound = columnBounds[row]
@@ -1539,6 +1561,7 @@ export default (sdk, chart) => {
       }),
       chart.onAttributeChange("hoverX", () => renderCrosshair()),
       chart.onAttributeChange("clickX", () => renderCrosshair()),
+      chart.onAttributeChange("focusedDimensionId", applyFocus),
       chart.onAttributeChange("overlays", overlays.toggle),
       chart.onAttributeChange("draftAnnotation", overlays.toggle),
       chart.onAttributeChange("selectedLegendDimensions", rebuild),

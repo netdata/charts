@@ -3950,6 +3950,67 @@ describe("uplotChart series focus (dygraph parity)", () => {
   })
 })
 
+describe("uplotChart modern legend focus", () => {
+  const mountFocus = async designFlavour => {
+    const { sdk, chart } = makeTestChart({
+      attributes: { loaded: true, chartType: "line", designFlavour },
+    })
+    withLoadedPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    const alphas = () =>
+      instance
+        .getUPlot()
+        .series.slice(1)
+        .map(series => series.alpha)
+    const cleanup = () => {
+      instance.unmount()
+      document.body.removeChild(element)
+    }
+
+    return { chart, instance, alphas, cleanup }
+  }
+
+  it("dims every series but the focused one under the modern flavour", async () => {
+    const { chart, alphas, cleanup } = await mountFocus("modern")
+
+    chart.updateAttribute("focusedDimensionId", "load5")
+    expect(alphas()).toEqual([0.15, 1, 0.15])
+
+    chart.updateAttribute("focusedDimensionId", null)
+    expect(alphas()).toEqual([1, 1, 1])
+
+    cleanup()
+  })
+
+  it("keeps the focus across a rebuild", async () => {
+    const { chart, alphas, cleanup } = await mountFocus("modern")
+
+    chart.updateAttribute("focusedDimensionId", "load1")
+    chart.updateAttribute("stepPlot", true)
+    expect(alphas()).toEqual([1, 0.15, 0.15])
+
+    cleanup()
+  })
+
+  it("ignores the focus outside the modern flavour", async () => {
+    const { chart, alphas, cleanup } = await mountFocus("default")
+
+    chart.updateAttribute("focusedDimensionId", "load5")
+    expect(alphas()).toEqual([1, 1, 1])
+
+    cleanup()
+  })
+})
+
 describe("uplotChart gesture teardown", () => {
   const mountPannable = async () => {
     const { sdk, chart } = makeTestChart({
