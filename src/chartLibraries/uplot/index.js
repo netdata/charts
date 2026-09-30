@@ -2,6 +2,7 @@ import uPlot from "uplot"
 import { debounce } from "throttle-debounce"
 import makeChartUI from "@/sdk/makeChartUI"
 import { makeAxisTicks } from "@/helpers/ticks"
+import convert from "@/helpers/units"
 import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
 import limitRange from "@/helpers/limitRange"
@@ -34,6 +35,17 @@ const defaultYAxisSize = 60
 const minPlotHeight = 20
 const yPixelsPerLabel = 30
 const rangeEpsilon = 1e-9
+
+// the modern title names the source unit, so a tick can drop its unit only while it still reads
+// in that unit; a scaled or converted tick (MiB, °F) keeps it. Durations carry no unit sign.
+const isUnscaledTick = (chart, value, { method, divider, prefix } = {}) => {
+  if (prefix) return false
+
+  const converted = convert(chart, method, value, divider)
+  if (typeof converted !== "number") return true
+
+  return Math.abs(converted - value) <= Math.abs(value) * rangeEpsilon
+}
 
 const isWithinRange = (value, min, max) => {
   const epsilon = Math.abs(max - min) * rangeEpsilon
@@ -501,7 +513,10 @@ export default (sdk, chart) => {
                   dimensionId,
                   ...range,
                 })
-                return chart.getConvertedValueWithUnit(value, { dimensionId, unitAttributes })
+                const options = { dimensionId, unitAttributes }
+                return isModern() && isUnscaledTick(chart, value, unitAttributes)
+                  ? chart.getConvertedValue(value, options)
+                  : chart.getConvertedValueWithUnit(value, options)
               }),
           }
         : { ticks: { show: false }, values: () => [], size: hiddenAxisSize }),
@@ -874,6 +889,7 @@ export default (sdk, chart) => {
   }
 
   const drawOverlays = self => overlays && overlays.draw(self)
+  const drawOverlayLabels = self => overlays && overlays.drawLabels(self)
 
   const setCursor = self => {
     if (!chart.getAttribute("enabledHover")) return
@@ -1477,6 +1493,7 @@ export default (sdk, chart) => {
                 drawAnomaly,
                 drawAnomalyBadge,
                 drawAnnotations,
+                drawOverlayLabels,
                 drawCrosshairLayer,
               ],
         },

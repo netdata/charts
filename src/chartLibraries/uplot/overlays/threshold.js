@@ -64,28 +64,56 @@ const drawLine = (ctx, y, from, to) => {
   ctx.stroke()
 }
 
-export default (chartUI, id) => {
+// shared by the band pass (under the series) and the label pass (over them), so both agree
+const getLayout = (chartUI, id) => {
   const { chart } = chartUI
 
-  if (!isModern(chart)) return
-  if (chart.getAttribute("chartType") === "heatmap") return
+  if (!isModern(chart)) return null
+  if (chart.isSparkline()) return null
+  if (chart.getAttribute("chartType") === "heatmap") return null
 
   const u = chartUI.getUPlot()
-  if (!u) return
+  if (!u) return null
 
   const overlays = chart.getAttribute("overlays")
   const levels = getLevels(overlays[id])
-  if (!levels.length) return
+  if (!levels.length) return null
 
   const { left, top, width, height } = chartUI.getPlotArea()
-  if (width <= 0 || height <= 0) return
+  if (width <= 0 || height <= 0) return null
 
   const right = left + width
   const bottom = top + height
-  const clampY = y => Math.min(bottom, Math.max(top, y))
   const toY = value => top + u.valToPos(value, "y")
-  const withLabels = !chart.isSparkline()
   const { ctx } = u
+
+  ctx.save()
+  ctx.font = labelFont
+
+  const visible = levels
+    .map(level => ({ ...level, y: toY(level.value) }))
+    .filter(({ y }) => Number.isFinite(y) && y >= top && y <= bottom)
+    .map(level => {
+      const text = `${statusLabels[level.status]} at ${formatThreshold(chart, level.value)}`
+      return { ...level, text, width: ctx.measureText(text).width + pillPadding * 2 }
+    })
+
+  ctx.restore()
+
+  const labels = placeLabels(visible).map(label => {
+    const pillLeft = left + pillInset + label.shift
+    return { ...label, lineY: crisp(label.y), pillLeft, hasPill: pillLeft + label.width <= right }
+  })
+
+  return { chart, ctx, levels, labels, left, right, top, bottom, width, toY }
+}
+
+export default (chartUI, id) => {
+  const layout = getLayout(chartUI, id)
+  if (!layout) return
+
+  const { chart, ctx, levels, labels, left, right, top, bottom, width, toY } = layout
+  const clampY = y => Math.min(bottom, Math.max(top, y))
 
   ctx.save()
 
@@ -104,45 +132,53 @@ export default (chartUI, id) => {
     ctx.fillRect(left, bandTop, width, bandHeight)
   })
 
-  ctx.font = labelFont
-
-  const visible = levels
-    .map(level => ({ ...level, y: toY(level.value) }))
-    .filter(({ y }) => Number.isFinite(y) && y >= top && y <= bottom)
-    .map(level => {
-      const text = `${statusLabels[level.status]} at ${formatThreshold(chart, level.value)}`
-      const textWidth = withLabels ? ctx.measureText(text).width : 0
-      return { ...level, text, width: textWidth + pillPadding * 2 }
-    })
-
-  placeLabels(visible).forEach(({ status, y, text, width: pillWidth, shift }) => {
-    const color = getStatusColor(chart, status)
-    const lineY = crisp(y)
-    const pillLeft = left + pillInset + shift
-    const hasPill = withLabels && pillLeft + pillWidth <= right
-
+  labels.forEach(({ status, lineY, width: pillWidth, pillLeft, hasPill }) => {
     ctx.setLineDash(lineDash)
     ctx.lineWidth = 1
-    ctx.strokeStyle = color
+    ctx.strokeStyle = getStatusColor(chart, status)
     ctx.globalAlpha = lineAlpha
 
     if (!hasPill) return drawLine(ctx, lineY, left, right)
 
-    // the line stops at the pill so the label reads cleanly
     drawLine(ctx, lineY, left, pillLeft)
     drawLine(ctx, lineY, pillLeft + pillWidth, right)
+  })
 
-    ctx.setLineDash([])
+  ctx.restore()
+}
+
+// drawn after the series: an opaque pill keeps the label clear of every line, band and series
+export const drawLabels = (chartUI, id) => {
+  const layout = getLayout(chartUI, id)
+  if (!layout) return
+
+  const { chart, ctx, labels } = layout
+  const background = chart.getThemeAttribute("themeBackground")
+
+  ctx.save()
+  ctx.font = labelFont
+  ctx.setLineDash([])
+  ctx.lineWidth = 1
+  ctx.textAlign = "left"
+  ctx.textBaseline = "middle"
+
+  labels.forEach(({ status, lineY, text, width: pillWidth, pillLeft, hasPill }) => {
+    if (!hasPill) return
+
+    const color = getStatusColor(chart, status)
+
     roundedRectPath(ctx, pillLeft, lineY - pillHeight / 2, pillWidth, pillHeight, pillHeight / 2)
+    ctx.globalAlpha = 1
+    ctx.fillStyle = background
+    ctx.fill()
     ctx.globalAlpha = pillFillAlpha
     ctx.fillStyle = color
     ctx.fill()
     ctx.globalAlpha = pillStrokeAlpha
+    ctx.strokeStyle = color
     ctx.stroke()
 
     ctx.globalAlpha = 1
-    ctx.textAlign = "left"
-    ctx.textBaseline = "middle"
     ctx.fillText(text, pillLeft + pillPadding, lineY)
   })
 

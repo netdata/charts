@@ -6,6 +6,7 @@ import { makeTestChart, loadHeatmapPayload, renderWithChart } from "@jest/testUt
 import ChartContainer from "@/components/chartContainer"
 import withChart from "@/components/hocs/withChart"
 import makeMockPayload from "@/helpers/makeMockPayload"
+import { makePayload, makeWave } from "@/helpers/makeWavePayload"
 import Popover from "@/components/line/popover"
 import makeDefaultSDK from "../../makeDefaultSDK"
 import systemLoadLine from "../../../fixtures/systemLoadLine"
@@ -4649,5 +4650,98 @@ describe("uplotChart y-axis labels stay inside the plot", () => {
 
     instance.unmount()
     document.body.removeChild(element)
+  })
+})
+
+describe("uplotChart modern y-axis labels", () => {
+  const mountWave = async (unit, { center, amplitude }, attributes = {}) => {
+    const payload = makePayload({
+      context: "axis.values",
+      title: "Axis",
+      unit,
+      dimensions: [{ id: "value", values: makeWave({ center, amplitude }) }],
+    })
+    const { after, before } = payload.view
+    const { sdk, chart } = makeTestChart({
+      attributes: { chartLibrary: "uplot", chartType: "line", after, before, ...attributes },
+    })
+    chart.doneFetch(payload)
+    await new Promise(resolve => setTimeout(resolve, 0))
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    const u = instance.getUPlot()
+    const splits = u.axes[1].splits(u, 1, u.scales.y.min, u.scales.y.max)
+    const labels = u.axes[1].values(u, splits)
+    instance.unmount()
+    document.body.removeChild(element)
+
+    return { splits, labels }
+  }
+
+  const percent = ["percentage", { center: 50, amplitude: 30 }]
+  const bytes = ["By", { center: 600 * 1024 * 1024, amplitude: 400 * 1024 * 1024 }]
+  const celsius = ["Cel", { center: 40, amplitude: 10 }]
+  const minutes = ["s", { center: 1800, amplitude: 1500 }]
+  const seconds = ["s", { center: 30, amplitude: 20 }]
+
+  it("keeps the unit on every tick in the default flavour", async () => {
+    const { labels } = await mountWave(...percent)
+
+    expect(labels.length).toBeGreaterThan(1)
+    labels.forEach(label => expect(label).toMatch(/^\d+ %$/))
+  })
+
+  it("keeps the unit on every tick in the minimal flavour", async () => {
+    const { labels } = await mountWave(...percent, { designFlavour: "minimal" })
+
+    labels.forEach(label => expect(label).toMatch(/^\d+ %$/))
+  })
+
+  it("drops the unit from ticks that read in the source unit", async () => {
+    const { labels: defaults } = await mountWave(...percent)
+    const { labels } = await mountWave(...percent, { designFlavour: "modern" })
+
+    expect(labels).toEqual(defaults.map(label => label.replace(" %", "")))
+  })
+
+  it("drops the unit from seconds ticks and keeps the duration ones", async () => {
+    const { labels: defaults } = await mountWave(...seconds, { secondsAsTime: true })
+    const { labels } = await mountWave(...seconds, { designFlavour: "modern", secondsAsTime: true })
+
+    expect(defaults.some(label => / s$/.test(label))).toBe(true)
+    expect(labels).toEqual(defaults.map(label => label.replace(/ s$/, "")))
+  })
+
+  it("keeps the formatted duration on a duration axis", async () => {
+    const { labels: defaults } = await mountWave(...minutes, { secondsAsTime: true })
+    const { labels } = await mountWave(...minutes, { designFlavour: "modern", secondsAsTime: true })
+
+    expect(labels).toEqual(defaults)
+    labels.forEach(label => expect(label).toMatch(/^\d+m$/))
+  })
+
+  it("keeps the unit on ticks scaled away from the source unit", async () => {
+    const { labels: defaults } = await mountWave(...bytes)
+    const { labels } = await mountWave(...bytes, { designFlavour: "modern" })
+
+    expect(labels).toEqual(defaults)
+    expect(labels.some(label => / MiB$/.test(label))).toBe(true)
+  })
+
+  it("keeps the unit on ticks converted to another unit", async () => {
+    const { labels } = await mountWave(...celsius, {
+      designFlavour: "modern",
+      temperature: "fahrenheit",
+    })
+
+    labels.forEach(label => expect(label).toMatch(/ °F$/))
   })
 })
