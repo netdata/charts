@@ -140,3 +140,22 @@ Risks:
 | Drawer (compare, values, drill down, correlate) | expander | "Compare, drill down, correlate" footer action (tiles: More menu) |
 | Overlays: alerts, annotations, anomalies, highlight | plot | plot: alert bands with labelled thresholds, annotation flags, anomaly strip |
 | Keyboard: Alt+Shift+F, Alt+Shift+R | focused chart | unchanged, listed next to the menu entries |
+
+## Implementation tracks (designFlavour "modern")
+
+Base: `9f1efaea` (foundation: `useIsModern`, `components/modern/tokens.js`). Each track works in its own
+worktree on branch `modern/<track>` and is merged into `feat/uplot-renderer` afterwards.
+
+| Track | Area | Owns |
+|---|---|---|
+| chrome | header, scope line, hover actions, More menu, attention headline, zoom chip | header, title, status, toolbox, line/chartContentWrapper, line/navigationToolbox |
+| legend | adaptive legend, legend as readout, compact tooltip, focus dimming | line/index, footer, legend, popover, indicators, dimensionSort |
+| overlays | alert threshold bands, annotation flags, anomaly strip (uPlot) | uplot/overlays, uplot/plotters |
+| gauge | SVG gauge | components/gauge, chartLibraries/gauge |
+| number | stat panel, rings (easyPie) | number, easyPie |
+| donut | donut (d3pie), ranked bars | d3pie, bars |
+| table | table, group boxes heat grid | table, groupBoxes |
+| dropdown | filter dropdowns | filterToolbox internals |
+
+Every track: gated by the modern flavour, tests prove default/minimal unchanged, no mocks, a `Modern/*`
+story, lint clean.
