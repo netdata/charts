@@ -15,7 +15,7 @@ const makeSeries = (context, title, count) =>
     title,
     unit: "percentage",
     dimensions: Array.from({ length: count }, (_, index) => ({
-      id: `sd${String.fromCharCode(97 + index)}`,
+      id: index < 26 ? `sd${String.fromCharCode(97 + index)}` : `sd${index}`,
       values: makeWave({
         center: 20 + index * 5,
         amplitude: 4 + (index % 4) * 2,
@@ -27,6 +27,7 @@ const makeSeries = (context, title, count) =>
 
 const fivePayload = makeSeries("modern.disk.five", "Disk utilization", 5)
 const manyPayload = makeSeries("modern.disk.many", "Disk utilization per device", 14)
+const hugePayload = makeSeries("modern.disk.huge", "Disk utilization, 2000 devices", 2000)
 
 const cards = [
   { label: "Tile (360px): no legend, compact tooltip", payload: loadPayload, width: "360px" },
@@ -40,6 +41,17 @@ const cards = [
     width: "640px",
     chartType: "stacked",
   },
+  {
+    label: "2000 series (1000px): windowed side table",
+    payload: hugePayload,
+    width: "1000px",
+  },
+  {
+    label: "2000 series (640px): one-line legend capped, +N more opens the drawer",
+    payload: hugePayload,
+    width: "640px",
+    legendLayout: "below",
+  },
 ]
 
 const useCharts = (theme, chartLibrary) => {
@@ -48,10 +60,10 @@ const useCharts = (theme, chartLibrary) => {
       attributes: { theme, designFlavour: "modern", navigation: "pan", expandable: true },
     })
 
-    return cards.map(({ payload, chartType = "line" }) => {
+    return cards.map(({ payload, chartType = "line", legendLayout }) => {
       const chart = sdk.makeChart({
         getChart: makeMockPayload(payload, { delay: 0 }),
-        attributes: { chartLibrary, chartType },
+        attributes: { chartLibrary, chartType, ...(legendLayout && { legendLayout }) },
       })
       sdk.appendChild(chart)
       return chart

@@ -2,6 +2,7 @@ import { useRef } from "react"
 import { convert, useChart, useForceUpdate, useImmediateListener } from "@/components/provider"
 import { unregister } from "@/helpers/makeListeners"
 import { isIncremental } from "@/helpers/heatmap"
+import { formatReadout } from "@/components/modern/format"
 
 const isNumber = value => typeof value === "number" && isFinite(value)
 
@@ -52,13 +53,27 @@ export const getWindowStats = chart => {
 
 const hasFlags = flags => !!flags && typeof flags === "object" && Object.keys(flags).length > 0
 
-export const makeRow = (chart, id, index, stats) => {
+const formatStats = (chart, id, windowStats) =>
+  windowStats
+    ? {
+        mean: formatReadout(chart, windowStats.mean, { dimensionId: id }),
+        max: formatReadout(chart, windowStats.max, { dimensionId: id }),
+      }
+    : { mean: "-", max: "-" }
+
+// `formatted` caches the window stat strings, which never change with the hovered row
+export const makeRow = (chart, id, index, stats, formatted) => {
   const value =
     index === -1 ? null : chart.getDimensionValue(id, index, { abs: false, allowNull: true })
   const arp = index === -1 ? null : chart.getDimensionValue(id, index, { valueKey: "arp" })
   const pa = index === -1 ? null : chart.getDimensionValue(id, index, { valueKey: "pa" })
   const flags = pa ? convert(chart, pa, { valueKey: "pa" }) : null
-  const windowStats = stats?.[id]
+
+  let summary = formatted?.get(id)
+  if (!summary) {
+    summary = formatStats(chart, id, stats?.[id])
+    if (formatted) formatted.set(id, summary)
+  }
 
   return {
     id,
@@ -66,13 +81,13 @@ export const makeRow = (chart, id, index, stats) => {
     color: chart.selectDimensionColor(id),
     visible: chart.isDimensionVisible(id),
     value,
-    display: convert(chart, value, { dimensionId: id }),
+    display: formatReadout(chart, value, { dimensionId: id }),
     unit: chart.getUnitSign({ dimensionId: id }),
     arp: isNumber(arp) ? arp : 0,
     anomaly: isNumber(arp) && arp > 0 ? `${convert(chart, arp, { valueKey: "arp" })}%` : "",
     flags: hasFlags(flags) ? flags : null,
-    mean: windowStats ? convert(chart, windowStats.mean, { dimensionId: id }) : "-",
-    max: windowStats ? convert(chart, windowStats.max, { dimensionId: id }) : "-",
+    mean: summary.mean,
+    max: summary.max,
   }
 }
 
@@ -87,12 +102,23 @@ const attributes = [
   "theme",
 ]
 
+// everything the window stats and their formatted strings depend on; the hovered row is not
+const cacheAttributes = [
+  "unitsConversionPrefix",
+  "unitsConversionBase",
+  "unitsByDimension",
+  "staticFractionDigits",
+  "viewDimensions",
+]
+
+const sameKey = (a, b) => !!a && a.length === b.length && a.every((value, i) => value === b[i])
+
 // One subscription for the whole legend: per-dimension hooks would each re-read the payload on
-// every hover move, and the window stats only change with the payload
+// every hover move. getRow builds a single row, so windowed lists only pay for what they render
 export const useLegendRows = ({ withStats = false, withRows = true } = {}) => {
   const chart = useChart()
   const forceUpdate = useForceUpdate()
-  const cache = useRef({ payload: null, ids: null, stats: null })
+  const cache = useRef({ key: null, stats: null, formatted: null })
 
   useImmediateListener(
     () =>
@@ -105,20 +131,22 @@ export const useLegendRows = ({ withStats = false, withRows = true } = {}) => {
 
   const ids = chart.getDimensionIds() || []
   const { index, hovering } = getReadoutIndex(chart)
+  const payload = chart.getPayload()
 
-  let stats = null
-  if (withStats) {
-    const payload = chart.getPayload()
-    if (cache.current.payload !== payload || cache.current.ids !== ids) {
-      cache.current = { payload, ids, stats: getWindowStats(chart) }
-    }
-    stats = cache.current.stats
+  const key = [payload, ids, withStats, ...cacheAttributes.map(name => chart.getAttribute(name))]
+  if (!sameKey(cache.current.key, key)) {
+    cache.current = { key, stats: withStats ? getWindowStats(chart) : null, formatted: new Map() }
   }
+  const { stats, formatted } = cache.current
 
-  const timestamp = index === -1 ? null : chart.getPayload().all[index]?.[0]
+  const timestamp = index === -1 ? null : payload.all[index]?.[0]
+  const getRow = id => makeRow(chart, id, index, stats, formatted)
 
   return {
-    rows: withRows ? ids.map(id => makeRow(chart, id, index, stats)) : [],
+    ids,
+    rows: withRows ? ids.map(getRow) : [],
+    getRow,
+    stats,
     index,
     hovering,
     timestamp,

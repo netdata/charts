@@ -5,17 +5,19 @@ import { useAttributeValue, useChart, useFormatDate, useFormatTime } from "@/com
 import { useIsHeatmap } from "@/helpers/heatmap"
 import { radius, tabularNumbers } from "@/components/modern/tokens"
 import { Flags, Numeral, Swatch } from "./parts"
-import { makeRow, useLegendRows } from "./useLegendRows"
+import { useLegendRows } from "./useLegendRows"
 
 export const maxTooltipRows = 6
 
 // hovering the anomaly or annotation strip ranks rows by that strip, like the classic popover
 const sortByRow = { ANOMALY_RATE: "anomalyDesc", ANNOTATIONS: "annotationsDesc" }
 
-// keep the hovered series in view even when it ranks below the cut
+const idOf = item => (typeof item === "object" && item !== null ? item.id : item)
+
+// keep the hovered series in view even when it ranks below the cut; takes rows or bare ids
 export const pickShown = (rows, hoveredId, limit = maxTooltipRows) => {
   const shown = rows.slice(0, limit)
-  const hovered = rows.findIndex(row => row.id === hoveredId)
+  const hovered = rows.findIndex(row => idOf(row) === hoveredId)
   if (hovered < limit) return shown
 
   return [...shown.slice(0, limit - 1), rows[hovered]]
@@ -107,14 +109,14 @@ const Tooltip = () => {
   const chart = useChart()
   const isHeatmap = useIsHeatmap()
   const [, hoveredId] = useAttributeValue("hoverX") || []
-  const { index, timestamp } = useLegendRows({ withRows: false })
+  const { index, timestamp, getRow } = useLegendRows({ withRows: false })
 
   if (index === -1) return null
 
+  // the sort runs on raw values; only the rows that fit are formatted
   const ids = chart.onHoverSortDimensions(index, sortByRow[hoveredId] || "valueDesc") || []
-  const rows = ids.map(id => makeRow(chart, id, index))
-  const shown = pickShown(rows, hoveredId)
-  const more = rows.length - shown.length
+  const shown = pickShown(ids, hoveredId).map(getRow)
+  const more = ids.length - shown.length
   const withAnomaly = shown.some(row => !!row.anomaly)
   const withFlags = shown.some(row => !!row.flags)
 

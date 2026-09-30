@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useLayoutEffect, useRef, useState } from "react"
 import styled from "styled-components"
 import { getColor } from "@netdata/netdata-ui"
 import { useChart } from "@/components/provider"
@@ -7,14 +7,18 @@ import { AnomalyBar, Flags, Numeral, Swatch, onToggle } from "./parts"
 import { focusDimension, useClearFocusOnUnmount } from "./mode"
 import { useLegendRows } from "./useLegendRows"
 
+// the most entries the line ever renders; the rest are one click away in the drawer or table
+export const lineEntryCap = 24
+
 const Line = styled.div.attrs({ "data-testid": "modernLegend-line" })`
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 16px;
   min-width: 0;
   max-height: 64px;
-  overflow-y: auto;
+  overflow: hidden;
 `
 
 const Entry = styled.button.attrs({ type: "button", "data-testid": "modernLegend-entry" })`
@@ -49,14 +53,90 @@ const Unit = styled.span`
   font-size: 11px;
 `
 
+const More = styled.button.attrs({ type: "button", "data-testid": "modernLegend-more" })`
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 18px;
+  white-space: nowrap;
+  color: ${getColor("textLite")};
+
+  &:hover {
+    color: ${getColor("text")};
+  }
+`
+
+// the drawer's values tab lists every dimension; charts without a drawer switch to the table
+export const openAllDimensions = chart => {
+  if (chart.getAttribute("expandable")) {
+    chart.updateAttributes({ "drawer.action": "values", expanded: true })
+    return
+  }
+
+  chart.updateAttribute("legendLayout", "table")
+}
+
+const overflows = (container, node) =>
+  !!node && node.offsetTop + node.offsetHeight > container.clientHeight + 1
+
+// Starts from the cap and drops entries until the last one and the "+N more" button fit. Runs
+// after every render because hover readouts change the entry widths.
+const useFit = (ref, count) => {
+  const [limit, setLimit] = useState(lineEntryCap)
+  const [width, setWidth] = useState(0)
+  const staleLayout = useRef(false)
+
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el || typeof ResizeObserver === "undefined") return
+
+    const observer = new ResizeObserver(() => setWidth(Math.round(el.clientWidth)))
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  useLayoutEffect(() => {
+    if (limit === lineEntryCap) return
+    // the DOM still holds the previous cut; measure again once the full cap has rendered
+    staleLayout.current = true
+    setLimit(lineEntryCap)
+  }, [count, width])
+
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    if (staleLayout.current) {
+      staleLayout.current = false
+      return
+    }
+
+    const entries = el.querySelectorAll("[data-testid='modernLegend-entry']")
+    const more = el.querySelector("[data-testid='modernLegend-more']")
+    if (limit <= 1 || !(overflows(el, entries[entries.length - 1]) || overflows(el, more))) return
+
+    let fitting = 0
+    while (fitting < entries.length && !overflows(el, entries[fitting])) fitting += 1
+    const room = count > fitting ? fitting - 1 : fitting
+    setLimit(Math.max(1, Math.min(limit - 1, room)))
+  })
+
+  return limit
+}
+
 const LegendLine = () => {
   const chart = useChart()
-  const { rows } = useLegendRows()
+  const ref = useRef(null)
+  const { ids, getRow } = useLegendRows({ withRows: false })
   useClearFocusOnUnmount()
   const isHeatmap = useIsHeatmap()
+  const limit = useFit(ref, ids.length)
+  const rows = ids.slice(0, limit).map(getRow)
+  const hidden = ids.length - rows.length
 
   return (
-    <Line data-track={chart.track("legend")}>
+    <Line ref={ref} data-track={chart.track("legend")}>
       {rows.map(row => (
         <Entry
           key={row.id}
@@ -76,6 +156,15 @@ const LegendLine = () => {
           {row.visible && row.arp > 0 && <AnomalyBar $rate={row.arp} />}
         </Entry>
       ))}
+      {hidden > 0 && (
+        <More
+          onClick={() => openAllDimensions(chart)}
+          title="Show every dimension"
+          data-track={chart.track("legend-more")}
+        >
+          {`+${hidden} more`}
+        </More>
+      )}
     </Line>
   )
 }

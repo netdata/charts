@@ -1,5 +1,6 @@
 import React, { useLayoutEffect, useRef, useState } from "react"
 import styled from "styled-components"
+import { useVirtualizer } from "@tanstack/react-virtual"
 import { getColor } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart, useFormatTime } from "@/components/provider"
 import { useIsHeatmap } from "@/helpers/heatmap"
@@ -8,11 +9,15 @@ import { AnomalyBar, Flags, Numeral, Swatch, onToggle } from "./parts"
 import { focusDimension, useClearFocusOnUnmount } from "./mode"
 import { useLegendRows } from "./useLegendRows"
 
+export const tableRowHeight = 23
+export const tableOverscan = 8
+
 const Wrapper = styled.div.attrs({ "data-testid": "modernLegend-table" })`
   position: relative;
   flex: 0 0 40%;
   min-width: 240px;
   max-width: 420px;
+  overflow: hidden;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -25,10 +30,12 @@ const ScrollArea = styled.div`
   display: flex;
 `
 
-const Scroller = styled.div`
+const Scroller = styled.div.attrs({ "data-testid": "modernLegend-scroller" })`
   flex: 1;
+  min-width: 0;
   min-height: 0;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
 `
 
 const Fade = styled.div.attrs({ "data-testid": "modernLegend-fade" })`
@@ -63,19 +70,29 @@ const HeaderCell = styled.th`
   &:first-child {
     padding-left: 0;
     text-align: left;
+    width: 100%;
+    max-width: 0;
+  }
+
+  &:last-child {
+    padding-right: 4px;
   }
 `
 
 const Row = styled.tr.attrs({ "data-testid": "modernLegend-row" })`
+  box-sizing: border-box;
+  height: ${tableRowHeight}px;
   border-top: 1px solid ${getColor("borderSecondary")};
   cursor: pointer;
   opacity: ${({ $off }) => ($off ? 0.4 : 1)};
 `
 
+// max-width 0 lets the name ellipsize inside whatever width the numeric columns leave
 const NameCell = styled.td`
   padding: 3px 0;
   color: ${getColor("text")};
-  max-width: 180px;
+  width: 100%;
+  max-width: 0;
 `
 
 const NameContent = styled.span`
@@ -98,7 +115,16 @@ const Cell = styled.td`
   white-space: nowrap;
   color: ${({ $strong }) => getColor($strong ? "text" : "textLite")};
   font-weight: ${({ $strong }) => ($strong ? 600 : 400)};
+
+  &:last-child {
+    padding-right: 4px;
+  }
 `
+
+const Spacer = ({ height }) =>
+  height > 0 ? (
+    <tr aria-hidden="true" data-testid="modernLegend-spacer" style={{ height: `${height}px` }} />
+  ) : null
 
 const Unit = styled.span`
   color: ${getColor("textDescription")};
@@ -158,18 +184,43 @@ const useScrollFade = deps => {
   return [ref, fade, update]
 }
 
+const unitAttributes = ["unitsConversionPrefix", "unitsConversionBase", "unitsByDimension"]
+
+// one unit for every dimension moves the unit out of the cells; recomputed per payload, not hover
+const useSharedUnit = ids => {
+  const chart = useChart()
+  const cache = useRef({ key: null, unit: "" })
+  const key = [ids, ...unitAttributes.map(name => chart.getAttribute(name))]
+
+  if (!cache.current.key || cache.current.key.some((value, i) => value !== key[i])) {
+    const units = new Set(ids.map(id => chart.getUnitSign({ dimensionId: id })))
+    cache.current = { key, unit: units.size === 1 ? [...units][0] : "" }
+  }
+
+  return cache.current.unit
+}
+
 const LegendTable = () => {
   const chart = useChart()
   const sort = useAttributeValue("dimensionsSort")
   const isHeatmap = useIsHeatmap()
-  const { rows, hovering, timestamp } = useLegendRows({ withStats: true })
+  const { ids, getRow, hovering, timestamp } = useLegendRows({ withStats: true, withRows: false })
   useClearFocusOnUnmount()
   const time = useFormatTime(timestamp)
-  const [scrollRef, fade, onScroll] = useScrollFade([rows.length])
-
-  const units = new Set(rows.map(row => row.unit))
-  const sharedUnit = units.size === 1 ? rows[0]?.unit : ""
+  const [scrollRef, fade, onScroll] = useScrollFade([ids.length])
+  const sharedUnit = useSharedUnit(ids)
   const onSort = value => chart.updateAttribute("dimensionsSort", value)
+
+  // only the rows in view (plus overscan) are built and rendered, so hover cost stays flat
+  const virtualizer = useVirtualizer({
+    count: ids.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => tableRowHeight,
+    overscan: tableOverscan,
+  })
+  const items = virtualizer.getVirtualItems()
+  const before = items.length ? items[0].start : 0
+  const after = items.length ? virtualizer.getTotalSize() - items[items.length - 1].end : 0
 
   return (
     <Wrapper data-track={chart.track("legend")}>
@@ -191,44 +242,48 @@ const LegendTable = () => {
                 <HeaderCell>Mean</HeaderCell>
                 <HeaderCell>Max</HeaderCell>
                 <SortHeader column="anomaly" sort={sort} onSort={onSort} title="Anomaly rate">
-                  AR
+                  Anomaly
                 </SortHeader>
               </tr>
             </thead>
             <tbody>
-              {rows.map(row => (
-                <Row
-                  key={row.id}
-                  $off={!row.visible}
-                  onClick={onToggle(chart, row.id)}
-                  onMouseEnter={() => row.visible && focusDimension(chart, row.id)}
-                  onMouseLeave={() => focusDimension(chart, null)}
-                  data-track={chart.track(`dimension-${row.name}`)}
-                  data-dimension={row.id}
-                >
-                  <NameCell title={row.name}>
-                    <NameContent>
-                      {!isHeatmap && <Swatch $color={row.color} />}
-                      <NameText>{row.name}</NameText>
-                      {row.visible && <Flags flags={row.flags} />}
-                      {row.visible && row.arp > 0 && <AnomalyBar $rate={row.arp} />}
-                    </NameContent>
-                  </NameCell>
-                  <Cell $strong>
-                    <Numeral>{row.visible ? row.display : "-"}</Numeral>
-                    {row.visible && !!row.unit && !sharedUnit && <Unit>{row.unit}</Unit>}
-                  </Cell>
-                  <Cell>
-                    <Numeral>{row.mean}</Numeral>
-                  </Cell>
-                  <Cell>
-                    <Numeral>{row.max}</Numeral>
-                  </Cell>
-                  <Cell>
-                    <Numeral>{row.visible ? row.anomaly || "-" : "-"}</Numeral>
-                  </Cell>
-                </Row>
-              ))}
+              <Spacer height={before} />
+              {items
+                .map(item => getRow(ids[item.index]))
+                .map(row => (
+                  <Row
+                    key={row.id}
+                    $off={!row.visible}
+                    onClick={onToggle(chart, row.id)}
+                    onMouseEnter={() => row.visible && focusDimension(chart, row.id)}
+                    onMouseLeave={() => focusDimension(chart, null)}
+                    data-track={chart.track(`dimension-${row.name}`)}
+                    data-dimension={row.id}
+                  >
+                    <NameCell title={row.name}>
+                      <NameContent>
+                        {!isHeatmap && <Swatch $color={row.color} />}
+                        <NameText>{row.name}</NameText>
+                        {row.visible && <Flags flags={row.flags} />}
+                        {row.visible && row.arp > 0 && <AnomalyBar $rate={row.arp} />}
+                      </NameContent>
+                    </NameCell>
+                    <Cell $strong>
+                      <Numeral>{row.visible ? row.display : "-"}</Numeral>
+                      {row.visible && !!row.unit && !sharedUnit && <Unit>{row.unit}</Unit>}
+                    </Cell>
+                    <Cell>
+                      <Numeral>{row.mean}</Numeral>
+                    </Cell>
+                    <Cell>
+                      <Numeral>{row.max}</Numeral>
+                    </Cell>
+                    <Cell>
+                      <Numeral>{row.visible ? row.anomaly || "-" : "-"}</Numeral>
+                    </Cell>
+                  </Row>
+                ))}
+              <Spacer height={after} />
             </tbody>
           </Table>
         </Scroller>
