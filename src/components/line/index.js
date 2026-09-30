@@ -43,9 +43,11 @@ export const Line = ({
   const focused = useAttributeValue("focused")
   const filterToolboxMode = useAttributeValue("filterToolboxMode") || "fixed"
   const isMinimal = useIsMinimal()
-  const showFilters = !isMinimal && hasFilters
-  const isFloating = filterToolboxMode === "floating"
   const isModern = useIsModern()
+  // the modern header opens the same filter bar from its scope line, so only render it here
+  // when that header is not shown
+  const showFilters = !isMinimal && hasFilters && !(isModern && hasHeader)
+  const isFloating = filterToolboxMode === "floating"
 
   const content = (
     <ContentWrapper>
