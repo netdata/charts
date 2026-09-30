@@ -4,12 +4,13 @@ import "@testing-library/jest-dom"
 import { renderWithChart, makeTestChart } from "@jest/testUtilities"
 import { GroupBoxesContainer } from "@/components/groupBoxes"
 import drawBoxes from "@/components/groupBoxes/drawBoxes"
+import Labels from "@/components/groupBoxes/popover/labels"
 import makeHeatPayload from "./makeHeatPayload"
 import { pickStep, makeModernColor, getThreshold, modernBoxOptions } from "./scale"
 
-const makeChart = async (attributes = {}) => {
+const makeChart = async (attributes = {}, mockData = makeHeatPayload()) => {
   const { chart } = makeTestChart({
-    mockData: makeHeatPayload(),
+    mockData,
     attributes: {
       contextScope: ["modern.nodes.cpu"],
       chartLibrary: "groupBoxes",
@@ -35,9 +36,9 @@ const hoverFirstBox = canvas => {
   })
 }
 
-const renderBoxes = async (attributes = {}) => {
+const renderBoxes = async (attributes = {}, props = {}) => {
   const chart = await makeChart(attributes)
-  const result = renderWithChart(<GroupBoxesContainer />, { chart })
+  const result = renderWithChart(<GroupBoxesContainer {...props} />, { chart })
 
   await act(async () => {
     await new Promise(resolve => setTimeout(resolve, 50))
@@ -227,6 +228,142 @@ describe("modern group boxes", () => {
       expect(modernBoxOptions(chart).getActiveStroke()).toBe(
         chart.getThemeAttribute("themeLabelColor")
       )
+    })
+  })
+
+  describe("filter bar placement", () => {
+    const countFilters = () => screen.queryAllByTestId("chartFilters").length
+
+    it("keeps one fixed filter bar in the default flavour", async () => {
+      await renderBoxes({ designFlavour: "default" })
+      expect(countFilters()).toBe(1)
+    })
+
+    it("keeps one fixed filter bar in the minimal flavour", async () => {
+      await renderBoxes({ designFlavour: "minimal" })
+      expect(countFilters()).toBe(1)
+    })
+
+    it("leaves the filter bar to the modern header, closed until opened", async () => {
+      await renderBoxes({ designFlavour: "modern" })
+      expect(screen.getByTestId("chartHeader")).toHaveAttribute("data-flavour", "modern")
+      expect(countFilters()).toBe(0)
+    })
+
+    it("shows a single filter bar when the modern panel is open", async () => {
+      await renderBoxes({ designFlavour: "modern", filtersOpen: true })
+      expect(countFilters()).toBe(1)
+    })
+
+    it("keeps the fixed filter bar in modern when the header is off", async () => {
+      await renderBoxes({ designFlavour: "modern" }, { hasHeader: false })
+      expect(screen.queryByTestId("chartHeader")).not.toBeInTheDocument()
+      expect(countFilters()).toBe(1)
+    })
+  })
+
+  describe("box layout", () => {
+    const ids = Array.from({ length: 24 }, (_, index) => String(index))
+
+    const draw = (chart, options) => {
+      const el = document.createElement("canvas")
+      const entered = []
+      const boxes = drawBoxes(
+        chart,
+        el,
+        { onMouseenter: event => entered.push(event.index), onMouseout: () => {} },
+        options
+      )
+      const iterator = boxes.update(ids, null)
+      while (!iterator.next().done);
+      return { el, boxes, entered }
+    }
+
+    it("fills the available width in the modern flavour", () => {
+      const { chart } = makeTestChart()
+      const { el, boxes, entered } = draw(chart, {
+        ...modernBoxOptions(chart),
+        getAvailableWidth: () => 400,
+      })
+
+      expect(boxes.getElement().width).toBe(400)
+      expect(el.width).toBe(400)
+
+      const move = (x, y) => {
+        const event = new MouseEvent("mousemove", { bubbles: true })
+        Object.defineProperty(event, "offsetX", { value: x })
+        Object.defineProperty(event, "offsetY", { value: y })
+        el.dispatchEvent(event)
+      }
+      move(390, 5)
+      move(65, 25)
+      expect(entered).toEqual([19, 23])
+      boxes.clear()
+    })
+
+    it("keeps the aspect ratio without an available width", () => {
+      const { chart } = makeTestChart()
+      const { boxes } = draw(chart, modernBoxOptions(chart))
+
+      expect(boxes.getElement().width).toBe(140)
+      boxes.clear()
+    })
+
+    it("measures the row only in the modern flavour", async () => {
+      await renderBoxes({ designFlavour: "modern" })
+      expect(screen.getAllByTestId("groupBox-track")).toHaveLength(4)
+    })
+
+    it("renders bare canvases in the default flavour", async () => {
+      await renderBoxes({ designFlavour: "default" })
+      expect(screen.queryByTestId("groupBox-track")).not.toBeInTheDocument()
+    })
+  })
+
+  describe("readouts", () => {
+    const renderReadouts = async designFlavour => {
+      const chart = await makeChart({ designFlavour })
+      renderWithChart(<GroupBoxesContainer />, { chart })
+      return chart
+    }
+
+    it("formats the modern legend range with readout decimals", async () => {
+      await renderReadouts("modern")
+
+      const legend = screen.getByTestId("groupBox-legend")
+      expect(legend).toHaveTextContent("27.9 %")
+      expect(legend).toHaveTextContent("92.6 %")
+    })
+
+    it("keeps the default legend range as it was", async () => {
+      const chart = await renderReadouts("default")
+
+      const legend = screen.getByTestId("groupBox-legend")
+      expect(legend).toHaveTextContent(`${chart.getConvertedValue(chart.getAttribute("min"))} %`)
+      expect(legend).toHaveTextContent(`${chart.getConvertedValue(chart.getAttribute("max"))} %`)
+      expect(legend).toHaveTextContent("27.86 %")
+    })
+
+    const renderLabels = async designFlavour => {
+      const chart = await makeChart({ designFlavour })
+      chart.setUI({ getChartWidth: () => 300 })
+      const id = chart.getAttribute("viewDimensions").ids[0]
+
+      const result = renderWithChart(
+        <Labels label="node" groupLabel="Group" data={[1700000000, 42.56789]} id={id} />,
+        { chart }
+      )
+      return { ...result, chart, id }
+    }
+
+    it("formats the modern hover value with readout decimals", async () => {
+      await renderLabels("modern")
+      expect(screen.getByTestId("chartPopover-labels")).toHaveTextContent("42.6 %")
+    })
+
+    it("keeps the default hover value as it was", async () => {
+      await renderLabels("default")
+      expect(screen.getByTestId("chartPopover-labels")).toHaveTextContent("42.57 %")
     })
   })
 })

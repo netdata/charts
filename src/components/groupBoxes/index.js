@@ -2,7 +2,7 @@ import React from "react"
 import useForwardRef from "@netdata/netdata-ui/dist/hooks/useForwardRef"
 import useHover from "@/components/useHover"
 import withChart from "@/components/hocs/withChart"
-import { useChart, useAttributeValue } from "@/components/provider"
+import { useChart, useAttributeValue, useIsModern } from "@/components/provider"
 import ChartContainer from "@/components/chartContainer"
 import Header from "@/components/header"
 import FilterToolbox from "@/components/filterToolbox"
@@ -10,7 +10,13 @@ import Container from "@/components/container"
 import GroupBoxes from "./groupBoxes"
 import Footer from "./footer"
 
-export const GroupBoxesContainer = ({ uiName, ref, ...rest }) => {
+export const GroupBoxesContainer = ({
+  hasHeader = true,
+  hasFilters = true,
+  uiName,
+  ref,
+  ...rest
+}) => {
   const chart = useChart()
 
   const hoverRef = useHover(
@@ -32,11 +38,15 @@ export const GroupBoxesContainer = ({ uiName, ref, ...rest }) => {
 
   const showingInfo = useAttributeValue("showingInfo")
   const focused = useAttributeValue("focused")
+  const isModern = useIsModern()
+  // the modern header opens the same filter bar from its scope line, so only render it here
+  // when that header is not shown
+  const showFilters = hasFilters && !(isModern && hasHeader)
 
   return (
     <Container ref={setRef} {...rest}>
-      <Header />
-      <FilterToolbox opacity={focused ? 1 : 0.7} />
+      {hasHeader && <Header hasFilters={isModern && hasFilters} />}
+      {showFilters && <FilterToolbox opacity={focused ? 1 : 0.7} />}
       <ChartContainer uiName={uiName} column gap={4} padding={[4, 2]}>
         <GroupBoxes uiName={uiName} />
       </ChartContainer>
