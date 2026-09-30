@@ -3,7 +3,9 @@ import ReactDOM from "react-dom"
 import DropContainer from "@netdata/netdata-ui/dist/components/drops/drop/container"
 import useDropElement from "@netdata/netdata-ui/dist/hooks/useDropElement"
 import { unregister } from "@/helpers/makeListeners"
-import { useChart } from "@/components/provider"
+import { useChart, useIsModern } from "@/components/provider"
+import { useLegendMode } from "@/components/modern/legend/mode"
+import ModernTooltip from "@/components/modern/legend/tooltip"
 import Dimensions from "./dimensions"
 
 const leftTopAlign = { right: "left", bottom: "top" }
@@ -80,6 +82,12 @@ const Popover = ({ uiName }) => {
   const schedulePositionRef = useRef(null)
   const [open, setOpen] = useState(false)
   const [align, setAlign] = useState(rightBottomAlign)
+  const isModern = useIsModern()
+  const legendMode = useLegendMode()
+  // a visible modern legend already reads out the hovered point
+  const suppressed = isModern && legendMode !== "hidden"
+  const suppressedRef = useRef(suppressed)
+  suppressedRef.current = suppressed
 
   alignRef.current = align
   updatePositionRef.current = () => {
@@ -136,6 +144,7 @@ const Popover = ({ uiName }) => {
     const off = unregister(
       chart.getUI(uiName).on("mousemove", event => {
         if (
+          suppressedRef.current ||
           chart.sdk.getRoot().getAttribute("autofetchOnHovering") ||
           chart.getAttribute("panning") ||
           chart.getAttribute("highlighting")
@@ -156,6 +165,14 @@ const Popover = ({ uiName }) => {
       off()
     }
   }, [chart, uiName])
+
+  useEffect(() => {
+    if (!suppressed || !open) return
+
+    cancelPosition()
+    pointerRef.current = null
+    setOpen(false)
+  }, [suppressed, open])
 
   useLayoutEffect(() => {
     const drop = dropRef.current
@@ -207,7 +224,7 @@ const Popover = ({ uiName }) => {
         sx={{ pointerEvents: "none" }}
         zIndex={101}
       >
-        <Dimensions uiName={uiName} data-testid="chartPopover" />
+        {isModern ? <ModernTooltip /> : <Dimensions uiName={uiName} data-testid="chartPopover" />}
       </DropContainer>,
       el
     )
