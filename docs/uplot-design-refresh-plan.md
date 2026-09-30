@@ -159,3 +159,51 @@ worktree on branch `modern/<track>` and is merged into `feat/uplot-renderer` aft
 
 Every track: gated by the modern flavour, tests prove default/minimal unchanged, no mocks, a `Modern/*`
 story, lint clean.
+
+## Status after the overnight run
+
+Everything below is on `feat/uplot-renderer` (not pushed). Full suite: 223 suites, 2378 tests passed
+(2 skipped); eslint clean on every changed file; all 21 `Modern/*` stories render with no console errors
+in a static Storybook build and were checked visually in light and dark. Quick perf bench (default
+flavour, 1000 rows x 20 dims x 10 charts): uPlot/dygraph total task ratio 0.739, single run.
+
+### cloud-frontend integration (morning)
+
+- Required: add a third option to the "Charts design" radio group
+  (`src/domains/accounts/components/userProfile/themeSettings.js`), value `"modern"`. The value already
+  flows to `designFlavour` (`src/components/sdkProvider/index.js:123`).
+- Recommended: load IBM Plex Sans / IBM Plex Sans Condensed (numerals fall back to system-ui otherwise).
+- Optional data to unlock more of the design:
+  - `overlays` entries `{ type: "threshold", warning, critical }` to draw threshold bands (no data
+    source exists in the payload today).
+  - `groupBoxesThreshold` (new, default null) to highlight group boxes above a value.
+
+### Additive contract changes (nothing removed or renamed)
+
+- Attributes (all optional, default keeps today's behaviour): `filtersOpen`, `legendLayout`,
+  `legendMode`, `focusedDimensionId`, `filterColumnVisibility`, `groupBoxesThreshold`; theme pairs
+  `themeAxisLabelColor`, `themeAlertWarning`, `themeAlertCritical`, `themeAlertClear`,
+  `themeGroupBoxesScale`.
+- Overlay type `threshold` (uPlot, modern only).
+- Props: `SettingsContent` accepts optional `initialTab` / `initialIndex`.
+- Exports: `Range` from `line/indicators`, `useMetricsByValue` from `filterToolbox/columns`.
+
+### Open decisions
+
+1. Modern sparklines render no header even when `hasHeader` is true (default renders one; consumers
+   already pass `hasHeader={false}` for sparklines).
+2. The zoom chip shows for any absolute window, including a fixed range picked in the consumer's
+   time picker; Reset returns to the last 15 minutes.
+3. The attention headline has no per-dimension thresholds in the payload, so it names the raised
+   alert and its triggered value, not "load15 above 30".
+4. `filterColumnVisibility` is shared by all dropdowns of a chart; alternatives: per dropdown.
+5. Focus dimming (hovering a legend entry) is uPlot only.
+6. Without a drawer, the one-line legend's "+N more" switches to the side table.
+7. Under dygraph, the More-menu anomaly/annotation toggles apply on the next remount (dygraph reads
+   them at mount).
+
+### Known pre-existing issue (not fixed)
+
+- `useChartError` (`provider/selectors.js`) reads the error attribute inside `failFetch`, which
+  `makeDataFetch.js` triggers before storing the error, so the default Status badge can miss the first
+  error.
