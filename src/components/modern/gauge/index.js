@@ -6,12 +6,13 @@ import {
   useChart,
   useAttributeValue,
   useOnResize,
-  useLatestDisplayValueWithUnit,
-  useValueWithUnit,
+  useLatestDisplayValue,
+  useUnitSign,
   useVisibleDimensionIds,
 } from "@/components/provider"
 import { ChartWrapper } from "@/components/hocs/withTile"
 import { numeralsFont, radius as radii } from "@/components/modern/tokens"
+import { formatReadout } from "@/components/modern/format"
 import {
   viewBox,
   center,
@@ -25,6 +26,9 @@ import {
   arcPath,
   sumRow,
   sparklinePath,
+  valueBaseline,
+  fitValueFontSize,
+  unitFontSize,
 } from "./geometry"
 import { makeZones, zoneAt, alertSeverity, worstSeverity } from "./zones"
 
@@ -83,49 +87,72 @@ export const Attention = ({ severity, showQuiet, dotColor, ...rest }) => {
   )
 }
 
-const AttentionContainer = styled(Flex).attrs({ position: "absolute" })`
-  top: 4px;
-  right: 4px;
-  z-index: 1;
+// its own row above the dial keeps the pill clear of the arc at every card size
+const AttentionRow = styled(Flex).attrs({ justifyContent: "end", alignItems: "center" })`
+  flex: none;
+  width: 100%;
+  min-height: 20px;
+  padding: 0 4px;
 `
 
-const useBound = (value, dimensionId) =>
-  useValueWithUnit(value, { dimensionId, scaleByValue: true })
-
-const boundLabel = ({ convertedValue, convertedUnit }, centreUnit) =>
-  convertedUnit && convertedUnit !== centreUnit
-    ? `${convertedValue} ${convertedUnit}`
-    : `${convertedValue}`
-
-const valueFontSize = text => {
-  const length = String(text).length
-  return length > 5 ? Math.max(22, (44 * 5) / length) : 44
-}
-
-export const Dial = ({ uiName }) => {
+const useDialState = uiName => {
   const chart = useChart()
-  const theme = useTheme()
-  const { width } = useOnResize(uiName)
-  const [dimensionId] = useVisibleDimensionIds()
-  const { convertedValue, convertedUnit } = useLatestDisplayValueWithUnit(dimensionId)
   const thresholds = useAttributeValue("gaugeThresholds")
   const alerts = useAttributeValue("alerts")
   const hoverX = useAttributeValue("hoverX")
-  const themeName = useAttributeValue("theme")
 
   const [min, max] = chart.getUI(uiName)?.getMinMax?.() || [null, null]
-  const minBound = useBound(min, dimensionId)
-  const maxBound = useBound(max, dimensionId)
-
   const { data = [] } = chart.getPayload() || {}
   const rowIndex = hoverX && data.length ? chart.getClosestRow(hoverX[0]) : data.length - 1
   const value = sumRow(data[rowIndex])
-  const series = data.map(sumRow)
 
   const zones = makeZones(thresholds, min, max, chart.getThemeIndex())
   const zone = zoneAt(zones, value)
   const zoneSeverity = zone?.severity || "ok"
   const severity = worstSeverity(zoneSeverity, alertSeverity(alerts))
+
+  return { min, max, data, value, zones, zone, zoneSeverity, severity }
+}
+
+// the quiet state only speaks for thresholds set on the gauge; configured alerts that are clear
+// stay silent, so a gauge without thresholds shows nothing until something is raised
+export const GaugeAttention = ({ uiName }) => {
+  const theme = useTheme()
+  const { width } = useOnResize(uiName)
+  const { zones, severity } = useDialState(uiName)
+
+  const showQuiet = zones.length > 0 && width >= 200
+  if (severity === "ok" && !showQuiet) return null
+
+  return (
+    <AttentionRow data-testid="modernGauge-attentionRow">
+      <Attention
+        severity={severity}
+        showQuiet={showQuiet}
+        dotColor={getColor("success")({ theme })}
+      />
+    </AttentionRow>
+  )
+}
+
+export const Dial = ({ uiName }) => {
+  const chart = useChart()
+  const theme = useTheme()
+  // re-renders on every "rendered", which is when the library refreshes the value range
+  useOnResize(uiName)
+  const [dimensionId] = useVisibleDimensionIds()
+  const latest = useLatestDisplayValue(dimensionId, { allowNull: true })
+  const unit = useUnitSign({ dimensionId })
+  const themeName = useAttributeValue("theme")
+  useAttributeValue("staticFractionDigits")
+
+  const { min, max, data, value, zones, zone, zoneSeverity } = useDialState(uiName)
+  const readout = formatReadout(chart, latest, { dimensionId })
+  const minLabel = formatReadout(chart, min, { dimensionId })
+  const maxLabel = formatReadout(chart, max, { dimensionId })
+  const valueSize = fitValueFontSize(readout, unit)
+
+  const series = data.map(sumRow)
 
   const color = token => getColor(token)({ theme })
   const baseColor = chart.selectDimensionColor()
@@ -136,130 +163,124 @@ export const Dial = ({ uiName }) => {
   const { line, area } = sparklinePath(series, { width: spark.width, height: spark.height })
 
   const id = toId(`gauge-${chart.getId()}-${uiName || "default"}-${themeName}`)
-  const hasZones = zones.length > 0
-  const hasAlerts = Object.keys(alerts || {}).length > 0
-  const label = convertedUnit ? `${convertedValue} ${convertedUnit}` : `${convertedValue}`
+  const label = unit ? `${readout} ${unit}` : readout
 
   return (
-    <>
-      <AttentionContainer>
-        <Attention
-          severity={severity}
-          showQuiet={(hasZones || hasAlerts) && width >= 200}
-          dotColor={color("success")}
-        />
-      </AttentionContainer>
-      <svg
-        data-testid="modernGauge"
-        role="img"
-        aria-label={label}
-        viewBox={`0 0 ${viewBox.width} ${viewBox.height}`}
-        preserveAspectRatio="xMidYMid meet"
-        width="100%"
-        height="100%"
-      >
-        <defs>
-          <linearGradient id={`${id}-arc`} x1="0" y1="1" x2="1" y2="0">
-            <stop offset="0%" stopColor={valueColor} stopOpacity="0.35" />
-            <stop offset="100%" stopColor={valueColor} />
-          </linearGradient>
-          <linearGradient id={`${id}-spark`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={valueColor} stopOpacity="0.35" />
-            <stop offset="100%" stopColor={valueColor} stopOpacity="0" />
-          </linearGradient>
-        </defs>
+    <svg
+      data-testid="modernGauge"
+      role="img"
+      aria-label={label}
+      viewBox={`0 0 ${viewBox.width} ${viewBox.height}`}
+      preserveAspectRatio="xMidYMid meet"
+      width="100%"
+      height="100%"
+    >
+      <defs>
+        <linearGradient id={`${id}-arc`} x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0%" stopColor={valueColor} stopOpacity="0.35" />
+          <stop offset="100%" stopColor={valueColor} />
+        </linearGradient>
+        <linearGradient id={`${id}-spark`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={valueColor} stopOpacity="0.35" />
+          <stop offset="100%" stopColor={valueColor} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path
+        data-testid="modernGauge-track"
+        d={arcPath(cx, cy, radius, startAngle, endAngle)}
+        stroke={color("borderSecondary")}
+        strokeWidth="12"
+        fill="none"
+        strokeLinecap="round"
+      />
+      {zones
+        .filter(z => z.severity !== "ok")
+        .map(z => (
+          <path
+            key={z.id}
+            data-testid="modernGauge-zone"
+            data-severity={z.severity}
+            d={arcPath(cx, cy, zoneRadius, at(z.from), at(z.to))}
+            stroke={z.color}
+            strokeWidth="3"
+            fill="none"
+          />
+        ))}
+      {value !== null && valueAngle - startAngle > 0.001 && (
         <path
-          data-testid="modernGauge-track"
-          d={arcPath(cx, cy, radius, startAngle, endAngle)}
-          stroke={color("borderSecondary")}
+          data-testid="modernGauge-value"
+          d={arcPath(cx, cy, radius, startAngle, valueAngle)}
+          stroke={`url(#${id}-arc)`}
           strokeWidth="12"
           fill="none"
           strokeLinecap="round"
         />
-        {zones
-          .filter(z => z.severity !== "ok")
-          .map(z => (
-            <path
-              key={z.id}
-              data-testid="modernGauge-zone"
-              data-severity={z.severity}
-              d={arcPath(cx, cy, zoneRadius, at(z.from), at(z.to))}
-              stroke={z.color}
-              strokeWidth="3"
-              fill="none"
-            />
-          ))}
-        {value !== null && valueAngle - startAngle > 0.001 && (
-          <path
-            data-testid="modernGauge-value"
-            d={arcPath(cx, cy, radius, startAngle, valueAngle)}
-            stroke={`url(#${id}-arc)`}
-            strokeWidth="12"
-            fill="none"
-            strokeLinecap="round"
-          />
+      )}
+      {value !== null && (
+        <circle
+          data-testid="modernGauge-knob"
+          cx={knobX}
+          cy={knobY}
+          r="7"
+          fill={color("mainChartBg")}
+          stroke={valueColor}
+          strokeWidth="3"
+        />
+      )}
+      <text
+        data-testid="modernGauge-number"
+        x={cx}
+        y={cy - valueBaseline}
+        textAnchor="middle"
+        fill={zoneSeverity === "ok" ? color("text") : valueColor}
+        fontFamily={numeralsFont}
+        fontSize={valueSize}
+        fontWeight="600"
+        style={numerals}
+      >
+        {readout}
+        {!!unit && (
+          <tspan
+            fontSize={unitFontSize(valueSize)}
+            fontWeight="400"
+            fill={color("textLite")}
+            dx="3"
+          >
+            {unit}
+          </tspan>
         )}
-        {value !== null && (
-          <circle
-            data-testid="modernGauge-knob"
-            cx={knobX}
-            cy={knobY}
-            r="7"
-            fill={color("mainChartBg")}
-            stroke={valueColor}
-            strokeWidth="3"
-          />
-        )}
-        <text
-          data-testid="modernGauge-number"
-          x={cx}
-          y={cy - 2}
-          textAnchor="middle"
-          fill={zoneSeverity === "ok" ? color("text") : valueColor}
-          fontFamily={numeralsFont}
-          fontSize={valueFontSize(convertedValue)}
-          fontWeight="600"
-          style={numerals}
-        >
-          {convertedValue}
-          {!!convertedUnit && (
-            <tspan fontSize="16" fontWeight="400" fill={color("textLite")} dx="3">
-              {convertedUnit}
-            </tspan>
-          )}
-        </text>
-        {!!line && (
-          <g data-testid="modernGauge-sparkline" transform={`translate(${spark.x},${spark.y})`}>
-            <path d={area} fill={`url(#${id}-spark)`} />
-            <path d={line} fill="none" stroke={valueColor} strokeWidth="1.5" />
-          </g>
-        )}
-        <text
-          data-testid="modernGauge-min"
-          x={polar(cx, cy, radius, startAngle)[0]}
-          y={cy + 80}
-          textAnchor="middle"
-          fill={color("textLite")}
-          fontFamily={numeralsFont}
-          fontSize="11"
-          style={numerals}
-        >
-          {boundLabel(minBound, convertedUnit)}
-        </text>
-        <text
-          data-testid="modernGauge-max"
-          x={polar(cx, cy, radius, endAngle)[0]}
-          y={cy + 80}
-          textAnchor="middle"
-          fill={color("textLite")}
-          fontFamily={numeralsFont}
-          fontSize="11"
-          style={numerals}
-        >
-          {boundLabel(maxBound, convertedUnit)}
-        </text>
-      </svg>
-    </>
+      </text>
+      {!!line && (
+        <g data-testid="modernGauge-sparkline" transform={`translate(${spark.x},${spark.y})`}>
+          <path d={area} fill={`url(#${id}-spark)`} />
+          <path d={line} fill="none" stroke={valueColor} strokeWidth="1.5" />
+        </g>
+      )}
+      <text
+        data-testid="modernGauge-min"
+        x={polar(cx, cy, radius, startAngle)[0]}
+        y={cy + 80}
+        textAnchor="middle"
+        fill={color("textLite")}
+        fontFamily={numeralsFont}
+        fontSize="11"
+        style={numerals}
+      >
+        {minLabel}
+      </text>
+      <text
+        data-testid="modernGauge-max"
+        x={polar(cx, cy, radius, endAngle)[0]}
+        y={cy + 80}
+        textAnchor="middle"
+        fill={color("textLite")}
+        fontFamily={numeralsFont}
+        fontSize="11"
+        style={numerals}
+      >
+        {maxLabel}
+      </text>
+    </svg>
   )
 }
 
@@ -298,16 +319,20 @@ export const ModernGauge = ({ uiName, ref, ...rest }) => {
   return (
     <ChartWrapper alignItems="center" justifyContent="center" column ref={ref} gap={0}>
       {loaded ? (
-        <ChartContainer
-          uiName={uiName}
-          position="relative"
-          justifyContent="center"
-          alignItems="center"
-          overflow="hidden"
-          {...rest}
-        >
-          <Dial uiName={uiName} />
-        </ChartContainer>
+        <>
+          <GaugeAttention uiName={uiName} />
+          <ChartContainer
+            uiName={uiName}
+            position="relative"
+            justifyContent="center"
+            alignItems="center"
+            overflow="hidden"
+            sx={{ flex: "1 1 0", minHeight: 0 }}
+            {...rest}
+          >
+            <Dial uiName={uiName} />
+          </ChartContainer>
+        </>
       ) : (
         <Skeleton />
       )}

@@ -14,9 +14,12 @@ describe("Modern/Gauge stories", () => {
       await new Promise(resolve => setTimeout(resolve, 400))
     })
 
-    expect(screen.getAllByTestId("modernGauge")).toHaveLength(5)
+    expect(screen.getAllByTestId("modernGauge")).toHaveLength(6)
     expect(document.querySelector("canvas")).toBeNull()
     expect(screen.getByText("Warning")).toBeInTheDocument()
-    expect(screen.getByText("Critical")).toBeInTheDocument()
+    expect(screen.getAllByText("Critical")).toHaveLength(2)
+    expect(
+      screen.getAllByTestId("modernGauge-attention").map(node => node.getAttribute("data-severity"))
+    ).toEqual(["ok", "warning", "critical", "critical"])
   })
 })

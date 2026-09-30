@@ -47,6 +47,16 @@ const variants = [
     label: "Auto range, 3 decimals",
     attributes: { staticValueRange: null, staticFractionDigits: 3 },
   },
+  {
+    label: "Critical, 4 decimals",
+    attributes: {
+      staticFractionDigits: 4,
+      gaugeThresholds: [
+        { id: "ok", from: 0, color: green },
+        { id: "crit", from: 2, color: red },
+      ],
+    },
+  },
 ]
 
 const useCharts = theme => {

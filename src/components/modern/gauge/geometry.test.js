@@ -6,7 +6,18 @@ import {
   arcPath,
   sumRow,
   sparklinePath,
+  radius,
+  valueRadius,
+  valueBaseline,
+  valueTextBox,
+  fitValueFontSize,
+  unitFontSize,
 } from "./geometry"
+
+const topCornerDistance = (value, unit, size) => {
+  const { width, height } = valueTextBox(value, unit, size)
+  return Math.hypot(width / 2, valueBaseline + height)
+}
 
 describe("modern gauge geometry", () => {
   it("maps values into the range and clamps outside it", () => {
@@ -50,5 +61,34 @@ describe("modern gauge geometry", () => {
   it("handles a flat series without dividing by zero", () => {
     const { line } = sparklinePath([3, 3, 3], { width: 10, height: 10, pad: 0 })
     expect(line).not.toContain("NaN")
+  })
+
+  it("keeps the design size for short readouts", () => {
+    expect(fitValueFontSize("42.1", "%")).toBe(44)
+    expect(unitFontSize(44)).toBe(16)
+  })
+
+  it("shrinks long readouts so the number stays inside the arc", () => {
+    const cases = [
+      ["42.1", "load"],
+      ["1,234,567", "requests/s"],
+      ["99.9876", "%"],
+      ["12,345.6789", "kilobits/s"],
+      ["-1,234,567,890", ""],
+    ]
+
+    cases.forEach(([value, unit]) => {
+      const size = fitValueFontSize(value, unit)
+      expect(size).toBeLessThanOrEqual(44)
+      expect(topCornerDistance(value, unit, size)).toBeLessThanOrEqual(valueRadius)
+      if (size < 44) expect(topCornerDistance(value, unit, size + 1)).toBeGreaterThan(valueRadius)
+    })
+
+    expect(fitValueFontSize("1,234,567", "requests/s")).toBeLessThan(fitValueFontSize("42", ""))
+  })
+
+  it("clears the knob that rides on the arc", () => {
+    const knobInnerEdge = radius - 7 - 1.5
+    expect(valueRadius).toBeLessThan(knobInnerEdge)
   })
 })
