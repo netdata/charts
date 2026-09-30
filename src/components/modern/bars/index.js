@@ -7,14 +7,15 @@ import {
   usePayload,
   useLatestValue,
   useLatestDisplayValue,
-  useValueWithUnit,
+  useUnitSign,
   useVisibleDimensionId,
 } from "@/components/provider"
 import Value, { Value as ValuePart } from "@/components/line/dimensions/value"
 import getWindowRange from "@/helpers/getWindowRange"
 import { labels as annotationLabels } from "@/helpers/annotations"
 import Tooltip from "@/components/tooltip"
-import { numeralsFont, tabularNumbers } from "@/components/modern/tokens"
+import { numeralsFont, tabularNumbers, radius } from "@/components/modern/tokens"
+import { formatReadout } from "@/components/modern/format"
 
 const rowHeight = 24
 const emptyArray = [null, null]
@@ -94,12 +95,12 @@ const Bar = ({ id, emphasis }) => {
   )
 }
 
+// Every row shares the chart's unit scale so the ranking reads in one unit.
 const DisplayValue = ({ id, strong }) => {
+  const chart = useChart()
   const value = useLatestDisplayValue(id, { allowNull: true })
-  const { convertedValue, convertedUnit } = useValueWithUnit(value, {
-    dimensionId: id,
-    scaleByValue: true,
-  })
+  const convertedUnit = useUnitSign({ dimensionId: id })
+  const convertedValue = formatReadout(chart, value, { dimensionId: id })
 
   return (
     <Flex alignItems="baseline" justifyContent="end" gap={1}>
@@ -124,19 +125,28 @@ const AnomalyValue = ({ children, ...rest }) =>
     </Tooltip>
   ) : null
 
+// Annotation colours are light pastels in both themes, so the pill is filled with the colour and
+// carries fixed dark ink (at least 4.5:1 against every annotation colour).
+export const pillInk = "#1C1E22"
+
+const Pill = styled.span`
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 14px;
+  padding: 0 6px;
+  border-radius: ${radius.pill};
+  color: ${pillInk};
+  background: ${({ $color }) => $color};
+`
+
 const Annotations = ({ children: annotations }) =>
   annotations && Object.keys(annotations).length ? (
     <Flex gap={0.5}>
       {Object.keys(annotations).map(ann => (
         <Tooltip key={ann} content={annotationLabels[ann] || ann}>
-          <Flex
-            border={{ size: "1px", side: "all", color: annotations[ann] }}
-            round
-            flex={false}
-            padding={[0, 0.5]}
-          >
-            <ValuePart color={annotations[ann]}>{ann}</ValuePart>
-          </Flex>
+          <Pill $color={annotations[ann]} data-testid="modern-bars-annotation">
+            {ann}
+          </Pill>
         </Tooltip>
       ))}
     </Flex>
