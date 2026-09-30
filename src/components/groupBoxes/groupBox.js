@@ -1,5 +1,6 @@
 import React, { useRef, useLayoutEffect, Fragment, useState, useMemo } from "react"
-import { useChart, useAttributeValue } from "@/components/provider"
+import { useChart, useAttributeValue, useIsModern } from "@/components/provider"
+import { modernBoxOptions } from "@/components/modern/groupBoxes/scale"
 import useTransition from "@/components/helpers/useEffectWithTransition"
 import drawBoxes from "./drawBoxes"
 import useGroupBoxRowData from "./useGroupBoxRowData"
@@ -16,6 +17,8 @@ const GroupBox = ({ uiName, dimensions, groupLabel, ...options }) => {
 
   const boxHoverRef = useRef(-1)
   const timeoutId = useRef()
+
+  const isModern = useIsModern()
 
   const closeDrop = () =>
     requestAnimationFrame(() => {
@@ -60,16 +63,17 @@ const GroupBox = ({ uiName, dimensions, groupLabel, ...options }) => {
           }, 100)
         },
       },
-      options
+      isModern ? { ...modernBoxOptions(chart), ...options } : options
     )
     return () => boxesRef.current.clear()
-  }, [])
+  }, [isModern])
 
   const pointData = useGroupBoxRowData(uiName)
 
   const [, startTransitionEffect, stopTransitionEffect] = useTransition()
 
   const theme = useAttributeValue("theme")
+  const threshold = useAttributeValue("groupBoxesThreshold")
 
   useLayoutEffect(() => {
     startTransitionEffect(function* () {
@@ -87,7 +91,7 @@ const GroupBox = ({ uiName, dimensions, groupLabel, ...options }) => {
     })
 
     return () => stopTransitionEffect()
-  }, [pointData, startTransitionEffect, stopTransitionEffect, theme])
+  }, [pointData, startTransitionEffect, stopTransitionEffect, theme, isModern, threshold])
 
   const label = useMemo(() => {
     if (!hover) return

@@ -1,8 +1,9 @@
 import { useMemo } from "react"
 import isEmpty from "lodash/isEmpty"
 import difference from "lodash/difference"
-import { useChart, useAttributeValue } from "@/components/provider"
+import { useChart, useAttributeValue, useIsModern } from "@/components/provider"
 import { uppercase } from "@/helpers/objectTransform"
+import { modernLabelColumn, modernValueColumn } from "@/components/modern/table"
 import { labelColumn, valueColumn } from "./columns"
 
 const sortContexts = (contexts, contextScope) =>
@@ -15,17 +16,22 @@ const sortContexts = (contexts, contextScope) =>
 export const useTableColumns = (options = {}) => {
   const chart = useChart()
   const contextScope = useAttributeValue("contextScope")
+  const isModern = useIsModern()
   const { period, dimensionIds, groups, labels, contextGroups } = options
 
   return useMemo(() => {
+    const makeLabelColumn = isModern ? modernLabelColumn : labelColumn
+    const makeValueColumn = isModern ? modernValueColumn : valueColumn
+
     return [
       {
         id: "Instance",
         header: () => chart.intl("groupInstance", { fallback: "Instance" }),
-        columns: labels.map(label =>
-          labelColumn(chart, {
+        columns: labels.map((label, index) =>
+          makeLabelColumn(chart, {
             header: uppercase(label),
             partIndex: groups.findIndex(gi => gi === label),
+            ...(isModern && { withStatus: index === 0 }),
           })
         ),
         notFlex: true,
@@ -39,7 +45,7 @@ export const useTableColumns = (options = {}) => {
           headerString: () => chart.intl(context),
           columns: contextGroups[context]
             ? Object.keys(contextGroups[context]).map(dimension =>
-                valueColumn(chart, {
+                makeValueColumn(chart, {
                   dimensionLabel: chart.intl(dimension),
                   dimensionId: contextGroups[context][dimension]?.[0],
                   keys: [context, dimension],
@@ -54,7 +60,7 @@ export const useTableColumns = (options = {}) => {
         }
       }),
     ]
-  }, [chart, contextScope, period, dimensionIds, groups, labels, contextGroups])
+  }, [chart, contextScope, period, dimensionIds, groups, labels, contextGroups, isModern])
 }
 
 export default useTableColumns

@@ -1,8 +1,9 @@
 import React, { memo, useRef } from "react"
 import styled, { keyframes } from "styled-components"
 import { Box, Flex, TextMicro } from "@netdata/netdata-ui"
-import { useLoadingColor, useAttributeValue, useColor } from "@/components/provider"
+import { useLoadingColor, useAttributeValue, useColor, useIsModern } from "@/components/provider"
 import Details from "@/components/details"
+import ModernGroupBoxWrapper from "@/components/modern/groupBoxes/wrapper"
 import GroupBox from "./groupBox"
 import useGroupBox from "./useGroupBox"
 
@@ -86,22 +87,26 @@ const GroupBoxes = ({ uiName }) => {
   const viewDimensions = useAttributeValue("viewDimensions")
   const [first, ...rest] = viewDimensions.grouped || []
 
+  const isModern = useIsModern()
+  const Wrapper = isModern ? ModernGroupBoxWrapper : GroupBoxWrapper
+
   if (!loaded) return <SkeletonIcon />
 
   return (
     <Flex
       data-testid="groupBoxes"
-      flexWrap
+      flexWrap={!isModern}
       flex
       position="relative"
       height={{ min: "150px" }}
       ref={ref}
+      {...(isModern && { column: true, gap: 2 })}
     >
       {showingInfo ? (
         <Details />
       ) : rest.length ? (
         Object.keys(tree).map(key => (
-          <GroupBoxWrapper
+          <Wrapper
             key={key}
             label={key}
             subTree={tree[key]}
@@ -112,7 +117,7 @@ const GroupBoxes = ({ uiName }) => {
           />
         ))
       ) : (
-        <GroupBoxWrapper
+        <Wrapper
           key={first}
           label={first}
           subTree={tree}

@@ -1,8 +1,9 @@
 import React, { memo } from "react"
 import styled from "styled-components"
 import { Flex, TextMicro } from "@netdata/netdata-ui"
-import { useChart, useAttributeValue, useValueWithUnit } from "@/components/provider"
+import { useChart, useAttributeValue, useValueWithUnit, useIsModern } from "@/components/provider"
 import { BaseColorBar } from "@/components/line/dimensions/color"
+import { makeModernColor } from "@/components/modern/groupBoxes/scale"
 import Label from "./label"
 
 const Container = styled(Flex).attrs(props => ({
@@ -51,19 +52,18 @@ const Labels = ({ label, groupLabel, data, id, ref }) => {
     scaleByValue: true,
   })
 
+  const isModern = useIsModern()
+  const barColor = isModern
+    ? makeModernColor(chart)(min, max)(value)
+    : chart.getThemeAttribute("themeGroupBoxesMax")
+
   return (
     <Container data-testid="chartPopover-labels" maxWidth={chartWidth} gap={2} ref={ref}>
       <Flex column gap={1}>
         <TextMicro>{groupLabel}</TextMicro>
         <TextMicro strong>{label}</TextMicro>
         <Flex alignItems="center" position="relative">
-          <ColorBackground
-            value={value}
-            min={min}
-            max={max}
-            bg={chart.getThemeAttribute("themeGroupBoxesMax")}
-            height="18px"
-          />
+          <ColorBackground value={value} min={min} max={max} bg={barColor} height="18px" />
           <TextMicro padding={[1.5, 2]} strong>
             {convertedValue !== "-" && convertedUnit
               ? `${convertedValue} ${convertedUnit}`
