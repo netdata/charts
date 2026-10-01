@@ -6,15 +6,7 @@ import GroupBoxes from "@/components/groupBoxes"
 import makeMockPayload from "@/helpers/makeMockPayload"
 import makeDefaultSDK from "@/makeDefaultSDK"
 import makeHeatPayload from "@/components/modern/groupBoxes/makeHeatPayload"
-import tableFixture from "../../../../fixtures/table"
-
-const makeTablePayload = () => {
-  const payload = JSON.parse(JSON.stringify(tableFixture[0]))
-  const [, warning, critical] = payload.summary.nodes
-  if (warning) warning.al = { cl: 3, wr: 1 }
-  if (critical) critical.al = { cl: 2, wr: 1, cr: 1 }
-  return payload
-}
+import makeTablePayload from "./makeTablePayload"
 
 const tablePayload = makeTablePayload()
 const heatPayload = makeHeatPayload()
@@ -23,7 +15,8 @@ const cases = [
   {
     id: "table",
     title: "Disk activity",
-    description: "Status dots, meters in percentage cells, trends in the rest.",
+    description:
+      "Hover for search, full screen and More. Units in the group headers, numbers only in the cells, magnitude bars per column, trends coloured on the hovered row, node under the device name, a dash where a device reports no value.",
     Component: Table,
     payload: tablePayload,
     height: "520px",
