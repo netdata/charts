@@ -190,7 +190,7 @@ describe("uplotChart", () => {
     document.body.removeChild(element)
   })
 
-  it("renders nothing until loaded, then draws the framed empty chart once loaded", () => {
+  it("renders nothing until loaded, then draws the framed empty chart on the SDK render", () => {
     const { sdk, chart } = makeTestChart({ attributes: { loaded: false, chartType: "line" } })
     chart.getPayload = () => ({ data: [], labels: ["time"] })
     chart.getPayloadDimensionIds = () => []
@@ -211,6 +211,9 @@ describe("uplotChart", () => {
     expect(element.querySelector(".uplot")).toBeNull()
 
     chart.updateAttribute("loaded", true)
+    expect(instance.getUPlot()).toBeNull()
+
+    instance.render()
 
     expect(instance.getUPlot()).not.toBeNull()
     expect(element.querySelector(".uplot")).not.toBeNull()

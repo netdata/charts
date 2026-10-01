@@ -104,7 +104,7 @@ const ModernNumber = ({ uiName }) => {
       ? ""
       : `${delta >= 0 ? "+" : "−"}${convertedDelta} vs mean`
 
-  const seriesColor = color || chart.selectDimensionColor(dimensionId)
+  const seriesColor = color || (dimensionId ? chart.selectDimensionColor(dimensionId) : undefined)
 
   return (
     <Flex

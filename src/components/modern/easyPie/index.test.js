@@ -92,14 +92,12 @@ describe("ModernEasyPie", () => {
     expect(Number(screen.getByRole("img").getAttribute("data-fraction"))).toBeCloseTo(value / 1000)
   })
 
-  it("draws the arc in the dimension colour while no threshold is crossed", async () => {
+  it("draws the arc in the same colour as the default easy pie while no threshold is crossed", async () => {
     const chart = await loadChart()
     renderWithChart(<ModernEasyPie size={120} />, { chart })
 
-    const [id] = chart.getVisibleDimensionIds()
-
     expect(screen.getByTestId("modernEasyPieArc")).toHaveStyle({
-      stroke: chart.selectDimensionColor(id),
+      stroke: chart.selectDimensionColor(),
     })
   })
 
@@ -115,9 +113,8 @@ describe("ModernEasyPie", () => {
       ])
     )
 
-    const [id] = chart.getVisibleDimensionIds()
     expect(screen.getByTestId("modernEasyPieArc")).toHaveStyle({
-      stroke: chart.selectDimensionColor(id),
+      stroke: chart.selectDimensionColor(),
     })
   })
 

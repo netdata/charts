@@ -199,6 +199,23 @@ describe("ModernNumber", () => {
   })
 })
 
+describe("number colour assignment", () => {
+  it("does not take a colour slot before data arrives", async () => {
+    const { chart: early } = makeTestChart({ attributes: { designFlavour: "modern" } })
+    renderWithChart(<ModernNumber />, { chart: early })
+    early.doneFetch(systemLoadLine[0])
+    await act(() => new Promise(resolve => setTimeout(resolve, 0)))
+
+    const { chart: plain } = makeTestChart({ attributes: { designFlavour: "default" } })
+    plain.doneFetch(systemLoadLine[0])
+    await new Promise(resolve => setTimeout(resolve, 0))
+
+    plain.getDimensionIds().forEach(id =>
+      expect(early.selectDimensionColor(id)).toBe(plain.selectDimensionColor(id))
+    )
+  })
+})
+
 describe("number status in other flavours", () => {
   it.each(["default", "minimal"])("renders no status for %s with raised alerts", async flavour => {
     const chart = await loadChart({ designFlavour: flavour })

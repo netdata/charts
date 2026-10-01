@@ -1590,8 +1590,6 @@ export default (sdk, chart) => {
       () => chartUI.trigger("resize")
     )
 
-    const { loaded } = chart.getAttributes()
-
     listeners = unregister(
       chartUI.on("resize", () => {
         if (!u) return
@@ -1627,8 +1625,7 @@ export default (sdk, chart) => {
         element.classList.remove(prev)
         element.classList.add(next)
         rebuild()
-      }),
-      !loaded && chart.onceAttributeChange("loaded", render)
+      })
     )
 
     render()

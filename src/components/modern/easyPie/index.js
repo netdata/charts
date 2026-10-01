@@ -55,7 +55,7 @@ const ModernEasyPie = ({ uiName, size }) => {
 
   const ring = getRingValue(chart)
   const { color } = useAttention(ring?.value ?? null, ring?.min)
-  const arcColor = color || chart.selectDimensionColor(dimensionId)
+  const arcColor = color || chart.selectDimensionColor()
   const fraction = toFraction(ring?.percentage)
 
   const valueSize = fitFontSize(convertedValue, 20, 52)
