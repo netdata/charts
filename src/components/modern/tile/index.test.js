@@ -124,8 +124,15 @@ describe("modern tile at rest", () => {
     act(() => chart.updateAttribute("alerts", { load: { nm: "load_average_15", wr: 1 } }))
     const dot = screen.getByTestId("modernTileAlert")
     expect(dot).toHaveAttribute("data-status", "warning")
-    expect(dot).toHaveTextContent("Warning")
-    expect(dot).toHaveAttribute("title", "Warning: load_average_15")
+    expect(dot).toHaveTextContent("1 warning")
+    expect(dot).toHaveAttribute("title", "1 warning: load_average_15")
+  })
+
+  it.each(["gauge", "number"])("leaves the status to a %s, which draws its own", async lib => {
+    const { chart } = await renderModern({ chartLibrary: lib })
+
+    act(() => chart.updateAttribute("alerts", { load: { nm: "load_average_15", wr: 1 } }))
+    expect(screen.queryByTestId("modernTileAlert")).not.toBeInTheDocument()
   })
 })
 
@@ -353,7 +360,7 @@ describe("modern tile helpers", () => {
     })
     expect(
       getTileAlert({ overlays: { x: { type: "alarm", status: "critical", value: 3 } } })
-    ).toMatchObject({ status: "critical", tone: "error", label: "Critical" })
+    ).toMatchObject({ status: "critical", tone: "error", label: "1 critical" })
   })
 
   it("sizes the readout to the tile", () => {

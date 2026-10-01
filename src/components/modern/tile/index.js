@@ -19,6 +19,8 @@ import TileActions from "./actions"
 import TileReadout from "./readout"
 import AnomalyIndicator from "./anomaly"
 
+const selfSignallingLibraries = new Set(["gauge", "number"])
+
 const PlainStatus = () => <Status plain />
 
 // as in the modern header: with a toolbox the More menu carries reload, so the default Status
@@ -157,7 +159,11 @@ const ModernTile = ({ children, customChildren, hasFilters = true, height, width
   const overlays = useAttributeValue("overlays")
   const error = useAttributeValue("error")
   const leftElements = useTileLeftElements(hasToolbox)
-  const alert = useTileAlert()
+  const chartLibrary = useAttributeValue("chartLibrary")
+  // gauge and number draw their own status (they also see threshold zones), so the tile stays quiet
+  const ownStatus = selfSignallingLibraries.has(chartLibrary)
+  const tileAlert = useTileAlert()
+  const alert = ownStatus ? null : tileAlert
   const scopeRef = useRef()
   const [menuActive, setMenuActive] = useState(false)
   const [filtersOpen, setFiltersOpen] = useState(false)
