@@ -1,5 +1,5 @@
 import React from "react"
-import { act, render, screen } from "@testing-library/react"
+import { act, render, screen, waitFor } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { Dark, Light } from "./legend.stories"
 
@@ -13,6 +13,9 @@ describe("Modern/Legend and hover story", () => {
     render(<Story {...Story.args} />)
     await act(tick)
 
-    expect(screen.getAllByTestId("modernBody")).toHaveLength(8)
+    const bodies = screen.getAllByTestId("modernBody")
+    expect(bodies).toHaveLength(10)
+    expect(bodies[2]).toHaveAttribute("data-legend", "live")
+    await waitFor(() => expect(bodies[7]).toHaveAttribute("data-legend", "table"))
   })
 })

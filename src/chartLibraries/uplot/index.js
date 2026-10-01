@@ -21,6 +21,7 @@ import makeOverlays from "./overlays"
 import makeAnomaly from "./plotters/anomaly"
 import makeAnomalyBadge from "./plotters/anomalyBadge"
 import makeAnnotations from "./plotters/annotations"
+import makeLiveEdge, { haloRadius, isLiveLayout } from "./plotters/liveEdge"
 import makeGetHoverDimension from "./hover"
 import getPxRatio from "./pxRatio"
 
@@ -765,6 +766,7 @@ export default (sdk, chart) => {
 
   const drawAnomaly = makeAnomaly(chartUI)
   const drawAnomalyBadge = makeAnomalyBadge(chartUI)
+  const drawLiveEdge = makeLiveEdge(chartUI)
   const drawAnnotations = makeAnnotations(chartUI)
   const getHoverDimension = makeGetHoverDimension(chart)
   const getYAxisValueRange = () => {
@@ -1473,7 +1475,13 @@ export default (sdk, chart) => {
         width: chartUI.getChartWidth(),
         height: chartUI.getChartHeight(),
         // null sides keep uPlot's autoPadSide behaviour
-        padding: [() => getVerticalBudget().topPad, () => rightPad, null, null],
+        // the live-edge halo sits on the newest point, at the plot's right edge
+        padding: [
+          () => getVerticalBudget().topPad,
+          () => (isLiveLayout(chart) ? haloRadius : rightPad),
+          null,
+          null,
+        ],
         legend: { show: false },
         cursor: getCursor(),
         scales,
@@ -1493,6 +1501,7 @@ export default (sdk, chart) => {
                 drawAnomaly,
                 drawAnomalyBadge,
                 drawAnnotations,
+                drawLiveEdge,
                 drawOverlayLabels,
                 drawCrosshairLayer,
               ],
@@ -1529,6 +1538,16 @@ export default (sdk, chart) => {
   // recalcAxes re-derives the cached tick strings, which a plain redraw leaves alone; rebuilding
   // the instance for this reconstructed every chart on every streaming tick
   const onUnitsConversionChange = () => u && u.redraw(false, true)
+
+  // entering or leaving the live layout changes the right padding the halo needs
+  const onLegendModeChange = (next, prev) => {
+    if (!u || !isModern() || (next !== "live" && prev !== "live")) return
+    u.redraw(false, true)
+  }
+
+  const onPausedChange = () => {
+    if (u && isLiveLayout(chart)) u.redraw(false, false)
+  }
 
   const render = () => {
     if (!element) return false
@@ -1579,6 +1598,8 @@ export default (sdk, chart) => {
       chart.onAttributeChange("hoverX", () => renderCrosshair()),
       chart.onAttributeChange("clickX", () => renderCrosshair()),
       chart.onAttributeChange("focusedDimensionId", applyFocus),
+      chart.onAttributeChange("legendMode", onLegendModeChange),
+      chart.getRoot().onAttributeChange("paused", onPausedChange),
       chart.onAttributeChange("overlays", overlays.toggle),
       chart.onAttributeChange("draftAnnotation", overlays.toggle),
       chart.onAttributeChange("selectedLegendDimensions", rebuild),
