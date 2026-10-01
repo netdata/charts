@@ -93,16 +93,48 @@ describe("ModernEasyPie", () => {
     expect(Number(screen.getByRole("img").getAttribute("data-fraction"))).toBeCloseTo(value / 1000)
   })
 
-  it("is neutral without a threshold and coloured once one is crossed", async () => {
+  it("draws the arc in the dimension colour while no threshold is crossed", async () => {
+    const chart = await loadChart()
+    renderWithChart(<ModernEasyPie size={120} />, { chart })
+
+    const [id] = chart.getVisibleDimensionIds()
+
+    expect(screen.getByTestId("modernEasyPieArc")).toHaveStyle({
+      stroke: chart.selectDimensionColor(id),
+    })
+  })
+
+  it("keeps the dimension colour while the value stays in the base band", async () => {
+    const chart = await loadChart()
+    const { value, min } = getRingValue(chart)
+    renderWithChart(<ModernEasyPie size={120} />, { chart })
+
+    act(() =>
+      chart.updateAttribute("gaugeThresholds", [
+        { id: "base", from: min, color: ["#00AB44", "#00AB44"] },
+        { id: "hot", from: value + 1000, color: ["#123456", "#654321"] },
+      ])
+    )
+
+    const [id] = chart.getVisibleDimensionIds()
+    expect(screen.getByTestId("modernEasyPieArc")).toHaveStyle({
+      stroke: chart.selectDimensionColor(id),
+    })
+  })
+
+  it("switches from the dimension colour once an alert is raised", async () => {
     const chart = await loadChart()
     const { container } = renderWithChart(<ModernEasyPie size={120} />, { chart })
 
     const neutral = getComputedStyle(screen.getByTestId("modernEasyPieArc")).stroke
+    const neutralValue = getComputedStyle(screen.getByTestId("modernEasyPieValue")).fill
 
     act(() => chart.updateAttribute("alerts", { load: { nm: "load", cr: 1 } }))
 
     const hot = getComputedStyle(screen.getByTestId("modernEasyPieArc")).stroke
     expect(hot).not.toBe(neutral)
+    expect(getComputedStyle(screen.getByTestId("modernEasyPieValue")).fill).toBe(hot)
+    expect(getComputedStyle(screen.getByTestId("modernEasyPieValue")).fill).not.toBe(neutralValue)
     expect(container.querySelector("canvas")).toBeNull()
   })
 

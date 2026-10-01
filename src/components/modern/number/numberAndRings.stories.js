@@ -81,6 +81,12 @@ const rings = cores.map((center, index) => ({
 }))
 
 rings.push({
+  label: "no thresholds",
+  payload: rings[5].payload,
+  attributes: { staticValueRange: [0, 100] },
+})
+
+rings.push({
   label: "critical alert",
   payload: withAlerts(rings[3].payload, [{ nm: "cpu_usage", cr: 1 }]),
   attributes: { staticValueRange: [0, 100] },
