@@ -202,6 +202,19 @@ flavour, 1000 rows x 20 dims x 10 charts): uPlot/dygraph total task ratio 0.739,
 7. Under dygraph, the More-menu anomaly/annotation toggles apply on the next remount (dygraph reads
    them at mount).
 
+### Round 3 decisions (approved 2026-10-01)
+
+| # | Topic | Decision |
+|---|---|---|
+| T1 | Tiles | As in Mockups/Tiles: rest = title, readout, trend; hover = Fullscreen + More (+ move handle from `toolboxProps.drag` when present) and the scope line; More holds consumer toolbox elements as an icon row, filters, settings, info, reload |
+| T2 | Sparkline tiles | `latestValue` readout sits above the trend, shared decimals, unit beside the number |
+| T3 | Ring colour | Dimension colour; warning/critical colour only when a threshold is crossed |
+| T4 | Live edge | A legend layout ("Live edge" = direct labels + glow on each series' newest point), alongside Bottom and Side; personal choice via `legendLayout`; glow on uPlot under modern only; falls back to the side table above ~8 series |
+| T5 | Status | Quiet green dot when all is clear, description on hover; warning/critical: coloured dot + short label, critical most prominent |
+| T6 | Highlight chip | One line; date dropped when it is today |
+| T7 | Left spacing | Narrower y-axis gutter on uPlot under modern (sized to the labels) |
+| T8 | Modern vs renderer | Modern restyles the card on both renderers |
+
 ### Known pre-existing issue (not fixed)
 
 - `useChartError` (`provider/selectors.js`) reads the error attribute inside `failFetch`, which
