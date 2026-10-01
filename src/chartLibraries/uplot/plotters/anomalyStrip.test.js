@@ -2,32 +2,36 @@ import { makeTestChart } from "@jest/testUtilities"
 import { makePayload, makeWave } from "@/helpers/makeWavePayload"
 import uplotChart from "../index"
 import getPxRatio from "../pxRatio"
-import makeAnomaly, { getMarkAlpha } from "./anomaly"
+import { getAnomalyColor, anomalyNoiseFloor } from "@/components/modern/anomaly"
+import makeAnomaly, { makeAnomalyShade } from "./anomaly"
 
 const points = 97
 const anomalousRows = [10, 40, 41, 80]
 const rateAt = index => (anomalousRows.includes(index) ? 30 + index : 0)
 
-const payload = makePayload({
-  context: "anomaly.cpu",
-  title: "CPU",
-  unit: "percentage",
-  dimensions: [
-    {
-      id: "user",
-      values: makeWave({ center: 50, amplitude: 30 }),
-      anomalyRates: Array.from({ length: points }, (_, index) => rateAt(index)),
-    },
-  ],
-})
+const makeAnomalyPayload = rate =>
+  makePayload({
+    context: "anomaly.cpu",
+    title: "CPU",
+    unit: "percentage",
+    dimensions: [
+      {
+        id: "user",
+        values: makeWave({ center: 50, amplitude: 30 }),
+        anomalyRates: Array.from({ length: points }, (_, index) => rate(index)),
+      },
+    ],
+  })
+
+const payload = makeAnomalyPayload(rateAt)
 
 const { after, before } = payload.view
 
-const mountUplot = async (attributes = {}) => {
+const mountUplot = async (attributes = {}, data = payload) => {
   const { sdk, chart } = makeTestChart({
     attributes: { chartLibrary: "uplot", chartType: "line", after, before, ...attributes },
   })
-  chart.doneFetch(payload)
+  chart.doneFetch(data)
   await new Promise(resolve => setTimeout(resolve, 0))
 
   const instance = uplotChart(sdk, chart)
@@ -63,13 +67,10 @@ const record = (ctx, names = ["fill", "fillRect", "strokeRect", "moveTo"]) => {
 
 const only = (calls, name) => calls.filter(call => call.name === name)
 
-describe("anomaly mark opacity", () => {
-  it("follows the rate with a visible floor", () => {
-    expect(getMarkAlpha(0)).toBeCloseTo(0.35)
-    expect(getMarkAlpha(30)).toBeCloseTo(0.55)
-    expect(getMarkAlpha(100)).toBe(1)
-  })
-})
+const canvasColor = (ctx, color) => {
+  ctx.fillStyle = color
+  return ctx.fillStyle
+}
 
 describe("anomaly plotter flavours", () => {
   it("keeps the full-height ribbon in the default flavour", async () => {
@@ -113,15 +114,57 @@ describe("anomaly plotter flavours", () => {
 
     const marks = only(calls, "fill")
     expect(marks).toHaveLength(anomalousRows.length)
-    marks.forEach(call => expect(call.fillStyle).toBe("#9f75f9"))
-    expect(marks.map(call => call.globalAlpha)).toEqual(
-      anomalousRows.map(row => expect.closeTo(getMarkAlpha(rateAt(row))))
+    const themeIndex = instance.chart.getThemeIndex()
+    expect(marks.map(call => call.fillStyle)).toEqual(
+      anomalousRows.map(row => canvasColor(u.ctx, getAnomalyColor(themeIndex, rateAt(row))))
     )
 
     const dpr = getPxRatio()
-    const expectedTop = u.bbox.top >= 5 * dpr ? u.bbox.top - 5 * dpr : u.bbox.top + dpr
+    const expectedTop = u.bbox.top >= 6 * dpr ? u.bbox.top - 6 * dpr : u.bbox.top + dpr
     const tops = only(calls, "moveTo").map(call => call.args[1])
     expect(tops.every(y => y === expectedTop)).toBe(true)
+
+    teardown()
+  })
+
+  it("draws no mark and no shade for rates under the noise floor", async () => {
+    const { u, instance, teardown } = await mountUplot(
+      { designFlavour: "modern" },
+      makeAnomalyPayload(index => (anomalousRows.includes(index) ? anomalyNoiseFloor - 1 : 0))
+    )
+    const calls = record(u.ctx)
+
+    makeAnomaly(instance)(u)
+    makeAnomalyShade(instance)(u)
+
+    expect(calls).toHaveLength(0)
+
+    teardown()
+  })
+
+  it("shades each anomalous point behind the series over the full plot height", async () => {
+    const { u, instance, teardown } = await mountUplot({ designFlavour: "modern" })
+    const calls = record(u.ctx)
+
+    makeAnomalyShade(instance)(u)
+
+    const rects = only(calls, "fillRect")
+    expect(rects).toHaveLength(anomalousRows.length)
+    rects.forEach(call => {
+      expect(call.args[1]).toBe(u.bbox.top)
+      expect(call.args[3]).toBe(u.bbox.height)
+    })
+
+    teardown()
+  })
+
+  it.each(["default", "minimal"])("draws no shade in the %s flavour", async designFlavour => {
+    const { u, instance, teardown } = await mountUplot({ designFlavour })
+    const calls = record(u.ctx)
+
+    makeAnomalyShade(instance)(u)
+
+    expect(calls).toHaveLength(0)
 
     teardown()
   })

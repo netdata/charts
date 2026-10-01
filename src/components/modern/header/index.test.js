@@ -537,3 +537,53 @@ describe("Modern sparklines", () => {
     expect(screen.getByTestId("chartContentWrapper")).toBeInTheDocument()
   })
 })
+
+describe("Modern anomaly pill", () => {
+  const anomalyPayload = rate =>
+    makePayload({
+      context: "anomaly.cpu",
+      title: "CPU",
+      unit: "percentage",
+      dimensions: [
+        {
+          id: "user",
+          values: makeWave({ center: 50, amplitude: 30 }),
+          anomalyRates: Array.from({ length: 97 }, (_, index) => rate(index)),
+        },
+      ],
+    })
+
+  const renderWithPayload = async (data, attributes = {}) => {
+    const { chart } = makeModern(attributes)
+    chart.doneFetch(data)
+    await act(() => new Promise(resolve => setTimeout(resolve, 0)))
+    renderWithChart(<Header />, { chart })
+    return chart
+  }
+
+  it("shows the peak anomaly rate when the window has anomalies", async () => {
+    await renderWithPayload(anomalyPayload(index => (index === 40 ? 42 : index === 80 ? 12 : 0)))
+
+    const pill = screen.getByTestId("chartAnomalyPill")
+    expect(pill).toHaveTextContent("Anomalous, peak 42%")
+    expect(pill).toHaveAttribute(
+      "title",
+      "2 anomalous periods in this window, peak anomaly rate 42%"
+    )
+  })
+
+  it("stays out of the header when rates stay under the noise floor", async () => {
+    await renderWithPayload(anomalyPayload(index => (index % 10 === 0 ? 1 : 0)))
+
+    expect(screen.queryByTestId("chartAnomalyPill")).not.toBeInTheDocument()
+  })
+
+  it("stays out of the header when anomalies are hidden", async () => {
+    await renderWithPayload(
+      anomalyPayload(() => 30),
+      { showAnomalies: false }
+    )
+
+    expect(screen.queryByTestId("chartAnomalyPill")).not.toBeInTheDocument()
+  })
+})

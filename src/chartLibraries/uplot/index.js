@@ -18,7 +18,7 @@ import {
   selectStackRows,
 } from "./stacking"
 import makeOverlays from "./overlays"
-import makeAnomaly from "./plotters/anomaly"
+import makeAnomaly, { makeAnomalyShade } from "./plotters/anomaly"
 import makeAnomalyBadge from "./plotters/anomalyBadge"
 import makeAnnotations from "./plotters/annotations"
 import makeLiveEdge, { haloRadius, isLiveLayout } from "./plotters/liveEdge"
@@ -780,6 +780,7 @@ export default (sdk, chart) => {
   }
 
   const drawAnomaly = makeAnomaly(chartUI)
+  const drawAnomalyShade = makeAnomalyShade(chartUI)
   const drawAnomalyBadge = makeAnomalyBadge(chartUI)
   const drawLiveEdge = makeLiveEdge(chartUI)
   const drawAnnotations = makeAnnotations(chartUI)
@@ -1493,7 +1494,7 @@ export default (sdk, chart) => {
         axes: getAxes(),
         hooks: {
           setCursor: [setCursor],
-          drawClear: [drawOverlays],
+          drawClear: [drawOverlays, drawAnomalyShade],
           setSelect: [onSetSelect],
           draw: empty
             ? [fireYAxisChange]

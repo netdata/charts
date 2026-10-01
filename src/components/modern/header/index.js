@@ -7,6 +7,7 @@ import ModernTitle from "./title"
 import ScopeLine from "./scopeLine"
 import Actions from "./actions"
 import Attention from "./attention"
+import AnomalyPill from "./anomalyPill"
 
 const PlainStatus = () => <Status plain />
 
@@ -43,7 +44,10 @@ const ModernHeader = ({ hasFilters = false }) => {
           </Flex>
           <ScopeLine hasFilters={hasFilters} open={open} onToggle={toggleFilters} />
         </Flex>
-        <Attention />
+        <Flex alignItems="center" gap={2} flex={false}>
+          <AnomalyPill />
+          <Attention />
+        </Flex>
       </Flex>
       {open && <FilterToolbox />}
     </Flex>

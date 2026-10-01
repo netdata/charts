@@ -138,18 +138,7 @@ const Shade = ({ theme, rates, scales }) => (
         />
       )
     )}
-    {rates.map((rate, i) =>
-      rate < noiseFloor ? null : (
-        <rect
-          key={`edge-${i}`}
-          x={scales.x(i) - (scales.x(1) - scales.x(0)) / 2}
-          width={scales.x(1) - scales.x(0) + 1.5}
-          y={scales.plot.top - 3}
-          height={3}
-          fill={rateColor(theme, rate)}
-        />
-      )
-    )}
+    <QuietStrip theme={theme} rates={rates} scales={scales} />
   </g>
 )
 
@@ -321,7 +310,7 @@ export const AnomalyRibbonMockups = ({ theme = "dark" }) => {
   const notes = {
     tide: "The anomaly rate is a small area of its own above the plot. Height and brightness both follow the rate; the peak is labelled.",
     shade:
-      "Anomalous periods are shaded behind the lines, stronger with the rate. A pill in the header gives the peak.",
+      "Chosen: anomalous periods shaded behind the lines, stronger with the rate, with the small strip above. A pill in the header gives the peak.",
     runs: "Consecutive anomalous points merge into one run. Thicker and brighter for a higher peak, labelled with peak and time.",
     quiet:
       "Nothing on the plot at rest; the header pill says it happened. The strip appears on hover.",
