@@ -394,7 +394,7 @@ export default (sdk, chart) => {
 
         const padded = padYRange(self, min, max)
 
-        if (min === 0 && padded[0] < 0) padded[0] = 0
+        if (min >= 0 && padded[0] < 0) padded[0] = 0
 
         return padded
       },

@@ -2158,6 +2158,18 @@ describe("uplotChart yAxisChange (unit rescaling parity)", () => {
     teardown()
   })
 
+  it("never pads a non-negative series below zero", () => {
+    const { chart, u, teardown } = setup()
+    chart.updateAttribute("getValueRange", () => [null, null])
+
+    expect(u.scales.y.range(u, 0.02, 40)[0]).toBe(0)
+    expect(u.scales.y.range(u, 0, 40)[0]).toBe(0)
+    expect(u.scales.y.range(u, 5, 40)[0]).toBeGreaterThan(0)
+    expect(u.scales.y.range(u, -2, 40)[0]).toBeLessThan(-2)
+
+    teardown()
+  })
+
   it("keeps the fired range independent of yRangePad and fires only once", () => {
     const { chart, u, teardown } = setup()
 
