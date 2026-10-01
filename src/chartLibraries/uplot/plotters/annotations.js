@@ -33,7 +33,6 @@ export default chartUI => self => {
 
   ctx.save()
 
-  // the loop index is the row: all is row-aligned with the payload data
   for (let row = 0; row < xs.length; row++) {
     const pointData = all[row]
     if (!pointData) continue

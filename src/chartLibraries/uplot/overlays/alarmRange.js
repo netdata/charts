@@ -74,7 +74,6 @@ export default (chartUI, id) => {
   ctx.fill()
 
   const borderWidth = 2
-  // left border
   ctx.beginPath()
   ctx.moveTo(from, top)
   ctx.lineTo(from, top + h)
@@ -84,7 +83,6 @@ export default (chartUI, id) => {
   ctx.strokeStyle = borderColorMap[status]
   ctx.stroke()
 
-  // right border
   ctx.beginPath()
   ctx.moveTo(to - borderWidth, top)
   ctx.lineTo(to - borderWidth, top + h)

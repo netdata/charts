@@ -15,7 +15,6 @@ export default sdk => {
     setEnabled(true)
     heapId = setInterval(sampleHeap, 1000)
 
-    // benchmark drivers read exact stats from here; the HUD only renders rounded values
     if (typeof window !== "undefined") window.__netdataPerf = { snapshot, reset }
 
     container = document.createElement("div")

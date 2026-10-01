@@ -8,7 +8,6 @@ import systemLoadLine from "../fixtures/systemLoadLine"
 
 const [basePayload] = systemLoadLine
 
-// deterministic, so repeated benchmark runs compare like for like
 const pseudoRandom = seed => {
   const value = Math.sin(seed) * 10000
   return value - Math.floor(value)

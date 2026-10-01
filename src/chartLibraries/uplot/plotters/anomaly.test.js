@@ -97,7 +97,6 @@ describe("uplot anomaly ribbon draw hook", () => {
 
     makeAnomaly(instance)(u)
 
-    // row maxima are 50, 100 and 90, so each row gets its own shade and none is transparent
     expect(fills).toHaveLength(3)
     expect(new Set(fills).size).toBe(3)
     fills.forEach(fill => expect(fill).not.toMatch(/^(transparent|rgba\(0, 0, 0, 0\))$/))

@@ -57,9 +57,7 @@ describe("perf registry", () => {
 
     const busyWait = ms => {
       const until = performance.now() + ms
-      while (performance.now() < until) {
-        /* spin */
-      }
+      while (performance.now() < until) continue
     }
 
     timeRender("c1", "uplot", () => {

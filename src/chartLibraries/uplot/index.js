@@ -171,8 +171,6 @@ const traceStackTop = (self, ctx, xs, series, rows, stepped) => {
   }
 }
 
-// dygraph.js:2612 — a collapsed range has no sense of scale, so centre on the sole value.
-// Left collapsed, uPlot's tick search never converges (seconds of spin) and valToPos is infinite.
 const expandDegenerate = (min, max) => {
   if (min !== max) return [min, max]
   if (min === 0) return [0, 1]
@@ -287,8 +285,6 @@ export default (sdk, chart) => {
     return [
       {},
       ...chart.getPayloadDimensionIds().map(id => {
-        // a sparkline's synthetic dimension has no palette entry, and uPlot paints nothing without
-        // a colour, where dygraph falls back to its own palette
         const color = chart.selectDimensionColor(id) || chart.getThemeAttribute("themeNetdata")
 
         if (sparkline)
@@ -386,8 +382,6 @@ export default (sdk, chart) => {
         if (chartType === "stacked") {
           ;[min, max] = getStackValueRange(stackBounds())
         } else {
-          // the dygraph flag yields [null, null] when the range should not pin the axis, which
-          // is what lets dataMin/dataMax (uPlot's in-window extremes) take over, as dygraph does
           const [rangeMin, rangeMax] = chart.getAttribute("getValueRange")(chart, { dygraph: true })
           min = rangeMin == null ? dataMin : rangeMin
           max = rangeMax == null ? dataMax : rangeMax
@@ -400,7 +394,6 @@ export default (sdk, chart) => {
 
         const padded = padYRange(self, min, max)
 
-        // an all-positive stack cannot reach below its baseline, so padding there is dead space
         if (min === 0 && padded[0] < 0) padded[0] = 0
 
         return padded
@@ -434,8 +427,6 @@ export default (sdk, chart) => {
     },
   })
 
-  // left to uPlot's defaults the chrome is a fixed 67px, so a short chart gets a negative
-  // plot height and a zero-height overlay that never receives pointer events
   const getVerticalBudget = () => {
     if (chart.isSparkline()) return { topPad: 0, xAxisSize: 0 }
 
@@ -657,7 +648,6 @@ export default (sdk, chart) => {
     if (!all) return
 
     const { min: xMin, max: xMax } = self.scales.x
-    // the scales are null until uPlot's first convergence, and comparing against null coerces to 0
     const clipToWindow = Number.isFinite(xMin) && Number.isFinite(xMax)
 
     ctx.save()
@@ -893,7 +883,6 @@ export default (sdk, chart) => {
 
     const mainCanvas = u.ctx.canvas
 
-    // reassigning width/height clears the layer, so only touch it on a real size change
     if (overlayCanvas.width !== mainCanvas.width) overlayCanvas.width = mainCanvas.width
     if (overlayCanvas.height !== mainCanvas.height) overlayCanvas.height = mainCanvas.height
 
@@ -901,8 +890,6 @@ export default (sdk, chart) => {
     overlayCanvas.style.height = mainCanvas.style.height
   }
 
-  // uPlot defers scale/size convergence to its commit cycle, so the crosshair layer is
-  // re-derived from the draw hook (after convergence) rather than at the call sites.
   const drawCrosshairLayer = () => {
     syncOverlaySize()
     renderCrosshair()
@@ -936,8 +923,6 @@ export default (sdk, chart) => {
       return
     }
 
-    // hoverChart/blurChart belong to the container's element-scoped hover (like dygraph);
-    // firing them from the cursor blurs the synced group when it crosses the axis gutter
     if (!hovering) hovering = true
 
     const timestamp = self.data[0][idx] * 1000
@@ -1003,10 +988,6 @@ export default (sdk, chart) => {
           ? { x: true, y: false, setScale: false }
           : { x: false, y: false }
 
-    // dygraph draws one themed vertical line and its own dots; uPlot's native cursor would
-    // stack a second (hardcoded #607d8b) vertical line, a horizontal line and DOM points on top
-    // alpha 1 because dygraph sets highlightSeriesBackgroundAlpha:1; uPlot would otherwise
-    // fade every non-focused series to its 0.3 default on hover
     return {
       focus: { prox: 16, alpha: 1 },
       drag,
@@ -1499,7 +1480,6 @@ export default (sdk, chart) => {
       {
         width: chartUI.getChartWidth(),
         height: chartUI.getChartHeight(),
-        // null sides keep uPlot's autoPadSide behaviour
         padding: [
           () => getVerticalBudget().topPad,
           () => (isLiveLayout(chart) ? haloRadius : rightPad),
@@ -1559,8 +1539,6 @@ export default (sdk, chart) => {
     create()
   }
 
-  // recalcAxes re-derives the cached tick strings, which a plain redraw leaves alone; rebuilding
-  // the instance for this reconstructed every chart on every streaming tick
   const onUnitsConversionChange = () => u && u.redraw(false, true)
 
   const onLegendModeChange = (next, prev) => {
@@ -1627,7 +1605,6 @@ export default (sdk, chart) => {
       chart.onAttributeChange("draftAnnotation", overlays.toggle),
       chart.onAttributeChange("selectedLegendDimensions", rebuild),
       chart.onAttributeChange("chartType", rebuild),
-      // the path builder is resolved at create time, so a mid-session flip needs a rebuild
       chart.onAttributeChange("stepPlot", rebuild),
       chart.onAttributeChange("navigation", updateCursorDrag),
       chart.onAttributeChange("enabledNavigation", rebuild),
@@ -1639,8 +1616,6 @@ export default (sdk, chart) => {
         renderCrosshair()
       }),
       chart.onAttributeChange("timezone", () => u && u.redraw()),
-      // axis config (duration ticks, units) is captured at create time, and a plain
-      // redraw reuses cached tick strings, so re-derive it like dygraph does
       chart.onAttributeChange("unitsConversionPrefix", onUnitsConversionChange),
       chart.onAttributeChange("unitsConversionBase", onUnitsConversionChange),
       chart.onAttributeChange("theme", (next, prev) => {

@@ -4001,8 +4001,6 @@ describe("uplotChart auto y-range source (dygraph parity)", () => {
     const u = instance.getUPlot()
     const [min, max] = u.scales.y.range(u, 10, 31)
 
-    // dygraph gets [null, null] here and autoscales to the data, so the axis must not
-    // stretch to the discarded 0..100 range
     expect(max).toBeLessThan(40)
     expect(min).toBeGreaterThan(-10)
 
