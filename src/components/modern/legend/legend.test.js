@@ -321,3 +321,25 @@ describe("modern hover", () => {
     expect(screen.queryByTestId("modernTooltip")).not.toBeInTheDocument()
   })
 })
+
+describe("legend layout chosen at runtime", () => {
+  it("follows a legendLayout change on a mounted chart, like a user setting", async () => {
+    const { chart } = await renderLine({ designFlavour: "modern", legendLayout: "below" })
+    expect(await screen.findByTestId("modernLegend-line")).toBeInTheDocument()
+
+    act(() => chart.updateAttribute("legendLayout", "table"))
+    expect(await screen.findByTestId("modernLegend-table")).toBeInTheDocument()
+    expect(screen.queryByTestId("modernLegend-line")).not.toBeInTheDocument()
+
+    act(() => chart.updateAttribute("legendLayout", "below"))
+    expect(await screen.findByTestId("modernLegend-line")).toBeInTheDocument()
+  })
+
+  it("follows a change set on the SDK root, which is how the app applies settings", async () => {
+    const { chart } = await renderLine({ designFlavour: "modern", legendLayout: "below" })
+    expect(await screen.findByTestId("modernLegend-line")).toBeInTheDocument()
+
+    act(() => chart.sdk.getNodes().forEach(node => node.updateAttribute("legendLayout", "table")))
+    expect(await screen.findByTestId("modernLegend-table")).toBeInTheDocument()
+  })
+})
