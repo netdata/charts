@@ -8,7 +8,6 @@ import {
   useFormatTime,
   usePayload,
 } from "@/components/provider"
-import { Range } from "@/components/line/indicators"
 import HeatmapColors from "@/components/line/legend/heatmapColors"
 import DimensionSort from "@/components/line/dimensionSort"
 import Expander from "@/components/line/footer/expander"
@@ -19,6 +18,7 @@ import { radius, tabularNumbers } from "@/components/modern/tokens"
 import { useLegendMode } from "./mode"
 import LegendLine from "./legendLine"
 import { getReadoutIndex } from "./useLegendRows"
+import { formatCompactRange } from "./compactRange"
 
 const HighlightChip = styled(Flex).attrs({
   "data-testid": "modernFooter-highlight",
@@ -27,12 +27,33 @@ const HighlightChip = styled(Flex).attrs({
   padding: [0.5, 2],
   cursor: "pointer",
 })`
+  min-width: 0;
+  max-width: 100%;
+  flex: 0 1 auto;
+  overflow: hidden;
+  white-space: nowrap;
   border-radius: ${radius.pill};
   border: 1px solid ${getColor("border")};
 
   &:hover {
     border-color: ${getColor("text")};
   }
+`
+
+const HighlightLabel = styled(TextNano).attrs({ color: "textLite" })`
+  flex-shrink: 0;
+  white-space: nowrap;
+`
+
+const HighlightRange = styled(TextNano).attrs({
+  color: "textDescription",
+  "data-testid": "modernFooter-highlightRange",
+})`
+  ${tabularNumbers}
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `
 
 const TimeText = styled(TextNano).attrs({
@@ -48,16 +69,20 @@ const Highlight = () => {
   const { highlight } = useAttributeValue("overlays")
   const range = highlight?.range
   const { after, before } = highlight?.moveX ?? {}
+  useAttributeValue("timezone")
+  useAttributeValue("locale")
 
   if (!range) return null
+
+  const text = formatCompactRange(chart, range[0], range[1])
 
   return (
     <HighlightChip
       onClick={() => after && before && chart.moveX(after, before)}
-      title="Zoom to the highlighted range"
+      title={`Zoom to the highlighted range: ${text}`}
     >
-      <TextNano color="textLite">Highlight</TextNano>
-      <Range after={range[0]} before={range[1]} />
+      <HighlightLabel>Highlight</HighlightLabel>
+      <HighlightRange>{text}</HighlightRange>
     </HighlightChip>
   )
 }

@@ -32,6 +32,12 @@ const hugePayload = makeSeries("modern.disk.huge", "Disk utilization, 2000 devic
 const cards = [
   { label: "Tile (360px): no legend, compact tooltip", payload: loadPayload, width: "360px" },
   { label: "3 series (640px): direct labels", payload: loadPayload, width: "640px" },
+  {
+    label: "3 series (640px): live edge, labels plus a glow on the newest points (uPlot)",
+    payload: loadPayload,
+    width: "640px",
+    legendLayout: "live",
+  },
   { label: "5 series (640px): one-line legend", payload: fivePayload, width: "640px" },
   { label: "14 series (640px): side table", payload: manyPayload, width: "640px" },
   { label: "Wide (1000px): side table", payload: loadPayload, width: "1000px" },
@@ -40,6 +46,12 @@ const cards = [
     payload: loadPayload,
     width: "640px",
     chartType: "stacked",
+  },
+  {
+    label: "14 series (640px): live edge falls back to the side table above 8",
+    payload: manyPayload,
+    width: "640px",
+    legendLayout: "live",
   },
   {
     label: "2000 series (1000px): windowed side table",

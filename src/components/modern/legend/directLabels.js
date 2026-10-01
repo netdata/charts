@@ -116,16 +116,20 @@ const lastValue = (chart, id) => {
 const DirectLabels = ({ uiName = "default" }) => {
   const chart = useChart()
   usePlotArea(uiName)
-  const { rows } = useLegendRows()
+  const { ids, getRow } = useLegendRows({ withRows: false })
   useClearFocusOnUnmount()
   const ui = chart.getUI(uiName)
   const area = ui?.getPlotArea?.()
-  const hidden = rows.filter(row => !row.visible)
-  const height = area ? area.top + area.height - hidden.length * labelHeight : 0
+  const columnHeight = area ? area.top + area.height : 0
+  const visibleIds = ids.filter(id => chart.isDimensionVisible(id))
+  const hiddenIds = ids.filter(id => !chart.isDimensionVisible(id))
+  const hiddenSlots = Math.max(0, Math.floor(columnHeight / labelHeight) - visibleIds.length)
+  const hidden = hiddenIds.slice(0, hiddenSlots).map(getRow)
+  const height = area ? columnHeight - hidden.length * labelHeight : 0
 
   const placed = layoutLabels(
-    rows
-      .filter(row => row.visible)
+    visibleIds
+      .map(getRow)
       .map(row => ({ ...row, y: getYCoord(ui, lastValue(chart, row.id)) }))
       .filter(row => row.y !== null),
     height

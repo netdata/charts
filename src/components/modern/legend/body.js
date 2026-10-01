@@ -1,6 +1,7 @@
 import React, { useLayoutEffect, useRef, useState } from "react"
 import { Flex } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart, useImmediateListener } from "@/components/provider"
+import { unregister } from "@/helpers/makeListeners"
 import { resolveLegendMode } from "./mode"
 import DirectLabels from "./directLabels"
 import LegendTable from "./legendTable"
@@ -30,21 +31,32 @@ const useWidth = ref => {
   return width
 }
 
-// only the count matters here; re-rendering on every re-sort would re-render the plot subtree
-const useDimensionCount = () => {
+const getCount = chart => chart.getDimensionIds()?.length || 0
+const getVisibleCount = chart => chart.getVisibleDimensionIds?.()?.length ?? getCount(chart)
+
+// only the counts matter here; re-rendering on every re-sort would re-render the plot subtree
+const useDimensionCounts = () => {
   const chart = useChart()
-  const [count, setCount] = useState(() => chart.getDimensionIds()?.length || 0)
+  const [count, setCount] = useState(() => getCount(chart))
+  const [visibleCount, setVisibleCount] = useState(() => getVisibleCount(chart))
 
-  useImmediateListener(
-    () => chart.on("dimensionChanged", () => setCount(chart.getDimensionIds()?.length || 0)),
-    [chart]
-  )
+  useImmediateListener(() => {
+    const update = () => {
+      setCount(getCount(chart))
+      setVisibleCount(getVisibleCount(chart))
+    }
 
-  return count
+    return unregister(
+      chart.on("dimensionChanged", update),
+      chart.on("visibleDimensionsChanged", update)
+    )
+  }, [chart])
+
+  return { count, visibleCount }
 }
 
 export const useResolvedLegendMode = ({ width, hasFooter }) => {
-  const count = useDimensionCount()
+  const { count, visibleCount } = useDimensionCounts()
   const legend = useAttributeValue("legend")
   const legendLayout = useAttributeValue("legendLayout")
   const sparkline = useAttributeValue("sparkline")
@@ -54,6 +66,7 @@ export const useResolvedLegendMode = ({ width, hasFooter }) => {
   return resolveLegendMode({
     width,
     count,
+    visibleCount,
     legendLayout,
     legend,
     sparkline,
@@ -75,7 +88,8 @@ const Body = ({ uiName, hasFooter = true, children }) => {
     if (chart.getAttribute("legendMode") !== mode) chart.updateAttribute("legendMode", mode)
   }, [chart, mode])
 
-  const side = !showingInfo && (mode === "direct" || mode === "table")
+  const labelled = mode === "direct" || mode === "live"
+  const side = !showingInfo && (labelled || mode === "table")
 
   return (
     <Flex
@@ -88,7 +102,7 @@ const Body = ({ uiName, hasFooter = true, children }) => {
       data-legend={mode}
     >
       {children}
-      {side && mode === "direct" && <DirectLabels uiName={uiName} />}
+      {side && labelled && <DirectLabels uiName={uiName} />}
       {side && mode === "table" && <LegendTable />}
     </Flex>
   )
