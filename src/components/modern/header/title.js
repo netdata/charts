@@ -15,7 +15,7 @@ const Heading = styled.h3`
   min-width: 0;
 `
 
-const ModernTitle = () => {
+const ModernTitle = ({ withUnits = true }) => {
   const title = useTitle()
   const name = useName()
   const units = useUnitSign({ withoutConversion: true, long: true })
@@ -43,7 +43,7 @@ const ModernTitle = () => {
           </TextSmall>
         </CopyToClipboard>
       )}
-      {!!units && !hideUnits && (
+      {withUnits && !!units && !hideUnits && (
         <TextSmall color="textLite" whiteSpace="nowrap" title="Source unit">
           {`[${units}]`}
         </TextSmall>

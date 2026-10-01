@@ -1,5 +1,5 @@
 import React, { useMemo } from "react"
-import { Table } from "@netdata/netdata-ui"
+import { Flex, Table } from "@netdata/netdata-ui"
 import useHover from "@/components/useHover"
 import ChartContainer from "@/components/chartContainer"
 import useDebouncedValue from "@netdata/netdata-ui/dist/hooks/useDebouncedValue"
@@ -10,7 +10,12 @@ import Toolbox from "@/components/toolbox"
 import Status from "@/components/status"
 import sanitizeId from "@/helpers/sanitizeId"
 import useTableMatrix from "./useTableMatrix"
-import { ModernTable, modernTableProps } from "@/components/modern/table"
+import {
+  ModernTable,
+  ModernTableHeader,
+  modernTableProps,
+  useModernColumnVisibility,
+} from "@/components/modern/table"
 import useTableColumns from "./useTableColumns"
 
 const Dimensions = () => {
@@ -58,11 +63,32 @@ const Dimensions = () => {
   const debouncedData = useDebouncedValue(data, 300)
 
   const isModern = useIsModern()
-  const TableComponent = isModern ? ModernTable : Table
+  const [columnVisibility, setColumnVisibility] = useModernColumnVisibility(columns, isModern)
+
+  if (isModern)
+    return (
+      <Flex ref={hoverRef} column width="100%" height={{ max: "100%" }} overflow="hidden">
+        <ModernTableHeader
+          columns={columns}
+          columnVisibility={columnVisibility}
+          onColumnVisibilityChange={setColumnVisibility}
+        />
+        <ModernTable
+          {...modernTableProps}
+          enableSorting
+          dataColumns={columns}
+          data={debouncedData || data}
+          enableCustomSearch
+          sortBy={sortBy}
+          columnVisibility={columnVisibility}
+          onColumnVisibilityChange={setColumnVisibility}
+          width="100%"
+        />
+      </Flex>
+    )
 
   return (
-    <TableComponent
-      {...(isModern && modernTableProps)}
+    <Table
       ref={hoverRef}
       enableSorting
       enableColumnVisibility
