@@ -210,9 +210,9 @@ describe("number colour assignment", () => {
     plain.doneFetch(systemLoadLine[0])
     await new Promise(resolve => setTimeout(resolve, 0))
 
-    plain.getDimensionIds().forEach(id =>
-      expect(early.selectDimensionColor(id)).toBe(plain.selectDimensionColor(id))
-    )
+    plain
+      .getDimensionIds()
+      .forEach(id => expect(early.selectDimensionColor(id)).toBe(plain.selectDimensionColor(id)))
   })
 })
 
