@@ -55,6 +55,7 @@ const ModernEasyPie = ({ uiName, size }) => {
 
   const ring = getRingValue(chart)
   const { color } = useAttention(ring?.value ?? null, ring?.min)
+  const arcColor = color || chart.selectDimensionColor(dimensionId)
   const fraction = toFraction(ring?.percentage)
 
   const valueSize = fitFontSize(convertedValue, 20, 52)
@@ -87,7 +88,7 @@ const ModernEasyPie = ({ uiName, size }) => {
             strokeLinecap="round"
             strokeDasharray={`${circumference * fraction} ${circumference}`}
             transform="rotate(-90 40 40)"
-            $color={color || "textLite"}
+            $color={arcColor}
             data-testid="modernEasyPieArc"
           />
         )}
