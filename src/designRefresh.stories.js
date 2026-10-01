@@ -35,11 +35,38 @@ const manyPayload = makePayload({
   })),
 })
 
+const burst = (index, center, width, peak) => {
+  const distance = Math.abs(index - center) / width
+  return distance > 1 ? 0 : peak * (1 - distance * distance)
+}
+
+const anomalyPayload = makePayload({
+  context: "design.system.cpu",
+  title: "CPU utilization",
+  unit: "percentage",
+  dimensions: [
+    {
+      id: "user",
+      values: makeWave({ center: 26, amplitude: 9, cycles: 2.2, phase: 0.3 }),
+      anomalyRates: Array.from({ length: 97 }, (_, i) =>
+        Math.max(burst(i, 38, 6, 42), burst(i, 78, 3, 12), i % 11 === 0 ? 1 : 0)
+      ),
+    },
+    { id: "system", values: makeWave({ center: 13, amplitude: 5, cycles: 2.6, phase: 1.1 }) },
+  ],
+})
+
 const nowSec = () => Math.floor(Date.now() / 1000)
 
 const rows = [
   { label: "Line, 3 series, live", payload: loadPayload, chartType: "line" },
   { label: "Area, 2 series, live", payload: cpuPayload, chartType: "area" },
+  {
+    label: "Modern area with anomalies",
+    payload: anomalyPayload,
+    chartType: "area",
+    attributes: () => ({ designFlavour: "modern" }),
+  },
   {
     label: "Line, 12 series",
     payload: manyPayload,

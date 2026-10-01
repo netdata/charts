@@ -111,8 +111,10 @@ export const makeAnomalyShade = chartUI => self => {
     if (value < anomalyNoiseFloor) continue
 
     const centerX = self.valToPos(xs[row], "x", true)
+    const left = Math.round(centerX - step / 2)
+    const right = Math.round(centerX + step / 2)
     ctx.fillStyle = getAnomalyColor(themeIndex, value, shadeAlpha(value))
-    ctx.fillRect(centerX - step / 2, bbox.top, step + 1, bbox.height)
+    ctx.fillRect(left, bbox.top, right - left, bbox.height)
   }
 
   ctx.restore()
