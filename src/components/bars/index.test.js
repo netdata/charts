@@ -4,7 +4,7 @@ import "@testing-library/jest-dom"
 import { makeTestChart, renderWithChart } from "@jest/testUtilities"
 import { makePayload } from "@/helpers/makeWavePayload"
 import { colors as annotationColors, enums as annotationEnums } from "@/helpers/annotations"
-import { pillInk } from "@/components/modern/bars"
+import { getSort, pillInk } from "@/components/modern/bars"
 import { BarsChart } from "./index"
 
 const flat = value => Array.from({ length: 97 }, () => value)
@@ -114,6 +114,13 @@ describe("BarsChart", () => {
       const fills = screen.getAllByTestId("modern-bars-fill")
       expect(fills[0]).toHaveStyle({ opacity: "1" })
       expect(fills[1]).toHaveStyle({ opacity: "0.6" })
+    })
+
+    it("passes the chart dimensionsSort through like the default bars", () => {
+      expect(getSort("dim", "default")).toBe("default")
+      expect(getSort("dim", "nameAsc")).toBe("nameAsc")
+      expect(getSort("dim", undefined)).toBe("valueDesc")
+      expect(getSort("ANOMALY_RATE", "default")).toBe("anomalyDesc")
     })
 
     it("respects an explicit dimensionsSort", async () => {

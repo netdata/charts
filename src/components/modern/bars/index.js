@@ -24,9 +24,7 @@ const rowSorting = {
   ANNOTATIONS: "annotationsDesc",
 }
 
-export const getSort = (row, dimensionsSort) =>
-  rowSorting[row] ||
-  (!dimensionsSort || dimensionsSort === "default" ? "valueDesc" : dimensionsSort)
+export const getSort = (row, dimensionsSort) => rowSorting[row] || dimensionsSort || "valueDesc"
 
 const getMaxRows = height => {
   if (!height) return 20
