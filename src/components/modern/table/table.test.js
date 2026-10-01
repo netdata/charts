@@ -198,13 +198,7 @@ describe("modern table", () => {
         chart,
       })
 
-      const unitsMoveToGroupHeader = column =>
-        column.id.startsWith("value") ? { ...column, tooltip: false } : column
-
-      expect(leaves(modernResult.current)).toEqual(defaultColumns.map(unitsMoveToGroupHeader))
-      expect(defaultColumns.some(column => column.id.startsWith("value") && column.tooltip)).toBe(
-        true
-      )
+      expect(leaves(modernResult.current)).toEqual(defaultColumns)
       expect(defaultColumns.length).toBeGreaterThan(2)
     })
 
@@ -465,17 +459,37 @@ describe("modern table chrome", () => {
 })
 
 describe("modern table cells", () => {
-  it("shows the unit once in each group header and numbers only in the cells", async () => {
-    await renderTable("modern")
+  it("shows each value with its own scaled unit, like the default table", async () => {
+    const readUnits = container =>
+      Array.from(container.querySelectorAll('[data-testid^="netdata-table-row"]')).map(row =>
+        Object.fromEntries(
+          Array.from(row.querySelectorAll('[data-testid^="netdata-table-cell-value"]')).map(
+            cell => [cell.getAttribute("data-testid"), cell]
+          )
+        )
+      )
 
-    const units = screen.getAllByTestId("modernTable-groupUnit").map(el => el.textContent)
-    expect(screen.getAllByTestId("modernTable-groupHeader")).toHaveLength(4)
-    expect(units).toEqual(expect.arrayContaining(["KiB/s", "%"]))
-    expect(new Set(units).size).toBe(units.length)
+    const defaultTable = await renderTable("default")
+    const expected = readUnits(defaultTable.container).map(row =>
+      Object.fromEntries(Object.entries(row).map(([id, cell]) => [id, cell.textContent.trim()]))
+    )
+    defaultTable.unmount()
 
-    screen
-      .getAllByTestId("modernTable-value")
-      .forEach(value => expect(value.textContent).toMatch(/^-?[\d.,]+$|^-$/))
+    const modernTable = await renderTable("modern")
+    const actual = readUnits(modernTable.container)
+    let compared = 0
+
+    actual.forEach((row, index) =>
+      Object.entries(row).forEach(([id, cell]) => {
+        const unit = cell.querySelector('[data-testid="modernTable-unit"]')
+        if (!unit) return
+        compared++
+        expect(expected[index][id].endsWith(unit.textContent.trim())).toBe(true)
+      })
+    )
+
+    expect(compared).toBeGreaterThan(0)
+    expect(screen.queryByTestId("modernTable-groupUnit")).not.toBeInTheDocument()
   })
 
   it("renders a muted dash with an explanation where a row has no dimension", async () => {

@@ -8,6 +8,7 @@ import {
   useVisibleDimensionId,
   useVisibleDimensionIds,
   useLatestDisplayValue,
+  useLatestDisplayValueWithUnit,
   useUnitSign,
   usePayload,
 } from "@/components/provider"
@@ -19,13 +20,7 @@ import { numeralsFont, tabularNumbers } from "@/components/modern/tokens"
 import { formatReadout } from "@/components/modern/format"
 import { StatusDot, getRowStatus } from "./status"
 import Trend, { useTrend } from "./trend"
-import {
-  getRowDimensionId,
-  getContextScale,
-  getContextUnitAttributes,
-  getShare,
-  isHotPercent,
-} from "./scale"
+import { getRowDimensionId, getContextScale, getShare, isHotPercent } from "./scale"
 
 const metricsByValue = {
   dimension: "dimensions",
@@ -213,6 +208,10 @@ const Numeral = styled(TextSmall)`
   font-weight: 600;
 `
 
+const ValueUnit = styled(TextSmall)`
+  position: relative;
+`
+
 const Bar = styled.span`
   position: absolute;
   top: -3px;
@@ -274,13 +273,8 @@ const useContextScale = (table, context) => {
   return getContextScale(chart, table?.options?.data, context)
 }
 
-export const ModernGroupHeader = ({ table, context }) => {
+export const ModernGroupHeader = ({ context }) => {
   const chart = useChart()
-  const scale = useContextScale(table, context)
-  const unit = chart.getUnitSign({
-    dimensionId: scale.sampleId,
-    unitAttributes: getContextUnitAttributes(chart, scale),
-  })
 
   return (
     <Flex
@@ -293,20 +287,14 @@ export const ModernGroupHeader = ({ table, context }) => {
       <TextSmall strong whiteSpace="nowrap" truncate>
         {chart.intl(context)}
       </TextSmall>
-      {!!unit && (
-        <TextSmall color="textLite" whiteSpace="nowrap" data-testid="modernTable-groupUnit">
-          {unit}
-        </TextSmall>
-      )}
     </Flex>
   )
 }
 
 const ModernValue = ({ id, table, context, dimension }) => {
   const chart = useChart()
-  const value = useLatestDisplayValue(id, { allowNull: true })
+  const { value, convertedUnit, unitAttributes } = useLatestDisplayValueWithUnit(id)
   const scale = useContextScale(table, context)
-  const unitAttributes = getContextUnitAttributes(chart, scale)
   const convertedValue = formatReadout(chart, value, { dimensionId: id, unitAttributes })
   const trend = useTrend(id)
   const percent = isPercentUnit(chart.getDimensionUnit(id))
@@ -342,6 +330,11 @@ const ModernValue = ({ id, table, context, dimension }) => {
       >
         {convertedValue}
       </Numeral>
+      {!!convertedUnit && (
+        <ValueUnit color="textLite" whiteSpace="nowrap" data-testid="modernTable-unit">
+          {convertedUnit}
+        </ValueUnit>
+      )}
     </Flex>
   )
 }
@@ -365,7 +358,6 @@ export const modernValueColumn = (chart, options = {}) => {
   return {
     ...base,
     header: makeValueHeader(base.name),
-    meta: { ...base.meta, tooltip: undefined },
     cell: ({
       row: {
         original: { key, ids, contextGroups },
