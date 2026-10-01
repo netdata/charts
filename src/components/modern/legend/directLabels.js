@@ -88,6 +88,12 @@ const Value = styled(Numeral)`
   font-weight: 600;
 `
 
+const Unit = styled.span`
+  color: ${getColor("textDescription")};
+  font-size: 11px;
+  white-space: nowrap;
+`
+
 const Anomaly = styled(Numeral)`
   color: ${getColor("anomalyText")};
   font-size: 11px;
@@ -147,6 +153,7 @@ const DirectLabels = ({ uiName = "default" }) => {
     >
       <Name $color={row.color}>{row.name}</Name>
       {row.visible && <Value>{row.display}</Value>}
+      {row.visible && !!row.unit && <Unit data-testid="modernLegend-directUnit">{row.unit}</Unit>}
       {row.visible && !!row.anomaly && <Anomaly>{row.anomaly}</Anomaly>}
       {row.visible && <Flags flags={row.flags} />}
     </Label>

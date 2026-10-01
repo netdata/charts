@@ -228,6 +228,11 @@ describe("modern line legend", () => {
     )
     expect(labels).toHaveLength(3)
     labels.forEach(label => expect(label.style.top).toMatch(/px$/))
+    labels.forEach(label =>
+      expect(within(label).getByTestId("modernLegend-directUnit")).toHaveTextContent(
+        chart.getUnitSign({ dimensionId: label.getAttribute("data-dimension") })
+      )
+    )
   })
 
   it("shows no legend on tiles but keeps the drawer action", async () => {
