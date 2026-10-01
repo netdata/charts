@@ -10,13 +10,7 @@ import Container from "@/components/container"
 import GroupBoxes from "./groupBoxes"
 import Footer from "./footer"
 
-export const GroupBoxesContainer = ({
-  hasHeader = true,
-  hasFilters = true,
-  uiName,
-  ref,
-  ...rest
-}) => {
+export const GroupBoxesContainer = ({ uiName, ref, ...rest }) => {
   const chart = useChart()
 
   const hoverRef = useHover(
@@ -39,11 +33,13 @@ export const GroupBoxesContainer = ({
   const showingInfo = useAttributeValue("showingInfo")
   const focused = useAttributeValue("focused")
   const isModern = useIsModern()
-  const showFilters = hasFilters && !(isModern && hasHeader)
+  const { hasHeader = true, hasFilters = true } = rest
+  const showHeader = !isModern || hasHeader
+  const showFilters = isModern ? hasFilters && !hasHeader : true
 
   return (
     <Container ref={setRef} {...rest}>
-      {hasHeader && <Header hasFilters={isModern && hasFilters} />}
+      {showHeader && <Header hasFilters={isModern && hasFilters} />}
       {showFilters && <FilterToolbox opacity={focused ? 1 : 0.7} />}
       <ChartContainer uiName={uiName} column gap={4} padding={[4, 2]}>
         <GroupBoxes uiName={uiName} />

@@ -238,6 +238,15 @@ describe("modern group boxes", () => {
       expect(countFilters()).toBe(1)
     })
 
+    it.each(["default", "minimal"])(
+      "ignores hasHeader and hasFilters in the %s flavour, like main",
+      async designFlavour => {
+        await renderBoxes({ designFlavour }, { hasHeader: false, hasFilters: false })
+        expect(screen.getByTestId("chartHeader")).toBeInTheDocument()
+        expect(countFilters()).toBe(1)
+      }
+    )
+
     it("keeps one fixed filter bar in the minimal flavour", async () => {
       await renderBoxes({ designFlavour: "minimal" })
       expect(countFilters()).toBe(1)
