@@ -16,26 +16,35 @@ describe("getAlertState", () => {
   })
 
   it("reports warnings", () => {
-    expect(getAlertState({ a: { wr: 1 }, b: { cl: 1 } })).toEqual({
+    expect(getAlertState({ a: { nm: "a", wr: 1 }, b: { nm: "b", cl: 1 } })).toEqual({
       level: "warning",
       count: 1,
       tone: "warning",
+      names: ["a"],
     })
   })
 
   it("lets critical win over warning and sums the counts", () => {
-    expect(getAlertState({ a: { wr: 2 }, b: { cr: 1 }, c: { cr: 2 } })).toEqual({
+    expect(
+      getAlertState({ a: { nm: "a", wr: 2 }, b: { nm: "b", cr: 1 }, c: { nm: "c", cr: 2 } })
+    ).toEqual({
       level: "critical",
       count: 3,
       tone: "error",
+      names: ["b", "c", "a"],
     })
   })
 })
 
 describe("getAlertLabel", () => {
-  it("names a single alert by its level", () => {
-    expect(getAlertLabel({ level: "critical", count: 1 })).toBe("Critical")
-    expect(getAlertLabel({ level: "warning", count: 1 })).toBe("Warning")
+  it("names the level when the count is unknown", () => {
+    expect(getAlertLabel({ level: "critical" })).toBe("Critical")
+    expect(getAlertLabel({ level: "warning" })).toBe("Warning")
+  })
+
+  it("counts a single alert", () => {
+    expect(getAlertLabel({ level: "critical", count: 1 })).toBe("1 critical")
+    expect(getAlertLabel({ level: "warning", count: 1 })).toBe("1 warning")
   })
 
   it("counts several alerts", () => {
@@ -76,7 +85,7 @@ describe("useAttention", () => {
   it("is neutral by default", () => {
     const { result } = renderHookWithChart(() => useAttention(50, 0))
 
-    expect(result.current).toEqual({ alert: null, color: null })
+    expect(result.current).toEqual({ alert: null, color: null, watching: 0 })
   })
 
   it("follows raised alerts", () => {
@@ -86,6 +95,7 @@ describe("useAttention", () => {
 
     expect(result.current.alert.level).toBe("critical")
     expect(result.current.color).toBe("error")
+    expect(result.current.watching).toBe(1)
   })
 
   it("uses value thresholds when no alert is raised", () => {
@@ -93,6 +103,6 @@ describe("useAttention", () => {
       attributes: { gaugeThresholds: bands },
     })
 
-    expect(result.current).toEqual({ alert: null, color: "#FFCC26" })
+    expect(result.current).toEqual({ alert: null, color: "#FFCC26", watching: 0 })
   })
 })

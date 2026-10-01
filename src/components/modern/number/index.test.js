@@ -5,7 +5,8 @@ import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui"
 import { makeTestChart, renderHookWithChart, renderWithChart } from "@jest/testUtilities"
 import { useLatestDisplayValueWithUnit } from "@/components/provider"
 import { formatReadout } from "@/components/modern/format"
-import { makePayload } from "@/helpers/makeWavePayload"
+import { makePayload, makeWave } from "@/helpers/makeWavePayload"
+import { NumberChart } from "@/components/number"
 import systemLoadLine from "../../../../fixtures/systemLoadLine"
 import ModernNumber, { AttentionPill, getMean } from "./index"
 import { getPillInk } from "./attention"
@@ -70,6 +71,15 @@ describe("ModernNumber", () => {
     expect(screen.getByTestId("modernNumberSpark")).toBeInTheDocument()
     expect(screen.getByTestId("modernNumberSparkMarker").style.left).toBe("100%")
     expect(screen.queryByTestId("modernAttentionPill")).not.toBeInTheDocument()
+    expect(screen.getByTestId("modernNumberStatus")).toHaveAttribute("data-status", "clear")
+    expect(screen.queryByTestId("modernStatus-label")).not.toBeInTheDocument()
+  })
+
+  it("shows no status when the chart has no alerts", async () => {
+    const chart = await loadChart({}, requests(makeWave({ center: 10, amplitude: 2 })))
+    renderWithChart(<ModernNumber />, { chart })
+
+    expect(screen.queryByTestId("modernNumberStatus")).not.toBeInTheDocument()
   })
 
   it("renders the value in the numerals font with tabular numerals", async () => {
@@ -137,13 +147,30 @@ describe("ModernNumber", () => {
     expect(screen.getByTestId("modernNumberSparkMarker").style.left).toBe("0%")
   })
 
-  it("shows an attention pill and tone when an alert is raised", async () => {
+  it("shows the warning status and tone when an alert is raised", async () => {
     const chart = await loadChart()
     renderWithChart(<ModernNumber />, { chart })
 
     act(() => chart.updateAttribute("alerts", { load: { nm: "load", wr: 1 } }))
 
-    expect(screen.getByTestId("modernAttentionPill")).toHaveTextContent("Warning")
+    const status = screen.getByTestId("modernNumberStatus")
+    expect(status).toHaveAttribute("data-status", "warning")
+    expect(status).toHaveTextContent("1 warning")
+    expect(rgbToHex(getComputedStyle(screen.getByTestId("modernNumberValue")).color)).toBe(
+      DefaultTheme.colors.warning
+    )
+  })
+
+  it("shows critical as the prominent status", async () => {
+    const chart = await loadChart()
+    renderWithChart(<ModernNumber />, { chart })
+
+    act(() => chart.updateAttribute("alerts", { load: { nm: "load", cr: 2 } }))
+
+    const status = screen.getByTestId("modernNumberStatus")
+    expect(status).toHaveAttribute("data-status", "critical")
+    expect(status).toHaveTextContent("2 critical")
+    expect(rgbToHex(getComputedStyle(status).backgroundColor)).toBe(DefaultTheme.colors.error)
   })
 
   it("renders a placeholder before data arrives", () => {
@@ -155,33 +182,43 @@ describe("ModernNumber", () => {
   })
 })
 
+describe("number status in other flavours", () => {
+  it.each(["default", "minimal"])("renders no status for %s with raised alerts", async flavour => {
+    const chart = await loadChart({ designFlavour: flavour })
+    renderWithChart(<NumberChart />, { chart })
+
+    act(() => chart.updateAttribute("alerts", { load: { nm: "load", cr: 1 } }))
+
+    expect(screen.queryByTestId("modernNumberStatus")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("modernStatus-dot")).not.toBeInTheDocument()
+    expect(screen.queryByText("1 critical")).not.toBeInTheDocument()
+  })
+})
+
 describe("AttentionPill", () => {
   it.each([
     ["light", DefaultTheme],
     ["dark", DarkTheme],
-  ])("keeps warning and critical labels readable in the %s theme", (_, theme) => {
-    ;[
-      { level: "warning", count: 1, tone: "warning" },
-      { level: "critical", count: 1, tone: "error" },
-    ].forEach(alert => {
-      const ink = theme.colors[getPillInk(alert.tone)]
-      expect(contrast(ink, theme.colors[alert.tone])).toBeGreaterThanOrEqual(4.5)
-    })
+  ])("keeps the critical ink readable on the solid tone in the %s theme", (_, theme) => {
+    expect(contrast(theme.colors[getPillInk("error")], theme.colors.error)).toBeGreaterThanOrEqual(
+      4.5
+    )
   })
 
-  it("renders the label in the tone's ink on the solid tone", () => {
-    const alert = { level: "warning", count: 1, tone: "warning" }
-    renderWithChart(<AttentionPill alert={alert} />)
+  it("renders the shared status indicator for the alert", () => {
+    renderWithChart(
+      <AttentionPill alert={{ level: "critical", count: 1, tone: "error", names: ["load"] }} />
+    )
 
     const pill = screen.getByTestId("modernAttentionPill")
-    const label = pill.firstChild
-
-    expect(rgbToHex(getComputedStyle(pill).backgroundColor)).toBe(DefaultTheme.colors.warning)
-    expect(rgbToHex(getComputedStyle(label).color)).toBe(
-      DefaultTheme.colors[getPillInk("warning")].toUpperCase()
-    )
+    expect(pill).toHaveAttribute("data-status", "critical")
+    expect(pill).toHaveTextContent("1 critical")
+    expect(rgbToHex(getComputedStyle(pill).backgroundColor)).toBe(DefaultTheme.colors.error)
     expect(
-      contrast(rgbToHex(getComputedStyle(label).color), DefaultTheme.colors.warning)
+      contrast(
+        rgbToHex(getComputedStyle(screen.getByTestId("modernStatus-label")).color),
+        DefaultTheme.colors.error
+      )
     ).toBeGreaterThanOrEqual(4.5)
   })
 })

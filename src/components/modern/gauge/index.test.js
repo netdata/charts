@@ -99,11 +99,15 @@ describe("modern gauge", () => {
     expect(zones.map(z => z.getAttribute("stroke"))).toEqual(["#FFCC26", "#F95251"])
   })
 
-  it("is quiet while the value sits in the base zone", async () => {
+  it("is a quiet dot while the value sits in the base zone", async () => {
     await load({ gaugeThresholds: [{ id: "c", from: 95, color: red }] })
 
-    expect(screen.getByTestId("modernGauge-attention")).toHaveAttribute("data-severity", "ok")
-    expect(screen.getByText("Within thresholds")).toBeInTheDocument()
+    const status = screen.getByTestId("modernGauge-attention")
+    expect(status).toHaveAttribute("data-severity", "ok")
+    expect(status).toHaveAttribute("data-status", "clear")
+    expect(status).toHaveTextContent(/^$/)
+    expect(status.getAttribute("aria-label")).toMatch(/^Within the gauge thresholds/)
+    expect(screen.queryByText("Within thresholds")).toBeNull()
   })
 
   it("raises Critical and colours the arc when the value is inside a critical zone", async () => {
@@ -112,6 +116,10 @@ describe("modern gauge", () => {
     expect(lastSum(chart)).toBeGreaterThan(1)
     expect(screen.getByTestId("modernGauge-attention")).toHaveAttribute("data-severity", "critical")
     expect(screen.getByText("Critical")).toBeInTheDocument()
+    expect(screen.getByTestId("modernGauge-attention")).toHaveAttribute(
+      "aria-label",
+      expect.stringContaining("The value is in a critical zone of the gauge thresholds")
+    )
     expect(screen.getByTestId("modernGauge-knob")).toHaveAttribute("stroke", "#F95251")
   })
 
@@ -141,33 +149,51 @@ describe("modern gauge", () => {
       chart.updateAttribute("alerts", { load_average_1: { nm: "load_average_1", wr: 1 } })
     })
 
-    expect(screen.getByText("Warning")).toBeInTheDocument()
+    expect(screen.getByText("1 warning")).toBeInTheDocument()
+    expect(screen.getByTestId("modernGauge-attention")).toHaveAttribute(
+      "aria-label",
+      "1 warning, load_average_1"
+    )
     expect(screen.getByTestId("modernGauge-knob")).toHaveAttribute(
       "stroke",
       chart.selectDimensionColor()
     )
   })
 
-  it("shows nothing when there are no thresholds and every alert is clear", async () => {
+  it("shows a quiet dot when there are no thresholds and every alert is clear", async () => {
     const { chart } = await load()
 
     act(() => {
       chart.updateAttribute("alerts", { load_average_15: { nm: "load_average_15", cl: 1 } })
     })
 
-    expect(screen.queryByTestId("modernGauge-attention")).toBeNull()
-    expect(screen.queryByTestId("modernGauge-attentionRow")).toBeNull()
-    expect(screen.queryByText("Within thresholds")).toBeNull()
+    const status = screen.getByTestId("modernGauge-attention")
+    expect(status).toHaveAttribute("data-status", "clear")
+    expect(status).toHaveAttribute("aria-label", "1 alert watches this chart, none is raised")
   })
 
-  it("stays quiet with thresholds even when alerts are clear", async () => {
+  it("shows nothing without thresholds or alerts", async () => {
+    const { chart } = await load()
+
+    act(() => {
+      chart.updateAttribute("alerts", {})
+    })
+
+    expect(screen.queryByTestId("modernGauge-attention")).toBeNull()
+    expect(screen.queryByTestId("modernGauge-attentionRow")).toBeNull()
+  })
+
+  it("describes both thresholds and clear alerts on the quiet dot", async () => {
     const { chart } = await load({ gaugeThresholds: [{ id: "c", from: 95, color: red }] })
 
     act(() => {
       chart.updateAttribute("alerts", { load_average_15: { nm: "load_average_15", cl: 1 } })
     })
 
-    expect(screen.getByText("Within thresholds")).toBeInTheDocument()
+    expect(screen.getByTestId("modernGauge-attention")).toHaveAttribute(
+      "aria-label",
+      "Within the gauge thresholds. 1 alert watches this chart, none is raised"
+    )
   })
 
   it.each([
@@ -250,13 +276,19 @@ describe("modern gauge attention", () => {
 
 describe("gauge flavours other than modern", () => {
   it.each(["default", "minimal"])("keeps the canvas gauge for %s", async designFlavour => {
-    await load({ designFlavour, gaugeThresholds: [{ id: "c", from: 1, color: red }] })
+    const { chart } = await load({
+      designFlavour,
+      gaugeThresholds: [{ id: "c", from: 1, color: red }],
+    })
+    act(() => chart.updateAttribute("alerts", { disk_full: { nm: "disk_full", cr: 1 } }))
 
     expect(document.querySelector("canvas")).not.toBeNull()
     expect(screen.getByTestId("chartContent")).toBeInTheDocument()
     expect(screen.queryByTestId("modernGauge")).toBeNull()
     expect(screen.queryByTestId("modernGauge-attention")).toBeNull()
     expect(screen.queryByText("Critical")).toBeNull()
+    expect(screen.queryByTestId("modernStatus-dot")).toBeNull()
+    expect(screen.queryByText("1 critical")).toBeNull()
   })
 
   it("swaps between the SVG and canvas gauge when the flavour changes at runtime", async () => {

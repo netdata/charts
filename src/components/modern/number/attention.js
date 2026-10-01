@@ -1,4 +1,5 @@
 import { useAttributeValue, useChart } from "@/components/provider"
+import { getStatusLabel, summarizeAlerts } from "@/components/modern/status/summary"
 
 const toneByLevel = { critical: "error", warning: "warning" }
 
@@ -12,18 +13,22 @@ export const getPillInk = tone => inkByTone[tone] || "bright"
 // Alert counts come from the query summary (`alerts` attribute, keyed by alert name) and
 // describe the state of the whole query, not a single value.
 export const getAlertState = alerts => {
-  const list = Object.values(alerts || {})
-  const critical = list.reduce((sum, alert) => sum + (alert?.cr || 0), 0)
-  const warning = list.reduce((sum, alert) => sum + (alert?.wr || 0), 0)
+  const { critical, warning, raisedNames } = summarizeAlerts(alerts)
 
-  if (critical) return { level: "critical", count: critical, tone: toneByLevel.critical }
-  if (warning) return { level: "warning", count: warning, tone: toneByLevel.warning }
+  if (critical.count)
+    return {
+      level: "critical",
+      count: critical.count,
+      tone: toneByLevel.critical,
+      names: raisedNames,
+    }
+  if (warning.count)
+    return { level: "warning", count: warning.count, tone: toneByLevel.warning, names: raisedNames }
 
   return null
 }
 
-export const getAlertLabel = ({ level, count }) =>
-  count > 1 ? `${count} ${level}` : level === "critical" ? "Critical" : "Warning"
+export const getAlertLabel = ({ level, count }) => getStatusLabel({ status: level, count })
 
 // A band that starts at or below the range minimum is the base band, so staying inside it is
 // neutral; only crossing into a higher band colours the value.
@@ -54,5 +59,9 @@ export const useAttention = (value, min) => {
   const alert = getAlertState(alerts)
   const thresholdColor = getThresholdColor(thresholds, value, min, chart.getThemeIndex())
 
-  return { alert, color: alert?.tone || thresholdColor || null }
+  return {
+    alert,
+    color: alert?.tone || thresholdColor || null,
+    watching: summarizeAlerts(alerts).watching,
+  }
 }

@@ -1,6 +1,6 @@
 import React from "react"
 import styled, { keyframes, useTheme } from "styled-components"
-import { Flex, Text, getColor } from "@netdata/netdata-ui"
+import { Flex, getColor } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
 import {
   useChart,
@@ -11,8 +11,9 @@ import {
   useVisibleDimensionIds,
 } from "@/components/provider"
 import { ChartWrapper } from "@/components/hocs/withTile"
-import { numeralsFont, radius as radii } from "@/components/modern/tokens"
+import { numeralsFont } from "@/components/modern/tokens"
 import { formatReadout } from "@/components/modern/format"
+import StatusIndicator, { getClearDescription, summarizeAlerts } from "@/components/modern/status"
 import {
   viewBox,
   center,
@@ -36,58 +37,39 @@ const { cx, cy } = center
 const spark = { x: cx - 56, y: cy + 14, width: 112, height: 26 }
 const numerals = { fontVariantNumeric: "tabular-nums" }
 
-const labels = { warning: "Warning", critical: "Critical" }
-const pillColors = { warning: "warning", critical: "error" }
-
 const toId = value => String(value).replace(/[^\w-]/g, "_")
 
-const Pill = styled(Flex).attrs({ alignItems: "center" })`
-  border-radius: ${radii.pill};
-  padding: 2px 8px;
-`
+const zoneDescription = severity => `The value is in a ${severity} zone of the gauge thresholds`
 
-const Dot = styled.span`
-  width: 7px;
-  height: 7px;
-  flex: none;
-  border-radius: ${radii.pill};
-  background: ${({ color }) => color};
-`
-
-export const Attention = ({ severity, showQuiet, dotColor, ...rest }) => {
+// dotColor is still accepted from round 2 callers; the shared indicator takes its colours from
+// the theme
+// eslint-disable-next-line no-unused-vars
+export const Attention = ({ severity, showQuiet, dotColor, description, ...rest }) => {
   if (severity === "warning" || severity === "critical")
     return (
-      <Pill
+      <StatusIndicator
+        status={severity}
+        description={description}
         data-testid="modernGauge-attention"
         data-severity={severity}
-        background={pillColors[severity]}
         {...rest}
-      >
-        <Text fontSize="11px" lineHeight="16px" color="mainChartBg" whiteSpace="nowrap" strong>
-          {labels[severity]}
-        </Text>
-      </Pill>
+      />
     )
 
   if (!showQuiet) return null
 
   return (
-    <Flex
+    <StatusIndicator
+      status="clear"
+      description={description || "Within the gauge thresholds"}
       data-testid="modernGauge-attention"
       data-severity="ok"
-      alignItems="center"
-      gap={1}
       {...rest}
-    >
-      <Dot color={dotColor} />
-      <Text fontSize="12px" color="textLite" whiteSpace="nowrap">
-        Within thresholds
-      </Text>
-    </Flex>
+    />
   )
 }
 
-// its own row above the dial keeps the pill clear of the arc at every card size
+// its own row above the dial keeps the status clear of the arc at every card size
 const AttentionRow = styled(Flex).attrs({ justifyContent: "end", alignItems: "center" })`
   flex: none;
   width: 100%;
@@ -109,28 +91,45 @@ const useDialState = uiName => {
   const zones = makeZones(thresholds, min, max, chart.getThemeIndex())
   const zone = zoneAt(zones, value)
   const zoneSeverity = zone?.severity || "ok"
-  const severity = worstSeverity(zoneSeverity, alertSeverity(alerts))
+  const alertLevel = alertSeverity(alerts)
+  const severity = worstSeverity(zoneSeverity, alertLevel)
 
-  return { min, max, data, value, zones, zone, zoneSeverity, severity }
+  return { min, max, data, value, zones, zone, zoneSeverity, alertLevel, severity, alerts }
 }
 
-// the quiet state only speaks for thresholds set on the gauge; configured alerts that are clear
-// stay silent, so a gauge without thresholds shows nothing until something is raised
-export const GaugeAttention = ({ uiName }) => {
-  const theme = useTheme()
-  const { width } = useOnResize(uiName)
-  const { zones, severity } = useDialState(uiName)
+const useStatusDetails = ({ zones, zoneSeverity, alertLevel, severity, alerts }) => {
+  const summary = summarizeAlerts(alerts)
 
-  const showQuiet = zones.length > 0 && width >= 200
+  if (severity === "ok")
+    return {
+      description: [
+        zones.length > 0 && "Within the gauge thresholds",
+        summary.watching > 0 && getClearDescription(summary.watching),
+      ],
+    }
+
+  const fromAlerts = alertLevel === severity
+  return {
+    count: fromAlerts ? summary[severity].count : null,
+    names: fromAlerts ? summary.raisedNames : [],
+    description: zoneSeverity === severity ? zoneDescription(severity) : null,
+  }
+}
+
+// a quiet dot speaks for thresholds set on the gauge or for configured alerts that are all clear
+export const GaugeAttention = ({ uiName }) => {
+  const { width } = useOnResize(uiName)
+  const state = useDialState(uiName)
+  const details = useStatusDetails(state)
+  const { zones, severity, alerts } = state
+
+  const hasAlerts = Object.keys(alerts || {}).length > 0
+  const showQuiet = (zones.length > 0 || hasAlerts) && width >= 200
   if (severity === "ok" && !showQuiet) return null
 
   return (
     <AttentionRow data-testid="modernGauge-attentionRow">
-      <Attention
-        severity={severity}
-        showQuiet={showQuiet}
-        dotColor={getColor("success")({ theme })}
-      />
+      <Attention severity={severity} showQuiet={showQuiet} {...details} />
     </AttentionRow>
   )
 }

@@ -1,21 +1,12 @@
 import React, { useMemo } from "react"
 import styled from "styled-components"
-import { Flex, TextSmall, TextMicro, getColor } from "@netdata/netdata-ui"
+import { Flex, TextMicro, getColor } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart, useUnitSign } from "@/components/provider"
-import { numeralsFont, radius } from "@/components/modern/tokens"
+import { numeralsFont } from "@/components/modern/tokens"
+import StatusIndicator, { getClearDescription, summarizeAlerts } from "@/components/modern/status"
 import { getAttention } from "./getAttention"
 
 const toneColor = { critical: "error", warning: "warning" }
-
-const Pill = styled.span`
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 16px;
-  padding: 0 8px;
-  border-radius: ${radius.pill};
-  color: ${getColor("mainChartBg")};
-  background: ${({ $tone, theme }) => getColor($tone)({ theme })};
-`
 
 const Value = styled.span`
   font-family: ${numeralsFont};
@@ -30,13 +21,6 @@ const Units = styled.span`
   font-family: ${numeralsFont};
   font-size: 13px;
   color: ${getColor("textLite")};
-`
-
-const Dot = styled.span`
-  width: 7px;
-  height: 7px;
-  border-radius: ${radius.pill};
-  background: ${getColor("success")};
 `
 
 const formatValue = value =>
@@ -59,7 +43,7 @@ const useDetail = ({ names, when }) => {
   return `${first}${more} raised${since}`
 }
 
-const Raised = ({ status, value, names, when }) => {
+const Raised = ({ status, count, value, names, when }) => {
   const units = useUnitSign({ withoutConversion: true })
   const tone = toneColor[status]
   const detail = useDetail({ names, when })
@@ -67,7 +51,12 @@ const Raised = ({ status, value, names, when }) => {
   return (
     <Flex column alignItems="end" gap={0.5} data-testid="chartAttention" data-status={status}>
       <Flex alignItems="center" gap={2}>
-        <Pill $tone={tone}>{status === "critical" ? "Critical" : "Warning"}</Pill>
+        <StatusIndicator
+          status={status}
+          count={count}
+          names={names}
+          data-testid="chartAttention-status"
+        />
         {value !== null && value !== undefined && (
           <Flex alignItems="baseline" gap={1}>
             <Value $tone={tone} data-testid="chartAttention-value">
@@ -92,17 +81,22 @@ const Attention = () => {
 
   if (!attention) return null
 
+  const summary = summarizeAlerts(alerts)
+
   if (attention.status === "clear")
     return (
-      <Flex alignItems="center" gap={1.5} data-testid="chartAttention" data-status="clear">
-        <Dot />
-        <TextSmall color="textLite" whiteSpace="nowrap">
-          Within thresholds
-        </TextSmall>
+      <Flex alignItems="center" height="24px" data-testid="chartAttention" data-status="clear">
+        <StatusIndicator
+          status="clear"
+          description={getClearDescription(summary.watching)}
+          data-testid="chartAttention-status"
+        />
       </Flex>
     )
 
-  return <Raised {...attention} />
+  const count = summary[attention.status].count || null
+
+  return <Raised {...attention} count={count} />
 }
 
 export default Attention

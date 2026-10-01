@@ -8,10 +8,11 @@ import {
   useOnResize,
   useVisibleDimensionIds,
 } from "@/components/provider"
-import { numeralsFont, radius } from "@/components/modern/tokens"
+import { numeralsFont } from "@/components/modern/tokens"
 import { formatReadout } from "@/components/modern/format"
 import Sparkline from "./sparkline"
-import { getAlertLabel, getPillInk, useAttention } from "./attention"
+import StatusIndicator, { getClearDescription } from "@/components/modern/status"
+import { useAttention } from "./attention"
 
 const clamp = (value, low, high) => Math.min(Math.max(value, low), high)
 
@@ -28,27 +29,15 @@ const BigValue = styled(Numerals)`
   letter-spacing: -0.01em;
 `
 
-const PillBox = styled(Flex)`
-  border-radius: ${radius.pill};
-`
-
+// kept for callers of the round 2 pill; it now renders the shared status indicator
 export const AttentionPill = ({ alert, ...rest }) => (
-  <PillBox
-    background={alert.tone}
-    padding={[0.5, 2]}
-    flex={false}
+  <StatusIndicator
+    status={alert.level}
+    count={alert.count}
+    names={alert.names}
     data-testid="modernAttentionPill"
     {...rest}
-  >
-    <Text
-      color={getPillInk(alert.tone)}
-      strong
-      whiteSpace="nowrap"
-      style={{ fontSize: "11px", lineHeight: "14px" }}
-    >
-      {getAlertLabel(alert)}
-    </Text>
-  </PillBox>
+  />
 )
 
 const toFinite = value => (typeof value === "number" && isFinite(value) ? value : null)
@@ -92,7 +81,7 @@ const ModernNumber = ({ uiName }) => {
     delta === null ? "-" : formatReadout(chart, Math.abs(delta), { dimensionId, unitAttributes })
 
   const [rangeMin] = chart.getAttribute("getValueRange")(chart)
-  const { alert, color } = useAttention(toFinite(value), rangeMin)
+  const { alert, color, watching } = useAttention(toFinite(value), rangeMin)
 
   const hoverIndex = hoverX ? chart.getClosestRow(hoverX[0]) : -1
   const markerIndex = hoverIndex === -1 || hoverIndex === undefined ? values.length - 1 : hoverIndex
@@ -121,9 +110,15 @@ const ModernNumber = ({ uiName }) => {
       data-testid="modernNumber"
     >
       <Flex column gap={1} padding={[2, 3, sparkHeight ? 1 : 2]} flex justifyContent="center">
-        {alert && (
+        {(!!alert || watching > 0) && (
           <Flex justifyContent="end">
-            <AttentionPill alert={alert} />
+            <StatusIndicator
+              status={alert ? alert.level : "clear"}
+              count={alert?.count}
+              names={alert?.names}
+              description={alert ? null : getClearDescription(watching)}
+              data-testid="modernNumberStatus"
+            />
           </Flex>
         )}
         <Flex alignItems="baseline" justifyContent="between" gap={2} flexWrap>

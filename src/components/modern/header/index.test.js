@@ -114,11 +114,23 @@ describe("Modern header", () => {
     expect(screen.getByTestId("chartScope-empty")).toHaveTextContent("No data")
   })
 
-  it("shows within thresholds when the attached alerts are clear", async () => {
-    await renderModern()
+  it("shows a quiet dot when the attached alerts are clear and describes it on hover", async () => {
+    const { chart } = await renderModern()
+    const watching = Object.keys(chart.getAttribute("alerts")).length
 
-    expect(screen.getByTestId("chartAttention")).toHaveAttribute("data-status", "clear")
-    expect(screen.getByText("Within thresholds")).toBeInTheDocument()
+    const attention = screen.getByTestId("chartAttention")
+    expect(attention).toHaveAttribute("data-status", "clear")
+    expect(attention).toHaveTextContent(/^$/)
+    expect(screen.queryByText("Within thresholds")).not.toBeInTheDocument()
+
+    const status = screen.getByTestId("chartAttention-status")
+    expect(status).toHaveAttribute("data-status", "clear")
+    fireEvent.mouseEnter(status)
+    expect(
+      await screen.findByText(
+        `${watching} ${watching === 1 ? "alert watches" : "alerts watch"} this chart, none is raised`
+      )
+    ).toBeInTheDocument()
   })
 
   it("shows the raised alert, its triggered value and units", async () => {
@@ -133,10 +145,58 @@ describe("Modern header", () => {
 
     const attention = screen.getByTestId("chartAttention")
     expect(attention).toHaveAttribute("data-status", "warning")
-    expect(within(attention).getByText("Warning")).toBeInTheDocument()
+    expect(screen.getByTestId("chartAttention-status")).toHaveAttribute("data-status", "warning")
+    expect(within(attention).getByText("1 warning")).toBeInTheDocument()
     expect(screen.getByTestId("chartAttention-value")).toHaveTextContent("31.86")
     expect(attention).toHaveTextContent("load_average_15 raised since")
   })
+
+  it("shows critical as the prominent pill with the instance count", async () => {
+    const { chart } = await renderModern()
+
+    act(() => {
+      chart.updateAttribute("alerts", {
+        disk_full: { nm: "disk_full", cr: 2 },
+        load_average_15: { nm: "load_average_15", wr: 1 },
+      })
+    })
+
+    const status = screen.getByTestId("chartAttention-status")
+    expect(status).toHaveAttribute("data-status", "critical")
+    expect(within(status).getByText("2 critical")).toBeInTheDocument()
+
+    fireEvent.mouseEnter(status)
+    expect(
+      (await screen.findAllByTestId("modernStatus-name")).map(node => node.textContent)
+    ).toEqual(["disk_full", "load_average_15"])
+  })
+
+  it("names the level without a count when only an overlay raised it", async () => {
+    const { chart } = await renderModern()
+
+    act(() => {
+      chart.updateAttributes({
+        alerts: {},
+        overlays: { alarm: { type: "alarm", status: "critical", value: 9, when: 1000 } },
+      })
+    })
+
+    expect(screen.getByTestId("chartAttention-status")).toHaveTextContent("Critical")
+  })
+
+  it.each(["default", "minimal"])(
+    "renders no status indicator for the %s flavour with raised alerts",
+    async designFlavour => {
+      const { chart } = await renderModern({ designFlavour })
+
+      act(() => chart.updateAttribute("alerts", { disk_full: { nm: "disk_full", cr: 1 } }))
+
+      expect(screen.queryByTestId("chartAttention")).not.toBeInTheDocument()
+      expect(screen.queryByTestId("chartAttention-status")).not.toBeInTheDocument()
+      expect(screen.queryByTestId("modernStatus-dot")).not.toBeInTheDocument()
+      expect(screen.queryByText("1 critical")).not.toBeInTheDocument()
+    }
+  )
 
   it("shows nothing on the right when no alert data exists", async () => {
     const { chart } = await renderModern()

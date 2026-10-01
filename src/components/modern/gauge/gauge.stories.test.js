@@ -20,6 +20,9 @@ describe("Modern/Gauge stories", () => {
     expect(screen.getAllByText("Critical")).toHaveLength(2)
     expect(
       screen.getAllByTestId("modernGauge-attention").map(node => node.getAttribute("data-severity"))
-    ).toEqual(["ok", "warning", "critical", "critical"])
+    ).toEqual(["ok", "ok", "warning", "critical", "ok", "critical"])
+    expect(
+      screen.getAllByTestId("modernGauge-attention").map(node => node.getAttribute("data-status"))
+    ).toEqual(["clear", "clear", "warning", "critical", "clear", "critical"])
   })
 })
