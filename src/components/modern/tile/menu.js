@@ -5,6 +5,7 @@ import { useAttribute, useAttributeValue, useChart } from "@/components/provider
 import FilterToolbox from "@/components/filterToolbox"
 import Settings from "@/components/toolbox/settings"
 import Fullscreen from "@/components/toolbox/fullscreen"
+import { TileMenuContext } from "./context"
 
 // the tile renders these itself (Fullscreen in the hover actions, Settings as a menu entry)
 export const getConsumerElements = (toolboxElements = []) =>
@@ -73,9 +74,11 @@ const TileMenu = ({ hasFilters, onClose, onOpenSettings }) => {
           flexWrap
           data-testid="modernTileMenu-elements"
         >
-          {elements.map((Element, index) => (
-            <Element key={index} disabled={!focused} />
-          ))}
+          <TileMenuContext.Provider value>
+            {elements.map((Element, index) => (
+              <Element key={index} disabled={!focused} />
+            ))}
+          </TileMenuContext.Provider>
         </Flex>
       )}
       {hasFilters && (

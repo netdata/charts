@@ -12,6 +12,7 @@ import { getTileAlert } from "./alertDot"
 import { getConsumerElements } from "./menu"
 import { getReadoutSizes } from "./readout"
 import { getLatestValueOverlay } from "./index"
+import { useInModernTileMenu } from "./context"
 
 const Body = () => <div data-testid="tileBody">body</div>
 const Tiled = withTile(Body)
@@ -237,6 +238,19 @@ describe("modern tile revealed", () => {
 })
 
 describe("modern tile More menu", () => {
+  it("tells consumer elements they are in the menu, so a duplicate handle can step aside", async () => {
+    const DragLike = () => (useInModernTileMenu() ? null : <button type="button">Drag</button>)
+    const { user, chart } = await renderModern({
+      focused: true,
+      toolboxElements: [DragLike, AddToDashboard],
+    })
+    const menu = await openMenu(user, chart)
+
+    const row = within(menu).getByTestId("modernTileMenu-elements")
+    expect(within(row).queryByText("Drag")).not.toBeInTheDocument()
+    expect(within(row).getByText("Add to dashboard")).toBeInTheDocument()
+  })
+
   it("lists consumer toolbox elements as an icon row, then filters, settings, info and reload", async () => {
     const { user, chart } = await renderModern({
       focused: true,
