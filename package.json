@@ -13,8 +13,8 @@
     "/dist"
   ],
   "scripts": {
-    "build:cjs": "babel src --out-dir dist --copy-files --ignore **/*.stories.js",
-    "build:es6": "BABEL_ENV=es6 babel src --out-dir dist/es6 --copy-files --ignore **/*.stories.js",
+    "build:cjs": "babel src --out-dir dist --copy-files --no-copy-ignored --ignore '**/*.stories.js','**/*.test.js','src/mockups/**'",
+    "build:es6": "BABEL_ENV=es6 babel src --out-dir dist/es6 --copy-files --no-copy-ignored --ignore '**/*.stories.js','**/*.test.js','src/mockups/**'",
     "build": "yarn build:cjs && yarn build:es6",
     "test": "jest --config ./jest/config.js",
     "lint": "eslint './src/**/*.js'",
