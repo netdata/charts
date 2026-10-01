@@ -2122,6 +2122,21 @@ describe("uplotChart yAxisChange (unit rescaling parity)", () => {
     }
   }
 
+  it("rebuilds the series when the payload reorders its dimensions", () => {
+    const { chart, instance, teardown } = setup()
+    const colors = { load1: "#000001", load5: "#000005", load15: "#000015" }
+    chart.selectDimensionColor = id => colors[id]
+    chart.getPayloadDimensionIds = () => ["load15", "load1", "load5"]
+
+    instance.render()
+
+    const series = instance.getUPlot().series.slice(1)
+    expect(series.map(({ label }) => label)).toEqual(["load15", "load1", "load5"])
+    expect(series.map(({ stroke }) => stroke())).toEqual(["#000015", "#000001", "#000005"])
+
+    teardown()
+  })
+
   it("fires yAxisChange with the getValueRange data range, not the rendered scale", () => {
     const { chart, u, teardown } = setup()
 

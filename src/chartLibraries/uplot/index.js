@@ -1534,6 +1534,9 @@ export default (sdk, chart) => {
     u = null
   }
 
+  const matchesSeries = self =>
+    chart.getPayloadDimensionIds().every((id, index) => self.series[index + 1]?.label === id)
+
   const rebuild = () => {
     destroyChart({ emitGestureEnd: true })
     create()
@@ -1565,7 +1568,7 @@ export default (sdk, chart) => {
     const frameData = data || [[0]]
 
     if (!u) create()
-    else if (u.series.length !== frameData.length) rebuild()
+    else if (u.series.length !== frameData.length || (data && !matchesSeries(u))) rebuild()
     else u.setData(frameData)
 
     chartUI.render()
