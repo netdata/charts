@@ -250,3 +250,28 @@ describe("modern table", () => {
     })
   })
 })
+
+describe("modern table keeps every value", () => {
+  const filledCells = container =>
+    Array.from(getRows(container)).map(row =>
+      Object.fromEntries(
+        Array.from(row.querySelectorAll('[data-testid^="netdata-table-cell-"]')).map(cell => [
+          cell.getAttribute("data-testid"),
+          Boolean(cell.textContent.trim()),
+        ])
+      )
+    )
+
+  it("shows a value in exactly the cells the default table fills", async () => {
+    const defaultTable = await renderTable("default")
+    const expected = filledCells(defaultTable.container)
+    defaultTable.unmount()
+
+    const modernTable = await renderTable("modern")
+    const actual = filledCells(modernTable.container)
+
+    expect(expected.length).toBeGreaterThan(0)
+    expect(expected.flatMap(Object.values).filter(Boolean).length).toBeGreaterThan(0)
+    expect(actual).toEqual(expected)
+  })
+})
