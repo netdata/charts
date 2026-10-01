@@ -11,6 +11,7 @@ import makeFilterControllers from "./filters/makeControllers"
 import makeDataFetch from "./makeDataFetch"
 import makeGetUnitSign from "./makeGetUnitSign"
 import getAggregateMethod from "./filters/getAggregateMethod"
+import timeSeriesRenderer from "./timeSeriesRenderer"
 
 const themeIndex = {
   default: 0,
@@ -164,6 +165,7 @@ export default ({
 
   node.on("render", render)
   unitConversion(node)
+  timeSeriesRenderer(node)
 
   node.getConvertedValue = (
     value,

@@ -8,6 +8,8 @@ export default {
   id: "",
   name: "",
   chartLibrary: "",
+  timeSeriesRenderer: null,
+  rendererOverridden: false,
   theme: "default",
   host: "",
   description: null,
