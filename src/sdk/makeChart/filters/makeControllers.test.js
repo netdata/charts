@@ -289,6 +289,34 @@ describe("makeControllers", () => {
       expect(ctrl.getRendererForChartType("area")).toBe("uplot")
     })
 
+    it.each(["bars", "table", "gauge", "number", "d3pie", "easypiechart", "groupBoxes"])(
+      "switches %s back to dygraph for a time-series chart type, like main",
+      chartLibrary => {
+        const { chart: c } = makeTestChart({ attributes: { chartLibrary } })
+        c.getUI = () => ({ unmount: () => {} })
+        c.setUI = () => {}
+        c.sdk.makeChartUI = () => ({})
+
+        makeControllers(c).updateChartTypeAttribute("line")
+
+        expect(c.getAttribute("chartLibrary")).toBe("dygraph")
+        expect(c.getAttribute("chartType")).toBe("line")
+      }
+    )
+
+    it("switches to uPlot instead when the user opted into it", () => {
+      const { chart: c } = makeTestChart({
+        attributes: { chartLibrary: "bars", timeSeriesRenderer: "uplot" },
+      })
+      c.getUI = () => ({ unmount: () => {} })
+      c.setUI = () => {}
+      c.sdk.makeChartUI = () => ({})
+
+      makeControllers(c).updateChartTypeAttribute("line")
+
+      expect(c.getAttribute("chartLibrary")).toBe("uplot")
+    })
+
     it("identifies which libraries are time-series renderers", () => {
       const { chart: c } = makeTestChart({
         attributes: { chartLibrariesByType: { line: "table" } },
