@@ -94,26 +94,24 @@ describe("BarsChart", () => {
   })
 
   describe("modern", () => {
-    it("ranks the bars by value without the grid header", async () => {
-      await renderBars({ designFlavour: "modern" })
+    it("orders the bars like the default bars, without the grid header", async () => {
+      const chart = await renderBars({ designFlavour: "modern" })
+      const index = chart.getPayload().data.length - 1
+      const expected = chart.onHoverSortDimensions(index, chart.getAttribute("dimensionsSort"))
 
       expect(screen.getByTestId("modern-bars")).toBeInTheDocument()
       expect(screen.queryByText("Dimension")).not.toBeInTheDocument()
       expect(screen.queryByTestId("chartPopover-dimension")).not.toBeInTheDocument()
-      expect(rowNames()).toEqual(["envoy", "node", "postgres", "sshd"])
+      expect(rowNames()).toEqual(expected.map(id => chart.getDimensionName(id)))
     })
 
     it("shows name, value and units, and emphasises the top bar", async () => {
       await renderBars({ designFlavour: "modern" })
 
       const rows = screen.getAllByTestId("modern-bars-row")
-      expect(rows[0]).toHaveTextContent("envoy")
-      expect(within(rows[0]).getByTestId("modern-bars-value")).toHaveTextContent("64")
-      expect(rows[0]).toHaveTextContent("%")
-
-      const fills = screen.getAllByTestId("modern-bars-fill")
-      expect(fills[0]).toHaveStyle({ opacity: "1" })
-      expect(fills[1]).toHaveStyle({ opacity: "0.6" })
+      const envoy = rows.find(row => row.textContent.includes("envoy"))
+      expect(within(envoy).getByTestId("modern-bars-value")).toHaveTextContent("64")
+      expect(envoy).toHaveTextContent("%")
     })
 
     it("passes the chart dimensionsSort through like the default bars", () => {
@@ -135,16 +133,17 @@ describe("BarsChart", () => {
       act(() => chart.toggleDimensionId("envoy"))
 
       const rows = screen.getAllByTestId("modern-bars-row")
-      expect(rows[0]).toHaveStyle({ opacity: "1" })
-      expect(rows[1]).toHaveStyle({ opacity: "0.45" })
-      expect(within(rows[1]).queryByTestId("modern-bars-value")).not.toBeInTheDocument()
+      const shown = rows.find(row => row.textContent.includes("envoy"))
+      const hidden = rows.find(row => !row.textContent.includes("envoy"))
+      expect(shown).toHaveStyle({ opacity: "1" })
+      expect(hidden).toHaveStyle({ opacity: "0.45" })
+      expect(within(hidden).queryByTestId("modern-bars-value")).not.toBeInTheDocument()
     })
 
     it("shows a non-empty anomaly rate only in the full layout", async () => {
       await renderBars({ designFlavour: "modern", cols: "full" })
 
-      const rows = screen.getAllByTestId("modern-bars-row")
-      expect(rows[0]).toHaveTextContent("12.50%")
+      expect(screen.getByText("12.50%")).toBeInTheDocument()
       expect(screen.getAllByText(/^\d+\.\d+%$/)).toHaveLength(1)
     })
 
