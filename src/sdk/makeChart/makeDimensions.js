@@ -318,18 +318,11 @@ export default (chart, sdk) => {
     return memKey
   }
 
-  const toThemeColor = color => {
-    const value = typeof color === "number" ? dimensionColors[color] : color
-    if (!value || typeof value === "string") return value
-
-    return value[chart.getThemeIndex()]
-  }
-
   chart.selectDimensionColor = (id = "selected", partIndex) => {
     const key = getMemKey()
     const colorsAttr = chart.getAttribute("colors")
     const sparkline = chart.isSparkline()
-    if (sparkline && Array.isArray(colorsAttr)) return toThemeColor(colorsAttr[0])
+    if (sparkline && Array.isArray(colorsAttr)) return colorsAttr[0]
 
     const keyedColors = colorsAttr && !Array.isArray(colorsAttr) ? colorsAttr : null
 
@@ -349,7 +342,8 @@ export default (chart, sdk) => {
           : sdk.getRoot().getNextColor(getNextColor, key, id)
     }
 
-    return toThemeColor(color)
+    const index = chart.getThemeIndex()
+    return typeof color === "string" ? color : color[index]
   }
 
   chart.getDimensionName = (id, partIndex) => {

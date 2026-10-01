@@ -70,27 +70,4 @@ describe("renderer palettes", () => {
 
     expect(chart.selectDimensionColor("cpu")).toBe(dimensionColors[2][0])
   })
-
-  it.each([
-    ["default", 0],
-    ["dark", 1],
-  ])("resolves a palette slot for the selected colour in the %s theme", (theme, index) => {
-    const { chart } = makeTestChart({ attributes: { theme, colors: [3] } })
-
-    expect(chart.selectDimensionColor()).toBe(dimensionColors[3][index])
-  })
-
-  it("resolves a palette slot for a sparkline", () => {
-    const { chart } = makeTestChart({ attributes: { theme: "dark", sparkline: true, colors: [4] } })
-
-    expect(chart.selectDimensionColor("a")).toBe(dimensionColors[4][1])
-  })
-
-  it("keeps a hex string the same in both themes", () => {
-    const light = makeTestChart({ attributes: { colors: ["#123456"] } }).chart
-    const dark = makeTestChart({ attributes: { theme: "dark", colors: ["#123456"] } }).chart
-
-    expect(light.selectDimensionColor()).toBe("#123456")
-    expect(dark.selectDimensionColor()).toBe("#123456")
-  })
 })
