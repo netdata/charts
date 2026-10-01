@@ -230,3 +230,7 @@ same hue in both themes, lightness band, chroma floor, 3:1 contrast). Validator:
 ΔE 7.4, dark CVD floor ΔE 6.0, normal vision ≥ 15 in both. The per-renderer uPlot palette is removed.
 Consumers that pick palette positions for meaning (e.g. cloud-frontend geoMap "mostOffline") change
 hue and should move to status colours.
+
+### cloud-frontend scope
+
+- Excluded: `src/domains/anomalies` — no changes there (user decision, 2026-10-01).
