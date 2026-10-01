@@ -21,6 +21,9 @@ describe("Modern/Table and group boxes stories", () => {
     await settle()
 
     expect(screen.getAllByTestId("modernTable-header").length).toBeGreaterThan(0)
+    expect(screen.getByTestId("modernTableHeader")).toBeInTheDocument()
+    expect(screen.getAllByTestId("modernTable-groupHeader")).toHaveLength(4)
+    expect(screen.getByTestId("modernTable-mergedSort")).toBeInTheDocument()
     expect(screen.getByTestId("groupBox-legend-scale")).toBeInTheDocument()
     expect(screen.getByTestId("groupBox-legend-threshold")).toBeInTheDocument()
   })
@@ -30,6 +33,8 @@ describe("Modern/Table and group boxes stories", () => {
     await settle()
 
     expect(screen.queryByTestId("modernTable-header")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("modernTableHeader")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("modernTable-groupHeader")).not.toBeInTheDocument()
     expect(screen.queryByTestId("groupBox-legend-scale")).not.toBeInTheDocument()
     expect(screen.getByTestId("groupBox-legend")).toBeInTheDocument()
   })
