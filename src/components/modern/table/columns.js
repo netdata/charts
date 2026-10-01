@@ -59,6 +59,14 @@ const makeHeader =
   label =>
   ({ column }) => <ModernHeader label={label} sorted={column?.getIsSorted?.() || false} />
 
+const makeValueHeader =
+  label =>
+  ({ column }) => (
+    <Flex width="100%" justifyContent="end">
+      <ModernHeader label={label} sorted={column?.getIsSorted?.() || false} />
+    </Flex>
+  )
+
 const SortButton = styled.button`
   display: inline-flex;
   align-items: baseline;
@@ -306,7 +314,14 @@ const ModernValue = ({ id, table, context, dimension }) => {
   const share = getShare(value, scale.columns[dimension])
 
   return (
-    <Flex position="relative" alignItems="center" gap={2} width="100%" justifyContent="end">
+    <Flex
+      position="relative"
+      alignItems="center"
+      gap={2}
+      width="100%"
+      justifyContent="end"
+      style={{ minHeight: 18 }}
+    >
       <Bar
         $hot={hot}
         style={{ transform: `scaleX(${share})` }}
@@ -349,7 +364,8 @@ export const modernValueColumn = (chart, options = {}) => {
 
   return {
     ...base,
-    header: makeHeader(base.name),
+    header: makeValueHeader(base.name),
+    meta: { ...base.meta, tooltip: undefined },
     cell: ({
       row: {
         original: { key, ids, contextGroups },

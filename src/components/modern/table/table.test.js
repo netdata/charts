@@ -198,7 +198,13 @@ describe("modern table", () => {
         chart,
       })
 
-      expect(leaves(modernResult.current)).toEqual(defaultColumns)
+      const unitsMoveToGroupHeader = column =>
+        column.id.startsWith("value") ? { ...column, tooltip: false } : column
+
+      expect(leaves(modernResult.current)).toEqual(defaultColumns.map(unitsMoveToGroupHeader))
+      expect(defaultColumns.some(column => column.id.startsWith("value") && column.tooltip)).toBe(
+        true
+      )
       expect(defaultColumns.length).toBeGreaterThan(2)
     })
 
