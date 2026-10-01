@@ -4,7 +4,6 @@ import { themes, font } from "./chartCard"
 
 const numerals = "'IBM Plex Sans Condensed', 'IBM Plex Sans', system-ui, sans-serif"
 
-// one hue, light to dark: magnitude, never identity
 const sequential = {
   light: ["#EAF1FC", "#C9DCF7", "#9CC0F0", "#6A9EE6", "#3D7AD6", "#2358B0", "#173E80"],
   dark: ["#172230", "#1B3350", "#224B78", "#2C66A3", "#3F84D4", "#6FA6EE", "#A9CBF8"],

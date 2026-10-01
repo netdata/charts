@@ -40,7 +40,6 @@ const mountUplot = async (attributes = {}, payload = makeSeries(3)) => {
   await Promise.resolve()
   await Promise.resolve()
 
-  // the relative window is only read at draw time; the payload keeps the x scale populated
   chart.setAttribute("after", -900)
 
   return {

@@ -20,7 +20,6 @@ import systemLoadLine from "../../../../fixtures/systemLoadLine"
 
 const [loadPayload] = systemLoadLine
 
-// the consumer's sparkline tile: a bare Line inside the tile wrapper
 const LineTile = props => (
   <ChartWrapper>
     <Line hasHeader={false} hasFilters={false} hasFooter={false} {...props} />
@@ -28,7 +27,6 @@ const LineTile = props => (
 )
 const Sparkline = withChart(LineTile, { tile: true })
 
-// stands in for consumer toolbox elements such as cloud-frontend's AddToDashboard
 const AddToDashboard = ({ disabled }) => (
   <Button
     icon={<Icon svg={dashboardIcon} size="16px" />}

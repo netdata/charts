@@ -8,7 +8,6 @@ import makeDefaultSDK from "@/makeDefaultSDK"
 import makeHeatPayload from "@/components/modern/groupBoxes/makeHeatPayload"
 import tableFixture from "../../../../fixtures/table"
 
-// Two nodes raise alerts so the status dots show every state.
 const makeTablePayload = () => {
   const payload = JSON.parse(JSON.stringify(tableFixture[0]))
   const [, warning, critical] = payload.summary.nodes

@@ -1,5 +1,3 @@
-// [light, dark] pairs tuned per surface (#F7F8F8 / #151818); adjacent pairs clear CVD ΔE ≥ 8.
-// Red is left out on purpose: it stays reserved for alert status.
 export default [
   ["#00914A", "#1FA35E"],
   ["#2A70D6", "#3F84E5"],

@@ -8,7 +8,6 @@ export const maxGlowSeries = 8
 
 const glowChartTypes = { line: true, area: true }
 
-// the "live" legend layout is resolved (and capped by series count) by the modern legend body
 export const isLiveLayout = chart =>
   chart.getAttribute("designFlavour") === "modern" &&
   chart.getAttribute("legendMode") === "live" &&

@@ -47,7 +47,6 @@ const drawFlag = (ctx, x, top, color, hollow) => {
   ctx.stroke()
 }
 
-// a flag hangs from the plot top whatever the position, so nothing covers the time axis labels
 const drawModernAnnotation = (
   ctx,
   x,
@@ -73,7 +72,6 @@ const drawModernAnnotation = (
   ctx.globalAlpha = 1
 }
 
-// a modern sparkline stays a bare plot; the area is still emitted so badges keep working
 const isModernSparkline = chart => isModern(chart) && chart.isSparkline()
 
 export default (chartUI, id) => {

@@ -34,7 +34,6 @@ export default (sdk, chart) => {
       })
     }
 
-    // The modern flavour draws an SVG ring from React, so no canvas is created for it.
     if (!isModernFlavour(chart)) makeEasyPie()
 
     const reMake = () => {

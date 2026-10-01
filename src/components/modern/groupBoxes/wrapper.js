@@ -22,7 +22,6 @@ const GroupLabel = ({ label, count, strong }) => (
   </Flex>
 )
 
-// Groups read as rows (label left, boxes right) so group names line up like the heat grid mockup.
 const ModernGroupBoxWrapper = ({ uiName, subTree, data, label, groupedBy }) => {
   const dimensions = subTree === "OTHERS" ? [subTree] : Object.values(subTree)
   const [first, ...rest] = groupedBy

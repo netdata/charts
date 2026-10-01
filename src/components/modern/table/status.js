@@ -10,7 +10,6 @@ const statusLabels = {
   clear: "Alerts clear",
 }
 
-// Row ids carry the machine guid, while the nodes summary is keyed by node id (or guid).
 const makeIndex = (nodes = {}, instances = {}) => {
   const nodesByKey = {}
   const nodesByIndex = {}

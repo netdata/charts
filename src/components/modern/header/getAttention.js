@@ -18,7 +18,6 @@ const latestTransition = (transitions = []) =>
     return !latest || at > latest.when ? { ...transition, when: at } : latest
   }, null)
 
-// alarm overlays are what consumers attach on alert views; they carry the triggered value
 const fromOverlay = overlay => {
   if (!overlay) return null
 
@@ -50,7 +49,6 @@ const pickOverlay = (overlays = {}) =>
       null
     )
 
-// summary.alerts only holds per-alert instance counts by status (no value, threshold or dimension)
 const fromSummary = (alerts = {}) => {
   const entries = Object.values(alerts)
   if (!entries.length) return null

@@ -19,7 +19,6 @@ const ringRadius = 70
 const ringWidth = 20
 const gap = 0.025
 const centerFontSize = 28
-// Roughly how many centre characters fit inside the ring at the full font size.
 const centerFit = 7
 
 const polar = angle => [
@@ -46,7 +45,6 @@ const toArcs = (slices, total) => {
   })
 }
 
-// The ring gives up width before the legend does, so dimension names stay readable.
 const Svg = styled.svg`
   height: 100%;
   max-height: 220px;
@@ -159,7 +157,6 @@ const ModernDonut = ({ uiName }) => {
   const chart = useChart()
   const { width } = useOnResize(uiName)
 
-  // Subscriptions only: each one re-renders the donut when its input changes.
   useAttributeValue("hoverX")
   useAttributeValue("theme")
   useVisibleDimensionIds()
@@ -171,11 +168,8 @@ const ModernDonut = ({ uiName }) => {
   const arcs = toArcs(slices, total)
   const shown = focus ? arcs.find(arc => arc.id === focus) : null
 
-  // Width 0 means the element is not measured yet; only hide the legend when it is known to be tight.
   const showLegend = !!slices.length && !(width > 0 && width < 240)
 
-  // Rows carry bare numbers, so the unit is named once: in the caption for the total and next to
-  // the hovered slice's value.
   const headline = shown
     ? formatSlice(chart, shown, { withUnit: true })
     : slices.length

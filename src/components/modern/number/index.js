@@ -29,7 +29,6 @@ const BigValue = styled(Numerals)`
   letter-spacing: -0.01em;
 `
 
-// kept for callers of the round 2 pill; it now renders the shared status indicator
 export const AttentionPill = ({ alert, ...rest }) => (
   <StatusIndicator
     status={alert.level}

@@ -234,7 +234,6 @@ export default {
 
   themeGroupBoxesMin: ["#E4F1FF", "#000C18"],
   themeGroupBoxesMax: ["#0075F2", "#0075F2"],
-  // modern flavour: one hue, light to dark, low to high
   themeGroupBoxesScale: [
     ["#EAF1FC", "#C9DCF7", "#9CC0F0", "#6A9EE6", "#3D7AD6", "#2358B0", "#173E80"],
     ["#172230", "#1B3350", "#224B78", "#2C66A3", "#3F84D4", "#6FA6EE", "#A9CBF8"],

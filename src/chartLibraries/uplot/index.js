@@ -37,8 +37,6 @@ const minPlotHeight = 20
 const yPixelsPerLabel = 30
 const rangeEpsilon = 1e-9
 
-// the modern title names the source unit, so a tick can drop its unit only while it still reads
-// in that unit; a scaled or converted tick (MiB, °F) keeps it. Durations carry no unit sign.
 const isUnscaledTick = (chart, value, { method, divider, prefix } = {}) => {
   if (prefix) return false
 
@@ -84,7 +82,6 @@ const makeAxisFont = fontSize => `${fontSize}px ${axisFontFamily}`
 
 const minModernYAxisSize = 24
 const maxModernYAxisSize = 68
-// mirrors yAxisLabelWidth in sdk/initialAttributes, which pulls UI components into the import
 const shippedYAxisSize = 68
 
 let measureContext = null
@@ -96,8 +93,6 @@ const measureLabel = (text, font) => {
   return measureContext.measureText(text).width
 }
 
-// the shipped default is indistinguishable from a consumer setting the same width, so only a
-// different width counts as an explicit choice
 const isConfiguredYAxisSize = size => !!size && size !== shippedYAxisSize
 
 const getModernYAxisSize = (labels, font, gap) => {
@@ -121,7 +116,6 @@ const getSplitGranularity = (splits, index) => {
   return Number.isFinite(step) ? step : 0
 }
 
-// uPlot asks for the fill on every redraw; a gradient only depends on the plot's vertical extent
 const makeAreaFill = color => {
   let cached = null
   let cachedKey = ""
@@ -255,7 +249,6 @@ export default (sdk, chart) => {
 
   const isBarType = chartType => chartType === "multiBar" || chartType === "stackedBar"
 
-  // the modern legend dims every series but the one its pointer is on
   const isModern = () => chart.getAttribute("designFlavour") === "modern"
   const getSeriesAlpha = id => {
     const focused = chart.getAttribute("focusedDimensionId")
@@ -478,7 +471,6 @@ export default (sdk, chart) => {
     const secondsAsTime = chart.getAttribute("secondsAsTime")
     const units = visibleDimensionIds.map(id => chart.getDimensionUnit(id))
 
-    // horizontal grid only: time ticks carry the x position, so vertical rules are noise
     const border = { show: false }
 
     const xAxis = {
@@ -538,7 +530,6 @@ export default (sdk, chart) => {
                 secondsAsTime,
               })
                 .map(tick => tick.v)
-                // the tick helper rounds outward, and a label past the plot edge gets clipped
                 .filter(value => isWithinRange(value, scaleMin, scaleMax)),
             values: (self, splits) =>
               splits.map((value, index) => {
@@ -1509,7 +1500,6 @@ export default (sdk, chart) => {
         width: chartUI.getChartWidth(),
         height: chartUI.getChartHeight(),
         // null sides keep uPlot's autoPadSide behaviour
-        // the live-edge halo sits on the newest point, at the plot's right edge
         padding: [
           () => getVerticalBudget().topPad,
           () => (isLiveLayout(chart) ? haloRadius : rightPad),
@@ -1573,7 +1563,6 @@ export default (sdk, chart) => {
   // the instance for this reconstructed every chart on every streaming tick
   const onUnitsConversionChange = () => u && u.redraw(false, true)
 
-  // entering or leaving the live layout changes the right padding the halo needs
   const onLegendModeChange = (next, prev) => {
     if (!u || !isModern() || (next !== "live" && prev !== "live")) return
     u.redraw(false, true)

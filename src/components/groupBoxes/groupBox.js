@@ -12,7 +12,6 @@ const Track = styled.div`
   min-width: 0;
 `
 
-// Modern rows let the boxes use the width left next to the group label.
 const useTrackWidth = (trackRef, enabled) => {
   const [width, setWidth] = useState(0)
 

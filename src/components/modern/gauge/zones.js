@@ -8,8 +8,6 @@ const severityByColor = {
 
 const rank = { ok: 0, warning: 1, critical: 2 }
 
-// Threshold rows carry only a colour, so the editor palette names the severity; a custom colour
-// counts as a warning unless it is the base zone the gauge starts in.
 const classify = (row, isBase) => {
   const known = severityByColor[String(row.color[0] || "").toLowerCase()]
   if (known) return known

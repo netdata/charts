@@ -36,7 +36,6 @@ export const modernMeta = (row, cell, index) => ({
 
 const noop = () => {}
 
-// Menu hands these to every Dropdown; they must not reach the DOM container.
 const menuOnlyProps = [
   "title",
   "dropTitle",
@@ -53,7 +52,6 @@ const omitMenuProps = props =>
 
 const getSelectedIds = values => (values || []).map(v => v?.value ?? v).sort()
 
-// Mirrors what the table reports as selected, so Reset is enabled only after a real change.
 const collectSelected = (options, result = []) =>
   options.reduce((h, option) => {
     if (option.selected && !option.disabled && !option.unselectable) h.push(option)

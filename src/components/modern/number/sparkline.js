@@ -29,7 +29,6 @@ const Marker = styled(Box)`
   pointer-events: none;
 `
 
-// Runs of consecutive numbers; gaps (nulls) break the line instead of being drawn as zero.
 export const toRuns = values =>
   values.reduce((runs, value, index) => {
     if (value === null) return runs
@@ -45,7 +44,6 @@ export const makeScale = values => {
 
   const max = Math.max(...numbers)
   const low = Math.min(...numbers)
-  // Leave headroom under the lowest point so the area never collapses onto the bottom edge.
   const min = low - (max - low) * 0.1
   const span = max - min || 1
 

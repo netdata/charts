@@ -34,7 +34,6 @@ export default (sdk, chart) => {
   let resizeObserver
   let svgMounted = false
 
-  // The modern flavour draws the gauge as SVG in React, so only the value range and events run here
   const mountWithoutCanvas = element => {
     svgMounted = true
     chartUI.mount(element)

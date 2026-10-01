@@ -40,7 +40,6 @@ const decimalsPayload = makePayload({
   ],
 })
 
-// The overflow annotation on the latest point of the first dimension.
 const annotatedPayload = () => {
   const data = makePayload({
     context: "test.apps.cpu",

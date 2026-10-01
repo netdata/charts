@@ -23,8 +23,6 @@ const selfSignallingLibraries = new Set(["gauge", "number"])
 
 const PlainStatus = () => <Status plain />
 
-// as in the modern header: with a toolbox the More menu carries reload, so the default Status
-// goes; without one its reload control stays reachable among the revealed elements
 export const useTileLeftElements = hasToolbox => {
   const leftHeaderElements = useAttributeValue("leftHeaderElements") || []
   if (hasToolbox) return leftHeaderElements.filter(Element => Element !== Status)
@@ -34,14 +32,12 @@ export const useTileLeftElements = hasToolbox => {
 export const getLatestValueOverlay = (overlays = {}) =>
   Object.values(overlays || {}).find(overlay => overlay?.type === "latestValue") || null
 
-// same scale the default tile applies, so chart bodies sized in em keep their proportions
 const getFontSize = width => {
   const size = Math.min(Math.max(width || 0, 20), 50)
   const fontSize = parseInt(size / 3, 10)
   return fontSize > 11 ? 11 : fontSize < 8 ? 8 : fontSize
 }
 
-// keyboard focus anywhere in the tile reveals the controls, as hovering does
 const focusRevealed = css`
   &:focus-within [data-tile-actions] {
     opacity: 1;
@@ -92,7 +88,6 @@ const Units = styled.span`
   opacity: 0.8;
 `
 
-// overlays the end of the title instead of taking width from it, and stays focusable while hidden
 const Reveal = styled(Flex).attrs({ alignItems: "center", gap: 0.5 })`
   position: absolute;
   top: 0;
@@ -110,7 +105,6 @@ const Reveal = styled(Flex).attrs({ alignItems: "center", gap: 0.5 })`
   }
 `
 
-// floats under the title instead of holding a row, so the chart body keeps that height at rest
 const HeadArea = styled.div`
   position: relative;
   flex-shrink: 0;
@@ -173,7 +167,6 @@ const ModernTile = ({ children, customChildren, hasFilters = true, height, width
   const error = useAttributeValue("error")
   const leftElements = useTileLeftElements(hasToolbox)
   const chartLibrary = useAttributeValue("chartLibrary")
-  // gauge and number draw their own status (they also see threshold zones), so the tile stays quiet
   const ownStatus = selfSignallingLibraries.has(chartLibrary)
   const tileAlert = useTileAlert()
   const alert = ownStatus ? null : tileAlert

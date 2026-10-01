@@ -47,7 +47,6 @@ const mountUplot = async (attributes = {}) => {
   }
 }
 
-// records the canvas state at each draw call, then lets the real canvas run it
 const record = (ctx, names = ["fill", "fillRect", "strokeRect", "moveTo"]) => {
   const calls = []
 

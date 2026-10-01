@@ -3,7 +3,6 @@ import { useChart, usePayload } from "@/components/provider"
 
 const maxPoints = 40
 
-// Buckets are averaged so a short cell still shows the window's shape without a path per sample.
 export const getTrend = (chart, id, points = maxPoints) => {
   const { all = [] } = chart.getPayload() || {}
   if (!id || all.length < 2) return []

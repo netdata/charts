@@ -8,7 +8,6 @@ import { getAlertLabel, getAlertState } from "@/components/modern/number/attenti
 
 const toneByStatus = { warning: "warning", critical: "error" }
 
-// a tile only signals raised alerts; a clear state stays silent to keep the grid calm
 export const getTileAlert = ({ overlays, alerts } = {}) => {
   const attention = getAttention({ overlays, alerts })
   if (!attention || attention.status === "clear") return null

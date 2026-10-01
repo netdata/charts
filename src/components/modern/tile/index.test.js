@@ -38,7 +38,6 @@ const renderTile = async (attributes = {}, props = {}) => {
 const renderModern = (attributes = {}, props) =>
   renderTile({ designFlavour: "modern", ...attributes }, props)
 
-// the pointer reaches the tile before its controls, which reveals them
 const openMenu = async (user, chart) => {
   act(() => chart.updateAttribute("focused", true))
   await user.click(screen.getByTestId("modernTile-more"))

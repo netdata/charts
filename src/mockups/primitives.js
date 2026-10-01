@@ -25,7 +25,6 @@ export const timeLabels = ["14:25", "14:30", "14:35", "14:40", "14:45", "14:50"]
 
 const scale = (d0, d1, r0, r1) => value => r0 + ((value - d0) / (d1 - d0 || 1)) * (r1 - r0)
 
-// Catmull-Rom through the samples, emitted as cubic Béziers: smooth without overshooting much
 const smoothPath = coords => {
   if (!coords.length) return ""
   let d = `M${coords[0][0]},${coords[0][1]}`

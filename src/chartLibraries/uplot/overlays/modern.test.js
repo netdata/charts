@@ -47,7 +47,6 @@ const mountUplot = async (attributes = {}) => {
   }
 }
 
-// records the canvas state at each draw call, then lets the real canvas run it
 const record = (ctx, names = ["stroke", "fill", "fillRect", "fillText", "arc", "moveTo"]) => {
   const calls = []
 
@@ -72,7 +71,6 @@ const record = (ctx, names = ["stroke", "fill", "fillRect", "fillText", "arc", "
 
 const only = (calls, name) => calls.filter(call => call.name === name)
 
-// the bands and lines run under the series, the labels over them
 const drawThreshold = (instance, id) => {
   threshold(instance, id)
   drawLabels(instance, id)

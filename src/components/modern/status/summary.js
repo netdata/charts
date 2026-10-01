@@ -8,7 +8,6 @@ const namesWith = (list, key) =>
     .map(alert => alert.nm)
     .filter(Boolean)
 
-// summary.alerts is keyed by alert name and only holds instance counts per status
 export const summarizeAlerts = alerts => {
   const list = Object.values(alerts || {}).filter(Boolean)
   const critical = namesWith(list, "cr")

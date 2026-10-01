@@ -32,7 +32,6 @@ const metricsByValue = {
 
 const emptyArray = []
 
-// The table already draws the sort icon; the sorted column is also lifted to full ink and weight.
 export const ModernHeader = ({ label, sorted }) => (
   <TextSmall
     data-testid="modernTable-header"

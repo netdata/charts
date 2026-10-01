@@ -84,7 +84,6 @@ const Popover = ({ uiName }) => {
   const [align, setAlign] = useState(rightBottomAlign)
   const isModern = useIsModern()
   const legendMode = useLegendMode()
-  // a visible modern legend already reads out the hovered point
   const suppressed = isModern && legendMode !== "hidden"
   const suppressedRef = useRef(suppressed)
   suppressedRef.current = suppressed

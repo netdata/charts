@@ -87,7 +87,6 @@ const Row = styled.tr.attrs({ "data-testid": "modernLegend-row" })`
   opacity: ${({ $off }) => ($off ? 0.4 : 1)};
 `
 
-// max-width 0 lets the name ellipsize inside whatever width the numeric columns leave
 const NameCell = styled.td`
   padding: 3px 0;
   color: ${getColor("text")};
@@ -186,7 +185,6 @@ const useScrollFade = deps => {
 
 const unitAttributes = ["unitsConversionPrefix", "unitsConversionBase", "unitsByDimension"]
 
-// one unit for every dimension moves the unit out of the cells; recomputed per payload, not hover
 const useSharedUnit = ids => {
   const chart = useChart()
   const cache = useRef({ key: null, unit: "" })
@@ -211,7 +209,6 @@ const LegendTable = () => {
   const sharedUnit = useSharedUnit(ids)
   const onSort = value => chart.updateAttribute("dimensionsSort", value)
 
-  // only the rows in view (plus overscan) are built and rendered, so hover cost stays flat
   const virtualizer = useVirtualizer({
     count: ids.length,
     getScrollElement: () => scrollRef.current,

@@ -15,8 +15,6 @@ const dropProps = {
   round: true,
 }
 
-// mirrors the consumer's own drag button: the handle carries the drag library's listeners and
-// attributes; `dragging` is state for the cursor, not a DOM attribute
 export const DragHandle = () => {
   const toolboxProps = useAttributeValue("toolboxProps")
   const drag = toolboxProps?.drag

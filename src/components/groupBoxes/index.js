@@ -39,8 +39,6 @@ export const GroupBoxesContainer = ({
   const showingInfo = useAttributeValue("showingInfo")
   const focused = useAttributeValue("focused")
   const isModern = useIsModern()
-  // the modern header opens the same filter bar from its scope line, so only render it here
-  // when that header is not shown
   const showFilters = hasFilters && !(isModern && hasHeader)
 
   return (

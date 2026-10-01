@@ -33,7 +33,6 @@ export default chartUI => {
     u.ctx.restore()
   }
 
-  // labels go over the series, which drawClear runs before
   const drawLabels = u => {
     if (!isModern(chartUI.chart)) return
 

@@ -47,7 +47,6 @@ const Loaded = ({ children }) => {
   return loaded ? children : <TextSmall color="textLite">Loading</TextSmall>
 }
 
-// Opens the dropdown once the chart has data, so the story shows the panel without a click.
 const Opened = ({ children }) => {
   const ref = useRef()
 

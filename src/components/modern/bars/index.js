@@ -20,14 +20,11 @@ import { formatReadout } from "@/components/modern/format"
 const rowHeight = 24
 const emptyArray = [null, null]
 
-// Same hover row flavours as the default bars: hovering the anomaly or annotation row of another
-// chart re-ranks by that key.
 const rowSorting = {
   ANOMALY_RATE: "anomalyDesc",
   ANNOTATIONS: "annotationsDesc",
 }
 
-// Ranked bars read top-down by value; an explicit dimensionsSort still wins.
 export const getSort = (row, dimensionsSort) =>
   rowSorting[row] ||
   (!dimensionsSort || dimensionsSort === "default" ? "valueDesc" : dimensionsSort)
@@ -95,7 +92,6 @@ const Bar = ({ id, emphasis }) => {
   )
 }
 
-// Every row shares the chart's unit scale so the ranking reads in one unit.
 const DisplayValue = ({ id, strong }) => {
   const chart = useChart()
   const value = useLatestDisplayValue(id, { allowNull: true })
@@ -125,8 +121,6 @@ const AnomalyValue = ({ children, ...rest }) =>
     </Tooltip>
   ) : null
 
-// Annotation colours are light pastels in both themes, so the pill is filled with the colour and
-// carries fixed dark ink (at least 4.5:1 against every annotation colour).
 export const pillInk = "#1C1E22"
 
 const Pill = styled.span`

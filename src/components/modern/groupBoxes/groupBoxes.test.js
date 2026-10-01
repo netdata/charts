@@ -26,7 +26,6 @@ const makeChart = async (attributes = {}, mockData = makeHeatPayload()) => {
   return chart
 }
 
-// jsdom does not derive offsetX/offsetY from the event init, so they are set on the event itself.
 const hoverFirstBox = canvas => {
   const event = new MouseEvent("mousemove", { bubbles: true })
   Object.defineProperty(event, "offsetX", { value: 5 })

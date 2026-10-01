@@ -341,7 +341,6 @@ export default (chart, sdk) => {
       const value = keyedColors[id]
       color = typeof value === "number" ? getPalette()[value] : value
     } else {
-      // the colour memo is shared across the container, so each palette keeps its own group
       color =
         isSelected && Array.isArray(colorsAttr) && colorsAttr.length
           ? colorsAttr[0]

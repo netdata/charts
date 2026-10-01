@@ -45,7 +45,6 @@ describe("D3pie", () => {
     async designFlavour => {
       const chart = await loadChart(designFlavour)
 
-      // jsdom has no SVG layout, so reaching getBBox proves the d3pie library drew its SVG.
       expect(() => renderWithChart(<D3pie />, { chart })).toThrow("getBBox")
       expect(screen.queryByTestId("modern-donut")).not.toBeInTheDocument()
     }

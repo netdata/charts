@@ -12,10 +12,8 @@ const markGap = 1
 const markRadius = 1
 const markOffset = 5
 
-// opacity follows the rate, with a floor so a low rate is still visible
 export const getMarkAlpha = rate => Math.min(1, 0.35 + rate / 150)
 
-// marks sit in the top padding when there is room, otherwise just inside the plot
 const getStripTop = (self, dpr) =>
   self.bbox.top >= markOffset * dpr ? self.bbox.top - markOffset * dpr : self.bbox.top + dpr
 

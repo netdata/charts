@@ -23,7 +23,6 @@ const warningPayload = {
   },
 }
 
-// stands in for consumer toolbox elements such as cloud-frontend's AddToDashboard
 const AddToDashboard = ({ disabled }) => (
   <Button
     icon={<Icon svg={dashboardIcon} size="16px" />}

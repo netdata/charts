@@ -225,7 +225,6 @@ export default Component =>
     const isModern = useIsModern()
 
     const shadowColor = useColor("themeShadow")
-    // the modern tile marks hover with its own border instead of a shadow
     const styles =
       focused && !(tile && isModern) ? { sx: { boxShadow: `0px 1px 5px 0px ${shadowColor};` } } : {}
 

@@ -7,7 +7,6 @@ const defaultGroups = [
   { id: "staging", count: 10 },
 ]
 
-// Two-level ids ("group,node") give the group boxes one row per group, as in the heat grid.
 export const makeHeatPayload = ({ groups = defaultGroups, context = "modern.nodes.cpu" } = {}) => {
   const dimensions = groups.flatMap(({ id: group, count, hot = 0 }, groupIndex) =>
     Array.from({ length: count }, (_, index) => {

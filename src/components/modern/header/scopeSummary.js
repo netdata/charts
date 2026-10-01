@@ -24,7 +24,6 @@ const timeAggregationLabels = {
   des: "Double exponential smoothing",
 }
 
-// mirrors the label the GroupBy dropdown shows, so the folded line reads like the open bar
 export const getGroupByLabel = (groupBy = [], groupByLabel = []) => {
   const withoutNodes = groupBy.filter(value => value !== "node")
   const groups = withoutNodes.map(value => {

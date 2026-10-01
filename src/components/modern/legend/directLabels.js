@@ -9,7 +9,6 @@ import { useLegendRows } from "./useLegendRows"
 export const directColumnWidth = 128
 const labelHeight = 16
 
-// the plot and this column share their top edge, so the renderer's y pixel is usable as is
 export const getYCoord = (ui, value) => {
   if (!ui || typeof value !== "number" || !isFinite(value)) return null
 
@@ -30,7 +29,6 @@ export const getYCoord = (ui, value) => {
 
 export const canPlaceDirect = ui => !!(ui && (ui.getUPlot || ui.getDygraph))
 
-// push overlapping labels down, then pull the stack back up if it runs past the bottom
 export const layoutLabels = (labels, height) => {
   const sorted = [...labels].sort((a, b) => a.y - b.y)
 

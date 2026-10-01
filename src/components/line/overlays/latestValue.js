@@ -72,7 +72,6 @@ const DefaultLatestValue = ({ dimensionId, textProps, ...rest }) => {
   )
 }
 
-// a modern tile draws the readout above the trend itself, so the overlay steps aside there
 const LatestValue = props => {
   const isModern = useIsModern()
   const inModernTile = useInModernTile()

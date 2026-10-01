@@ -10,7 +10,6 @@ const green = ["#00AB44", "#00AB44"]
 const yellow = ["#FFCC26", "#FFCC26"]
 const red = ["#F95251", "#F95251"]
 
-// The fixture sums three load averages to between about 17 and 99, so zones sit clear of that band
 const variants = [
   { label: "No thresholds", attributes: {} },
   {

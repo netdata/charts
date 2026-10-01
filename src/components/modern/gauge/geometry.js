@@ -6,7 +6,6 @@ export const radius = 92
 
 export const zoneRadius = radius + 13
 
-// 240 degrees, opening at the bottom
 export const startAngle = (Math.PI * 5) / 6
 
 export const endAngle = (Math.PI * 13) / 6
@@ -54,13 +53,10 @@ export const sparklinePath = (values, { width, height, pad = 2 }) => {
   return { line, area: `${line} L${width},${height} L0,${height} Z` }
 }
 
-// the knob (r 7, stroke 3) reaches 8.5 inside the arc's centre line; keep a little air past it
 export const valueRadius = radius - 10
 
 export const valueBaseline = 2
 
-// jsdom and the first paint cannot measure SVG text, so widths come from character counts;
-// tabular numerals sit near 0.6em, which also covers the unit letters
 const charWidth = 0.6
 const capHeight = 0.74
 const unitGap = 3
@@ -74,8 +70,6 @@ export const valueTextBox = (value, unit, size) => {
   return { width: valueWidth + unitWidth, height: capHeight * size }
 }
 
-// the number is centred just above the arc centre, so its top corners are the points closest
-// to the arc; the largest size whose corners stay inside valueRadius wins
 export const fitValueFontSize = (value, unit, { max = 44, min = 8 } = {}) => {
   for (let size = max; size > min; size -= 1) {
     const { width, height } = valueTextBox(value, unit, size)

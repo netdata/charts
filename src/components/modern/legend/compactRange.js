@@ -16,7 +16,6 @@ const makeFormatter = (chart, options) => {
 
 export const getDayKey = (chart, ms) => makeFormatter(chart, dayKeyOptions).format(ms)
 
-// "Wed 30 Sep": the locale's order, without the separating commas, so it reads as one token
 export const formatShortDate = (chart, ms) =>
   makeFormatter(chart, shortDateOptions)
     .formatToParts(ms)
@@ -25,7 +24,6 @@ export const formatShortDate = (chart, ms) =>
     .replace(/\s+/g, " ")
     .trim()
 
-// after/before are in seconds, like the highlight overlay range
 export const formatCompactRange = (chart, after, before, now = Date.now()) => {
   const afterMs = after * 1000
   const beforeMs = before * 1000

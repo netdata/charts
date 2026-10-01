@@ -34,7 +34,6 @@ const useWidth = ref => {
 const getCount = chart => chart.getDimensionIds()?.length || 0
 const getVisibleCount = chart => chart.getVisibleDimensionIds?.()?.length ?? getCount(chart)
 
-// only the counts matter here; re-rendering on every re-sort would re-render the plot subtree
 const useDimensionCounts = () => {
   const chart = useChart()
   const [count, setCount] = useState(() => getCount(chart))

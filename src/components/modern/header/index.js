@@ -10,8 +10,6 @@ import Attention from "./attention"
 
 const PlainStatus = () => <Status plain />
 
-// the default Status moves into the scope line (states) and the More menu (reload); without the
-// toolbox there is no More menu, so its reload control stays in the title row as in default
 const useLeftElements = hasToolbox => {
   const leftHeaderElements = useAttributeValue("leftHeaderElements") || []
   if (hasToolbox) return leftHeaderElements.filter(Element => Element !== Status)
@@ -28,7 +26,6 @@ const ModernHeader = ({ hasFilters = false }) => {
   const open = hasFilters && !!filtersOpen
   const toggleFilters = () => setFiltersOpen(prev => !prev)
 
-  // a sparkline is just the plot
   if (sparkline) return null
 
   return (

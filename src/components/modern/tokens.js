@@ -1,6 +1,3 @@
-// Shared by every component rendered under designFlavour "modern"; colours come from the
-// netdata-ui theme (text, textLite, textDescription, border, mainChartBg, warning, error, success)
-// and the chart's [light, dark] theme attributes on canvas.
 export const numeralsFont = "'IBM Plex Sans Condensed', 'IBM Plex Sans', system-ui, sans-serif"
 
 export const tabularNumbers = "font-variant-numeric: tabular-nums;"

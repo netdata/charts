@@ -31,7 +31,6 @@ const Value = styled(Numerals)`
 const fallbackWidth = 300
 const fallbackHeight = 190
 
-// sized from the tile's plot so the number never crowds the trend underneath it
 export const getReadoutSizes = ({ width, height, chars, unitChars }) => {
   const usableWidth = (width || fallbackWidth) - 24
   const fit = usableWidth / (chars * 0.56 + unitChars * 0.22 + 0.3)
@@ -46,7 +45,6 @@ const TileReadout = ({ dimensionId: requestedId }) => {
   const visibleIds = useVisibleDimensionIds()
   const alert = useTileAlert()
 
-  // matches the default overlay: an id that is not visible falls back to the first visible one
   const dimensionId = chart.isDimensionVisible(requestedId) ? requestedId : visibleIds[0]
   const { value, convertedUnit: unit, unitAttributes } = useLatestDisplayValueWithUnit(dimensionId)
 

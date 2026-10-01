@@ -19,8 +19,6 @@ export const getWidth = (dimensions, { aspectRatio, cellSize } = {}) => {
   return getFullWidth(columns, cellSize)
 }
 
-// When the caller gives the room it has, boxes fill that width row by row instead of keeping
-// the aspect ratio, so a wide card is not left mostly empty.
 const getFittedAttributes = (dimensions, availableWidth, { cellSize, padding } = {}) => {
   const size = cellSize || defaultCellSize
   const columns = Math.max(1, Math.min(dimensions.length, Math.floor(availableWidth / size)))

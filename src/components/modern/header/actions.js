@@ -8,7 +8,6 @@ import { useAttributeValue, useChart } from "@/components/provider"
 import SettingsContent from "@/components/toolbox/settings/content"
 import MoreMenu from "./moreMenu"
 
-// keyboard users reach the actions through focus-within even before the card is hovered
 const Container = styled(Flex).attrs({ alignItems: "center", gap: 0.5 })`
   opacity: ${({ $visible }) => ($visible ? 1 : 0)};
   transition: opacity 120ms ease-in-out;

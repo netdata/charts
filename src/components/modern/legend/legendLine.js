@@ -7,7 +7,6 @@ import { AnomalyBar, Flags, Numeral, Swatch, onToggle } from "./parts"
 import { focusDimension, useClearFocusOnUnmount } from "./mode"
 import { useLegendRows } from "./useLegendRows"
 
-// the most entries the line ever renders; the rest are one click away in the drawer or table
 export const lineEntryCap = 24
 
 const Line = styled.div.attrs({ "data-testid": "modernLegend-line" })`
@@ -68,7 +67,6 @@ const More = styled.button.attrs({ type: "button", "data-testid": "modernLegend-
   }
 `
 
-// the drawer's values tab lists every dimension; charts without a drawer switch to the table
 export const openAllDimensions = chart => {
   if (chart.getAttribute("expandable")) {
     chart.updateAttributes({ "drawer.action": "values", expanded: true })
@@ -81,8 +79,6 @@ export const openAllDimensions = chart => {
 const overflows = (container, node) =>
   !!node && node.offsetTop + node.offsetHeight > container.clientHeight + 1
 
-// Starts from the cap and drops entries until the last one and the "+N more" button fit. Runs
-// after every render because hover readouts change the entry widths.
 const useFit = (ref, count) => {
   const [limit, setLimit] = useState(lineEntryCap)
   const [width, setWidth] = useState(0)
@@ -99,7 +95,6 @@ const useFit = (ref, count) => {
 
   useLayoutEffect(() => {
     if (limit === lineEntryCap) return
-    // the DOM still holds the previous cut; measure again once the full cap has rendered
     staleLayout.current = true
     setLimit(lineEntryCap)
   }, [count, width])

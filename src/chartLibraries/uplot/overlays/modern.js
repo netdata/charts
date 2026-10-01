@@ -13,7 +13,6 @@ export const getStatusColor = (chart, status) => {
 
 export const labelFont = "500 10.5px 'IBM Plex Sans', system-ui, sans-serif"
 
-// ctx.roundRect is missing on older browsers and in jest-canvas-mock, so the path is built by hand
 export const roundedRectPath = (ctx, x, y, width, height, radius) => {
   const r = Math.max(0, Math.min(radius, width / 2, height / 2))
 
@@ -30,5 +29,4 @@ export const roundedRectPath = (ctx, x, y, width, height, radius) => {
   ctx.closePath()
 }
 
-// keeps a 1px line on whole pixels instead of blurring it across two
 export const crisp = value => Math.round(value) + 0.5

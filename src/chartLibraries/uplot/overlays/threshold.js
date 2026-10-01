@@ -22,7 +22,6 @@ const getDirection = ({ direction, warning, critical }) => {
     : "above"
 }
 
-// each band runs from its threshold to the next, more severe one, or to the plot edge
 export const getLevels = (overlay = {}) => {
   const direction = getDirection(overlay)
   const levels = ["warning", "critical"]
@@ -44,7 +43,6 @@ export const formatThreshold = (chart, value) => {
   return chart.getConvertedValueWithUnit(value, { dimensionId, unitAttributes })
 }
 
-// labels closer than a pill height to the previous one slide right so neither is covered
 export const placeLabels = labels =>
   labels.reduce((placed, label) => {
     const previous = placed[placed.length - 1]
@@ -64,7 +62,6 @@ const drawLine = (ctx, y, from, to) => {
   ctx.stroke()
 }
 
-// shared by the band pass (under the series) and the label pass (over them), so both agree
 const getLayout = (chartUI, id) => {
   const { chart } = chartUI
 
@@ -147,7 +144,6 @@ export default (chartUI, id) => {
   ctx.restore()
 }
 
-// drawn after the series: an opaque pill keeps the label clear of every line, band and series
 export const drawLabels = (chartUI, id) => {
   const layout = getLayout(chartUI, id)
   if (!layout) return

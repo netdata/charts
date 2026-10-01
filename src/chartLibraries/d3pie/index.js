@@ -31,7 +31,6 @@ export default (sdk, chart) => {
 
     const { loaded } = chart.getAttributes()
 
-    // The modern donut is drawn by React inside this element; the instance only drives renders.
     modern = chart.getAttribute("designFlavour") === "modern"
 
     if (modern) {

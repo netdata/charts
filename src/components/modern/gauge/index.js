@@ -41,8 +41,6 @@ const toId = value => String(value).replace(/[^\w-]/g, "_")
 
 const zoneDescription = severity => `The value is in a ${severity} zone of the gauge thresholds`
 
-// dotColor is still accepted from round 2 callers; the shared indicator takes its colours from
-// the theme
 // eslint-disable-next-line no-unused-vars
 export const Attention = ({ severity, showQuiet, dotColor, description, ...rest }) => {
   if (severity === "warning" || severity === "critical")
@@ -69,8 +67,6 @@ export const Attention = ({ severity, showQuiet, dotColor, description, ...rest 
   )
 }
 
-// floats in the corner rather than taking a row, so the dial gets the full height; the arc's
-// top-right corner is empty, so the status never covers it
 const AttentionRow = styled(Flex).attrs({ justifyContent: "end", alignItems: "center" })`
   position: absolute;
   top: 0;
@@ -118,7 +114,6 @@ const useStatusDetails = ({ zones, zoneSeverity, alertLevel, severity, alerts })
   }
 }
 
-// a quiet dot speaks for thresholds set on the gauge or for configured alerts that are all clear
 export const GaugeAttention = ({ uiName }) => {
   const { width } = useOnResize(uiName)
   const state = useDialState(uiName)
@@ -139,7 +134,6 @@ export const GaugeAttention = ({ uiName }) => {
 export const Dial = ({ uiName }) => {
   const chart = useChart()
   const theme = useTheme()
-  // re-renders on every "rendered", which is when the library refreshes the value range
   useOnResize(uiName)
   const [dimensionId] = useVisibleDimensionIds()
   const latest = useLatestDisplayValue(dimensionId, { allowNull: true })

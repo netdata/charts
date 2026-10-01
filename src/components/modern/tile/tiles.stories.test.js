@@ -5,7 +5,6 @@ import { renderWithProviders } from "@jest/testUtilities"
 import { Light, Dark } from "./tiles.stories"
 
 describe("Modern tiles story", () => {
-  // jsdom has no Element.scrollTo, which the legend calls once real data arrives
   const originalScrollTo = Element.prototype.scrollTo
   beforeAll(() => {
     if (!originalScrollTo) Element.prototype.scrollTo = () => {}

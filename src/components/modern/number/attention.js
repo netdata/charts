@@ -3,15 +3,10 @@ import { getStatusLabel, summarizeAlerts } from "@/components/modern/status/summ
 
 const toneByLevel = { critical: "error", warning: "warning" }
 
-// The solid tones are the same in both themes, so the ink is fixed per tone: the panel colour
-// clears 4.5:1 on warning orange and white clears it on critical red, where the theme background
-// colour does not (about 2:1 on warning in light, 3.5:1 on critical in dark).
 const inkByTone = { error: "bright", warning: "panel" }
 
 export const getPillInk = tone => inkByTone[tone] || "bright"
 
-// Alert counts come from the query summary (`alerts` attribute, keyed by alert name) and
-// describe the state of the whole query, not a single value.
 export const getAlertState = alerts => {
   const { critical, warning, raisedNames } = summarizeAlerts(alerts)
 
@@ -30,8 +25,6 @@ export const getAlertState = alerts => {
 
 export const getAlertLabel = ({ level, count }) => getStatusLabel({ status: level, count })
 
-// A band that starts at or below the range minimum is the base band, so staying inside it is
-// neutral; only crossing into a higher band colours the value.
 export const getThresholdColor = (thresholds, value, min, themeIndex = 0) => {
   if (!Array.isArray(thresholds) || typeof value !== "number" || !isFinite(value)) return null
 

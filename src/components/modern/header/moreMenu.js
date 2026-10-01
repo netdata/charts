@@ -214,7 +214,6 @@ const DimensionSorts = ({ onChange }) => {
   )
 }
 
-// the list renders at most this many rows; the search narrows larger sets
 export const dimensionsLimit = 50
 const searchThreshold = 10
 
@@ -310,8 +309,6 @@ const MoreMenu = ({ onClose, onOpenTab }) => {
   const [showingInfo, setShowingInfo] = useAttribute("showingInfo")
   const settingsTabs = useAttributeValue("settingsTabs") || []
 
-  // uPlot plotters read these on draw; the render is skipped unless the UI is marked stale.
-  // dygraph only reads them on mount, so there the change applies on the next remount.
   const toggleLayer = (setValue, value) => {
     setValue(!value)
     chart.getUI()?.invalidateRender?.()

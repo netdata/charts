@@ -24,8 +24,6 @@ const Rail = styled(Flex).attrs({ column: true, height: "100%", width: "2px", ro
     $visible ? getColor("neutralHighlight")({ theme }) : "transparent"};
 `
 
-// the default tile keeps a bar and badge column for this; here it is a thin rail at the edge that
-// only shows a track while the tile is revealed
 const AnomalyIndicator = ({ revealed }) => {
   const showAnomalies = useAttributeValue("showAnomalies")
   const firstDim = useDimensionIds()?.[0]

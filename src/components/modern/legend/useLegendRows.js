@@ -35,8 +35,6 @@ const scanWindow = (chart, id, data) => {
   return count ? { mean: sum / count, max } : { mean: null, max: null }
 }
 
-// the query already returns per-dimension window stats; scanning the rows is the fallback for
-// payloads without them and for incremental (heatmap) charts whose stats are cumulative
 export const getWindowStats = chart => {
   const { data } = chart.getPayload()
   const sts = isIncremental(chart) ? null : chart.getAttribute("viewDimensions")?.sts
@@ -61,7 +59,6 @@ const formatStats = (chart, id, windowStats) =>
       }
     : { mean: "-", max: "-" }
 
-// `formatted` caches the window stat strings, which never change with the hovered row
 export const makeRow = (chart, id, index, stats, formatted) => {
   const value =
     index === -1 ? null : chart.getDimensionValue(id, index, { abs: false, allowNull: true })
@@ -102,7 +99,6 @@ const attributes = [
   "theme",
 ]
 
-// everything the window stats and their formatted strings depend on; the hovered row is not
 const cacheAttributes = [
   "unitsConversionPrefix",
   "unitsConversionBase",
@@ -113,8 +109,6 @@ const cacheAttributes = [
 
 const sameKey = (a, b) => !!a && a.length === b.length && a.every((value, i) => value === b[i])
 
-// One subscription for the whole legend: per-dimension hooks would each re-read the payload on
-// every hover move. getRow builds a single row, so windowed lists only pay for what they render
 export const useLegendRows = ({ withStats = false, withRows = true } = {}) => {
   const chart = useChart()
   const forceUpdate = useForceUpdate()

@@ -7,7 +7,6 @@ import Settings from "@/components/toolbox/settings"
 import Fullscreen from "@/components/toolbox/fullscreen"
 import { TileMenuContext } from "./context"
 
-// the tile renders these itself (Fullscreen in the hover actions, Settings as a menu entry)
 export const getConsumerElements = (toolboxElements = []) =>
   toolboxElements.filter(Element => Element !== Settings && Element !== Fullscreen)
 

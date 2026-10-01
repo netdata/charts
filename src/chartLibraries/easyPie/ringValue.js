@@ -7,7 +7,6 @@ export const toPercentage = (value, min, max) => ((value - min) / (max - min)) *
 
 export const isModernFlavour = chart => chart.getAttribute("designFlavour") === "modern"
 
-// Same row selection and range as the canvas renderer, so both flavours show one value.
 export const getRingValue = chart => {
   const { hoverX, loaded } = chart.getAttributes()
   if (!loaded) return null

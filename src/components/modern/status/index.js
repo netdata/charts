@@ -9,8 +9,6 @@ export * from "./summary"
 
 const dotColors = { clear: "success", warning: "warning", critical: "bright" }
 
-// Critical sits on the solid error tone where only white clears 4.5:1 in both themes; the
-// warning label keeps the theme text colour because the warning orange fails as text.
 export const statusInk = { warning: "text", critical: "bright" }
 
 const Dot = styled.span`
@@ -78,8 +76,6 @@ const describe = ({ status, count, description, names }) => {
   return lines.join(", ")
 }
 
-// One indicator for every modern chart: a quiet dot when every alert is clear, a dot and a short
-// label for warnings and a solid pill for critical, with the details on hover or focus.
 const StatusIndicator = ({
   status,
   count,

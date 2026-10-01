@@ -4,15 +4,11 @@ import { pickLegend } from "@/components/modern/tokens"
 
 export const legendModes = ["below", "direct", "live", "table", "hidden"]
 
-// line-end labels stop being readable past this many series, and each one is a DOM row
 export const maxLabelledSeries = 8
 
 const directChartTypes = { line: true, area: true }
 const labelledModes = { direct: true, live: true }
 
-// direct labels sit at each line's last point, which only exists for unstacked lines that the
-// renderer can map to a y pixel; everything else falls back to the one-line legend. "auto" and
-// unknown layouts follow pickLegend
 export const resolveLegendMode = ({
   width,
   count,
@@ -37,8 +33,6 @@ export const resolveLegendMode = ({
   return mode
 }
 
-// Written by the modern line body; unset means no modern body measured the card, so the hover
-// tooltip stays on as the only readout
 export const useLegendMode = () => useAttributeValue("legendMode") || "hidden"
 
 export const focusDimension = (chart, id) => {
@@ -47,7 +41,6 @@ export const focusDimension = (chart, id) => {
   chart.updateAttribute("focusedDimensionId", id)
 }
 
-// an entry can unmount under the pointer (toggle, re-sort, resize) without a mouseleave
 export const useClearFocusOnUnmount = () => {
   const chart = useChart()
 

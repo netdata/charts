@@ -19,7 +19,6 @@ const extraIcons = {
   reset: "M3 8a5 5 0 1 0 1.5-3.5M3 2.5v3h3",
 }
 
-// tiles hide the legend; few series label the lines directly; wide or crowded charts get the table
 export const pickLegend = ({ width, count }) => {
   if (width < 420) return "hidden"
   if (width >= 900 || count > 6) return "table"

@@ -160,7 +160,6 @@ const plainHeaders = {
   metrics: "Metrics",
 }
 
-// Only the columns that change look are replaced; everything else keeps its cell and sorting.
 export const modernizeColumns = (columns, { nameHeader = "Name" } = {}) =>
   columns.map(column => {
     switch (column.id) {

@@ -151,7 +151,6 @@ describe("live legend layout", () => {
     const shown = within(column).queryAllByTestId("modernLegend-label")
     const area = chart.getUI().getPlotArea()
     const hiddenSlots = Math.max(0, Math.floor((area.top + area.height) / 16) - 3)
-    // hidden series only get a row when it fits under the column
     expect(hiddenSlots).toBeLessThan(57)
     expect(shown).toHaveLength(3 + hiddenSlots)
     shown

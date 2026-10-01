@@ -101,7 +101,6 @@ const Status = ({ status, color, hasFilters, open, onToggle, children }) => {
       </TextSmall>
     )
 
-  // an empty or failing query is often fixed from the filters, so the state stays a way in
   return (
     <ScopeButton
       type="button"
@@ -139,7 +138,6 @@ const Hidden = ({ count, leading }) => {
 const ScopeLine = ({ hasFilters = true, open = false, onToggle }) => {
   const initialLoading = useInitialLoading()
   const empty = useEmpty()
-  // useChartError reads the attribute inside the failFetch event, before failFetch stores it
   const error = useAttributeValue("error")
   const text = useScopeText()
   const hidden = useHiddenDimensionsCount()

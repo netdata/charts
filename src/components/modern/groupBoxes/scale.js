@@ -21,7 +21,6 @@ export const pickStep = (value, min, max, steps) => {
   return Math.min(steps - 1, Math.floor(ratio * steps))
 }
 
-// Colours are read on every draw so a theme switch repaints with the matching scale.
 export const makeModernColor = chart => (min, max) => {
   const scale = getScale(chart)
   const threshold = getThreshold(chart)
