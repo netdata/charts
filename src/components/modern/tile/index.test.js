@@ -164,6 +164,22 @@ describe("modern tile revealed", () => {
     expect(screen.getByTestId("chartScope")).toHaveTextContent("1 node")
   })
 
+  it("keeps the scope line off the body while the plot is hovered", async () => {
+    const { chart } = await renderModern()
+
+    act(() => chart.updateAttribute("focused", true))
+
+    expect(getComputedStyle(screen.getByTestId("modernTile-scope")).visibility).toBe("hidden")
+  })
+
+  it("shows the scope line while the menu is open", async () => {
+    const { user, chart } = await renderModern()
+
+    await openMenu(user, chart)
+
+    expect(getComputedStyle(screen.getByTestId("modernTile-scope")).visibility).toBe("visible")
+  })
+
   it("keeps the actions reachable by keyboard while the tile is at rest", async () => {
     await renderModern()
 

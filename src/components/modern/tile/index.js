@@ -124,6 +124,7 @@ const ScopeRow = styled.div`
   background: ${getColor("panelBg")};
   visibility: ${({ $visible }) => ($visible ? "visible" : "hidden")};
 
+  ${HeadArea}:hover > &,
   &:focus-within {
     visibility: visible;
   }
@@ -224,7 +225,7 @@ const ModernTile = ({ children, customChildren, hasFilters = true, height, width
         <ScopeRow
           ref={scopeRef}
           data-tile-scope
-          $visible={revealed || !!error}
+          $visible={menuActive || filtersOpen || !!error}
           data-testid="modernTile-scope"
         >
           <ScopeLine
