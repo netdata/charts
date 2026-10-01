@@ -220,3 +220,13 @@ flavour, 1000 rows x 20 dims x 10 charts): uPlot/dygraph total task ratio 0.739,
 - `useChartError` (`provider/selectors.js`) reads the error attribute inside `failFetch`, which
   `makeDataFetch.js` triggers before storing the error, so the default Status badge can miss the first
   error.
+
+### Palette decision (2026-10-01)
+
+One palette for both renderers, in `src/sdk/makeChart/theme/dimensionColors.js` (20 [light, dark]
+pairs; length kept at 20 because cloud-frontend indexes positions up to 19). The first 8 are the
+validated set; positions 9-20 were searched to pass the same checks for adjacent pairs (no reds,
+same hue in both themes, lightness band, chroma floor, 3:1 contrast). Validator: light CVD floor
+ΔE 7.4, dark CVD floor ΔE 6.0, normal vision ≥ 15 in both. The per-renderer uPlot palette is removed.
+Consumers that pick palette positions for meaning (e.g. cloud-frontend geoMap "mostOffline") change
+hue and should move to status colours.

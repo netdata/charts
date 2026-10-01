@@ -1,5 +1,4 @@
 import dimensionColors from "./theme/dimensionColors"
-import uplotDimensionColors from "./theme/uplotDimensionColors"
 import deepEqual, { setsAreEqual } from "@/helpers/deepEqual"
 import {
   cropHeatmapZeroEdges,
@@ -192,23 +191,19 @@ export default (chart, sdk) => {
     return sort(() => [...chart.getVisibleDimensionIds()], x)
   }
 
-  const isUplot = () => chart.getAttribute("chartLibrary") === "uplot"
-  const getPalette = () => (isUplot() ? uplotDimensionColors : dimensionColors)
-
   const getNextColor = () => {
-    const palette = getPalette()
     const colorsAttribute = chart.getAttribute("colors", [])
     const positional = Array.isArray(colorsAttribute) ? colorsAttribute : []
-    const index = colorCursor++ % (positional.length + palette.length)
+    const index = colorCursor++ % (positional.length + dimensionColors.length)
 
     const nextColor =
       index < positional.length
         ? typeof positional[index] === "number"
-          ? palette[positional[index]]
+          ? dimensionColors[positional[index]]
           : !positional[index]
-            ? palette[colorCursor % palette.length]
+            ? dimensionColors[colorCursor % dimensionColors.length]
             : positional[index]
-        : palette[index - positional.length]
+        : dimensionColors[index - positional.length]
 
     return nextColor
   }
@@ -339,12 +334,12 @@ export default (chart, sdk) => {
     let color
     if (keyedColors && id in keyedColors) {
       const value = keyedColors[id]
-      color = typeof value === "number" ? getPalette()[value] : value
+      color = typeof value === "number" ? dimensionColors[value] : value
     } else {
       color =
         isSelected && Array.isArray(colorsAttr) && colorsAttr.length
           ? colorsAttr[0]
-          : sdk.getRoot().getNextColor(getNextColor, isUplot() ? `uplot:${key}` : key, id)
+          : sdk.getRoot().getNextColor(getNextColor, key, id)
     }
 
     const index = chart.getThemeIndex()
