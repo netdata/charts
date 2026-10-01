@@ -20,6 +20,7 @@ import TileReadout from "./readout"
 import AnomalyIndicator from "./anomaly"
 
 const selfSignallingLibraries = new Set(["gauge", "number"])
+const bodyUnitLibraries = new Set(["number", "gauge", "easypiechart", "bars", "d3pie"])
 
 const PlainStatus = () => <Status plain />
 
@@ -144,6 +145,8 @@ const TileTitle = () => {
   const title = useTitle()
   const units = useUnitSign({ withoutConversion: true, long: true })
   const hideUnits = useAttributeValue("hideUnits") ?? true
+  const chartLibrary = useAttributeValue("chartLibrary")
+  const showUnits = !!units && !hideUnits && !bodyUnitLibraries.has(chartLibrary)
 
   const onClick = event => {
     event.preventDefault()
@@ -153,7 +156,7 @@ const TileTitle = () => {
   return (
     <TitleText title={title} onClick={onClick} data-testid="modernTile-title">
       <span>{title}</span>
-      {!!units && !hideUnits && <Units>{` • [${units}]`}</Units>}
+      {showUnits && <Units>{` • [${units}]`}</Units>}
     </TitleText>
   )
 }

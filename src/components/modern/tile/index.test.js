@@ -105,6 +105,21 @@ describe("modern tile at rest", () => {
     expect(screen.queryByText("Add to dashboard")).not.toBeInTheDocument()
   })
 
+  it("shows the units in the title of a line tile when units are not hidden", async () => {
+    await renderModern({ hideUnits: false })
+
+    expect(screen.getByTestId("modernTile-title")).toHaveTextContent(/System load • \[.+\]/)
+  })
+
+  it.each(["number", "gauge", "easypiechart", "bars", "d3pie"])(
+    "leaves the units to the %s body",
+    async chartLibrary => {
+      await renderModern({ hideUnits: false, chartLibrary })
+
+      expect(screen.getByTestId("modernTile-title")).toHaveTextContent(/^System load$/)
+    }
+  )
+
   it("triggers goToLink from the title like the default tile title", async () => {
     const { chart } = await renderModern()
     const links = []

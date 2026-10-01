@@ -11,7 +11,7 @@ import {
 import { numeralsFont } from "@/components/modern/tokens"
 import { formatReadout } from "@/components/modern/format"
 import Sparkline from "./sparkline"
-import StatusIndicator, { getClearDescription } from "@/components/modern/status"
+import StatusIndicator from "@/components/modern/status"
 import { useAttention } from "./attention"
 
 const clamp = (value, low, high) => Math.min(Math.max(value, low), high)
@@ -62,6 +62,13 @@ export const getMean = values => {
   return numbers.reduce((sum, value) => sum + value, 0) / numbers.length
 }
 
+const stateUnits = new Set(["state", "status", "boolean", "ntp mode"])
+
+export const isStateUnit = units =>
+  []
+    .concat(units || [])
+    .some(unit => stateUnits.has(String(unit).replace(/[{}]/g, "").trim().toLowerCase()))
+
 const safeId = id => String(id).replace(/[^a-zA-Z0-9_-]/g, "-")
 
 const ModernNumber = ({ uiName }) => {
@@ -80,7 +87,7 @@ const ModernNumber = ({ uiName }) => {
     delta === null ? "-" : formatReadout(chart, Math.abs(delta), { dimensionId, unitAttributes })
 
   const [rangeMin] = chart.getAttribute("getValueRange")(chart)
-  const { alert, color, watching } = useAttention(toFinite(value), rangeMin)
+  const { alert, color } = useAttention(toFinite(value), rangeMin)
 
   const hoverIndex = hoverX ? chart.getClosestRow(hoverX[0]) : -1
   const markerIndex = hoverIndex === -1 || hoverIndex === undefined ? values.length - 1 : hoverIndex
@@ -93,7 +100,7 @@ const ModernNumber = ({ uiName }) => {
   const sparkHeight = height >= 80 ? Math.round(clamp(height * 0.3, 18, 64)) : 0
 
   const deltaText =
-    delta === null || convertedDelta === "-"
+    delta === null || convertedDelta === "-" || isStateUnit(chart.getUnits())
       ? ""
       : `${delta >= 0 ? "+" : "−"}${convertedDelta} vs mean`
 
@@ -109,13 +116,12 @@ const ModernNumber = ({ uiName }) => {
       data-testid="modernNumber"
     >
       <Flex column gap={1} padding={[2, 3, sparkHeight ? 1 : 2]} flex justifyContent="center">
-        {(!!alert || watching > 0) && (
+        {!!alert && (
           <Flex justifyContent="end">
             <StatusIndicator
-              status={alert ? alert.level : "clear"}
-              count={alert?.count}
-              names={alert?.names}
-              description={alert ? null : getClearDescription(watching)}
+              status={alert.level}
+              count={alert.count}
+              names={alert.names}
               data-testid="modernNumberStatus"
             />
           </Flex>

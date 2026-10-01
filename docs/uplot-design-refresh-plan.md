@@ -241,7 +241,9 @@ hue and should move to status colours.
 2. A: charts resolves palette slot numbers in the selected and sparkline colour paths; `contexts.js`
    `colors: colors[n]` becomes `colors: [n]`; taxonomy hex pairs become slot numbers in order.
 3. A: one shared chart.js theme in `lib/chartjs`, applied when Modern is on (fonts, recessive
-   grid/axes, modern tooltip, `formatReadout`, palette).
+   grid/axes, modern tooltip, `formatReadout`, palette). Future option C (revisit later): move the
+   time-bar chart.js charts (feeds, traces volume/errors) to @netdata/charts via `getChart`, then
+   percentiles once the uPlot renderer has a log scale; billing, scatter, categories, pies stay.
 4. A: categorical lists (`chartColors`, sankey, retention, insights fallback) use the shared palette
    for everyone.
 5. A: state colours (log levels, alert timeline, geoMap status, networkForces) map to theme status
@@ -250,3 +252,4 @@ hue and should move to status colours.
 7. A: number tiles show units once, no delta on state metrics, dot only on warning/critical.
 8. A: maps, topology, fleet map, uptime strips only swap categorical hex for the palette.
 9. A: sequential edits in the user's working tree, touching only files in this plan; agents read only.
+10. Open: hover popover while a modern legend is visible (current: suppressed, R3).

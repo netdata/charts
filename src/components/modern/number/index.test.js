@@ -8,7 +8,7 @@ import { formatReadout } from "@/components/modern/format"
 import { makePayload, makeWave } from "@/helpers/makeWavePayload"
 import { NumberChart } from "@/components/number"
 import systemLoadLine from "../../../../fixtures/systemLoadLine"
-import ModernNumber, { AttentionPill, getMean } from "./index"
+import ModernNumber, { AttentionPill, getMean, isStateUnit } from "./index"
 import { getPillInk } from "./attention"
 
 const readLatest = (chart, id) =>
@@ -47,6 +47,17 @@ const rgbToHex = rgb =>
     .map(n => Number(n).toString(16).padStart(2, "0"))
     .join("")}`.toUpperCase()
 
+describe("isStateUnit", () => {
+  it.each([["{state}"], ["status"], [["{boolean}"]], ["{ntp mode}"]])(
+    "treats %p as a state",
+    units => expect(isStateUnit(units)).toBe(true)
+  )
+
+  it.each([["requests/s"], [["%"]], [""], [undefined]])("treats %p as a measure", units =>
+    expect(isStateUnit(units)).toBe(false)
+  )
+})
+
 describe("getMean", () => {
   it("averages the numbers and skips gaps", () => {
     expect(getMean([1, null, 3])).toBe(2)
@@ -71,8 +82,16 @@ describe("ModernNumber", () => {
     expect(screen.getByTestId("modernNumberSpark")).toBeInTheDocument()
     expect(screen.getByTestId("modernNumberSparkMarker").style.left).toBe("100%")
     expect(screen.queryByTestId("modernAttentionPill")).not.toBeInTheDocument()
-    expect(screen.getByTestId("modernNumberStatus")).toHaveAttribute("data-status", "clear")
-    expect(screen.queryByTestId("modernStatus-label")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("modernNumberStatus")).not.toBeInTheDocument()
+  })
+
+  it("shows no change vs mean for a state metric", async () => {
+    const chart = await loadChart({}, requests(makeWave({ center: 1, amplitude: 1 })))
+    act(() => chart.updateAttribute("units", ["{state}"]))
+    renderWithChart(<ModernNumber />, { chart })
+
+    expect(screen.getByTestId("modernNumberValue")).toBeInTheDocument()
+    expect(screen.queryByTestId("modernNumberDelta")).not.toBeInTheDocument()
   })
 
   it("shows no status when the chart has no alerts", async () => {
