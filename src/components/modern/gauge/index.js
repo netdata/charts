@@ -69,11 +69,13 @@ export const Attention = ({ severity, showQuiet, dotColor, description, ...rest 
   )
 }
 
-// its own row above the dial keeps the status clear of the arc at every card size
+// floats in the corner rather than taking a row, so the dial gets the full height; the arc's
+// top-right corner is empty, so the status never covers it
 const AttentionRow = styled(Flex).attrs({ justifyContent: "end", alignItems: "center" })`
-  flex: none;
-  width: 100%;
-  min-height: 20px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
   padding: 0 4px;
 `
 

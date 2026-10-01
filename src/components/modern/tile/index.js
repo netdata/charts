@@ -110,10 +110,23 @@ const Reveal = styled(Flex).attrs({ alignItems: "center", gap: 0.5 })`
   }
 `
 
+// floats under the title instead of holding a row, so the chart body keeps that height at rest
+const HeadArea = styled.div`
+  position: relative;
+  flex-shrink: 0;
+  min-width: 0;
+`
+
 const ScopeRow = styled.div`
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 2;
   min-height: 16px;
   min-width: 0;
-  flex-shrink: 0;
+  padding-bottom: 2px;
+  background: ${getColor("panelBg")};
   visibility: ${({ $visible }) => ($visible ? "visible" : "hidden")};
 
   &:focus-within {
@@ -195,34 +208,36 @@ const ModernTile = ({ children, customChildren, hasFilters = true, height, width
       data-flavour="modern"
       data-revealed={revealed}
     >
-      <Header>
-        <TileTitle />
-        {alert && !revealed && (
-          <span data-tile-alert>
-            <AlertDot alert={alert} />
-          </span>
-        )}
-        {(hasToolbox || leftElements.length > 0) && (
-          <Reveal data-tile-actions $visible={revealed} data-testid="modernTile-reveal">
-            {leftElements.map((Element, index) => (
-              <Element key={index} plain />
-            ))}
-            {hasToolbox && <TileActions hasFilters={hasFilters} onOpenChange={setMenuActive} />}
-          </Reveal>
-        )}
-      </Header>
-      <ScopeRow
-        ref={scopeRef}
-        data-tile-scope
-        $visible={revealed || !!error}
-        data-testid="modernTile-scope"
-      >
-        <ScopeLine
-          hasFilters={hasFilters}
-          open={filtersOpen}
-          onToggle={() => setFiltersOpen(prev => !prev)}
-        />
-      </ScopeRow>
+      <HeadArea>
+        <Header>
+          <TileTitle />
+          {alert && !revealed && (
+            <span data-tile-alert>
+              <AlertDot alert={alert} />
+            </span>
+          )}
+          {(hasToolbox || leftElements.length > 0) && (
+            <Reveal data-tile-actions $visible={revealed} data-testid="modernTile-reveal">
+              {leftElements.map((Element, index) => (
+                <Element key={index} plain />
+              ))}
+              {hasToolbox && <TileActions hasFilters={hasFilters} onOpenChange={setMenuActive} />}
+            </Reveal>
+          )}
+        </Header>
+        <ScopeRow
+          ref={scopeRef}
+          data-tile-scope
+          $visible={revealed || !!error}
+          data-testid="modernTile-scope"
+        >
+          <ScopeLine
+            hasFilters={hasFilters}
+            open={filtersOpen}
+            onToggle={() => setFiltersOpen(prev => !prev)}
+          />
+        </ScopeRow>
+      </HeadArea>
       {hasFilters && filtersOpen && scopeRef.current && (
         <Drop
           target={scopeRef.current}
