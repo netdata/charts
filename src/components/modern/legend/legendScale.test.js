@@ -47,7 +47,20 @@ const hoverRow = async (chart, row, id) => {
 
 const count = 2000
 const bigPayload = manyPayload(count)
-const readoutPattern = /^-?[\d,]+(\.\d{1,2})?$/
+const latestValue = (chart, id) =>
+  chart.getDimensionValue(id, chart.getPayload().data.length - 1, { abs: false, allowNull: true })
+
+const defaultValue = (chart, value, dimensionId) =>
+  chart.getConvertedValue(value, {
+    dimensionId,
+    unitAttributes: chart.getUnitAttributesForValue(value, { dimensionId }),
+  })
+
+const defaultUnit = (chart, value, dimensionId) =>
+  chart.getUnitSign({
+    dimensionId,
+    unitAttributes: chart.getUnitAttributesForValue(value, { dimensionId }),
+  })
 
 describe("modern legend at scale", () => {
   it("renders a bounded window of side table rows for thousands of dimensions", async () => {
@@ -151,7 +164,7 @@ describe("window stats cache", () => {
 })
 
 describe("modern readout formatting", () => {
-  it("formats table values, means and maxes with readout decimals", async () => {
+  it("formats table means and maxes per value, each with its own unit", async () => {
     const { chart } = await renderLine(
       { designFlavour: "modern", legendLayout: "table" },
       manyPayload(3)
@@ -164,20 +177,23 @@ describe("modern readout formatting", () => {
 
     expect(row).toHaveTextContent(formatReadout(chart, stats.avg[index], { dimensionId: "dim1" }))
     expect(row).toHaveTextContent(formatReadout(chart, stats.max[index], { dimensionId: "dim1" }))
-    row
-      .querySelectorAll("td:not(:first-child) > span:first-child")
-      .forEach(cell => cell.textContent !== "-" && expect(cell.textContent).toMatch(readoutPattern))
+    expect(row).toHaveTextContent(defaultUnit(chart, stats.max[index], "dim1"))
   })
 
-  it("formats the one-line legend with readout decimals", async () => {
-    await renderLine({ designFlavour: "modern", legendLayout: "below" }, manyPayload(3))
+  it("formats the one-line legend like the default per-value readout", async () => {
+    const { chart } = await renderLine(
+      { designFlavour: "modern", legendLayout: "below" },
+      manyPayload(3)
+    )
     screen.getAllByTestId("modernLegend-entry").forEach(entry => {
-      const value = entry.querySelector("span:nth-of-type(3)")
-      expect(value.textContent).toMatch(readoutPattern)
+      const id = entry.getAttribute("data-dimension")
+      const value = latestValue(chart, id)
+      expect(entry).toHaveTextContent(defaultValue(chart, value, id))
+      expect(entry).toHaveTextContent(defaultUnit(chart, value, id))
     })
   })
 
-  it("formats the direct labels with readout decimals", async () => {
+  it("formats the direct labels like the default per-value readout", async () => {
     const { chart } = await renderLine(
       { designFlavour: "modern", legendLayout: "direct", chartLibrary: "uplot" },
       manyPayload(3)
@@ -189,9 +205,11 @@ describe("modern readout formatting", () => {
 
     const labels = screen.getAllByTestId("modernLegend-label")
     expect(labels).toHaveLength(3)
-    labels.forEach(label =>
-      expect(label.querySelector("span:nth-of-type(2)").textContent).toMatch(readoutPattern)
-    )
+    labels.forEach(label => {
+      const id = label.getAttribute("data-dimension")
+      const value = latestValue(chart, id)
+      expect(label).toHaveTextContent(defaultValue(chart, value, id))
+    })
   })
 })
 

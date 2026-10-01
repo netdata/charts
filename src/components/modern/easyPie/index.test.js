@@ -58,13 +58,12 @@ describe("ModernEasyPie", () => {
     expect(screen.getByRole("img")).toHaveAttribute("aria-label", `${readout} ${convertedUnit}`)
   })
 
-  it("keeps the centre value to at most two decimals", async () => {
+  it("shows the centre value with the same digits as the default easy pie", async () => {
     const chart = await loadChart({}, utilization(1.8813))
     renderWithChart(<ModernEasyPie size={120} />, { chart })
 
-    expect(readLatest(chart, "utilization").convertedValue).toBe("1.8813")
-    expect(screen.getByTestId("modernEasyPieValue")).toHaveTextContent(/^1\.88$/)
-    expect(screen.getByRole("img")).toHaveAttribute("aria-label", "1.88 %")
+    const { convertedValue } = readLatest(chart, "utilization")
+    expect(screen.getByTestId("modernEasyPieValue")).toHaveTextContent(convertedValue)
   })
 
   it("keeps the decimals the user chose in the centre value", async () => {

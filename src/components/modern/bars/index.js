@@ -7,7 +7,6 @@ import {
   usePayload,
   useLatestValue,
   useLatestDisplayValue,
-  useUnitSign,
   useVisibleDimensionId,
 } from "@/components/provider"
 import Value, { Value as ValuePart } from "@/components/line/dimensions/value"
@@ -15,7 +14,7 @@ import getWindowRange from "@/helpers/getWindowRange"
 import { labels as annotationLabels } from "@/helpers/annotations"
 import Tooltip from "@/components/tooltip"
 import { numeralsFont, tabularNumbers, radius } from "@/components/modern/tokens"
-import { formatReadout } from "@/components/modern/format"
+import { formatReadout, formatReadoutUnit } from "@/components/modern/format"
 
 const rowHeight = 24
 const emptyArray = [null, null]
@@ -95,7 +94,7 @@ const Bar = ({ id, emphasis }) => {
 const DisplayValue = ({ id, strong }) => {
   const chart = useChart()
   const value = useLatestDisplayValue(id, { allowNull: true })
-  const convertedUnit = useUnitSign({ dimensionId: id })
+  const convertedUnit = formatReadoutUnit(chart, value, { dimensionId: id })
   const convertedValue = formatReadout(chart, value, { dimensionId: id })
 
   return (

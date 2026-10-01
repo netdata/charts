@@ -335,12 +335,13 @@ describe("modern group boxes", () => {
       return chart
     }
 
-    it("formats the modern legend range with readout decimals", async () => {
-      await renderReadouts("modern")
+    it("formats the modern legend range like the default legend", async () => {
+      const chart = await renderReadouts("modern")
 
       const legend = screen.getByTestId("groupBox-legend")
-      expect(legend).toHaveTextContent("27.9 %")
-      expect(legend).toHaveTextContent("92.6 %")
+      expect(legend).toHaveTextContent(`${chart.getConvertedValue(chart.getAttribute("min"))} %`)
+      expect(legend).toHaveTextContent(`${chart.getConvertedValue(chart.getAttribute("max"))} %`)
+      expect(legend).toHaveTextContent("27.86 %")
     })
 
     it("keeps the default legend range as it was", async () => {
@@ -364,9 +365,9 @@ describe("modern group boxes", () => {
       return { ...result, chart, id }
     }
 
-    it("formats the modern hover value with readout decimals", async () => {
+    it("formats the modern hover value like the default popover", async () => {
       await renderLabels("modern")
-      expect(screen.getByTestId("chartPopover-labels")).toHaveTextContent("42.6 %")
+      expect(screen.getByTestId("chartPopover-labels")).toHaveTextContent("42.57 %")
     })
 
     it("keeps the default hover value as it was", async () => {

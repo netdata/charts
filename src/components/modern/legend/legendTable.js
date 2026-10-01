@@ -183,21 +183,6 @@ const useScrollFade = deps => {
   return [ref, fade, update]
 }
 
-const unitAttributes = ["unitsConversionPrefix", "unitsConversionBase", "unitsByDimension"]
-
-const useSharedUnit = ids => {
-  const chart = useChart()
-  const cache = useRef({ key: null, unit: "" })
-  const key = [ids, ...unitAttributes.map(name => chart.getAttribute(name))]
-
-  if (!cache.current.key || cache.current.key.some((value, i) => value !== key[i])) {
-    const units = new Set(ids.map(id => chart.getUnitSign({ dimensionId: id })))
-    cache.current = { key, unit: units.size === 1 ? [...units][0] : "" }
-  }
-
-  return cache.current.unit
-}
-
 const LegendTable = () => {
   const chart = useChart()
   const sort = useAttributeValue("dimensionsSort")
@@ -206,7 +191,6 @@ const LegendTable = () => {
   useClearFocusOnUnmount()
   const time = useFormatTime(timestamp)
   const [scrollRef, fade, onScroll] = useScrollFade([ids.length])
-  const sharedUnit = useSharedUnit(ids)
   const onSort = value => chart.updateAttribute("dimensionsSort", value)
 
   const virtualizer = useVirtualizer({
@@ -267,13 +251,15 @@ const LegendTable = () => {
                     </NameCell>
                     <Cell $strong>
                       <Numeral>{row.visible ? row.display : "-"}</Numeral>
-                      {row.visible && !!row.unit && !sharedUnit && <Unit>{row.unit}</Unit>}
+                      {row.visible && !!row.unit && <Unit>{row.unit}</Unit>}
                     </Cell>
                     <Cell>
                       <Numeral>{row.mean}</Numeral>
+                      {row.mean !== "-" && !!row.meanUnit && <Unit>{row.meanUnit}</Unit>}
                     </Cell>
                     <Cell>
                       <Numeral>{row.max}</Numeral>
+                      {row.max !== "-" && !!row.maxUnit && <Unit>{row.maxUnit}</Unit>}
                     </Cell>
                     <Cell>
                       <Numeral>{row.visible ? row.anomaly || "-" : "-"}</Numeral>
@@ -286,9 +272,6 @@ const LegendTable = () => {
         </Scroller>
         {fade && <Fade />}
       </ScrollArea>
-      {!!sharedUnit && (
-        <Unit as="div" data-testid="modernLegend-unit">{`Values in ${sharedUnit}`}</Unit>
-      )}
     </Wrapper>
   )
 }

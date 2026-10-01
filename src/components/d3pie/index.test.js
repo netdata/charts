@@ -86,7 +86,7 @@ describe("D3pie", () => {
       expect(screen.getByTestId("donut-center-caption")).toHaveTextContent("GiB total")
     })
 
-    it("formats slice and total readouts with capped decimals", async () => {
+    it("formats slice readouts like the default per-value readout", async () => {
       const chart = await loadChart(
         "modern",
         makePayload({
@@ -102,13 +102,23 @@ describe("D3pie", () => {
       )
       renderWithChart(<D3pie />, { chart })
 
+      const readout = (value, dimensionId) =>
+        chart.getConvertedValue(value, {
+          dimensionId,
+          unitAttributes: chart.getUnitAttributesForValue(value, { dimensionId }),
+        })
       const values = screen.getAllByTestId("donut-legend-value").map(el => el.textContent)
-      expect(values).toEqual(["449", "31.7", "4"])
-      expect(screen.getByTestId("donut-center-value")).toHaveTextContent(/^485$/)
+      expect(values).toEqual([
+        readout(449.12, "running"),
+        readout(31.7249, "blocked"),
+        readout(3.99561, "waiting"),
+      ])
       expect(screen.getByTestId("donut-center-caption")).toHaveTextContent("threads total")
 
       fireEvent.mouseEnter(screen.getAllByTestId("donut-legend-row")[2])
-      expect(screen.getByTestId("donut-center-value")).toHaveTextContent("4 threads")
+      expect(screen.getByTestId("donut-center-value")).toHaveTextContent(
+        `${readout(3.99561, "waiting")} threads`
+      )
     })
 
     it("keeps user decimals in the donut readouts", async () => {

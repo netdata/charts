@@ -4,7 +4,6 @@ import { Flex, TextMicro } from "@netdata/netdata-ui"
 import { useChart, useAttributeValue, useValueWithUnit, useIsModern } from "@/components/provider"
 import { BaseColorBar } from "@/components/line/dimensions/color"
 import { makeModernColor } from "@/components/modern/groupBoxes/scale"
-import { formatReadout } from "@/components/modern/format"
 import Label from "./label"
 
 const Container = styled(Flex).attrs(props => ({
@@ -66,11 +65,9 @@ const Labels = ({ label, groupLabel, data, id, ref }) => {
         <Flex alignItems="center" position="relative">
           <ColorBackground value={value} min={min} max={max} bg={barColor} height="18px" />
           <TextMicro padding={[1.5, 2]} strong>
-            {isModern
-              ? formatReadout(chart, displayValue, { dimensionId: id, withUnit: true })
-              : convertedValue !== "-" && convertedUnit
-                ? `${convertedValue} ${convertedUnit}`
-                : `${convertedValue}`}
+            {convertedValue !== "-" && convertedUnit
+              ? `${convertedValue} ${convertedUnit}`
+              : `${convertedValue}`}
           </TextMicro>
         </Flex>
       </Flex>

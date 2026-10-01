@@ -126,26 +126,24 @@ describe("ModernNumber", () => {
     expect(screen.getByTestId("modernNumberDelta")).toHaveTextContent(`${sign}${converted} vs mean`)
   })
 
-  it("keeps the value and the delta to at most two decimals", async () => {
+  it("shows the value with the same digits as the default number chart", async () => {
     const chart = await loadChart()
     renderWithChart(<ModernNumber />, { chart })
 
     const [id] = chart.getVisibleDimensionIds()
     const { convertedValue } = readLatest(chart, id)
 
-    expect(convertedValue).toMatch(/\.\d{3,}$/)
-    expect(screen.getByTestId("modernNumberValue").textContent).toMatch(/^[\d,]+(\.\d{1,2})?$/)
-    expect(screen.getByTestId("modernNumberDelta").textContent).toMatch(/^[+−][\d,]+(\.\d{1,2})? /)
+    expect(screen.getByTestId("modernNumberValue")).toHaveTextContent(convertedValue)
   })
 
-  it("scales thousands with two decimals on the same unit as the value", async () => {
+  it("scales thousands on the same unit as the default number chart", async () => {
     const chart = await loadChart({}, requests([...Array(96).fill(2000), 2022.7]))
     renderWithChart(<ModernNumber />, { chart })
 
-    expect(readLatest(chart, "requests").convertedValue).toBe("2.0227")
-    expect(screen.getByTestId("modernNumberValue")).toHaveTextContent(/^2\.02$/)
-    expect(screen.getByTestId("modernNumberUnit")).toHaveTextContent(/^K/)
-    expect(screen.getByTestId("modernNumberDelta")).toHaveTextContent(/^\+0\.02 vs mean$/)
+    const { convertedValue, convertedUnit } = readLatest(chart, "requests")
+    expect(screen.getByTestId("modernNumberValue")).toHaveTextContent(convertedValue)
+    expect(screen.getByTestId("modernNumberUnit")).toHaveTextContent(convertedUnit)
+    expect(screen.getByTestId("modernNumberDelta")).toHaveTextContent(/^\+.+ vs mean$/)
   })
 
   it("keeps the decimals the user chose", async () => {

@@ -2,7 +2,7 @@ import { useRef } from "react"
 import { convert, useChart, useForceUpdate, useImmediateListener } from "@/components/provider"
 import { unregister } from "@/helpers/makeListeners"
 import { isIncremental } from "@/helpers/heatmap"
-import { formatReadout } from "@/components/modern/format"
+import { formatReadout, formatReadoutUnit } from "@/components/modern/format"
 
 const isNumber = value => typeof value === "number" && isFinite(value)
 
@@ -55,9 +55,11 @@ const formatStats = (chart, id, windowStats) =>
   windowStats
     ? {
         mean: formatReadout(chart, windowStats.mean, { dimensionId: id }),
+        meanUnit: formatReadoutUnit(chart, windowStats.mean, { dimensionId: id }),
         max: formatReadout(chart, windowStats.max, { dimensionId: id }),
+        maxUnit: formatReadoutUnit(chart, windowStats.max, { dimensionId: id }),
       }
-    : { mean: "-", max: "-" }
+    : { mean: "-", meanUnit: "", max: "-", maxUnit: "" }
 
 export const makeRow = (chart, id, index, stats, formatted) => {
   const value =
@@ -79,12 +81,14 @@ export const makeRow = (chart, id, index, stats, formatted) => {
     visible: chart.isDimensionVisible(id),
     value,
     display: formatReadout(chart, value, { dimensionId: id }),
-    unit: chart.getUnitSign({ dimensionId: id }),
+    unit: formatReadoutUnit(chart, value, { dimensionId: id }),
     arp: isNumber(arp) ? arp : 0,
     anomaly: isNumber(arp) && arp > 0 ? `${convert(chart, arp, { valueKey: "arp" })}%` : "",
     flags: hasFlags(flags) ? flags : null,
     mean: summary.mean,
+    meanUnit: summary.meanUnit,
     max: summary.max,
+    maxUnit: summary.maxUnit,
   }
 }
 

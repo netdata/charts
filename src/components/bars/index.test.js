@@ -141,11 +141,19 @@ describe("BarsChart", () => {
       expect(screen.getAllByText(/^\d+\.\d+%$/)).toHaveLength(1)
     })
 
-    it("formats values with capped decimals and one shared unit", async () => {
-      await renderBars({ designFlavour: "modern" }, decimalsPayload)
+    it("formats each value like the default per-value readout", async () => {
+      const chart = await renderBars({ designFlavour: "modern" }, decimalsPayload)
+      const expected = [64.1234, 17.3459, 3.99561].map((value, index) =>
+        chart.getConvertedValue(value, {
+          dimensionId: ["envoy", "node", "sshd"][index],
+          unitAttributes: chart.getUnitAttributesForValue(value, {
+            dimensionId: ["envoy", "node", "sshd"][index],
+          }),
+        })
+      )
 
       const values = screen.getAllByTestId("modern-bars-value").map(el => el.textContent)
-      expect(values).toEqual(["64.1", "17.3", "4"])
+      expect(values).toEqual(expected)
       screen.getAllByTestId("modern-bars-row").forEach(row => expect(row).toHaveTextContent(/%$/))
     })
 
