@@ -18,6 +18,20 @@ const Chip = styled(Flex).attrs({
   z-index: 3;
   border-radius: ${radius.pill};
   box-shadow: 0 2px 8px ${getColor("dropdownShadow")};
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease-in-out;
+
+  *:hover > &,
+  &:focus-within {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  @media (hover: none) {
+    opacity: 1;
+    pointer-events: auto;
+  }
 `
 
 const ResetButton = styled.button`

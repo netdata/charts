@@ -35,6 +35,16 @@ describe("ChartContentWrapper", () => {
     expect(screen.getByTestId("chartZoomChip")).toBeInTheDocument()
   })
 
+  it("keeps the zoom chip out of sight until the chart is hovered", () => {
+    const { chart } = makeTestChart({ attributes: { designFlavour: "modern" } })
+    renderWithChart(<ChartContentWrapper />, { chart })
+
+    zoom(chart)
+    const chip = screen.getByTestId("chartZoomChip")
+    expect(getComputedStyle(chip).opacity).toBe("0")
+    expect(getComputedStyle(chip).pointerEvents).toBe("none")
+  })
+
   it("has no zoom chip when resetting the range is disabled", () => {
     const { chart } = makeTestChart({
       attributes: { designFlavour: "modern", enabledResetRange: false },

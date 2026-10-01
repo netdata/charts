@@ -312,7 +312,8 @@ describe("Modern chart content", () => {
 
     expect(screen.getByTestId("chartZoomChip")).toHaveTextContent("Zoomed to")
 
-    await user.click(screen.getByTestId("chartZoomChip-reset"))
+    act(() => screen.getByTestId("chartZoomChip-reset").focus())
+    await user.keyboard("{Enter}")
     await waitFor(() => expect(chart.getAttribute("after")).toBe(-900))
     expect(screen.queryByTestId("chartZoomChip")).not.toBeInTheDocument()
   })
