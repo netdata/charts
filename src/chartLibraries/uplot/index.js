@@ -81,6 +81,34 @@ const nullPathBuilder = () => null
 
 const makeAxisFont = fontSize => `${fontSize}px ${axisFontFamily}`
 
+const minModernYAxisSize = 24
+const maxModernYAxisSize = 68
+// mirrors yAxisLabelWidth in sdk/initialAttributes, which pulls UI components into the import
+const shippedYAxisSize = 68
+
+let measureContext = null
+const measureLabel = (text, font) => {
+  if (!measureContext) measureContext = document.createElement("canvas").getContext("2d")
+  if (!measureContext) return 0
+
+  measureContext.font = font
+  return measureContext.measureText(text).width
+}
+
+// the shipped default is indistinguishable from a consumer setting the same width, so only a
+// different width counts as an explicit choice
+const isConfiguredYAxisSize = size => !!size && size !== shippedYAxisSize
+
+const getModernYAxisSize = (labels, font, gap) => {
+  const widest = (labels || []).reduce(
+    (max, label) =>
+      label == null || label === "" ? max : Math.max(max, measureLabel(label, font)),
+    0
+  )
+
+  return Math.min(maxModernYAxisSize, Math.max(minModernYAxisSize, Math.ceil(widest + gap)))
+}
+
 const getSplitGranularity = (splits, index) => {
   const value = splits[index]
   const previous = splits[index - 1]
@@ -439,7 +467,13 @@ export default (sdk, chart) => {
     const dimensionId = visibleDimensionIds[0]
 
     const axisFont = makeAxisFont(chart.getAttribute("axisLabelFontSize") || defaultAxisFontSize)
-    const yAxisSize = chart.getAttribute("yAxisLabelWidth") || defaultYAxisSize
+    const configuredYAxisSize = chart.getAttribute("yAxisLabelWidth")
+    const yAxisSize = configuredYAxisSize || defaultYAxisSize
+    const yAxisGap = axisGap + tickSize
+    const fitYAxisSize =
+      isModern() && !isConfiguredYAxisSize(configuredYAxisSize)
+        ? (self, values) => getModernYAxisSize(values, axisFont, yAxisGap)
+        : null
     const secondsAsTime = chart.getAttribute("secondsAsTime")
     const units = visibleDimensionIds.map(id => chart.getDimensionUnit(id))
 
@@ -488,11 +522,11 @@ export default (sdk, chart) => {
       stroke: labelColor,
       grid: { stroke: gridColor, width: 1 },
       border,
-      gap: axisGap + tickSize,
+      gap: yAxisGap,
       ...(enabledYAxis
         ? {
             ticks: { show: false },
-            size: yAxisSize,
+            size: fitYAxisSize || yAxisSize,
             splits: (self, axisIdx, scaleMin, scaleMax) =>
               makeAxisTicks({
                 min: scaleMin,

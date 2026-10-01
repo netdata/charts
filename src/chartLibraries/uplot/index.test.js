@@ -10,6 +10,7 @@ import { makePayload, makeWave } from "@/helpers/makeWavePayload"
 import Popover from "@/components/line/popover"
 import makeDefaultSDK from "../../makeDefaultSDK"
 import systemLoadLine from "../../../fixtures/systemLoadLine"
+import initialAttributes from "@/sdk/initialAttributes"
 import uplotChart from "./index"
 import { getStackBounds, getStackValueRange } from "./stacking"
 
@@ -3290,6 +3291,91 @@ describe("uplotChart y-axis label width + font size (dygraph parity)", () => {
     expect(u.axes[1].font[2]).toBe(11)
 
     teardown()
+  })
+})
+
+describe("uplotChart y-axis gutter under the modern flavour", () => {
+  const mountLine = attributes => {
+    const { sdk, chart } = makeTestChart({
+      attributes: { loaded: true, chartType: "line", ...attributes },
+    })
+    withLoadedPayload(chart)
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    return {
+      u: instance.getUPlot(),
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  const measure = (u, text) => {
+    const ctx = document.createElement("canvas").getContext("2d")
+    ctx.font = u.axes[1].font[0]
+    return ctx.measureText(text).width
+  }
+
+  const gutterFor = (u, labels) => u.axes[1].size(u, labels, 1, 0)
+
+  it("treats the shipped yAxisLabelWidth as unset", () => {
+    expect(initialAttributes.yAxisLabelWidth).toBe(68)
+  })
+
+  it("lays out a narrower gutter than the default for short labels", () => {
+    const modern = mountLine({ designFlavour: "modern" })
+    const classic = mountLine({})
+
+    expect(classic.u.axes[1]._size).toBe(initialAttributes.yAxisLabelWidth)
+    expect(modern.u.axes[1]._size).toBeLessThan(classic.u.axes[1]._size)
+    expect(gutterFor(modern.u, ["0", "5", "10"])).toBe(24)
+
+    modern.teardown()
+    classic.teardown()
+  })
+
+  it("widens the gutter to the widest label plus the axis gap", () => {
+    const { u, teardown } = mountLine({ designFlavour: "modern" })
+    const wide = "x".repeat(40)
+
+    expect(gutterFor(u, ["1", wide, null])).toBe(Math.ceil(measure(u, wide) + u.axes[1].gap))
+    expect(gutterFor(u, ["1", wide])).toBeGreaterThan(gutterFor(u, ["1", "x".repeat(20)]))
+
+    teardown()
+  })
+
+  it("caps the gutter at the default width", () => {
+    const { u, teardown } = mountLine({ designFlavour: "modern" })
+
+    expect(gutterFor(u, ["x".repeat(200)])).toBe(68)
+    expect(gutterFor(u, null)).toBe(24)
+
+    teardown()
+  })
+
+  it("keeps an explicitly configured yAxisLabelWidth", () => {
+    const { u, teardown } = mountLine({ designFlavour: "modern", yAxisLabelWidth: 20 })
+
+    expect(gutterFor(u, ["x".repeat(40)])).toBe(20)
+    expect(u.axes[1]._size).toBe(20)
+
+    teardown()
+  })
+
+  it("keeps the fixed width under the default and minimal flavours", () => {
+    ;["default", "minimal"].forEach(designFlavour => {
+      const { u, teardown } = mountLine({ designFlavour })
+
+      expect(gutterFor(u, ["0"])).toBe(68)
+      expect(gutterFor(u, ["x".repeat(200)])).toBe(68)
+      expect(u.axes[1]._size).toBe(68)
+
+      teardown()
+    })
   })
 })
 
