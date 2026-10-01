@@ -282,13 +282,16 @@ describe("modern hover", () => {
     })
   }
 
-  it("does not open the popover while a modern legend is the readout", async () => {
-    const { chart } = await loadChart({ designFlavour: "modern", legendMode: "table" })
-    renderWithChart(<Popover />, { chart })
+  it.each(["table", "below", "live"])(
+    "shows the compact tooltip next to the cursor with a %s legend",
+    async legendMode => {
+      const { chart } = await loadChart({ designFlavour: "modern", legendMode })
+      renderWithChart(<Popover />, { chart })
 
-    await hover(chart)
-    expect(screen.queryByTestId("drop")).not.toBeInTheDocument()
-  })
+      await hover(chart)
+      expect(screen.getByTestId("modernTooltip")).toBeInTheDocument()
+    }
+  )
 
   it("shows the compact tooltip when the legend is hidden", async () => {
     const { chart } = await loadChart(

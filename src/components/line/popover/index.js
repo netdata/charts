@@ -4,7 +4,6 @@ import DropContainer from "@netdata/netdata-ui/dist/components/drops/drop/contai
 import useDropElement from "@netdata/netdata-ui/dist/hooks/useDropElement"
 import { unregister } from "@/helpers/makeListeners"
 import { useChart, useIsModern } from "@/components/provider"
-import { useLegendMode } from "@/components/modern/legend/mode"
 import ModernTooltip from "@/components/modern/legend/tooltip"
 import Dimensions from "./dimensions"
 
@@ -83,10 +82,6 @@ const Popover = ({ uiName }) => {
   const [open, setOpen] = useState(false)
   const [align, setAlign] = useState(rightBottomAlign)
   const isModern = useIsModern()
-  const legendMode = useLegendMode()
-  const suppressed = isModern && legendMode !== "hidden"
-  const suppressedRef = useRef(suppressed)
-  suppressedRef.current = suppressed
 
   alignRef.current = align
   updatePositionRef.current = () => {
@@ -143,7 +138,6 @@ const Popover = ({ uiName }) => {
     const off = unregister(
       chart.getUI(uiName).on("mousemove", event => {
         if (
-          suppressedRef.current ||
           chart.sdk.getRoot().getAttribute("autofetchOnHovering") ||
           chart.getAttribute("panning") ||
           chart.getAttribute("highlighting")
@@ -164,14 +158,6 @@ const Popover = ({ uiName }) => {
       off()
     }
   }, [chart, uiName])
-
-  useEffect(() => {
-    if (!suppressed || !open) return
-
-    cancelPosition()
-    pointerRef.current = null
-    setOpen(false)
-  }, [suppressed, open])
 
   useLayoutEffect(() => {
     const drop = dropRef.current

@@ -252,4 +252,4 @@ hue and should move to status colours.
 7. A: number tiles show units once, no delta on state metrics, dot only on warning/critical.
 8. A: maps, topology, fleet map, uptime strips only swap categorical hex for the palette.
 9. A: sequential edits in the user's working tree, touching only files in this plan; agents read only.
-10. Open: hover popover while a modern legend is visible (current: suppressed, R3).
+10. B: the compact modern tooltip shows on hover for every legend layout (replaces R3 suppression).
