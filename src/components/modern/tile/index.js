@@ -1,0 +1,246 @@
+import React, { useRef, useState } from "react"
+import styled, { css } from "styled-components"
+import { Drop, Flex, getColor } from "@netdata/netdata-ui"
+import {
+  useAttributeValue,
+  useChart,
+  useOnResize,
+  useTitle,
+  useUnitSign,
+} from "@/components/provider"
+import useHover from "@/components/useHover"
+import FilterToolbox from "@/components/filterToolbox"
+import Status from "@/components/status"
+import ScopeLine from "@/components/modern/header/scopeLine"
+import { radius } from "@/components/modern/tokens"
+import { TileContext } from "./context"
+import AlertDot, { useTileAlert } from "./alertDot"
+import TileActions from "./actions"
+import TileReadout from "./readout"
+import AnomalyIndicator from "./anomaly"
+
+const PlainStatus = () => <Status plain />
+
+// as in the modern header: with a toolbox the More menu carries reload, so the default Status
+// goes; without one its reload control stays reachable among the revealed elements
+export const useTileLeftElements = hasToolbox => {
+  const leftHeaderElements = useAttributeValue("leftHeaderElements") || []
+  if (hasToolbox) return leftHeaderElements.filter(Element => Element !== Status)
+  return leftHeaderElements.map(Element => (Element === Status ? PlainStatus : Element))
+}
+
+export const getLatestValueOverlay = (overlays = {}) =>
+  Object.values(overlays || {}).find(overlay => overlay?.type === "latestValue") || null
+
+// same scale the default tile applies, so chart bodies sized in em keep their proportions
+const getFontSize = width => {
+  const size = Math.min(Math.max(width || 0, 20), 50)
+  const fontSize = parseInt(size / 3, 10)
+  return fontSize > 11 ? 11 : fontSize < 8 ? 8 : fontSize
+}
+
+// keyboard focus anywhere in the tile reveals the controls, as hovering does
+const focusRevealed = css`
+  &:focus-within [data-tile-actions] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  &:focus-within [data-tile-scope] {
+    visibility: visible;
+  }
+
+  &:focus-within [data-tile-alert] {
+    display: none;
+  }
+`
+
+const Root = styled(Flex).attrs({ column: true, position: "relative", gap: 1 })`
+  box-sizing: border-box;
+  padding: 8px 12px 10px;
+  border-radius: ${radius.card};
+  border: 1px solid
+    ${({ $revealed, theme }) =>
+      $revealed ? getColor("borderSecondary")({ theme }) : "transparent"};
+  background: ${getColor("panelBg")};
+  font-size: ${({ $fontSize }) => $fontSize}px;
+  ${focusRevealed};
+`
+
+const Header = styled(Flex).attrs({ alignItems: "center", gap: 1.5, position: "relative" })`
+  min-height: 22px;
+  flex-shrink: 0;
+`
+
+const TitleText = styled.span`
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  color: ${getColor("textLite")};
+`
+
+const Units = styled.span`
+  color: ${getColor("textLite")};
+  opacity: 0.8;
+`
+
+// overlays the end of the title instead of taking width from it, and stays focusable while hidden
+const Reveal = styled(Flex).attrs({ alignItems: "center", gap: 0.5 })`
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  padding-left: 8px;
+  background: ${getColor("panelBg")};
+  opacity: ${({ $visible }) => ($visible ? 1 : 0)};
+  pointer-events: ${({ $visible }) => ($visible ? "auto" : "none")};
+  transition: opacity 120ms ease-in-out;
+
+  &:focus-within {
+    opacity: 1;
+    pointer-events: auto;
+  }
+`
+
+const ScopeRow = styled.div`
+  min-height: 16px;
+  min-width: 0;
+  flex-shrink: 0;
+  visibility: ${({ $visible }) => ($visible ? "visible" : "hidden")};
+
+  &:focus-within {
+    visibility: visible;
+  }
+`
+
+const Body = styled(Flex).attrs({ column: true, position: "relative", flex: true })`
+  min-height: 0;
+  overflow: hidden;
+  ${({ $bleed }) =>
+    $bleed &&
+    css`
+      margin: 2px -12px -10px;
+      border-radius: 0 0 ${radius.card} ${radius.card};
+    `}
+`
+
+const TileTitle = () => {
+  const chart = useChart()
+  const title = useTitle()
+  const units = useUnitSign({ withoutConversion: true, long: true })
+  const hideUnits = useAttributeValue("hideUnits") ?? true
+
+  const onClick = event => {
+    event.preventDefault()
+    chart.sdk.trigger("goToLink", chart)
+  }
+
+  return (
+    <TitleText title={title} onClick={onClick} data-testid="modernTile-title">
+      <span>{title}</span>
+      {!!units && !hideUnits && <Units>{` • [${units}]`}</Units>}
+    </TitleText>
+  )
+}
+
+const ModernTile = ({ children, customChildren, hasFilters = true, height, width }) => {
+  const chart = useChart()
+  const { width: chartWidth } = useOnResize()
+  const focused = useAttributeValue("focused")
+  const hasToolbox = useAttributeValue("hasToolbox")
+  const overlays = useAttributeValue("overlays")
+  const error = useAttributeValue("error")
+  const leftElements = useTileLeftElements(hasToolbox)
+  const alert = useTileAlert()
+  const scopeRef = useRef()
+  const [menuActive, setMenuActive] = useState(false)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+
+  const hoverRef = useHover(
+    {
+      onHover: chart.focus,
+      onBlur: chart.blur,
+      isOut: node =>
+        !node ||
+        (!node.closest(`[data-toolbox="${chart.getId()}"]`) &&
+          !node.closest(`[data-chartid="${chart.getId()}"]`)),
+    },
+    [chart]
+  )
+
+  const revealed = !!focused || menuActive || filtersOpen
+  const readout = getLatestValueOverlay(overlays)
+  const closeFilters = () => setFiltersOpen(false)
+
+  return (
+    <Root
+      ref={hoverRef}
+      height={height}
+      width={width}
+      $revealed={revealed}
+      $fontSize={getFontSize(chartWidth)}
+      data-testid="modernTile"
+      data-flavour="modern"
+      data-revealed={revealed}
+    >
+      <Header>
+        <TileTitle />
+        {alert && !revealed && (
+          <span data-tile-alert>
+            <AlertDot alert={alert} />
+          </span>
+        )}
+        {(hasToolbox || leftElements.length > 0) && (
+          <Reveal data-tile-actions $visible={revealed} data-testid="modernTile-reveal">
+            {leftElements.map((Element, index) => (
+              <Element key={index} plain />
+            ))}
+            {hasToolbox && <TileActions hasFilters={hasFilters} onOpenChange={setMenuActive} />}
+          </Reveal>
+        )}
+      </Header>
+      <ScopeRow
+        ref={scopeRef}
+        data-tile-scope
+        $visible={revealed || !!error}
+        data-testid="modernTile-scope"
+      >
+        <ScopeLine
+          hasFilters={hasFilters}
+          open={filtersOpen}
+          onToggle={() => setFiltersOpen(prev => !prev)}
+        />
+      </ScopeRow>
+      {hasFilters && filtersOpen && scopeRef.current && (
+        <Drop
+          target={scopeRef.current}
+          align={{ top: "bottom", left: "left" }}
+          onEsc={closeFilters}
+          onClickOutside={closeFilters}
+          data-toolbox={chart.getId()}
+          background="dropdown"
+          margin={[1, 0, 0]}
+          round
+          stretch={false}
+          width={{ max: "560px" }}
+        >
+          <FilterToolbox border="none" padding={[1]} />
+        </Drop>
+      )}
+      {!!readout && <TileReadout dimensionId={readout.dimensionId} />}
+      <TileContext.Provider value>
+        <Body $bleed={!!readout}>{children}</Body>
+      </TileContext.Provider>
+      <AnomalyIndicator revealed={revealed} />
+      {customChildren}
+    </Root>
+  )
+}
+
+export default ModernTile
