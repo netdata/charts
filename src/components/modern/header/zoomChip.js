@@ -33,15 +33,15 @@ const Chip = styled(Flex).attrs({
     pointer-events: auto;
   }
 
-  ${({ $inline }) =>
+  ${({ $inline, $visible }) =>
     $inline &&
     css`
       position: static;
       padding: 0;
       background: transparent;
       box-shadow: none;
-      opacity: 1;
-      pointer-events: auto;
+      opacity: ${$visible ? 1 : 0};
+      pointer-events: ${$visible ? "auto" : "none"};
     `}
 `
 
@@ -78,6 +78,7 @@ const ZoomChip = ({ inline = false }) => {
   useAttributeValue("timezone")
   const enabledResetRange = useAttributeValue("enabledResetRange")
   const sparkline = useAttributeValue("sparkline")
+  const focused = useAttributeValue("focused")
 
   if (!enabledResetRange || sparkline) return null
 
@@ -95,6 +96,7 @@ const ZoomChip = ({ inline = false }) => {
       data-testid="chartZoomChip"
       data-toolbox={chart.getId()}
       $inline={inline}
+      $visible={!!focused}
       gap={inline ? 1.5 : 2}
     >
       <TextSmall color={inline ? "textLite" : "text"} whiteSpace="nowrap">

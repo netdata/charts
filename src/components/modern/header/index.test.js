@@ -318,7 +318,11 @@ describe("Modern chart content", () => {
 
     expect(screen.getByTestId("chartZoomChip")).toHaveTextContent("Zoomed to")
 
-    expect(within(screen.getByTestId("chartHeader")).getByTestId("chartZoomChip")).toBeVisible()
+    const chip = within(screen.getByTestId("chartHeader")).getByTestId("chartZoomChip")
+    act(() => chart.updateAttribute("focused", false))
+    expect(getComputedStyle(chip).opacity).toBe("0")
+    act(() => chart.updateAttribute("focused", true))
+    expect(getComputedStyle(chip).opacity).toBe("1")
 
     await user.click(screen.getByTestId("chartZoomChip-reset"))
     await waitFor(() => expect(chart.getAttribute("after")).toBe(-900))
