@@ -1,5 +1,5 @@
 import { makeTestChart } from "@jest/testUtilities"
-import { makePayload, makeWave } from "@/helpers/makeWavePayload"
+import { makePayload, makeWave } from "../../../../fixtures/makeWavePayload"
 import uplotChart from "../index"
 import getPxRatio from "../pxRatio"
 import makeLiveEdge, {

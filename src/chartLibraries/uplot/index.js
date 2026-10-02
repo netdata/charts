@@ -12,13 +12,14 @@ import { isVisibleDimension } from "@/chartLibraries/helpers/dimensionVisibility
 import { formatHeatmapLabel } from "@/helpers/heatmapScale"
 import {
   getSeriesStackBounds,
+  getRowStackEnds,
   getStackBounds,
   getStackSegments,
   getStackValueRange,
   selectStackRows,
 } from "./stacking"
 import makeOverlays from "./overlays"
-import makeAnomaly, { makeAnomalyShade } from "./plotters/anomaly"
+import makeAnomaly, { makeAnomalyShade, makeAnomalySpotlight } from "./plotters/anomaly"
 import makeAnomalyBadge from "./plotters/anomalyBadge"
 import makeAnnotations from "./plotters/annotations"
 import makeLiveEdge, { haloRadius, isLiveLayout } from "./plotters/liveEdge"
@@ -372,17 +373,23 @@ export default (sdk, chart) => {
         if (chartType === "heatmap") return getHeatmapValueRange()
 
         const staticValueRange = chart.getAttribute("staticValueRange")
-        if (staticValueRange) return staticValueRange
+        if (staticValueRange) return padYRange(self, staticValueRange[0], staticValueRange[1])
 
-        if (isBarType(chartType)) return getBarValueRange(self, chartType, dataMin, dataMax)
+        const [rangeMin, rangeMax] = chart.getAttribute("getValueRange")(chart, { dygraph: true })
+
+        if (isBarType(chartType)) {
+          const [barMin, barMax] = getBarValueRange(self, chartType, dataMin, dataMax)
+          return [rangeMin == null ? barMin : rangeMin, rangeMax == null ? barMax : rangeMax]
+        }
 
         let min
         let max
 
         if (chartType === "stacked") {
-          ;[min, max] = getStackValueRange(stackBounds())
+          const [stackMin, stackMax] = getStackValueRange(stackBounds())
+          min = rangeMin == null ? stackMin : rangeMin
+          max = rangeMax == null ? stackMax : rangeMax
         } else {
-          const [rangeMin, rangeMax] = chart.getAttribute("getValueRange")(chart, { dygraph: true })
           min = rangeMin == null ? dataMin : rangeMin
           max = rangeMax == null ? dataMax : rangeMax
         }
@@ -548,7 +555,11 @@ export default (sdk, chart) => {
     const timestamp = dimensions[0]
     if (timestamp == null) return
 
-    const left = self.valToPos(timestamp / 1000, "x", true)
+    const row = chart.getClosestRow(timestamp)
+    const rowData = row === -1 ? null : chart.getPayload().data[row]
+    if (!Array.isArray(rowData)) return
+
+    const left = self.valToPos(rowData[0] / 1000, "x", true)
     const { top, height } = self.bbox
 
     ctx.save()
@@ -781,6 +792,7 @@ export default (sdk, chart) => {
 
   const drawAnomaly = makeAnomaly(chartUI)
   const drawAnomalyShade = makeAnomalyShade(chartUI)
+  const drawAnomalySpotlight = makeAnomalySpotlight(chartUI)
   const drawAnomalyBadge = makeAnomalyBadge(chartUI)
   const drawLiveEdge = makeLiveEdge(chartUI)
   const drawAnnotations = makeAnnotations(chartUI)
@@ -825,6 +837,11 @@ export default (sdk, chart) => {
     const dpr = getPxRatio()
     const radius = (chart.isSparkline() ? sparklineHoverDotRadius : hoverDotRadius) * dpr
     const dimensionIds = chart.getPayloadDimensionIds()
+    const chartType = chart.getAttribute("chartType")
+    const stackEnds =
+      chartType === "stacked" || chartType === "stackedBar"
+        ? getRowStackEnds(self.data, row, index => isVisible(dimensionIds[index]))
+        : null
 
     ctx.save()
 
@@ -832,7 +849,7 @@ export default (sdk, chart) => {
       if (!isVisible(id)) return
 
       const series = self.data[index + 1]
-      const value = series && series[row]
+      const value = stackEnds ? stackEnds[index] : series && series[row]
       if (value == null) return
 
       const y = self.valToPos(value, "y", true)
@@ -1181,6 +1198,13 @@ export default (sdk, chart) => {
       downY = event.clientY
       dragged = false
       downedOnOver = true
+      document.addEventListener("mousemove", onMoveTrack)
+      document.addEventListener("mouseup", onUpTrack)
+    }
+
+    const detachTrack = () => {
+      document.removeEventListener("mousemove", onMoveTrack)
+      document.removeEventListener("mouseup", onUpTrack)
     }
 
     const onMoveTrack = event => {
@@ -1193,6 +1217,7 @@ export default (sdk, chart) => {
     }
 
     const onUpTrack = event => {
+      detachTrack()
       if (!downedOnOver) return
 
       const wasDrag = dragged
@@ -1416,6 +1441,7 @@ export default (sdk, chart) => {
       const prevNavigation = chart.getAttribute("prevNavigation") || current
       if (isSelectNavigation(navigation)) selectEnded = false
       chart.updateAttributes({ navigation, prevNavigation })
+      document.addEventListener("mouseup", onModifierUp)
     }
 
     const restoreNavigation = () => {
@@ -1424,7 +1450,10 @@ export default (sdk, chart) => {
         chart.updateAttributes({ navigation: prevNavigation, prevNavigation: null })
     }
 
-    const onModifierUp = () => setTimeout(restoreNavigation)
+    const onModifierUp = () => {
+      document.removeEventListener("mouseup", onModifierUp)
+      setTimeout(restoreNavigation)
+    }
 
     const switchTarget = over.parentNode || over
 
@@ -1432,9 +1461,6 @@ export default (sdk, chart) => {
     over.addEventListener("mousedown", onDown)
     over.addEventListener("mousedown", onDownTrack)
     over.addEventListener("mousedown", onSelectDown)
-    document.addEventListener("mousemove", onMoveTrack)
-    document.addEventListener("mouseup", onUpTrack)
-    document.addEventListener("mouseup", onModifierUp)
     over.addEventListener("wheel", onWheel, { passive: false })
     over.addEventListener("dblclick", onDblClick)
     over.addEventListener("touchstart", onTouchStart, { passive: false })
@@ -1451,8 +1477,7 @@ export default (sdk, chart) => {
       over.removeEventListener("mousedown", onDown)
       over.removeEventListener("mousedown", onDownTrack)
       over.removeEventListener("mousedown", onSelectDown)
-      document.removeEventListener("mousemove", onMoveTrack)
-      document.removeEventListener("mouseup", onUpTrack)
+      detachTrack()
       document.removeEventListener("mouseup", onModifierUp)
       over.removeEventListener("touchstart", onTouchStart)
       over.removeEventListener("touchmove", onTouchMove)
@@ -1503,6 +1528,7 @@ export default (sdk, chart) => {
                 drawStacked,
                 drawHeatmap,
                 drawBars,
+                drawAnomalySpotlight,
                 drawAnomaly,
                 drawAnomalyBadge,
                 drawAnnotations,
@@ -1618,6 +1644,7 @@ export default (sdk, chart) => {
         renderCrosshair()
       }),
       chart.onAttributeChange("timezone", () => u && u.redraw()),
+      chart.onAttributeChange("anomalySpotlight", () => u && u.redraw(false, false)),
       chart.onAttributeChange("unitsConversionPrefix", onUnitsConversionChange),
       chart.onAttributeChange("unitsConversionBase", onUnitsConversionChange),
       chart.onAttributeChange("theme", (next, prev) => {
@@ -1635,6 +1662,7 @@ export default (sdk, chart) => {
   const unmount = () => {
     if (!element) return
 
+    moveXDebounced.cancel()
     if (listeners) listeners()
     if (resizeObserver) resizeObserver()
 

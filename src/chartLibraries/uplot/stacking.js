@@ -48,6 +48,27 @@ export const getSeriesStackBounds = (seriesData, isVisible) =>
     isVisible,
   })
 
+export const getRowStackEnds = (seriesData, row, isVisible) => {
+  const columns = seriesData.length - 1
+  const ends = new Array(columns).fill(null)
+  let positive = 0
+  let negative = 0
+
+  for (let index = columns - 1; index >= 0; index--) {
+    if (isVisible && !isVisible(index)) continue
+
+    const value = seriesData[index + 1]?.[row]
+    if (value == null || !Number.isFinite(value)) continue
+
+    if (value < 0) negative += value
+    else positive += value
+
+    ends[index] = value < 0 ? negative : positive
+  }
+
+  return ends
+}
+
 export const getStackSegments = (series, length) => {
   const segments = []
   let start = 0

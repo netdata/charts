@@ -6,7 +6,7 @@ import { makeTestChart, loadHeatmapPayload, renderWithChart } from "@jest/testUt
 import ChartContainer from "@/components/chartContainer"
 import withChart from "@/components/hocs/withChart"
 import makeMockPayload from "@/helpers/makeMockPayload"
-import { makePayload, makeWave } from "@/helpers/makeWavePayload"
+import { makePayload, makeWave } from "../../../fixtures/makeWavePayload"
 import Popover from "@/components/line/popover"
 import makeDefaultSDK from "../../makeDefaultSDK"
 import systemLoadLine from "../../../fixtures/systemLoadLine"
@@ -92,7 +92,10 @@ describe("uplotChart", () => {
     const u = instance.getUPlot()
     expect(u.scales.x.range()).toEqual([1617946860, 1617947760])
 
-    expect(u.scales.y.range(u, 0, 100)).toEqual([5, 40])
+    const [yMin, yMax] = u.scales.y.range(u, 0, 100)
+    expect(yMin).toBeLessThan(5)
+    expect(yMax).toBeGreaterThan(40)
+    expect(5 - yMin).toBeCloseTo(yMax - 40)
 
     const labels = u.axes[0].values(u, [1617946860])
     expect(labels).toHaveLength(1)
@@ -2125,6 +2128,18 @@ describe("uplotChart yAxisChange (unit rescaling parity)", () => {
     }
   }
 
+  it("reuses the uPlot instance when a refresh keeps the same dimensions", () => {
+    const { instance, teardown } = setup()
+    const first = instance.getUPlot()
+
+    instance.render()
+    instance.render()
+
+    expect(instance.getUPlot()).toBe(first)
+
+    teardown()
+  })
+
   it("rebuilds the series when the payload reorders its dimensions", () => {
     const { chart, instance, teardown } = setup()
     const colors = { load1: "#000001", load5: "#000005", load15: "#000015" }
@@ -3922,7 +3937,10 @@ describe("uplotChart stacked value range", () => {
       staticValueRange: [0, 1000],
     })
 
-    expect(u.scales.y.range(u, 0, 100)).toEqual([0, 1000])
+    const [yMin, yMax] = u.scales.y.range(u, 0, 100)
+    expect(yMin).toBeLessThan(0)
+    expect(yMax).toBeGreaterThan(1000)
+    expect(-yMin).toBeCloseTo(yMax - 1000)
 
     teardown()
   })

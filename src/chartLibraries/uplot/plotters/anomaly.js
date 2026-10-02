@@ -1,6 +1,4 @@
 import { scaleLinear } from "d3-scale"
-import { getRowPointValue } from "@/sdk/makeChart/getPointValue"
-import { isVisibleDimension } from "@/chartLibraries/helpers/dimensionVisibility"
 import getPxRatio from "../pxRatio"
 import { isModern, roundedRectPath } from "../overlays/modern"
 import {
@@ -16,6 +14,7 @@ const markHeight = 4
 const markGap = 1
 const markRadius = 1
 const markOffset = 6
+const spotlightBoost = 1.7
 const shadeAlpha = rate => 0.08 + (Math.min(rate, 50) / 50) * 0.32
 
 const getStripTop = (self, dpr) =>
@@ -41,9 +40,7 @@ export default chartUI => self => {
     .domain([0, 100])
     .range(["transparent", chart.getThemeAttribute("themeAnomalyScaleColor")])
 
-  const columns = chart
-    .getPayloadDimensionIds()
-    .reduce((acc, id, index) => (isVisibleDimension(chart, id) ? acc.concat(index + 1) : acc), [])
+  const columns = getAnomalyColumns(chart)
 
   const { all, point } = chart.getPayload()
   if (!all) return
@@ -52,7 +49,6 @@ export default chartUI => self => {
   const top = modern ? getStripTop(self, dpr) : self.bbox.top
   const height = (modern ? markHeight : ribbonHeight) * dpr
   const markWidth = Math.max(2 * dpr, barWidth - markGap * dpr)
-  const themeIndex = chart.getThemeIndex()
 
   ctx.save()
 
@@ -60,21 +56,14 @@ export default chartUI => self => {
     const pointData = all[row]
     if (!pointData) continue
 
-    let value = 0
-
-    for (let i = 0; i < columns.length; i++) {
-      const anomalyRate = getRowPointValue(pointData, columns[i], point, "arp") || 0
-      if (anomalyRate > value) value = anomalyRate
-    }
-
-    if (value === 0) continue
+    const value = getRowAnomalyRate(pointData, columns, point)
+    if (!isAnomalous(value)) continue
 
     const centerX = self.valToPos(xs[row], "x", true)
 
     if (modern) {
-      if (!isAnomalous(value)) continue
       roundedRectPath(ctx, centerX - markWidth / 2, top, markWidth, height, markRadius * dpr)
-      ctx.fillStyle = getAnomalyColor(themeIndex, value)
+      ctx.fillStyle = getAnomalyColor(chart, value)
       ctx.fill()
       continue
     }
@@ -100,8 +89,8 @@ export const makeAnomalyShade = chartUI => self => {
   if (!all) return
 
   const columns = getAnomalyColumns(chart)
-  const themeIndex = chart.getThemeIndex()
   const step = self.valToPos(xs[1], "x", true) - self.valToPos(xs[0], "x", true)
+  const boost = chart.getAttribute("anomalySpotlight") ? spotlightBoost : 1
   const { ctx, bbox } = self
 
   ctx.save()
@@ -113,8 +102,44 @@ export const makeAnomalyShade = chartUI => self => {
     const centerX = self.valToPos(xs[row], "x", true)
     const left = Math.round(centerX - step / 2)
     const right = Math.round(centerX + step / 2)
-    ctx.fillStyle = getAnomalyColor(themeIndex, value, shadeAlpha(value))
+    ctx.fillStyle = getAnomalyColor(chart, value, Math.min(1, shadeAlpha(value) * boost))
     ctx.fillRect(left, bbox.top, right - left, bbox.height)
+  }
+
+  ctx.restore()
+}
+
+export const makeAnomalySpotlight = chartUI => self => {
+  if (!chartUI) return
+
+  const { chart } = chartUI
+  if (!chart.getAttribute("anomalySpotlight") || !isModern(chart) || chart.isSparkline()) return
+
+  const xs = self.data[0]
+  if (!xs || !xs[1]) return
+
+  const { all, point } = chart.getPayload()
+  if (!all) return
+
+  const columns = getAnomalyColumns(chart)
+  const step = self.valToPos(xs[1], "x", true) - self.valToPos(xs[0], "x", true)
+  const { ctx, bbox } = self
+  const edge = row => self.valToPos(xs[row], "x", true)
+
+  ctx.save()
+  ctx.fillStyle = chart.getThemeAttribute("themeAnomalySpotlightDim")
+
+  let from = -1
+  for (let row = 0; row <= xs.length; row++) {
+    const calm =
+      row < xs.length && !isAnomalous(all[row] ? getRowAnomalyRate(all[row], columns, point) : 0)
+    if (calm && from < 0) from = row
+    if (calm || from < 0) continue
+
+    const left = Math.max(bbox.left, Math.round(edge(from) - step / 2))
+    const right = Math.min(bbox.left + bbox.width, Math.round(edge(row - 1) + step / 2))
+    ctx.fillRect(left, bbox.top, right - left, bbox.height)
+    from = -1
   }
 
   ctx.restore()

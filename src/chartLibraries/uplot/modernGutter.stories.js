@@ -4,7 +4,7 @@ import { Flex, DefaultTheme, DarkTheme, TextSmall, TextMicro } from "@netdata/ne
 import Line from "@/components/line"
 import makeDefaultSDK from "@/makeDefaultSDK"
 import makeMockPayload from "@/helpers/makeMockPayload"
-import { makePayload, makeWave } from "@/helpers/makeWavePayload"
+import { makePayload, makeWave } from "../../../fixtures/makeWavePayload"
 
 const cpuPayload = makePayload({
   context: "gutter.system.cpu",
