@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useRef } from "react"
 import styled from "styled-components"
 import { Flex, TextSmall, getColor } from "@netdata/netdata-ui"
 import {
@@ -38,6 +38,16 @@ export const getReadoutSizes = ({ width, height, chars, unitChars }) => {
   return { value, unit: Math.max(11, Math.round(value * 0.4)) }
 }
 
+export const useStableChars = (key, chars, unitChars) => {
+  const widest = useRef({ key: null, chars: 0, unitChars: 0 })
+
+  if (widest.current.key !== key) widest.current = { key, chars: 0, unitChars: 0 }
+  widest.current.chars = Math.max(widest.current.chars, chars)
+  widest.current.unitChars = Math.max(widest.current.unitChars, unitChars)
+
+  return widest.current
+}
+
 const TileReadout = ({ dimensionId: requestedId }) => {
   const chart = useChart()
   const { width, height } = useOnResize()
@@ -47,6 +57,15 @@ const TileReadout = ({ dimensionId: requestedId }) => {
 
   const dimensionId = chart.isDimensionVisible(requestedId) ? requestedId : visibleIds[0]
   const { value, convertedUnit: unit, unitAttributes } = useLatestDisplayValueWithUnit(dimensionId)
+  const text =
+    typeof value === "number" && isFinite(value)
+      ? formatReadout(chart, value, { dimensionId, unitAttributes })
+      : ""
+  const widest = useStableChars(
+    `${dimensionId}|${width}|${height}`,
+    String(text).length,
+    unit ? String(unit).length : 0
+  )
 
   if (typeof value !== "number" || !isFinite(value))
     return (
@@ -55,12 +74,11 @@ const TileReadout = ({ dimensionId: requestedId }) => {
       </Flex>
     )
 
-  const text = formatReadout(chart, value, { dimensionId, unitAttributes })
   const sizes = getReadoutSizes({
     width,
     height,
-    chars: String(text).length,
-    unitChars: unit ? String(unit).length : 0,
+    chars: widest.chars,
+    unitChars: widest.unitChars,
   })
 
   return (
@@ -69,6 +87,7 @@ const TileReadout = ({ dimensionId: requestedId }) => {
       gap={1}
       overflow="hidden"
       flex={false}
+      height={`${sizes.value}px`}
       data-testid="modernTileReadout"
     >
       <Value

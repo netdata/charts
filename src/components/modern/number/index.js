@@ -13,6 +13,7 @@ import { formatReadout } from "@/components/modern/format"
 import Sparkline from "./sparkline"
 import StatusIndicator from "@/components/modern/status"
 import { useAttention } from "./attention"
+import { useStableChars } from "@/components/modern/tile/readout"
 
 const clamp = (value, low, high) => Math.min(Math.max(value, low), high)
 
@@ -92,9 +93,12 @@ const ModernNumber = ({ uiName }) => {
   const hoverIndex = hoverX ? chart.getClosestRow(hoverX[0]) : -1
   const markerIndex = hoverIndex === -1 || hoverIndex === undefined ? values.length - 1 : hoverIndex
 
-  const chars = String(convertedValue ?? "").length
-  const unitChars = unit ? String(unit).length : 0
-  const fit = (width - 24) / (chars * 0.56 + unitChars * 0.2 + 0.3)
+  const widest = useStableChars(
+    `${dimensionId}|${width}|${height}`,
+    String(convertedValue ?? "").length,
+    unit ? String(unit).length : 0
+  )
+  const fit = (width - 24) / (widest.chars * 0.56 + widest.unitChars * 0.2 + 0.3)
   const bigSize = Math.floor(clamp(Math.min(fit, height * 0.32), 12, 44))
   const unitSize = Math.max(11, Math.round(bigSize * 0.36))
   const sparkHeight = height >= 80 ? Math.round(clamp(height * 0.3, 18, 64)) : 0
