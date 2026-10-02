@@ -19,11 +19,26 @@ export const applyTimeSeriesRenderer = chart => {
   return true
 }
 
-export default chart =>
-  chart.onAttributeChange("timeSeriesRenderer", () => {
+export default chart => {
+  const offChart = chart.onAttributeChange("timeSeriesRenderer", () => {
     const ui = chart.getUI()
     if (!applyTimeSeriesRenderer(chart) || !ui) return
 
     ui.unmount()
     chart.setUI({ ...chart.sdk.makeChartUI(chart), ...(chart.ui || {}) }, "default")
   })
+
+  const root = chart.sdk?.getRoot?.()
+  const offRoot =
+    root && root !== chart
+      ? root.onAttributeChange("timeSeriesRenderer", (next, prev) => {
+          if ((chart.getAttribute("timeSeriesRenderer") ?? null) === (prev ?? null))
+            chart.updateAttribute("timeSeriesRenderer", next)
+        })
+      : null
+
+  return () => {
+    offChart()
+    if (offRoot) offRoot()
+  }
+}

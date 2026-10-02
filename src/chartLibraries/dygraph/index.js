@@ -23,11 +23,14 @@ import { makeReusableLineDataHandler } from "./reusableLineDataHandler"
 
 const touchEvents = ["touchstart", "touchmove", "touchend"]
 
+const preventTouch = event => event.preventDefault()
+
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
   const DivergingStackedDataHandler = makeDivergingStackedDataHandler(chart)
   const ReusableLineDataHandler = makeReusableLineDataHandler()
   let dygraph = null
+  let touchElement = null
   let listeners = []
   let navigation = null
   let hoverX = null
@@ -139,14 +142,9 @@ export default (sdk, chart) => {
       () => chartUI.trigger("resize")
     )
 
+    touchElement = element
     touchEvents.forEach(eventType => {
-      element.addEventListener(
-        eventType,
-        event => {
-          event.preventDefault()
-        },
-        { passive: false }
-      )
+      element.addEventListener(eventType, preventTouch, { passive: false })
     })
 
     hoverX.toggle(attributes.enabledHover)
@@ -482,6 +480,10 @@ export default (sdk, chart) => {
     if (!dygraph) return
 
     if (executeLatest) executeLatest.clear()
+
+    if (touchElement)
+      touchEvents.forEach(eventType => touchElement.removeEventListener(eventType, preventTouch))
+    touchElement = null
 
     resizeObserver()
     listeners.forEach(listener => listener())

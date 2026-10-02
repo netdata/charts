@@ -165,7 +165,7 @@ export default ({
 
   node.on("render", render)
   unitConversion(node)
-  timeSeriesRenderer(node)
+  const offTimeSeriesRenderer = timeSeriesRenderer(node)
 
   node.getConvertedValue = (
     value,
@@ -422,6 +422,7 @@ export default ({
     if (node.getAttribute("focused")) node.blur()
     if (executeLatest) executeLatest.clear()
 
+    offTimeSeriesRenderer()
     node.destroy()
     node.stopAutofetch()
     clearKeyboardListener()

@@ -15,6 +15,8 @@ export default {
   description: null,
   before: 0,
   after: 0,
+  liveAfter: -900,
+  anomalySpotlight: false,
   title: null,
   min: 0,
   max: 0,
@@ -151,7 +153,6 @@ export default {
   expandable: true,
   showAnnotations: true,
 
-  hasYlabel: true,
   yAxisLabelWidth: 68,
   axisLabelFontSize: 10,
 
@@ -225,10 +226,15 @@ export default {
   themeAxisLabelColor: ["#5C6C77", "#7C8C96"],
   themeBackground: ["#ffffff", "#282C34"],
   themeNeutralBackground: ["#DBE1E1", "#353F3F"],
+  themeSkeleton: ["#E8ECEC", "#1E2424"],
+  themeSkeletonGrid: ["#EEF1F1", "#1A1F1F"],
   themeWarningBackground: ["#FFCC26", "#FFCC26"],
   themeErrorBackground: ["#F95251", "#F95251"],
 
   themeAnomalyScaleColor: ["#9F75F9", "#9F75F9"],
+  themeAnomalyRampLow: ["#D6CAFF", "#4A3A8C"],
+  themeAnomalyRampHigh: ["#6234D6", "#C4A0FF"],
+  themeAnomalySpotlightDim: ["rgba(255, 255, 255, 0.55)", "rgba(21, 24, 24, 0.55)"],
 
   themeAlertWarning: ["#C98A00", "#E0A526"],
   themeAlertCritical: ["#D63F3F", "#E5484D"],
@@ -329,7 +335,6 @@ export default {
 
   draftAnnotation: null, // { timestamp, createdAt, status: "draft"|"editing"|"saving" }
 
-  compareData: {},
   comparePeriods: [],
   compareLoading: false,
   compareError: null,

@@ -229,19 +229,20 @@ export const useOnResize = uiName => {
   const [invalidated, invalidate] = useState(1)
   const forceUpdate = useForceUpdate()
 
-  useImmediateListener(
-    () =>
-      unregister(
-        chart.on("mountChartUI", () => {
-          setTimeout(() => {
-            invalidate(prev => prev + 1)
-            forceUpdate()
-          }, 300)
-        }),
-        chart.getUI(uiName).on("rendered", forceUpdate).on("resize", forceUpdate)
-      ),
-    [uiName, chart, invalidated]
-  )
+  useImmediateListener(() => {
+    let timer
+    return unregister(
+      chart.on("mountChartUI", () => {
+        clearTimeout(timer)
+        timer = setTimeout(() => {
+          invalidate(prev => prev + 1)
+          forceUpdate()
+        }, 300)
+      }),
+      chart.getUI(uiName).on("rendered", forceUpdate).on("resize", forceUpdate),
+      () => clearTimeout(timer)
+    )
+  }, [uiName, chart, invalidated])
 
   return {
     width: chart.getUI(uiName).getChartWidth(),
@@ -679,19 +680,23 @@ export const usePlotArea = (uiName = "default") => {
   const chart = useChart()
   const forceUpdate = useForceUpdate()
 
-  useImmediateListener(
-    () =>
-      unregister(
-        chart.on("mountChartUI", () => setTimeout(forceUpdate, 300)),
-        chart.getUI(uiName)?.on("rendered", forceUpdate).on("resize", forceUpdate)
-      ),
-    [uiName, chart]
-  )
+  useImmediateListener(() => {
+    let timer
+    return unregister(
+      chart.on("mountChartUI", () => {
+        clearTimeout(timer)
+        timer = setTimeout(forceUpdate, 300)
+      }),
+      chart.getUI(uiName)?.on("rendered", forceUpdate).on("resize", forceUpdate),
+      () => clearTimeout(timer)
+    )
+  }, [uiName, chart])
 
   const area = chart.getUI(uiName)?.getPlotArea?.()
 
   return {
     left: area?.left ?? 0,
+    top: area?.top ?? 0,
     width: area?.width ?? 0,
   }
 }

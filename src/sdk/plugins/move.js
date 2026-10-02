@@ -15,6 +15,7 @@ export default sdk => {
     .on("moveX", (chart, after, before) => {
       const autoPlay = chart.getAttribute("autoPlay")
       const move = getMoveX(after, before, autoPlay)
+      if (move.after < 0) move.liveAfter = move.after
 
       chart.getApplicableNodes({ syncPanning: true }).forEach(node => {
         node.updateAttributes(move)
