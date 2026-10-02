@@ -112,6 +112,21 @@ UX / accessibility / visual:
 
 Already addressed by the redesign (confirm and close): audit D1/D2 palette (replaced), audit A2 (= A9).
 
+## G. External review (2026-10-02)
+
+Redesign items:
+
+- [ ] G1 Attention can mix alerts: highest severity from summary/overlay, but value and time from any raised overlay; value formatting bypasses the shared readout — `modern/header/getAttention.js:70`, `modern/header/attention.js:26`
+- [ ] G2 netdata-ui rule violations in modern UI: raw button with px radius/padding (`modern/header/moreMenu.js:59`), raw elements and px spacing (`modern/bars/index.js:35`), fixed RGB ramps (`modern/anomaly.js:6`), transient `$resizing` prop (`cloud charts/dashboard/item.js:26`), CSS radius instead of `round` (`cloud dashboards/components/cards/container.js:10`). Route through the design system; add tokens where missing.
+- [ ] G3 Duplicated left-element/status transform in `modern/header/index.js:13` and `modern/tile/index.js:25`; donut `formatWithUnit` (= C1)
+- [ ] G4 Each uPlot chart adds document mouse listeners and a mouseup timer — `uplot/index.js:1427,1435`. Share one listener.
+
+User's navigation WIP (not redesign; listed so it is not lost):
+
+- [-] G5 Navigation code and tests disagree: `useMenu.js:66` vs `taxonomies.test.js:66`, `sidebar/rail.js:246` vs `sidebar/index.test.js:138`, `menu/footerWidgets.js:60` vs `footerWidgets.test.js:5`
+- [-] G6 Rail icon entries lost hover tooltips — `sidebar/rail.js:51` (README expects tooltips)
+- [-] G7 `SpaceSortableRow` repeats `SortableSpaceLabel` — `sidebar/header/spaceSortableRow.js:11`
+
 Larger initiatives, out of scope for this wrap-up: audit B14 (dataQuery convergence), F4 (columnar
 payload), F7/G10 (drop dygraphs), G1/G4/G5 (test coverage of mocked engine / sync plugins), G13
 (type checking), G14 (peer range matrix), E2/E4/E6/E7 (keyboard, dialog, colour-only status, listbox ARIA).
