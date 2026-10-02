@@ -1,5 +1,5 @@
 import React from "react"
-import styled, { keyframes } from "styled-components"
+import styled from "styled-components"
 import { Flex, Text, getColor } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
 import {
@@ -15,6 +15,7 @@ import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
 import { ModernGauge } from "@/components/modern/gauge"
 import textAnimation from "../helpers/textAnimation"
+import { RingSkeleton } from "@/components/skeleton"
 
 const Label = styled(Text)`
   line-height: 1;
@@ -121,20 +122,7 @@ export const Stats = ({ uiName }) => {
   )
 }
 
-const frames = keyframes`
-  from { opacity: 0.2; }
-  to { opacity: 0.6; }
-`
-
-export const Skeleton = styled(Flex).attrs(props => ({
-  background: "borderSecondary",
-  round: "100%",
-  width: "100%",
-  height: "100%",
-  ...props,
-}))`
-  animation: ${frames} 1.6s ease-in infinite;
-`
+export const Skeleton = () => <RingSkeleton gauge thickness={6} width="100%" height="100%" />
 
 export const Gauge = ({ uiName, ref, ...rest }) => {
   const loaded = useAttributeValue("loaded")

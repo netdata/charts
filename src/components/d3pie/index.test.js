@@ -2,7 +2,7 @@ import React from "react"
 import { act, fireEvent, screen, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { makeTestChart, renderWithChart } from "@jest/testUtilities"
-import { makePayload } from "@/helpers/makeWavePayload"
+import { makePayload } from "../../../fixtures/makeWavePayload"
 import { formatReadout } from "@/components/modern/format"
 import { getCenterFontSize } from "@/components/modern/donut"
 import { D3pie } from "./index"
@@ -71,16 +71,16 @@ describe("D3pie", () => {
       expect(screen.getByRole("img")).toHaveStyle({ maxWidth: "45%" })
     })
 
-    it("lists the legend by value with name, bare value and share, naming the unit once", async () => {
+    it("lists the legend by label with name, bare value and share, naming the unit once", async () => {
       const chart = await loadChart("modern")
       renderWithChart(<D3pie />, { chart })
 
       const rows = screen.getAllByTestId("donut-legend-row")
-      expect(within(rows[0]).getByTestId("donut-legend-name")).toHaveTextContent("https")
-      expect(within(rows[0]).getByTestId("donut-legend-value")).toHaveTextContent(/^60$/)
-      expect(rows[0]).toHaveTextContent("60%")
-      expect(within(rows[2]).getByTestId("donut-legend-name")).toHaveTextContent("http")
-      expect(rows[2]).toHaveTextContent("10%")
+      const names = rows.map(row => within(row).getByTestId("donut-legend-name").textContent)
+      expect(names).toEqual(["grpc", "http", "https"])
+      expect(within(rows[2]).getByTestId("donut-legend-value")).toHaveTextContent(/^60$/)
+      expect(rows[2]).toHaveTextContent("60%")
+      expect(rows[1]).toHaveTextContent("10%")
       rows.forEach(row => expect(row).not.toHaveTextContent("GiB"))
       expect(screen.getAllByText(/GiB/)).toHaveLength(1)
       expect(screen.getByTestId("donut-center-caption")).toHaveTextContent("GiB total")
@@ -109,8 +109,8 @@ describe("D3pie", () => {
         })
       const values = screen.getAllByTestId("donut-legend-value").map(el => el.textContent)
       expect(values).toEqual([
-        readout(449.12, "running"),
         readout(31.7249, "blocked"),
+        readout(449.12, "running"),
         readout(3.99561, "waiting"),
       ])
       expect(screen.getByTestId("donut-center-caption")).toHaveTextContent("threads total")
@@ -129,7 +129,7 @@ describe("D3pie", () => {
       await act(() => new Promise(resolve => setTimeout(resolve, 0)))
       renderWithChart(<D3pie />, { chart })
 
-      expect(screen.getAllByTestId("donut-legend-value")[0]).toHaveTextContent("60.000")
+      expect(screen.getAllByTestId("donut-legend-value")[2]).toHaveTextContent("60.000")
     })
 
     it("truncates long dimension names with an ellipsis and keeps the full name in the title", async () => {
@@ -162,14 +162,14 @@ describe("D3pie", () => {
       renderWithChart(<D3pie />, { chart })
 
       const slices = screen.getAllByTestId("donut-slice")
-      fireEvent.mouseEnter(slices[1])
+      fireEvent.mouseEnter(slices[0])
 
       expect(screen.getByTestId("donut-center-value")).toHaveTextContent("30 GiB")
       expect(screen.getByTestId("donut-center-caption")).toHaveTextContent("grpc, 30%")
-      expect(slices[0]).toHaveAttribute("opacity", "0.25")
-      expect(slices[1]).toHaveAttribute("opacity", "1")
+      expect(slices[1]).toHaveAttribute("opacity", "0.25")
+      expect(slices[0]).toHaveAttribute("opacity", "1")
 
-      fireEvent.mouseLeave(slices[1])
+      fireEvent.mouseLeave(slices[0])
       expect(screen.getByTestId("donut-center-caption")).toHaveTextContent("GiB total")
     })
 
@@ -178,7 +178,7 @@ describe("D3pie", () => {
       renderWithChart(<D3pie />, { chart })
 
       const rows = screen.getAllByTestId("donut-legend-row")
-      fireEvent.mouseEnter(rows[2])
+      fireEvent.mouseEnter(rows[1])
 
       expect(screen.getByTestId("donut-center-caption")).toHaveTextContent("http, 10%")
       expect(screen.getAllByTestId("donut-slice")[0]).toHaveAttribute("opacity", "0.25")

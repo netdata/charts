@@ -1,30 +1,20 @@
 import React from "react"
-import styled, { keyframes } from "styled-components"
+import styled from "styled-components"
 import { Flex } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
 import { useAttributeValue, useOnResize, useIsModern } from "@/components/provider"
 import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
 import ModernDonut from "@/components/modern/donut"
+import { RingSkeleton } from "@/components/skeleton"
 
 const StatsContainer = styled(Flex)`
   font-size: ${({ fontSize }) => fontSize};
 `
 
-const frames = keyframes`
-  from { opacity: 0.2; }
-  to { opacity: 0.6; }
-`
-
-export const Skeleton = styled(Flex).attrs(props => ({
-  background: "panelBg",
-  round: "100%",
-  width: "100%",
-  height: "100%",
-  ...props,
-}))`
-  animation: ${frames} 1.6s ease-in infinite;
-`
+export const Skeleton = () => (
+  <RingSkeleton thickness={14} readout={false} width="100%" height="100%" />
+)
 
 export const D3pie = ({ uiName, ref, ...rest }) => {
   const loaded = useAttributeValue("loaded")
