@@ -1,7 +1,7 @@
 import { getRowPointValue } from "@/sdk/makeChart/getPointValue"
 import { isVisibleDimension } from "@/chartLibraries/helpers/dimensionVisibility"
 
-export const anomalyNoiseFloor = 2
+export const isAnomalous = rate => rate > 0
 
 const ramps = [
   { low: [214, 202, 255], high: [98, 52, 214] },
@@ -12,7 +12,7 @@ const mix = (a, b, t) => a.map((value, i) => Math.round(value + (b[i] - value) *
 
 export const getAnomalyColor = (themeIndex, rate, alpha = 1) => {
   const { low, high } = ramps[themeIndex] || ramps[0]
-  const t = Math.min(1, Math.max(0, (rate - anomalyNoiseFloor) / 48))
+  const t = Math.min(1, Math.max(0, rate / 50))
   const [r, g, b] = mix(low, high, Math.sqrt(t))
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
@@ -42,7 +42,7 @@ export const getAnomalySummary = chart => {
 
   for (let row = 0; row < all.length; row++) {
     const rate = all[row] ? getRowAnomalyRate(all[row], columns, point) : 0
-    const anomalous = rate >= anomalyNoiseFloor
+    const anomalous = isAnomalous(rate)
     if (anomalous && !inside) periods++
     if (anomalous && rate > peak) peak = rate
     inside = anomalous

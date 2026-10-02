@@ -4,7 +4,7 @@ import { isVisibleDimension } from "@/chartLibraries/helpers/dimensionVisibility
 import getPxRatio from "../pxRatio"
 import { isModern, roundedRectPath } from "../overlays/modern"
 import {
-  anomalyNoiseFloor,
+  isAnomalous,
   getAnomalyColor,
   getAnomalyColumns,
   getRowAnomalyRate,
@@ -72,7 +72,7 @@ export default chartUI => self => {
     const centerX = self.valToPos(xs[row], "x", true)
 
     if (modern) {
-      if (value < anomalyNoiseFloor) continue
+      if (!isAnomalous(value)) continue
       roundedRectPath(ctx, centerX - markWidth / 2, top, markWidth, height, markRadius * dpr)
       ctx.fillStyle = getAnomalyColor(themeIndex, value)
       ctx.fill()
@@ -108,7 +108,7 @@ export const makeAnomalyShade = chartUI => self => {
 
   for (let row = 0; row < xs.length; row++) {
     const value = all[row] ? getRowAnomalyRate(all[row], columns, point) : 0
-    if (value < anomalyNoiseFloor) continue
+    if (!isAnomalous(value)) continue
 
     const centerX = self.valToPos(xs[row], "x", true)
     const left = Math.round(centerX - step / 2)

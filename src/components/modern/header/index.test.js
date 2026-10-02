@@ -572,8 +572,8 @@ describe("Modern anomaly pill", () => {
     )
   })
 
-  it("stays out of the header when rates stay under the noise floor", async () => {
-    await renderWithPayload(anomalyPayload(index => (index % 10 === 0 ? 1 : 0)))
+  it("stays out of the header when the window has no anomalies", async () => {
+    await renderWithPayload(anomalyPayload(() => 0))
 
     expect(screen.queryByTestId("chartAnomalyPill")).not.toBeInTheDocument()
   })

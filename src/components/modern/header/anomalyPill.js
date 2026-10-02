@@ -33,7 +33,7 @@ const AnomalyPill = () => {
   if (!periods) return null
 
   const themeIndex = chart.getThemeIndex()
-  const rounded = Math.round(peak)
+  const rounded = peak < 1 ? peak.toFixed(1) : Math.round(peak)
 
   return (
     <Pill

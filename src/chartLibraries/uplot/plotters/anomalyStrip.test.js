@@ -2,7 +2,7 @@ import { makeTestChart } from "@jest/testUtilities"
 import { makePayload, makeWave } from "@/helpers/makeWavePayload"
 import uplotChart from "../index"
 import getPxRatio from "../pxRatio"
-import { getAnomalyColor, anomalyNoiseFloor } from "@/components/modern/anomaly"
+import { getAnomalyColor } from "@/components/modern/anomaly"
 import makeAnomaly, { makeAnomalyShade } from "./anomaly"
 
 const points = 97
@@ -123,21 +123,6 @@ describe("anomaly plotter flavours", () => {
     const expectedTop = u.bbox.top >= 6 * dpr ? u.bbox.top - 6 * dpr : u.bbox.top + dpr
     const tops = only(calls, "moveTo").map(call => call.args[1])
     expect(tops.every(y => y === expectedTop)).toBe(true)
-
-    teardown()
-  })
-
-  it("draws no mark and no shade for rates under the noise floor", async () => {
-    const { u, instance, teardown } = await mountUplot(
-      { designFlavour: "modern" },
-      makeAnomalyPayload(index => (anomalousRows.includes(index) ? anomalyNoiseFloor - 1 : 0))
-    )
-    const calls = record(u.ctx)
-
-    makeAnomaly(instance)(u)
-    makeAnomalyShade(instance)(u)
-
-    expect(calls).toHaveLength(0)
 
     teardown()
   })
