@@ -21,6 +21,7 @@ const Wrapper = styled.div.attrs({ "data-testid": "modernLegend-table" })`
   min-height: 0;
   display: flex;
   flex-direction: column;
+  overflow-anchor: none;
 `
 
 const ScrollArea = styled.div`
@@ -152,14 +153,14 @@ const arrows = {
   anomalyDesc: " ↓",
 }
 
-const SortHeader = ({ column, sort, onSort, children, ...rest }) => {
-  const active = sortPairs[column].includes(sort)
+const SortHeader = ({ column, sort, onSort, children, disabled = false, ...rest }) => {
+  const active = !disabled && sortPairs[column].includes(sort)
 
   return (
     <HeaderCell
-      $sortable
+      $sortable={!disabled}
       $active={active}
-      onClick={() => onSort(nextSort(column, sort))}
+      onClick={disabled ? undefined : () => onSort(nextSort(column, sort))}
       data-testid={`modernLegend-sort-${column}`}
       {...rest}
     >
@@ -210,13 +211,15 @@ const LegendTable = () => {
           <Table>
             <thead>
               <tr>
-                {hovering ? (
-                  <HeaderCell data-testid="modernLegend-time">{time}</HeaderCell>
-                ) : (
-                  <SortHeader column="name" sort={sort} onSort={onSort}>
-                    Name
-                  </SortHeader>
-                )}
+                <SortHeader
+                  column="name"
+                  sort={sort}
+                  onSort={onSort}
+                  disabled={hovering}
+                  {...(hovering && { "data-testid": "modernLegend-time" })}
+                >
+                  {hovering ? time : "Name"}
+                </SortHeader>
                 <SortHeader column="value" sort={sort} onSort={onSort}>
                   {hovering ? "At cursor" : "Last"}
                 </SortHeader>
