@@ -124,21 +124,45 @@ const Tide = ({ theme, rates, scales }) => {
   )
 }
 
-const Shade = ({ theme, rates, scales }) => (
+const Shade = ({ t, theme, rates, scales, spotlight = false, floor = noiseFloor }) => (
   <g>
+    {spotlight &&
+      rates
+        .reduce((acc, rate, i) => {
+          const calm = !(rate >= floor && rate > 0)
+          const last = acc[acc.length - 1]
+          if (!calm) return acc
+          if (last && last.to === i - 1) last.to = i
+          else acc.push({ from: i, to: i })
+          return acc
+        }, [])
+        .map(run => {
+          const half = (scales.x(1) - scales.x(0)) / 2
+          return (
+            <rect
+              key={`dim-${run.from}`}
+              x={scales.x(run.from) - half}
+              width={scales.x(run.to) - scales.x(run.from) + half * 2}
+              y={scales.plot.top}
+              height={scales.plot.bottom - scales.plot.top}
+              fill={t.panel}
+              fillOpacity={0.55}
+            />
+          )
+        })}
     {rates.map((rate, i) =>
-      rate < noiseFloor ? null : (
+      rate < floor || rate <= 0 ? null : (
         <rect
           key={i}
           x={scales.x(i) - (scales.x(1) - scales.x(0)) / 2}
           width={scales.x(1) - scales.x(0) + 1.5}
           y={scales.plot.top}
           height={scales.plot.bottom - scales.plot.top}
-          fill={rateColor(theme, rate, 0.08 + (rate / 50) * 0.32)}
+          fill={rateColor(theme, rate, (0.08 + (rate / 50) * 0.32) * (spotlight ? 1.7 : 1))}
         />
       )
     )}
-    <QuietStrip theme={theme} rates={rates} scales={scales} />
+    <QuietStrip theme={theme} rates={rates} scales={scales} floor={floor} />
   </g>
 )
 
@@ -182,10 +206,10 @@ const Runs = ({ t, theme, rates, scales }) => {
   )
 }
 
-const QuietStrip = ({ theme, rates, scales }) => (
+const QuietStrip = ({ theme, rates, scales, floor = noiseFloor }) => (
   <g>
     {rates.map((rate, i) =>
-      rate < noiseFloor ? null : (
+      rate < floor || rate <= 0 ? null : (
         <rect
           key={i}
           x={scales.x(i) - 1}
@@ -207,7 +231,15 @@ const variants = {
   quiet: { label: "D. Quiet", Ribbon: QuietStrip, pill: true, hoverOnly: true },
 }
 
-export const AnomalyCard = ({ theme = "dark", variant = "tide", rates, hovered = false }) => {
+export const AnomalyCard = ({
+  theme = "dark",
+  variant = "tide",
+  rates,
+  hovered = false,
+  spotlight = false,
+  floor,
+  overlay = null,
+}) => {
   const t = themes[theme]
   const { Ribbon, pill, hoverOnly } = variants[variant]
   const runs = getRuns(rates)
@@ -248,58 +280,70 @@ export const AnomalyCard = ({ theme = "dark", variant = "tide", rates, hovered =
         </span>
         {pill && runs.length > 0 && <Pill theme={theme} runs={runs} />}
       </header>
-      <svg width={width} height={height} style={{ display: "block" }}>
-        {ticks.map(tick => (
-          <g key={tick}>
-            <line
-              x1={scales.plot.left}
-              x2={scales.plot.right}
-              y1={scales.y(tick)}
-              y2={scales.y(tick)}
-              stroke={t.grid}
+      <div style={{ position: "relative" }}>
+        <svg width={width} height={height} style={{ display: "block" }}>
+          {ticks.map(tick => (
+            <g key={tick}>
+              <line
+                x1={scales.plot.left}
+                x2={scales.plot.right}
+                y1={scales.y(tick)}
+                y2={scales.y(tick)}
+                stroke={t.grid}
+              />
+              <text
+                x={scales.plot.left - 8}
+                y={scales.y(tick) + 4}
+                textAnchor="end"
+                fontSize={11}
+                fill={t.faint}
+                fontFamily={numerals}
+              >
+                {tick}
+              </text>
+            </g>
+          ))}
+          {stacked.map((values, i) => (
+            <g key={series[i].name}>
+              <path
+                d={areaPath(values, scales, 0)}
+                fill={t.series[series[i].color]}
+                fillOpacity={0.55}
+              />
+              <path
+                d={linePath(values, scales)}
+                fill="none"
+                stroke={t.series[series[i].color]}
+                strokeWidth={1.5}
+              />
+            </g>
+          ))}
+          {(!hoverOnly || hovered) && (
+            <Ribbon
+              t={t}
+              theme={theme}
+              rates={rates}
+              scales={scales}
+              spotlight={spotlight}
+              {...(floor !== undefined && { floor })}
             />
+          )}
+          {[0, 40, 80, 119].map(index => (
             <text
-              x={scales.plot.left - 8}
-              y={scales.y(tick) + 4}
-              textAnchor="end"
+              key={index}
+              x={scales.x(index)}
+              y={height - 6}
+              textAnchor={index === 119 ? "end" : index === 0 ? "start" : "middle"}
               fontSize={11}
               fill={t.faint}
               fontFamily={numerals}
             >
-              {tick}
+              {timeAt(index)}
             </text>
-          </g>
-        ))}
-        {stacked.map((values, i) => (
-          <g key={series[i].name}>
-            <path
-              d={areaPath(values, scales, 0)}
-              fill={t.series[series[i].color]}
-              fillOpacity={0.55}
-            />
-            <path
-              d={linePath(values, scales)}
-              fill="none"
-              stroke={t.series[series[i].color]}
-              strokeWidth={1.5}
-            />
-          </g>
-        ))}
-        {(!hoverOnly || hovered) && <Ribbon t={t} theme={theme} rates={rates} scales={scales} />}
-        {[0, 40, 80, 119].map(index => (
-          <text
-            key={index}
-            x={scales.x(index)}
-            y={height - 6}
-            textAnchor={index === 119 ? "end" : index === 0 ? "start" : "middle"}
-            fontSize={11}
-            fill={t.faint}
-            fontFamily={numerals}
-          >
-            {timeAt(index)}
-          </text>
-        ))}
-      </svg>
+          ))}
+        </svg>
+        {overlay && overlay({ t, scales })}
+      </div>
     </section>
   )
 }
