@@ -1,5 +1,5 @@
 import React from "react"
-import styled from "styled-components"
+import styled, { css } from "styled-components"
 import { Flex, TextSmall, getColor } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart } from "@/components/provider"
 import makeLog from "@/sdk/makeLog"
@@ -32,6 +32,17 @@ const Chip = styled(Flex).attrs({
     opacity: 1;
     pointer-events: auto;
   }
+
+  ${({ $inline }) =>
+    $inline &&
+    css`
+      position: static;
+      padding: 0;
+      background: transparent;
+      box-shadow: none;
+      opacity: 1;
+      pointer-events: auto;
+    `}
 `
 
 const ResetButton = styled.button`
@@ -43,9 +54,24 @@ const ResetButton = styled.button`
   cursor: pointer;
   color: ${getColor("mainChartBg")};
   background: ${getColor("text")};
+
+  ${({ $inline }) =>
+    $inline &&
+    css`
+      padding: 0;
+      color: ${getColor("textLite")};
+      background: transparent;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+
+      &:hover,
+      &:focus-visible {
+        color: ${getColor("text")};
+      }
+    `}
 `
 
-const ZoomChip = () => {
+const ZoomChip = ({ inline = false }) => {
   const chart = useChart()
   const after = useAttributeValue("after")
   const before = useAttributeValue("before")
@@ -64,12 +90,19 @@ const ZoomChip = () => {
   }
 
   return (
-    <Chip data-noprint data-testid="chartZoomChip" data-toolbox={chart.getId()}>
-      <TextSmall color="text" whiteSpace="nowrap">
+    <Chip
+      data-noprint
+      data-testid="chartZoomChip"
+      data-toolbox={chart.getId()}
+      $inline={inline}
+      gap={inline ? 1.5 : 2}
+    >
+      <TextSmall color={inline ? "textLite" : "text"} whiteSpace="nowrap">
         {label}
       </TextSmall>
       <ResetButton
         type="button"
+        $inline={inline}
         onClick={onReset}
         title="Reset zoom (Alt+Shift+R)"
         data-testid="chartZoomChip-reset"

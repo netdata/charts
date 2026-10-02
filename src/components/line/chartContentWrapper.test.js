@@ -2,6 +2,7 @@ import React from "react"
 import { act, screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { renderWithChart, makeTestChart } from "@jest/testUtilities"
+import { TileContext } from "@/components/modern/tile/context"
 import ChartContentWrapper from "./chartContentWrapper"
 
 const zoom = chart => {
@@ -24,9 +25,15 @@ describe("ChartContentWrapper", () => {
     }
   )
 
-  it("replaces the navigation toolbox with the zoom chip for modern", async () => {
+  const InTile = () => (
+    <TileContext.Provider value>
+      <ChartContentWrapper />
+    </TileContext.Provider>
+  )
+
+  it("replaces the navigation toolbox with the zoom chip in a modern tile", async () => {
     const { chart } = makeTestChart({ attributes: { designFlavour: "modern" } })
-    const { user, container } = renderWithChart(<ChartContentWrapper />, { chart })
+    const { user, container } = renderWithChart(<InTile />, { chart })
 
     await user.hover(container.firstChild)
     expect(screen.queryByTestId("chartToolbox")).not.toBeInTheDocument()
@@ -35,9 +42,9 @@ describe("ChartContentWrapper", () => {
     expect(screen.getByTestId("chartZoomChip")).toBeInTheDocument()
   })
 
-  it("keeps the zoom chip out of sight until the chart is hovered", () => {
+  it("keeps the zoom chip out of sight until the tile is hovered", () => {
     const { chart } = makeTestChart({ attributes: { designFlavour: "modern" } })
-    renderWithChart(<ChartContentWrapper />, { chart })
+    renderWithChart(<InTile />, { chart })
 
     zoom(chart)
     const chip = screen.getByTestId("chartZoomChip")

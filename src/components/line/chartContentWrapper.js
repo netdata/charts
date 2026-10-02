@@ -11,6 +11,7 @@ import Skeleton from "./skeleton"
 import Overlays from "./overlays"
 import { Processing } from "./overlays/proceeded"
 import cursorStyle from "@/components/helpers/cursorStyle"
+import { useInModernTile } from "@/components/modern/tile/context"
 
 const chartLibraries = {
   dygraph: css`
@@ -167,6 +168,7 @@ const ChartContentWrapper = ({ uiName }) => {
   const hasHoverPopover = useAttributeValue("hasHoverPopover")
   const processing = useAttributeValue("processing")
   const isModern = useIsModern()
+  const inTile = useInModernTile()
 
   return (
     <Container ref={ref}>
@@ -174,7 +176,7 @@ const ChartContentWrapper = ({ uiName }) => {
       {!initialLoading && <Overlays uiName={uiName} />}
       {initialLoading && <Skeleton />}
       {hasToolbox && hovered && !isModern && <NavigationToolbox />}
-      {hasToolbox && isModern && <ZoomChip />}
+      {hasToolbox && isModern && inTile && <ZoomChip />}
       {processing && <Processing />}
       {hasHoverPopover && <Popover uiName={uiName} />}
     </Container>

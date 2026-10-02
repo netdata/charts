@@ -8,6 +8,7 @@ import ScopeLine from "./scopeLine"
 import Actions from "./actions"
 import Attention from "./attention"
 import AnomalyPill from "./anomalyPill"
+import ZoomChip from "./zoomChip"
 
 const PlainStatus = () => <Status plain />
 
@@ -45,6 +46,7 @@ const ModernHeader = ({ hasFilters = false }) => {
           <ScopeLine hasFilters={hasFilters} open={open} onToggle={toggleFilters} />
         </Flex>
         <Flex alignItems="center" gap={2} flex={false}>
+          {hasToolbox && <ZoomChip inline />}
           <AnomalyPill />
           <Attention />
         </Flex>

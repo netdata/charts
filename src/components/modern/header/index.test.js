@@ -298,13 +298,19 @@ describe("Modern More menu", () => {
 })
 
 describe("Modern chart content", () => {
-  it("shows a reset chip while zoomed and hides the floating navigation toolbox", async () => {
+  it("shows the zoom state with a reset in the header and hides the floating navigation toolbox", async () => {
     const { chart } = makeModern()
-    const { user, container } = renderWithChart(<ChartContentWrapper />, { chart })
+    const { user, container } = renderWithChart(
+      <>
+        <Header />
+        <ChartContentWrapper />
+      </>,
+      { chart }
+    )
 
     expect(screen.queryByTestId("chartZoomChip")).not.toBeInTheDocument()
 
-    await user.hover(container.firstChild)
+    await user.hover(container.querySelector('[data-testid="chartContentWrapper"]'))
     expect(screen.queryByTestId("chartToolbox")).not.toBeInTheDocument()
 
     const now = Math.floor(Date.now() / 1000)
@@ -312,8 +318,9 @@ describe("Modern chart content", () => {
 
     expect(screen.getByTestId("chartZoomChip")).toHaveTextContent("Zoomed to")
 
-    act(() => screen.getByTestId("chartZoomChip-reset").focus())
-    await user.keyboard("{Enter}")
+    expect(within(screen.getByTestId("chartHeader")).getByTestId("chartZoomChip")).toBeVisible()
+
+    await user.click(screen.getByTestId("chartZoomChip-reset"))
     await waitFor(() => expect(chart.getAttribute("after")).toBe(-900))
     expect(screen.queryByTestId("chartZoomChip")).not.toBeInTheDocument()
   })
