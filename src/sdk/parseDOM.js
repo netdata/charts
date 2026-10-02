@@ -23,9 +23,10 @@ const parseValue = value => {
   const [first] = value
   if (first === "[" || first === "{") {
     try {
-      JSON.parse(value)
-      // eslint-disable-next-line no-empty
-    } catch (e) {}
+      return JSON.parse(value)
+    } catch {
+      return value
+    }
   }
 
   return value

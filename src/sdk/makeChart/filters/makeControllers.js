@@ -3,6 +3,7 @@ import pristine, { pristineKey } from "@/sdk/pristine"
 import getInitialFilterAttributes from "./getInitialAttributes"
 import { isHeatmap } from "@/helpers/heatmap"
 import makeLog from "@/sdk/makeLog"
+import { applyTimeSeriesRenderer } from "@/sdk/makeChart/timeSeriesRenderer"
 
 export default chart => {
   const log = ({ value, ...rest }) =>
@@ -119,17 +120,33 @@ export default chart => {
     table: true,
   }
 
+  const timeSeriesRenderers = ["dygraph", "uplot"]
+
+  const isTimeSeriesRenderer = chartLibrary =>
+    timeSeriesRenderers.includes(chartLibrary) ||
+    Object.values(chart.getAttribute("chartLibrariesByType") || {}).includes(chartLibrary)
+
+  const getRendererForChartType = chartType => {
+    const current = chart.getAttribute("chartLibrary")
+
+    return (
+      (chart.getAttribute("chartLibrariesByType") || {})[chartType] ||
+      (isTimeSeriesRenderer(current) ? current : "dygraph")
+    )
+  }
+
   const updateChartTypeAttribute = selected => {
     const prevChartLibrary = chart.getAttribute("chartLibrary")
     const prevGroupBy = chart.getAttribute("groupBy")
 
     if (!chartLibraries[selected]) {
       chart.updateAttributes({
-        chartLibrary: "dygraph",
+        chartLibrary: getRendererForChartType(selected),
         chartType: selected,
         processing: true,
       })
-      if (prevChartLibrary !== "dygraph") {
+      applyTimeSeriesRenderer(chart)
+      if (prevChartLibrary !== chart.getAttribute("chartLibrary")) {
         chart.getUI().unmount()
         chart.setUI({ ...chart.sdk.makeChartUI(chart), ...(chart.ui || {}) }, "default")
       }
@@ -346,6 +363,8 @@ export default chart => {
     updateGroupByAttribute,
     updatePostGroupByAttribute,
     updateChartTypeAttribute,
+    getRendererForChartType,
+    isTimeSeriesRenderer,
     updateNodesAttribute,
     updateInstancesAttribute,
     updateDimensionsAttribute,

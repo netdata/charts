@@ -2,7 +2,7 @@ import React from "react"
 import useForwardRef from "@netdata/netdata-ui/dist/hooks/useForwardRef"
 import useHover from "@/components/useHover"
 import withChart from "@/components/hocs/withChart"
-import { useChart, useAttributeValue } from "@/components/provider"
+import { useChart, useAttributeValue, useIsModern } from "@/components/provider"
 import ChartContainer from "@/components/chartContainer"
 import Header from "@/components/header"
 import FilterToolbox from "@/components/filterToolbox"
@@ -32,11 +32,15 @@ export const GroupBoxesContainer = ({ uiName, ref, ...rest }) => {
 
   const showingInfo = useAttributeValue("showingInfo")
   const focused = useAttributeValue("focused")
+  const isModern = useIsModern()
+  const { hasHeader = true, hasFilters = true } = rest
+  const showHeader = !isModern || hasHeader
+  const showFilters = isModern ? hasFilters && !hasHeader : true
 
   return (
     <Container ref={setRef} {...rest}>
-      <Header />
-      <FilterToolbox opacity={focused ? 1 : 0.7} />
+      {showHeader && <Header hasFilters={isModern && hasFilters} />}
+      {showFilters && <FilterToolbox opacity={focused ? 1 : 0.7} />}
       <ChartContainer uiName={uiName} column gap={4} padding={[4, 2]}>
         <GroupBoxes uiName={uiName} />
       </ChartContainer>

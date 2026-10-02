@@ -1,15 +1,11 @@
 import React, { useMemo, memo } from "react"
 import styled from "styled-components"
 import { Flex, TextMicro, TextNano } from "@netdata/netdata-ui"
-import { useChart, useAttributeValue } from "@/components/provider"
+import { useChart, useAttributeValue, useColor } from "@/components/provider"
 import getWindowRange from "@/helpers/getWindowRange"
 import Header from "./header"
 import Dimension from "./dimension"
-import {
-  getPopoverDimensionColumnWidth,
-  getPopoverWidth,
-  popoverGridColumns,
-} from "./layout"
+import { getPopoverDimensionColumnWidth, getPopoverWidth, popoverGridColumns } from "./layout"
 
 const Container = styled(Flex).attrs({
   round: true,
@@ -21,8 +17,8 @@ const Container = styled(Flex).attrs({
   box-sizing: border-box;
   width: ${({ $popoverWidth }) => $popoverWidth}px;
   box-shadow:
-    0px 8px 12px rgba(9, 30, 66, 0.15),
-    0px 0px 1px rgba(9, 30, 66, 0.31);
+    0px 8px 12px ${({ shadowColor }) => shadowColor},
+    0px 0px 1px ${({ shadowColor }) => shadowColor};
 `
 
 const Grid = styled.div`
@@ -58,6 +54,7 @@ const rowSorting = {
 }
 
 const Dimensions = () => {
+  const shadow = useColor("themeShadow")
   const chart = useChart()
   const [x, row] = useAttributeValue("hoverX") || emptyArray
   const isHeatmap = chart.getAttribute("chartType") === "heatmap"
@@ -92,10 +89,10 @@ const Dimensions = () => {
     rowFlavour === rowFlavours.ANNOTATIONS
       ? popoverGridColumns.annotationsInfo
       : popoverGridColumns.info
-  const dimensionNames = useMemo(() => ids.map(id => chart.getDimensionName(id) || ""), [
-    chart,
-    ids,
-  ])
+  const dimensionNames = useMemo(
+    () => ids.map(id => chart.getDimensionName(id) || ""),
+    [chart, ids]
+  )
   const dimensionColumnWidth = useMemo(
     () => getPopoverDimensionColumnWidth(dimensionNames, { infoColumn }),
     [dimensionNames, infoColumn]
@@ -103,7 +100,12 @@ const Dimensions = () => {
   const popoverWidth = getPopoverWidth(dimensionColumnWidth, infoColumn)
 
   return (
-    <Container data-testid="chartPopover-dimensions" gap={2} $popoverWidth={popoverWidth}>
+    <Container
+      data-testid="chartPopover-dimensions"
+      gap={2}
+      $popoverWidth={popoverWidth}
+      shadowColor={shadow}
+    >
       <Header timestamp={x} />
       <Flex flex={false} height={3}>
         {from > 0 && <TextNano color="textLite">↑{from} more values</TextNano>}

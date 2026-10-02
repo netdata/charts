@@ -21,3 +21,70 @@ describe("Header component", () => {
     expect(screen.queryByText("CPU Usage")).not.toBeInTheDocument()
   })
 })
+
+describe("Header flavours", () => {
+  const ConsumerAction = ({ disabled }) => (
+    <button type="button" disabled={disabled}>
+      Consumer action
+    </button>
+  )
+
+  it.each(["default", "minimal"])("keeps the %s header free of modern elements", flavour => {
+    renderWithChart(<Header hasFilters />, {
+      attributes: {
+        title: "CPU Usage",
+        designFlavour: flavour,
+        focused: true,
+        toolboxElements: [ConsumerAction],
+      },
+    })
+
+    expect(screen.getByTestId("chartHeader")).not.toHaveAttribute("data-flavour")
+    expect(screen.getByTestId("chartHeaderStatus")).toBeInTheDocument()
+    expect(screen.getByTestId("chartHeaderToolbox")).toBeInTheDocument()
+    expect(screen.getByText("Consumer action")).toBeEnabled()
+    expect(screen.getByText("CPU Usage")).toBeInTheDocument()
+    expect(screen.queryByTestId("chartScope")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("chartScope-loading")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("chartHeaderToolbox-more")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("chartHeaderToolbox-filters")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("chartAttention")).not.toBeInTheDocument()
+  })
+
+  it("renders the modern header only for the modern flavour", () => {
+    renderWithChart(<Header hasFilters />, {
+      attributes: { title: "CPU Usage", designFlavour: "modern" },
+    })
+
+    expect(screen.getByTestId("chartHeader")).toHaveAttribute("data-flavour", "modern")
+    expect(screen.queryByTestId("chartHeaderStatus")).not.toBeInTheDocument()
+    expect(screen.getByTestId("chartHeaderToolbox-more")).toBeInTheDocument()
+  })
+
+  it.each(["default", "minimal"])("keeps the %s header on sparklines", flavour => {
+    renderWithChart(<Header hasFilters />, {
+      attributes: { title: "CPU Usage", designFlavour: flavour, sparkline: true },
+    })
+
+    expect(screen.getByTestId("chartHeader")).toBeInTheDocument()
+    expect(screen.getByText("CPU Usage")).toBeInTheDocument()
+  })
+
+  it.each(["default", "minimal"])("keeps the %s status badges without the toolbox", flavour => {
+    renderWithChart(<Header hasFilters />, {
+      attributes: { title: "CPU Usage", designFlavour: flavour, hasToolbox: false },
+    })
+
+    expect(screen.getByTestId("chartHeaderStatus")).toBeInTheDocument()
+    expect(screen.getByTestId("chartHeaderStatus-loading")).toBeInTheDocument()
+    expect(screen.queryByTestId("chartScope-loading")).not.toBeInTheDocument()
+  })
+
+  it("renders no modern header on a modern sparkline", () => {
+    renderWithChart(<Header hasFilters />, {
+      attributes: { title: "CPU Usage", designFlavour: "modern", sparkline: true },
+    })
+
+    expect(screen.queryByTestId("chartHeader")).not.toBeInTheDocument()
+  })
+})

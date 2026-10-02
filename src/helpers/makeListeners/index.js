@@ -41,9 +41,9 @@ export default () => {
     const onceListeners = onceListenersByEvent[eventName]
     if (!onceListeners?.size) return
 
-    listenersByEvent[eventName] = onceListeners.forEach(handler => {
+    onceListeners.forEach(handler => {
       onceListeners.delete(handler)
-      listeners.delete(handler)
+      listeners?.delete(handler)
     })
   }
 

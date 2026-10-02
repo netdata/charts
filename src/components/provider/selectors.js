@@ -229,19 +229,20 @@ export const useOnResize = uiName => {
   const [invalidated, invalidate] = useState(1)
   const forceUpdate = useForceUpdate()
 
-  useImmediateListener(
-    () =>
-      unregister(
-        chart.on("mountChartUI", () => {
-          setTimeout(() => {
-            invalidate(prev => prev + 1)
-            forceUpdate()
-          }, 300)
-        }),
-        chart.getUI(uiName).on("rendered", forceUpdate).on("resize", forceUpdate)
-      ),
-    [uiName, chart, invalidated]
-  )
+  useImmediateListener(() => {
+    let timer
+    return unregister(
+      chart.on("mountChartUI", () => {
+        clearTimeout(timer)
+        timer = setTimeout(() => {
+          invalidate(prev => prev + 1)
+          forceUpdate()
+        }, 300)
+      }),
+      chart.getUI(uiName).on("rendered", forceUpdate).on("resize", forceUpdate),
+      () => clearTimeout(timer)
+    )
+  }, [uiName, chart, invalidated])
 
   return {
     width: chart.getUI(uiName).getChartWidth(),
@@ -640,8 +641,7 @@ export const useLatestValue = (id, options = {}) => useValue(id, "latest", optio
 export const useDisplayValue = (id, period = "latest", options = {}) =>
   useValue(id, period, { ...options, abs: false })
 
-export const useLatestDisplayValue = (id, options = {}) =>
-  useDisplayValue(id, "latest", options)
+export const useLatestDisplayValue = (id, options = {}) => useDisplayValue(id, "latest", options)
 
 export const useConvertedValue = (id, period = "latest", options = {}) => {
   const value = useValue(id, period, options)
@@ -674,23 +674,29 @@ export const useLatestDisplayValueWithUnit = (id, options = {}) => {
 
 export const useIsMinimal = () => useAttributeValue("designFlavour") === "minimal"
 
+export const useIsModern = () => useAttributeValue("designFlavour") === "modern"
+
 export const usePlotArea = (uiName = "default") => {
   const chart = useChart()
   const forceUpdate = useForceUpdate()
 
-  useImmediateListener(
-    () =>
-      unregister(
-        chart.on("mountChartUI", () => setTimeout(forceUpdate, 300)),
-        chart.getUI(uiName)?.on("rendered", forceUpdate).on("resize", forceUpdate)
-      ),
-    [uiName, chart]
-  )
+  useImmediateListener(() => {
+    let timer
+    return unregister(
+      chart.on("mountChartUI", () => {
+        clearTimeout(timer)
+        timer = setTimeout(forceUpdate, 300)
+      }),
+      chart.getUI(uiName)?.on("rendered", forceUpdate).on("resize", forceUpdate),
+      () => clearTimeout(timer)
+    )
+  }, [uiName, chart])
 
-  const area = chart.getUI(uiName)?.getDygraph?.()?.getArea()
+  const area = chart.getUI(uiName)?.getPlotArea?.()
 
   return {
-    left: area?.x ?? 0,
-    width: area?.w ?? 0,
+    left: area?.left ?? 0,
+    top: area?.top ?? 0,
+    width: area?.width ?? 0,
   }
 }

@@ -92,7 +92,7 @@ src/
 
 - **Jest** with jsdom environment
 - **Simple unit tests** focused on component rendering
-- **Minimal coverage thresholds** (1% for branches/functions)
+- **Coverage thresholds**: 50% statements, 40% branches, 47% functions, 50% lines (`jest/config.js`)
 - **DOM testing** for rendered elements
 - Test files colocated with source: `*.test.js`
 

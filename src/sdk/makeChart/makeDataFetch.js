@@ -134,10 +134,15 @@ export default chart => {
         return
       }
 
-      const { result, chartType, versions, title, ...restPayload } = camelizePayload(
-        nextRawPayload,
-        chart
-      )
+      let camelized
+      try {
+        camelized = camelizePayload(nextRawPayload, chart)
+      } catch (error) {
+        chart.failFetch(error)
+        return
+      }
+
+      const { result, chartType, versions, title, ...restPayload } = camelized
 
       const prevPayload = nextPayload
       nextPayload = result
@@ -262,7 +267,7 @@ export default chart => {
       .then(data => {
         if (data?.errorMsgKey) return failFetch?.(data)
         if (!(Array.isArray(data?.result) || Array.isArray(data?.result?.data)))
-          return failFetch?.()
+          return failFetch?.(data)
 
         return doneFetch?.(data)
       })
@@ -315,12 +320,16 @@ export default chart => {
       return Promise.resolve().then(() => chart.failFetch({ message: "Exceeds data retention" }))
 
     currentFetchKey = fetchKey
-    abortController = new AbortController()
+    const controller = new AbortController()
+    abortController = controller
 
     return chart.baseFetch({
       doneFetch: data => chart.doneFetch(data, { liveAnchor, requestAnchor }),
-      failFetch: chart.failFetch,
-      signal: abortController.signal,
+      failFetch: error => {
+        if (error?.name === "AbortError" && controller !== abortController) return
+        chart.failFetch(error)
+      },
+      signal: controller.signal,
       attrs:
         typeof fetchBefore === "number" && isFinite(fetchBefore)
           ? { liveRequestBefore: fetchBefore }
