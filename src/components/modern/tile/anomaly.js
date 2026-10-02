@@ -8,6 +8,7 @@ import Tooltip from "@/components/tooltip"
 const Track = styled(Flex).attrs({
   column: true,
   justifyContent: "end",
+  alignItems: "center",
   position: "absolute",
   width: "8px",
   "data-testid": "modernTile-anomaly",
@@ -15,11 +16,6 @@ const Track = styled(Flex).attrs({
   top: 12px;
   bottom: 12px;
   right: 2px;
-  align-items: center;
-`
-
-const Rail = styled(Flex).attrs({ column: true, height: "100%", width: "2px", round: 0.5 })`
-  justify-content: flex-end;
 `
 
 const AnomalyIndicator = ({ revealed }) => {
@@ -33,9 +29,16 @@ const AnomalyIndicator = ({ revealed }) => {
   return (
     <Tooltip content="Anomaly rate for this metric" align="left">
       <Track data-value={value}>
-        <Rail background={revealed ? "neutralHighlight" : undefined}>
+        <Flex
+          column
+          justifyContent="end"
+          height="100%"
+          width="2px"
+          round={0.5}
+          background={revealed ? "neutralHighlight" : undefined}
+        >
           <ColorBar id="selected" valueKey="arp" width="2px" styleDimension="height" round={0.5} />
-        </Rail>
+        </Flex>
       </Track>
     </Tooltip>
   )

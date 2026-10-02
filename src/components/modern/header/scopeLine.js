@@ -7,13 +7,12 @@ import { showAllDimensions, useHiddenDimensionsCount } from "./hiddenDimensions"
 
 const ScopeButton = styled(Box).attrs(({ disabled }) => ({
   as: "button",
-  width: { max: "100%" },
+  width: { min: "0px", max: "100%" },
   padding: [0],
   overflow: "hidden",
   cursor: disabled ? "default" : "pointer",
 }))`
   display: block;
-  min-width: 0;
   border: 0;
   background: transparent;
   text-align: left;

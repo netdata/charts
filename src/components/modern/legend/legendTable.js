@@ -5,7 +5,9 @@ import { Box, Flex, getColor } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart, useFormatTime } from "@/components/provider"
 import { useIsHeatmap } from "@/helpers/heatmap"
 import { tabularNumbers } from "@/components/modern/tokens"
-import { AnomalyBar, Flags, Numeral, Swatch, onToggle } from "./parts"
+import { AnomalyBar, Flags, Unit as BaseUnit, onToggle } from "./parts"
+import { Numeral } from "@/components/modern/numerals"
+import { LineSwatch } from "@/components/modern/swatch"
 import { focusDimension, useClearFocusOnUnmount } from "./mode"
 import { useLegendRows } from "./useLegendRows"
 
@@ -19,35 +21,30 @@ const Wrapper = styled(Flex).attrs({
   flex: false,
   basis: "40%",
   width: { min: 60, max: 105 },
+  height: { min: "0px" },
   overflow: "hidden",
+  color: "inherit",
 })`
-  color: inherit;
-  min-height: 0;
   overflow-anchor: none;
-`
-
-const ScrollArea = styled(Flex).attrs({ position: "relative", flex: "1" })`
-  color: inherit;
-  min-height: 0;
 `
 
 const Scroller = styled(Box).attrs({
   "data-testid": "modernLegend-scroller",
+  width: { min: "0px" },
+  height: { min: "0px" },
   overflow: { vertical: "auto", horizontal: "hidden" },
 })`
   flex: 1;
-  min-width: 0;
-  min-height: 0;
 `
 
 const Fade = styled(Box).attrs({
   "data-testid": "modernLegend-fade",
   position: "absolute",
+  left: 0,
+  right: 0,
+  bottom: 0,
   height: 9,
 })`
-  left: 0;
-  right: 0;
-  bottom: 0;
   pointer-events: none;
   background: linear-gradient(transparent, ${getColor("mainChartBg")});
 `
@@ -61,11 +58,11 @@ const Table = styled(Box).attrs({ as: "table", width: "100%" })`
 const HeaderCell = styled(Box).attrs(({ isSortable }) => ({
   as: "th",
   position: "sticky",
+  top: 0,
   zIndex: 1,
   background: "mainChartBg",
   cursor: isSortable ? "pointer" : "default",
 }))`
-  top: 0;
   padding: 3px 0 3px 12px;
   font-weight: 400;
   text-align: right;
@@ -100,18 +97,7 @@ const NameCell = styled(Box).attrs({ as: "td", width: "100%" })`
   max-width: 0;
 `
 
-const NameContent = styled(Flex).attrs({
-  as: "span",
-  position: "relative",
-  alignItems: "center",
-  gap: 2,
-})`
-  color: inherit;
-  min-width: 0;
-`
-
-const NameText = styled(Box).attrs({ as: "span" })`
-  overflow: hidden;
+const NameText = styled(Box).attrs({ as: "span", overflow: "hidden" })`
   text-overflow: ellipsis;
   white-space: nowrap;
 `
@@ -133,9 +119,7 @@ const Spacer = ({ height }) =>
     <tr aria-hidden="true" data-testid="modernLegend-spacer" style={{ height: `${height}px` }} />
   ) : null
 
-const Unit = styled(Box).attrs({ as: "span", margin: [0, 0, 0, 1] })`
-  color: ${getColor("textDescription")};
-  font-size: 11px;
+const Unit = styled(BaseUnit).attrs({ margin: [0, 0, 0, 1] })`
   font-weight: 400;
 `
 
@@ -212,7 +196,7 @@ const LegendTable = () => {
 
   return (
     <Wrapper data-track={chart.track("legend")}>
-      <ScrollArea>
+      <Flex position="relative" flex="1" height={{ min: "0px" }} color="inherit">
         <Scroller ref={scrollRef} onScroll={onScroll}>
           <Table>
             <thead>
@@ -251,12 +235,19 @@ const LegendTable = () => {
                     data-dimension={row.id}
                   >
                     <NameCell title={row.name}>
-                      <NameContent>
-                        {!isHeatmap && <Swatch swatchColor={row.color} />}
+                      <Flex
+                        as="span"
+                        position="relative"
+                        alignItems="center"
+                        gap={2}
+                        width={{ min: "0px" }}
+                        color="inherit"
+                      >
+                        {!isHeatmap && <LineSwatch swatchColor={row.color} />}
                         <NameText>{row.name}</NameText>
                         {row.visible && <Flags flags={row.flags} />}
                         {row.visible && row.arp > 0 && <AnomalyBar rate={row.arp} />}
-                      </NameContent>
+                      </Flex>
                     </NameCell>
                     <Cell isStrong>
                       <Numeral>{row.visible ? row.display : "-"}</Numeral>
@@ -280,7 +271,7 @@ const LegendTable = () => {
           </Table>
         </Scroller>
         {fade && <Fade />}
-      </ScrollArea>
+      </Flex>
     </Wrapper>
   )
 }

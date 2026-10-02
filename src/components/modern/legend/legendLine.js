@@ -3,38 +3,25 @@ import styled from "styled-components"
 import { Box, Flex, getColor } from "@netdata/netdata-ui"
 import { useChart } from "@/components/provider"
 import { useIsHeatmap } from "@/helpers/heatmap"
-import { AnomalyBar, Flags, Numeral, Swatch, onToggle } from "./parts"
+import { AnomalyBar, Flags, Unit, Value, onToggle } from "./parts"
+import { LineSwatch } from "@/components/modern/swatch"
 import { focusDimension, useClearFocusOnUnmount } from "./mode"
 import { useLegendRows } from "./useLegendRows"
 
 export const lineEntryCap = 24
 
-const Line = styled(Flex).attrs({
-  "data-testid": "modernLegend-line",
-  position: "relative",
-  flexWrap: true,
-  alignItems: "center",
-  gap: 4,
-  gapY: 1,
-  height: { max: 16 },
-  overflow: "hidden",
-})`
-  color: inherit;
-  min-width: 0;
-`
-
-const Entry = styled(Box).attrs(({ isOff }) => ({
+const Entry = styled(Flex).attrs(({ isOff }) => ({
   as: "button",
   type: "button",
   "data-testid": "modernLegend-entry",
   position: "relative",
+  alignItems: "center",
+  gap: 1.5,
   padding: [0],
   cursor: "pointer",
   opacity: isOff ? 0.4 : 1,
 }))`
   display: inline-flex;
-  align-items: center;
-  gap: 6px;
   border: 0;
   background: transparent;
   font-size: 12px;
@@ -45,16 +32,6 @@ const Name = styled(Box).attrs({ as: "span", width: { max: 45 }, overflow: "hidd
   color: ${getColor("textLite")};
   white-space: nowrap;
   text-overflow: ellipsis;
-`
-
-const Value = styled(Numeral)`
-  color: ${getColor("text")};
-  font-weight: 600;
-`
-
-const Unit = styled(Box).attrs({ as: "span" })`
-  color: ${getColor("textDescription")};
-  font-size: 11px;
 `
 
 const More = styled(Box).attrs({
@@ -140,7 +117,20 @@ const LegendLine = () => {
   const hidden = ids.length - rows.length
 
   return (
-    <Line ref={ref} data-track={chart.track("legend")}>
+    <Flex
+      ref={ref}
+      position="relative"
+      flexWrap
+      alignItems="center"
+      gap={4}
+      gapY={1}
+      width={{ min: "0px" }}
+      height={{ max: 16 }}
+      overflow="hidden"
+      color="inherit"
+      data-testid="modernLegend-line"
+      data-track={chart.track("legend")}
+    >
       {rows.map(row => (
         <Entry
           key={row.id}
@@ -152,7 +142,7 @@ const LegendLine = () => {
           data-dimension={row.id}
           title={row.name}
         >
-          {!isHeatmap && <Swatch swatchColor={row.color} />}
+          {!isHeatmap && <LineSwatch swatchColor={row.color} />}
           <Name>{row.name}</Name>
           {row.visible && <Value>{row.display}</Value>}
           {row.visible && !!row.unit && <Unit>{row.unit}</Unit>}
@@ -169,7 +159,7 @@ const LegendLine = () => {
           {`+${hidden} more`}
         </More>
       )}
-    </Line>
+    </Flex>
   )
 }
 

@@ -13,7 +13,8 @@ import Value, { Value as ValuePart } from "@/components/line/dimensions/value"
 import getWindowRange from "@/helpers/getWindowRange"
 import { labels as annotationLabels } from "@/helpers/annotations"
 import Tooltip from "@/components/tooltip"
-import { numeralsFont, tabularNumbers, radius } from "@/components/modern/tokens"
+import { radius } from "@/components/modern/tokens"
+import { SmallNumeral } from "@/components/modern/numerals"
 import { formatReadout, formatReadoutUnit } from "@/components/modern/format"
 
 const rowHeight = 24
@@ -32,26 +33,16 @@ const getMaxRows = height => {
   return rows < 2 ? 2 : rows
 }
 
-const Row = styled(Box)`
+const Row = styled(Box).attrs({ height: { min: 10 } })`
   display: grid;
   grid-template-columns: minmax(64px, 36%) minmax(0, 1fr) auto;
   gap: ${getSizeBy(2)};
   align-items: center;
-  min-height: ${getSizeBy(5)};
-`
-
-const Track = styled(Box).attrs({ height: "8px", round: 1, background: "borderSecondary" })`
-  overflow: hidden;
 `
 
 const Fill = styled(Box).attrs({ height: "100%", round: 1 })`
   background: ${({ fillColor }) => fillColor};
   transition: width 150ms ease-out;
-`
-
-const Numeral = styled(TextSmall)`
-  font-family: ${numeralsFont};
-  ${tabularNumbers}
 `
 
 const getPercent = (value, min, max) => {
@@ -71,14 +62,20 @@ const Bar = ({ id, emphasis }) => {
   const max = useAttributeValue("max")
 
   return (
-    <Track data-testid="modern-bars-track">
+    <Box
+      height="8px"
+      round={1}
+      overflow="hidden"
+      background="borderSecondary"
+      data-testid="modern-bars-track"
+    >
       <Fill
         fillColor={chart.selectDimensionColor(id)}
         opacity={emphasis ? 1 : 0.6}
         style={{ width: `${getPercent(value, min, max)}%` }}
         data-testid="modern-bars-fill"
       />
-    </Track>
+    </Box>
   )
 }
 
@@ -90,9 +87,14 @@ const DisplayValue = ({ id, strong }) => {
 
   return (
     <Flex alignItems="baseline" justifyContent="end" gap={1}>
-      <Numeral color="text" strong={strong} whiteSpace="nowrap" data-testid="modern-bars-value">
+      <SmallNumeral
+        color="text"
+        strong={strong}
+        whiteSpace="nowrap"
+        data-testid="modern-bars-value"
+      >
         {convertedValue}
-      </Numeral>
+      </SmallNumeral>
       {!!convertedUnit && (
         <TextMicro color="textLite" whiteSpace="nowrap">
           {convertedUnit}
@@ -113,12 +115,10 @@ const AnomalyValue = ({ children, ...rest }) =>
 
 export const pillInk = "#1C1E22"
 
-const Pill = styled(Box).attrs({ as: "span" })`
+const Pill = styled(Box).attrs({ as: "span", padding: [0, 1.5], round: radius.pill })`
   font-size: 10px;
   font-weight: 600;
   line-height: 14px;
-  padding: 0 6px;
-  border-radius: ${radius.pill};
   color: ${pillInk};
   background: ${({ pillColor }) => pillColor};
 `

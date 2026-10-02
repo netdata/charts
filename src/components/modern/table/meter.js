@@ -1,16 +1,16 @@
 import React from "react"
 import styled from "styled-components"
-import { Box, Flex, getColor } from "@netdata/netdata-ui"
+import { Box, Flex } from "@netdata/netdata-ui"
 
 const Track = styled(Flex).attrs({
   flex: false,
   width: "56px",
   height: "6px",
   overflow: "hidden",
+  background: "borderSecondary",
   "data-testid": "modernTable-meter",
 })`
   border-radius: 3px;
-  background: ${getColor("borderSecondary")};
 `
 
 const Fill = styled(Box).attrs({ height: "100%" })`

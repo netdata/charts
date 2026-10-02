@@ -10,20 +10,18 @@ import { formatAnomalyRate, getAnomalyColor, getAnomalySummary } from "@/compone
 
 const wideWidth = 480
 
-const Anchor = styled(Flex).attrs({ position: "absolute", zIndex: 2 })``
-
-const Badge = styled(Flex).attrs({
+const Badge = styled(Flex).attrs(({ onClick }) => ({
   as: "button",
   type: "button",
   alignItems: "center",
   gap: 1,
   round: 3,
-})`
+  cursor: onClick ? "pointer" : "default",
+}))`
   border: 1px solid ${({ ink, isActive }) => (isActive ? ink : "transparent")};
   ${({ isActive }) => !isActive && "background: none;"}
   font-family: ${numeralsFont};
   font-weight: 600;
-  cursor: ${({ onClick }) => (onClick ? "pointer" : "default")};
   color: ${({ ink }) => ink};
 `
 
@@ -92,7 +90,9 @@ const AnomalyBadge = ({ uiName = "default" }) => {
   const setSpotlight = value => chart.updateAttribute("anomalySpotlight", value)
 
   return (
-    <Anchor
+    <Flex
+      position="absolute"
+      zIndex={2}
       style={{ left: Math.max(0, area.left - 30), top: Math.max(0, area.top - 18) }}
       onMouseEnter={() => setSpotlight(true)}
       onMouseLeave={() => setSpotlight(false)}
@@ -125,7 +125,7 @@ const AnomalyBadge = ({ uiName = "default" }) => {
           )}
         </Badge>
       </Tooltip>
-    </Anchor>
+    </Flex>
   )
 }
 

@@ -3,6 +3,7 @@ import styled from "styled-components"
 import { Box, Flex, TextSmall, getColor } from "@netdata/netdata-ui"
 import Tooltip, { tooltipStyleProps } from "@/components/tooltip"
 import { radius } from "@/components/modern/tokens"
+import { Dot } from "@/components/modern/dot"
 import { capNames, getClearDescription, getStatusLabel } from "./summary"
 
 export * from "./summary"
@@ -11,14 +12,7 @@ const dotColors = { clear: "success", warning: "warning", critical: "bright" }
 
 export const statusInk = { warning: "text", critical: "bright" }
 
-const Dot = styled(Box).attrs({ as: "span", width: 2, height: 2 })`
-  flex: none;
-  border-radius: ${radius.pill};
-`
-
-const Holder = styled(Flex)`
-  border-radius: ${radius.pill};
-  cursor: default;
+const Holder = styled(Flex).attrs({ round: radius.pill, cursor: "default" })`
   outline: none;
 
   &:focus-visible {

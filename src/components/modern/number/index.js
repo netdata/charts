@@ -8,7 +8,7 @@ import {
   useOnResize,
   useVisibleDimensionIds,
 } from "@/components/provider"
-import { numeralsFont } from "@/components/modern/tokens"
+import { numerals } from "@/components/modern/numerals"
 import { formatReadout } from "@/components/modern/format"
 import Sparkline from "./sparkline"
 import StatusIndicator from "@/components/modern/status"
@@ -17,11 +17,9 @@ import { useStableChars } from "@/components/modern/tile/readout"
 
 const clamp = (value, low, high) => Math.min(Math.max(value, low), high)
 
-export const Numerals = styled(Text)`
-  font-family: ${numeralsFont};
-  font-variant-numeric: tabular-nums;
+export const Numerals = styled(Text).attrs({ whiteSpace: "nowrap" })`
+  ${numerals}
   line-height: 1;
-  white-space: nowrap;
 `
 
 const BigValue = styled(Numerals)`

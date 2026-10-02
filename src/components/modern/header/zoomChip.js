@@ -11,12 +11,12 @@ const Chip = styled(Flex).attrs({
   gap: 2,
   padding: [1, 1, 1, 3],
   background: "dropdown",
+  position: "absolute",
+  top: 1,
+  right: 2,
+  zIndex: 3,
+  round: radius.pill,
 })`
-  position: absolute;
-  top: 4px;
-  right: 8px;
-  z-index: 3;
-  border-radius: ${radius.pill};
   box-shadow: 0 2px 8px ${getColor("dropdownShadow")};
   opacity: 0;
   pointer-events: none;
@@ -45,9 +45,13 @@ const Chip = styled(Flex).attrs({
     `}
 `
 
-const ResetButton = styled(Box).attrs({ as: "button", cursor: "pointer", background: "text" })`
+const ResetButton = styled(Box).attrs({
+  as: "button",
+  round: radius.pill,
+  cursor: "pointer",
+  background: "text",
+})`
   border: 0;
-  border-radius: ${radius.pill};
   padding: 3px 10px;
   font-size: 12px;
   font-family: inherit;

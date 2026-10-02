@@ -16,7 +16,7 @@ import Tooltip from "@/components/tooltip"
 import Label from "@/components/filterToolbox/label"
 import { labelColumn, valueColumn } from "@/components/table/columns"
 import { getAlias } from "@/helpers/units"
-import { numeralsFont, tabularNumbers } from "@/components/modern/tokens"
+import { SmallNumeral } from "@/components/modern/numerals"
 import { formatReadout } from "@/components/modern/format"
 import { StatusDot, getRowStatus } from "./status"
 import Trend, { useTrend } from "./trend"
@@ -65,13 +65,13 @@ const makeValueHeader =
 const SortButton = styled(Flex).attrs({
   as: "button",
   alignItems: "baseline",
+  gap: 0.5,
+  width: { min: "0px" },
   padding: [0],
   cursor: "pointer",
   color: "textLite",
 })`
   display: inline-flex;
-  gap: 2px;
-  min-width: 0;
   border: 0;
   background: transparent;
   font-family: inherit;
@@ -203,10 +203,8 @@ export const modernLabelColumn = (chart, options = {}) => {
   }
 }
 
-const Numeral = styled(TextSmall)`
+const Numeral = styled(SmallNumeral)`
   position: relative;
-  font-family: ${numeralsFont};
-  ${tabularNumbers}
   font-weight: 600;
 `
 
@@ -250,11 +248,6 @@ const TrendHolder = styled(Box).attrs({ as: "span", position: "relative", opacit
   ${rowHover} path {
     stroke: var(--modern-trend-color);
   }
-`
-
-const Missing = styled(TextSmall)`
-  font-family: ${numeralsFont};
-  cursor: default;
 `
 
 export const isPercentUnit = unit => typeof unit === "string" && getAlias(unit) === "%"
@@ -310,7 +303,7 @@ const ModernValue = ({ id, table, context, dimension }) => {
       gap={2}
       width="100%"
       justifyContent="end"
-      style={{ minHeight: 18 }}
+      height={{ min: 4.5 }}
     >
       <Bar
         isHot={hot}
@@ -344,9 +337,14 @@ const ModernValue = ({ id, table, context, dimension }) => {
 const MissingValue = () => (
   <Flex width="100%" justifyContent="end">
     <Tooltip content={missingValueText}>
-      <Missing color="textLite" aria-label={missingValueText} data-testid="modernTable-missing">
+      <SmallNumeral
+        color="textLite"
+        cursor="default"
+        aria-label={missingValueText}
+        data-testid="modernTable-missing"
+      >
         –
-      </Missing>
+      </SmallNumeral>
     </Tooltip>
   </Flex>
 )

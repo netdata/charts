@@ -1,35 +1,31 @@
 import React from "react"
 import styled from "styled-components"
-import { Box, Flex, TextMicro } from "@netdata/netdata-ui"
+import { Box, Flex, TextMicro, getColor } from "@netdata/netdata-ui"
 import { labels as annotationLabels } from "@/helpers/annotations"
-import { numeralsFont, tabularNumbers } from "@/components/modern/tokens"
+import { Numeral } from "@/components/modern/numerals"
 
-export const Swatch = styled(Box).attrs({ as: "span", "data-testid": "modernLegend-swatch" })`
-  display: inline-block;
-  flex: 0 0 auto;
-  width: 10px;
-  height: 3px;
-  border-radius: 2px;
-  background: ${({ swatchColor }) => swatchColor || "transparent"};
+export const Value = styled(Numeral)`
+  color: ${getColor("text")};
+  font-weight: 600;
 `
 
-export const Numeral = styled(Box).attrs({ as: "span" })`
-  font-family: ${numeralsFont};
-  ${tabularNumbers}
+export const Unit = styled(Box).attrs({ as: "span" })`
+  color: ${getColor("textDescription")};
+  font-size: 11px;
   white-space: nowrap;
 `
 
-export const AnomalyBar = styled(Box).attrs({
+export const AnomalyBar = styled(Box).attrs(({ rate }) => ({
   as: "span",
   "data-testid": "modernLegend-anomalyBar",
   position: "absolute",
+  left: 0,
+  width: `${Math.min(100, Math.max(0, rate))}%`,
+  height: 0.5,
   background: "anomalyText",
-})`
-  left: 0;
+}))`
   bottom: -3px;
-  height: 2px;
   border-radius: 1px;
-  width: ${({ rate }) => Math.min(100, Math.max(0, rate))}%;
   pointer-events: none;
 `
 

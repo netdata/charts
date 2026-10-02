@@ -5,19 +5,21 @@ import { useAttributeValue, useChart, usePayload } from "@/components/provider"
 import { numeralsFont, radius } from "@/components/modern/tokens"
 import { formatAnomalyRate, getAnomalyColor, getAnomalySummary } from "@/components/modern/anomaly"
 
-const Pill = styled(Flex).attrs({ as: "span", alignItems: "center", flex: false })`
+const Pill = styled(Flex).attrs({
+  as: "span",
+  alignItems: "center",
+  flex: false,
+  round: radius.pill,
+  color: "mainBackground",
+})`
   display: inline-flex;
   padding: 2px 9px;
-  border-radius: ${radius.pill};
   font-family: ${numeralsFont};
   font-size: 11.5px;
   font-weight: 600;
   white-space: nowrap;
-  color: ${({ ink }) => ink};
   background: ${({ pillBackground }) => pillBackground};
 `
-
-const inks = ["#FFFFFF", "#0F0B1D"]
 
 const AnomalyPill = () => {
   const chart = useChart()
@@ -31,13 +33,11 @@ const AnomalyPill = () => {
   const { peak, periods } = getAnomalySummary(chart)
   if (!periods) return null
 
-  const themeIndex = chart.getThemeIndex()
   const rounded = formatAnomalyRate(peak)
 
   return (
     <Pill
       pillBackground={getAnomalyColor(chart, peak)}
-      ink={inks[themeIndex] || inks[0]}
       title={`${periods} anomalous ${periods === 1 ? "period" : "periods"} in this window, peak anomaly rate ${rounded}%`}
       data-testid="chartAnomalyPill"
     >

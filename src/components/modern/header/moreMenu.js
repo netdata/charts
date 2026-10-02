@@ -10,7 +10,9 @@ import {
 } from "@/components/provider"
 import makeLog from "@/sdk/makeLog"
 import { radius } from "@/components/modern/tokens"
-import { Swatch, onToggle } from "@/components/modern/legend/parts"
+import { onToggle } from "@/components/modern/legend/parts"
+import { LineSwatch } from "@/components/modern/swatch"
+import { Divider, Item, Panel } from "@/components/modern/menu"
 import { showAllDimensions, useHiddenDimensionsCount } from "./hiddenDimensions"
 
 export const navigationModes = [
@@ -52,65 +54,14 @@ const tabLabels = {
   download: "Download…",
 }
 
-const Panel = styled(Flex).attrs({ column: true, padding: [1], width: "260px" })`
-  font-size: 12.5px;
-`
-
-const Row = styled(Flex).attrs({
-  as: "button",
-  alignItems: "center",
-  justifyContent: "between",
-  gap: 4,
-  width: "100%",
-  round: 1,
-  padding: [1, 2],
-  cursor: "pointer",
-})`
-  border: 0;
-  background: transparent;
-  font-family: inherit;
-  font-size: 12px;
-  text-align: left;
-  color: ${getColor("text")};
-
-  &:hover:not(:disabled) {
-    background: ${getColor("mainChartTboxHover")};
-  }
-
-  &:disabled {
-    cursor: default;
-    color: ${getColor("textLite")};
-  }
-`
-
-const Check = styled(Box).attrs({ as: "span", width: 4 })`
-  display: inline-block;
-  color: ${getColor("primary")};
-`
-
-const Content = styled(Flex).attrs({ as: "span", alignItems: "center", overflow: "hidden" })`
-  color: inherit;
-  min-width: 0;
-`
-
-const Hint = styled(Box).attrs({ as: "span" })`
-  flex-shrink: 0;
-  color: ${getColor("textLite")};
-  white-space: nowrap;
-`
-
-const Divider = styled(Box).attrs({ margin: [1, 0], background: "borderSecondary" })`
-  height: 1px;
-`
-
 const Segment = styled(Box).attrs(({ isActive }) => ({
   as: "button",
   border: { side: "all", color: isActive ? "text" : "border" },
+  round: radius.control,
   padding: [1, 0],
   cursor: "pointer",
 }))`
   flex: 1;
-  border-radius: ${radius.control};
   background: ${({ isActive, theme }) =>
     isActive ? getColor("borderSecondary")({ theme }) : "transparent"};
   font-family: inherit;
@@ -122,17 +73,16 @@ const SearchInput = styled(Box).attrs({
   as: "input",
   width: "100%",
   border: true,
+  round: radius.control,
   padding: [1, 2],
 })`
-  border-radius: ${radius.control};
   background: transparent;
   font-family: inherit;
   font-size: 12px;
   color: ${getColor("text")};
 `
 
-const DimensionName = styled(Box).attrs({ as: "span", overflow: "hidden" })`
-  margin-left: 6px;
+const DimensionName = styled(Box).attrs({ as: "span", margin: [0, 0, 0, 1.5], overflow: "hidden" })`
   text-overflow: ellipsis;
   white-space: nowrap;
 `
@@ -141,16 +91,6 @@ const Label = ({ children }) => (
   <TextMicro color="textLite" padding={[2, 2.5, 0.5]}>
     {children}
   </TextMicro>
-)
-
-const Item = ({ children, hint, check, ...rest }) => (
-  <Row type="button" role="menuitem" {...rest}>
-    <Content>
-      {check !== undefined && <Check>{check ? "✓" : ""}</Check>}
-      {children}
-    </Content>
-    {!!hint && <Hint>{hint}</Hint>}
-  </Row>
 )
 
 const NavigationModes = ({ log }) => {
@@ -281,7 +221,7 @@ const Dimensions = () => {
                 data-track={chart.track("toggleDimension")}
                 onClick={onToggle(chart, id)}
               >
-                <Swatch swatchColor={chart.selectDimensionColor(id)} />
+                <LineSwatch swatchColor={chart.selectDimensionColor(id)} />
                 <DimensionName>{chart.getDimensionName(id) || id}</DimensionName>
               </Item>
             ))}

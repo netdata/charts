@@ -1,27 +1,12 @@
 import React, { useRef, useState } from "react"
-import styled from "styled-components"
-import { Drop, Flex } from "@netdata/netdata-ui"
+import { Drop } from "@netdata/netdata-ui"
 import filterIcon from "@netdata/netdata-ui/dist/components/icon/assets/filter.svg"
 import moreIcon from "@netdata/netdata-ui/dist/components/icon/assets/more.svg"
 import Icon, { Button } from "@/components/icon"
 import { useAttributeValue, useChart } from "@/components/provider"
 import SettingsContent from "@/components/toolbox/settings/content"
+import { Toolbar, dropProps } from "@/components/modern/menu"
 import MoreMenu from "./moreMenu"
-
-const Container = styled(Flex).attrs({ alignItems: "center", gap: 0.5 })`
-  transition: opacity 120ms ease-in-out;
-
-  &:focus-within {
-    opacity: 1;
-  }
-`
-
-const dropProps = {
-  align: { top: "bottom", right: "right" },
-  background: "dropdown",
-  margin: [1, 0, 0],
-  round: true,
-}
 
 const Actions = ({ hasFilters, filtersOpen, onToggleFilters }) => {
   const chart = useChart()
@@ -44,7 +29,7 @@ const Actions = ({ hasFilters, filtersOpen, onToggleFilters }) => {
   const disabled = !focused
 
   return (
-    <Container
+    <Toolbar
       data-noprint
       data-testid="chartHeaderToolbox"
       opacity={focused || menuOpen || tabOpen || filtersOpen ? 1 : 0}
@@ -101,7 +86,7 @@ const Actions = ({ hasFilters, filtersOpen, onToggleFilters }) => {
           />
         </Drop>
       )}
-    </Container>
+    </Toolbar>
   )
 }
 

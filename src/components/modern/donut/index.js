@@ -9,8 +9,9 @@ import {
   useUnitSign,
   useVisibleDimensionIds,
 } from "@/components/provider"
-import { numeralsFont, tabularNumbers } from "@/components/modern/tokens"
+import { SmallNumeral, numerals } from "@/components/modern/numerals"
 import { formatReadout } from "@/components/modern/format"
+import { SquareSwatch } from "@/components/modern/swatch"
 import getDonutData from "./getDonutData"
 
 const size = 180
@@ -63,19 +64,13 @@ const Slice = styled.path`
 
 const CenterValue = styled.text`
   fill: ${getColor("text")};
-  font-family: ${numeralsFont};
+  ${numerals}
   font-weight: 600;
-  ${tabularNumbers}
 `
 
 const CenterCaption = styled.text`
   fill: ${getColor("textLite")};
   font-size: 11px;
-`
-
-const Numeral = styled(TextSmall)`
-  font-family: ${numeralsFont};
-  ${tabularNumbers}
 `
 
 const LegendRow = styled(Box).attrs(({ isDimmed }) => ({
@@ -87,11 +82,6 @@ const LegendRow = styled(Box).attrs(({ isDimmed }) => ({
   gap: 8px;
   align-items: center;
   transition: opacity 120ms;
-`
-
-const Swatch = styled(Box).attrs({ as: "span", width: 2, height: 2 })`
-  border-radius: 2px;
-  background: ${({ swatchColor }) => swatchColor};
 `
 
 const sliceDimensionId = slice => (slice.grouped ? undefined : slice.id)
@@ -130,11 +120,11 @@ const Legend = ({ chart, slices, focus, setFocus }) => (
           data-testid="donut-legend-row"
           title={slice.grouped ? slice.grouped.join(", ") : slice.name}
         >
-          <Swatch swatchColor={slice.color} />
+          <SquareSwatch swatchColor={slice.color} />
           <TextSmall color="text" truncate data-testid="donut-legend-name">
             {slice.name}
           </TextSmall>
-          <Numeral
+          <SmallNumeral
             color="text"
             strong
             whiteSpace="nowrap"
@@ -142,10 +132,10 @@ const Legend = ({ chart, slices, focus, setFocus }) => (
             data-testid="donut-legend-value"
           >
             {value}
-          </Numeral>
-          <Numeral color="textLite" whiteSpace="nowrap" textAlign="right">
+          </SmallNumeral>
+          <SmallNumeral color="textLite" whiteSpace="nowrap" textAlign="right">
             {formatShare(slice.share)}
-          </Numeral>
+          </SmallNumeral>
         </LegendRow>
       )
     })}

@@ -3,17 +3,17 @@ import styled from "styled-components"
 import { Box, Flex, TextMicro, getColor } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart, useUnitSign } from "@/components/provider"
 import { numeralsFont } from "@/components/modern/tokens"
+import { numerals } from "@/components/modern/numerals"
 import StatusIndicator, { getClearDescription, summarizeAlerts } from "@/components/modern/status"
 import { getAttention } from "./getAttention"
 
 const toneColor = { critical: "error", warning: "warning" }
 
 const Value = styled(Box).attrs({ as: "span" })`
-  font-family: ${numeralsFont};
+  ${numerals}
   font-size: 22px;
   font-weight: 600;
   line-height: 1;
-  font-variant-numeric: tabular-nums;
   color: ${({ tone, theme }) => getColor(tone)({ theme })};
 `
 

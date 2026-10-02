@@ -1,6 +1,7 @@
 import React from "react"
 import styled from "styled-components"
 import { Box, getColor } from "@netdata/netdata-ui"
+import { radius } from "@/components/modern/tokens"
 
 const viewHeight = 100
 const topPad = 6
@@ -18,12 +19,13 @@ const Stop = styled.stop`
   stop-color: ${({ tint }) => resolve(tint)};
 `
 
-const Marker = styled(Box)`
-  position: absolute;
-  width: 6px;
-  height: 6px;
+const Marker = styled(Box).attrs({
+  position: "absolute",
+  width: 1.5,
+  height: 1.5,
+  round: radius.pill,
+})`
   margin: -3px 0 0 -3px;
-  border-radius: 999px;
   background: ${({ tint }) => resolve(tint)};
   box-shadow: 0 0 0 2px ${getColor("mainChartBg")};
   pointer-events: none;

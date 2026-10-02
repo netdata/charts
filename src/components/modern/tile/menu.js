@@ -1,54 +1,13 @@
 import React from "react"
-import styled from "styled-components"
-import { Box, Flex, TextMicro, getColor } from "@netdata/netdata-ui"
+import { TextMicro } from "@netdata/netdata-ui"
 import { useAttribute, useAttributeValue, useChart } from "@/components/provider"
 import FilterToolbox from "@/components/filterToolbox"
 import Settings from "@/components/toolbox/settings"
 import Fullscreen from "@/components/toolbox/fullscreen"
-import { TileMenuContext } from "./context"
+import { Divider, Item, MenuElements, Panel } from "@/components/modern/menu"
 
 export const getConsumerElements = (toolboxElements = []) =>
   toolboxElements.filter(Element => Element !== Settings && Element !== Fullscreen)
-
-const Panel = styled(Flex).attrs({ column: true, padding: [1], width: "280px" })`
-  font-size: 12.5px;
-`
-
-const Row = styled(Flex).attrs({
-  as: "button",
-  alignItems: "center",
-  gap: 1,
-  width: "100%",
-  cursor: "pointer",
-})`
-  border: 0;
-  border-radius: 5px;
-  padding: 5px 10px;
-  background: transparent;
-  font-family: inherit;
-  font-size: 12.5px;
-  text-align: left;
-
-  &:hover {
-    background: ${getColor("mainChartTboxHover")};
-  }
-`
-
-const Check = styled(Box).attrs({ as: "span", width: 4 })`
-  display: inline-block;
-  color: ${getColor("primary")};
-`
-
-const Divider = styled(Box).attrs({ margin: [1, 0], background: "borderSecondary" })`
-  height: 1px;
-`
-
-const Item = ({ children, check, ...rest }) => (
-  <Row type="button" role="menuitem" {...rest}>
-    {check !== undefined && <Check>{check ? "✓" : ""}</Check>}
-    <span>{children}</span>
-  </Row>
-)
 
 const TileMenu = ({ hasFilters, onClose, onOpenSettings }) => {
   const chart = useChart()
@@ -59,24 +18,8 @@ const TileMenu = ({ hasFilters, onClose, onOpenSettings }) => {
   const elements = getConsumerElements(toolboxElements)
 
   return (
-    <Panel role="menu" data-testid="modernTileMenu">
-      {elements.length > 0 && (
-        <Flex
-          alignItems="center"
-          gap={1}
-          padding={[0.5, 1.5, 1.5]}
-          border={{ side: "bottom", color: "borderSecondary" }}
-          margin={[0, 0, 1]}
-          flexWrap
-          data-testid="modernTileMenu-elements"
-        >
-          <TileMenuContext.Provider value>
-            {elements.map((Element, index) => (
-              <Element key={index} disabled={!focused} />
-            ))}
-          </TileMenuContext.Provider>
-        </Flex>
-      )}
+    <Panel width="280px" role="menu" data-testid="modernTileMenu">
+      <MenuElements elements={elements} focused={focused} data-testid="modernTileMenu-elements" />
       {hasFilters && (
         <>
           <TextMicro color="textLite" padding={[1, 2.5, 0.5]}>
@@ -97,6 +40,7 @@ const TileMenu = ({ hasFilters, onClose, onOpenSettings }) => {
       )}
       <Item
         check={!!showingInfo}
+        contentGap={1}
         data-testid="modernTileMenu-info"
         data-track={chart.track("information")}
         onClick={() => {

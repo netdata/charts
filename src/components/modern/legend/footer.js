@@ -23,45 +23,41 @@ import { formatCompactRange } from "./compactRange"
 const HighlightChip = styled(Flex).attrs({
   "data-testid": "modernFooter-highlight",
   alignItems: "center",
+  flex: "shrink",
   gap: 1,
   padding: [0.5, 2],
+  width: { min: "0px", max: "100%" },
+  overflow: "hidden",
+  border: true,
+  round: radius.pill,
   cursor: "pointer",
 })`
-  min-width: 0;
-  max-width: 100%;
-  flex: 0 1 auto;
-  overflow: hidden;
   white-space: nowrap;
-  border-radius: ${radius.pill};
-  border: 1px solid ${getColor("border")};
 
   &:hover {
     border-color: ${getColor("text")};
   }
 `
 
-const HighlightLabel = styled(TextNano).attrs({ color: "textLite" })`
+const HighlightLabel = styled(TextNano).attrs({ color: "textLite", whiteSpace: "nowrap" })`
   flex-shrink: 0;
-  white-space: nowrap;
 `
 
 const HighlightRange = styled(TextNano).attrs({
   color: "textDescription",
+  truncate: true,
   "data-testid": "modernFooter-highlightRange",
 })`
   ${tabularNumbers}
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 `
 
 const TimeText = styled(TextNano).attrs({
   color: "textDescription",
+  whiteSpace: "nowrap",
   "data-testid": "modernFooter-time",
 })`
   ${tabularNumbers}
-  white-space: nowrap;
 `
 
 const Highlight = () => {

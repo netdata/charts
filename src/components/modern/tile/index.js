@@ -48,26 +48,38 @@ const focusRevealed = css`
   }
 `
 
-const Root = styled(Flex).attrs({ column: true, position: "relative", gap: 1 })`
+const Root = styled(Flex).attrs({
+  column: true,
+  position: "relative",
+  gap: 1,
+  round: radius.card,
+  background: "panelBg",
+})`
   box-sizing: border-box;
   padding: 8px 12px 10px;
-  border-radius: ${radius.card};
   border: 1px solid
     ${({ isRevealed, theme }) =>
       isRevealed ? getColor("borderSecondary")({ theme }) : "transparent"};
-  background: ${getColor("panelBg")};
   font-size: ${({ rootFontSize }) => rootFontSize}px;
   ${focusRevealed};
 `
 
-const Header = styled(Flex).attrs({ alignItems: "center", gap: 1.5, position: "relative" })`
+const Header = styled(Flex).attrs({
+  alignItems: "center",
+  flex: false,
+  gap: 1.5,
+  position: "relative",
+})`
   min-height: 22px;
-  flex-shrink: 0;
 `
 
-const TitleText = styled(Box).attrs({ as: "span", overflow: "hidden", cursor: "pointer" })`
+const TitleText = styled(Box).attrs({
+  as: "span",
+  width: { min: "0px" },
+  overflow: "hidden",
+  cursor: "pointer",
+})`
   flex: 1;
-  min-width: 0;
   font-size: 12.5px;
   font-weight: 500;
   line-height: 16px;
@@ -80,13 +92,16 @@ const Units = styled(Box).attrs({ as: "span", opacity: 0.8 })`
   color: ${getColor("textLite")};
 `
 
-const Reveal = styled(Flex).attrs({ alignItems: "center", gap: 0.5 })`
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  padding-left: 8px;
-  background: ${getColor("panelBg")};
+const Reveal = styled(Flex).attrs({
+  alignItems: "center",
+  gap: 0.5,
+  position: "absolute",
+  top: 0,
+  right: 0,
+  bottom: 0,
+  padding: [0, 0, 0, 2],
+  background: "panelBg",
+})`
   opacity: ${({ isVisible }) => (isVisible ? 1 : 0)};
   pointer-events: ${({ isVisible }) => (isVisible ? "auto" : "none")};
   transition: opacity 120ms ease-in-out;
@@ -97,22 +112,21 @@ const Reveal = styled(Flex).attrs({ alignItems: "center", gap: 0.5 })`
   }
 `
 
-const HeadArea = styled(Box).attrs({ position: "relative" })`
+const HeadArea = styled(Box).attrs({ position: "relative", width: { min: "0px" } })`
   flex-shrink: 0;
-  min-width: 0;
 `
 
 const ScopeRow = styled(Box).attrs({
   position: "absolute",
+  top: "100%",
+  left: 0,
+  right: 0,
   zIndex: 2,
+  width: { min: "0px" },
   height: { min: 4 },
+  padding: [0, 0, 0.5],
   background: "panelBg",
 })`
-  top: 100%;
-  left: 0;
-  right: 0;
-  min-width: 0;
-  padding-bottom: 2px;
   visibility: ${({ isVisible }) => (isVisible ? "visible" : "hidden")};
 
   ${HeadArea}:hover > &,
@@ -121,16 +135,7 @@ const ScopeRow = styled(Box).attrs({
   }
 `
 
-const Body = styled(Flex).attrs({ column: true, position: "relative", flex: true })`
-  min-height: 0;
-  overflow: hidden;
-  ${({ hasBleed }) =>
-    hasBleed &&
-    css`
-      margin: 2px -12px -10px;
-      border-radius: 0 0 ${radius.card} ${radius.card};
-    `}
-`
+const bleedProps = { margin: [0.5, -3, -2.5], round: { side: "bottom", size: radius.card } }
 
 const TileTitle = () => {
   const chart = useChart()
@@ -244,7 +249,16 @@ const ModernTile = ({ children, customChildren, hasFilters = true, height, width
       )}
       {!!readout && <TileReadout dimensionId={readout.dimensionId} />}
       <TileContext.Provider value>
-        <Body hasBleed={!!readout}>{children}</Body>
+        <Flex
+          column
+          position="relative"
+          flex
+          height={{ min: "0px" }}
+          overflow="hidden"
+          {...(readout && bleedProps)}
+        >
+          {children}
+        </Flex>
       </TileContext.Provider>
       <AnomalyIndicator revealed={revealed} />
       {customChildren}

@@ -1,6 +1,5 @@
 import React from "react"
-import styled from "styled-components"
-import { Flex } from "@netdata/netdata-ui"
+import { Dot } from "@/components/modern/dot"
 
 export const statusColors = { critical: "error", warning: "warning", clear: "success" }
 
@@ -87,14 +86,6 @@ export const getRowStatus = (chart, ids = []) => {
   if (clear) return "clear"
   return null
 }
-
-const Dot = styled(Flex).attrs({
-  flex: false,
-  width: "8px",
-  height: "8px",
-})`
-  border-radius: 50%;
-`
 
 export const StatusDot = ({ status }) =>
   status ? (

@@ -1,67 +1,9 @@
 import React, { useState } from "react"
-import styled from "styled-components"
-import { Box, Flex, getColor } from "@netdata/netdata-ui"
+import { Flex } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart } from "@/components/provider"
 import Settings from "@/components/toolbox/settings"
 import { getConsumerElements } from "@/components/modern/tile/menu"
-import { TileMenuContext } from "@/components/modern/tile/context"
-
-const Panel = styled(Flex).attrs({ column: true, padding: [1], width: "260px" })`
-  font-size: 12.5px;
-`
-
-const Row = styled(Flex).attrs({
-  as: "button",
-  alignItems: "center",
-  justifyContent: "between",
-  gap: 4,
-  width: "100%",
-  cursor: "pointer",
-})`
-  border: 0;
-  border-radius: 5px;
-  padding: 5px 10px;
-  background: transparent;
-  font-family: inherit;
-  font-size: 12.5px;
-  text-align: left;
-
-  &:hover {
-    background: ${getColor("mainChartTboxHover")};
-  }
-`
-
-const Check = styled(Box).attrs({ as: "span", width: 4 })`
-  display: inline-block;
-  flex: none;
-  color: ${getColor("primary")};
-`
-
-const Content = styled(Flex).attrs({ as: "span", alignItems: "center", overflow: "hidden" })`
-  min-width: 0;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-`
-
-const Hint = styled(Box).attrs({ as: "span" })`
-  flex-shrink: 0;
-  color: ${getColor("textLite")};
-  white-space: nowrap;
-`
-
-const Divider = styled(Box).attrs({ margin: [1, 0], background: "borderSecondary" })`
-  height: 1px;
-`
-
-const Item = ({ children, hint, check, ...rest }) => (
-  <Row type="button" role="menuitem" {...rest}>
-    <Content>
-      {check !== undefined && <Check>{check ? "✓" : ""}</Check>}
-      {children}
-    </Content>
-    {!!hint && <Hint>{hint}</Hint>}
-  </Row>
-)
+import { Divider, Item, MenuElements, Panel } from "@/components/modern/menu"
 
 export const getColumnOptions = (columns = []) =>
   columns.flatMap(group =>
@@ -134,23 +76,7 @@ const TableMenu = ({
 
   return (
     <Panel role="menu" data-testid="modernTableMenu">
-      {elements.length > 0 && (
-        <Flex
-          alignItems="center"
-          gap={1}
-          padding={[0.5, 1.5, 1.5]}
-          border={{ side: "bottom", color: "borderSecondary" }}
-          margin={[0, 0, 1]}
-          flexWrap
-          data-testid="modernTableMenu-elements"
-        >
-          <TileMenuContext.Provider value>
-            {elements.map((Element, index) => (
-              <Element key={index} disabled={!focused} />
-            ))}
-          </TileMenuContext.Provider>
-        </Flex>
-      )}
+      <MenuElements elements={elements} focused={focused} data-testid="modernTableMenu-elements" />
       <Columns
         columns={columns}
         columnVisibility={columnVisibility}

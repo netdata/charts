@@ -3,14 +3,18 @@ import styled from "styled-components"
 import { Box, Flex, TextSmall, CopyToClipboard, getColor } from "@netdata/netdata-ui"
 import { useAttributeValue, useName, useTitle, useUnitSign } from "@/components/provider"
 
-const Heading = styled(Box).attrs({ as: "h3", margin: [0], overflow: "hidden" })`
+const Heading = styled(Box).attrs({
+  as: "h3",
+  margin: [0],
+  width: { min: "0px" },
+  overflow: "hidden",
+})`
   font-size: 14px;
   font-weight: 600;
   line-height: 18px;
   color: ${getColor("text")};
   white-space: nowrap;
   text-overflow: ellipsis;
-  min-width: 0;
 `
 
 const ModernTitle = ({ withUnits = true }) => {

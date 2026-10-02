@@ -1,8 +1,8 @@
 import React, { useMemo } from "react"
 import styled from "styled-components"
-import { Box, Flex } from "@netdata/netdata-ui"
+import { Flex } from "@netdata/netdata-ui"
 import { useAttributeValue } from "@/components/provider"
-import { radius } from "@/components/modern/tokens"
+import { Dot } from "@/components/modern/dot"
 import { getAttention } from "@/components/modern/header/getAttention"
 import { getAlertLabel, getAlertState } from "@/components/modern/number/attention"
 
@@ -32,20 +32,13 @@ export const useTileAlert = () => {
   return useMemo(() => getTileAlert({ overlays, alerts }), [overlays, alerts])
 }
 
-const Container = styled(Flex).attrs({ as: "span", alignItems: "center" })`
+const Container = styled(Flex).attrs({ as: "span", alignItems: "center", flex: false })`
   display: inline-flex;
-  flex-shrink: 0;
   gap: 5px;
   font-size: 11px;
   line-height: 16px;
   white-space: nowrap;
   font-weight: ${({ status }) => (status === "critical" ? 600 : 400)};
-`
-
-const Dot = styled(Box).attrs({ as: "span" })`
-  width: ${({ status }) => (status === "critical" ? 8 : 7)}px;
-  height: ${({ status }) => (status === "critical" ? 8 : 7)}px;
-  border-radius: ${radius.pill};
 `
 
 const AlertDot = ({ alert, ...rest }) => (
@@ -57,7 +50,7 @@ const AlertDot = ({ alert, ...rest }) => (
     data-status={alert.status}
     {...rest}
   >
-    <Dot background={alert.tone} status={alert.status} />
+    <Dot background={alert.tone} size={alert.status === "critical" ? 2 : "7px"} />
     <span>{alert.label}</span>
   </Container>
 )

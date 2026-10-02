@@ -1,5 +1,5 @@
 import React from "react"
-import styled, { useTheme } from "styled-components"
+import { useTheme } from "styled-components"
 import { Flex, getColor } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
 import {
@@ -66,14 +66,6 @@ export const Attention = ({ severity, showQuiet, description, ...rest }) => {
   )
 }
 
-const AttentionRow = styled(Flex).attrs({ justifyContent: "end", alignItems: "center" })`
-  position: absolute;
-  top: 0;
-  right: 0;
-  z-index: 1;
-  padding: 0 4px;
-`
-
 const useDialState = uiName => {
   const chart = useChart()
   const thresholds = useAttributeValue("gaugeThresholds")
@@ -124,9 +116,18 @@ export const GaugeAttention = ({ uiName }) => {
   if (severity === "ok" && !showQuiet) return null
 
   return (
-    <AttentionRow data-testid="modernGauge-attentionRow">
+    <Flex
+      justifyContent="end"
+      alignItems="center"
+      position="absolute"
+      top={0}
+      right={0}
+      zIndex={1}
+      padding={[0, 1]}
+      data-testid="modernGauge-attentionRow"
+    >
       <Attention severity={severity} showQuiet={showQuiet} {...details} />
-    </AttentionRow>
+    </Flex>
   )
 }
 

@@ -10,7 +10,9 @@ import {
 } from "@/components/provider"
 import { useIsHeatmap } from "@/helpers/heatmap"
 import { radius, tabularNumbers } from "@/components/modern/tokens"
-import { Flags, Numeral, Swatch } from "./parts"
+import { Flags, Unit, Value as BaseValue } from "./parts"
+import { Numeral } from "@/components/modern/numerals"
+import { LineSwatch } from "@/components/modern/swatch"
 import { useLegendRows } from "./useLegendRows"
 
 export const maxTooltipRows = 6
@@ -31,9 +33,9 @@ const Container = styled(Box).attrs({
   "data-testid": "modernTooltip",
   width: { min: 45, max: 90 },
   background: "dropdown",
+  round: radius.control,
 })`
   padding: 8px 10px;
-  border-radius: ${radius.control};
   box-shadow:
     0 6px 24px ${({ shadowColor }) => shadowColor},
     0 0 1px ${({ shadowColor }) => shadowColor};
@@ -41,9 +43,8 @@ const Container = styled(Box).attrs({
   ${tabularNumbers}
 `
 
-const Time = styled(Box).attrs({ "data-testid": "modernTooltip-time" })`
+const Time = styled(Box).attrs({ "data-testid": "modernTooltip-time", margin: [0, 0, 1.5] })`
   color: ${getColor("textLite")};
-  margin-bottom: 6px;
   white-space: nowrap;
 `
 
@@ -55,25 +56,15 @@ const Grid = styled(Box)`
   row-gap: 2px;
 `
 
-const Name = styled(Box).attrs({ as: "span" })`
+const Name = styled(Box).attrs({ as: "span", width: { min: "0px" }, overflow: "hidden" })`
   color: ${getColor("text")};
   font-weight: ${({ isStrong }) => (isStrong ? 600 : 400)};
-  min-width: 0;
-  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 `
 
-const Value = styled(Numeral)`
-  color: ${getColor("text")};
-  font-weight: 600;
+const Value = styled(BaseValue)`
   text-align: right;
-`
-
-const Unit = styled(Box).attrs({ as: "span" })`
-  color: ${getColor("textDescription")};
-  font-size: 11px;
-  white-space: nowrap;
 `
 
 const Anomaly = styled(Numeral)`
@@ -85,8 +76,6 @@ const Muted = styled(Box).attrs({ margin: [1, 0, 0, 0] })`
   color: ${getColor("textLite")};
   white-space: nowrap;
 `
-
-const Granularity = styled(Muted).attrs({ "data-testid": "modernTooltip-granularity" })``
 
 const Timestamp = ({ value }) => {
   const date = useFormatDate(value)
@@ -105,7 +94,7 @@ const GranularityLine = () => {
       ? `Granularity ${updateEvery}s, ${groupingMethod} per ${viewUpdateEvery}s`
       : `Granularity ${updateEvery}s`
 
-  return <Granularity>{text}</Granularity>
+  return <Muted data-testid="modernTooltip-granularity">{text}</Muted>
 }
 
 const Tooltip = () => {
@@ -142,7 +131,7 @@ const Tooltip = () => {
       <Grid gridColumns={columns}>
         {shown.map(row => (
           <React.Fragment key={row.id}>
-            {!isHeatmap && <Swatch swatchColor={row.color} />}
+            {!isHeatmap && <LineSwatch swatchColor={row.color} />}
             <Name isStrong={row.id === hoveredId} data-testid="modernTooltip-name">
               {row.name}
             </Name>

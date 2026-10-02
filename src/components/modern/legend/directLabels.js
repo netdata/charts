@@ -1,8 +1,9 @@
 import React from "react"
 import styled from "styled-components"
-import { Box, getColor } from "@netdata/netdata-ui"
+import { Box, Flex, getColor } from "@netdata/netdata-ui"
 import { useChart, usePlotArea } from "@/components/provider"
-import { Flags, Numeral, onToggle } from "./parts"
+import { Flags, Unit, Value, onToggle } from "./parts"
+import { Numeral } from "@/components/modern/numerals"
 import { focusDimension, useClearFocusOnUnmount } from "./mode"
 import { useLegendRows } from "./useLegendRows"
 
@@ -54,60 +55,41 @@ export const layoutLabels = (labels, height) => {
 const Column = styled(Box).attrs({
   "data-testid": "modernLegend-direct",
   position: "relative",
+  height: { min: "0px" },
   overflow: "hidden",
 })`
   flex: 0 0 ${directColumnWidth}px;
-  min-height: 0;
 `
 
-const Label = styled(Box).attrs(({ isOff }) => ({
+const Label = styled(Flex).attrs(({ isOff }) => ({
   as: "button",
   type: "button",
   "data-testid": "modernLegend-label",
   position: "absolute",
+  left: 0,
+  right: 0,
+  alignItems: "center",
+  gap: 1.5,
   height: labelHeight / 4,
   padding: [0, 0, 0, 2],
   cursor: "pointer",
   opacity: isOff ? 0.4 : 1,
 }))`
-  left: 0;
-  right: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
   border: 0;
   background: transparent;
   font-size: 12px;
 `
 
-const Name = styled(Box).attrs({ as: "span", overflow: "hidden" })`
+const Name = styled(Box).attrs({ as: "span", width: { min: "0px" }, overflow: "hidden" })`
   color: ${({ labelColor }) => labelColor || "inherit"};
   font-weight: 600;
-  min-width: 0;
   text-overflow: ellipsis;
-  white-space: nowrap;
-`
-
-const Value = styled(Numeral)`
-  color: ${getColor("text")};
-  font-weight: 600;
-`
-
-const Unit = styled(Box).attrs({ as: "span" })`
-  color: ${getColor("textDescription")};
-  font-size: 11px;
   white-space: nowrap;
 `
 
 const Anomaly = styled(Numeral)`
   color: ${getColor("anomalyText")};
   font-size: 11px;
-`
-
-const HiddenList = styled(Box).attrs({ position: "absolute" })`
-  left: 0;
-  right: 0;
-  bottom: 0;
 `
 
 const lastValue = (chart, id) => {
@@ -167,7 +149,9 @@ const DirectLabels = ({ uiName = "default" }) => {
     <Column data-track={chart.track("legend")}>
       {placed.map(row => renderLabel(row, { top: `${row.top}px` }))}
       {!!hidden.length && (
-        <HiddenList>{hidden.map(row => renderLabel(row, { position: "relative" }))}</HiddenList>
+        <Box position="absolute" left={0} right={0} bottom={0}>
+          {hidden.map(row => renderLabel(row, { position: "relative" }))}
+        </Box>
       )}
     </Column>
   )

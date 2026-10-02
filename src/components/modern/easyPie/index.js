@@ -9,7 +9,7 @@ import {
   useVisibleDimensionIds,
 } from "@/components/provider"
 import { getRingValue } from "@/chartLibraries/easyPie/ringValue"
-import { numeralsFont } from "@/components/modern/tokens"
+import { numerals } from "@/components/modern/numerals"
 import { formatReadout } from "@/components/modern/format"
 import { useAttention } from "@/components/modern/number/attention"
 
@@ -31,8 +31,7 @@ const Arc = styled.circle`
 `
 
 const Label = styled.text`
-  font-family: ${numeralsFont};
-  font-variant-numeric: tabular-nums;
+  ${numerals}
   fill: ${({ tint }) => resolve(tint)};
 `
 

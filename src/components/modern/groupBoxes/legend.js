@@ -1,21 +1,13 @@
 import React from "react"
 import styled from "styled-components"
-import { Box, Flex, TextNano } from "@netdata/netdata-ui"
+import { Flex, TextNano } from "@netdata/netdata-ui"
 import { useChart, useAttributeValue, useUnitSign } from "@/components/provider"
-import { numeralsFont, tabularNumbers } from "@/components/modern/tokens"
+import { NanoNumeral } from "@/components/modern/numerals"
+import { Swatch, SquareSwatch } from "@/components/modern/swatch"
 import { getScale, getThreshold, getThresholdColor } from "./scale"
-
-const Swatch = styled(Box).attrs({ as: "span", width: 4, height: 2 })`
-  display: inline-block;
-`
 
 const Ramp = styled(Flex).attrs({ flex: false, overflow: "hidden" })`
   border-radius: 3px;
-`
-
-const Numeral = styled(TextNano)`
-  font-family: ${numeralsFont};
-  ${tabularNumbers}
 `
 
 const ModernLegend = () => {
@@ -45,22 +37,22 @@ const ModernLegend = () => {
         {selectedContexts && selectedContexts !== "*" ? selectedContexts : contextScope}
       </TextNano>
       <Flex gap={2} alignItems="center">
-        <Numeral color="textLite">
+        <NanoNumeral color="textLite">
           {chart.getConvertedValue(min)} {units}
-        </Numeral>
+        </NanoNumeral>
         <Ramp data-testid="groupBox-legend-scale">
           {scale.map(color => (
-            <Swatch key={color} style={{ background: color }} />
+            <Swatch key={color} swatchColor={color} width={4} height={2} />
           ))}
         </Ramp>
-        <Numeral color="textLite">
+        <NanoNumeral color="textLite">
           {chart.getConvertedValue(max)} {units}
-        </Numeral>
+        </NanoNumeral>
       </Flex>
       {threshold !== null && (
         <Flex gap={1} alignItems="center" data-testid="groupBox-legend-threshold">
-          <Swatch style={{ background: getThresholdColor(chart), borderRadius: 2, width: 8 }} />
-          <Numeral color="textLite">{`≥ ${chart.getConvertedValue(threshold)} ${units}`}</Numeral>
+          <SquareSwatch swatchColor={getThresholdColor(chart)} />
+          <NanoNumeral color="textLite">{`≥ ${chart.getConvertedValue(threshold)} ${units}`}</NanoNumeral>
         </Flex>
       )}
     </Flex>

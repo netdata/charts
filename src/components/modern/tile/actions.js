@@ -6,14 +6,8 @@ import Icon, { Button } from "@/components/icon"
 import { useAttributeValue, useChart } from "@/components/provider"
 import Fullscreen from "@/components/toolbox/fullscreen"
 import SettingsContent from "@/components/toolbox/settings/content"
+import { dropProps } from "@/components/modern/menu"
 import TileMenu from "./menu"
-
-const dropProps = {
-  align: { top: "bottom", right: "right" },
-  background: "dropdown",
-  margin: [1, 0, 0],
-  round: true,
-}
 
 export const DragHandle = () => {
   const toolboxProps = useAttributeValue("toolboxProps")

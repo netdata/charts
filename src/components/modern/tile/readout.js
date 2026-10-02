@@ -7,15 +7,14 @@ import {
   useLatestDisplayValueWithUnit,
   useOnResize,
 } from "@/components/provider"
-import { numeralsFont } from "@/components/modern/tokens"
+import { numerals } from "@/components/modern/numerals"
 import { formatReadout } from "@/components/modern/format"
 import { useTileAlert } from "./alertDot"
 
 const clamp = (value, low, high) => Math.min(Math.max(value, low), high)
 
 const Numerals = styled(Box).attrs({ as: "span" })`
-  font-family: ${numeralsFont};
-  font-variant-numeric: tabular-nums;
+  ${numerals}
   line-height: 1;
   white-space: nowrap;
   font-size: ${({ numeralSize }) => numeralSize}px;

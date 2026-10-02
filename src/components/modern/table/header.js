@@ -1,5 +1,4 @@
 import React, { useMemo, useRef, useState } from "react"
-import styled from "styled-components"
 import { Drop, Flex } from "@netdata/netdata-ui"
 import Search from "@netdata/netdata-ui/dist/components/search"
 import searchIcon from "@netdata/netdata-ui/dist/components/icon/assets/search.svg"
@@ -11,22 +10,8 @@ import SettingsContent from "@/components/toolbox/settings/content"
 import ModernTitle from "@/components/modern/header/title"
 import ScopeLine from "@/components/modern/header/scopeLine"
 import StatusIndicator, { getClearDescription, summarizeAlerts } from "@/components/modern/status"
+import { Toolbar, dropProps } from "@/components/modern/menu"
 import TableMenu from "./menu"
-
-const Actions = styled(Flex).attrs({ alignItems: "center", gap: 0.5 })`
-  transition: opacity 120ms ease-in-out;
-
-  &:focus-within {
-    opacity: 1;
-  }
-`
-
-const dropProps = {
-  align: { top: "bottom", right: "right" },
-  background: "dropdown",
-  margin: [1, 0, 0],
-  round: true,
-}
 
 export const getTableStatus = alerts => {
   const summary = summarizeAlerts(alerts)
@@ -108,7 +93,7 @@ const ModernTableHeader = ({ columns, columnVisibility, onColumnVisibilityChange
         {searching && (
           <SearchField value={searchQuery || ""} onChange={setQuery} onClose={closeSearch} />
         )}
-        <Actions
+        <Toolbar
           data-noprint
           data-testid="modernTable-actions"
           opacity={focused || searching || menuOpen || settingsOpen ? 1 : 0}
@@ -166,7 +151,7 @@ const ModernTableHeader = ({ columns, columnVisibility, onColumnVisibilityChange
               <SettingsContent chart={chart} onClose={closeSettings} />
             </Drop>
           )}
-        </Actions>
+        </Toolbar>
         <TableStatus />
       </Flex>
     </Flex>
