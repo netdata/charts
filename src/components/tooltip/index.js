@@ -44,7 +44,7 @@ export const withTooltip =
         {...tooltipDefaultProps}
         {...rest.tooltipProps}
       >
-        <Component {...rest} />
+        <Component aria-label={typeof title === "string" ? title : undefined} {...rest} />
       </Tooltip>
     )
   }

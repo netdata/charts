@@ -81,7 +81,7 @@ const isRateUnit = units => {
   return typeof unit === "string" && unit.endsWith("/s")
 }
 
-const ComparisonCard = ({ period, showAdvanced, showVolume, tab }) => {
+const ComparisonCard = ({ period, loading, showAdvanced, showVolume, tab }) => {
   const chart = useChart()
   const dateRange = formatDateRange(chart, period.after, period.before)
   const hasData = period.payload && period.stats && !period.error
@@ -118,7 +118,11 @@ const ComparisonCard = ({ period, showAdvanced, showVolume, tab }) => {
       {!hasData ? (
         <Flex column gap={1}>
           <TextMicro color="textDescription">
-            {period.error ? "Error loading data" : "No data available for the selected time range"}
+            {period.error
+              ? "Error loading data"
+              : loading
+                ? "Loading…"
+                : "No data available for the selected time range"}
           </TextMicro>
         </Flex>
       ) : showEditForm ? (
@@ -177,7 +181,7 @@ const ComparisonCard = ({ period, showAdvanced, showVolume, tab }) => {
 
 const Compare = () => {
   const chart = useChart()
-  const { periods, error } = useData()
+  const { periods, loading, error } = useData()
   const [showCustomForm, setShowCustomForm] = useState(false)
   const showAllStats = useAttributeValue("drawer.showAdvancedStats", false)
   const tab = useAttributeValue("drawer.tab", "window")
@@ -205,6 +209,7 @@ const Compare = () => {
           <ComparisonCard
             key={period.id}
             period={period}
+            loading={loading}
             showAdvanced={showAllStats}
             showVolume={showVolume}
             tab={tab}

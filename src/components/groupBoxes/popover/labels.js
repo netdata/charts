@@ -1,7 +1,13 @@
 import React, { memo } from "react"
 import styled from "styled-components"
 import { Flex, TextMicro } from "@netdata/netdata-ui"
-import { useChart, useAttributeValue, useValueWithUnit, useIsModern } from "@/components/provider"
+import {
+  useChart,
+  useAttributeValue,
+  useValueWithUnit,
+  useIsModern,
+  useColor,
+} from "@/components/provider"
 import { BaseColorBar } from "@/components/line/dimensions/color"
 import { makeModernColor } from "@/components/modern/groupBoxes/scale"
 import Label from "./label"
@@ -16,8 +22,8 @@ const Container = styled(Flex).attrs(props => ({
   gap: 1,
 }))`
   box-shadow:
-    0px 8px 12px rgba(9, 30, 66, 0.15),
-    0px 0px 1px rgba(9, 30, 66, 0.31);
+    0px 8px 12px ${({ shadowColor }) => shadowColor},
+    0px 0px 1px ${({ shadowColor }) => shadowColor};
 `
 
 const ColorBackground = styled(BaseColorBar).attrs({
@@ -37,6 +43,7 @@ const Grid = styled.div`
 `
 
 const Labels = ({ label, groupLabel, data, id, ref }) => {
+  const shadow = useColor("themeShadow")
   const chart = useChart()
   const viewDimensions = chart.getAttribute("viewDimensions")
   const index = chart.getDimensionIndex(id)
@@ -58,7 +65,13 @@ const Labels = ({ label, groupLabel, data, id, ref }) => {
     : chart.getThemeAttribute("themeGroupBoxesMax")
 
   return (
-    <Container data-testid="chartPopover-labels" maxWidth={chartWidth} gap={2} ref={ref}>
+    <Container
+      data-testid="chartPopover-labels"
+      maxWidth={chartWidth}
+      gap={2}
+      ref={ref}
+      shadowColor={shadow}
+    >
       <Flex column gap={1}>
         <TextMicro>{groupLabel}</TextMicro>
         <TextMicro strong>{label}</TextMicro>

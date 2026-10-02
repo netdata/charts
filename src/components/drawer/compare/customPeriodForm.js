@@ -33,11 +33,12 @@ const CustomPeriodForm = ({ onSubmit, onCancel, initialValues }) => {
   const [offsetDays, setOffsetDays] = useState(normalizedValues.days)
   const [offsetHours, setOffsetHours] = useState(normalizedValues.hours)
 
-  const handleAdd = () => {
-    const days = parseInt(offsetDays) || 0
-    const hours = parseInt(offsetHours) || 0
-    const offsetSeconds = days * 24 * 60 * 60 + hours * 60 * 60
+  const days = parseInt(offsetDays) || 0
+  const hours = parseInt(offsetHours) || 0
+  const offsetSeconds = days * 24 * 60 * 60 + hours * 60 * 60
+  const hasOffset = offsetSeconds > 0
 
+  const handleAdd = () => {
     if (offsetSeconds <= 0) return
 
     const finalLabel = label.trim() || generateLabel(days, hours, locale)
@@ -114,9 +115,19 @@ const CustomPeriodForm = ({ onSubmit, onCancel, initialValues }) => {
         </Flex>
       </Flex>
 
-      <Flex gap={2}>
-        <Button tiny label={initialValues ? "Update" : "Add"} onClick={handleAdd} />
+      <Flex gap={2} alignItems="center">
+        <Button
+          tiny
+          label={initialValues ? "Update" : "Add"}
+          onClick={handleAdd}
+          disabled={!hasOffset}
+        />
         <Button tiny label="Cancel" onClick={onCancel} />
+        {!hasOffset && (
+          <TextMicro color="textDescription" data-testid="customPeriod-hint">
+            Set an offset of at least 1 hour
+          </TextMicro>
+        )}
       </Flex>
     </Flex>
   )
