@@ -9,7 +9,7 @@ compared side by side.
 | # | Topic | Decision |
 |---|---|---|
 | 1 | Visual direction | "Live edge": calm, precise base; the one bold element is the live edge (glow on each series' latest point + right-edge value tag) |
-| 2 | Series palette | New validated palette, uPlot only. dygraph and other libraries keep `dimensionColors.js` |
+| 2 | Series palette | Superseded: one palette for both renderers in `dimensionColors.js` (see Palette decision) |
 | 3 | Dual y-axis | Not built. Different-scale measures go to small multiples or an indexed view |
 | 4 | Gauge | Rewrite as a custom gauge (arc, gradient, threshold ticks, sparkline). Rendering tech: open (see below) |
 | 5 | New libraries | None. New types build on uPlot and SVG/canvas already in the repo |
@@ -17,9 +17,8 @@ compared side by side.
 
 ### Cleanup notes (later)
 
-- Palette split: once uPlot becomes the default, fold the uPlot palette into `dimensionColors.js` and
-  drop the per-renderer branch. Also update `drawer/correlate/sparkline.js:70`, which indexes
-  `dimensionColors` directly.
+- Palette split: done. The palette lives only in `dimensionColors.js`; `drawer/correlate/sparkline.js:70`
+  still indexes it directly and now gets the new colour at that position.
 
 ## Tokens
 
@@ -58,7 +57,7 @@ compared side by side.
 |---|---|---|
 | 4 | Gauge rendering | SVG only, no canvas fallback |
 | 7 | Live-edge tags | Right gutter (56px) |
-| 8 | Series cap | Glow + tags for ≤ 8 visible series; above that only the hovered series. `liveEdge: false` turns it off |
+| 8 | Series cap | Glow + tags for ≤ 8 visible series; above that only the hovered series. Live edge is now a legend layout (`legendLayout: "live"`) |
 | 9 | When | Only while following "now" (relative window, root not paused) |
 | 10 | Line fill | `line` stays unfilled; gradient stays on `area` |
 
@@ -70,7 +69,7 @@ Mockups: `src/mockups/` (Storybook "Mockups/Chart card", "Mockups/Redesign").
 |---|---|---|
 | R1 | Live edge | Removed as a default (duplicates the legend values) |
 | R2 | Legend | Chosen by width and series count: below (one line), direct labels (≤ 4 series), side table with Last/Mean/Max (wide or many series), hidden (small tiles) |
-| R3 | Hover | Legend becomes the readout when a legend is visible; compact tooltip (sorted, ≤ 6 rows, no empty columns) when it is hidden |
+| R3 | Hover | Superseded by rollout decision 10: the compact tooltip (sorted, ≤ 6 rows, all heatmap buckets, no empty columns) shows on hover for every legend layout |
 | R4 | Chrome | Actions on hover (filters, fullscreen, more); filter bar folds into one clickable scope line; no floating navigation toolbar; gestures + "Reset zoom" chip |
 | R5 | Visual direction | "Readout": number-first panels |
 
@@ -108,7 +107,7 @@ Implementation choices to confirm in review:
 Risks:
 - If a consumer pauses the root on hover, the live edge disappears while hovering (pause is read from
   the root, `makeNode.js:182-188`). Not observed in this repo; only `play.js:81` removes hover pauses.
-- The live-edge tag shows the value without units to fit the gutter.
+- The live-edge tag shows the value with its scaled unit.
 
 ## Delivery contract (proposed)
 
@@ -133,8 +132,8 @@ Risks:
 | Settings tabs Display / Data / Info / Download | settings modal | More menu entries that open the same tabs |
 | Filter bar (all filters, post-aggregation, Reset) | always visible, 1–2 rows | folded into the scope line; click (or the filter action) opens the same `FilterToolbox` |
 | Navigation modes Pan / Select / Highlight / Vertical | floating toolbox over the plot | More menu segmented control + existing modifier-drag gestures |
-| Zoom in / out, reset zoom | floating toolbox | wheel gesture, "Reset zoom" chip while zoomed, More menu, Alt+Shift+R |
-| Hover popover (values, anomaly %, annotation flags, granularity) | large table popover | legend becomes the readout; tooltip only when the legend is hidden; anomaly % and flags shown only when non-empty |
+| Zoom in / out, reset zoom | floating toolbox | wheel gesture, "Zoomed to … Reset" note in the header on hover (chip over the plot in tiles), More menu, Alt+Shift+R |
+| Hover popover (values, anomaly %, annotation flags, granularity) | large table popover | compact tooltip on hover for every legend layout; anomaly % and flags shown only when non-empty |
 | Legend: toggle, ctrl-click, sort, anomaly bar | footer strip | adaptive legend keeps click / ctrl-click; sort in More menu and table headers; anomaly as a column / bar |
 | Latest / hovering / highlight timestamps | footer indicators | time chip on the axis while hovering; highlight range keeps its zoom action |
 | Drawer (compare, values, drill down, correlate) | expander | "Compare, drill down, correlate" footer action (tiles: More menu) |
@@ -185,6 +184,10 @@ flavour, 1000 rows x 20 dims x 10 charts): uPlot/dygraph total task ratio 0.739,
   `themeAxisLabelColor`, `themeAlertWarning`, `themeAlertCritical`, `themeAlertClear`,
   `themeGroupBoxesScale`.
 - Overlay type `threshold` (uPlot, modern only).
+- Attributes for the renderer switch: `timeSeriesRenderer` (null | "uplot"), `rendererOverridden`,
+  `chartLibrariesByType`, `perfMonitor`.
+- Deep import used by cloud-frontend: `dist/components/modern/tile/context` (`useInModernTile`,
+  `useInModernTileMenu`).
 - Props: `SettingsContent` accepts optional `initialTab` / `initialIndex`.
 - Exports: `Range` from `line/indicators`, `useMetricsByValue` from `filterToolbox/columns`.
 
@@ -207,7 +210,7 @@ flavour, 1000 rows x 20 dims x 10 charts): uPlot/dygraph total task ratio 0.739,
 | # | Topic | Decision |
 |---|---|---|
 | T1 | Tiles | As in Mockups/Tiles: rest = title, readout, trend; hover = Fullscreen + More (+ move handle from `toolboxProps.drag` when present) and the scope line; More holds consumer toolbox elements as an icon row, filters, settings, info, reload |
-| T2 | Sparkline tiles | `latestValue` readout sits above the trend, shared decimals, unit beside the number |
+| T2 | Sparkline tiles | `latestValue` readout sits above the trend, default digits with per-value unit scaling, unit beside the number, size fixed while hovering |
 | T3 | Ring colour | Dimension colour; warning/critical colour only when a threshold is crossed |
 | T4 | Live edge | A legend layout ("Live edge" = direct labels + glow on each series' newest point), alongside Bottom and Side; personal choice via `legendLayout`; glow on uPlot under modern only; falls back to the side table above ~8 series |
 | T5 | Status | Quiet green dot when all is clear, description on hover; warning/critical: coloured dot + short label, critical most prominent |
@@ -238,18 +241,32 @@ hue and should move to status colours.
 ### cloud-frontend rollout decisions (2026-10-01, all as recommended)
 
 1. A: sdkProvider also sends `designFlavour: chartsDesign` at SDK creation.
-2. A: charts resolves palette slot numbers in the selected and sparkline colour paths; `contexts.js`
+2. Reverted: colour assignment must stay identical to main. A: charts resolves palette slot numbers in the selected and sparkline colour paths; `contexts.js`
    `colors: colors[n]` becomes `colors: [n]`; taxonomy hex pairs become slot numbers in order.
-3. A: one shared chart.js theme in `lib/chartjs`, applied when Modern is on (fonts, recessive
+3. In progress for everyone (no Modern gating), visual only. A: one shared chart.js theme in `lib/chartjs`, applied when Modern is on (fonts, recessive
    grid/axes, modern tooltip, `formatReadout`, palette). Future option C (revisit later): move the
    time-bar chart.js charts (feeds, traces volume/errors) to @netdata/charts via `getChart`, then
    percentiles once the uPlot renderer has a log scale; billing, scatter, categories, pies stay.
-4. A: categorical lists (`chartColors`, sankey, retention, insights fallback) use the shared palette
+4. Reverted (logic must not change). A: categorical lists (`chartColors`, sankey, retention, insights fallback) use the shared palette
    for everyone.
-5. A: state colours (log levels, alert timeline, geoMap status, networkForces) map to theme status
+5. Reverted; geoMap cluster colours pinned to their old hex values instead. A: state colours (log levels, alert timeline, geoMap status, networkForces) map to theme status
    tokens.
-6. A: dashboard card bugs fixed for everyone; visual changes only in Modern.
+6. Superseded: cloud-frontend has one design for everyone; dashboard visual changes and bug fixes apply to all users.
 7. A: number tiles show units once, no delta on state metrics, dot only on warning/critical.
-8. A: maps, topology, fleet map, uptime strips only swap categorical hex for the palette.
+8. Dropped with the colour revert. A: maps, topology, fleet map, uptime strips only swap categorical hex for the palette.
 9. A: sequential edits in the user's working tree, touching only files in this plan; agents read only.
 10. B: the compact modern tooltip shows on hover for every legend layout (replaces R3 suppression).
+
+### Later decisions (2026-10-01 to 2026-10-02)
+
+- Colour assignment (`makeDimensions.js`, `makeContainer.js`) stays byte-identical to main; only the
+  palette values changed.
+- Modern readouts use the default digits and per-value unit scaling; table and legend show each value
+  with its own unit (no grouped units).
+- Anomalies (Modern, uPlot): anomalous periods shaded behind the lines, a rate-coloured strip above
+  the plot, and an "Anomalous, peak N%" header pill; every non-zero rate counts (no noise floor); the
+  badge shows only when the window has anomalies.
+- Zoom state: a quiet "Zoomed to … Reset" note in the header, visible only while the chart is hovered.
+- Tile and number readouts keep one size while hovering.
+- Trace service colours recomputed for the new palette (15 slots).
+- Wrap-up work is tracked in `docs/redesign-wrapup-plan.md`.
