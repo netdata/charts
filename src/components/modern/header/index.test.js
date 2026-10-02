@@ -2,7 +2,7 @@ import React from "react"
 import { act, fireEvent, screen, waitFor, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { renderWithChart, makeTestChart } from "@jest/testUtilities"
-import { makePayload, makeWave } from "@/helpers/makeWavePayload"
+import { makePayload, makeWave } from "../../../../fixtures/makeWavePayload"
 import Header from "@/components/header"
 import { Line } from "@/components/line"
 import ChartContentWrapper from "@/components/line/chartContentWrapper"
@@ -581,6 +581,12 @@ describe("Modern anomaly pill", () => {
       "title",
       "2 anomalous periods in this window, peak anomaly rate 42%"
     )
+  })
+
+  it("keeps one decimal for a peak below 1%", async () => {
+    await renderWithPayload(anomalyPayload(index => (index === 40 ? 0.5 : 0)))
+
+    expect(screen.getByTestId("chartAnomalyPill")).toHaveTextContent("Anomalous, peak 0.5%")
   })
 
   it("stays out of the header when the window has no anomalies", async () => {

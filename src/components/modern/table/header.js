@@ -14,7 +14,6 @@ import StatusIndicator, { getClearDescription, summarizeAlerts } from "@/compone
 import TableMenu from "./menu"
 
 const Actions = styled(Flex).attrs({ alignItems: "center", gap: 0.5 })`
-  opacity: ${({ $visible }) => ($visible ? 1 : 0)};
   transition: opacity 120ms ease-in-out;
 
   &:focus-within {
@@ -112,7 +111,7 @@ const ModernTableHeader = ({ columns, columnVisibility, onColumnVisibilityChange
         <Actions
           data-noprint
           data-testid="modernTable-actions"
-          $visible={focused || searching || menuOpen || settingsOpen}
+          opacity={focused || searching || menuOpen || settingsOpen ? 1 : 0}
         >
           <Button
             icon={<Icon svg={searchIcon} size="16px" />}

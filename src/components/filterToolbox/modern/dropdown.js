@@ -261,7 +261,10 @@ const ModernDropdown = ({
             padding={[0, 1]}
             label="Reset"
             disabled={!hasChanges}
-            onClick={() => setRowSelection(buildSelections(items, {}))}
+            onClick={() => {
+              setRowSelection(buildSelections(items, {}))
+              onItemClick(value)
+            }}
             data-testid="modern-filter-reset"
           />
           <Button small label="Apply" onClick={close || noop} data-testid="modern-filter-apply" />

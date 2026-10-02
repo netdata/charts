@@ -5,7 +5,7 @@ import { renderWithChart, makeTestChart } from "@jest/testUtilities"
 import { GroupBoxesContainer } from "@/components/groupBoxes"
 import drawBoxes from "@/components/groupBoxes/drawBoxes"
 import Labels from "@/components/groupBoxes/popover/labels"
-import makeHeatPayload from "./makeHeatPayload"
+import makeHeatPayload from "../../../../fixtures/makeHeatPayload"
 import { pickStep, makeModernColor, getThreshold, modernBoxOptions } from "./scale"
 
 const makeChart = async (attributes = {}, mockData = makeHeatPayload()) => {

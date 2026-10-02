@@ -9,13 +9,13 @@ const resolve = color => props => getColor(color)(props)
 
 const Line = styled.path`
   fill: none;
-  stroke: ${({ $color }) => resolve($color)};
+  stroke: ${({ tint }) => resolve(tint)};
   stroke-width: 1.5px;
   vector-effect: non-scaling-stroke;
 `
 
 const Stop = styled.stop`
-  stop-color: ${({ $color }) => resolve($color)};
+  stop-color: ${({ tint }) => resolve(tint)};
 `
 
 const Marker = styled(Box)`
@@ -24,7 +24,7 @@ const Marker = styled(Box)`
   height: 6px;
   margin: -3px 0 0 -3px;
   border-radius: 999px;
-  background: ${({ $color }) => resolve($color)};
+  background: ${({ tint }) => resolve(tint)};
   box-shadow: 0 0 0 2px ${getColor("mainChartBg")};
   pointer-events: none;
 `
@@ -92,16 +92,16 @@ const Sparkline = ({ values, color, id, height, markerIndex }) => {
       >
         <defs>
           <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0%" $color={color} stopOpacity={0.35} />
-            <Stop offset="100%" $color={color} stopOpacity={0} />
+            <Stop offset="0%" tint={color} stopOpacity={0.35} />
+            <Stop offset="100%" tint={color} stopOpacity={0} />
           </linearGradient>
         </defs>
         <path d={area} fill={`url(#${gradientId})`} />
-        <Line d={line} $color={color} />
+        <Line d={line} tint={color} />
       </svg>
       {typeof marker === "number" && (
         <Marker
-          $color={color}
+          tint={color}
           data-testid="modernNumberSparkMarker"
           style={{
             left: `${(markerIndex / width) * 100}%`,

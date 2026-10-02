@@ -4,7 +4,7 @@ import "@testing-library/jest-dom"
 import { DarkTheme } from "@netdata/netdata-ui"
 import { renderWithChart, makeTestChart } from "@jest/testUtilities"
 import { Gauge } from "@/components/gauge"
-import { formatReadout } from "@/components/modern/format"
+import { formatReadout, formatReadoutUnit } from "@/components/modern/format"
 import { Attention } from "./index"
 import {
   fitValueFontSize,
@@ -238,19 +238,17 @@ describe("modern gauge", () => {
 
     const [value] = screen.getByTestId("modernGauge-number").childNodes
     expect(value.textContent).toBe(formatReadout(chart, latest, { dimensionId }))
-    expect(screen.getByTestId("modernGauge-min").textContent).toBe(
-      formatReadout(chart, 0, { dimensionId })
-    )
-    expect(screen.getByTestId("modernGauge-max").textContent).toBe(
-      formatReadout(chart, 100, { dimensionId })
-    )
+    const edge = value =>
+      `${formatReadout(chart, value, { dimensionId })} ${formatReadoutUnit(chart, value, { dimensionId })}`
+    expect(screen.getByTestId("modernGauge-min").textContent).toBe(edge(0))
+    expect(screen.getByTestId("modernGauge-max").textContent).toBe(edge(100))
   })
 
   it("applies the user decimals to the range labels too", async () => {
     await load({ staticFractionDigits: 3 })
 
-    expect(screen.getByTestId("modernGauge-min").textContent).toBe("0.000")
-    expect(screen.getByTestId("modernGauge-max").textContent).toBe("100.000")
+    expect(screen.getByTestId("modernGauge-min").textContent).toMatch(/^0\.000 /)
+    expect(screen.getByTestId("modernGauge-max").textContent).toMatch(/^100\.000 /)
   })
 
   it("renders in the dark theme", async () => {

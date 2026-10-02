@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, useRef, useState } from "react"
 import styled from "styled-components"
 import { useVirtualizer } from "@tanstack/react-virtual"
-import { getColor } from "@netdata/netdata-ui"
+import { Box, Flex, getColor } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart, useFormatTime } from "@/components/provider"
 import { useIsHeatmap } from "@/helpers/heatmap"
 import { tabularNumbers } from "@/components/modern/tokens"
@@ -12,61 +12,65 @@ import { useLegendRows } from "./useLegendRows"
 export const tableRowHeight = 23
 export const tableOverscan = 8
 
-const Wrapper = styled.div.attrs({ "data-testid": "modernLegend-table" })`
-  position: relative;
-  flex: 0 0 40%;
-  min-width: 240px;
-  max-width: 420px;
-  overflow: hidden;
+const Wrapper = styled(Flex).attrs({
+  "data-testid": "modernLegend-table",
+  column: true,
+  position: "relative",
+  flex: false,
+  basis: "40%",
+  width: { min: 60, max: 105 },
+  overflow: "hidden",
+})`
+  color: inherit;
   min-height: 0;
-  display: flex;
-  flex-direction: column;
   overflow-anchor: none;
 `
 
-const ScrollArea = styled.div`
-  position: relative;
-  flex: 1;
+const ScrollArea = styled(Flex).attrs({ position: "relative", flex: "1" })`
+  color: inherit;
   min-height: 0;
-  display: flex;
 `
 
-const Scroller = styled.div.attrs({ "data-testid": "modernLegend-scroller" })`
+const Scroller = styled(Box).attrs({
+  "data-testid": "modernLegend-scroller",
+  overflow: { vertical: "auto", horizontal: "hidden" },
+})`
   flex: 1;
   min-width: 0;
   min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
 `
 
-const Fade = styled.div.attrs({ "data-testid": "modernLegend-fade" })`
-  position: absolute;
+const Fade = styled(Box).attrs({
+  "data-testid": "modernLegend-fade",
+  position: "absolute",
+  height: 9,
+})`
   left: 0;
   right: 0;
   bottom: 0;
-  height: 36px;
   pointer-events: none;
   background: linear-gradient(transparent, ${getColor("mainChartBg")});
 `
 
-const Table = styled.table`
-  width: 100%;
+const Table = styled(Box).attrs({ as: "table", width: "100%" })`
   border-collapse: collapse;
   font-size: 12px;
   ${tabularNumbers}
 `
 
-const HeaderCell = styled.th`
-  position: sticky;
+const HeaderCell = styled(Box).attrs(({ isSortable }) => ({
+  as: "th",
+  position: "sticky",
+  zIndex: 1,
+  background: "mainChartBg",
+  cursor: isSortable ? "pointer" : "default",
+}))`
   top: 0;
-  z-index: 1;
-  background: ${getColor("mainChartBg")};
   padding: 3px 0 3px 12px;
   font-weight: 400;
   text-align: right;
   white-space: nowrap;
-  color: ${({ $active }) => getColor($active ? "text" : "textLite")};
-  cursor: ${({ $sortable }) => ($sortable ? "pointer" : "default")};
+  color: ${({ isActive }) => getColor(isActive ? "text" : "textLite")};
 
   &:first-child {
     padding-left: 0;
@@ -80,41 +84,44 @@ const HeaderCell = styled.th`
   }
 `
 
-const Row = styled.tr.attrs({ "data-testid": "modernLegend-row" })`
-  box-sizing: border-box;
+const Row = styled(Box).attrs(({ isOff }) => ({
+  as: "tr",
+  "data-testid": "modernLegend-row",
+  border: { side: "top", color: "borderSecondary" },
+  cursor: "pointer",
+  opacity: isOff ? 0.4 : 1,
+}))`
   height: ${tableRowHeight}px;
-  border-top: 1px solid ${getColor("borderSecondary")};
-  cursor: pointer;
-  opacity: ${({ $off }) => ($off ? 0.4 : 1)};
 `
 
-const NameCell = styled.td`
+const NameCell = styled(Box).attrs({ as: "td", width: "100%" })`
   padding: 3px 0;
   color: ${getColor("text")};
-  width: 100%;
   max-width: 0;
 `
 
-const NameContent = styled.span`
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+const NameContent = styled(Flex).attrs({
+  as: "span",
+  position: "relative",
+  alignItems: "center",
+  gap: 2,
+})`
+  color: inherit;
   min-width: 0;
 `
 
-const NameText = styled.span`
+const NameText = styled(Box).attrs({ as: "span" })`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 `
 
-const Cell = styled.td`
+const Cell = styled(Box).attrs({ as: "td" })`
   padding: 3px 0 3px 12px;
   text-align: right;
   white-space: nowrap;
-  color: ${({ $strong }) => getColor($strong ? "text" : "textLite")};
-  font-weight: ${({ $strong }) => ($strong ? 600 : 400)};
+  color: ${({ isStrong }) => getColor(isStrong ? "text" : "textLite")};
+  font-weight: ${({ isStrong }) => (isStrong ? 600 : 400)};
 
   &:last-child {
     padding-right: 4px;
@@ -126,10 +133,9 @@ const Spacer = ({ height }) =>
     <tr aria-hidden="true" data-testid="modernLegend-spacer" style={{ height: `${height}px` }} />
   ) : null
 
-const Unit = styled.span`
+const Unit = styled(Box).attrs({ as: "span", margin: [0, 0, 0, 1] })`
   color: ${getColor("textDescription")};
   font-size: 11px;
-  margin-left: 4px;
   font-weight: 400;
 `
 
@@ -158,8 +164,8 @@ const SortHeader = ({ column, sort, onSort, children, disabled = false, ...rest 
 
   return (
     <HeaderCell
-      $sortable={!disabled}
-      $active={active}
+      isSortable={!disabled}
+      isActive={active}
       onClick={disabled ? undefined : () => onSort(nextSort(column, sort))}
       data-testid={`modernLegend-sort-${column}`}
       {...rest}
@@ -237,7 +243,7 @@ const LegendTable = () => {
                 .map(row => (
                   <Row
                     key={row.id}
-                    $off={!row.visible}
+                    isOff={!row.visible}
                     onClick={onToggle(chart, row.id)}
                     onMouseEnter={() => row.visible && focusDimension(chart, row.id)}
                     onMouseLeave={() => focusDimension(chart, null)}
@@ -246,13 +252,13 @@ const LegendTable = () => {
                   >
                     <NameCell title={row.name}>
                       <NameContent>
-                        {!isHeatmap && <Swatch $color={row.color} />}
+                        {!isHeatmap && <Swatch swatchColor={row.color} />}
                         <NameText>{row.name}</NameText>
                         {row.visible && <Flags flags={row.flags} />}
-                        {row.visible && row.arp > 0 && <AnomalyBar $rate={row.arp} />}
+                        {row.visible && row.arp > 0 && <AnomalyBar rate={row.arp} />}
                       </NameContent>
                     </NameCell>
-                    <Cell $strong>
+                    <Cell isStrong>
                       <Numeral>{row.visible ? row.display : "-"}</Numeral>
                       {row.visible && !!row.unit && <Unit>{row.unit}</Unit>}
                     </Cell>

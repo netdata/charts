@@ -4,7 +4,7 @@ import { themes, font, timeAt } from "./chartCard"
 
 const numerals = "'IBM Plex Sans Condensed', 'IBM Plex Sans', system-ui, sans-serif"
 
-const noiseFloor = 2
+const noiseFloor = 0
 
 const ramps = {
   dark: { low: [74, 58, 140], high: [196, 160, 255] },
@@ -15,7 +15,7 @@ const mix = (a, b, t) => a.map((value, i) => Math.round(value + (b[i] - value) *
 
 export const rateColor = (theme, rate, alpha = 1) => {
   const { low, high } = ramps[theme]
-  const t = Math.min(1, Math.max(0, (rate - noiseFloor) / 48))
+  const t = Math.min(1, Math.max(0, rate / 50))
   const [r, g, b] = mix(low, high, Math.sqrt(t))
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
@@ -26,7 +26,7 @@ const burst = (index, center, width, peak) => {
 }
 
 export const anomalyRates = {
-  calm: Array.from({ length: points }, (_, i) => (i % 17 === 0 ? 0.6 : 0)),
+  calm: Array.from({ length: points }, () => 0),
   busy: Array.from({ length: points }, (_, i) =>
     Math.max(burst(i, 46, 7, 42), burst(i, 90, 3, 12), i % 13 === 0 ? 0.8 : 0)
   ),
@@ -40,7 +40,7 @@ const series = [
 export const getRuns = rates => {
   const runs = []
   rates.forEach((rate, index) => {
-    if (rate < noiseFloor) return
+    if (rate <= noiseFloor) return
     const last = runs[runs.length - 1]
     if (last && last.to === index - 1) {
       last.to = index
@@ -100,7 +100,7 @@ const Tide = ({ theme, rates, scales }) => {
             <stop
               key={i}
               offset={`${(i / (points - 1)) * 100}%`}
-              stopColor={rateColor(theme, rate, rate < noiseFloor ? 0 : 0.9)}
+              stopColor={rateColor(theme, rate, rate <= noiseFloor ? 0 : 0.9)}
             />
           ))}
         </linearGradient>
@@ -388,8 +388,7 @@ export const AnomalyRibbonMockups = ({ theme = "dark" }) => {
           </div>
           <div>
             <p style={caption}>
-              <strong style={{ color: t.ink }}>{label}</strong> with only noise below {noiseFloor}%:
-              no ink at all
+              <strong style={{ color: t.ink }}>{label}</strong> with no anomalies: no ink at all
             </p>
             <AnomalyCard theme={theme} variant={key} rates={anomalyRates.calm} />
           </div>

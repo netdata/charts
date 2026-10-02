@@ -1,16 +1,14 @@
 import React from "react"
 import styled from "styled-components"
-import { Flex, TextSmall, CopyToClipboard, getColor } from "@netdata/netdata-ui"
+import { Box, Flex, TextSmall, CopyToClipboard, getColor } from "@netdata/netdata-ui"
 import { useAttributeValue, useName, useTitle, useUnitSign } from "@/components/provider"
 
-const Heading = styled.h3`
-  margin: 0;
+const Heading = styled(Box).attrs({ as: "h3", margin: [0], overflow: "hidden" })`
   font-size: 14px;
   font-weight: 600;
   line-height: 18px;
   color: ${getColor("text")};
   white-space: nowrap;
-  overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
 `

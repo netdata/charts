@@ -1,6 +1,6 @@
 import { makeTestChart } from "@jest/testUtilities"
-import { makePayload } from "@/helpers/makeWavePayload"
-import getDonutData, { otherId, formatWithUnit } from "./getDonutData"
+import { makePayload } from "../../../../fixtures/makeWavePayload"
+import getDonutData, { otherId } from "./getDonutData"
 
 const flat = value => Array.from({ length: 97 }, () => value)
 
@@ -26,14 +26,14 @@ describe("getDonutData", () => {
     expect(getDonutData(chart)).toEqual({ slices: [], total: 0 })
   })
 
-  it("ranks visible dimensions by value with their share and colour", async () => {
+  it("lists visible dimensions by label like the d3pie library, with share and colour", async () => {
     const chart = await loadChart([10, 30, 60])
     const { slices, total } = getDonutData(chart)
 
     expect(total).toBe(100)
-    expect(slices.map(slice => slice.id)).toEqual(["p2", "p1", "p0"])
-    expect(slices.map(slice => Math.round(slice.share))).toEqual([60, 30, 10])
-    expect(slices[0].color).toBe(chart.selectDimensionColor("p2"))
+    expect(slices.map(slice => slice.id)).toEqual(["p0", "p1", "p2"])
+    expect(slices.map(slice => Math.round(slice.share))).toEqual([10, 30, 60])
+    expect(slices[2].color).toBe(chart.selectDimensionColor("p2"))
   })
 
   it("groups everything after the top five into one slice, like the d3pie library", async () => {
@@ -56,11 +56,5 @@ describe("getDonutData", () => {
     chart.toggleDimensionId("p1")
 
     expect(getDonutData(chart).slices.map(slice => slice.id)).toEqual(["p1"])
-  })
-
-  it("formats values with the chart units", async () => {
-    const chart = await loadChart([10, 30, 60])
-
-    expect(formatWithUnit(chart, 60, "p2")).toEqual({ value: "60", unit: "GiB" })
   })
 })

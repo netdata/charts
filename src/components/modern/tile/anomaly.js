@@ -1,6 +1,6 @@
 import React from "react"
 import styled from "styled-components"
-import { Flex, getColor } from "@netdata/netdata-ui"
+import { Flex } from "@netdata/netdata-ui"
 import { useAttributeValue, useDimensionIds, useLatestValue } from "@/components/provider"
 import { ColorBar } from "@/components/line/dimensions/color"
 import Tooltip from "@/components/tooltip"
@@ -20,8 +20,6 @@ const Track = styled(Flex).attrs({
 
 const Rail = styled(Flex).attrs({ column: true, height: "100%", width: "2px", round: 0.5 })`
   justify-content: flex-end;
-  background: ${({ $visible, theme }) =>
-    $visible ? getColor("neutralHighlight")({ theme }) : "transparent"};
 `
 
 const AnomalyIndicator = ({ revealed }) => {
@@ -35,7 +33,7 @@ const AnomalyIndicator = ({ revealed }) => {
   return (
     <Tooltip content="Anomaly rate for this metric" align="left">
       <Track data-value={value}>
-        <Rail $visible={revealed}>
+        <Rail background={revealed ? "neutralHighlight" : undefined}>
           <ColorBar id="selected" valueKey="arp" width="2px" styleDimension="height" round={0.5} />
         </Rail>
       </Track>

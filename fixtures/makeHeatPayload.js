@@ -1,4 +1,4 @@
-import { makePayload, makeWave } from "@/helpers/makeWavePayload"
+import { makePayload, makeWave } from "./makeWavePayload"
 
 const defaultGroups = [
   { id: "prod-edge", count: 24 },

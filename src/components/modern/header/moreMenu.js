@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react"
 import styled from "styled-components"
-import { Flex, TextMicro, getColor } from "@netdata/netdata-ui"
+import { Box, Flex, TextMicro, getColor } from "@netdata/netdata-ui"
 import {
   useAttribute,
   useAttributeValue,
@@ -56,20 +56,21 @@ const Panel = styled(Flex).attrs({ column: true, padding: [1], width: "260px" })
   font-size: 12.5px;
 `
 
-const Row = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  width: 100%;
+const Row = styled(Flex).attrs({
+  as: "button",
+  alignItems: "center",
+  justifyContent: "between",
+  gap: 4,
+  width: "100%",
+  round: 1,
+  padding: [1, 2],
+  cursor: "pointer",
+})`
   border: 0;
-  border-radius: 5px;
-  padding: 5px 10px;
   background: transparent;
   font-family: inherit;
-  font-size: 12.5px;
+  font-size: 12px;
   text-align: left;
-  cursor: pointer;
   color: ${getColor("text")};
 
   &:hover:not(:disabled) {
@@ -82,59 +83,56 @@ const Row = styled.button`
   }
 `
 
-const Check = styled.span`
+const Check = styled(Box).attrs({ as: "span", width: 4 })`
   display: inline-block;
-  width: 16px;
   color: ${getColor("primary")};
 `
 
-const Content = styled.span`
-  display: flex;
-  align-items: center;
+const Content = styled(Flex).attrs({ as: "span", alignItems: "center", overflow: "hidden" })`
+  color: inherit;
   min-width: 0;
-  overflow: hidden;
 `
 
-const Hint = styled.span`
+const Hint = styled(Box).attrs({ as: "span" })`
   flex-shrink: 0;
   color: ${getColor("textLite")};
   white-space: nowrap;
 `
 
-const Divider = styled.div`
+const Divider = styled(Box).attrs({ margin: [1, 0], background: "borderSecondary" })`
   height: 1px;
-  margin: 4px 0;
-  background: ${getColor("borderSecondary")};
 `
 
-const Segment = styled.button`
+const Segment = styled(Box).attrs(({ isActive }) => ({
+  as: "button",
+  border: { side: "all", color: isActive ? "text" : "border" },
+  padding: [1, 0],
+  cursor: "pointer",
+}))`
   flex: 1;
-  border: 1px solid ${({ $active, theme }) => getColor($active ? "text" : "border")({ theme })};
   border-radius: ${radius.control};
-  padding: 4px 0;
-  background: ${({ $active, theme }) =>
-    $active ? getColor("borderSecondary")({ theme }) : "transparent"};
+  background: ${({ isActive, theme }) =>
+    isActive ? getColor("borderSecondary")({ theme }) : "transparent"};
   font-family: inherit;
   font-size: 11.5px;
-  cursor: pointer;
   color: ${getColor("text")};
 `
 
-const SearchInput = styled.input`
-  width: 100%;
-  box-sizing: border-box;
-  border: 1px solid ${getColor("border")};
+const SearchInput = styled(Box).attrs({
+  as: "input",
+  width: "100%",
+  border: true,
+  padding: [1, 2],
+})`
   border-radius: ${radius.control};
-  padding: 4px 8px;
   background: transparent;
   font-family: inherit;
   font-size: 12px;
   color: ${getColor("text")};
 `
 
-const DimensionName = styled.span`
+const DimensionName = styled(Box).attrs({ as: "span", overflow: "hidden" })`
   margin-left: 6px;
-  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 `
@@ -166,7 +164,7 @@ const NavigationModes = ({ log }) => {
           key={value}
           type="button"
           title={title}
-          $active={navigation === value}
+          isActive={navigation === value}
           aria-pressed={navigation === value}
           data-testid={`chartMore-navigation-${value}`}
           data-track={chart.track(track)}
@@ -283,7 +281,7 @@ const Dimensions = () => {
                 data-track={chart.track("toggleDimension")}
                 onClick={onToggle(chart, id)}
               >
-                <Swatch $color={chart.selectDimensionColor(id)} />
+                <Swatch swatchColor={chart.selectDimensionColor(id)} />
                 <DimensionName>{chart.getDimensionName(id) || id}</DimensionName>
               </Item>
             ))}
@@ -303,6 +301,7 @@ const MoreMenu = ({ onClose, onOpenTab }) => {
   const chart = useChart()
   const log = makeLog(chart)
   const after = useAttributeValue("after")
+  const liveAfter = useAttributeValue("liveAfter")
   const enabledResetRange = useAttributeValue("enabledResetRange")
   const [showAnomalies, setShowAnomalies] = useAttribute("showAnomalies")
   const [showAnnotations, setShowAnnotations] = useAttribute("showAnnotations")
@@ -343,7 +342,7 @@ const MoreMenu = ({ onClose, onOpenTab }) => {
       {enabledResetRange && (
         <Item
           hint="Alt+Shift+R"
-          disabled={after === -900}
+          disabled={after === liveAfter}
           data-testid="chartMore-zoomReset"
           data-track={chart.track("zoomReset")}
           onClick={() => {

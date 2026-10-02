@@ -3,10 +3,6 @@ import { getStatusLabel, summarizeAlerts } from "@/components/modern/status/summ
 
 const toneByLevel = { critical: "error", warning: "warning" }
 
-const inkByTone = { error: "bright", warning: "panel" }
-
-export const getPillInk = tone => inkByTone[tone] || "bright"
-
 export const getAlertState = alerts => {
   const { critical, warning, raisedNames } = summarizeAlerts(alerts)
 

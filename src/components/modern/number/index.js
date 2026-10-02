@@ -22,23 +22,12 @@ export const Numerals = styled(Text)`
   font-variant-numeric: tabular-nums;
   line-height: 1;
   white-space: nowrap;
-  font-size: ${({ $size }) => $size}px;
 `
 
 const BigValue = styled(Numerals)`
   font-weight: 600;
   letter-spacing: -0.01em;
 `
-
-export const AttentionPill = ({ alert, ...rest }) => (
-  <StatusIndicator
-    status={alert.level}
-    count={alert.count}
-    names={alert.names}
-    data-testid="modernAttentionPill"
-    {...rest}
-  />
-)
 
 const toFinite = value => (typeof value === "number" && isFinite(value) ? value : null)
 
@@ -132,17 +121,21 @@ const ModernNumber = ({ uiName }) => {
         )}
         <Flex alignItems="baseline" justifyContent="between" gap={2} flexWrap>
           <Flex alignItems="baseline" gap={1} overflow="hidden">
-            <BigValue $size={bigSize} color={color || "text"} data-testid="modernNumberValue">
+            <BigValue
+              fontSize={`${bigSize}px`}
+              color={color || "text"}
+              data-testid="modernNumberValue"
+            >
               {convertedValue}
             </BigValue>
             {!!unit && (
-              <Numerals $size={unitSize} color="textLite" data-testid="modernNumberUnit">
+              <Numerals fontSize={`${unitSize}px`} color="textLite" data-testid="modernNumberUnit">
                 {unit}
               </Numerals>
             )}
           </Flex>
           {!!deltaText && (
-            <Numerals $size={12} color={color || "textLite"} data-testid="modernNumberDelta">
+            <Numerals fontSize="12px" color={color || "textLite"} data-testid="modernNumberDelta">
               {deltaText}
             </Numerals>
           )}

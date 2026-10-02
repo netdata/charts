@@ -1,32 +1,35 @@
 import React from "react"
 import styled from "styled-components"
-import { Flex, TextMicro, getColor } from "@netdata/netdata-ui"
+import { Box, Flex, TextMicro } from "@netdata/netdata-ui"
 import { labels as annotationLabels } from "@/helpers/annotations"
 import { numeralsFont, tabularNumbers } from "@/components/modern/tokens"
 
-export const Swatch = styled.span.attrs({ "data-testid": "modernLegend-swatch" })`
+export const Swatch = styled(Box).attrs({ as: "span", "data-testid": "modernLegend-swatch" })`
   display: inline-block;
   flex: 0 0 auto;
   width: 10px;
   height: 3px;
   border-radius: 2px;
-  background: ${({ $color }) => $color || "transparent"};
+  background: ${({ swatchColor }) => swatchColor || "transparent"};
 `
 
-export const Numeral = styled.span`
+export const Numeral = styled(Box).attrs({ as: "span" })`
   font-family: ${numeralsFont};
   ${tabularNumbers}
   white-space: nowrap;
 `
 
-export const AnomalyBar = styled.span.attrs({ "data-testid": "modernLegend-anomalyBar" })`
-  position: absolute;
+export const AnomalyBar = styled(Box).attrs({
+  as: "span",
+  "data-testid": "modernLegend-anomalyBar",
+  position: "absolute",
+  background: "anomalyText",
+})`
   left: 0;
   bottom: -3px;
   height: 2px;
   border-radius: 1px;
-  width: ${({ $rate }) => Math.min(100, Math.max(0, $rate))}%;
-  background: ${getColor("anomalyText")};
+  width: ${({ rate }) => Math.min(100, Math.max(0, rate))}%;
   pointer-events: none;
 `
 

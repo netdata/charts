@@ -1,6 +1,6 @@
 import React from "react"
 import styled from "styled-components"
-import { Flex, getColor } from "@netdata/netdata-ui"
+import { Flex } from "@netdata/netdata-ui"
 
 export const statusColors = { critical: "error", warning: "warning", clear: "success" }
 
@@ -94,13 +94,12 @@ const Dot = styled(Flex).attrs({
   height: "8px",
 })`
   border-radius: 50%;
-  background: ${({ $status }) => getColor(statusColors[$status])};
 `
 
 export const StatusDot = ({ status }) =>
   status ? (
     <Dot
-      $status={status}
+      background={statusColors[status]}
       data-testid="modernTable-status"
       data-status={status}
       role="img"

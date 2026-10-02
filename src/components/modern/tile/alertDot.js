@@ -1,6 +1,6 @@
 import React, { useMemo } from "react"
 import styled from "styled-components"
-import { getColor } from "@netdata/netdata-ui"
+import { Box, Flex } from "@netdata/netdata-ui"
 import { useAttributeValue } from "@/components/provider"
 import { radius } from "@/components/modern/tokens"
 import { getAttention } from "@/components/modern/header/getAttention"
@@ -32,35 +32,32 @@ export const useTileAlert = () => {
   return useMemo(() => getTileAlert({ overlays, alerts }), [overlays, alerts])
 }
 
-const Container = styled.span`
+const Container = styled(Flex).attrs({ as: "span", alignItems: "center" })`
   display: inline-flex;
-  align-items: center;
   flex-shrink: 0;
   gap: 5px;
   font-size: 11px;
   line-height: 16px;
   white-space: nowrap;
-  font-weight: ${({ $status }) => ($status === "critical" ? 600 : 400)};
-  color: ${({ $tone, theme }) => getColor($tone)({ theme })};
+  font-weight: ${({ status }) => (status === "critical" ? 600 : 400)};
 `
 
-const Dot = styled.span`
-  width: ${({ $status }) => ($status === "critical" ? 8 : 7)}px;
-  height: ${({ $status }) => ($status === "critical" ? 8 : 7)}px;
+const Dot = styled(Box).attrs({ as: "span" })`
+  width: ${({ status }) => (status === "critical" ? 8 : 7)}px;
+  height: ${({ status }) => (status === "critical" ? 8 : 7)}px;
   border-radius: ${radius.pill};
-  background: ${({ $tone, theme }) => getColor($tone)({ theme })};
 `
 
 const AlertDot = ({ alert, ...rest }) => (
   <Container
-    $tone={alert.tone}
-    $status={alert.status}
+    color={alert.tone}
+    status={alert.status}
     title={alert.description}
     data-testid="modernTileAlert"
     data-status={alert.status}
     {...rest}
   >
-    <Dot $tone={alert.tone} $status={alert.status} />
+    <Dot background={alert.tone} status={alert.status} />
     <span>{alert.label}</span>
   </Container>
 )

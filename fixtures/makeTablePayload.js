@@ -1,4 +1,4 @@
-import tableFixture from "../../../../fixtures/table"
+import tableFixture from "./table"
 
 const copy = payload => JSON.parse(JSON.stringify(payload))
 

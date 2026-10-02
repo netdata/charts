@@ -14,7 +14,7 @@ import Icon, { Button } from "@/components/icon"
 import Settings from "@/components/toolbox/settings"
 import Fullscreen from "@/components/toolbox/fullscreen"
 import makeMockPayload from "@/helpers/makeMockPayload"
-import { makePayload, makeWave } from "@/helpers/makeWavePayload"
+import { makePayload, makeWave } from "../../../../fixtures/makeWavePayload"
 import makeDefaultSDK from "@/makeDefaultSDK"
 import systemLoadLine from "../../../../fixtures/systemLoadLine"
 

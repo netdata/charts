@@ -73,7 +73,7 @@ export const getAttention = ({ overlays, alerts } = {}) => {
 
   if (status === "clear") return { status }
 
-  const raisedOverlay = overlay && overlay.status !== "clear" ? overlay : null
+  const raisedOverlay = overlay && overlay.status === status ? overlay : null
 
   return {
     status,

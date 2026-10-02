@@ -56,7 +56,7 @@ describe("ChartContentWrapper", () => {
     const { chart } = makeTestChart({
       attributes: { designFlavour: "modern", enabledResetRange: false },
     })
-    renderWithChart(<ChartContentWrapper />, { chart })
+    renderWithChart(<InTile />, { chart })
 
     zoom(chart)
     expect(screen.queryByTestId("chartZoomChip")).not.toBeInTheDocument()

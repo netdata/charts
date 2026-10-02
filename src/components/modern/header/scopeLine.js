@@ -1,33 +1,35 @@
 import React, { useMemo } from "react"
 import styled from "styled-components"
-import { Flex, TextSmall, getColor } from "@netdata/netdata-ui"
+import { Box, Flex, TextSmall, getColor } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart, useEmpty, useInitialLoading } from "@/components/provider"
 import { getScopeParts } from "./scopeSummary"
 import { showAllDimensions, useHiddenDimensionsCount } from "./hiddenDimensions"
 
-const ScopeButton = styled.button`
+const ScopeButton = styled(Box).attrs(({ disabled }) => ({
+  as: "button",
+  width: { max: "100%" },
+  padding: [0],
+  overflow: "hidden",
+  cursor: disabled ? "default" : "pointer",
+}))`
   display: block;
-  max-width: 100%;
   min-width: 0;
   border: 0;
-  padding: 0;
   background: transparent;
   text-align: left;
   font-family: inherit;
   font-size: 12px;
   line-height: 16px;
-  cursor: ${({ disabled }) => (disabled ? "default" : "pointer")};
   white-space: nowrap;
-  overflow: hidden;
   text-overflow: ellipsis;
-  color: ${({ $color, theme }) => getColor($color || "textLite")({ theme })};
+  color: ${({ tone, theme }) => getColor(tone || "textLite")({ theme })};
 
   &:hover:not(:disabled) {
-    color: ${({ $color, theme }) => getColor($color || "text")({ theme })};
+    color: ${({ tone, theme }) => getColor(tone || "text")({ theme })};
   }
 `
 
-const HiddenText = styled.span`
+const HiddenText = styled(Box).attrs({ as: "span" })`
   flex-shrink: 0;
   font-size: 12px;
   line-height: 16px;
@@ -35,17 +37,19 @@ const HiddenText = styled.span`
   color: ${getColor("warning")};
 `
 
-const ShowAllButton = styled.button`
+const ShowAllButton = styled(Box).attrs({
+  as: "button",
+  margin: [0, 0, 0, 1],
+  padding: [0],
+  cursor: "pointer",
+})`
   flex-shrink: 0;
-  margin-left: 4px;
   border: 0;
-  padding: 0;
   background: transparent;
   font-family: inherit;
   font-size: 12px;
   line-height: 16px;
   white-space: nowrap;
-  cursor: pointer;
   text-decoration: underline;
   color: ${getColor("warning")};
 `
@@ -105,7 +109,7 @@ const Status = ({ status, color, hasFilters, open, onToggle, children }) => {
     <ScopeButton
       type="button"
       onClick={onToggle}
-      $color={color}
+      tone={color}
       title={`${children} (click to ${open ? "hide" : "edit"} filters)`}
       aria-expanded={open}
       data-testid={`chartScope-${status}`}

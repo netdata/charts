@@ -5,7 +5,7 @@ import { makeTestChart, renderHookWithChart, renderWithChart } from "@jest/testU
 import { useLatestDisplayValueWithUnit } from "@/components/provider"
 import { getRingValue } from "@/chartLibraries/easyPie/ringValue"
 import { formatReadout } from "@/components/modern/format"
-import { makePayload } from "@/helpers/makeWavePayload"
+import { makePayload } from "../../../../fixtures/makeWavePayload"
 import systemLoadLine from "../../../../fixtures/systemLoadLine"
 import ModernEasyPie, { toFraction } from "./index"
 

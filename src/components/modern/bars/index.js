@@ -1,6 +1,6 @@
 import React, { memo, useMemo } from "react"
 import styled from "styled-components"
-import { Flex, TextMicro, TextSmall, getColor } from "@netdata/netdata-ui"
+import { Box, Flex, TextMicro, TextSmall, getSizeBy } from "@netdata/netdata-ui"
 import {
   useChart,
   useAttributeValue,
@@ -32,27 +32,20 @@ const getMaxRows = height => {
   return rows < 2 ? 2 : rows
 }
 
-const Row = styled.div`
+const Row = styled(Box)`
   display: grid;
   grid-template-columns: minmax(64px, 36%) minmax(0, 1fr) auto;
-  gap: 10px;
+  gap: ${getSizeBy(2)};
   align-items: center;
-  min-height: 20px;
-  opacity: ${({ $faded }) => ($faded ? 0.45 : 1)};
+  min-height: ${getSizeBy(5)};
 `
 
-const Track = styled.div`
-  height: 10px;
-  border-radius: 3px;
-  background: ${getColor("borderSecondary")};
+const Track = styled(Box).attrs({ height: "8px", round: 1, background: "borderSecondary" })`
   overflow: hidden;
 `
 
-const Fill = styled.div`
-  height: 100%;
-  border-radius: 3px;
-  background: ${({ $color }) => $color};
-  opacity: ${({ $emphasis }) => ($emphasis ? 1 : 0.6)};
+const Fill = styled(Box).attrs({ height: "100%", round: 1 })`
+  background: ${({ fillColor }) => fillColor};
   transition: width 150ms ease-out;
 `
 
@@ -80,8 +73,8 @@ const Bar = ({ id, emphasis }) => {
   return (
     <Track data-testid="modern-bars-track">
       <Fill
-        $color={chart.selectDimensionColor(id)}
-        $emphasis={emphasis}
+        fillColor={chart.selectDimensionColor(id)}
+        opacity={emphasis ? 1 : 0.6}
         style={{ width: `${getPercent(value, min, max)}%` }}
         data-testid="modern-bars-fill"
       />
@@ -120,14 +113,14 @@ const AnomalyValue = ({ children, ...rest }) =>
 
 export const pillInk = "#1C1E22"
 
-const Pill = styled.span`
+const Pill = styled(Box).attrs({ as: "span" })`
   font-size: 10px;
   font-weight: 600;
   line-height: 14px;
   padding: 0 6px;
   border-radius: ${radius.pill};
   color: ${pillInk};
-  background: ${({ $color }) => $color};
+  background: ${({ pillColor }) => pillColor};
 `
 
 const Annotations = ({ children: annotations }) =>
@@ -135,7 +128,7 @@ const Annotations = ({ children: annotations }) =>
     <Flex gap={0.5}>
       {Object.keys(annotations).map(ann => (
         <Tooltip key={ann} content={annotationLabels[ann] || ann}>
-          <Pill $color={annotations[ann]} data-testid="modern-bars-annotation">
+          <Pill pillColor={annotations[ann]} data-testid="modern-bars-annotation">
             {ann}
           </Pill>
         </Tooltip>
@@ -148,7 +141,7 @@ const BarRow = ({ id, rank, strong, fullCols }) => {
   const visible = useVisibleDimensionId(id)
 
   return (
-    <Row $faded={!visible} data-testid="modern-bars-row">
+    <Row opacity={visible ? 1 : 0.45} data-testid="modern-bars-row">
       <TextSmall color="text" strong={strong} truncate title={chart.getDimensionName(id)}>
         {chart.getDimensionName(id)}
       </TextSmall>

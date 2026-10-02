@@ -1,6 +1,6 @@
 import React from "react"
 import styled from "styled-components"
-import { Flex, TextSmall, getColor } from "@netdata/netdata-ui"
+import { Box, Flex, TextSmall, getColor } from "@netdata/netdata-ui"
 import Tooltip, { tooltipStyleProps } from "@/components/tooltip"
 import { radius } from "@/components/modern/tokens"
 import { capNames, getClearDescription, getStatusLabel } from "./summary"
@@ -11,12 +11,9 @@ const dotColors = { clear: "success", warning: "warning", critical: "bright" }
 
 export const statusInk = { warning: "text", critical: "bright" }
 
-const Dot = styled.span`
+const Dot = styled(Box).attrs({ as: "span", width: 2, height: 2 })`
   flex: none;
-  width: 8px;
-  height: 8px;
   border-radius: ${radius.pill};
-  background: ${({ $color, theme }) => getColor($color)({ theme })};
 `
 
 const Holder = styled(Flex)`
@@ -29,12 +26,12 @@ const Holder = styled(Flex)`
   }
 `
 
-const Label = styled.span`
+const Label = styled(Box).attrs({ as: "span" })`
   font-size: 11px;
   line-height: 16px;
-  font-weight: ${({ $strong }) => ($strong ? 700 : 600)};
+  font-weight: ${({ isStrong }) => (isStrong ? 700 : 600)};
   white-space: nowrap;
-  color: ${({ $color, theme }) => getColor($color)({ theme })};
+  color: ${({ tone, theme }) => getColor(tone)({ theme })};
 `
 
 const TooltipBox = ({ children }) => (
@@ -112,9 +109,9 @@ const StatusIndicator = ({
         data-status={status}
         {...rest}
       >
-        <Dot $color={dotColors[status]} data-testid="modernStatus-dot" />
+        <Dot background={dotColors[status]} data-testid="modernStatus-dot" />
         {!!label && (
-          <Label $color={statusInk[status]} $strong={isCritical} data-testid="modernStatus-label">
+          <Label tone={statusInk[status]} isStrong={isCritical} data-testid="modernStatus-label">
             {label}
           </Label>
         )}

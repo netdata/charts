@@ -1,6 +1,6 @@
 import React from "react"
 import styled, { css } from "styled-components"
-import { Flex, TextSmall, getColor } from "@netdata/netdata-ui"
+import { Box, Flex, TextSmall, getColor } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart } from "@/components/provider"
 import makeLog from "@/sdk/makeLog"
 import { radius } from "@/components/modern/tokens"
@@ -33,30 +33,28 @@ const Chip = styled(Flex).attrs({
     pointer-events: auto;
   }
 
-  ${({ $inline, $visible }) =>
-    $inline &&
+  ${({ isInline, isVisible }) =>
+    isInline &&
     css`
       position: static;
       padding: 0;
       background: transparent;
       box-shadow: none;
-      opacity: ${$visible ? 1 : 0};
-      pointer-events: ${$visible ? "auto" : "none"};
+      opacity: ${isVisible ? 1 : 0};
+      pointer-events: ${isVisible ? "auto" : "none"};
     `}
 `
 
-const ResetButton = styled.button`
+const ResetButton = styled(Box).attrs({ as: "button", cursor: "pointer", background: "text" })`
   border: 0;
   border-radius: ${radius.pill};
   padding: 3px 10px;
   font-size: 12px;
   font-family: inherit;
-  cursor: pointer;
   color: ${getColor("mainChartBg")};
-  background: ${getColor("text")};
 
-  ${({ $inline }) =>
-    $inline &&
+  ${({ isInline }) =>
+    isInline &&
     css`
       padding: 0;
       color: ${getColor("textLite")};
@@ -95,8 +93,8 @@ const ZoomChip = ({ inline = false }) => {
       data-noprint
       data-testid="chartZoomChip"
       data-toolbox={chart.getId()}
-      $inline={inline}
-      $visible={!!focused}
+      isInline={inline}
+      isVisible={!!focused}
       gap={inline ? 1.5 : 2}
     >
       <TextSmall color={inline ? "textLite" : "text"} whiteSpace="nowrap">
@@ -104,7 +102,7 @@ const ZoomChip = ({ inline = false }) => {
       </TextSmall>
       <ResetButton
         type="button"
-        $inline={inline}
+        isInline={inline}
         onClick={onReset}
         title="Reset zoom (Alt+Shift+R)"
         data-testid="chartZoomChip-reset"

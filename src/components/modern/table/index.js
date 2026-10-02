@@ -14,7 +14,6 @@ export { default as Meter, clampPercent } from "./meter"
 export {
   getRowDimensionId,
   getContextScale,
-  getContextUnitAttributes,
   getShare,
   isHotPercent,
 } from "./scale"

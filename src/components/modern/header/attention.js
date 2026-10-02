@@ -1,6 +1,6 @@
 import React, { useMemo } from "react"
 import styled from "styled-components"
-import { Flex, TextMicro, getColor } from "@netdata/netdata-ui"
+import { Box, Flex, TextMicro, getColor } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart, useUnitSign } from "@/components/provider"
 import { numeralsFont } from "@/components/modern/tokens"
 import StatusIndicator, { getClearDescription, summarizeAlerts } from "@/components/modern/status"
@@ -8,16 +8,16 @@ import { getAttention } from "./getAttention"
 
 const toneColor = { critical: "error", warning: "warning" }
 
-const Value = styled.span`
+const Value = styled(Box).attrs({ as: "span" })`
   font-family: ${numeralsFont};
   font-size: 22px;
   font-weight: 600;
   line-height: 1;
   font-variant-numeric: tabular-nums;
-  color: ${({ $tone, theme }) => getColor($tone)({ theme })};
+  color: ${({ tone, theme }) => getColor(tone)({ theme })};
 `
 
-const Units = styled.span`
+const Units = styled(Box).attrs({ as: "span" })`
   font-family: ${numeralsFont};
   font-size: 13px;
   color: ${getColor("textLite")};
@@ -59,7 +59,7 @@ const Raised = ({ status, count, value, names, when }) => {
         />
         {value !== null && value !== undefined && (
           <Flex alignItems="baseline" gap={1}>
-            <Value $tone={tone} data-testid="chartAttention-value">
+            <Value tone={tone} data-testid="chartAttention-value">
               {formatValue(value)}
             </Value>
             {!!units && <Units>{units}</Units>}

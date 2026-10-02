@@ -5,7 +5,7 @@ import D3pie from "@/components/d3pie"
 import Bars from "@/components/bars"
 import makeDefaultSDK from "@/makeDefaultSDK"
 import makeMockPayload from "@/helpers/makeMockPayload"
-import { makePayload, makeWave } from "@/helpers/makeWavePayload"
+import { makePayload, makeWave } from "../../../../fixtures/makeWavePayload"
 import systemLoadLine from "../../../../fixtures/systemLoadLine"
 
 const [loadPayload] = systemLoadLine

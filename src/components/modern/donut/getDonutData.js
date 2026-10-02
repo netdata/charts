@@ -7,15 +7,6 @@ const getRowIndex = chart => {
   return index === -1 ? data.length - 1 : index
 }
 
-export const formatWithUnit = (chart, value, dimensionId) => {
-  const options = dimensionId ? { dimensionId } : {}
-  const unitAttributes = chart.getUnitAttributesForValue(value, options)
-  return {
-    value: chart.getConvertedValue(value, { ...options, unitAttributes }),
-    unit: chart.getUnitSign({ ...options, unitAttributes }),
-  }
-}
-
 export default (chart, { limit = 5 } = {}) => {
   const { data } = chart.getPayload()
   if (!data?.length) return { slices: [], total: 0 }
@@ -40,7 +31,8 @@ export default (chart, { limit = 5 } = {}) => {
   const total = values.reduce((sum, slice) => sum + slice.value, 0)
   if (!total) return { slices: [], total: 0 }
 
-  const shown = values.length > limit ? values.slice(0, limit) : values
+  const byLabel = (a, b) => (a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1)
+  const shown = (values.length > limit ? values.slice(0, limit) : values).sort(byLabel)
   const rest = values.length > limit ? values.slice(limit) : []
 
   const slices = rest.length

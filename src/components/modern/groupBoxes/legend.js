@@ -1,14 +1,12 @@
 import React from "react"
 import styled from "styled-components"
-import { Flex, TextNano } from "@netdata/netdata-ui"
+import { Box, Flex, TextNano } from "@netdata/netdata-ui"
 import { useChart, useAttributeValue, useUnitSign } from "@/components/provider"
 import { numeralsFont, tabularNumbers } from "@/components/modern/tokens"
 import { getScale, getThreshold, getThresholdColor } from "./scale"
 
-const Swatch = styled.span`
+const Swatch = styled(Box).attrs({ as: "span", width: 4, height: 2 })`
   display: inline-block;
-  width: 16px;
-  height: 8px;
 `
 
 const Ramp = styled(Flex).attrs({ flex: false, overflow: "hidden" })`

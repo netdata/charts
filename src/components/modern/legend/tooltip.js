@@ -1,7 +1,13 @@
 import React from "react"
 import styled from "styled-components"
-import { getColor } from "@netdata/netdata-ui"
-import { useAttributeValue, useChart, useFormatDate, useFormatTime } from "@/components/provider"
+import { Box, getColor } from "@netdata/netdata-ui"
+import {
+  useAttributeValue,
+  useChart,
+  useColor,
+  useFormatDate,
+  useFormatTime,
+} from "@/components/provider"
 import { useIsHeatmap } from "@/helpers/heatmap"
 import { radius, tabularNumbers } from "@/components/modern/tokens"
 import { Flags, Numeral, Swatch } from "./parts"
@@ -21,37 +27,37 @@ export const pickShown = (rows, hoveredId, limit = maxTooltipRows) => {
   return [...shown.slice(0, limit - 1), rows[hovered]]
 }
 
-const Container = styled.div.attrs({ "data-testid": "modernTooltip" })`
-  box-sizing: border-box;
-  min-width: 180px;
-  max-width: 360px;
+const Container = styled(Box).attrs({
+  "data-testid": "modernTooltip",
+  width: { min: 45, max: 90 },
+  background: "dropdown",
+})`
   padding: 8px 10px;
   border-radius: ${radius.control};
-  background: ${getColor("dropdown")};
   box-shadow:
-    0 6px 24px rgba(9, 30, 66, 0.16),
-    0 0 1px rgba(9, 30, 66, 0.31);
+    0 6px 24px ${({ shadowColor }) => shadowColor},
+    0 0 1px ${({ shadowColor }) => shadowColor};
   font-size: 12px;
   ${tabularNumbers}
 `
 
-const Time = styled.div.attrs({ "data-testid": "modernTooltip-time" })`
+const Time = styled(Box).attrs({ "data-testid": "modernTooltip-time" })`
   color: ${getColor("textLite")};
   margin-bottom: 6px;
   white-space: nowrap;
 `
 
-const Grid = styled.div`
+const Grid = styled(Box)`
   display: grid;
-  grid-template-columns: ${({ $columns }) => $columns};
+  grid-template-columns: ${({ gridColumns }) => gridColumns};
   align-items: center;
   column-gap: 8px;
   row-gap: 2px;
 `
 
-const Name = styled.span`
+const Name = styled(Box).attrs({ as: "span" })`
   color: ${getColor("text")};
-  font-weight: ${({ $strong }) => ($strong ? 600 : 400)};
+  font-weight: ${({ isStrong }) => (isStrong ? 600 : 400)};
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -64,7 +70,7 @@ const Value = styled(Numeral)`
   text-align: right;
 `
 
-const Unit = styled.span`
+const Unit = styled(Box).attrs({ as: "span" })`
   color: ${getColor("textDescription")};
   font-size: 11px;
   white-space: nowrap;
@@ -75,9 +81,8 @@ const Anomaly = styled(Numeral)`
   text-align: right;
 `
 
-const Muted = styled.div`
+const Muted = styled(Box).attrs({ margin: [1, 0, 0, 0] })`
   color: ${getColor("textLite")};
-  margin-top: 4px;
   white-space: nowrap;
 `
 
@@ -104,6 +109,7 @@ const GranularityLine = () => {
 }
 
 const Tooltip = () => {
+  const shadow = useColor("themeShadow")
   const chart = useChart()
   const isHeatmap = useIsHeatmap()
   const [, hoveredId] = useAttributeValue("hoverX") || []
@@ -111,8 +117,10 @@ const Tooltip = () => {
 
   if (index === -1) return null
 
-  const ids = chart.onHoverSortDimensions(index, sortByRow[hoveredId] || "valueDesc") || []
-  const shown = pickShown(ids, hoveredId).map(getRow)
+  let ids = chart.onHoverSortDimensions(index, sortByRow[hoveredId] || "valueDesc") || []
+  if (chart.getAttribute("selectedDimensions").length > 0)
+    ids = ids.filter(id => chart.isDimensionVisible(id))
+  const shown = (isHeatmap ? ids : pickShown(ids, hoveredId)).map(getRow)
   const more = ids.length - shown.length
   const withAnomaly = shown.some(row => !!row.anomaly)
   const withFlags = shown.some(row => !!row.flags)
@@ -129,13 +137,13 @@ const Tooltip = () => {
     .join(" ")
 
   return (
-    <Container>
+    <Container shadowColor={shadow}>
       {!!timestamp && <Timestamp value={timestamp} />}
-      <Grid $columns={columns}>
+      <Grid gridColumns={columns}>
         {shown.map(row => (
           <React.Fragment key={row.id}>
-            {!isHeatmap && <Swatch $color={row.color} />}
-            <Name $strong={row.id === hoveredId} data-testid="modernTooltip-name">
+            {!isHeatmap && <Swatch swatchColor={row.color} />}
+            <Name isStrong={row.id === hoveredId} data-testid="modernTooltip-name">
               {row.name}
             </Name>
             <Value>{row.display}</Value>

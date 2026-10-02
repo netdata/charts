@@ -59,6 +59,15 @@ describe("getAttention", () => {
     expect(getAttention({ alerts: { load: { nm: "load", cl: 1 } } })).toEqual({ status: "clear" })
   })
 
+  it("does not show a warning overlay's value next to a critical summary", () => {
+    expect(
+      getAttention({
+        overlays: { alarm: { type: "alarm", status: "warning", value: 538, when: 1000 } },
+        alerts: { load: { nm: "load", cr: 1 } },
+      })
+    ).toEqual({ status: "critical", names: ["load"], value: null, when: null })
+  })
+
   it("lists raised alerts from the summary, critical first", () => {
     expect(
       getAttention({

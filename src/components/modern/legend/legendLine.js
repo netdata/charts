@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useRef, useState } from "react"
 import styled from "styled-components"
-import { getColor } from "@netdata/netdata-ui"
+import { Box, Flex, getColor } from "@netdata/netdata-ui"
 import { useChart } from "@/components/provider"
 import { useIsHeatmap } from "@/helpers/heatmap"
 import { AnomalyBar, Flags, Numeral, Swatch, onToggle } from "./parts"
@@ -9,36 +9,41 @@ import { useLegendRows } from "./useLegendRows"
 
 export const lineEntryCap = 24
 
-const Line = styled.div.attrs({ "data-testid": "modernLegend-line" })`
-  position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 16px;
+const Line = styled(Flex).attrs({
+  "data-testid": "modernLegend-line",
+  position: "relative",
+  flexWrap: true,
+  alignItems: "center",
+  gap: 4,
+  gapY: 1,
+  height: { max: 16 },
+  overflow: "hidden",
+})`
+  color: inherit;
   min-width: 0;
-  max-height: 64px;
-  overflow: hidden;
 `
 
-const Entry = styled.button.attrs({ type: "button", "data-testid": "modernLegend-entry" })`
-  position: relative;
+const Entry = styled(Box).attrs(({ isOff }) => ({
+  as: "button",
+  type: "button",
+  "data-testid": "modernLegend-entry",
+  position: "relative",
+  padding: [0],
+  cursor: "pointer",
+  opacity: isOff ? 0.4 : 1,
+}))`
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 0;
   border: 0;
   background: transparent;
-  cursor: pointer;
   font-size: 12px;
   line-height: 18px;
-  opacity: ${({ $off }) => ($off ? 0.4 : 1)};
 `
 
-const Name = styled.span`
+const Name = styled(Box).attrs({ as: "span", width: { max: 45 }, overflow: "hidden" })`
   color: ${getColor("textLite")};
   white-space: nowrap;
-  max-width: 180px;
-  overflow: hidden;
   text-overflow: ellipsis;
 `
 
@@ -47,16 +52,20 @@ const Value = styled(Numeral)`
   font-weight: 600;
 `
 
-const Unit = styled.span`
+const Unit = styled(Box).attrs({ as: "span" })`
   color: ${getColor("textDescription")};
   font-size: 11px;
 `
 
-const More = styled.button.attrs({ type: "button", "data-testid": "modernLegend-more" })`
-  padding: 0;
+const More = styled(Box).attrs({
+  as: "button",
+  type: "button",
+  "data-testid": "modernLegend-more",
+  padding: [0],
+  cursor: "pointer",
+})`
   border: 0;
   background: transparent;
-  cursor: pointer;
   font-size: 12px;
   line-height: 18px;
   white-space: nowrap;
@@ -135,7 +144,7 @@ const LegendLine = () => {
       {rows.map(row => (
         <Entry
           key={row.id}
-          $off={!row.visible}
+          isOff={!row.visible}
           onClick={onToggle(chart, row.id)}
           onMouseEnter={() => row.visible && focusDimension(chart, row.id)}
           onMouseLeave={() => focusDimension(chart, null)}
@@ -143,12 +152,12 @@ const LegendLine = () => {
           data-dimension={row.id}
           title={row.name}
         >
-          {!isHeatmap && <Swatch $color={row.color} />}
+          {!isHeatmap && <Swatch swatchColor={row.color} />}
           <Name>{row.name}</Name>
           {row.visible && <Value>{row.display}</Value>}
           {row.visible && !!row.unit && <Unit>{row.unit}</Unit>}
           {row.visible && <Flags flags={row.flags} />}
-          {row.visible && row.arp > 0 && <AnomalyBar $rate={row.arp} />}
+          {row.visible && row.arp > 0 && <AnomalyBar rate={row.arp} />}
         </Entry>
       ))}
       {hidden > 0 && (

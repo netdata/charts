@@ -2,21 +2,13 @@ import React from "react"
 import { Flex } from "@netdata/netdata-ui"
 import { useAttribute, useAttributeValue } from "@/components/provider"
 import FilterToolbox from "@/components/filterToolbox"
-import Status from "@/components/status"
 import ModernTitle from "./title"
 import ScopeLine from "./scopeLine"
 import Actions from "./actions"
 import Attention from "./attention"
 import AnomalyPill from "./anomalyPill"
 import ZoomChip from "./zoomChip"
-
-const PlainStatus = () => <Status plain />
-
-const useLeftElements = hasToolbox => {
-  const leftHeaderElements = useAttributeValue("leftHeaderElements") || []
-  if (hasToolbox) return leftHeaderElements.filter(Element => Element !== Status)
-  return leftHeaderElements.map(Element => (Element === Status ? PlainStatus : Element))
-}
+import { useLeftElements } from "@/components/modern/leftElements"
 
 const ModernHeader = ({ hasFilters = false }) => {
   const hasToolbox = useAttributeValue("hasToolbox")

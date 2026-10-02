@@ -1,15 +1,14 @@
 import React from "react"
 import { act, screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
-import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui"
+import { DefaultTheme } from "@netdata/netdata-ui"
 import { makeTestChart, renderHookWithChart, renderWithChart } from "@jest/testUtilities"
 import { useLatestDisplayValueWithUnit } from "@/components/provider"
 import { formatReadout } from "@/components/modern/format"
-import { makePayload, makeWave } from "@/helpers/makeWavePayload"
+import { makePayload, makeWave } from "../../../../fixtures/makeWavePayload"
 import { NumberChart } from "@/components/number"
 import systemLoadLine from "../../../../fixtures/systemLoadLine"
-import ModernNumber, { AttentionPill, getMean, isStateUnit } from "./index"
-import { getPillInk } from "./attention"
+import ModernNumber, { getMean, isStateUnit } from "./index"
 
 const readLatest = (chart, id) =>
   renderHookWithChart(() => useLatestDisplayValueWithUnit(id), { chart }).result.current
@@ -28,17 +27,6 @@ const requests = values =>
     unit: "requests/s",
     dimensions: [{ id: "requests", values }],
   })
-
-const luminance = hex => {
-  const channels = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255)
-  const [r, g, b] = channels.map(c => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b
-}
-
-const contrast = (a, b) => {
-  const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x)
-  return (light + 0.05) / (dark + 0.05)
-}
 
 const rgbToHex = rgb =>
   `#${rgb
@@ -81,7 +69,6 @@ describe("ModernNumber", () => {
     expect(screen.getByTestId("modernNumberDelta")).toHaveTextContent(/^[+−].+ vs mean$/)
     expect(screen.getByTestId("modernNumberSpark")).toBeInTheDocument()
     expect(screen.getByTestId("modernNumberSparkMarker").style.left).toBe("100%")
-    expect(screen.queryByTestId("modernAttentionPill")).not.toBeInTheDocument()
     expect(screen.queryByTestId("modernNumberStatus")).not.toBeInTheDocument()
   })
 
@@ -164,6 +151,24 @@ describe("ModernNumber", () => {
     expect(screen.getByTestId("modernNumberSparkMarker").style.left).toBe("0%")
   })
 
+  it("keeps the value size once the widest value has been shown", async () => {
+    const chart = await loadChart({}, requests([...Array(96).fill(123456.789), 2]))
+    chart.getUI().getChartWidth = () => 110
+    chart.getUI().getChartHeight = () => 200
+    renderWithChart(<ModernNumber />, { chart })
+    const size = () => getComputedStyle(screen.getByTestId("modernNumberValue")).fontSize
+    const { all } = chart.getPayload()
+
+    act(() => chart.updateAttribute("hoverX", [all[0][0], null]))
+    const widest = size()
+
+    act(() => chart.updateAttribute("hoverX", [all[all.length - 1][0], null]))
+    expect(size()).toBe(widest)
+
+    act(() => chart.updateAttribute("hoverX", null))
+    expect(size()).toBe(widest)
+  })
+
   it("shows the warning status and tone when an alert is raised", async () => {
     const chart = await loadChart()
     renderWithChart(<ModernNumber />, { chart })
@@ -226,33 +231,5 @@ describe("number status in other flavours", () => {
     expect(screen.queryByTestId("modernNumberStatus")).not.toBeInTheDocument()
     expect(screen.queryByTestId("modernStatus-dot")).not.toBeInTheDocument()
     expect(screen.queryByText("1 critical")).not.toBeInTheDocument()
-  })
-})
-
-describe("AttentionPill", () => {
-  it.each([
-    ["light", DefaultTheme],
-    ["dark", DarkTheme],
-  ])("keeps the critical ink readable on the solid tone in the %s theme", (_, theme) => {
-    expect(contrast(theme.colors[getPillInk("error")], theme.colors.error)).toBeGreaterThanOrEqual(
-      4.5
-    )
-  })
-
-  it("renders the shared status indicator for the alert", () => {
-    renderWithChart(
-      <AttentionPill alert={{ level: "critical", count: 1, tone: "error", names: ["load"] }} />
-    )
-
-    const pill = screen.getByTestId("modernAttentionPill")
-    expect(pill).toHaveAttribute("data-status", "critical")
-    expect(pill).toHaveTextContent("1 critical")
-    expect(rgbToHex(getComputedStyle(pill).backgroundColor)).toBe(DefaultTheme.colors.error)
-    expect(
-      contrast(
-        rgbToHex(getComputedStyle(screen.getByTestId("modernStatus-label")).color),
-        DefaultTheme.colors.error
-      )
-    ).toBeGreaterThanOrEqual(4.5)
   })
 })

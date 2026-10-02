@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import styled from "styled-components"
-import { Flex, getColor } from "@netdata/netdata-ui"
+import { Box, Flex, getColor } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart } from "@/components/provider"
 import Settings from "@/components/toolbox/settings"
 import { getConsumerElements } from "@/components/modern/tile/menu"
@@ -10,12 +10,14 @@ const Panel = styled(Flex).attrs({ column: true, padding: [1], width: "260px" })
   font-size: 12.5px;
 `
 
-const Row = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  width: 100%;
+const Row = styled(Flex).attrs({
+  as: "button",
+  alignItems: "center",
+  justifyContent: "between",
+  gap: 4,
+  width: "100%",
+  cursor: "pointer",
+})`
   border: 0;
   border-radius: 5px;
   padding: 5px 10px;
@@ -23,40 +25,32 @@ const Row = styled.button`
   font-family: inherit;
   font-size: 12.5px;
   text-align: left;
-  cursor: pointer;
-  color: ${getColor("text")};
 
   &:hover {
     background: ${getColor("mainChartTboxHover")};
   }
 `
 
-const Check = styled.span`
+const Check = styled(Box).attrs({ as: "span", width: 4 })`
   display: inline-block;
   flex: none;
-  width: 16px;
   color: ${getColor("primary")};
 `
 
-const Content = styled.span`
-  display: flex;
-  align-items: center;
+const Content = styled(Flex).attrs({ as: "span", alignItems: "center", overflow: "hidden" })`
   min-width: 0;
-  overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 `
 
-const Hint = styled.span`
+const Hint = styled(Box).attrs({ as: "span" })`
   flex-shrink: 0;
   color: ${getColor("textLite")};
   white-space: nowrap;
 `
 
-const Divider = styled.div`
+const Divider = styled(Box).attrs({ margin: [1, 0], background: "borderSecondary" })`
   height: 1px;
-  margin: 4px 0;
-  background: ${getColor("borderSecondary")};
 `
 
 const Item = ({ children, hint, check, ...rest }) => (

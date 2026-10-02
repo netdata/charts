@@ -1,5 +1,5 @@
 import React from "react"
-import styled, { keyframes, useTheme } from "styled-components"
+import styled, { useTheme } from "styled-components"
 import { Flex, getColor } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
 import {
@@ -7,12 +7,11 @@ import {
   useAttributeValue,
   useOnResize,
   useLatestDisplayValue,
-  useUnitSign,
   useVisibleDimensionIds,
 } from "@/components/provider"
 import { ChartWrapper } from "@/components/hocs/withTile"
 import { numeralsFont } from "@/components/modern/tokens"
-import { formatReadout } from "@/components/modern/format"
+import { formatReadout, formatReadoutUnit } from "@/components/modern/format"
 import StatusIndicator, { getClearDescription, summarizeAlerts } from "@/components/modern/status"
 import {
   viewBox,
@@ -32,6 +31,7 @@ import {
   unitFontSize,
 } from "./geometry"
 import { makeZones, zoneAt, alertSeverity, worstSeverity } from "./zones"
+import { ReadoutPills, useSkeletonColors } from "@/components/skeleton"
 
 const { cx, cy } = center
 const spark = { x: cx - 56, y: cy + 14, width: 112, height: 26 }
@@ -41,8 +41,7 @@ const toId = value => String(value).replace(/[^\w-]/g, "_")
 
 const zoneDescription = severity => `The value is in a ${severity} zone of the gauge thresholds`
 
-// eslint-disable-next-line no-unused-vars
-export const Attention = ({ severity, showQuiet, dotColor, description, ...rest }) => {
+export const Attention = ({ severity, showQuiet, description, ...rest }) => {
   if (severity === "warning" || severity === "critical")
     return (
       <StatusIndicator
@@ -137,14 +136,19 @@ export const Dial = ({ uiName }) => {
   useOnResize(uiName)
   const [dimensionId] = useVisibleDimensionIds()
   const latest = useLatestDisplayValue(dimensionId, { allowNull: true })
-  const unit = useUnitSign({ dimensionId })
   const themeName = useAttributeValue("theme")
   useAttributeValue("staticFractionDigits")
 
   const { min, max, data, value, zones, zone, zoneSeverity } = useDialState(uiName)
   const readout = formatReadout(chart, latest, { dimensionId })
-  const minLabel = formatReadout(chart, min, { dimensionId })
-  const maxLabel = formatReadout(chart, max, { dimensionId })
+  const unit = formatReadoutUnit(chart, latest, { dimensionId })
+  const withUnit = edge => {
+    const text = formatReadout(chart, edge, { dimensionId })
+    const edgeUnit = formatReadoutUnit(chart, edge, { dimensionId })
+    return text !== "-" && edgeUnit ? `${text} ${edgeUnit}` : text
+  }
+  const minLabel = withUnit(min)
+  const maxLabel = withUnit(max)
   const valueSize = fitValueFontSize(readout, unit)
 
   const series = data.map(sumRow)
@@ -279,19 +283,10 @@ export const Dial = ({ uiName }) => {
   )
 }
 
-const frames = keyframes`
-  from { opacity: 0.2; }
-  to { opacity: 0.6; }
-`
-
-const SkeletonRing = styled.svg`
-  animation: ${frames} 1.6s ease-in infinite;
-`
-
 export const Skeleton = () => {
-  const theme = useTheme()
+  const { track } = useSkeletonColors()
   return (
-    <SkeletonRing
+    <svg
       data-testid="modernGauge-skeleton"
       viewBox={`0 0 ${viewBox.width} ${viewBox.height}`}
       width="100%"
@@ -299,12 +294,13 @@ export const Skeleton = () => {
     >
       <path
         d={arcPath(cx, cy, radius, startAngle, endAngle)}
-        stroke={getColor("borderSecondary")({ theme })}
-        strokeWidth="12"
+        stroke={track}
+        strokeWidth="8"
         fill="none"
         strokeLinecap="round"
       />
-    </SkeletonRing>
+      <ReadoutPills cx={cx} cy={cy - 8} scale={2} color={track} />
+    </svg>
   )
 }
 

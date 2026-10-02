@@ -1,6 +1,6 @@
 import React from "react"
 import styled from "styled-components"
-import { Flex, getColor } from "@netdata/netdata-ui"
+import { Box, Flex, getColor } from "@netdata/netdata-ui"
 
 const Track = styled(Flex).attrs({
   flex: false,
@@ -13,8 +13,7 @@ const Track = styled(Flex).attrs({
   background: ${getColor("borderSecondary")};
 `
 
-const Fill = styled.div`
-  height: 100%;
+const Fill = styled(Box).attrs({ height: "100%" })`
   border-radius: 3px;
   transition: width 200ms ease;
 `

@@ -1,12 +1,11 @@
 import React, { useRef } from "react"
 import styled from "styled-components"
-import { Flex, TextSmall, getColor } from "@netdata/netdata-ui"
+import { Box, Flex, TextSmall, getColor } from "@netdata/netdata-ui"
 import {
   useAttributeValue,
   useChart,
   useLatestDisplayValueWithUnit,
   useOnResize,
-  useVisibleDimensionIds,
 } from "@/components/provider"
 import { numeralsFont } from "@/components/modern/tokens"
 import { formatReadout } from "@/components/modern/format"
@@ -14,13 +13,13 @@ import { useTileAlert } from "./alertDot"
 
 const clamp = (value, low, high) => Math.min(Math.max(value, low), high)
 
-const Numerals = styled.span`
+const Numerals = styled(Box).attrs({ as: "span" })`
   font-family: ${numeralsFont};
   font-variant-numeric: tabular-nums;
   line-height: 1;
   white-space: nowrap;
-  font-size: ${({ $size }) => $size}px;
-  color: ${({ $tone, theme }) => getColor($tone)({ theme })};
+  font-size: ${({ numeralSize }) => numeralSize}px;
+  color: ${({ tone, theme }) => getColor(tone)({ theme })};
 `
 
 const Value = styled(Numerals)`
@@ -48,14 +47,12 @@ export const useStableChars = (key, chars, unitChars) => {
   return widest.current
 }
 
-const TileReadout = ({ dimensionId: requestedId }) => {
+const TileReadout = ({ dimensionId }) => {
   const chart = useChart()
   const { width, height } = useOnResize()
   const loaded = useAttributeValue("loaded")
-  const visibleIds = useVisibleDimensionIds()
   const alert = useTileAlert()
 
-  const dimensionId = chart.isDimensionVisible(requestedId) ? requestedId : visibleIds[0]
   const { value, convertedUnit: unit, unitAttributes } = useLatestDisplayValueWithUnit(dimensionId)
   const text =
     typeof value === "number" && isFinite(value)
@@ -91,14 +88,14 @@ const TileReadout = ({ dimensionId: requestedId }) => {
       data-testid="modernTileReadout"
     >
       <Value
-        $size={sizes.value}
-        $tone={alert?.tone || "text"}
+        numeralSize={sizes.value}
+        tone={alert?.tone || "text"}
         data-testid="modernTileReadout-value"
       >
         {text}
       </Value>
       {!!unit && (
-        <Numerals $size={sizes.unit} $tone="textLite" data-testid="modernTileReadout-unit">
+        <Numerals numeralSize={sizes.unit} tone="textLite" data-testid="modernTileReadout-unit">
           {unit}
         </Numerals>
       )}

@@ -26,14 +26,14 @@ const Track = styled.circle`
 
 const Arc = styled.circle`
   fill: none;
-  stroke: ${({ $color }) => resolve($color)};
+  stroke: ${({ tint }) => resolve(tint)};
   transition: stroke-dasharray 150ms linear;
 `
 
 const Label = styled.text`
   font-family: ${numeralsFont};
   font-variant-numeric: tabular-nums;
-  fill: ${({ $color }) => resolve($color)};
+  fill: ${({ tint }) => resolve(tint)};
 `
 
 export const toFraction = percentage =>
@@ -88,7 +88,7 @@ const ModernEasyPie = ({ uiName, size }) => {
             strokeLinecap="round"
             strokeDasharray={`${circumference * fraction} ${circumference}`}
             transform="rotate(-90 40 40)"
-            $color={arcColor}
+            tint={arcColor}
             data-testid="modernEasyPieArc"
           />
         )}
@@ -98,7 +98,7 @@ const ModernEasyPie = ({ uiName, size }) => {
           textAnchor="middle"
           fontSize={valueSize}
           fontWeight="600"
-          $color={color || "text"}
+          tint={color || "text"}
           data-testid="modernEasyPieValue"
         >
           {convertedValue}
@@ -109,7 +109,7 @@ const ModernEasyPie = ({ uiName, size }) => {
             y="54"
             textAnchor="middle"
             fontSize={unitSize}
-            $color="textLite"
+            tint="textLite"
             data-testid="modernEasyPieUnit"
           >
             {unit}

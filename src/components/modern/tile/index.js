@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react"
 import styled, { css } from "styled-components"
-import { Drop, Flex, getColor } from "@netdata/netdata-ui"
+import { Box, Drop, Flex, getColor } from "@netdata/netdata-ui"
 import {
   useAttributeValue,
   useChart,
@@ -10,7 +10,6 @@ import {
 } from "@/components/provider"
 import useHover from "@/components/useHover"
 import FilterToolbox from "@/components/filterToolbox"
-import Status from "@/components/status"
 import ScopeLine from "@/components/modern/header/scopeLine"
 import { radius } from "@/components/modern/tokens"
 import { TileContext } from "./context"
@@ -18,17 +17,12 @@ import AlertDot, { useTileAlert } from "./alertDot"
 import TileActions from "./actions"
 import TileReadout from "./readout"
 import AnomalyIndicator from "./anomaly"
+import { useLeftElements } from "@/components/modern/leftElements"
 
 const selfSignallingLibraries = new Set(["gauge", "number"])
 const bodyUnitLibraries = new Set(["number", "gauge", "easypiechart", "bars", "d3pie"])
 
-const PlainStatus = () => <Status plain />
-
-export const useTileLeftElements = hasToolbox => {
-  const leftHeaderElements = useAttributeValue("leftHeaderElements") || []
-  if (hasToolbox) return leftHeaderElements.filter(Element => Element !== Status)
-  return leftHeaderElements.map(Element => (Element === Status ? PlainStatus : Element))
-}
+export const useTileLeftElements = useLeftElements
 
 export const getLatestValueOverlay = (overlays = {}) =>
   Object.values(overlays || {}).find(overlay => overlay?.type === "latestValue") || null
@@ -59,10 +53,10 @@ const Root = styled(Flex).attrs({ column: true, position: "relative", gap: 1 })`
   padding: 8px 12px 10px;
   border-radius: ${radius.card};
   border: 1px solid
-    ${({ $revealed, theme }) =>
-      $revealed ? getColor("borderSecondary")({ theme }) : "transparent"};
+    ${({ isRevealed, theme }) =>
+      isRevealed ? getColor("borderSecondary")({ theme }) : "transparent"};
   background: ${getColor("panelBg")};
-  font-size: ${({ $fontSize }) => $fontSize}px;
+  font-size: ${({ rootFontSize }) => rootFontSize}px;
   ${focusRevealed};
 `
 
@@ -71,22 +65,19 @@ const Header = styled(Flex).attrs({ alignItems: "center", gap: 1.5, position: "r
   flex-shrink: 0;
 `
 
-const TitleText = styled.span`
+const TitleText = styled(Box).attrs({ as: "span", overflow: "hidden", cursor: "pointer" })`
   flex: 1;
   min-width: 0;
   font-size: 12.5px;
   font-weight: 500;
   line-height: 16px;
   white-space: nowrap;
-  overflow: hidden;
   text-overflow: ellipsis;
-  cursor: pointer;
   color: ${getColor("textLite")};
 `
 
-const Units = styled.span`
+const Units = styled(Box).attrs({ as: "span", opacity: 0.8 })`
   color: ${getColor("textLite")};
-  opacity: 0.8;
 `
 
 const Reveal = styled(Flex).attrs({ alignItems: "center", gap: 0.5 })`
@@ -96,8 +87,8 @@ const Reveal = styled(Flex).attrs({ alignItems: "center", gap: 0.5 })`
   bottom: 0;
   padding-left: 8px;
   background: ${getColor("panelBg")};
-  opacity: ${({ $visible }) => ($visible ? 1 : 0)};
-  pointer-events: ${({ $visible }) => ($visible ? "auto" : "none")};
+  opacity: ${({ isVisible }) => (isVisible ? 1 : 0)};
+  pointer-events: ${({ isVisible }) => (isVisible ? "auto" : "none")};
   transition: opacity 120ms ease-in-out;
 
   &:focus-within {
@@ -106,23 +97,23 @@ const Reveal = styled(Flex).attrs({ alignItems: "center", gap: 0.5 })`
   }
 `
 
-const HeadArea = styled.div`
-  position: relative;
+const HeadArea = styled(Box).attrs({ position: "relative" })`
   flex-shrink: 0;
   min-width: 0;
 `
 
-const ScopeRow = styled.div`
-  position: absolute;
+const ScopeRow = styled(Box).attrs({
+  position: "absolute",
+  zIndex: 2,
+  height: { min: 4 },
+  background: "panelBg",
+})`
   top: 100%;
   left: 0;
   right: 0;
-  z-index: 2;
-  min-height: 16px;
   min-width: 0;
   padding-bottom: 2px;
-  background: ${getColor("panelBg")};
-  visibility: ${({ $visible }) => ($visible ? "visible" : "hidden")};
+  visibility: ${({ isVisible }) => (isVisible ? "visible" : "hidden")};
 
   ${HeadArea}:hover > &,
   &:focus-within {
@@ -133,8 +124,8 @@ const ScopeRow = styled.div`
 const Body = styled(Flex).attrs({ column: true, position: "relative", flex: true })`
   min-height: 0;
   overflow: hidden;
-  ${({ $bleed }) =>
-    $bleed &&
+  ${({ hasBleed }) =>
+    hasBleed &&
     css`
       margin: 2px -12px -10px;
       border-radius: 0 0 ${radius.card} ${radius.card};
@@ -199,8 +190,8 @@ const ModernTile = ({ children, customChildren, hasFilters = true, height, width
       ref={hoverRef}
       height={height}
       width={width}
-      $revealed={revealed}
-      $fontSize={getFontSize(chartWidth)}
+      isRevealed={revealed}
+      rootFontSize={getFontSize(chartWidth)}
       data-testid="modernTile"
       data-flavour="modern"
       data-revealed={revealed}
@@ -214,7 +205,7 @@ const ModernTile = ({ children, customChildren, hasFilters = true, height, width
             </span>
           )}
           {(hasToolbox || leftElements.length > 0) && (
-            <Reveal data-tile-actions $visible={revealed} data-testid="modernTile-reveal">
+            <Reveal data-tile-actions isVisible={revealed} data-testid="modernTile-reveal">
               {leftElements.map((Element, index) => (
                 <Element key={index} plain />
               ))}
@@ -225,7 +216,7 @@ const ModernTile = ({ children, customChildren, hasFilters = true, height, width
         <ScopeRow
           ref={scopeRef}
           data-tile-scope
-          $visible={menuActive || filtersOpen || !!error}
+          isVisible={menuActive || filtersOpen || !!error}
           data-testid="modernTile-scope"
         >
           <ScopeLine
@@ -253,7 +244,7 @@ const ModernTile = ({ children, customChildren, hasFilters = true, height, width
       )}
       {!!readout && <TileReadout dimensionId={readout.dimensionId} />}
       <TileContext.Provider value>
-        <Body $bleed={!!readout}>{children}</Body>
+        <Body hasBleed={!!readout}>{children}</Body>
       </TileContext.Provider>
       <AnomalyIndicator revealed={revealed} />
       {customChildren}

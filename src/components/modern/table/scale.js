@@ -20,8 +20,6 @@ const readValue = (chart, id) => {
 const measureContext = (chart, rows, context) => {
   const dimensions = Object.keys(rows[0]?.contextGroups?.[context] || {})
   const columns = {}
-  let max = 0
-  let sampleId
 
   dimensions.forEach(dimension => {
     const keysStr = `${context}|${dimension}`
@@ -30,17 +28,15 @@ const measureContext = (chart, rows, context) => {
     rows.forEach(row => {
       const id = getRowDimensionId(keysStr, row)
       if (!id) return
-      sampleId = sampleId || id
 
       const value = readValue(chart, id)
       if (value !== null) columnMax = Math.max(columnMax, Math.abs(value))
     })
 
     columns[dimension] = columnMax
-    max = Math.max(max, columnMax)
   })
 
-  return { columns, max, sampleId }
+  return { columns }
 }
 
 export const getContextScale = (chart, rows, context) => {
@@ -59,11 +55,6 @@ export const getContextScale = (chart, rows, context) => {
 
   return entry.contexts[context]
 }
-
-export const getContextUnitAttributes = (chart, { max, sampleId } = {}) =>
-  max > 0
-    ? chart.getUnitAttributesForValue(max, { dimensionId: sampleId })
-    : chart.getUnitAttributes(sampleId)
 
 export const getShare = (value, max) => {
   if (typeof value !== "number" || !Number.isFinite(value) || !(max > 0)) return 0

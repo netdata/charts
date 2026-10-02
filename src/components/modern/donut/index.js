@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import styled from "styled-components"
-import { Flex, TextSmall, getColor } from "@netdata/netdata-ui"
+import { Box, Flex, TextSmall, getColor } from "@netdata/netdata-ui"
 import {
   useChart,
   useAttributeValue,
@@ -78,21 +78,20 @@ const Numeral = styled(TextSmall)`
   ${tabularNumbers}
 `
 
-const LegendRow = styled.div`
+const LegendRow = styled(Box).attrs(({ isDimmed }) => ({
+  opacity: isDimmed ? 0.4 : 1,
+  cursor: "pointer",
+}))`
   display: grid;
   grid-template-columns: 10px minmax(24px, 1fr) auto 32px;
   gap: 8px;
   align-items: center;
-  opacity: ${({ $dimmed }) => ($dimmed ? 0.4 : 1)};
   transition: opacity 120ms;
-  cursor: pointer;
 `
 
-const Swatch = styled.span`
-  width: 8px;
-  height: 8px;
+const Swatch = styled(Box).attrs({ as: "span", width: 2, height: 2 })`
   border-radius: 2px;
-  background: ${({ $color }) => $color};
+  background: ${({ swatchColor }) => swatchColor};
 `
 
 const sliceDimensionId = slice => (slice.grouped ? undefined : slice.id)
@@ -125,13 +124,13 @@ const Legend = ({ chart, slices, focus, setFocus }) => (
       return (
         <LegendRow
           key={slice.id}
-          $dimmed={!!focus && focus !== slice.id}
+          isDimmed={!!focus && focus !== slice.id}
           onMouseEnter={() => setFocus(slice.id)}
           onMouseLeave={() => setFocus(null)}
           data-testid="donut-legend-row"
           title={slice.grouped ? slice.grouped.join(", ") : slice.name}
         >
-          <Swatch $color={slice.color} />
+          <Swatch swatchColor={slice.color} />
           <TextSmall color="text" truncate data-testid="donut-legend-name">
             {slice.name}
           </TextSmall>

@@ -5,8 +5,8 @@ import Table from "@/components/table"
 import GroupBoxes from "@/components/groupBoxes"
 import makeMockPayload from "@/helpers/makeMockPayload"
 import makeDefaultSDK from "@/makeDefaultSDK"
-import makeHeatPayload from "@/components/modern/groupBoxes/makeHeatPayload"
-import makeTablePayload from "./makeTablePayload"
+import makeHeatPayload from "../../../../fixtures/makeHeatPayload"
+import makeTablePayload from "../../../../fixtures/makeTablePayload"
 
 const tablePayload = makeTablePayload()
 const heatPayload = makeHeatPayload()
@@ -16,7 +16,7 @@ const cases = [
     id: "table",
     title: "Disk activity",
     description:
-      "Hover for search, full screen and More. Units in the group headers, numbers only in the cells, magnitude bars per column, trends coloured on the hovered row, node under the device name, a dash where a device reports no value.",
+      "Hover for search, full screen and More. Each value with its own scaled unit, magnitude bars per column, trends coloured on the hovered row, node under the device name, a dash where a device reports no value.",
     Component: Table,
     payload: tablePayload,
     height: "520px",

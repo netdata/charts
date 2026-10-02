@@ -1,5 +1,5 @@
 import React from "react"
-import { act, screen, within } from "@testing-library/react"
+import { act, screen, waitFor, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { renderWithChart, renderHookWithChart, makeTestChart } from "@jest/testUtilities"
 import { TableChart } from "@/components/table"
@@ -14,7 +14,11 @@ import { isPercentUnit, getMergedLabelVisibility, missingValueText } from "./col
 import { getShare, isHotPercent, getContextScale } from "./scale"
 import { getTableStatus } from "./header"
 import { getColumnOptions } from "./menu"
-import makeTablePayload, { withoutDimensions, withValue, findDimension } from "./makeTablePayload"
+import makeTablePayload, {
+  withoutDimensions,
+  withValue,
+  findDimension,
+} from "../../../../fixtures/makeTablePayload"
 
 const makeTableChart = async (designFlavour = "default", { payload, attributes } = {}) => {
   const { chart } = makeTestChart({
@@ -24,6 +28,8 @@ const makeTableChart = async (designFlavour = "default", { payload, attributes }
       chartLibrary: "table",
       tableColumns: ["context", "dimension"],
       designFlavour,
+      after: 1700000000,
+      before: 1700000900,
       ...attributes,
     },
   })
@@ -47,6 +53,14 @@ const renderTable = async (designFlavour, options) => {
 
   await settle()
 
+  const [rowGroups] = chart.getTableMatrix()
+  if (Object.keys(rowGroups || {}).length)
+    await waitFor(() =>
+      expect(
+        result.container.querySelector('[data-testid^="netdata-table-cell-value"]')
+      ).not.toBeNull()
+    )
+
   return { ...result, chart }
 }
 
@@ -68,6 +82,11 @@ const columnCells = (container, column) =>
     .filter(Boolean)
 
 const getRows = container => container.querySelectorAll('[data-testid^="netdata-table-row"]')
+
+const getRowsById = container =>
+  Array.from(getRows(container)).sort(
+    (a, b) => Number(a.getAttribute("data-id")) - Number(b.getAttribute("data-id"))
+  )
 
 const mgOf = chart => {
   const nodes = chart.getAttribute("nodes")
@@ -312,7 +331,7 @@ describe("modern table", () => {
 
 describe("modern table keeps every value", () => {
   const readCells = container =>
-    Array.from(getRows(container)).map(row =>
+    getRowsById(container).map(row =>
       Object.fromEntries(
         Array.from(row.querySelectorAll('[data-testid^="netdata-table-cell-"]')).map(cell => [
           cell.getAttribute("data-testid").replace("netdata-table-cell-", ""),
@@ -461,7 +480,7 @@ describe("modern table chrome", () => {
 describe("modern table cells", () => {
   it("shows each value with its own scaled unit, like the default table", async () => {
     const readUnits = container =>
-      Array.from(container.querySelectorAll('[data-testid^="netdata-table-row"]')).map(row =>
+      getRowsById(container).map(row =>
         Object.fromEntries(
           Array.from(row.querySelectorAll('[data-testid^="netdata-table-cell-value"]')).map(
             cell => [cell.getAttribute("data-testid"), cell]
@@ -693,14 +712,8 @@ describe("modern table helpers", () => {
 
     const scale = getContextScale(chart, rows, "disk.io")
     expect(Object.keys(scale.columns)).toEqual(["reads", "writes"])
-    expect(scale.max).toBe(Math.max(scale.columns.reads, scale.columns.writes))
-    expect(scale.sampleId).toMatch(/disk\.io$/)
     expect(getContextScale(chart, rows, "disk.io")).toBe(scale)
-    expect(getContextScale(chart, undefined, "disk.io")).toEqual({
-      columns: {},
-      max: 0,
-      sampleId: undefined,
-    })
+    expect(getContextScale(chart, undefined, "disk.io")).toEqual({ columns: {} })
   })
 
   it("summarises the chart alerts for the status pill", () => {

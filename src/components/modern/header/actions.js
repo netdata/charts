@@ -9,7 +9,6 @@ import SettingsContent from "@/components/toolbox/settings/content"
 import MoreMenu from "./moreMenu"
 
 const Container = styled(Flex).attrs({ alignItems: "center", gap: 0.5 })`
-  opacity: ${({ $visible }) => ($visible ? 1 : 0)};
   transition: opacity 120ms ease-in-out;
 
   &:focus-within {
@@ -48,7 +47,7 @@ const Actions = ({ hasFilters, filtersOpen, onToggleFilters }) => {
     <Container
       data-noprint
       data-testid="chartHeaderToolbox"
-      $visible={focused || menuOpen || tabOpen || filtersOpen}
+      opacity={focused || menuOpen || tabOpen || filtersOpen ? 1 : 0}
     >
       {hasFilters && (
         <Button

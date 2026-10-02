@@ -4,11 +4,12 @@ import "@testing-library/jest-dom"
 import { renderHookWithChart, renderWithChart, makeTestChart } from "@jest/testUtilities"
 import { useLatestDisplayValueWithUnit } from "@/components/provider"
 import systemLoadLine from "../../../fixtures/systemLoadLine"
+import { makePayload } from "../../../fixtures/makeWavePayload"
 import { NumberChart, Value, Unit } from "./index"
 
-const loadChart = async (attributes = {}) => {
+const loadChart = async (attributes = {}, payload = systemLoadLine[0]) => {
   const { chart } = makeTestChart({ attributes: { chartLibrary: "number", ...attributes } })
-  chart.doneFetch(systemLoadLine[0])
+  chart.doneFetch(payload)
   await new Promise(resolve => setTimeout(resolve, 0))
   return chart
 }
@@ -188,7 +189,32 @@ describe("NumberChart design flavours", () => {
     expect(content).toHaveTextContent(`${convertedValue}threads`)
     expect(screen.queryByTestId("modernNumber")).not.toBeInTheDocument()
     expect(screen.queryByTestId("modernNumberSpark")).not.toBeInTheDocument()
-    expect(screen.queryByTestId("modernAttentionPill")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("modernNumberStatus")).not.toBeInTheDocument()
+  })
+
+  it.each([
+    ["system load", systemLoadLine[0]],
+    [
+      "scaled requests",
+      makePayload({
+        context: "test.requests",
+        title: "Requests",
+        unit: "requests/s",
+        dimensions: [{ id: "requests", values: [...Array(96).fill(2000), 2022.7] }],
+      }),
+    ],
+  ])("shows the same value and unit as the default number for %s", async (_, payload) => {
+    const defaultChart = await loadChart({ designFlavour: "default" }, payload)
+    const { unmount } = renderWithChart(<NumberChart />, { chart: defaultChart })
+    const expected = screen.getByTestId("chartContent").textContent
+    unmount()
+
+    const modernChart = await loadChart({ designFlavour: "modern" }, payload)
+    renderWithChart(<NumberChart />, { chart: modernChart })
+    const value = screen.getByTestId("modernNumberValue").textContent
+    const unit = screen.queryByTestId("modernNumberUnit")?.textContent || ""
+
+    expect(`${value}${unit}`).toBe(expected)
   })
 
   it("renders the stat panel in the modern flavour", async () => {

@@ -3,7 +3,7 @@ import { ThemeProvider } from "styled-components"
 import { Flex, DefaultTheme, DarkTheme, TextSmall, TextMicro } from "@netdata/netdata-ui"
 import Line from "@/components/line"
 import makeMockPayload from "@/helpers/makeMockPayload"
-import { makePayload, makeWave } from "@/helpers/makeWavePayload"
+import { makePayload, makeWave } from "../fixtures/makeWavePayload"
 import makeDefaultSDK from "./makeDefaultSDK"
 import systemLoadLine from "../fixtures/systemLoadLine"
 

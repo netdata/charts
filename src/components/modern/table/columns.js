@@ -1,6 +1,6 @@
 import React from "react"
 import styled from "styled-components"
-import { Flex, TextSmall, getColor } from "@netdata/netdata-ui"
+import { Box, Flex, TextSmall, getColor } from "@netdata/netdata-ui"
 import Name from "@/components/line/dimensions/name"
 import {
   useChart,
@@ -62,17 +62,19 @@ const makeValueHeader =
     </Flex>
   )
 
-const SortButton = styled.button`
+const SortButton = styled(Flex).attrs({
+  as: "button",
+  alignItems: "baseline",
+  padding: [0],
+  cursor: "pointer",
+  color: "textLite",
+})`
   display: inline-flex;
-  align-items: baseline;
   gap: 2px;
   min-width: 0;
   border: 0;
-  padding: 0;
   background: transparent;
   font-family: inherit;
-  cursor: pointer;
-  color: ${getColor("textLite")};
 `
 
 const sortArrows = { asc: "↑", desc: "↓" }
@@ -212,29 +214,29 @@ const ValueUnit = styled(TextSmall)`
   position: relative;
 `
 
-const Bar = styled.span`
-  position: absolute;
+const Bar = styled(Box).attrs(({ isHot }) => ({
+  as: "span",
+  position: "absolute",
+  round: true,
+  background: isHot ? "warning" : "text",
+  opacity: isHot ? 0.18 : 0.06,
+}))`
   top: -3px;
   bottom: -3px;
   left: -6px;
   right: -6px;
-  border-radius: 4px;
   pointer-events: none;
   transform-origin: right;
   transition: transform 200ms ease;
-  background: ${({ $hot, theme }) => getColor($hot ? "warning" : "text")({ theme })};
-  opacity: ${({ $hot }) => ($hot ? 0.18 : 0.06)};
 
   ${rowHover} {
-    opacity: ${({ $hot }) => ($hot ? 0.24 : 0.1)};
+    opacity: ${({ isHot }) => (isHot ? 0.24 : 0.1)};
   }
 `
 
-const TrendHolder = styled.span`
-  position: relative;
+const TrendHolder = styled(Box).attrs({ as: "span", position: "relative", opacity: 0.55 })`
   display: inline-flex;
   flex: none;
-  opacity: 0.55;
   transition: opacity 120ms ease;
 
   path {
@@ -311,7 +313,7 @@ const ModernValue = ({ id, table, context, dimension }) => {
       style={{ minHeight: 18 }}
     >
       <Bar
-        $hot={hot}
+        isHot={hot}
         style={{ transform: `scaleX(${share})` }}
         data-testid="modernTable-bar"
         data-share={share}

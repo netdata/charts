@@ -17,7 +17,7 @@ import {
   withChartProvider,
 } from "@/components/provider"
 import makeMockPayload from "@/helpers/makeMockPayload"
-import { makePayload, makeWave } from "@/helpers/makeWavePayload"
+import { makePayload, makeWave } from "../fixtures/makeWavePayload"
 import makeDefaultSDK from "./makeDefaultSDK"
 
 

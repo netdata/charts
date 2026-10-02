@@ -1,6 +1,6 @@
 import React from "react"
 import styled from "styled-components"
-import { getColor } from "@netdata/netdata-ui"
+import { Box, getColor } from "@netdata/netdata-ui"
 import { useChart, usePlotArea } from "@/components/provider"
 import { Flags, Numeral, onToggle } from "./parts"
 import { focusDimension, useClearFocusOnUnmount } from "./mode"
@@ -51,34 +51,39 @@ export const layoutLabels = (labels, height) => {
   return sorted
 }
 
-const Column = styled.div.attrs({ "data-testid": "modernLegend-direct" })`
-  position: relative;
+const Column = styled(Box).attrs({
+  "data-testid": "modernLegend-direct",
+  position: "relative",
+  overflow: "hidden",
+})`
   flex: 0 0 ${directColumnWidth}px;
   min-height: 0;
-  overflow: hidden;
 `
 
-const Label = styled.button.attrs({ type: "button", "data-testid": "modernLegend-label" })`
-  position: absolute;
+const Label = styled(Box).attrs(({ isOff }) => ({
+  as: "button",
+  type: "button",
+  "data-testid": "modernLegend-label",
+  position: "absolute",
+  height: labelHeight / 4,
+  padding: [0, 0, 0, 2],
+  cursor: "pointer",
+  opacity: isOff ? 0.4 : 1,
+}))`
   left: 0;
   right: 0;
-  height: ${labelHeight}px;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 0 0 0 8px;
   border: 0;
   background: transparent;
-  cursor: pointer;
   font-size: 12px;
-  opacity: ${({ $off }) => ($off ? 0.4 : 1)};
 `
 
-const Name = styled.span`
-  color: ${({ $color }) => $color || "inherit"};
+const Name = styled(Box).attrs({ as: "span", overflow: "hidden" })`
+  color: ${({ labelColor }) => labelColor || "inherit"};
   font-weight: 600;
   min-width: 0;
-  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 `
@@ -88,7 +93,7 @@ const Value = styled(Numeral)`
   font-weight: 600;
 `
 
-const Unit = styled.span`
+const Unit = styled(Box).attrs({ as: "span" })`
   color: ${getColor("textDescription")};
   font-size: 11px;
   white-space: nowrap;
@@ -99,8 +104,7 @@ const Anomaly = styled(Numeral)`
   font-size: 11px;
 `
 
-const HiddenList = styled.div`
-  position: absolute;
+const HiddenList = styled(Box).attrs({ position: "absolute" })`
   left: 0;
   right: 0;
   bottom: 0;
@@ -143,7 +147,7 @@ const DirectLabels = ({ uiName = "default" }) => {
     <Label
       key={row.id}
       style={style}
-      $off={!row.visible}
+      isOff={!row.visible}
       onClick={onToggle(chart, row.id)}
       onMouseEnter={() => row.visible && focusDimension(chart, row.id)}
       onMouseLeave={() => focusDimension(chart, null)}
@@ -151,7 +155,7 @@ const DirectLabels = ({ uiName = "default" }) => {
       data-dimension={row.id}
       title={row.name}
     >
-      <Name $color={row.color}>{row.name}</Name>
+      <Name labelColor={row.color}>{row.name}</Name>
       {row.visible && <Value>{row.display}</Value>}
       {row.visible && !!row.unit && <Unit data-testid="modernLegend-directUnit">{row.unit}</Unit>}
       {row.visible && !!row.anomaly && <Anomaly>{row.anomaly}</Anomaly>}

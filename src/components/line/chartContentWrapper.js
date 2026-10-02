@@ -5,6 +5,7 @@ import { useInitialLoading, useAttributeValue, useIsModern } from "@/components/
 import { useHovered } from "@/components/useHover"
 import ChartContainer from "@/components/chartContainer"
 import ZoomChip from "@/components/modern/header/zoomChip"
+import AnomalyBadge from "@/components/modern/anomalyBadge"
 import Popover from "./popover"
 import NavigationToolbox from "./navigationToolbox"
 import Skeleton from "./skeleton"
@@ -167,6 +168,7 @@ const ChartContentWrapper = ({ uiName }) => {
   const hasToolbox = useAttributeValue("hasToolbox")
   const hasHoverPopover = useAttributeValue("hasHoverPopover")
   const processing = useAttributeValue("processing")
+  const chartLibrary = useAttributeValue("chartLibrary")
   const isModern = useIsModern()
   const inTile = useInModernTile()
 
@@ -174,6 +176,7 @@ const ChartContentWrapper = ({ uiName }) => {
     <Container ref={ref}>
       {!initialLoading && <ChartContainer />}
       {!initialLoading && <Overlays uiName={uiName} />}
+      {!initialLoading && isModern && chartLibrary === "uplot" && <AnomalyBadge uiName={uiName} />}
       {initialLoading && <Skeleton />}
       {hasToolbox && hovered && !isModern && <NavigationToolbox />}
       {hasToolbox && isModern && inTile && <ZoomChip />}
