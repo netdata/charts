@@ -1,5 +1,6 @@
 import React, { useLayoutEffect, useRef, useState } from "react"
 import styled from "styled-components"
+import { useVirtualizer } from "@tanstack/react-virtual"
 import { Box, Drop, Flex, getColor } from "@netdata/netdata-ui"
 import { useChart } from "@/components/provider"
 import { useIsHeatmap } from "@/helpers/heatmap"
@@ -10,6 +11,8 @@ import { focusDimension, useClearFocusOnUnmount } from "./mode"
 import { useLegendRows } from "./useLegendRows"
 
 export const lineEntryCap = 24
+export const moreRowHeight = 24
+const moreOverscan = 8
 
 const Entry = styled(Flex).attrs(({ isOff }) => ({
   as: "button",
@@ -74,27 +77,46 @@ const LegendEntry = ({ chart, row, isHeatmap, ...rest }) => (
   </Entry>
 )
 
-const MoreDimensions = ({ chart, target, ids, getRow, isHeatmap, onClose }) => (
-  <Drop
-    target={target}
-    onEsc={onClose}
-    onClickOutside={onClose}
-    data-toolbox={chart.getId()}
-    {...dropProps}
-  >
-    <Panel
-      width="280px"
-      gap={1}
-      height={{ max: "320px" }}
-      overflow={{ vertical: "auto" }}
-      data-testid="modernLegend-moreList"
+const MoreDimensions = ({ chart, target, ids, getRow, isHeatmap, onClose }) => {
+  const scrollRef = useRef(null)
+  const virtualizer = useVirtualizer({
+    count: ids.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => moreRowHeight,
+    overscan: moreOverscan,
+  })
+  const items = virtualizer.getVirtualItems()
+  const before = items.length ? items[0].start : 0
+  const after = items.length ? virtualizer.getTotalSize() - items[items.length - 1].end : 0
+
+  return (
+    <Drop
+      target={target}
+      onEsc={onClose}
+      onClickOutside={onClose}
+      data-toolbox={chart.getId()}
+      {...dropProps}
     >
-      {ids.map(getRow).map(row => (
-        <LegendEntry key={row.id} chart={chart} row={row} isHeatmap={isHeatmap} />
-      ))}
-    </Panel>
-  </Drop>
-)
+      <Panel
+        ref={scrollRef}
+        width="280px"
+        height={{ max: "320px" }}
+        overflow={{ vertical: "auto" }}
+        data-testid="modernLegend-moreList"
+      >
+        <Box flex={false} style={{ height: before }} data-testid="modernLegend-moreSpacer" />
+        {items
+          .map(item => getRow(ids[item.index]))
+          .map(row => (
+            <Flex key={row.id} height={`${moreRowHeight}px`} alignItems="center" flex={false}>
+              <LegendEntry chart={chart} row={row} isHeatmap={isHeatmap} />
+            </Flex>
+          ))}
+        <Box flex={false} style={{ height: after }} data-testid="modernLegend-moreSpacer" />
+      </Panel>
+    </Drop>
+  )
+}
 
 const overflows = (container, node) =>
   !!node && node.offsetTop + node.offsetHeight > container.clientHeight + 1

@@ -7,7 +7,7 @@ import { Line } from "@/components/line"
 import Popover from "@/components/line/popover"
 import { formatReadout } from "@/components/modern/format"
 import { useLegendRows } from "./useLegendRows"
-import { lineEntryCap } from "./legendLine"
+import { lineEntryCap, moreRowHeight } from "./legendLine"
 import { tableRowHeight } from "./legendTable"
 
 const tick = () => new Promise(resolve => setTimeout(resolve, 0))
@@ -109,7 +109,12 @@ describe("modern legend at scale", () => {
 
     const list = screen.getByTestId("modernLegend-moreList")
     const entries = within(list).getAllByTestId("modernLegend-entry")
-    expect(entries).toHaveLength(count - lineEntryCap)
+    expect(entries.length).toBeGreaterThan(0)
+    expect(entries.length).toBeLessThanOrEqual(50)
+    const [before, after] = within(list).getAllByTestId("modernLegend-moreSpacer")
+    expect(parseFloat(before.style.height) + parseFloat(after.style.height)).toBe(
+      (count - lineEntryCap - entries.length) * moreRowHeight
+    )
     expect(chart.getAttribute("legendLayout")).toBe("below")
     expect(screen.queryByTestId("modernLegend-table")).not.toBeInTheDocument()
 
