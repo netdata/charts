@@ -6,6 +6,9 @@ export const legendModes = ["below", "direct", "live", "table", "hidden"]
 
 export const maxLabelledSeries = 8
 
+export const getLegendLayout = (legendLayout, chartLegendLayout) =>
+  legendModes.includes(legendLayout) ? legendLayout : chartLegendLayout
+
 const directChartTypes = { line: true, area: true }
 const labelledModes = { direct: true, live: true }
 

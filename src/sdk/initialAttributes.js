@@ -129,6 +129,7 @@ export default {
   pixelsPerPoint: 3,
   points: null,
   legend: true,
+  chartLegendLayout: null,
   groupingMethod: "average",
   groupingTime: 0,
   urlOptions: [],

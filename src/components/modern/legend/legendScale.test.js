@@ -99,15 +99,23 @@ describe("modern legend at scale", () => {
     expect(chart.getAttribute("drawer.action")).toBe("values")
   })
 
-  it("switches to the side table when there is no drawer", async () => {
+  it("lists the remaining dimensions in a drop when there is no drawer", async () => {
     const { chart } = await renderLine(
       { designFlavour: "modern", legendLayout: "below", expandable: false },
       bigPayload
     )
 
     fireEvent.click(screen.getByTestId("modernLegend-more"))
-    expect(chart.getAttribute("legendLayout")).toBe("table")
-    expect(screen.getByTestId("modernLegend-table")).toBeInTheDocument()
+
+    const list = screen.getByTestId("modernLegend-moreList")
+    const entries = within(list).getAllByTestId("modernLegend-entry")
+    expect(entries).toHaveLength(count - lineEntryCap)
+    expect(chart.getAttribute("legendLayout")).toBe("below")
+    expect(screen.queryByTestId("modernLegend-table")).not.toBeInTheDocument()
+
+    const id = entries[0].getAttribute("data-dimension")
+    act(() => fireEvent.click(entries[0]))
+    expect(chart.getAttribute("selectedLegendDimensions")).toEqual([id])
   })
 
   it("shows no more button when every entry fits", async () => {

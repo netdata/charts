@@ -2,7 +2,7 @@ import React, { useLayoutEffect, useRef, useState } from "react"
 import { Flex } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart, useImmediateListener } from "@/components/provider"
 import { unregister } from "@/helpers/makeListeners"
-import { resolveLegendMode } from "./mode"
+import { getLegendLayout, resolveLegendMode } from "./mode"
 import DirectLabels from "./directLabels"
 import LegendTable from "./legendTable"
 
@@ -58,6 +58,7 @@ export const useResolvedLegendMode = ({ width, hasFooter }) => {
   const { count, visibleCount } = useDimensionCounts()
   const legend = useAttributeValue("legend")
   const legendLayout = useAttributeValue("legendLayout")
+  const chartLegendLayout = useAttributeValue("chartLegendLayout")
   const sparkline = useAttributeValue("sparkline")
   const chartType = useAttributeValue("chartType")
   const chartLibrary = useAttributeValue("chartLibrary")
@@ -66,7 +67,7 @@ export const useResolvedLegendMode = ({ width, hasFooter }) => {
     width,
     count,
     visibleCount,
-    legendLayout,
+    legendLayout: getLegendLayout(legendLayout, chartLegendLayout),
     legend,
     sparkline,
     hasFooter,

@@ -350,4 +350,20 @@ describe("legend layout chosen at runtime", () => {
     act(() => chart.sdk.getNodes().forEach(node => node.updateAttribute("legendLayout", "table")))
     expect(await screen.findByTestId("modernLegend-table")).toBeInTheDocument()
   })
+
+  it("uses the chart's own layout only while the global one is automatic", async () => {
+    const { chart } = await renderLine({
+      designFlavour: "modern",
+      legendLayout: "auto",
+      chartLegendLayout: "table",
+    })
+    expect(await screen.findByTestId("modernLegend-table")).toBeInTheDocument()
+
+    act(() => chart.updateAttribute("legendLayout", "below"))
+    expect(await screen.findByTestId("modernLegend-line")).toBeInTheDocument()
+    expect(chart.getAttribute("chartLegendLayout")).toBe("table")
+
+    act(() => chart.updateAttribute("legendLayout", "auto"))
+    expect(await screen.findByTestId("modernLegend-table")).toBeInTheDocument()
+  })
 })

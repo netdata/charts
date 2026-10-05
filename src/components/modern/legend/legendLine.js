@@ -1,10 +1,11 @@
 import React, { useLayoutEffect, useRef, useState } from "react"
 import styled from "styled-components"
-import { Box, Flex, getColor } from "@netdata/netdata-ui"
+import { Box, Drop, Flex, getColor } from "@netdata/netdata-ui"
 import { useChart } from "@/components/provider"
 import { useIsHeatmap } from "@/helpers/heatmap"
 import { AnomalyBar, Flags, Unit, Value, onToggle } from "./parts"
 import { LineSwatch } from "@/components/modern/swatch"
+import { Panel, dropProps } from "@/components/modern/menu"
 import { focusDimension, useClearFocusOnUnmount } from "./mode"
 import { useLegendRows } from "./useLegendRows"
 
@@ -53,14 +54,47 @@ const More = styled(Box).attrs({
   }
 `
 
-export const openAllDimensions = chart => {
-  if (chart.getAttribute("expandable")) {
-    chart.updateAttributes({ "drawer.action": "values", expanded: true })
-    return
-  }
+const LegendEntry = ({ chart, row, isHeatmap, ...rest }) => (
+  <Entry
+    isOff={!row.visible}
+    onClick={onToggle(chart, row.id)}
+    onMouseEnter={() => row.visible && focusDimension(chart, row.id)}
+    onMouseLeave={() => focusDimension(chart, null)}
+    data-track={chart.track(`dimension-${row.name}`)}
+    data-dimension={row.id}
+    title={row.name}
+    {...rest}
+  >
+    {!isHeatmap && <LineSwatch swatchColor={row.color} />}
+    <Name>{row.name}</Name>
+    {row.visible && <Value>{row.display}</Value>}
+    {row.visible && !!row.unit && <Unit>{row.unit}</Unit>}
+    {row.visible && <Flags flags={row.flags} />}
+    {row.visible && row.arp > 0 && <AnomalyBar rate={row.arp} />}
+  </Entry>
+)
 
-  chart.updateAttribute("legendLayout", "table")
-}
+const MoreDimensions = ({ chart, target, ids, getRow, isHeatmap, onClose }) => (
+  <Drop
+    target={target}
+    onEsc={onClose}
+    onClickOutside={onClose}
+    data-toolbox={chart.getId()}
+    {...dropProps}
+  >
+    <Panel
+      width="280px"
+      gap={1}
+      height={{ max: "320px" }}
+      overflow={{ vertical: "auto" }}
+      data-testid="modernLegend-moreList"
+    >
+      {ids.map(getRow).map(row => (
+        <LegendEntry key={row.id} chart={chart} row={row} isHeatmap={isHeatmap} />
+      ))}
+    </Panel>
+  </Drop>
+)
 
 const overflows = (container, node) =>
   !!node && node.offsetTop + node.offsetHeight > container.clientHeight + 1
@@ -115,6 +149,17 @@ const LegendLine = () => {
   const limit = useFit(ref, ids.length)
   const rows = ids.slice(0, limit).map(getRow)
   const hidden = ids.length - rows.length
+  const moreRef = useRef(null)
+  const [moreOpen, setMoreOpen] = useState(false)
+
+  const onMore = () => {
+    if (chart.getAttribute("expandable")) {
+      chart.updateAttributes({ "drawer.action": "values", expanded: true })
+      return
+    }
+
+    setMoreOpen(open => !open)
+  }
 
   return (
     <Flex
@@ -132,32 +177,28 @@ const LegendLine = () => {
       data-track={chart.track("legend")}
     >
       {rows.map(row => (
-        <Entry
-          key={row.id}
-          isOff={!row.visible}
-          onClick={onToggle(chart, row.id)}
-          onMouseEnter={() => row.visible && focusDimension(chart, row.id)}
-          onMouseLeave={() => focusDimension(chart, null)}
-          data-track={chart.track(`dimension-${row.name}`)}
-          data-dimension={row.id}
-          title={row.name}
-        >
-          {!isHeatmap && <LineSwatch swatchColor={row.color} />}
-          <Name>{row.name}</Name>
-          {row.visible && <Value>{row.display}</Value>}
-          {row.visible && !!row.unit && <Unit>{row.unit}</Unit>}
-          {row.visible && <Flags flags={row.flags} />}
-          {row.visible && row.arp > 0 && <AnomalyBar rate={row.arp} />}
-        </Entry>
+        <LegendEntry key={row.id} chart={chart} row={row} isHeatmap={isHeatmap} />
       ))}
       {hidden > 0 && (
         <More
-          onClick={() => openAllDimensions(chart)}
+          ref={moreRef}
+          onClick={onMore}
           title="Show every dimension"
+          aria-expanded={moreOpen}
           data-track={chart.track("legend-more")}
         >
           {`+${hidden} more`}
         </More>
+      )}
+      {hidden > 0 && moreOpen && moreRef.current && (
+        <MoreDimensions
+          chart={chart}
+          target={moreRef.current}
+          ids={ids.slice(limit)}
+          getRow={getRow}
+          isHeatmap={isHeatmap}
+          onClose={() => setMoreOpen(false)}
+        />
       )}
     </Flex>
   )
