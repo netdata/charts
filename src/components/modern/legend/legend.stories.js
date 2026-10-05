@@ -59,7 +59,7 @@ const cards = [
     width: "1000px",
   },
   {
-    label: "2000 series (640px): one-line legend capped, +N more opens the drawer",
+    label: "2000 series (640px): one-line legend capped, +N more lists the rest",
     payload: hugePayload,
     width: "640px",
     legendLayout: "below",

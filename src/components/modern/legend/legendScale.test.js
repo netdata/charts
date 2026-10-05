@@ -83,7 +83,7 @@ describe("modern legend at scale", () => {
     expect(screen.getByText("At cursor")).toBeInTheDocument()
   })
 
-  it("caps the one-line legend and opens the drawer values for the rest", async () => {
+  it("caps the one-line legend and lists the rest in a drop, even with a drawer", async () => {
     const { chart } = await renderLine(
       { designFlavour: "modern", legendLayout: "below", expandable: true },
       bigPayload
@@ -95,8 +95,8 @@ describe("modern legend at scale", () => {
     expect(more).toHaveTextContent(`+${count - lineEntryCap} more`)
 
     fireEvent.click(more)
-    expect(chart.getAttribute("expanded")).toBe(true)
-    expect(chart.getAttribute("drawer.action")).toBe("values")
+    expect(screen.getByTestId("modernLegend-moreList")).toBeInTheDocument()
+    expect(chart.getAttribute("expanded")).not.toBe(true)
   })
 
   it("lists the remaining dimensions in a drop when there is no drawer", async () => {

@@ -152,14 +152,7 @@ const LegendLine = () => {
   const moreRef = useRef(null)
   const [moreOpen, setMoreOpen] = useState(false)
 
-  const onMore = () => {
-    if (chart.getAttribute("expandable")) {
-      chart.updateAttributes({ "drawer.action": "values", expanded: true })
-      return
-    }
-
-    setMoreOpen(open => !open)
-  }
+  const onMore = () => setMoreOpen(open => !open)
 
   return (
     <Flex
