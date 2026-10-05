@@ -9,6 +9,7 @@ import {
   getYPosition,
   getFullWidth,
   getFullHeight,
+  defaultCellSize,
 } from "./utilities"
 import registerEvents from "./events"
 
@@ -18,7 +19,23 @@ export const getWidth = (dimensions, { aspectRatio, cellSize } = {}) => {
   return getFullWidth(columns, cellSize)
 }
 
-const getCanvasAttributes = (dimensions, { aspectRatio, cellSize, padding } = {}) => {
+const getFittedAttributes = (dimensions, availableWidth, { cellSize, padding } = {}) => {
+  const size = cellSize || defaultCellSize
+  const columns = Math.max(1, Math.min(dimensions.length, Math.floor(availableWidth / size)))
+  const rows = Math.max(1, Math.ceil(dimensions.length / columns))
+
+  return {
+    width: getFullWidth(columns, cellSize),
+    height: getFullHeight(rows, cellSize, padding),
+    columns,
+  }
+}
+
+const getCanvasAttributes = (dimensions, options = {}) => {
+  const { aspectRatio, cellSize, padding, getAvailableWidth } = options
+  const availableWidth = getAvailableWidth ? getAvailableWidth() : 0
+  if (availableWidth > 0) return getFittedAttributes(dimensions, availableWidth, options)
+
   const rows = getRows(dimensions, aspectRatio)
   const columns = getColumns(rows, aspectRatio)
   const width = getFullWidth(columns, cellSize)
@@ -30,6 +47,20 @@ const getCanvasAttributes = (dimensions, { aspectRatio, cellSize, padding } = {}
 export const makeGetColor = (min, max, colorRange) =>
   scaleLinear().domain([min, max]).range(colorRange)
 
+const roundedRect = (ctx, x, y, size, radius) => {
+  const r = Math.min(radius, size / 2)
+  ctx.moveTo(x + r, y)
+  ctx.lineTo(x + size - r, y)
+  ctx.quadraticCurveTo(x + size, y, x + size, y + r)
+  ctx.lineTo(x + size, y + size - r)
+  ctx.quadraticCurveTo(x + size, y + size, x + size - r, y + size)
+  ctx.lineTo(x + r, y + size)
+  ctx.quadraticCurveTo(x, y + size, x, y + size - r)
+  ctx.lineTo(x, y + r)
+  ctx.quadraticCurveTo(x, y, x + r, y)
+  ctx.closePath()
+}
+
 export default (chart, el, { onMouseenter, onMouseout }, options = {}) => {
   const {
     cellSize,
@@ -40,6 +71,9 @@ export default (chart, el, { onMouseenter, onMouseout }, options = {}) => {
       chart.getThemeAttribute("themeGroupBoxesMin"),
       chart.getThemeAttribute("themeGroupBoxesMax"),
     ],
+    radius = 0,
+    makeColor,
+    getActiveStroke = () => "#fff",
   } = options
   const canvas = el.getContext("2d")
 
@@ -76,7 +110,7 @@ export default (chart, el, { onMouseenter, onMouseout }, options = {}) => {
     const min = chart.getAttribute("min")
     const max = chart.getAttribute("max")
 
-    const getColor = makeGetColor(min, max, colorRange)
+    const getColor = makeColor ? makeColor(min, max) : makeGetColor(min, max, colorRange)
 
     const drawBox = (ctx, id, index) => {
       ctx.beginPath()
@@ -92,6 +126,12 @@ export default (chart, el, { onMouseenter, onMouseout }, options = {}) => {
           getCellBoxSize(cellSize, cellPadding) + cellStroke,
           getCellBoxSize(cellSize, cellPadding) + cellStroke
         )
+      }
+
+      if (radius) {
+        roundedRect(ctx, offsetX, offsetY, getCellBoxSize(cellSize, cellPadding), radius)
+        ctx.fill()
+        return
       }
 
       ctx.fillRect(
@@ -133,9 +173,25 @@ export default (chart, el, { onMouseenter, onMouseout }, options = {}) => {
       const offsetX = getXPosition(columns, index, cellSize)
       const offsetY = getYPosition(columns, index, cellSize)
 
+      if (lineWidth && cellStroke && radius) {
+        const inset = lineWidth / 2
+        canvas.beginPath()
+        canvas.lineWidth = lineWidth
+        canvas.strokeStyle = getActiveStroke()
+        roundedRect(
+          canvas,
+          offsetX + inset,
+          offsetY + inset,
+          getCellBoxSize(cellSize, cellPadding) - lineWidth,
+          Math.max(0, radius - inset)
+        )
+        canvas.stroke()
+        return
+      }
+
       if (lineWidth && cellStroke) {
         canvas.lineWidth = lineWidth
-        canvas.strokeStyle = "#fff"
+        canvas.strokeStyle = getActiveStroke()
         canvas.strokeRect(
           offsetX + lineWidth,
           offsetY + lineWidth,

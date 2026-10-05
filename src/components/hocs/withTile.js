@@ -16,11 +16,13 @@ import {
   useDimensionIds,
   useColor,
   useLatestValue,
+  useIsModern,
 } from "@/components/provider"
 import FilterToolbox from "@/components/filterToolbox"
 import { ColorBar } from "@/components/line/dimensions/color"
 import Tooltip from "@/components/tooltip"
 import Details from "@/components/details"
+import ModernTile from "@/components/modern/tile"
 
 const Label = styled(Text)`
   line-height: 1;
@@ -76,7 +78,7 @@ export const Title = () => {
   )
 }
 
-export const HeadWrapper = ({ children, customChildren, hasFilters = true, ...rest }) => {
+const DefaultHeadWrapper = ({ children, customChildren, hasFilters = true, ...rest }) => {
   const { width } = useOnResize()
   const focused = useAttributeValue("focused")
   const firstDim = useDimensionIds()?.[0]
@@ -190,6 +192,12 @@ export const HeadWrapper = ({ children, customChildren, hasFilters = true, ...re
   )
 }
 
+export const HeadWrapper = props => {
+  const isModern = useIsModern()
+
+  return isModern ? <ModernTile {...props} /> : <DefaultHeadWrapper {...props} />
+}
+
 export const ChartWrapper = styled(Flex).attrs(props => ({
   column: true,
   justifyContent: "center",
@@ -214,9 +222,11 @@ export default Component =>
   }) => {
     const showingInfo = useAttributeValue("showingInfo")
     const focused = useAttributeValue("focused")
+    const isModern = useIsModern()
 
     const shadowColor = useColor("themeShadow")
-    const styles = focused ? { sx: { boxShadow: `0px 1px 5px 0px ${shadowColor};` } } : {}
+    const styles =
+      focused && !(tile && isModern) ? { sx: { boxShadow: `0px 1px 5px 0px ${shadowColor};` } } : {}
 
     return tile ? (
       <HeadWrapper

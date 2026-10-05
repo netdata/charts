@@ -1,8 +1,18 @@
 import React from "react"
-import { screen } from "@testing-library/react"
+import { act, screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
-import { renderWithChart, makeTestChart } from "@jest/testUtilities"
+import { renderHookWithChart, renderWithChart, makeTestChart } from "@jest/testUtilities"
+import { useLatestDisplayValueWithUnit } from "@/components/provider"
+import systemLoadLine from "../../../fixtures/systemLoadLine"
+import { makePayload } from "../../../fixtures/makeWavePayload"
 import { NumberChart, Value, Unit } from "./index"
+
+const loadChart = async (attributes = {}, payload = systemLoadLine[0]) => {
+  const { chart } = makeTestChart({ attributes: { chartLibrary: "number", ...attributes } })
+  chart.doneFetch(payload)
+  await new Promise(resolve => setTimeout(resolve, 0))
+  return chart
+}
 
 describe("NumberChart", () => {
   it("renders chart container with value and unit", () => {
@@ -160,5 +170,74 @@ describe("Unit component", () => {
     })
 
     expect(container.firstChild).toBeNull()
+  })
+})
+
+describe("NumberChart design flavours", () => {
+  it.each(["default", "minimal"])("keeps the %s flavour value and unit layout", async flavour => {
+    const chart = await loadChart({ designFlavour: flavour })
+    renderWithChart(<NumberChart />, { chart })
+
+    const content = screen.getByTestId("chartContent")
+    expect(content).toHaveStyle({ alignItems: "center", justifyContent: "center" })
+    expect(content.children).toHaveLength(2)
+    expect(content).toHaveTextContent(/^[\d.,-]+threads$/)
+    const [id] = chart.getVisibleDimensionIds()
+    const { convertedValue } = renderHookWithChart(() => useLatestDisplayValueWithUnit(id), {
+      chart,
+    }).result.current
+    expect(content).toHaveTextContent(`${convertedValue}threads`)
+    expect(screen.queryByTestId("modernNumber")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("modernNumberSpark")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("modernNumberStatus")).not.toBeInTheDocument()
+  })
+
+  it.each([
+    ["system load", systemLoadLine[0]],
+    [
+      "scaled requests",
+      makePayload({
+        context: "test.requests",
+        title: "Requests",
+        unit: "requests/s",
+        dimensions: [{ id: "requests", values: [...Array(96).fill(2000), 2022.7] }],
+      }),
+    ],
+  ])("shows the same value and unit as the default number for %s", async (_, payload) => {
+    const defaultChart = await loadChart({ designFlavour: "default" }, payload)
+    const { unmount } = renderWithChart(<NumberChart />, { chart: defaultChart })
+    const expected = screen.getByTestId("chartContent").textContent
+    unmount()
+
+    const modernChart = await loadChart({ designFlavour: "modern" }, payload)
+    renderWithChart(<NumberChart />, { chart: modernChart })
+    const value = screen.getByTestId("modernNumberValue").textContent
+    const unit = screen.queryByTestId("modernNumberUnit")?.textContent || ""
+
+    expect(`${value}${unit}`).toBe(expected)
+  })
+
+  it("renders the stat panel in the modern flavour", async () => {
+    const chart = await loadChart({ designFlavour: "modern" })
+    renderWithChart(<NumberChart />, { chart })
+
+    const content = screen.getByTestId("chartContent")
+    expect(content).toHaveStyle({ alignItems: "stretch" })
+    expect(content.children).toHaveLength(1)
+    expect(screen.getByTestId("modernNumber")).toBeInTheDocument()
+    expect(screen.getByTestId("modernNumberValue")).toBeInTheDocument()
+  })
+
+  it("switches layouts when the flavour changes", async () => {
+    const chart = await loadChart()
+    renderWithChart(<NumberChart />, { chart })
+
+    expect(screen.queryByTestId("modernNumber")).not.toBeInTheDocument()
+
+    act(() => chart.updateAttribute("designFlavour", "modern"))
+    expect(screen.getByTestId("modernNumber")).toBeInTheDocument()
+
+    act(() => chart.updateAttribute("designFlavour", "default"))
+    expect(screen.queryByTestId("modernNumber")).not.toBeInTheDocument()
   })
 })

@@ -2,6 +2,7 @@ import React from "react"
 import { ThemeProvider, StyleSheetManager } from "styled-components"
 import isPropValid from "@emotion/is-prop-valid"
 import { Flex, DefaultTheme, DarkTheme, GlobalStyles } from "@netdata/netdata-ui"
+import "uplot/dist/uPlot.min.css"
 
 const shouldForwardProp = (propName, target) => {
   if (typeof target === "string") {

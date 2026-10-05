@@ -1,9 +1,35 @@
 import React, { useRef, useLayoutEffect, Fragment, useState, useMemo } from "react"
-import { useChart, useAttributeValue } from "@/components/provider"
+import styled from "styled-components"
+import { useChart, useAttributeValue, useIsModern } from "@/components/provider"
+import { modernBoxOptions } from "@/components/modern/groupBoxes/scale"
 import useTransition from "@/components/helpers/useEffectWithTransition"
 import drawBoxes from "./drawBoxes"
 import useGroupBoxRowData from "./useGroupBoxRowData"
 import Popover from "./popover"
+
+const Track = styled.div`
+  flex: 1 1 0;
+  min-width: 0;
+`
+
+const useTrackWidth = (trackRef, enabled) => {
+  const [width, setWidth] = useState(0)
+
+  useLayoutEffect(() => {
+    if (!enabled || !trackRef.current) return
+
+    const measure = () => setWidth(trackRef.current?.clientWidth || 0)
+    measure()
+
+    if (typeof ResizeObserver === "undefined") return
+
+    const observer = new ResizeObserver(measure)
+    observer.observe(trackRef.current)
+    return () => observer.disconnect()
+  }, [enabled])
+
+  return enabled ? width : 0
+}
 
 const GroupBox = ({ uiName, dimensions, groupLabel, ...options }) => {
   const chart = useChart()
@@ -16,6 +42,13 @@ const GroupBox = ({ uiName, dimensions, groupLabel, ...options }) => {
 
   const boxHoverRef = useRef(-1)
   const timeoutId = useRef()
+
+  const isModern = useIsModern()
+
+  const trackRef = useRef()
+  const trackWidth = useTrackWidth(trackRef, isModern)
+  const trackWidthRef = useRef(trackWidth)
+  trackWidthRef.current = trackWidth
 
   const closeDrop = () =>
     requestAnimationFrame(() => {
@@ -60,16 +93,19 @@ const GroupBox = ({ uiName, dimensions, groupLabel, ...options }) => {
           }, 100)
         },
       },
-      options
+      isModern
+        ? { ...modernBoxOptions(chart), getAvailableWidth: () => trackWidthRef.current, ...options }
+        : options
     )
     return () => boxesRef.current.clear()
-  }, [])
+  }, [isModern])
 
   const pointData = useGroupBoxRowData(uiName)
 
   const [, startTransitionEffect, stopTransitionEffect] = useTransition()
 
   const theme = useAttributeValue("theme")
+  const threshold = useAttributeValue("groupBoxesThreshold")
 
   useLayoutEffect(() => {
     startTransitionEffect(function* () {
@@ -87,7 +123,15 @@ const GroupBox = ({ uiName, dimensions, groupLabel, ...options }) => {
     })
 
     return () => stopTransitionEffect()
-  }, [pointData, startTransitionEffect, stopTransitionEffect, theme])
+  }, [
+    pointData,
+    startTransitionEffect,
+    stopTransitionEffect,
+    theme,
+    isModern,
+    threshold,
+    trackWidth,
+  ])
 
   const label = useMemo(() => {
     if (!hover) return
@@ -98,7 +142,13 @@ const GroupBox = ({ uiName, dimensions, groupLabel, ...options }) => {
 
   return (
     <Fragment>
-      <canvas data-testid="groupBox" ref={canvasRef} />
+      {isModern ? (
+        <Track data-testid="groupBox-track" ref={trackRef}>
+          <canvas data-testid="groupBox" ref={canvasRef} />
+        </Track>
+      ) : (
+        <canvas data-testid="groupBox" ref={canvasRef} />
+      )}
       {hover && (
         <Popover
           target={hover.target}

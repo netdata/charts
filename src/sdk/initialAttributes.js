@@ -8,15 +8,20 @@ export default {
   id: "",
   name: "",
   chartLibrary: "",
+  timeSeriesRenderer: null,
+  rendererOverridden: false,
   theme: "default",
   host: "",
   description: null,
   before: 0,
   after: 0,
+  liveAfter: -900,
+  anomalySpotlight: false,
   title: null,
   min: 0,
   max: 0,
   autofetchOnHovering: false,
+  perfMonitor: false,
 
   pristineStaticValueRange: undefined,
   valueRange: null,
@@ -124,6 +129,7 @@ export default {
   pixelsPerPoint: 3,
   points: null,
   legend: true,
+  chartLegendLayout: null,
   groupingMethod: "average",
   groupingTime: 0,
   urlOptions: [],
@@ -148,7 +154,6 @@ export default {
   expandable: true,
   showAnnotations: true,
 
-  hasYlabel: true,
   yAxisLabelWidth: 68,
   axisLabelFontSize: 10,
 
@@ -219,15 +224,30 @@ export default {
   themeInnerLabelColor: ["#F7F8F8", "#282827"],
 
   themeLabelColor: ["#35414a", "#ffffff"],
+  themeAxisLabelColor: ["#5C6C77", "#7C8C96"],
   themeBackground: ["#ffffff", "#282C34"],
   themeNeutralBackground: ["#DBE1E1", "#353F3F"],
+  themeSkeleton: ["#E8ECEC", "#1E2424"],
+  themeSkeletonGrid: ["#EEF1F1", "#1A1F1F"],
   themeWarningBackground: ["#FFCC26", "#FFCC26"],
   themeErrorBackground: ["#F95251", "#F95251"],
 
   themeAnomalyScaleColor: ["#9F75F9", "#9F75F9"],
+  themeAnomalyRampLow: ["#D6CAFF", "#4A3A8C"],
+  themeAnomalyRampHigh: ["#6234D6", "#C4A0FF"],
+  themeAnomalySpotlightDim: ["rgba(255, 255, 255, 0.55)", "rgba(21, 24, 24, 0.55)"],
+
+  themeAlertWarning: ["#C98A00", "#E0A526"],
+  themeAlertCritical: ["#D63F3F", "#E5484D"],
+  themeAlertClear: ["#00914A", "#1FA35E"],
 
   themeGroupBoxesMin: ["#E4F1FF", "#000C18"],
   themeGroupBoxesMax: ["#0075F2", "#0075F2"],
+  themeGroupBoxesScale: [
+    ["#EAF1FC", "#C9DCF7", "#9CC0F0", "#6A9EE6", "#3D7AD6", "#2358B0", "#173E80"],
+    ["#172230", "#1B3350", "#224B78", "#2C66A3", "#3F84D4", "#6FA6EE", "#A9CBF8"],
+  ],
+  groupBoxesThreshold: null,
 
   themeLoadingStart: ["#BFE5C6", "#2f5446"],
   themeNetdata: ["#00AB44", "#00AB44"],
@@ -316,7 +336,6 @@ export default {
 
   draftAnnotation: null, // { timestamp, createdAt, status: "draft"|"editing"|"saving" }
 
-  compareData: {},
   comparePeriods: [],
   compareLoading: false,
   compareError: null,

@@ -4,6 +4,7 @@ import { getColor } from "@netdata/netdata-ui"
 import loading from "@netdata/netdata-ui/dist/components/icon/assets/loading.svg"
 import { useIsFetching, useLoadingColor } from "@/components/provider"
 import Icon from "@/components/icon"
+import reducedMotion from "@/components/helpers/reducedMotion"
 
 const frames = keyframes`
   0% {
@@ -20,6 +21,7 @@ const animation = css`
   animation: ${frames} 1000ms linear forwards;
   animation-delay: 0s;
   animation-iteration-count: infinite;
+  ${reducedMotion("stroke-dashoffset: 0;")}
   -webkit-backface-visibility: hidden;
   opacity: 1;
   visibility: visible;

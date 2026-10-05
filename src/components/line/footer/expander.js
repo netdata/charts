@@ -3,7 +3,7 @@ import styled from "styled-components"
 import { Flex, TextSmall, getColor } from "@netdata/netdata-ui"
 import chevronExpand from "@netdata/netdata-ui/dist/components/icon/assets/chevron_expand.svg"
 import Tooltip from "@/components/tooltip"
-import { useChart, useAttributeValue } from "@/components/provider"
+import { useChart, useAttributeValue, useIsModern } from "@/components/provider"
 import Icon from "@/components/icon"
 
 const Container = styled(Flex).attrs(props => ({
@@ -30,10 +30,33 @@ const Expander = () => {
   const chart = useChart()
   const expanded = useAttributeValue("expanded")
   const drawerAction = useAttributeValue("drawer.action", "compare")
+  const isModern = useIsModern()
 
   const expandTooltip = expanded
     ? "Collapse to hide chart analysis tools"
     : `Expand to access chart analysis tools - ${actionDescriptions[drawerAction]}`
+
+  if (isModern)
+    return (
+      <Tooltip content={expandTooltip}>
+        <Container
+          data-noprint
+          cursor="pointer"
+          onClick={() => chart.updateAttribute("expanded", !expanded)}
+        >
+          <TextSmall color="textLite">
+            {expanded ? "Collapse" : "Compare, drill down, correlate"}
+          </TextSmall>
+          <Icon
+            svg={chevronExpand}
+            color="textLite"
+            width="7.5px"
+            height="5px"
+            rotate={expanded ? 2 : 0}
+          />
+        </Container>
+      </Tooltip>
+    )
 
   return (
     <Tooltip content={expandTooltip}>

@@ -32,9 +32,32 @@ export default (sdk, chart) => {
   let prevMin
   let prevMax
   let resizeObserver
+  let svgMounted = false
+
+  const mountWithoutCanvas = element => {
+    svgMounted = true
+    chartUI.mount(element)
+
+    resizeObserver = makeResizeObserver(
+      element,
+      () => chartUI.trigger("resize"),
+      () => chartUI.trigger("resize")
+    )
+
+    const { loaded } = chart.getAttributes()
+
+    listeners = unregister(
+      chart.onAttributeChange("hoverX", render),
+      !loaded && chart.onceAttributeChange("loaded", render)
+    )
+
+    render()
+  }
 
   const mount = element => {
-    if (gauge) return
+    if (gauge || svgMounted) return
+
+    if (chart.getAttribute("designFlavour") === "modern") return mountWithoutCanvas(element)
 
     chartUI.mount(element)
 
@@ -170,7 +193,7 @@ export default (sdk, chart) => {
   const render = () => {
     const { hoverX, loaded } = chart.getAttributes()
 
-    if (!gauge || !loaded) return false
+    if ((!gauge && !svgMounted) || !loaded) return false
 
     const { data } = chart.getPayload()
 
@@ -196,7 +219,7 @@ export default (sdk, chart) => {
     prevMax = max
 
     const percentage = Math.max(Math.min(((value - min) / (max - min)) * 100, 99.999), 0.001)
-    gauge.set(percentage)
+    if (gauge) gauge.set(percentage)
 
     chartUI.render()
     chartUI.trigger("rendered")
@@ -208,6 +231,7 @@ export default (sdk, chart) => {
 
     if (resizeObserver) resizeObserver()
     gauge = null
+    svgMounted = false
     prevMin = null
     prevMax = null
 

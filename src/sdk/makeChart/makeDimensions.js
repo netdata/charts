@@ -33,6 +33,7 @@ export default (chart, sdk) => {
   let colorCursor = 0
 
   const sparklineDimensions = ["sum"]
+  const noDimensions = []
 
   chart.isSparkline = () => chart.getAttribute("sparkline")
   chart.getHeatmapType = () => chart.getAttribute("heatmapType")
@@ -42,7 +43,7 @@ export default (chart, sdk) => {
 
     const viewDimensions = chart.getAttribute("viewDimensions")
 
-    return [...(viewDimensions?.ids || [])]
+    return viewDimensions?.ids || noDimensions
   }
 
   const sortDimensionIds = ({

@@ -47,4 +47,52 @@ describe("d3pieChart", () => {
 
     expect(() => instance.render()).not.toThrow()
   })
+
+  describe("modern flavour", () => {
+    const mountModern = () => {
+      const { sdk, chart } = makeTestChart({
+        attributes: { loaded: true, designFlavour: "modern" },
+      })
+      const instance = d3pieChart(sdk, chart)
+      const parent = document.createElement("div")
+      const element = document.createElement("div")
+      parent.appendChild(element)
+      return { chart, instance, element }
+    }
+
+    it("mounts without drawing the d3pie svg", () => {
+      const { instance, element } = mountModern()
+
+      expect(() => instance.mount(element)).not.toThrow()
+      expect(element.querySelector("svg")).toBeNull()
+      expect(element.classList.length).toBe(0)
+      instance.unmount()
+    })
+
+    it("still reports renders and the value range", () => {
+      const { chart, instance, element } = mountModern()
+      const rendered = []
+      const ranges = []
+      instance.on("rendered", () => rendered.push(true))
+      chart.on("yAxisChange", (min, max) => ranges.push([min, max]))
+
+      instance.mount(element)
+      rendered.length = 0
+
+      expect(instance.render()).toBe(true)
+      expect(rendered).toHaveLength(1)
+      expect(ranges.length).toBeGreaterThan(0)
+      instance.unmount()
+    })
+
+    it("mounts the library again after an unmount in the default flavour", () => {
+      const { chart, instance, element } = mountModern()
+
+      instance.mount(element)
+      instance.unmount()
+      chart.updateAttribute("designFlavour", "default")
+
+      expect(() => instance.mount(element)).toThrow("getBBox")
+    })
+  })
 })

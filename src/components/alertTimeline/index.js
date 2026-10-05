@@ -3,6 +3,7 @@ import styled, { keyframes } from "styled-components"
 import { Flex } from "@netdata/netdata-ui"
 import { useHeadlessChart } from "@/components/headlessChart"
 import { usePlotArea } from "@/components/provider"
+import reducedMotion from "@/components/helpers/reducedMotion"
 
 const colorMap = {
   WARNING: "#FFC300",
@@ -63,6 +64,7 @@ const HoverIndicator = styled.div`
   z-index: 2;
   border-radius: 1px;
   animation: ${pulse} 1.2s ease-in-out infinite;
+  ${reducedMotion()}
 `
 
 const parseTimestamp = timestamp => {

@@ -79,6 +79,19 @@ describe("makeListeners", () => {
     expect(spy).toHaveBeenCalledWith("data1", "test")
   })
 
+  it("keeps regular listeners after a once listener fires", () => {
+    const regular = jest.fn()
+    const once = jest.fn()
+    listeners.on("test", regular)
+    listeners.once("test", once)
+
+    listeners.trigger("test")
+    listeners.trigger("test")
+
+    expect(once).toHaveBeenCalledTimes(1)
+    expect(regular).toHaveBeenCalledTimes(2)
+  })
+
   it("removes once listener with returned function", () => {
     const spy = jest.fn()
     const remove = listeners.once("test", spy)

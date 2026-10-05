@@ -1,4 +1,5 @@
 import dygraph from "./chartLibraries/dygraph"
+import uplot from "./chartLibraries/uplot"
 import easypiechart from "./chartLibraries/easyPie"
 import gauge from "./chartLibraries/gauge"
 import number from "./chartLibraries/number"
@@ -16,12 +17,13 @@ import selectVertical from "./sdk/plugins/selectVertical"
 import play from "./sdk/plugins/play"
 import annotationSync from "./sdk/plugins/annotationSync"
 import fullscreen from "./sdk/plugins/fullscreen"
+import perfMonitor from "./sdk/plugins/perfMonitor"
 
 const minutes15 = 15 * 60
 
 export default ({ attributes, ...options } = {}) =>
   makeSDK({
-    ui: { dygraph, easypiechart, gauge, groupBoxes, number, d3pie, bars, table },
+    ui: { dygraph, uplot, easypiechart, gauge, groupBoxes, number, d3pie, bars, table },
     plugins: {
       // order matters
       move,
@@ -33,10 +35,12 @@ export default ({ attributes, ...options } = {}) =>
       play,
       annotationSync,
       fullscreen,
+      perfMonitor,
     },
     attributes: {
       _v: "v3",
       chartLibrary: "dygraph",
+      chartLibrariesByType: {},
       navigation: "pan",
       after: -1 * minutes15,
       overlays: { proceeded: { type: "proceeded" } },

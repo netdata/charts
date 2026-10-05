@@ -39,7 +39,7 @@ describe("ChartContainer", () => {
   })
 
   it("renders chart canvas when mounted", () => {
-    renderWithChart(<ChartContainer uiName="default" />)
+    renderWithChart(<ChartContainer uiName="default" />, { attributes: { loaded: true } })
 
     const container = screen.getByTestId("chartContent")
     const canvas = container.querySelector("canvas")

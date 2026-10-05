@@ -1,8 +1,9 @@
 import React from "react"
 import styled from "styled-components"
 import { Flex, Text, getColor } from "@netdata/netdata-ui"
-import { useLatestDisplayValueWithUnit, useOnResize } from "@/components/provider"
+import { useIsModern, useLatestDisplayValueWithUnit, useOnResize } from "@/components/provider"
 import FontSizer from "@/components/helpers/fontSizer"
+import { useInModernTile } from "@/components/modern/tile/context"
 
 const StrokeLabel = styled(Text)`
   text-shadow:
@@ -21,9 +22,8 @@ const defaultTextProps = {
   whiteSpace: "nowrap",
 }
 
-const LatestValue = ({ dimensionId, textProps, ...rest }) => {
-  const { convertedValue: value, convertedUnit: unit } =
-    useLatestDisplayValueWithUnit(dimensionId)
+const DefaultLatestValue = ({ dimensionId, textProps, ...rest }) => {
+  const { convertedValue: value, convertedUnit: unit } = useLatestDisplayValueWithUnit(dimensionId)
   const { width, height } = useOnResize()
 
   if (!value || value === "-")
@@ -70,6 +70,15 @@ const LatestValue = ({ dimensionId, textProps, ...rest }) => {
       </FontSizer>
     </StyledFlex>
   )
+}
+
+const LatestValue = props => {
+  const isModern = useIsModern()
+  const inModernTile = useInModernTile()
+
+  if (isModern && inModernTile) return null
+
+  return <DefaultLatestValue {...props} />
 }
 
 export default LatestValue

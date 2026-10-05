@@ -3,6 +3,7 @@ import styled, { keyframes, css } from "styled-components"
 import reload2 from "@netdata/netdata-ui/dist/components/icon/assets/reload2.svg"
 import Icon, { Button } from "@/components/icon"
 import { useChart } from "@/components/provider"
+import reducedMotion from "@/components/helpers/reducedMotion"
 
 const frames = keyframes`
   from { transform: rotate(360deg); }
@@ -11,6 +12,7 @@ const frames = keyframes`
 
 const fade = css`
   animation: ${frames} 1.6s ease-in infinite;
+  ${reducedMotion()}
 `
 
 const StyledIcon = styled(Icon)`
