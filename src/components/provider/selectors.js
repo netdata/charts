@@ -678,6 +678,7 @@ export const useIsModern = () => useAttributeValue("designFlavour") === "modern"
 
 export const usePlotArea = (uiName = "default") => {
   const chart = useChart()
+  const chartLibrary = useAttributeValue("chartLibrary")
   const forceUpdate = useForceUpdate()
 
   useImmediateListener(() => {
@@ -690,7 +691,7 @@ export const usePlotArea = (uiName = "default") => {
       chart.getUI(uiName)?.on("rendered", forceUpdate).on("resize", forceUpdate),
       () => clearTimeout(timer)
     )
-  }, [uiName, chart])
+  }, [uiName, chart, chartLibrary])
 
   const area = chart.getUI(uiName)?.getPlotArea?.()
 
