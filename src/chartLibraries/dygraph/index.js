@@ -538,6 +538,8 @@ export default (sdk, chart) => {
 
   const getXCoord = timestampMs => (dygraph ? dygraph.toDomXCoord(timestampMs) : 0)
 
+  const getYCoord = value => (dygraph ? dygraph.toDomYCoord(value) : null)
+
   const instance = {
     ...chartUI,
     getChartWidth,
@@ -548,6 +550,7 @@ export default (sdk, chart) => {
     getXAxisRange,
     getPlotArea,
     getXCoord,
+    getYCoord,
     render,
   }
 
