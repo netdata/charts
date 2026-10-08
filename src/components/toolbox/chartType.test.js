@@ -34,6 +34,18 @@ describe("ChartType component", () => {
     expect(button).toBeInTheDocument()
   })
 
+  it("shows the chart type when its internal renderer is not dygraph", async () => {
+    const { user } = renderWithChart(<ChartType disabled={false} />, {
+      rendererPolicy: () => "number",
+      attributes: { chartType: "line" },
+    })
+
+    await user.hover(screen.getByTestId("chartHeaderToolbox-chartType"))
+
+    expect(await screen.findByText("Line")).toBeInTheDocument()
+    expect(screen.queryByText("Value")).not.toBeInTheDocument()
+  })
+
   it("triggers chart type change when dygraph option is selected", () => {
     const { chart } = makeTestChart({
       attributes: {

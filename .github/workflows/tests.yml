@@ -2,67 +2,86 @@
 name: tests
 
 on:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
       - main
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  tests:
-    name: tests
+  quality:
+    name: tests, lint, builds, and Storybook
     runs-on: ubuntu-latest
 
     steps:
-      - name: checkout
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
         with:
           node-version: "22.22.0"
-          cache: "yarn"
+          cache: yarn
 
       - name: Install dependencies
-        run: yarn install --legacy-peer-deps --prefer-offline
+        run: yarn install --frozen-lockfile --prefer-offline
 
-      - name: Run Tests
-        if: github.event_name != 'pull_request'
-        continue-on-error: true
-        id: run-tests
-        run: yarn test --coverage --collectCoverageFrom="./src/**" > /tmp/coverage_report
+      - name: Run tests with coverage
+        run: yarn test --runInBand
 
-      - name: Post Test Coverage Report in PR
-        uses: ArtiomTr/jest-coverage-report-action@v2
-        continue-on-error: true
-        if: github.event_name == 'pull_request'
-        with:
-          test-script: yarn test --collectCoverageFrom="./src/**"
-          annotations: all
-
-      - name: Gain access to test-reports bucket
-        if: (steps.run-tests.outcome == 'failure' || steps.run-tests.outcome == 'success') && github.ref == 'refs/heads/develop'
-        uses: google-github-actions/setup-gcloud@v0
-        with:
-          project_id: "netdata-cloud-testing"
-          service_account_key: ${{ secrets.TEST_AUTOMATION_SERVICE_ACCOUNT }}
-          export_default_credentials: true
-
-      - name: Upload report to test-reports bucket
-        if: (steps.run-tests.outcome == 'failure' || steps.run-tests.outcome == 'success') && github.ref == 'refs/heads/develop'
+      - name: Lint changed JavaScript
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: |
-          gsutil -h "Cache-Control: max-age=0, no-store" cp \
-          /tmp/coverage_report gs://${{ secrets.TEST_AUTOMATION_STORAGE_BUCKET }}/${{ github.event.repository.name }}/coverage_report
-          gsutil acl set project-private gs://${{ secrets.TEST_AUTOMATION_STORAGE_BUCKET }}/${{ github.event.repository.name }}/coverage_report
+          if [[ -z "${BASE_SHA}" || "${BASE_SHA}" =~ ^0+$ ]]; then
+            BASE_SHA="HEAD^"
+          fi
+          git diff --name-only --diff-filter=ACMR "${BASE_SHA}"...HEAD -- \
+            '*.js' '*.mjs' '*.cjs' > /tmp/eslint-files
+          if [[ -s /tmp/eslint-files ]]; then
+            xargs --delimiter='\n' yarn eslint < /tmp/eslint-files
+          fi
 
-      - name: Publish test coverage report
-        if: (steps.run-tests.outcome == 'failure' || steps.run-tests.outcome == 'success') && github.ref == 'refs/heads/develop'
-        uses: aurelien-baudet/workflow-dispatch@v2
+      - name: Build CommonJS and ES6 distributions
+        run: yarn build
+
+      - name: Build Storybook
+        run: yarn build-storybook
+
+  browser-correctness:
+    name: real-browser WebGL2 correctness
+    needs: quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
         with:
-          repo: netdata/cloud-workflows
-          ref: refs/heads/main
-          workflow: test_coverage_publisher.yml
-          token: ${{ secrets.TEST_AUTOMATION_TOKEN }}
-          inputs: '{ "service-name": "${{ github.event.repository.name }}"}'
+          node-version: "22.22.0"
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile --prefer-offline
+
+      - name: Install pinned Chromium
+        run: yarn playwright-core install --with-deps chromium
+
+      - name: Validate every visualization in Chromium
+        env:
+          BENCHMARK_CORRECTNESS_ONLY: "1"
+          BENCHMARK_RENDERERS: webgl2
+        run: yarn benchmark:time-series

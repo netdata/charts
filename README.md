@@ -26,31 +26,31 @@ yarn:
 
 ## Build
 
-There are 3 different distributions. The following command creates the different distributions in the `./dist` folder
+The package builds CommonJS and ES6 distributions into `./dist`.
 
 ```shell
   $ yarn build
 ```
 
-Build the distributions isolated
+Build either distribution independently:
 
-**UMD** produces a single file `./dist/sdk.min.js` what contains the entire bundle
-
-```shell
-  $ yarn build:umd
-```
-
-**ES6** Builds the files using ES Modules in `./dist/es6/*` folder
+**ES6** builds files using ES Modules in `./dist/es6/*`.
 
 ```shell
   $ yarn build:es6
 ```
 
-**cjs** Builds the files using CommonJS in `./dist/*` folder
+**CommonJS** builds files using CommonJS in `./dist/*`.
 
 ```shell
   $ yarn build:cjs
 ```
+
+## GPU renderer development
+
+The accelerated renderer architecture, ownership rules, extension contract, fallback behavior, diagnostics, and validation requirements are documented in [`docs/gpu-renderers.md`](docs/gpu-renderers.md).
+
+The deterministic browser harness is documented in [`benchmarks/time-series-renderers/README.md`](benchmarks/time-series-renderers/README.md).
 
 ## Testing
 

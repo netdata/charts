@@ -1,7 +1,7 @@
-import React, { useRef, useState, useLayoutEffect, memo } from "react"
+import React, { useCallback, useRef, useState, useLayoutEffect, memo } from "react"
 import styled from "styled-components"
 import { Flex } from "@netdata/netdata-ui"
-import { useChart } from "@/components/provider"
+import { useChartUI } from "@/components/provider"
 
 export const alignment = {
   chartMiddle: "chartMiddle",
@@ -40,10 +40,10 @@ const HorizontalContainer = styled(Flex)`
   overflow: hidden;
 `
 
-const getHorizontalPosition = (align = alignment.elementMiddle, chart, area, element, uiName) => {
+const getHorizontalPosition = (align = alignment.elementMiddle, chartUI, area, element) => {
   const { from, width } = area
 
-  const chartWidth = chart.getUI(uiName).getChartWidth()
+  const chartWidth = chartUI.getChartWidth()
   const calcAlignment = calcByAlignment[align] || calcByAlignment.elementMiddle
 
   return calcAlignment({ from, width, chartWidth, element })
@@ -52,27 +52,32 @@ const getHorizontalPosition = (align = alignment.elementMiddle, chart, area, ele
 const Container = ({ id, align, right = 0, fixed, children, uiName, ...rest }) => {
   const ref = useRef()
   const [area, setArea] = useState()
-  const chart = useChart()
+  const chartUI = useChartUI(uiName)
 
-  const updateRight = area => {
-    if (!chart || !chart.getUI(uiName) || !area || !ref.current) return
+  const updateRight = useCallback(
+    area => {
+      if (!area || !ref.current) return
 
-    const [, calculatedRight] = getHorizontalPosition(align, chart, area, ref.current, uiName)
+      const [, calculatedRight] = getHorizontalPosition(align, chartUI, area, ref.current)
 
-    ref.current.style.right = `calc(100% - ${calculatedRight + right}px)`
-  }
+      ref.current.style.right = `calc(100% - ${calculatedRight + right}px)`
+    },
+    [align, chartUI, right]
+  )
 
   useLayoutEffect(
     () =>
       !fixed &&
-      chart.getUI(uiName).on(`overlayedAreaChanged:${id}`, area => {
+      chartUI.on(`overlayedAreaChanged:${id}`, area => {
         updateRight(area)
-        setArea(s => (!!s !== !!area ? area : s))
+        setArea(current => (!!current !== !!area ? area : current))
       }),
-    []
+    [chartUI, fixed, id, updateRight]
   )
 
-  useLayoutEffect(() => !fixed && updateRight(area), [area])
+  useLayoutEffect(() => {
+    if (!fixed) updateRight(area)
+  }, [area, fixed, updateRight])
 
   if (!area && !fixed) return null
 

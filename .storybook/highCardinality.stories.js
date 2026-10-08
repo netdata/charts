@@ -148,8 +148,9 @@ const installFixtureTransport = () => {
   }
 }
 
-const createChart = action => {
+const createChart = (action, renderer = "dygraph") => {
   const sdk = makeDefaultSDK({
+    rendererPolicy: () => renderer,
     attributes: {
       after: fixtureWindow.after,
       before: fixtureWindow.before,
@@ -182,9 +183,9 @@ const createChart = action => {
   return chart
 }
 
-const HighCardinalityChart = ({ action }) => {
+const HighCardinalityChart = ({ action, renderer }) => {
   useLayoutEffect(installFixtureTransport, [])
-  const chart = useMemo(() => createChart(action), [action])
+  const chart = useMemo(() => createChart(action, renderer), [action, renderer])
 
   useLayoutEffect(() => () => chart.destroy(), [chart])
 
@@ -199,6 +200,7 @@ export const Values = () => <HighCardinalityChart action="values" />
 export const DrillDown = () => <HighCardinalityChart action="drillDown" />
 export const Compare = () => <HighCardinalityChart action="compare" />
 export const Correlate = () => <HighCardinalityChart action="correlate" />
+export const WebGPUValues = () => <HighCardinalityChart action="values" renderer="webgpu" />
 
 const meta = {
   title: "Performance/Local high-cardinality expanded chart",

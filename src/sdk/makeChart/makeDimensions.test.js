@@ -400,6 +400,17 @@ describe("makeDimensions", () => {
       expect(color).toBe("#blue")
     })
 
+    it("selects the active theme from a sparkline color pair", () => {
+      mockChart.getAttribute.mockImplementation(key => {
+        if (key === "sparkline") return true
+        if (key === "colors") return [["#light", "#dark"]]
+        return null
+      })
+      mockChart.getThemeIndex = () => 1
+
+      expect(mockChart.selectDimensionColor("cpu")).toBe("#dark")
+    })
+
     it("returns color for selected dimension", () => {
       mockChart.getAttribute.mockImplementation(key => {
         if (key === "sparkline") return false
