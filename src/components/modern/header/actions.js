@@ -1,6 +1,5 @@
 import React, { useRef, useState } from "react"
 import { Drop } from "@netdata/netdata-ui"
-import filterIcon from "@netdata/netdata-ui/dist/components/icon/assets/filter.svg"
 import moreIcon from "@netdata/netdata-ui/dist/components/icon/assets/more.svg"
 import Icon, { Button } from "@/components/icon"
 import { useAttributeValue, useChart } from "@/components/provider"
@@ -8,45 +7,54 @@ import SettingsContent from "@/components/toolbox/settings/content"
 import { Toolbar, dropProps } from "@/components/modern/menu"
 import MoreMenu from "./moreMenu"
 
+const closedDrill = { id: null, from: null }
+
+export const MenuEffects = () => {
+  const toolboxElements = useAttributeValue("toolboxElements") || []
+
+  return toolboxElements
+    .filter(Element => !!Element?.menu?.Effects)
+    .map(Element => <Element.menu.Effects key={Element.menu.id} />)
+}
+
 const Actions = ({ hasFilters, filtersOpen, onToggleFilters }) => {
   const chart = useChart()
   const moreRef = useRef()
   const focused = useAttributeValue("focused")
-  const toolboxElements = useAttributeValue("toolboxElements")
   const settingsTabs = useAttributeValue("settingsTabs") || []
   const [menuOpen, setMenuOpen] = useState(false)
   const [tabIndex, setTabIndex] = useState(null)
+  const [drill, setDrill] = useState(closedDrill)
 
-  const closeMenu = () => setMenuOpen(false)
+  const closeMenu = () => {
+    setMenuOpen(false)
+    setDrill(closedDrill)
+  }
   const closeTab = () => setTabIndex(null)
   const openTab = index => {
-    setMenuOpen(false)
+    closeMenu()
     setTabIndex(index)
   }
+  const drillIn = id => setDrill({ id, from: null })
+  const back = () => setDrill(prev => ({ id: null, from: prev.id }))
 
   const tabOpen = tabIndex !== null
-
-  const disabled = !focused
+  const visible = focused || menuOpen || tabOpen
 
   return (
     <Toolbar
       data-noprint
       data-testid="chartHeaderToolbox"
-      opacity={focused || menuOpen || tabOpen || filtersOpen ? 1 : 0}
+      data-hidden={!visible}
+      opacity={visible ? 1 : 0}
+      position="absolute"
+      top="0"
+      right="0"
+      height="100%"
+      padding={[0, 0, 0, 2]}
+      background="mainChartBg"
     >
-      {hasFilters && (
-        <Button
-          icon={<Icon svg={filterIcon} size="16px" />}
-          title={filtersOpen ? "Hide filters" : "Filters"}
-          active={filtersOpen}
-          aria-pressed={filtersOpen}
-          onClick={onToggleFilters}
-          data-testid="chartHeaderToolbox-filters"
-          data-track={chart.track("filters")}
-        />
-      )}
-      {toolboxElements &&
-        toolboxElements.map((Element, index) => <Element key={index} disabled={disabled} />)}
+      <MenuEffects />
       <Button
         ref={moreRef}
         icon={<Icon svg={moreIcon} width="16px" height="16px" />}
@@ -54,19 +62,29 @@ const Actions = ({ hasFilters, filtersOpen, onToggleFilters }) => {
         active={menuOpen}
         aria-haspopup="menu"
         aria-expanded={menuOpen}
-        onClick={() => setMenuOpen(prev => !prev)}
+        onClick={() => (menuOpen ? closeMenu() : setMenuOpen(true))}
         data-testid="chartHeaderToolbox-more"
         data-track={chart.track("more")}
       />
       {moreRef.current && menuOpen && (
         <Drop
           target={moreRef.current}
-          onEsc={closeMenu}
+          onEsc={drill.id ? back : closeMenu}
           onClickOutside={closeMenu}
           data-toolbox={chart.getId()}
           {...dropProps}
         >
-          <MoreMenu onClose={closeMenu} onOpenTab={openTab} />
+          <MoreMenu
+            onClose={closeMenu}
+            onOpenTab={openTab}
+            drill={drill.id}
+            returnTo={drill.from}
+            onDrill={drillIn}
+            onBack={back}
+            hasFilters={hasFilters}
+            filtersOpen={filtersOpen}
+            onToggleFilters={onToggleFilters}
+          />
         </Drop>
       )}
       {moreRef.current && tabOpen && (

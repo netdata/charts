@@ -195,6 +195,25 @@ describe("modern line legend", () => {
     expect(chart.getAttribute("selectedLegendDimensions")).toEqual([first, second])
   })
 
+  it("has no footer dimension sort and orders the one-line legend by the menu sort", async () => {
+    const { chart } = await renderLine({ designFlavour: "modern", legendLayout: "below" })
+
+    expect(screen.getByTestId("modernFooter-actions")).toBeInTheDocument()
+    expect(screen.queryByTestId("chartDimensionSort")).not.toBeInTheDocument()
+
+    const names = () =>
+      screen
+        .getAllByTestId("modernLegend-entry")
+        .map(node => chart.getDimensionName(node.getAttribute("data-dimension")))
+
+    act(() => chart.updateAttribute("dimensionsSort", "nameDesc"))
+    const descending = names()
+    expect(descending).toEqual([...descending].sort().reverse())
+
+    act(() => chart.updateAttribute("dimensionsSort", "nameAsc"))
+    expect(names()).toEqual([...descending].reverse())
+  })
+
   it("dims the other series while a legend entry is hovered", async () => {
     const { chart } = await renderLine({ designFlavour: "modern", legendLayout: "below" })
     const [entry] = screen.getAllByTestId("modernLegend-entry")

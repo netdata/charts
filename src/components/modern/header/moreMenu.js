@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import styled from "styled-components"
 import { Box, Flex, TextMicro, getColor } from "@netdata/netdata-ui"
 import {
@@ -8,11 +8,14 @@ import {
   useDimensionIds,
   useVisibleDimensionIds,
 } from "@/components/provider"
+import Information from "@/components/toolbox/information"
+import { useIsHeatmap } from "@/helpers/heatmap"
+import { useLegendMode } from "@/components/modern/legend/mode"
 import makeLog from "@/sdk/makeLog"
 import { radius } from "@/components/modern/tokens"
 import { onToggle } from "@/components/modern/legend/parts"
 import { LineSwatch } from "@/components/modern/swatch"
-import { Divider, Item, Panel } from "@/components/modern/menu"
+import { Divider, Item, MenuHeading, Panel, useMenuNavigation } from "@/components/modern/menu"
 import { showAllDimensions, useHiddenDimensionsCount } from "./hiddenDimensions"
 
 export const navigationModes = [
@@ -87,14 +90,9 @@ const DimensionName = styled(Box).attrs({ as: "span", margin: [0, 0, 0, 1.5], ov
   white-space: nowrap;
 `
 
-const Label = ({ children }) => (
-  <TextMicro color="textLite" padding={[2, 2.5, 0.5]}>
-    {children}
-  </TextMicro>
-)
-
-const NavigationModes = ({ log }) => {
+const NavigationModes = () => {
   const chart = useChart()
+  const log = makeLog(chart)
   const [navigation, setNavigation] = useAttribute("navigation")
 
   return (
@@ -120,47 +118,71 @@ const NavigationModes = ({ log }) => {
   )
 }
 
-const DimensionSorts = ({ onChange }) => {
+export const menuGroups = [
+  { id: "navigate", label: "Navigate" },
+  { id: "show", label: "Show" },
+  { id: "data", label: "Data" },
+  { id: "actions", label: "Actions" },
+]
+
+const tabPlacement = {
+  data: { group: "data", order: 40 },
+  display: { group: "data", order: 50 },
+  download: { group: "actions", order: 900 },
+  info: { group: "actions", order: 910 },
+}
+
+const sortableLegendModes = { below: true, table: true }
+
+export const useCanSortDimensions = () => {
+  const dimensionIds = useDimensionIds() || []
+  const isHeatmap = useIsHeatmap()
+  const legendMode = useLegendMode()
+  const chartLibrary = useAttributeValue("chartLibrary")
+
+  return (
+    dimensionIds.length > 1 &&
+    !isHeatmap &&
+    (!!sortableLegendModes[legendMode] || chartLibrary === "bars")
+  )
+}
+
+const toggleLayer = (chart, setValue, value) => {
+  setValue(!value)
+  chart.getUI()?.invalidateRender?.()
+  chart.trigger("render")
+}
+
+const SortPanel = ({ onBack }) => {
   const chart = useChart()
-  const [open, setOpen] = useState(false)
   const value = useAttributeValue("dimensionsSort")
   const current = dimensionSorts.find(sort => sort.value === value) || dimensionSorts[0]
 
-  return (
-    <>
-      <Item
-        hint={current.label}
-        aria-expanded={open}
-        onClick={() => setOpen(prev => !prev)}
-        data-testid="chartMore-sort"
-      >
-        Sort dimensions
-      </Item>
-      {open &&
-        dimensionSorts.map(sort => (
-          <Item
-            key={sort.value}
-            check={sort.value === current.value}
-            onClick={() => onChange(sort.value)}
-            data-testid={`chartMore-sort-${sort.value}`}
-            data-track={chart.track(sort.value)}
-          >
-            {sort.label}
-          </Item>
-        ))}
-    </>
-  )
+  return dimensionSorts.map(sort => (
+    <Item
+      key={sort.value}
+      role="menuitemradio"
+      check={sort.value === current.value}
+      aria-checked={sort.value === current.value}
+      onClick={() => {
+        chart.updateAttribute("dimensionsSort", sort.value)
+        onBack()
+      }}
+      data-testid={`chartMore-sort-${sort.value}`}
+      data-track={chart.track(sort.value)}
+    >
+      {sort.label}
+    </Item>
+  ))
 }
 
 export const dimensionsLimit = 50
 const searchThreshold = 10
 
-const Dimensions = () => {
+const DimensionsPanel = () => {
   const chart = useChart()
-  const [open, setOpen] = useState(false)
   const [search, setSearch] = useState("")
   const dimensionIds = useDimensionIds() || []
-  const visibleIds = useVisibleDimensionIds() || []
   const hidden = useHiddenDimensionsCount()
 
   const matches = useMemo(() => {
@@ -171,178 +193,359 @@ const Dimensions = () => {
     )
   }, [chart, dimensionIds, search])
 
-  if (!dimensionIds.length) return null
-
   const shown = matches.slice(0, dimensionsLimit)
   const more = matches.length - shown.length
 
   return (
     <>
       <Item
-        hint={hidden ? `${visibleIds.length} of ${dimensionIds.length} shown` : "All shown"}
-        aria-expanded={open}
-        onClick={() => setOpen(prev => !prev)}
-        data-testid="chartMore-dimensions"
+        disabled={!hidden}
+        data-testid="chartMore-dimensions-showAll"
+        data-track={chart.track("showAllDimensions")}
+        onClick={() => showAllDimensions(chart)}
       >
-        Dimensions
+        Show all
       </Item>
-      {open && (
-        <>
+      {dimensionIds.length > searchThreshold && (
+        <Flex padding={[0.5, 2.5]}>
+          <SearchInput
+            type="search"
+            value={search}
+            placeholder="Search dimensions"
+            aria-label="Search dimensions"
+            data-testid="chartMore-dimensions-search"
+            onChange={event => setSearch(event.target.value)}
+          />
+        </Flex>
+      )}
+      <Flex column overflow={{ vertical: "auto" }} height={{ max: "240px" }}>
+        {shown.map(id => (
           <Item
-            disabled={!hidden}
-            data-testid="chartMore-dimensions-showAll"
-            data-track={chart.track("showAllDimensions")}
-            onClick={() => showAllDimensions(chart)}
+            key={id}
+            check={chart.isDimensionVisible(id)}
+            title={chart.getDimensionName(id) || id}
+            aria-checked={chart.isDimensionVisible(id)}
+            role="menuitemcheckbox"
+            data-testid="chartMore-dimension"
+            data-dimension={id}
+            data-track={chart.track("toggleDimension")}
+            onClick={onToggle(chart, id)}
           >
-            Show all
+            <LineSwatch swatchColor={chart.selectDimensionColor(id)} />
+            <DimensionName>{chart.getDimensionName(id) || id}</DimensionName>
           </Item>
-          {dimensionIds.length > searchThreshold && (
-            <Flex padding={[0.5, 2.5]}>
-              <SearchInput
-                type="search"
-                value={search}
-                placeholder="Search dimensions"
-                aria-label="Search dimensions"
-                data-testid="chartMore-dimensions-search"
-                onChange={event => setSearch(event.target.value)}
-              />
-            </Flex>
-          )}
-          <Flex column overflow={{ vertical: "auto" }} height={{ max: "240px" }}>
-            {shown.map(id => (
-              <Item
-                key={id}
-                check={chart.isDimensionVisible(id)}
-                title={chart.getDimensionName(id) || id}
-                aria-checked={chart.isDimensionVisible(id)}
-                role="menuitemcheckbox"
-                data-testid="chartMore-dimension"
-                data-dimension={id}
-                data-track={chart.track("toggleDimension")}
-                onClick={onToggle(chart, id)}
-              >
-                <LineSwatch swatchColor={chart.selectDimensionColor(id)} />
-                <DimensionName>{chart.getDimensionName(id) || id}</DimensionName>
-              </Item>
-            ))}
-          </Flex>
-          {more > 0 && (
-            <TextMicro color="textLite" padding={[1, 2.5]} data-testid="chartMore-dimensions-more">
-              {`${more} more, refine the search`}
-            </TextMicro>
-          )}
-        </>
+        ))}
+      </Flex>
+      {more > 0 && (
+        <TextMicro color="textLite" padding={[1, 2.5]} data-testid="chartMore-dimensions-more">
+          {`${more} more, refine the search`}
+        </TextMicro>
       )}
     </>
   )
 }
 
-const MoreMenu = ({ onClose, onOpenTab }) => {
-  const chart = useChart()
-  const log = makeLog(chart)
-  const after = useAttributeValue("after")
-  const liveAfter = useAttributeValue("liveAfter")
-  const enabledResetRange = useAttributeValue("enabledResetRange")
-  const [showAnomalies, setShowAnomalies] = useAttribute("showAnomalies")
-  const [showAnnotations, setShowAnnotations] = useAttribute("showAnnotations")
-  const [showingInfo, setShowingInfo] = useAttribute("showingInfo")
+const builtInItems = [
+  { id: "navigation", group: "navigate", order: 0, Component: NavigationModes },
+  {
+    id: "zoomIn",
+    group: "navigate",
+    order: 10,
+    useItem: ({ chart }) => ({
+      label: "Zoom in",
+      hint: "Shift+wheel",
+      testId: "chartMore-zoomIn",
+      track: "zoomIn",
+      onClick: () => {
+        chart.zoomIn()
+        makeLog(chart)({ chartAction: "chart-toolbox-zoom-in" })
+      },
+    }),
+  },
+  {
+    id: "zoomOut",
+    group: "navigate",
+    order: 20,
+    useItem: ({ chart }) => ({
+      label: "Zoom out",
+      testId: "chartMore-zoomOut",
+      track: "zoomOut",
+      onClick: () => {
+        chart.zoomOut()
+        makeLog(chart)({ chartAction: "chart-toolbox-zoom-out" })
+      },
+    }),
+  },
+  {
+    id: "zoomReset",
+    group: "navigate",
+    order: 30,
+    useItem: ({ chart, onClose }) => {
+      const after = useAttributeValue("after")
+      const liveAfter = useAttributeValue("liveAfter")
+      const enabledResetRange = useAttributeValue("enabledResetRange")
+
+      if (!enabledResetRange) return null
+
+      return {
+        label: "Reset zoom",
+        hint: "Alt+Shift+R",
+        disabled: after === liveAfter,
+        testId: "chartMore-zoomReset",
+        track: "zoomReset",
+        onClick: () => {
+          chart.resetNavigation()
+          makeLog(chart)({ chartAction: "chart-toolbox-reset-zoom" })
+          onClose()
+        },
+      }
+    },
+  },
+  {
+    id: "anomalies",
+    group: "show",
+    order: 10,
+    useItem: ({ chart }) => {
+      const [showAnomalies, setShowAnomalies] = useAttribute("showAnomalies")
+
+      return {
+        label: "Anomaly rate",
+        check: !!showAnomalies,
+        testId: "chartMore-anomalies",
+        onClick: () => toggleLayer(chart, setShowAnomalies, showAnomalies),
+      }
+    },
+  },
+  {
+    id: "annotations",
+    group: "show",
+    order: 20,
+    useItem: ({ chart }) => {
+      const [showAnnotations, setShowAnnotations] = useAttribute("showAnnotations")
+
+      return {
+        label: "Annotations",
+        check: !!showAnnotations,
+        testId: "chartMore-annotations",
+        onClick: () => toggleLayer(chart, setShowAnnotations, showAnnotations),
+      }
+    },
+  },
+  Information.menu,
+  {
+    id: "filters",
+    group: "data",
+    order: 10,
+    useItem: ({ hasFilters, filtersOpen, onToggleFilters, onClose }) =>
+      hasFilters
+        ? {
+            label: filtersOpen ? "Hide filters" : "Show filters",
+            testId: "chartMore-filters",
+            track: "filters",
+            onClick: () => {
+              onToggleFilters()
+              onClose()
+            },
+          }
+        : null,
+  },
+  {
+    id: "dimensions",
+    group: "data",
+    order: 20,
+    useItem: () => {
+      const dimensionIds = useDimensionIds() || []
+      const visibleIds = useVisibleDimensionIds() || []
+      const hidden = useHiddenDimensionsCount()
+
+      if (!dimensionIds.length) return null
+
+      return {
+        label: "Dimensions",
+        hint: hidden ? `${visibleIds.length} of ${dimensionIds.length} shown` : "All shown",
+        testId: "chartMore-dimensions",
+        Panel: DimensionsPanel,
+      }
+    },
+  },
+  {
+    id: "sort",
+    group: "data",
+    order: 30,
+    useItem: () => {
+      const value = useAttributeValue("dimensionsSort")
+      const canSort = useCanSortDimensions()
+      const current = dimensionSorts.find(sort => sort.value === value) || dimensionSorts[0]
+
+      if (!canSort) return null
+
+      return {
+        label: "Sort dimensions",
+        hint: current.label,
+        testId: "chartMore-sort",
+        Panel: SortPanel,
+      }
+    },
+  },
+  {
+    id: "reload",
+    group: "actions",
+    order: 1000,
+    useItem: ({ chart, onClose }) => ({
+      label: "Reload data",
+      testId: "chartMore-reload",
+      track: "refresh",
+      onClick: () => {
+        chart.fetch()
+        onClose()
+      },
+    }),
+  },
+]
+
+const makeTabItems = settingsTabs =>
+  settingsTabs.map((tab, index) => {
+    const key = tab.id || index
+    const placement = tabPlacement[tab.id] || { group: "actions", order: 920 + index }
+
+    return {
+      id: `tab-${key}`,
+      ...placement,
+      useItem: ({ onOpenTab }) => ({
+        label: tabLabels[tab.id] || `${tab.label}…`,
+        testId: `chartMore-tab-${key}`,
+        track: `settings-${key}`,
+        onClick: () => onOpenTab(index),
+      }),
+    }
+  })
+
+export const getConsumerMenuItems = (toolboxElements = []) =>
+  toolboxElements.filter(Element => !!Element?.menu).map(Element => Element.menu)
+
+const byOrder = (a, b) => (a.order ?? 0) - (b.order ?? 0)
+
+export const useMenuItems = () => {
+  const toolboxElements = useAttributeValue("toolboxElements")
   const settingsTabs = useAttributeValue("settingsTabs") || []
 
-  const toggleLayer = (setValue, value) => {
-    setValue(!value)
-    chart.getUI()?.invalidateRender?.()
-    chart.trigger("render")
-  }
+  return useMemo(() => {
+    const builtIn = [...builtInItems, ...makeTabItems(settingsTabs)]
+    const ids = new Set(builtIn.map(item => item.id))
+    const consumer = getConsumerMenuItems(toolboxElements).filter(item => !ids.has(item.id))
+
+    return [...builtIn, ...consumer]
+  }, [toolboxElements, settingsTabs])
+}
+
+const MenuRow = ({ descriptor, menuProps, onDrill }) => {
+  const item = descriptor.useItem(menuProps)
+
+  if (!item || item.hidden) return null
+
+  const { label, icon, hint, check, disabled, onClick, Panel: ItemPanel, testId, track } = item
 
   return (
-    <Panel role="menu" data-testid="chartMoreMenu">
-      <Label>Navigation</Label>
-      <NavigationModes log={log} />
-      <Item
-        hint="Shift+wheel"
-        data-testid="chartMore-zoomIn"
-        data-track={chart.track("zoomIn")}
-        onClick={() => {
-          chart.zoomIn()
-          log({ chartAction: "chart-toolbox-zoom-in" })
-        }}
-      >
-        Zoom in
+    <Item
+      icon={icon}
+      hint={hint}
+      check={check}
+      disabled={disabled}
+      drill={!!ItemPanel}
+      aria-haspopup={ItemPanel ? "menu" : undefined}
+      data-menu-id={descriptor.id}
+      data-testid={testId}
+      data-track={track ? menuProps.chart.track(track) : undefined}
+      onClick={ItemPanel ? () => onDrill(descriptor.id) : onClick}
+    >
+      {label}
+    </Item>
+  )
+}
+
+const DrilledPanel = ({ descriptor, menuProps, onBack }) => {
+  const item = descriptor.useItem(menuProps)
+  const ItemPanel = !item || item.hidden ? null : item.Panel
+
+  useEffect(() => {
+    if (!ItemPanel) onBack()
+  }, [ItemPanel])
+
+  if (!ItemPanel) return null
+
+  return (
+    <Flex column width={item.panelWidth || "260px"} data-testid="chartMore-drilled">
+      <Item data-testid="chartMore-back" onClick={onBack}>
+        {`← ${item.label}`}
       </Item>
-      <Item
-        data-testid="chartMore-zoomOut"
-        data-track={chart.track("zoomOut")}
-        onClick={() => {
-          chart.zoomOut()
-          log({ chartAction: "chart-toolbox-zoom-out" })
-        }}
-      >
-        Zoom out
-      </Item>
-      {enabledResetRange && (
-        <Item
-          hint="Alt+Shift+R"
-          disabled={after === liveAfter}
-          data-testid="chartMore-zoomReset"
-          data-track={chart.track("zoomReset")}
-          onClick={() => {
-            chart.resetNavigation()
-            log({ chartAction: "chart-toolbox-reset-zoom" })
-            onClose()
-          }}
-        >
-          Reset zoom
-        </Item>
+      <Divider />
+      <ItemPanel onBack={onBack} onClose={menuProps.onClose} />
+    </Flex>
+  )
+}
+
+const MoreMenu = ({
+  onClose,
+  onOpenTab,
+  drill = null,
+  returnTo = null,
+  onDrill,
+  onBack,
+  hasFilters = false,
+  filtersOpen = false,
+  onToggleFilters,
+}) => {
+  const chart = useChart()
+  const items = useMenuItems()
+  const { ref, onKeyDown } = useMenuNavigation(
+    `${drill}|${returnTo}`,
+    !drill && returnTo ? `[data-menu-id="${returnTo}"]` : null
+  )
+
+  const menuProps = { chart, onClose, onOpenTab, hasFilters, filtersOpen, onToggleFilters }
+  const drilled = drill && items.find(item => item.id === drill)
+
+  return (
+    <Panel
+      ref={ref}
+      role="menu"
+      data-testid="chartMoreMenu"
+      onKeyDown={onKeyDown}
+      {...(drilled && { width: "auto" })}
+    >
+      {drilled ? (
+        <DrilledPanel key={drilled.id} descriptor={drilled} menuProps={menuProps} onBack={onBack} />
+      ) : (
+        menuGroups.map(({ id, label }, index) => {
+          const groupItems = items.filter(item => item.group === id).sort(byOrder)
+          if (!groupItems.length) return null
+
+          return (
+            <Flex
+              column
+              key={id}
+              role="group"
+              aria-label={label}
+              data-testid={`chartMore-group-${id}`}
+            >
+              {index > 0 && <Divider />}
+              <MenuHeading>{label}</MenuHeading>
+              {groupItems.map(descriptor =>
+                descriptor.Component ? (
+                  <descriptor.Component key={descriptor.id} />
+                ) : (
+                  <MenuRow
+                    key={descriptor.id}
+                    descriptor={descriptor}
+                    menuProps={menuProps}
+                    onDrill={onDrill}
+                  />
+                )
+              )}
+            </Flex>
+          )
+        })
       )}
-      <Divider />
-      <Item
-        check={!!showAnomalies}
-        data-testid="chartMore-anomalies"
-        onClick={() => toggleLayer(setShowAnomalies, showAnomalies)}
-      >
-        Anomaly rate
-      </Item>
-      <Item
-        check={!!showAnnotations}
-        data-testid="chartMore-annotations"
-        onClick={() => toggleLayer(setShowAnnotations, showAnnotations)}
-      >
-        Annotations
-      </Item>
-      <DimensionSorts onChange={value => chart.updateAttribute("dimensionsSort", value)} />
-      <Dimensions />
-      <Divider />
-      {settingsTabs.map((tab, index) => (
-        <Item
-          key={tab.id || index}
-          data-testid={`chartMore-tab-${tab.id || index}`}
-          data-track={chart.track(`settings-${tab.id || index}`)}
-          onClick={() => onOpenTab(index)}
-        >
-          {tabLabels[tab.id] || `${tab.label}…`}
-        </Item>
-      ))}
-      <Item
-        check={!!showingInfo}
-        data-testid="chartMore-info"
-        data-track={chart.track("information")}
-        onClick={() => {
-          setShowingInfo(!showingInfo)
-          onClose()
-        }}
-      >
-        Chart info
-      </Item>
-      <Item
-        data-testid="chartMore-reload"
-        data-track={chart.track("refresh")}
-        onClick={() => {
-          chart.fetch()
-          onClose()
-        }}
-      >
-        Reload data
-      </Item>
     </Panel>
   )
 }

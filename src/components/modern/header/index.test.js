@@ -4,6 +4,9 @@ import "@testing-library/jest-dom"
 import { renderWithChart, makeTestChart } from "@jest/testUtilities"
 import { makePayload, makeWave } from "../../../../fixtures/makeWavePayload"
 import Header from "@/components/header"
+import Fullscreen from "@/components/toolbox/fullscreen"
+import Information from "@/components/toolbox/information"
+import Settings from "@/components/toolbox/settings"
 import { Line } from "@/components/line"
 import ChartContentWrapper from "@/components/line/chartContentWrapper"
 import { getScopeParts } from "./scopeSummary"
@@ -16,6 +19,72 @@ const AddToDashboard = ({ disabled }) => (
 )
 
 const ChartOptions = () => <span>Chart options</span>
+
+const AlertsPanel = ({ onBack, onClose }) => (
+  <>
+    <button type="button" role="menuitem" data-testid="alertsPanel-back" onClick={onBack}>
+      Panel back
+    </button>
+    <button type="button" role="menuitem" data-testid="alertsPanel-close" onClick={onClose}>
+      Panel close
+    </button>
+  </>
+)
+
+const AskAi = () => null
+AskAi.menu = {
+  id: "askAi",
+  group: "actions",
+  order: 10,
+  useItem: () => ({ label: "Add to AI conversation", testId: "consumer-askAi", onClick: () => {} }),
+}
+
+const Alerts = () => null
+Alerts.menu = {
+  id: "alerts",
+  group: "actions",
+  order: 20,
+  useItem: () => ({ label: "Alerts", hint: "2", testId: "consumer-alerts", Panel: AlertsPanel }),
+}
+
+const WideAlerts = () => null
+WideAlerts.menu = {
+  ...Alerts.menu,
+  id: "wideAlerts",
+  useItem: () => ({
+    label: "Wide alerts",
+    testId: "consumer-wideAlerts",
+    Panel: AlertsPanel,
+    panelWidth: "360px",
+  }),
+}
+
+const Hidden = () => null
+Hidden.menu = {
+  id: "hiddenItem",
+  group: "show",
+  order: 5,
+  useItem: () => ({ label: "Never", hidden: true, testId: "consumer-hidden" }),
+}
+
+const Nothing = () => null
+Nothing.menu = { id: "nothing", group: "data", order: 5, useItem: () => null }
+
+let effectMounts = 0
+const ShortcutEffects = () => {
+  React.useEffect(() => {
+    effectMounts += 1
+  }, [])
+  return null
+}
+const WithShortcut = () => null
+WithShortcut.menu = {
+  id: "withShortcut",
+  group: "actions",
+  order: 30,
+  useItem: () => ({ label: "With shortcut", testId: "consumer-withShortcut", onClick: () => {} }),
+  Effects: ShortcutEffects,
+}
 
 const makeModern = (attributes = {}) =>
   makeTestChart({ attributes: { designFlavour: "modern", title: "System load", ...attributes } })
@@ -36,17 +105,22 @@ const openMenu = async user => {
 }
 
 describe("Modern header", () => {
-  it("renders the title row, the scope line and consumer toolbox elements", async () => {
+  it("renders the title row, the scope line and only the More action", async () => {
     await renderModern({
       focused: true,
-      toolboxElements: [AddToDashboard],
+      toolboxElements: [AddToDashboard, Settings, Fullscreen, Information, AskAi],
     })
 
     expect(screen.getByTestId("chartHeader")).toHaveAttribute("data-flavour", "modern")
     expect(screen.getByText("System load")).toBeInTheDocument()
-    expect(screen.getByText("Add to dashboard")).toBeEnabled()
-    expect(screen.getByTestId("chartHeaderToolbox-filters")).toBeInTheDocument()
-    expect(screen.getByTestId("chartHeaderToolbox-more")).toBeInTheDocument()
+    expect(screen.queryByTestId("chartHeaderToolbox-filters")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("chartHeaderToolbox-fullscreen")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("chartHeaderToolbox-information")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("chartHeaderToolbox-settings")).not.toBeInTheDocument()
+    const toolbox = screen.getByTestId("chartHeaderToolbox")
+    expect(within(toolbox).getAllByRole("button")).toEqual([
+      screen.getByTestId("chartHeaderToolbox-more"),
+    ])
 
     const scope = screen.getByTestId("chartScope")
     expect(scope).toHaveTextContent("Group by dimension")
@@ -54,10 +128,86 @@ describe("Modern header", () => {
     expect(scope).toHaveTextContent("3 dimensions")
   })
 
-  it("disables toolbox elements until the card is focused, as the default header does", async () => {
-    await renderModern({ focused: false, toolboxElements: [AddToDashboard] })
+  it("renders the scope line as its own line below the title row", async () => {
+    await renderModern({ focused: true })
 
-    expect(screen.getByText("Add to dashboard")).toBeDisabled()
+    const header = screen.getByTestId("chartHeader")
+    const scopeLine = screen.getByTestId("chartScope").parentElement
+    expect(scopeLine.parentElement).toBe(header)
+    expect(within(scopeLine).queryByText("System load")).not.toBeInTheDocument()
+  })
+
+  it("overlays the toolbox on the title row instead of reserving space for it", async () => {
+    await renderModern({ focused: false })
+
+    const toolbox = screen.getByTestId("chartHeaderToolbox")
+    expect(toolbox).toHaveStyle({ position: "absolute" })
+    expect(toolbox).toHaveAttribute("data-hidden", "true")
+  })
+
+  it("marks the overlaid toolbox visible once the card is focused", async () => {
+    await renderModern({ focused: true })
+
+    expect(screen.getByTestId("chartHeaderToolbox")).toHaveAttribute("data-hidden", "false")
+  })
+
+  it("leaves toolbox elements without a menu descriptor out of the header and the menu", async () => {
+    const { user } = await renderModern({ focused: true, toolboxElements: [AddToDashboard] })
+
+    expect(screen.queryByText("Add to dashboard")).not.toBeInTheDocument()
+    const menu = await openMenu(user)
+    expect(within(menu).queryByText("Add to dashboard")).not.toBeInTheDocument()
+  })
+
+  it("mounts the menu Effects of toolbox elements without opening the menu", async () => {
+    effectMounts = 0
+    await renderModern({ focused: false, toolboxElements: [WithShortcut] })
+
+    expect(effectMounts).toBe(1)
+    expect(screen.queryByTestId("chartMoreMenu")).not.toBeInTheDocument()
+  })
+
+  it("makes the title row the drag handle when the consumer passes drag props", async () => {
+    let pointerDowns = 0
+    const { user } = await renderModern({
+      focused: true,
+      toolboxProps: {
+        drag: {
+          dragging: false,
+          role: "button",
+          tabIndex: 0,
+          "aria-roledescription": "draggable",
+          onPointerDown: () => (pointerDowns += 1),
+        },
+      },
+    })
+
+    const handle = screen.getByTestId("chartHeaderToolbox-drag")
+    expect(within(handle).getByText("System load")).toBeInTheDocument()
+    expect(within(handle).getByTestId("chartHeaderDrag-grip")).toBeInTheDocument()
+    expect(handle).toHaveAttribute("aria-roledescription", "draggable")
+    expect(handle).not.toHaveAttribute("dragging")
+    expect(handle).toHaveStyle({ cursor: "grab" })
+    expect(within(handle).queryByTestId("chartHeaderToolbox-more")).not.toBeInTheDocument()
+
+    fireEvent.pointerDown(screen.getByText("System load"))
+    expect(pointerDowns).toBe(1)
+
+    await user.click(screen.getByTestId("chartScope"))
+    expect(screen.getByTestId("chartFilters")).toBeInTheDocument()
+  })
+
+  it("shows the grabbing cursor while dragging", async () => {
+    await renderModern({ toolboxProps: { drag: { dragging: true } } })
+
+    expect(screen.getByTestId("chartHeaderToolbox-drag")).toHaveStyle({ cursor: "grabbing" })
+  })
+
+  it("has no drag handle without drag props", async () => {
+    await renderModern({ focused: true })
+
+    expect(screen.queryByTestId("chartHeaderToolbox-drag")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("chartHeaderDrag-grip")).not.toBeInTheDocument()
   })
 
   it("moves the default Status out of the title row but keeps consumer left elements", async () => {
@@ -67,7 +217,7 @@ describe("Modern header", () => {
     expect(screen.queryByTestId("chartHeaderStatus")).not.toBeInTheDocument()
   })
 
-  it("opens the existing FilterToolbox from the scope line and the filters action", async () => {
+  it("opens the existing FilterToolbox from the scope line and the Data filters item", async () => {
     const { user, chart } = await renderModern({ focused: true })
 
     expect(screen.queryByTestId("chartFilters")).not.toBeInTheDocument()
@@ -76,15 +226,25 @@ describe("Modern header", () => {
     expect(screen.getByTestId("chartFilters")).toBeInTheDocument()
     expect(chart.getAttribute("filtersOpen")).toBe(true)
 
-    await user.click(screen.getByTestId("chartHeaderToolbox-filters"))
+    await openMenu(user)
+    const filters = within(screen.getByTestId("chartMore-group-data")).getByTestId(
+      "chartMore-filters"
+    )
+    expect(filters).toHaveTextContent("Hide filters")
+    await user.click(filters)
     expect(screen.queryByTestId("chartFilters")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("chartMoreMenu")).not.toBeInTheDocument()
+
+    await openMenu(user)
+    expect(screen.getByTestId("chartMore-filters")).toHaveTextContent("Show filters")
   })
 
   it("has no filter action when the card has no filters", async () => {
-    await renderModern({ focused: true }, { hasFilters: false })
+    const { user } = await renderModern({ focused: true }, { hasFilters: false })
 
-    expect(screen.queryByTestId("chartHeaderToolbox-filters")).not.toBeInTheDocument()
     expect(screen.getByTestId("chartScope")).toBeDisabled()
+    await openMenu(user)
+    expect(screen.queryByTestId("chartMore-filters")).not.toBeInTheDocument()
   })
 
   it("shows the loading state in the scope line before the first payload", () => {
@@ -238,7 +398,7 @@ describe("Modern More menu", () => {
   })
 
   it("toggles anomalies, annotations, chart info and the dimension sort", async () => {
-    const { user, chart } = await renderModern({ focused: true })
+    const { user, chart } = await renderModern({ focused: true, legendMode: "below" })
     await openMenu(user)
 
     await user.click(screen.getByTestId("chartMore-anomalies"))
@@ -248,11 +408,168 @@ describe("Modern More menu", () => {
     expect(chart.getAttribute("showAnnotations")).toBe(false)
 
     await user.click(screen.getByTestId("chartMore-sort"))
+    expect(screen.getByTestId("chartMore-back")).toHaveTextContent("← Sort dimensions")
     await user.click(screen.getByTestId("chartMore-sort-valueDesc"))
     expect(chart.getAttribute("dimensionsSort")).toBe("valueDesc")
+    expect(screen.getByTestId("chartMore-sort")).toHaveTextContent("Value Max→Min")
 
     await user.click(screen.getByTestId("chartMore-info"))
     expect(chart.getAttribute("showingInfo")).toBe(true)
+  })
+
+  it("groups the built-in items under Navigate, Show, Data and Actions", async () => {
+    const { user } = await renderModern({ focused: true, legendMode: "below" })
+    const menu = await openMenu(user)
+
+    const groups = within(menu).getAllByRole("group")
+    expect(groups.map(group => group.getAttribute("aria-label"))).toEqual([
+      "Navigate",
+      "Navigation",
+      "Show",
+      "Data",
+      "Actions",
+    ])
+    const ids = group =>
+      Array.from(
+        screen.getByTestId(`chartMore-group-${group}`).querySelectorAll('[role^="menuitem"]')
+      ).map(item => item.dataset.testid)
+
+    expect(ids("navigate")).toEqual([
+      "chartMore-zoomIn",
+      "chartMore-zoomOut",
+      "chartMore-zoomReset",
+      "chartMore-fullscreen",
+    ])
+    expect(ids("show")).toEqual(["chartMore-anomalies", "chartMore-annotations", "chartMore-info"])
+    expect(ids("data")).toEqual([
+      "chartMore-filters",
+      "chartMore-dimensions",
+      "chartMore-sort",
+      "chartMore-tab-data",
+      "chartMore-tab-display",
+    ])
+    expect(ids("actions")).toEqual([
+      "chartMore-tab-download",
+      "chartMore-tab-info",
+      "chartMore-reload",
+    ])
+    expect(within(menu).getByText("Navigate")).toBeInTheDocument()
+    expect(screen.getByTestId("chartMore-dimensions")).toHaveTextContent("›")
+    expect(screen.getByTestId("chartMore-reload")).not.toHaveTextContent("›")
+  })
+
+  it("renders consumer menu items in their group by order and skips hidden or null ones", async () => {
+    const { user } = await renderModern({
+      focused: true,
+      toolboxElements: [Alerts, Hidden, Nothing, AskAi, Information, Fullscreen],
+    })
+    await openMenu(user)
+
+    const actions = within(screen.getByTestId("chartMore-group-actions"))
+      .getAllByRole("menuitem")
+      .map(item => item.dataset.testid)
+    expect(actions).toEqual([
+      "consumer-askAi",
+      "consumer-alerts",
+      "chartMore-tab-download",
+      "chartMore-tab-info",
+      "chartMore-reload",
+    ])
+    expect(screen.queryByTestId("consumer-hidden")).not.toBeInTheDocument()
+    expect(screen.getAllByTestId("chartMore-info")).toHaveLength(1)
+    expect(screen.getAllByTestId("chartMore-fullscreen")).toHaveLength(1)
+    expect(screen.getByTestId("consumer-alerts")).toHaveTextContent("2")
+  })
+
+  it("drops Full screen from the menu when the consumer leaves the element out", async () => {
+    const { user } = await renderModern({ focused: true, toolboxElements: [Settings] })
+    await openMenu(user)
+
+    expect(screen.queryByTestId("chartMore-fullscreen")).not.toBeInTheDocument()
+  })
+
+  it("toggles full screen from the Navigate group", async () => {
+    const { user, chart } = await renderModern({ focused: true })
+    let toggles = 0
+    chart.toggleFullscreen = () => (toggles += 1)
+    await openMenu(user)
+
+    expect(screen.getByTestId("chartMore-fullscreen")).toHaveTextContent("Full screen")
+    await user.click(screen.getByTestId("chartMore-fullscreen"))
+
+    expect(toggles).toBe(1)
+    expect(screen.queryByTestId("chartMoreMenu")).not.toBeInTheDocument()
+  })
+
+  it("sizes a drilled panel by the item's panelWidth and keeps the 260px default", async () => {
+    const { user } = await renderModern({
+      focused: true,
+      toolboxElements: [Alerts, WideAlerts],
+    })
+    await openMenu(user)
+
+    await user.click(screen.getByTestId("consumer-wideAlerts"))
+    expect(screen.getByTestId("chartMore-drilled")).toHaveStyle({ width: "360px" })
+
+    await user.click(screen.getByTestId("chartMore-back"))
+    await user.click(screen.getByTestId("consumer-alerts"))
+    expect(screen.getByTestId("chartMore-drilled")).toHaveStyle({ width: "260px" })
+  })
+
+  it("drills into a consumer panel and comes back with the back row or the panel", async () => {
+    const { user } = await renderModern({ focused: true, toolboxElements: [Alerts] })
+    await openMenu(user)
+
+    await user.click(screen.getByTestId("consumer-alerts"))
+    expect(screen.getByTestId("chartMore-back")).toHaveTextContent("← Alerts")
+    expect(screen.queryByTestId("chartMore-reload")).not.toBeInTheDocument()
+
+    await user.click(screen.getByTestId("chartMore-back"))
+    expect(screen.queryByTestId("chartMore-back")).not.toBeInTheDocument()
+    expect(screen.getByTestId("consumer-alerts")).toHaveFocus()
+
+    await user.click(screen.getByTestId("consumer-alerts"))
+    await user.click(screen.getByTestId("alertsPanel-back"))
+    expect(screen.getByTestId("chartMore-reload")).toBeInTheDocument()
+
+    await user.click(screen.getByTestId("consumer-alerts"))
+    await user.click(screen.getByTestId("alertsPanel-close"))
+    expect(screen.queryByTestId("chartMoreMenu")).not.toBeInTheDocument()
+  })
+
+  it("goes back on Esc inside a drilled panel and closes on Esc at the root", async () => {
+    const { user } = await renderModern({ focused: true, toolboxElements: [Alerts] })
+    await openMenu(user)
+
+    await user.click(screen.getByTestId("consumer-alerts"))
+    expect(screen.getByTestId("chartMore-back")).toHaveFocus()
+
+    fireEvent.keyDown(document.activeElement, { key: "Escape", keyCode: 27 })
+    expect(screen.getByTestId("chartMoreMenu")).toBeInTheDocument()
+    expect(screen.queryByTestId("chartMore-back")).not.toBeInTheDocument()
+    expect(screen.getByTestId("consumer-alerts")).toHaveFocus()
+
+    fireEvent.keyDown(document.activeElement, { key: "Escape", keyCode: 27 })
+    expect(screen.queryByTestId("chartMoreMenu")).not.toBeInTheDocument()
+
+    await openMenu(user)
+    expect(screen.queryByTestId("chartMore-back")).not.toBeInTheDocument()
+  })
+
+  it("moves focus into the menu and between items with the arrow keys", async () => {
+    const { user } = await renderModern({ focused: true })
+    await openMenu(user)
+
+    expect(screen.getByTestId("chartMore-zoomIn")).toHaveFocus()
+
+    await user.keyboard("{ArrowDown}")
+    expect(screen.getByTestId("chartMore-zoomOut")).toHaveFocus()
+
+    await user.keyboard("{ArrowUp}{ArrowUp}")
+    expect(screen.getByTestId("chartMore-reload")).toHaveFocus()
+
+    await user.keyboard("{Home}")
+    expect(screen.getByTestId("chartMore-zoomIn")).toHaveFocus()
   })
 
   it("opens the existing settings on the chosen tab", async () => {
@@ -350,6 +667,53 @@ const renderLoaded = async (attributes, payload, props = { hasFilters: true }) =
   })
   return { ...result, chart }
 }
+
+const sortItem = () => screen.queryByTestId("chartMore-sort")
+
+describe("Modern dimension sort item", () => {
+  it.each(["below", "table"])("is offered with the %s legend", async legendMode => {
+    const { user } = await renderModern({ focused: true, legendMode })
+    await openMenu(user)
+
+    expect(sortItem()).toBeInTheDocument()
+  })
+
+  it.each(["live", "direct", "hidden"])(
+    "is not offered with the %s legend, which ignores the sort",
+    async legendMode => {
+      const { user } = await renderModern({ focused: true, legendMode })
+      await openMenu(user)
+
+      expect(sortItem()).not.toBeInTheDocument()
+    }
+  )
+
+  it("is offered on bars, which sort their hover rows", async () => {
+    const { user } = await renderModern({ focused: true, chartLibrary: "bars" })
+    await openMenu(user)
+
+    expect(sortItem()).toBeInTheDocument()
+  })
+
+  it("is not offered on a heatmap", async () => {
+    const { user } = await renderModern({
+      focused: true,
+      legendMode: "below",
+      chartType: "heatmap",
+    })
+    await openMenu(user)
+
+    expect(sortItem()).not.toBeInTheDocument()
+  })
+
+  it("is not offered with a single dimension", async () => {
+    const { user } = await renderLoaded({ focused: true, legendMode: "below" }, manyPayload(1))
+    await openMenu(user)
+
+    expect(screen.getByTestId("chartMore-dimensions")).toBeInTheDocument()
+    expect(sortItem()).not.toBeInTheDocument()
+  })
+})
 
 const openDimensions = async user => {
   await openMenu(user)

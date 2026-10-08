@@ -1,7 +1,9 @@
 import React from "react"
-import { screen } from "@testing-library/react"
+import { screen, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { renderWithChart } from "@jest/testUtilities"
+import Fullscreen from "@/components/toolbox/fullscreen"
+import Information from "@/components/toolbox/information"
 import Header from "./index"
 
 describe("Header component", () => {
@@ -50,6 +52,28 @@ describe("Header flavours", () => {
     expect(screen.queryByTestId("chartHeaderToolbox-filters")).not.toBeInTheDocument()
     expect(screen.queryByTestId("chartAttention")).not.toBeInTheDocument()
   })
+
+  it.each(["default", "minimal"])(
+    "keeps the %s toolbox buttons for elements that declare a menu",
+    flavour => {
+      renderWithChart(<Header hasFilters />, {
+        attributes: {
+          title: "CPU Usage",
+          designFlavour: flavour,
+          focused: true,
+          toolboxProps: { drag: { "aria-roledescription": "draggable" } },
+          toolboxElements: [Fullscreen, Information, ConsumerAction],
+        },
+      })
+
+      const toolbox = screen.getByTestId("chartHeaderToolbox")
+      expect(within(toolbox).getByTestId("chartHeaderToolbox-fullscreen")).toBeEnabled()
+      expect(within(toolbox).getByTestId("chartHeaderToolbox-information")).toBeEnabled()
+      expect(within(toolbox).getByText("Consumer action")).toBeEnabled()
+      expect(screen.queryByTestId("chartHeaderToolbox-drag")).not.toBeInTheDocument()
+      expect(screen.queryByTestId("chartMoreMenu")).not.toBeInTheDocument()
+    }
+  )
 
   it("renders the modern header only for the modern flavour", () => {
     renderWithChart(<Header hasFilters />, {

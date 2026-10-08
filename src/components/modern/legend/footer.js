@@ -9,7 +9,6 @@ import {
   usePayload,
 } from "@/components/provider"
 import HeatmapColors from "@/components/line/legend/heatmapColors"
-import DimensionSort from "@/components/line/dimensionSort"
 import Expander from "@/components/line/footer/expander"
 import Drawer from "@/components/drawer"
 import Separator from "@/components/drawer/separator"
@@ -118,7 +117,6 @@ const Footer = () => {
           {mode !== "hidden" && <Time />}
         </Flex>
         <Flex alignItems="center" gap={2} flex={false}>
-          {readout && !isHeatmap && mode !== "hidden" && <DimensionSort padding={[0]} />}
           {expandable && <Expander />}
         </Flex>
       </Flex>
