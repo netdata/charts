@@ -109,6 +109,25 @@ export const getChartPayload = (chart, attrs = {}) => {
   }
 }
 
+export const getWeightsWindow = (chart, attrs = {}) => {
+  const attributes = { ...chart.getAttributes(), ...attrs }
+  const payload = getChartPayload(chart, attrs)
+  const window = {
+    after: Math.floor(attributes.highlightAfter || payload.after),
+    before: Math.floor(attributes.highlightBefore || payload.before),
+  }
+  if (
+    ["volume", "ks2"].includes(attributes.method || "volume") &&
+    window.after < 0 &&
+    window.before <= 0
+  ) {
+    const anchor = getLiveFetchBefore({ ...attributes, after: window.after, viewUpdateEvery: 0 })
+    if (Number.isFinite(anchor) && anchor > 0)
+      return { after: anchor + window.after, before: anchor + window.before }
+  }
+  return window
+}
+
 export const getChartDataRequestAttributes = (chart, attrs = {}) => ({
   ...chart.getAttributes(),
   ...attrs,
