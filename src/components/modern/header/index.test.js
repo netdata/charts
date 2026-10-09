@@ -132,9 +132,10 @@ describe("Modern header", () => {
     await renderModern({ focused: true })
 
     const header = screen.getByTestId("chartHeader")
-    const scopeLine = screen.getByTestId("chartScope").parentElement
-    expect(scopeLine.parentElement).toBe(header)
-    expect(within(scopeLine).queryByText("System load")).not.toBeInTheDocument()
+    const swap = screen.getByTestId("chartScopeSwap")
+    expect(swap.parentElement).toBe(header)
+    expect(within(swap).getByTestId("chartScope")).toBeInTheDocument()
+    expect(within(swap).queryByText("System load")).not.toBeInTheDocument()
   })
 
   it("overlays the toolbox on the title row instead of reserving space for it", async () => {
@@ -167,7 +168,7 @@ describe("Modern header", () => {
     expect(screen.queryByTestId("chartMoreMenu")).not.toBeInTheDocument()
   })
 
-  it("makes the title row the drag handle when the consumer passes drag props", async () => {
+  it("puts a lone drag handle at the top right and keeps the title out of it", async () => {
     let pointerDowns = 0
     const { user } = await renderModern({
       focused: true,
@@ -183,18 +184,41 @@ describe("Modern header", () => {
     })
 
     const handle = screen.getByTestId("chartHeaderToolbox-drag")
-    expect(within(handle).getByText("System load")).toBeInTheDocument()
+    expect(within(handle).queryByText("System load")).not.toBeInTheDocument()
     expect(within(handle).getByTestId("chartHeaderDrag-grip")).toBeInTheDocument()
+    expect(handle.parentElement.lastElementChild).toBe(handle)
+    expect(handle.compareDocumentPosition(screen.getByText("System load"))).toBe(
+      Node.DOCUMENT_POSITION_PRECEDING
+    )
     expect(handle).toHaveAttribute("aria-roledescription", "draggable")
     expect(handle).not.toHaveAttribute("dragging")
     expect(handle).toHaveStyle({ cursor: "grab" })
-    expect(within(handle).queryByTestId("chartHeaderToolbox-more")).not.toBeInTheDocument()
 
     fireEvent.pointerDown(screen.getByText("System load"))
+    expect(pointerDowns).toBe(0)
+
+    fireEvent.pointerDown(handle)
     expect(pointerDowns).toBe(1)
 
     await user.click(screen.getByTestId("chartScope"))
     expect(screen.getByTestId("chartFilters")).toBeInTheDocument()
+  })
+
+  it("shows the drag handle only while the chart is hovered or the handle has keyboard focus", async () => {
+    const { chart } = await renderModern({
+      focused: false,
+      toolboxProps: { drag: { dragging: false, tabIndex: 0 } },
+    })
+
+    const handle = screen.getByTestId("chartHeaderToolbox-drag")
+    expect(handle).toHaveStyle({ opacity: "0" })
+    const css = [...document.querySelectorAll("style")].map(style => style.textContent).join("")
+    expect(
+      [...handle.classList].some(name => css.includes(`.${name}:focus-visible{opacity:1;}`))
+    ).toBe(true)
+
+    act(() => chart.updateAttribute("focused", true))
+    expect(handle).toHaveStyle({ opacity: "1" })
   })
 
   it("shows the grabbing cursor while dragging", async () => {
@@ -232,7 +256,7 @@ describe("Modern header", () => {
     )
     expect(filters).toHaveTextContent("Hide filters")
     await user.click(filters)
-    expect(screen.queryByTestId("chartFilters")).not.toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByTestId("chartFilters")).not.toBeInTheDocument())
     expect(screen.queryByTestId("chartMoreMenu")).not.toBeInTheDocument()
 
     await openMenu(user)
@@ -881,6 +905,95 @@ describe("Modern dimensions", () => {
     expect(chart.getAttribute("selectedLegendDimensions")).toEqual([])
     expect(screen.queryByTestId("chartScope-hidden")).not.toBeInTheDocument()
     expect(chart.getAttribute("filtersOpen")).toBeFalsy()
+  })
+})
+
+describe("Modern filters in place of the scope line", () => {
+  const openFilters = async user => {
+    await user.click(screen.getByTestId("chartScope"))
+    return screen.findByTestId("chartFiltersRow")
+  }
+
+  it("swaps the scope line for the chip row in the same place and focuses the first chip", async () => {
+    const { user } = await renderModern({ focused: true })
+
+    const row = await openFilters(user)
+
+    const swap = screen.getByTestId("chartScopeSwap")
+    expect(within(swap).getByTestId("chartFilters")).toBeInTheDocument()
+    expect(row).toHaveAttribute("data-transition", "entering")
+    await waitFor(() => expect(within(swap).queryByTestId("chartScope")).not.toBeInTheDocument())
+    expect(row.querySelector("button:not([disabled])")).toHaveFocus()
+    expect(within(row).getByTestId("chartFilters-close")).toHaveAttribute(
+      "aria-label",
+      "Hide filters"
+    )
+  })
+
+  it("returns to the scope line from the close control and focuses the scope button", async () => {
+    const { user, chart } = await renderModern({ focused: true })
+    await openFilters(user)
+
+    await user.click(screen.getByTestId("chartFilters-close"))
+
+    expect(chart.getAttribute("filtersOpen")).toBe(false)
+    expect(screen.getByTestId("chartScope")).toHaveFocus()
+    await waitFor(() => expect(screen.queryByTestId("chartFiltersRow")).not.toBeInTheDocument())
+  })
+
+  it("closes the chip row on Escape", async () => {
+    const { user, chart } = await renderModern({ focused: true })
+    await openFilters(user)
+
+    await user.keyboard("{Escape}")
+
+    expect(chart.getAttribute("filtersOpen")).toBe(false)
+    expect(screen.getByTestId("chartScope")).toHaveFocus()
+  })
+
+  it("keeps the chip row open on Escape inside a chip dropdown", async () => {
+    const { user, chart } = await renderModern({ focused: true })
+    const row = await openFilters(user)
+    const nodes = within(row)
+      .getAllByRole("button")
+      .find(button => /^\d+ nodes?$/.test(button.textContent))
+    await user.click(nodes)
+    const dropdown = await screen.findByTestId("modern-filter-dropdown")
+
+    fireEvent.keyDown(dropdown, { key: "Escape" })
+
+    expect(chart.getAttribute("filtersOpen")).toBe(true)
+  })
+
+  it("toggles the chip row from the More menu", async () => {
+    const { user, chart } = await renderModern({ focused: true })
+
+    await openMenu(user)
+    await user.click(screen.getByTestId("chartMore-filters"))
+
+    expect(chart.getAttribute("filtersOpen")).toBe(true)
+    expect(await screen.findByTestId("chartFiltersRow")).toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByTestId("chartScope")).not.toBeInTheDocument())
+  })
+
+  it("survives repeated toggles without breaking the hook order", async () => {
+    const errors = []
+    const spy = jest.spyOn(console, "error").mockImplementation((...args) => {
+      errors.push(String(args[0]))
+    })
+    try {
+      const { user } = await renderModern({ focused: true })
+
+      for (let index = 0; index < 3; index += 1) {
+        await openFilters(user)
+        await user.click(screen.getByTestId("chartFilters-close"))
+        await waitFor(() => expect(screen.getByTestId("chartScope")).toBeInTheDocument())
+      }
+    } finally {
+      spy.mockRestore()
+    }
+
+    expect(errors.filter(message => /hooks/i.test(message))).toEqual([])
   })
 })
 

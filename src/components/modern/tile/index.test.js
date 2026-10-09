@@ -260,6 +260,83 @@ describe("modern tile revealed", () => {
     expect(screen.getByTestId("modernTile")).toHaveAttribute("data-revealed", "true")
   })
 
+  it("swaps the scope line for the chip row inside the tile header instead of a drop", async () => {
+    const { user } = await renderModern({ focused: true })
+
+    await user.click(screen.getByTestId("chartScope"))
+
+    const scopeRow = screen.getByTestId("modernTile-scope")
+    const row = await within(scopeRow).findByTestId("chartFiltersRow")
+    expect(within(row).getByTestId("chartFilters")).toBeInTheDocument()
+    expect(row.closest("[data-toolbox]")).toBeNull()
+    expect(row.querySelector("button:not([disabled])")).toHaveFocus()
+    await waitFor(() =>
+      expect(within(scopeRow).queryByTestId("chartScope")).not.toBeInTheDocument()
+    )
+    expect(getComputedStyle(scopeRow).visibility).toBe("visible")
+
+    await user.click(within(row).getByTestId("chartFilters-close"))
+
+    expect(within(scopeRow).getByTestId("chartScope")).toHaveFocus()
+    await waitFor(() => expect(screen.queryByTestId("chartFiltersRow")).not.toBeInTheDocument())
+  })
+
+  it("closes the in-place chip row on Escape", async () => {
+    const { user } = await renderModern({ focused: true })
+    await user.click(screen.getByTestId("chartScope"))
+    await screen.findByTestId("chartFiltersRow")
+
+    await user.keyboard("{Escape}")
+
+    expect(screen.getByTestId("chartScope")).toHaveFocus()
+    await waitFor(() => expect(screen.queryByTestId("chartFiltersRow")).not.toBeInTheDocument())
+  })
+
+  it("closes the in-place chip row on a click outside the tile", async () => {
+    const { user } = await renderModern({ focused: true })
+    await user.click(screen.getByTestId("chartScope"))
+    await screen.findByTestId("chartFiltersRow")
+
+    await user.click(document.body)
+
+    await waitFor(() => expect(screen.queryByTestId("chartFiltersRow")).not.toBeInTheDocument())
+  })
+
+  it("keeps the in-place chip row open while picking inside a chip dropdown", async () => {
+    const { user } = await renderModern({ focused: true })
+    await user.click(screen.getByTestId("chartScope"))
+    const row = await screen.findByTestId("chartFiltersRow")
+    const nodes = within(row)
+      .getAllByRole("button")
+      .find(button => /^\d+ nodes?$/.test(button.textContent))
+    await user.click(nodes)
+    const dropdown = await screen.findByTestId("modern-filter-dropdown")
+
+    await waitFor(() => expect(screen.queryByTestId("chartScope")).not.toBeInTheDocument())
+
+    await user.click(dropdown)
+
+    expect(screen.queryByTestId("chartScope")).not.toBeInTheDocument()
+  })
+
+  it("keeps the tile hovered while the pointer moves into a chip dropdown", async () => {
+    const { user, chart } = await renderModern({ focused: true })
+    await user.click(screen.getByTestId("chartScope"))
+    const row = await screen.findByTestId("chartFiltersRow")
+    const nodes = within(row)
+      .getAllByRole("button")
+      .find(button => /^\d+ nodes?$/.test(button.textContent))
+    await user.click(nodes)
+    const dropdown = await screen.findByTestId("modern-filter-dropdown")
+    act(() => chart.updateAttribute("focused", true))
+
+    fireEvent.mouseOut(screen.getByTestId("modernTile"), { relatedTarget: dropdown })
+    expect(chart.getAttribute("focused")).toBe(true)
+
+    fireEvent.mouseOut(screen.getByTestId("modernTile"), { relatedTarget: document.body })
+    expect(chart.getAttribute("focused")).toBe(false)
+  })
+
   it("does not open filters from the scope line when hasFilters is false", async () => {
     await renderModern({ focused: true }, { hasFilters: false })
 

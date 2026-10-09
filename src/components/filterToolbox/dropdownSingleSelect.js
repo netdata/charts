@@ -9,6 +9,7 @@ import Icon from "@/components/icon"
 import Tooltip from "@/components/tooltip"
 import Label from "./label"
 import ModernItem from "./modern/item"
+import usePrefersReducedMotion from "@/components/helpers/usePrefersReducedMotion"
 
 const getBackground = ({ theme }) => {
   const { name } = theme
@@ -111,10 +112,12 @@ const modernDropdownProps = {
 const DropdownSingleSelect = ({ labelProps, ...rest }) => {
   const id = useAttributeValue("id")
   const isModern = useIsModern()
+  const reducedMotion = usePrefersReducedMotion()
 
   return (
     <Menu
       {...rest}
+      animation={isModern && !reducedMotion}
       Item={isModern ? ModernItem : Item}
       dropProps={{
         align: { top: "bottom", left: "left" },

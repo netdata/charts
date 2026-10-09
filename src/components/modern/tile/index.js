@@ -1,6 +1,6 @@
-import React, { useRef, useState } from "react"
+import React, { useState } from "react"
 import styled, { css } from "styled-components"
-import { Box, Drop, Flex, getColor } from "@netdata/netdata-ui"
+import { Box, Flex, getColor } from "@netdata/netdata-ui"
 import {
   useAttributeValue,
   useChart,
@@ -9,8 +9,7 @@ import {
   useUnitSign,
 } from "@/components/provider"
 import useHover from "@/components/useHover"
-import FilterToolbox from "@/components/filterToolbox"
-import ScopeLine from "@/components/modern/header/scopeLine"
+import FiltersSwap from "@/components/modern/header/filtersSwap"
 import { radius } from "@/components/modern/tokens"
 import { TileContext } from "./context"
 import AlertDot, { useTileAlert } from "./alertDot"
@@ -170,7 +169,6 @@ const ModernTile = ({ children, customChildren, hasFilters = true, height, width
   const ownStatus = selfSignallingLibraries.has(chartLibrary)
   const tileAlert = useTileAlert()
   const alert = ownStatus ? null : tileAlert
-  const scopeRef = useRef()
   const [menuActive, setMenuActive] = useState(false)
   const [filtersOpen, setFiltersOpen] = useState(false)
 
@@ -219,34 +217,19 @@ const ModernTile = ({ children, customChildren, hasFilters = true, height, width
           )}
         </Header>
         <ScopeRow
-          ref={scopeRef}
           data-tile-scope
           isVisible={menuActive || filtersOpen || !!error}
           data-testid="modernTile-scope"
         >
-          <ScopeLine
+          <FiltersSwap
             hasFilters={hasFilters}
             open={filtersOpen}
             onToggle={() => setFiltersOpen(prev => !prev)}
+            onClose={closeFilters}
+            closeOnClickOutside
           />
         </ScopeRow>
       </HeadArea>
-      {hasFilters && filtersOpen && scopeRef.current && (
-        <Drop
-          target={scopeRef.current}
-          align={{ top: "bottom", left: "left" }}
-          onEsc={closeFilters}
-          onClickOutside={closeFilters}
-          data-toolbox={chart.getId()}
-          background="dropdown"
-          margin={[1, 0, 0]}
-          round
-          stretch={false}
-          width={{ max: "560px" }}
-        >
-          <FilterToolbox border="none" padding={[1]} />
-        </Drop>
-      )}
       {!!readout && <TileReadout dimensionId={readout.dimensionId} />}
       <TileContext.Provider value>
         <Flex

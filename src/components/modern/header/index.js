@@ -4,9 +4,8 @@ import { Flex } from "@netdata/netdata-ui"
 import rearrange from "@netdata/netdata-ui/dist/components/icon/assets/rearrange.svg"
 import Icon from "@/components/icon"
 import { useAttribute, useAttributeValue } from "@/components/provider"
-import FilterToolbox from "@/components/filterToolbox"
 import ModernTitle from "./title"
-import ScopeLine from "./scopeLine"
+import FiltersSwap from "./filtersSwap"
 import Actions from "./actions"
 import Attention from "./attention"
 import AnomalyPill from "./anomalyPill"
@@ -16,51 +15,47 @@ import reducedMotion from "@/components/helpers/reducedMotion"
 
 const Grip = styled(Icon).attrs({
   svg: rearrange,
-  size: "12px",
+  size: "16px",
   color: "textLite",
   "aria-hidden": true,
   "data-testid": "chartHeaderDrag-grip",
 })`
   flex: none;
-  opacity: 0;
-  transition: opacity 120ms ease-in-out;
 `
 
-const DragRow = styled(Flex).attrs({
+const DragHandleBox = styled(Flex).attrs({
   alignItems: "center",
-  gap: 2,
-  flex: "shrink",
-  overflow: "hidden",
-  width: { min: "0px" },
+  justifyContent: "center",
+  flex: false,
   "data-testid": "chartHeaderToolbox-drag",
 })`
   touch-action: none;
+  transition: opacity 120ms ease-in-out;
 
-  &:hover ${Grip}, &:focus-visible ${Grip} {
+  &:focus-visible {
     opacity: 1;
   }
 
   ${reducedMotion("transition: none;")}
 `
 
-const TitleRow = ({ children }) => {
+const DragHandle = () => {
   const toolboxProps = useAttributeValue("toolboxProps")
+  const focused = useAttributeValue("focused")
   const drag = toolboxProps?.drag
 
-  if (!drag)
-    return (
-      <Flex alignItems="center" gap={2} flex="shrink" overflow="hidden" width={{ min: "0px" }}>
-        {children}
-      </Flex>
-    )
+  if (!drag) return null
 
   const { dragging, ...handleProps } = drag
 
   return (
-    <DragRow cursor={dragging ? "grabbing" : "grab"} {...handleProps}>
+    <DragHandleBox
+      cursor={dragging ? "grabbing" : "grab"}
+      opacity={focused || dragging ? 1 : 0}
+      {...handleProps}
+    >
       <Grip />
-      {children}
-    </DragRow>
+    </DragHandleBox>
   )
 }
 
@@ -73,6 +68,7 @@ const ModernHeader = ({ hasFilters = false }) => {
 
   const open = hasFilters && !!filtersOpen
   const toggleFilters = () => setFiltersOpen(prev => !prev)
+  const closeFilters = () => setFiltersOpen(false)
 
   if (sparkline) return null
 
@@ -88,12 +84,12 @@ const ModernHeader = ({ hasFilters = false }) => {
           overflow="hidden"
           width={{ min: "0px" }}
         >
-          <TitleRow>
+          <Flex alignItems="center" gap={2} flex="shrink" overflow="hidden" width={{ min: "0px" }}>
             {leftElements.map((Element, index) => (
               <Element key={index} />
             ))}
             {!hideTitle && <ModernTitle />}
-          </TitleRow>
+          </Flex>
           {hasToolbox && (
             <Actions hasFilters={hasFilters} filtersOpen={open} onToggleFilters={toggleFilters} />
           )}
@@ -102,10 +98,15 @@ const ModernHeader = ({ hasFilters = false }) => {
           {hasToolbox && <ZoomChip inline />}
           <AnomalyPill />
           <Attention />
+          <DragHandle />
         </Flex>
       </Flex>
-      <ScopeLine hasFilters={hasFilters} open={open} onToggle={toggleFilters} />
-      {open && <FilterToolbox />}
+      <FiltersSwap
+        hasFilters={hasFilters}
+        open={open}
+        onToggle={toggleFilters}
+        onClose={closeFilters}
+      />
     </Flex>
   )
 }
