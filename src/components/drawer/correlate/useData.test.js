@@ -19,6 +19,7 @@ describe("getCorrelationQueryAttributes", () => {
       })
     ).toEqual({
       ...timeRange,
+      baselineAfter: -300,
       method: "ks2",
       aggregationMethod: "median",
       options: ["anomaly-bit"],
@@ -32,6 +33,21 @@ describe("getCorrelationQueryAttributes", () => {
       selectedDimensions: [],
       selectedLabels: [],
     })
+  })
+
+  it.each([
+    [3599, 4],
+    [3600, 2],
+    [21599, 2],
+    [21600, 1],
+  ])("uses an adaptive baseline for a %s-second window", (duration, multiplier) => {
+    const attributes = getCorrelationQueryAttributes({
+      timeRange: { highlightAfter: 100000, highlightBefore: 100000 + duration },
+      method: "volume",
+      nodesScope: ["node-a"],
+    })
+    expect(attributes.baselineAfter).toBe(100000 - duration * multiplier)
+    expect(attributes.baselineBefore).toBe(100000)
   })
 
   it("does not add an empty data option", () => {

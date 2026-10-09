@@ -73,8 +73,8 @@ describe("fetchCloudWeights", () => {
     expect(payload.window.after).toBe(3000)
     expect(payload.window.before).toBe(4000)
     expect(payload.window.points).toBe(200)
-    expect(payload.window.baseline.after).toBe(3000)
-    expect(payload.window.baseline.before).toBe(4000)
+    expect(payload.window.baseline.after).toBe(-1000)
+    expect(payload.window.baseline.before).toBe(3000)
   })
 
   it("uses highlight window when provided with baseline fallback", async () => {
@@ -91,8 +91,8 @@ describe("fetchCloudWeights", () => {
 
     expect(payload.window.after).toBe(1500)
     expect(payload.window.before).toBe(1800)
-    expect(payload.window.baseline.after).toBe(1000)
-    expect(payload.window.baseline.before).toBe(2000)
+    expect(payload.window.baseline.after).toBe(300)
+    expect(payload.window.baseline.before).toBe(1500)
   })
 
   it("falls back to main range when no highlight provided", async () => {
@@ -107,8 +107,8 @@ describe("fetchCloudWeights", () => {
 
     expect(payload.window.after).toBe(3000)
     expect(payload.window.before).toBe(4000)
-    expect(payload.window.baseline.after).toBe(3000)
-    expect(payload.window.baseline.before).toBe(4000)
+    expect(payload.window.baseline.after).toBe(-1000)
+    expect(payload.window.baseline.before).toBe(3000)
   })
 
   it("handles weights-specific attributes", async () => {

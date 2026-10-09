@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from "react"
 import { useChart, useAttributeValue } from "@/components/provider"
 import { fetchChartWeights } from "@/sdk/makeChart/api"
+import { getWeightsBaseline } from "@/sdk/correlationBaseline"
 import { transformCorrelationData, groupByContext } from "./dataTransformer"
 
 export const getCorrelationQueryAttributes = ({
@@ -9,21 +10,32 @@ export const getCorrelationQueryAttributes = ({
   aggregation,
   dataType,
   nodesScope,
-}) => ({
-  ...timeRange,
-  method,
-  aggregationMethod: aggregation,
-  options: dataType ? [dataType] : [],
-  groupBy: ["node", "context", "dimension"],
-  groupByLabel: [],
-  contextScope: [],
-  nodesScope,
-  selectedContexts: [],
-  selectedNodes: [],
-  selectedInstances: [],
-  selectedDimensions: [],
-  selectedLabels: [],
-})
+}) => {
+  const baseline = getWeightsBaseline({
+    method,
+    after: timeRange.highlightAfter,
+    before: timeRange.highlightBefore,
+    baselineAfter: timeRange.baselineAfter,
+    baselineBefore: timeRange.baselineBefore,
+  })
+  return {
+    ...timeRange,
+    baselineAfter: baseline.after,
+    baselineBefore: baseline.before,
+    method,
+    aggregationMethod: aggregation,
+    options: dataType ? [dataType] : [],
+    groupBy: ["node", "context", "dimension"],
+    groupByLabel: [],
+    contextScope: [],
+    nodesScope,
+    selectedContexts: [],
+    selectedNodes: [],
+    selectedInstances: [],
+    selectedDimensions: [],
+    selectedLabels: [],
+  }
+}
 
 const useData = () => {
   const chart = useChart()
@@ -43,21 +55,11 @@ const useData = () => {
   const getTimeRange = () => {
     if (tab === "selectedArea" && overlays?.highlight?.range) {
       const [highlightAfter, highlightBefore] = overlays.highlight.range
-      const baselineDuration = highlightBefore - highlightAfter
-      const baselineAfter = highlightAfter - baselineDuration * 4
-      const baselineBefore = highlightAfter
-
       return {
         highlightAfter,
         highlightBefore,
-        baselineAfter,
-        baselineBefore,
       }
     }
-
-    const windowDuration = before - after
-    const baselineAfter = after - windowDuration * 4
-    const baselineBefore = after
 
     if (after < 0) {
       const { renderedAt, fetchStartedAt } = chart.getAttributes()
@@ -65,16 +67,12 @@ const useData = () => {
       return {
         highlightAfter: now + after,
         highlightBefore: now + before,
-        baselineAfter: now + baselineAfter,
-        baselineBefore: now + baselineBefore,
       }
     }
 
     return {
       highlightAfter: after,
       highlightBefore: before,
-      baselineAfter,
-      baselineBefore,
     }
   }
 
