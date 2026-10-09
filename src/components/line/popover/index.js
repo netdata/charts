@@ -3,7 +3,7 @@ import ReactDOM from "react-dom"
 import DropContainer from "@netdata/netdata-ui/dist/components/drops/drop/container"
 import useDropElement from "@netdata/netdata-ui/dist/hooks/useDropElement"
 import { unregister } from "@/helpers/makeListeners"
-import { useChart, useIsModern } from "@/components/provider"
+import { useAttributeValue, useChart, useIsModern } from "@/components/provider"
 import ModernTooltip from "@/components/modern/legend/tooltip"
 import Dimensions from "./dimensions"
 
@@ -71,6 +71,7 @@ const getObservedSize = entry => {
 
 const Popover = ({ uiName }) => {
   const chart = useChart()
+  const chartLibrary = useAttributeValue("chartLibrary")
   const dropRef = useRef()
   const alignRef = useRef(rightBottomAlign)
   const frameRef = useRef(null)
@@ -157,7 +158,7 @@ const Popover = ({ uiName }) => {
       close()
       off()
     }
-  }, [chart, uiName])
+  }, [chart, chartLibrary, uiName])
 
   useLayoutEffect(() => {
     const drop = dropRef.current

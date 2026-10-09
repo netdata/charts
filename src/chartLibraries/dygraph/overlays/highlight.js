@@ -20,6 +20,8 @@ export default (chartUI, id) => {
   trigger(chartUI, id, area)
 
   ctx.save()
+  const opacity = chartUI.chart.getAttribute("highlightOpacity")
+  if (Number.isFinite(opacity)) ctx.globalAlpha *= Math.max(0, Math.min(1, opacity))
   ctx.beginPath()
 
   ctx.rect(from, 0, width, h - 1)

@@ -1,10 +1,12 @@
-import { getChartURLOptions, getChartPayload } from "./helpers"
+import { getChartURLOptions, getChartPayload, getWeightsWindow } from "./helpers"
+import { getWeightsBaseline } from "@/sdk/correlationBaseline"
 
 const wildcardArray = ["*"]
 
 const getPayload = (chart, attrs = {}) => {
   const chartAttributes = chart.getAttributes()
   const { after, before, points, time_group, time_resampling } = getChartPayload(chart, attrs)
+  const weightsWindow = getWeightsWindow(chart, attrs)
 
   const {
     selectedContexts,
@@ -20,8 +22,6 @@ const getPayload = (chart, attrs = {}) => {
     groupByLabel,
     options = getChartURLOptions(chart),
     method,
-    highlightAfter,
-    highlightBefore,
     baselineAfter,
     baselineBefore,
   } = { ...chartAttributes, ...attrs }
@@ -61,13 +61,14 @@ const getPayload = (chart, attrs = {}) => {
       ],
     },
     window: {
-      after: Math.floor(highlightAfter || after),
-      before: Math.floor(highlightBefore || before),
+      ...weightsWindow,
       points,
-      baseline: {
-        after: Math.floor(baselineAfter || after),
-        before: Math.floor(baselineBefore || before),
-      },
+      baseline: getWeightsBaseline({
+        method,
+        ...weightsWindow,
+        baselineAfter: baselineAfter || after,
+        baselineBefore: baselineBefore || before,
+      }),
     },
     scope: {
       nodes: Array.isArray(nodesScope) && nodesScope.length ? nodesScope : [],

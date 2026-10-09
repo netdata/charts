@@ -921,6 +921,23 @@ export default (sdk, chart) => {
   }
 
   const drawOverlays = self => overlays && overlays.draw(self)
+
+  const afterUnderlay = self => {
+    const dpr = getPxRatio()
+    const { ctx, bbox } = self
+    ctx.save()
+    try {
+      ctx.scale(dpr, dpr)
+      chartUI.trigger(
+        "afterUnderlayCallback",
+        ctx,
+        { x: bbox.left / dpr, y: bbox.top / dpr, w: bbox.width / dpr, h: bbox.height / dpr },
+        self
+      )
+    } finally {
+      ctx.restore()
+    }
+  }
   const drawOverlayLabels = self => overlays && overlays.drawLabels(self)
 
   const setCursor = self => {
@@ -1148,10 +1165,13 @@ export default (sdk, chart) => {
       const min0 = u.scales.x.min
       const max0 = u.scales.x.max
       const unitsPerPx = u.posToVal(1, "x") - u.posToVal(0, "x")
+      let moved = false
 
       emitNav("panStart")
 
       const onMove = ev => {
+        if (!moved && Math.abs(ev.clientX - left0) < minDragPx) return
+        moved = true
         const dx = unitsPerPx * (ev.clientX - left0)
         xRangeOverride = [min0 - dx, max0 - dx]
         u.setScale("x", { min: min0 - dx, max: max0 - dx })
@@ -1166,7 +1186,7 @@ export default (sdk, chart) => {
         const [rangeMin, rangeMax] = xRangeOverride || [u.scales.x.min, u.scales.x.max]
         xRangeOverride = null
 
-        if (emit) emitNav("panEnd", [rangeMin * 1000, rangeMax * 1000])
+        if (emit && moved) emitNav("panEnd", [rangeMin * 1000, rangeMax * 1000])
         else clearPanState()
       }
 
@@ -1236,6 +1256,9 @@ export default (sdk, chart) => {
       const row = chart.getClosestRow(rawMs)
       const snappedX = row === -1 ? null : u.data[0]?.[row]
       const xMs = snappedX == null ? rawMs : snappedX * 1000
+
+      chartUI.trigger("click", event, xMs, [])
+      if (chart.getAttribute("annotationsEnabled") === false) return
 
       annotate(offsetX, xMs)
 
@@ -1380,7 +1403,11 @@ export default (sdk, chart) => {
 
         const rect = over.getBoundingClientRect()
         const offsetX = touch.clientX - rect.left
-        chart.updateAttribute("clickX", [u.posToVal(offsetX, "x") * 1000, null])
+        if (offsetX < 0 || offsetX > rect.width) return
+        const xMs = u.posToVal(offsetX, "x") * 1000
+        chartUI.trigger("click", touch, xMs, [])
+        if (chart.getAttribute("annotationsEnabled") !== false)
+          chart.updateAttribute("clickX", [xMs, null])
         return
       }
 
@@ -1519,7 +1546,7 @@ export default (sdk, chart) => {
         axes: getAxes(),
         hooks: {
           setCursor: [setCursor],
-          drawClear: [drawOverlays, drawAnomalyShade],
+          drawClear: [drawOverlays, drawAnomalyShade, afterUnderlay],
           setSelect: [onSetSelect],
           draw: empty
             ? [fireYAxisChange]
@@ -1699,6 +1726,8 @@ export default (sdk, chart) => {
     return u.bbox.left / dpr + u.valToPos(timestampMs / 1000, "x")
   }
 
+  const getYCoord = value => (u ? u.bbox.top / getPxRatio() + u.valToPos(value, "y") : null)
+
   const instance = {
     ...chartUI,
     getChartWidth,
@@ -1710,6 +1739,7 @@ export default (sdk, chart) => {
     getXAxisRange,
     getPlotArea,
     getXCoord,
+    getYCoord,
   }
 
   overlays = makeOverlays(instance)
