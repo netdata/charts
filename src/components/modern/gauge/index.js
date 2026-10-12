@@ -31,7 +31,7 @@ import {
   unitFontSize,
 } from "./geometry"
 import { makeZones, zoneAt, alertSeverity, worstSeverity } from "./zones"
-import { ReadoutPills, useSkeletonColors } from "@/components/skeleton"
+import { Comet, ReadoutPills, useSkeletonColors } from "@/components/skeleton"
 
 const { cx, cy } = center
 const spark = { x: cx - 56, y: cy + 14, width: 112, height: 26 }
@@ -285,7 +285,8 @@ export const Dial = ({ uiName }) => {
 }
 
 export const Skeleton = () => {
-  const { track } = useSkeletonColors()
+  const { track, spark } = useSkeletonColors()
+  const d = arcPath(cx, cy, radius, startAngle, endAngle)
   return (
     <svg
       data-testid="modernGauge-skeleton"
@@ -293,13 +294,8 @@ export const Skeleton = () => {
       width="100%"
       height="100%"
     >
-      <path
-        d={arcPath(cx, cy, radius, startAngle, endAngle)}
-        stroke={track}
-        strokeWidth="8"
-        fill="none"
-        strokeLinecap="round"
-      />
+      <path d={d} stroke={track} strokeWidth="8" fill="none" strokeLinecap="round" />
+      <Comet d={d} width="8" color={spark} />
       <ReadoutPills cx={cx} cy={cy - 8} scale={2} color={track} />
     </svg>
   )

@@ -1,12 +1,66 @@
 import React, { useId } from "react"
+import styled, { keyframes } from "styled-components"
+import reducedMotion from "@/components/helpers/reducedMotion"
 import { useColor, useLoadingColor } from "@/components/provider"
 
 export const useSkeletonColors = () => {
   const track = useColor("themeSkeleton")
   const grid = useColor("themeSkeletonGrid")
+  const spark = useColor("themeSkeletonSpark")
   const loading = useLoadingColor("themeSkeleton")
 
-  return { track: loading === "themeSkeleton" ? track : loading, grid }
+  return { track: loading === "themeSkeleton" ? track : loading, grid, spark }
+}
+
+const sparkSeconds = 4.8
+
+const run = keyframes`
+  from { stroke-dashoffset: 100; }
+  to { stroke-dashoffset: 0; }
+`
+
+const glide = keyframes`
+  from { transform: translateX(-60px); }
+  to { transform: translateX(260px); }
+`
+
+const CometPath = styled.path`
+  animation: ${run} ${sparkSeconds}s linear infinite;
+  ${reducedMotion("opacity: 0;")}
+`
+
+const SweepBand = styled.rect`
+  animation: ${glide} ${sparkSeconds}s ease-in-out infinite;
+  ${reducedMotion("opacity: 0;")}
+`
+
+export const Comet = ({ d, width, color, nonScaling = false }) => {
+  if (!color) return null
+
+  const effect = nonScaling ? "non-scaling-stroke" : undefined
+
+  return (
+    <g fill="none" strokeLinecap="butt" pointerEvents="none" data-testid="skeleton-comet">
+      <CometPath
+        d={d}
+        stroke={color}
+        strokeOpacity="0.12"
+        strokeWidth={width}
+        pathLength="100"
+        strokeDasharray="16 84"
+        vectorEffect={effect}
+      />
+      <CometPath
+        d={d}
+        stroke={color}
+        strokeOpacity="0.3"
+        strokeWidth={width}
+        pathLength="100"
+        strokeDasharray="0 13 3 84"
+        vectorEffect={effect}
+      />
+    </g>
+  )
 }
 
 const useGradientId = () => `skeleton${useId().replace(/[^a-zA-Z0-9]/g, "")}`
@@ -34,7 +88,7 @@ const horizon = (() => {
 const gridLines = [1, 34, 67, 99]
 
 export const HorizonSkeleton = props => {
-  const { track, grid } = useSkeletonColors()
+  const { track, grid, spark } = useSkeletonColors()
   const id = useGradientId()
 
   return (
@@ -59,18 +113,36 @@ export const HorizonSkeleton = props => {
         strokeWidth="1.5"
         vectorEffect="non-scaling-stroke"
       />
+      <Comet d={horizon.line} width="1.5" color={spark} nonScaling />
     </svg>
   )
 }
 
 export const BlockSkeleton = props => {
-  const { track } = useSkeletonColors()
+  const { track, spark } = useSkeletonColors()
   const id = useGradientId()
+  const bandId = `${id}band`
+  const clipId = `${id}clip`
 
   return (
     <svg viewBox="0 0 200 100" preserveAspectRatio="none" {...props}>
       <FadeGradient id={id} color={track} />
+      <defs>
+        <linearGradient id={bandId} x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stopColor={spark} stopOpacity="0" />
+          <stop offset="0.5" stopColor={spark} stopOpacity="0.12" />
+          <stop offset="1" stopColor={spark} stopOpacity="0" />
+        </linearGradient>
+        <clipPath id={clipId}>
+          <rect width="200" height="100" rx="4" />
+        </clipPath>
+      </defs>
       <rect width="200" height="100" rx="4" fill={`url(#${id})`} />
+      {spark && (
+        <g clipPath={`url(#${clipId})`} data-testid="skeleton-sweep">
+          <SweepBand width="60" height="100" fill={`url(#${bandId})`} />
+        </g>
+      )}
     </svg>
   )
 }
@@ -108,19 +180,21 @@ export const ReadoutPills = ({ cx, cy, scale = 1, color }) => (
 )
 
 export const RingSkeleton = ({ gauge = false, thickness = 5, readout = true, ...props }) => {
-  const { track } = useSkeletonColors()
+  const { track, spark } = useSkeletonColors()
   const { from, to } = gauge ? gaugeArc : fullRing
   const r = 50 - thickness / 2 - 1
+  const d = arcPath(50, 50, r, from, to)
 
   return (
     <svg viewBox="0 0 100 100" {...props}>
       <path
-        d={arcPath(50, 50, r, from, to)}
+        d={d}
         fill="none"
         stroke={track}
         strokeWidth={thickness}
         strokeLinecap={gauge ? "round" : "butt"}
       />
+      <Comet d={d} width={thickness} color={spark} />
       {readout && <ReadoutPills cx={50} cy={gauge ? 48 : 46} scale={0.9} color={track} />}
     </svg>
   )

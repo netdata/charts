@@ -229,6 +229,7 @@ export default {
   themeNeutralBackground: ["#DBE1E1", "#353F3F"],
   themeSkeleton: ["#E8ECEC", "#1E2424"],
   themeSkeletonGrid: ["#EEF1F1", "#1A1F1F"],
+  themeSkeletonSpark: ["#FFFFFF", "#FFFFFF"],
   themeWarningBackground: ["#FFCC26", "#FFCC26"],
   themeErrorBackground: ["#F95251", "#F95251"],
 
