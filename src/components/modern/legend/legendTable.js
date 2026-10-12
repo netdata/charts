@@ -2,7 +2,13 @@ import React, { useLayoutEffect, useRef, useState } from "react"
 import styled from "styled-components"
 import { useVirtualizer } from "@tanstack/react-virtual"
 import { Box, Flex, getColor } from "@netdata/netdata-ui"
-import { useAttributeValue, useChart, useFormatTime } from "@/components/provider"
+import {
+  useAttributeValue,
+  useChart,
+  useFormatTime,
+  useInitialLoading,
+} from "@/components/provider"
+import { Bone } from "@/components/skeleton"
 import { useIsHeatmap } from "@/helpers/heatmap"
 import { tabularNumbers } from "@/components/modern/tokens"
 import { AnomalyBar, Flags, Unit as BaseUnit, onToggle } from "./parts"
@@ -114,6 +120,37 @@ const Cell = styled(Box).attrs({ as: "td" })`
   }
 `
 
+const SkeletonRow = styled(Box).attrs({
+  as: "tr",
+  border: { side: "top", color: "borderSecondary" },
+})`
+  height: ${tableRowHeight}px;
+`
+
+const skeletonNames = ["64%", "48%", "56%", "40%", "52%"]
+
+const LegendRowsSkeleton = () => (
+  <tbody data-testid="legendTableSkeleton">
+    {skeletonNames.map(width => (
+      <SkeletonRow key={width}>
+        <NameCell>
+          <Flex alignItems="center" gap={2}>
+            <Bone width={2} height={2} round={true} />
+            <Bone width={width} height={2} />
+          </Flex>
+        </NameCell>
+        {[0, 1, 2, 3].map(column => (
+          <Cell key={column}>
+            <Flex justifyContent="end">
+              <Bone width={8} height={2} />
+            </Flex>
+          </Cell>
+        ))}
+      </SkeletonRow>
+    ))}
+  </tbody>
+)
+
 const Spacer = ({ height }) =>
   height > 0 ? (
     <tr aria-hidden="true" data-testid="modernLegend-spacer" style={{ height: `${height}px` }} />
@@ -178,6 +215,7 @@ const LegendTable = () => {
   const chart = useChart()
   const sort = useAttributeValue("dimensionsSort")
   const isHeatmap = useIsHeatmap()
+  const initialLoading = useInitialLoading()
   const { ids, getRow, hovering, timestamp } = useLegendRows({ withStats: true, withRows: false })
   useClearFocusOnUnmount()
   const time = useFormatTime(timestamp)
@@ -220,54 +258,58 @@ const LegendTable = () => {
                 </SortHeader>
               </tr>
             </thead>
-            <tbody>
-              <Spacer height={before} />
-              {items
-                .map(item => getRow(ids[item.index]))
-                .map(row => (
-                  <Row
-                    key={row.id}
-                    isOff={!row.visible}
-                    onClick={onToggle(chart, row.id)}
-                    onMouseEnter={() => row.visible && focusDimension(chart, row.id)}
-                    onMouseLeave={() => focusDimension(chart, null)}
-                    data-track={chart.track(`dimension-${row.name}`)}
-                    data-dimension={row.id}
-                  >
-                    <NameCell title={row.name}>
-                      <Flex
-                        as="span"
-                        position="relative"
-                        alignItems="center"
-                        gap={2}
-                        width={{ min: "0px" }}
-                        color="inherit"
-                      >
-                        {!isHeatmap && <LineSwatch swatchColor={row.color} />}
-                        <NameText>{row.name}</NameText>
-                        {row.visible && <Flags flags={row.flags} />}
-                        {row.visible && row.arp > 0 && <AnomalyBar rate={row.arp} />}
-                      </Flex>
-                    </NameCell>
-                    <Cell isStrong>
-                      <Numeral>{row.visible ? row.display : "-"}</Numeral>
-                      {row.visible && !!row.unit && <Unit>{row.unit}</Unit>}
-                    </Cell>
-                    <Cell>
-                      <Numeral>{row.mean}</Numeral>
-                      {row.mean !== "-" && !!row.meanUnit && <Unit>{row.meanUnit}</Unit>}
-                    </Cell>
-                    <Cell>
-                      <Numeral>{row.max}</Numeral>
-                      {row.max !== "-" && !!row.maxUnit && <Unit>{row.maxUnit}</Unit>}
-                    </Cell>
-                    <Cell>
-                      <Numeral>{row.visible ? row.anomaly || "-" : "-"}</Numeral>
-                    </Cell>
-                  </Row>
-                ))}
-              <Spacer height={after} />
-            </tbody>
+            {initialLoading ? (
+              <LegendRowsSkeleton />
+            ) : (
+              <tbody>
+                <Spacer height={before} />
+                {items
+                  .map(item => getRow(ids[item.index]))
+                  .map(row => (
+                    <Row
+                      key={row.id}
+                      isOff={!row.visible}
+                      onClick={onToggle(chart, row.id)}
+                      onMouseEnter={() => row.visible && focusDimension(chart, row.id)}
+                      onMouseLeave={() => focusDimension(chart, null)}
+                      data-track={chart.track(`dimension-${row.name}`)}
+                      data-dimension={row.id}
+                    >
+                      <NameCell title={row.name}>
+                        <Flex
+                          as="span"
+                          position="relative"
+                          alignItems="center"
+                          gap={2}
+                          width={{ min: "0px" }}
+                          color="inherit"
+                        >
+                          {!isHeatmap && <LineSwatch swatchColor={row.color} />}
+                          <NameText>{row.name}</NameText>
+                          {row.visible && <Flags flags={row.flags} />}
+                          {row.visible && row.arp > 0 && <AnomalyBar rate={row.arp} />}
+                        </Flex>
+                      </NameCell>
+                      <Cell isStrong>
+                        <Numeral>{row.visible ? row.display : "-"}</Numeral>
+                        {row.visible && !!row.unit && <Unit>{row.unit}</Unit>}
+                      </Cell>
+                      <Cell>
+                        <Numeral>{row.mean}</Numeral>
+                        {row.mean !== "-" && !!row.meanUnit && <Unit>{row.meanUnit}</Unit>}
+                      </Cell>
+                      <Cell>
+                        <Numeral>{row.max}</Numeral>
+                        {row.max !== "-" && !!row.maxUnit && <Unit>{row.maxUnit}</Unit>}
+                      </Cell>
+                      <Cell>
+                        <Numeral>{row.visible ? row.anomaly || "-" : "-"}</Numeral>
+                      </Cell>
+                    </Row>
+                  ))}
+                <Spacer height={after} />
+              </tbody>
+            )}
           </Table>
         </Scroller>
         {fade && <Fade />}

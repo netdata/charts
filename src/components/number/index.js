@@ -3,6 +3,7 @@ import { Text } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
 import {
   useIsModern,
+  useInitialLoading,
   useLatestDisplayValueWithUnit,
   useOnResize,
   useVisibleDimensionIds,
@@ -11,6 +12,7 @@ import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
 import FontSizer from "@/components/helpers/fontSizer"
 import ModernNumber from "@/components/modern/number"
+import { NumberSkeleton } from "@/components/skeleton"
 
 export const Value = props => {
   const { width, height } = useOnResize()
@@ -55,6 +57,7 @@ export const Unit = props => {
 
 export const NumberChart = ({ uiName, ref, ...rest }) => {
   const isModern = useIsModern()
+  const initialLoading = useInitialLoading()
 
   return (
     <ChartWrapper ref={ref}>
@@ -67,7 +70,11 @@ export const NumberChart = ({ uiName, ref, ...rest }) => {
         {...rest}
       >
         {isModern ? (
-          <ModernNumber uiName={uiName} />
+          initialLoading ? (
+            <NumberSkeleton />
+          ) : (
+            <ModernNumber uiName={uiName} />
+          )
         ) : (
           <>
             <Value />

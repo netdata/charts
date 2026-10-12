@@ -1,5 +1,6 @@
 import React, { useId } from "react"
 import styled, { keyframes } from "styled-components"
+import { Box, Flex } from "@netdata/netdata-ui"
 import reducedMotion from "@/components/helpers/reducedMotion"
 import { useColor, useLoadingColor } from "@/components/provider"
 
@@ -217,3 +218,75 @@ export const RingSkeleton = ({ gauge = false, thickness = 5, readout = true, ...
     </SkeletonSvg>
   )
 }
+
+const slide = keyframes`
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+`
+
+const Shine = styled(Box).attrs({ position: "absolute", top: 0, bottom: 0, left: 0, right: 0 })`
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, ${({ spark }) => spark}, transparent);
+  opacity: 0.12;
+  animation: ${slide} ${sparkSeconds}s ease-in-out infinite;
+  ${reducedMotion("display: none;")}
+`
+
+const BoneBase = styled(Box).attrs({ position: "relative", overflow: "hidden" })`
+  flex: none;
+  background: ${({ tone }) => tone};
+  transition: background-color ${colorEase};
+  ${reducedMotion("transition: none;")}
+`
+
+export const Bone = ({ round = 1, ...rest }) => {
+  const { track, spark } = useSkeletonColors()
+  return (
+    <BoneBase tone={track} round={round} {...rest}>
+      <Shine spark={spark} />
+    </BoneBase>
+  )
+}
+
+const barWidths = ["92%", "74%", "58%", "40%", "26%"]
+
+export const BarsSkeleton = () => (
+  <Flex column gap={1} padding={[1, 2]} width="100%" data-testid="barsSkeleton">
+    {barWidths.map(width => (
+      <Bone key={width} width={width} height={6} />
+    ))}
+  </Flex>
+)
+
+const nameWidths = ["68%", "52%", "60%", "44%", "56%", "38%"]
+
+export const TableRowsSkeleton = ({ columns = 4, rows = 6 }) => (
+  <Flex column gap={2} padding={[2, 0]} width="100%" data-testid="tableRowsSkeleton">
+    {nameWidths.slice(0, rows).map(width => (
+      <Flex key={width} alignItems="center" gap={3} height={5}>
+        <Bone width={2} height={2} round={true} />
+        <Flex flex>
+          <Bone width={width} height={2} />
+        </Flex>
+        {Array.from({ length: columns }, (_, index) => (
+          <Bone key={index} width={10} height={2} />
+        ))}
+      </Flex>
+    ))}
+  </Flex>
+)
+
+export const NumberSkeleton = () => (
+  <Flex
+    column
+    flex
+    alignItems="center"
+    justifyContent="center"
+    gap={2}
+    width="100%"
+    data-testid="numberSkeleton"
+  >
+    <Bone width="45%" height={12} round={2} />
+    <Bone width="20%" height={3} />
+  </Flex>
+)
