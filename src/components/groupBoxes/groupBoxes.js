@@ -2,9 +2,9 @@ import React, { memo, useRef } from "react"
 import { Box, Flex, TextMicro } from "@netdata/netdata-ui"
 import { useAttributeValue, useColor, useIsModern } from "@/components/provider"
 import Details from "@/components/details"
-import ModernGroupBoxWrapper from "@/components/modern/groupBoxes/wrapper"
 import GroupBox from "./groupBox"
 import useGroupBox from "./useGroupBox"
+import Treemap from "./treemap"
 import { BlockSkeleton } from "@/components/skeleton"
 
 export const SkeletonIcon = () => (
@@ -64,7 +64,7 @@ const GroupBoxWrapper = ({ uiName, subTree, data, label, groupedBy, hasMore }) =
   )
 }
 
-const GroupBoxes = ({ uiName }) => {
+const GroupBoxes = ({ uiName, fit }) => {
   const { data, tree } = useGroupBox(uiName)
   const ref = useRef()
 
@@ -75,9 +75,10 @@ const GroupBoxes = ({ uiName }) => {
   const [first, ...rest] = viewDimensions.grouped || []
 
   const isModern = useIsModern()
-  const Wrapper = isModern ? ModernGroupBoxWrapper : GroupBoxWrapper
 
   if (!loaded) return <SkeletonIcon />
+
+  if (isModern && !showingInfo) return <Treemap uiName={uiName} fit={fit} />
 
   return (
     <Flex
@@ -93,7 +94,7 @@ const GroupBoxes = ({ uiName }) => {
         <Details />
       ) : rest.length ? (
         Object.keys(tree).map(key => (
-          <Wrapper
+          <GroupBoxWrapper
             key={key}
             label={key}
             subTree={tree[key]}
@@ -104,7 +105,7 @@ const GroupBoxes = ({ uiName }) => {
           />
         ))
       ) : (
-        <Wrapper
+        <GroupBoxWrapper
           key={first}
           label={first}
           subTree={tree}

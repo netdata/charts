@@ -6,7 +6,7 @@ import { GroupBoxesContainer } from "@/components/groupBoxes"
 import drawBoxes from "@/components/groupBoxes/drawBoxes"
 import Labels from "@/components/groupBoxes/popover/labels"
 import makeHeatPayload from "../../../../fixtures/makeHeatPayload"
-import { pickStep, makeModernColor, getThreshold, modernBoxOptions } from "./scale"
+import { pickStep, makeModernColor, getThreshold } from "./scale"
 
 const makeChart = async (attributes = {}, mockData = makeHeatPayload()) => {
   const { chart } = makeTestChart({
@@ -93,42 +93,22 @@ describe("modern group boxes", () => {
   })
 
   describe("modern flavour", () => {
-    it("lays groups out as labelled rows", async () => {
+    it("fits the treemap to its boxes when the host passes no height", async () => {
       await renderBoxes({ designFlavour: "modern" })
-
-      const titles = screen.getAllByTestId("groupBoxWrapper-title").map(el => el.textContent)
-      expect(titles).toEqual(["prod-edge(24)", "prod-db(16)", "prod-jobs(16)", "staging(10)"])
-      expect(screen.getAllByTestId("groupBox")).toHaveLength(4)
+      expect(screen.getByTestId("groupBoxesTreemap-area")).toHaveStyle({ height: "192px" })
     })
 
-    it("draws rounded boxes from the sequential scale", () => {
-      const { chart } = makeTestChart({ attributes: { min: 0, max: 100 } })
-      chart.getRowDimensionValue = id => Number(id)
-      const el = document.createElement("canvas")
-      const boxes = drawBoxes(
-        chart,
-        el,
-        { onMouseenter: () => {}, onMouseout: () => {} },
-        modernBoxOptions(chart)
-      )
-      const iterator = boxes.update(["5", "50", "95"], null)
-      while (!iterator.next().done);
+    it("fills the host height when the host passes one", async () => {
+      await renderBoxes({ designFlavour: "modern" }, { height: "420px" })
+      expect(screen.getByTestId("groupBoxesTreemap-area").style.height).toBe("")
+    })
 
-      const events = boxes.getElement().getContext("2d").__getEvents()
-      expect(events.some(event => event.type === "quadraticCurveTo")).toBe(true)
-      expect(events.some(event => event.type === "fillRect")).toBe(false)
+    it("renders the treemap instead of labelled rows", async () => {
+      await renderBoxes({ designFlavour: "modern" })
 
-      const scale = chart.getThemeAttribute("themeGroupBoxesScale").map(c => c.toLowerCase())
-      const fills = events
-        .filter(event => event.type === "fillStyle")
-        .map(event => event.props.value.toLowerCase())
-      expect(fills).toEqual([scale[0], scale[3], scale[6]])
-
-      const ctx = el.getContext("2d")
-      boxes.activateBox(0)
-      expect(ctx.__getEvents().some(event => event.type === "strokeRect")).toBe(false)
-      expect(ctx.strokeStyle).toBe(chart.getThemeAttribute("themeLabelColor").toLowerCase())
-      boxes.clear()
+      expect(screen.getByTestId("groupBoxesTreemap")).toBeInTheDocument()
+      expect(screen.queryByTestId("groupBoxWrapper")).not.toBeInTheDocument()
+      expect(screen.getByTestId("groupBoxesTreemap-crumb-root")).toHaveTextContent("All66")
     })
 
     it("shows the scale legend and no threshold without one", async () => {
@@ -139,50 +119,10 @@ describe("modern group boxes", () => {
       expect(screen.queryByTestId("groupBox-legend-threshold")).not.toBeInTheDocument()
     })
 
-    it("highlights values at or above the threshold", async () => {
-      const { chart } = makeTestChart({ attributes: { min: 0, max: 100, groupBoxesThreshold: 90 } })
-      chart.getRowDimensionValue = id => Number(id)
-      const el = document.createElement("canvas")
-      const boxes = drawBoxes(
-        chart,
-        el,
-        { onMouseenter: () => {}, onMouseout: () => {} },
-        modernBoxOptions(chart)
-      )
-      const iterator = boxes.update(["89", "90", "99"], null)
-      while (!iterator.next().done);
-
-      const error = chart.getThemeAttribute("themeErrorBackground").toLowerCase()
-      const fills = boxes
-        .getElement()
-        .getContext("2d")
-        .__getEvents()
-        .filter(event => event.type === "fillStyle")
-        .map(event => event.props.value.toLowerCase())
-      expect(fills[0]).not.toBe(error)
-      expect(fills.slice(1)).toEqual([error, error])
-      boxes.clear()
-    })
-
     it("shows the threshold in the legend", async () => {
       await renderBoxes({ designFlavour: "modern", groupBoxesThreshold: 90 })
 
       expect(screen.getByTestId("groupBox-legend-threshold")).toHaveTextContent("≥ 90 %")
-    })
-
-    it("keeps the hover popover and outlines the hovered box", async () => {
-      await renderBoxes({ designFlavour: "modern" })
-
-      const [canvas] = screen.getAllByTestId("groupBox")
-      hoverFirstBox(canvas)
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 150))
-      })
-
-      expect(screen.getByTestId("chartPopover-labels")).toBeInTheDocument()
-      const events = canvas.getContext("2d").__getEvents()
-      expect(events.some(event => event.type === "stroke")).toBe(true)
-      expect(events.some(event => event.type === "strokeRect")).toBe(false)
     })
 
     it("dark theme uses the dark scale", async () => {
@@ -220,13 +160,6 @@ describe("modern group boxes", () => {
       expect(getColor(85)).toBe(chart.getThemeAttribute("themeErrorBackground"))
       expect(getColor(0)).toBe(scale[0])
       expect(getColor(79)).toBe(scale[5])
-    })
-
-    it("strokes the hovered box with the label colour", () => {
-      const { chart } = makeTestChart()
-      expect(modernBoxOptions(chart).getActiveStroke()).toBe(
-        chart.getThemeAttribute("themeLabelColor")
-      )
     })
   })
 
@@ -271,55 +204,10 @@ describe("modern group boxes", () => {
   })
 
   describe("box layout", () => {
-    const ids = Array.from({ length: 24 }, (_, index) => String(index))
-
-    const draw = (chart, options) => {
-      const el = document.createElement("canvas")
-      const entered = []
-      const boxes = drawBoxes(
-        chart,
-        el,
-        { onMouseenter: event => entered.push(event.index), onMouseout: () => {} },
-        options
-      )
-      const iterator = boxes.update(ids, null)
-      while (!iterator.next().done);
-      return { el, boxes, entered }
-    }
-
-    it("fills the available width in the modern flavour", () => {
-      const { chart } = makeTestChart()
-      const { el, boxes, entered } = draw(chart, {
-        ...modernBoxOptions(chart),
-        getAvailableWidth: () => 400,
-      })
-
-      expect(boxes.getElement().width).toBe(400)
-      expect(el.width).toBe(400)
-
-      const move = (x, y) => {
-        const event = new MouseEvent("mousemove", { bubbles: true })
-        Object.defineProperty(event, "offsetX", { value: x })
-        Object.defineProperty(event, "offsetY", { value: y })
-        el.dispatchEvent(event)
-      }
-      move(390, 5)
-      move(65, 25)
-      expect(entered).toEqual([19, 23])
-      boxes.clear()
-    })
-
-    it("keeps the aspect ratio without an available width", () => {
-      const { chart } = makeTestChart()
-      const { boxes } = draw(chart, modernBoxOptions(chart))
-
-      expect(boxes.getElement().width).toBe(140)
-      boxes.clear()
-    })
-
-    it("measures the row only in the modern flavour", async () => {
+    it("draws one treemap canvas instead of row tracks in the modern flavour", async () => {
       await renderBoxes({ designFlavour: "modern" })
-      expect(screen.getAllByTestId("groupBox-track")).toHaveLength(4)
+      expect(screen.queryByTestId("groupBox-track")).not.toBeInTheDocument()
+      expect(screen.getByTestId("groupBoxesTreemap-canvas")).toBeInTheDocument()
     })
 
     it("renders bare canvases in the default flavour", async () => {
@@ -364,11 +252,6 @@ describe("modern group boxes", () => {
       )
       return { ...result, chart, id }
     }
-
-    it("formats the modern hover value like the default popover", async () => {
-      await renderLabels("modern")
-      expect(screen.getByTestId("chartPopover-labels")).toHaveTextContent("42.57 %")
-    })
 
     it("keeps the default hover value as it was", async () => {
       await renderLabels("default")

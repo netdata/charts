@@ -1,15 +1,8 @@
 import React, { memo } from "react"
 import styled from "styled-components"
 import { Flex, TextMicro } from "@netdata/netdata-ui"
-import {
-  useChart,
-  useAttributeValue,
-  useValueWithUnit,
-  useIsModern,
-  useColor,
-} from "@/components/provider"
+import { useChart, useAttributeValue, useValueWithUnit, useColor } from "@/components/provider"
 import { BaseColorBar } from "@/components/line/dimensions/color"
-import { makeModernColor } from "@/components/modern/groupBoxes/scale"
 import Label from "./label"
 
 const Container = styled(Flex).attrs(props => ({
@@ -59,10 +52,7 @@ const Labels = ({ label, groupLabel, data, id, ref }) => {
     scaleByValue: true,
   })
 
-  const isModern = useIsModern()
-  const barColor = isModern
-    ? makeModernColor(chart)(min, max)(value)
-    : chart.getThemeAttribute("themeGroupBoxesMax")
+  const barColor = chart.getThemeAttribute("themeGroupBoxesMax")
 
   return (
     <Container

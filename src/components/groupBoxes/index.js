@@ -42,7 +42,7 @@ export const GroupBoxesContainer = ({ uiName, ref, ...rest }) => {
       {showHeader && <Header hasFilters={isModern && hasFilters} />}
       {showFilters && <FilterToolbox opacity={focused ? 1 : 0.7} />}
       <ChartContainer uiName={uiName} column gap={4} padding={[4, 2]}>
-        <GroupBoxes uiName={uiName} />
+        <GroupBoxes uiName={uiName} fit={rest.height === undefined} />
       </ChartContainer>
 
       {!showingInfo && <Footer />}

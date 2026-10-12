@@ -249,6 +249,8 @@ export default {
     ["#172230", "#1B3350", "#224B78", "#2C66A3", "#3F84D4", "#6FA6EE", "#A9CBF8"],
   ],
   groupBoxesThreshold: null,
+  groupBoxesFocus: [],
+  groupBoxesPinned: null,
 
   themeLoadingStart: ["#BFE5C6", "#2f5446"],
   themeNetdata: ["#00AB44", "#00AB44"],

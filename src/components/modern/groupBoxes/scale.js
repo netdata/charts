@@ -31,13 +31,3 @@ export const makeModernColor = chart => (min, max) => {
       ? thresholdColor
       : scale[pickStep(value, min, max, scale.length)]
 }
-
-export const modernBoxOptions = chart => ({
-  cellSize: 20,
-  cellPadding: 3,
-  radius: 3,
-  lineWidth: 2,
-  cellStroke: 2,
-  makeColor: makeModernColor(chart),
-  getActiveStroke: () => chart.getThemeAttribute("themeLabelColor"),
-})
