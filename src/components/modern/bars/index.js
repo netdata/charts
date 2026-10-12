@@ -1,6 +1,7 @@
 import React, { memo, useMemo } from "react"
 import styled from "styled-components"
-import { Box, Flex, TextMicro, TextSmall, getSizeBy } from "@netdata/netdata-ui"
+import { Box, Flex, TextMicro, TextSmall } from "@netdata/netdata-ui"
+import reducedMotion from "@/components/helpers/reducedMotion"
 import {
   useChart,
   useAttributeValue,
@@ -33,26 +34,21 @@ const getMaxRows = height => {
   return rows < 2 ? 2 : rows
 }
 
-const Row = styled(Box).attrs({ height: { min: 10 } })`
-  display: grid;
-  grid-template-columns: minmax(64px, 36%) minmax(0, 1fr) auto;
-  gap: ${getSizeBy(2)};
-  align-items: center;
-`
-
-const Fill = styled(Box).attrs({ height: "100%", round: 1 })`
+const Fill = styled(Box).attrs({ position: "absolute", round: 1 })`
+  top: 0;
+  bottom: 0;
+  left: 0;
+  pointer-events: none;
   background: ${({ fillColor }) => fillColor};
   transition: width 150ms ease-out;
+  ${reducedMotion("transition: none;")}
 `
 
 const getPercent = (value, min, max) => {
-  const minAbs = Math.abs(min)
-  const maxAbs = Math.abs(max)
-  const from = max > 0 ? (min < 0 ? 0 : min) : maxAbs
-  const to = maxAbs > minAbs ? maxAbs : minAbs
-  if (!value || to === from) return 0
-  const percent = ((Math.abs(value) - from) * 100) / (to - from)
-  return percent < 0 ? 0 : percent > 100 ? 100 : percent
+  const to = Math.max(Math.abs(min) || 0, Math.abs(max) || 0)
+  if (!value || !to) return 0
+  const percent = (Math.abs(value) * 100) / to
+  return percent > 100 ? 100 : percent
 }
 
 const Bar = ({ id, emphasis }) => {
@@ -62,20 +58,12 @@ const Bar = ({ id, emphasis }) => {
   const max = useAttributeValue("max")
 
   return (
-    <Box
-      height="8px"
-      round={1}
-      overflow="hidden"
-      background="borderSecondary"
-      data-testid="modern-bars-track"
-    >
-      <Fill
-        fillColor={chart.selectDimensionColor(id)}
-        opacity={emphasis ? 1 : 0.6}
-        style={{ width: `${getPercent(value, min, max)}%` }}
-        data-testid="modern-bars-fill"
-      />
-    </Box>
+    <Fill
+      fillColor={chart.selectDimensionColor(id)}
+      opacity={emphasis ? 0.24 : 0.16}
+      style={{ width: `${getPercent(value, min, max)}%` }}
+      data-testid="modern-bars-fill"
+    />
   )
 }
 
@@ -141,12 +129,22 @@ const BarRow = ({ id, rank, strong, fullCols }) => {
   const visible = useVisibleDimensionId(id)
 
   return (
-    <Row opacity={visible ? 1 : 0.45} data-testid="modern-bars-row">
-      <TextSmall color="text" strong={strong} truncate title={chart.getDimensionName(id)}>
-        {chart.getDimensionName(id)}
-      </TextSmall>
+    <Flex
+      position="relative"
+      alignItems="center"
+      gap={2}
+      padding={[0, 1]}
+      height={{ min: 10 }}
+      opacity={visible ? 1 : 0.45}
+      data-testid="modern-bars-row"
+    >
       <Bar id={id} emphasis={rank === 0} />
-      <Flex alignItems="center" justifyContent="end" gap={1}>
+      <Flex position="relative" flex overflow="hidden">
+        <TextSmall color="text" strong={strong} truncate title={chart.getDimensionName(id)}>
+          {chart.getDimensionName(id)}
+        </TextSmall>
+      </Flex>
+      <Flex position="relative" flex={false} alignItems="center" justifyContent="end" gap={1}>
         {visible && <DisplayValue id={id} strong={strong || rank === 0} />}
         {fullCols && (
           <Value
@@ -159,7 +157,7 @@ const BarRow = ({ id, rank, strong, fullCols }) => {
         )}
         {fullCols && <Value id={id} visible={visible} valueKey="pa" Component={Annotations} />}
       </Flex>
-    </Row>
+    </Flex>
   )
 }
 

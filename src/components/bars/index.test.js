@@ -188,5 +188,54 @@ describe("BarsChart", () => {
 
       expect(screen.queryByText("12.50%")).not.toBeInTheDocument()
     })
+
+    it("tints the whole row behind the label and value, without a separate track", async () => {
+      await renderBars({ designFlavour: "modern" })
+
+      expect(screen.queryByTestId("modern-bars-track")).not.toBeInTheDocument()
+      screen.getAllByTestId("modern-bars-row").forEach(row => {
+        const fill = within(row).getByTestId("modern-bars-fill")
+        expect(fill.parentElement).toBe(row)
+        expect(fill).toHaveStyle({ position: "absolute", top: "0px", bottom: "0px", left: "0px" })
+        expect(row).toHaveStyle({ position: "relative" })
+        expect(row).not.toHaveStyle({ display: "grid" })
+      })
+    })
+
+    it("measures the fill from zero, so near-equal values get near-equal large fills", async () => {
+      await renderBars(
+        { designFlavour: "modern" },
+        makePayload({
+          context: "test.apps.cpu",
+          title: "Top processes by CPU",
+          unit: "percentage",
+          dimensions: [
+            { id: "envoy", values: flat(2.8886) },
+            { id: "node", values: flat(2.8881) },
+          ],
+        })
+      )
+
+      const widths = screen
+        .getAllByTestId("modern-bars-fill")
+        .map(fill => parseFloat(fill.style.width))
+      expect(widths[0]).toBeCloseTo(100, 1)
+      expect(widths[1]).toBeGreaterThan(99.9)
+      expect(widths[0] - widths[1]).toBeLessThan(0.1)
+    })
+
+    it("tints the emphasised top row stronger than the others", async () => {
+      await renderBars({ designFlavour: "modern" })
+
+      const [top, ...rest] = screen
+        .getAllByTestId("modern-bars-fill")
+        .map(fill => parseFloat(getComputedStyle(fill).opacity))
+      expect(top).toBeGreaterThan(0)
+      expect(top).toBeLessThanOrEqual(0.3)
+      rest.forEach(opacity => {
+        expect(opacity).toBeGreaterThanOrEqual(0.15)
+        expect(opacity).toBeLessThan(top)
+      })
+    })
   })
 })
