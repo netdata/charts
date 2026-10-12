@@ -5,8 +5,8 @@ const W = 200
 const H = 110
 
 const tone = {
-  light: { track: "#E8ECEC", line: "#EEF1F1", dot: "#DCE2E3" },
-  dark: { track: "#1E2424", line: "#1A1F1F", dot: "#283030" },
+  light: { track: "#E8ECEC", line: "#EEF1F1", dot: "#DCE2E3", spark: "#C9D2D4" },
+  dark: { track: "#1E2424", line: "#1A1F1F", dot: "#283030", spark: "#3A4646" },
 }
 
 const polar = (cx, cy, r, angle) => [cx + r * Math.cos(angle), cy + r * Math.sin(angle)]
@@ -215,7 +215,97 @@ const Dots = ({ type, c, id }) => {
   )
 }
 
-const variants = { outline: Outline, horizon: Horizon, dots: Dots }
+const sparkStrokes = {
+  line: () => [{ d: horizon.line, w: 1.5 }],
+  gauge: () => [{ d: arc(100, 62, 42, Math.PI * 0.75, Math.PI * 2.25), w: 6 }],
+  easyPie: () => [{ d: ring(100, 55, 40), w: 5 }],
+  donut: () => [{ d: ring(60, 55, 32), w: 12 }],
+  number: () => [{ d: "M20,80 C50,74 70,84 100,76 S150,70 180,78", w: 1.5 }],
+}
+
+const sparkStyles = `
+@keyframes sk-run { from { stroke-dashoffset: 100 } to { stroke-dashoffset: 0 } }
+@keyframes sk-band { from { transform: translateX(-80px) } to { transform: translateX(260px) } }
+.sk-run { animation: sk-run 3.6s linear infinite }
+.sk-run-head { animation: sk-run 3.6s linear infinite }
+.sk-band { animation: sk-band 3.6s ease-in-out infinite }
+@media (prefers-reduced-motion: reduce) {
+  .sk-run, .sk-run-head, .sk-band { animation: none; opacity: 0 }
+}
+`
+
+const Runner = ({ type, c, comet }) =>
+  (sparkStrokes[type]?.() || []).map(({ d, w }, index) => (
+    <g key={index} strokeLinecap="round" fill="none">
+      {comet && (
+        <path
+          d={d}
+          stroke={c.spark}
+          strokeOpacity="0.45"
+          strokeWidth={w}
+          pathLength="100"
+          strokeDasharray="16 84"
+          className="sk-run"
+        />
+      )}
+      <path
+        d={d}
+        stroke={c.spark}
+        strokeWidth={w}
+        pathLength="100"
+        strokeDasharray={comet ? "3 97" : "12 88"}
+        strokeDashoffset={comet ? "-13" : undefined}
+        className="sk-run-head"
+        style={comet ? { animationDelay: "0s" } : undefined}
+      />
+    </g>
+  ))
+
+const Sweep = ({ type, c, id }) => {
+  const band = `sk-band-${id}`
+  const mask = `sk-mask-${id}`
+  return (
+    <>
+      <defs>
+        <linearGradient id={band} x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stopColor="#000" />
+          <stop offset="0.5" stopColor="#fff" />
+          <stop offset="1" stopColor="#000" />
+        </linearGradient>
+        <mask id={mask}>
+          <rect x="0" y="0" width="80" height={H} fill={`url(#${band})`} className="sk-band" />
+        </mask>
+      </defs>
+      <g mask={`url(#${mask})`}>
+        <Horizon type={type} c={{ ...c, track: c.spark, line: c.spark }} id={`${id}-lit`} />
+      </g>
+    </>
+  )
+}
+
+const withSpark = Overlay => props => (
+  <>
+    <Horizon {...props} />
+    <Overlay {...props} />
+  </>
+)
+
+const Glide = withSpark(props =>
+  sparkStrokes[props.type] ? <Runner {...props} /> : <Sweep {...props} />
+)
+const Comet = withSpark(props =>
+  sparkStrokes[props.type] ? <Runner {...props} comet /> : <Sweep {...props} />
+)
+const SweepAll = withSpark(Sweep)
+
+const variants = {
+  outline: Outline,
+  horizon: Horizon,
+  dots: Dots,
+  glide: Glide,
+  comet: Comet,
+  sweep: SweepAll,
+}
 
 const types = [
   { type: "line", title: "CPU utilization" },
@@ -242,6 +332,21 @@ export const ideas = [
     id: "dots",
     name: "B3. Graph paper",
     note: "A fine dot grid fills the chart's shape. Texture, not a fake value.",
+  },
+  {
+    id: "glide",
+    name: "B2 + A. Glide",
+    note: "A short soft light travels along each skeleton line; blocks get the sweep.",
+  },
+  {
+    id: "comet",
+    name: "B2 + B. Comet",
+    note: "Same path, a bright head with a fading tail.",
+  },
+  {
+    id: "sweep",
+    name: "B2 + C. Sweep",
+    note: "One soft band crosses the whole skeleton, lighting every shape it passes.",
   },
 ]
 
@@ -276,6 +381,7 @@ export const SkeletonMockups = ({ theme = "dark", only }) => {
 
   return (
     <div style={{ background: palette.ground, padding: 24, minHeight: "100vh", fontFamily: font }}>
+      <style>{sparkStyles}</style>
       {shown.map(idea => {
         const Variant = variants[idea.id]
         return (

@@ -11,7 +11,10 @@ export const Skeletons = ({ theme, only }) => (
 Skeletons.args = { theme: "dark", only: "all" }
 Skeletons.argTypes = {
   theme: { control: "radio", options: ["dark", "light"] },
-  only: { control: "radio", options: ["all", "outline", "horizon", "dots"] },
+  only: {
+    control: "radio",
+    options: ["all", "outline", "horizon", "dots", "glide", "comet", "sweep"],
+  },
 }
 
 export default {
