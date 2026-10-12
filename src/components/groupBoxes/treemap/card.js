@@ -15,6 +15,25 @@ import SparklineCanvas from "@/components/drawer/correlate/sparklineCanvas"
 import { getBoxDetails } from "./details"
 import { getDrillFilters, applyDrillFilter } from "./filters"
 
+const ActionButton = styled(Button).attrs(({ label }) => ({
+  flavour: "borderless",
+  neutral: true,
+  textTransform: "none",
+  title: label,
+}))`
+  && {
+    max-width: 100%;
+    min-width: 0;
+    justify-content: flex-start;
+  }
+
+  && > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+`
+
 const ValueNumeral = styled(TextBigger)`
   ${numerals}
 `
@@ -102,7 +121,7 @@ const BoxCard = ({
         </TextSmall>
       </Flex>
       <Flex alignItems="center" gap={3}>
-        <ValueNumeral strong data-testid="groupBoxCard-value">
+        <ValueNumeral strong whiteSpace="nowrap" data-testid="groupBoxCard-value">
           {convertedUnit ? `${convertedValue} ${convertedUnit}` : `${convertedValue}`}
         </ValueNumeral>
         <Flex flex>
@@ -153,30 +172,21 @@ const BoxCard = ({
           padding={[2, 0, 0]}
           data-testid="groupBoxCard-actions"
         >
-          <Flex gap={1}>
-            <Button
-              flavour="borderless"
-              neutral
-              textTransform="none"
+          <Flex gap={1} width="100%">
+            <ActionButton
               label={path.length ? `Zoom into ${groupName}` : "Zoom in"}
               disabled={!path.length || path.join(",") === focus.join(",")}
               onClick={() => onZoom(path)}
             />
-            <Button
-              flavour="borderless"
-              neutral
-              textTransform="none"
+            <ActionButton
               label="Zoom out"
               disabled={!focus.length}
               onClick={() => onZoom(focus.slice(0, -1))}
             />
           </Flex>
           {filters.map(filter => (
-            <Button
+            <ActionButton
               key={filter.selector}
-              flavour="borderless"
-              neutral
-              textTransform="none"
               label={filter.label}
               onClick={() => {
                 applyDrillFilter(chart, filter)
@@ -189,7 +199,7 @@ const BoxCard = ({
               .map(({ key, values }) => `${key}: ${values.join(", ")}`)
               .join("\n")}
           >
-            <Button flavour="borderless" neutral textTransform="none" label="Copy labels" />
+            <ActionButton label="Copy labels" />
           </CopyToClipboard>
         </Flex>
       )}

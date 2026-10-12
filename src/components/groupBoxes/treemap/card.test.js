@@ -115,6 +115,16 @@ describe("group boxes card", () => {
     expect(chart.getAttribute("selectedLabels")).toEqual(["group:prod-db"])
   })
 
+  it("keeps long action labels inside the card and the value on one line", async () => {
+    await renderPinned({ focus: [], zooms: [] })
+
+    const filter = button("Filter to group = prod-db")
+    expect(filter).toHaveAttribute("title", "Filter to group = prod-db")
+    expect(filter).toHaveStyle({ maxWidth: "100%" })
+    expect(filter.querySelector("span")).toHaveStyle({ textOverflow: "ellipsis" })
+    expect(screen.getByTestId("groupBoxCard-value")).toHaveStyle({ whiteSpace: "nowrap" })
+  })
+
   it("confirms the copy and keeps the card open", async () => {
     await renderPinned({ focus: [], zooms: [] })
 
