@@ -31,7 +31,7 @@ import {
   unitFontSize,
 } from "./geometry"
 import { makeZones, zoneAt, alertSeverity, worstSeverity } from "./zones"
-import { Comet, ReadoutPills, useSkeletonColors } from "@/components/skeleton"
+import { SkeletonSvg, Comet, ReadoutPills, useSkeletonColors } from "@/components/skeleton"
 
 const { cx, cy } = center
 const spark = { x: cx - 56, y: cy + 14, width: 112, height: 26 }
@@ -288,7 +288,7 @@ export const Skeleton = () => {
   const { track, spark } = useSkeletonColors()
   const d = arcPath(cx, cy, radius, startAngle, endAngle)
   return (
-    <svg
+    <SkeletonSvg
       data-testid="modernGauge-skeleton"
       viewBox={`0 0 ${viewBox.width} ${viewBox.height}`}
       width="100%"
@@ -297,7 +297,7 @@ export const Skeleton = () => {
       <path d={d} stroke={track} strokeWidth="8" fill="none" strokeLinecap="round" />
       <Comet d={d} width="8" color={spark} />
       <ReadoutPills cx={cx} cy={cy - 8} scale={2} color={track} />
-    </svg>
+    </SkeletonSvg>
   )
 }
 

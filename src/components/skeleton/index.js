@@ -24,6 +24,24 @@ const glide = keyframes`
   to { transform: translateX(260px); }
 `
 
+const colorEase = "500ms linear"
+
+export const SkeletonSvg = styled.svg`
+  & path,
+  & rect,
+  & line {
+    transition:
+      fill ${colorEase},
+      stroke ${colorEase};
+  }
+
+  & stop {
+    transition: stop-color ${colorEase};
+  }
+
+  ${reducedMotion("& path, & rect, & line, & stop { transition: none; }")}
+`
+
 const CometPath = styled.path`
   animation: ${run} ${sparkSeconds}s linear infinite;
   ${reducedMotion("opacity: 0;")}
@@ -92,7 +110,7 @@ export const HorizonSkeleton = props => {
   const id = useGradientId()
 
   return (
-    <svg viewBox="0 0 200 100" preserveAspectRatio="none" {...props}>
+    <SkeletonSvg viewBox="0 0 200 100" preserveAspectRatio="none" {...props}>
       <FadeGradient id={id} color={track} />
       {gridLines.map(y => (
         <line
@@ -114,7 +132,7 @@ export const HorizonSkeleton = props => {
         vectorEffect="non-scaling-stroke"
       />
       <Comet d={horizon.line} width="1.5" color={spark} nonScaling />
-    </svg>
+    </SkeletonSvg>
   )
 }
 
@@ -125,7 +143,7 @@ export const BlockSkeleton = props => {
   const clipId = `${id}clip`
 
   return (
-    <svg viewBox="0 0 200 100" preserveAspectRatio="none" {...props}>
+    <SkeletonSvg viewBox="0 0 200 100" preserveAspectRatio="none" {...props}>
       <FadeGradient id={id} color={track} />
       <defs>
         <linearGradient id={bandId} x1="0" x2="1" y1="0" y2="0">
@@ -143,7 +161,7 @@ export const BlockSkeleton = props => {
           <SweepBand width="60" height="100" fill={`url(#${bandId})`} />
         </g>
       )}
-    </svg>
+    </SkeletonSvg>
   )
 }
 
@@ -186,7 +204,7 @@ export const RingSkeleton = ({ gauge = false, thickness = 5, readout = true, ...
   const d = arcPath(50, 50, r, from, to)
 
   return (
-    <svg viewBox="0 0 100 100" {...props}>
+    <SkeletonSvg viewBox="0 0 100 100" {...props}>
       <path
         d={d}
         fill="none"
@@ -196,6 +214,6 @@ export const RingSkeleton = ({ gauge = false, thickness = 5, readout = true, ...
       />
       <Comet d={d} width={thickness} color={spark} />
       {readout && <ReadoutPills cx={50} cy={gauge ? 48 : 46} scale={0.9} color={track} />}
-    </svg>
+    </SkeletonSvg>
   )
 }
