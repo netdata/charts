@@ -1,45 +1,32 @@
 import React from "react"
-import styled from "styled-components"
-import { Flex, TextSmall, TextMicro, Pill, getColor } from "@netdata/netdata-ui"
-import Color from "@/components/line/dimensions/color"
-import { useChart } from "@/components/provider"
-import { numeralsFont, tabularNumbers } from "@/components/modern/tokens"
+import { Flex, Box, TextSmall, TextMicro } from "@netdata/netdata-ui"
+import Units from "@/components/line/dimensions/units"
+import { useChart, useConverted } from "@/components/provider"
+import { LineSwatch } from "@/components/modern/swatch"
+import { SmallNumeral } from "@/components/modern/numerals"
+import { Dot } from "@/components/modern/dot"
+import { radius } from "@/components/modern/tokens"
 import Label from "../label"
 import { useMetricsByValue } from "../columns"
 import { formatPercent, clampPercent } from "./format"
 
-export const Numeral = styled(TextMicro)`
-  font-family: ${numeralsFont};
-  ${tabularNumbers}
-  white-space: nowrap;
-`
+const Head = ({ children, align = "start" }) => (
+  <Flex justifyContent={align} alignItems="center" gap={1} width="100%" overflow="hidden">
+    <TextMicro color="textDescription" whiteSpace="nowrap" truncate>
+      {children}
+    </TextMicro>
+  </Flex>
+)
 
-const ShareText = styled(Numeral)`
-  width: 36px;
-  flex-shrink: 0;
-  text-align: right;
-`
+const NumericHead = ({ children }) => <Head align="end">{children}</Head>
 
-const Track = styled.span`
-  flex: 1;
-  height: 5px;
-  min-width: 24px;
-  border-radius: 3px;
-  background: ${getColor("borderSecondary")};
-  overflow: hidden;
-`
-
-const Fill = styled.span`
-  display: block;
-  height: 100%;
-  border-radius: 3px;
-  background: ${getColor("textLite")};
-`
-
-const Head = ({ children }) => (
-  <TextMicro color="textDescription" whiteSpace="nowrap">
-    {children}
-  </TextMicro>
+const StatHead = ({ children }) => (
+  <Flex justifyContent="end" alignItems="baseline" gap={0.5} width="100%" overflow="hidden">
+    <TextMicro color="textDescription" whiteSpace="nowrap">
+      {children}
+    </TextMicro>
+    <Units visible color="textLite" />
+  </Flex>
 )
 
 const hasStats = row => !!row.original.info?.sts
@@ -48,7 +35,7 @@ const NameCell = ({ getValue, row, column }) => {
   const chart = useChart()
   const metricsByValue = useMetricsByValue(chart)
   const name = getValue()
-  const { fallbackExpandKey } = column.columnDef
+  const { fallbackExpandKey, showColor } = column.columnDef
 
   return (
     <Flex
@@ -59,7 +46,7 @@ const NameCell = ({ getValue, row, column }) => {
       width="100%"
     >
       <Flex gap={1} alignItems="center" overflow="hidden">
-        <Color id={name} />
+        {showColor && <LineSwatch swatchColor={chart.selectDimensionColor(name)} />}
         <TextSmall
           title={typeof name === "string" ? name : undefined}
           onClick={
@@ -104,11 +91,15 @@ const ShareCell = ({ getValue, row }) => {
   if (!hasStats(row)) return <TextSmall color="textLite">{value}</TextSmall>
 
   return (
-    <Flex alignItems="center" gap={1.5} width="100%" data-testid="modern-filter-share">
-      <Track>
-        <Fill style={{ width: `${clampPercent(value)}%` }} />
-      </Track>
-      <ShareText color="textDescription">{formatPercent(value)}</ShareText>
+    <Flex alignItems="center" gap={2} width="100%" data-testid="modern-filter-share">
+      <Flex flex height={1} round={radius.pill} background="borderSecondary" overflow="hidden">
+        <Box height="100%" width={`${clampPercent(value)}%`} background="textLite" />
+      </Flex>
+      <Flex flex={false} justifyContent="end" width={8}>
+        <SmallNumeral color="textDescription" whiteSpace="nowrap">
+          {formatPercent(value)}
+        </SmallNumeral>
+      </Flex>
     </Flex>
   )
 }
@@ -119,15 +110,37 @@ const AnomalyCell = ({ getValue, row }) => {
 
   return (
     <Flex justifyContent="end" width="100%" data-testid="modern-filter-anomaly">
-      <Numeral color={value ? "anomalyText" : "textLite"}>{formatPercent(value)}</Numeral>
+      <SmallNumeral color={value ? "anomalyText" : "textLite"} whiteSpace="nowrap">
+        {formatPercent(value)}
+      </SmallNumeral>
     </Flex>
   )
 }
 
-const alertPills = [
-  { key: "cr", flavour: "error", name: "critical" },
-  { key: "wr", flavour: "warning", name: "warning" },
-  { key: "cl", flavour: "clear", name: "clear", hollow: true },
+const StatCell = ({ getValue }) => {
+  const value = useConverted(getValue())
+
+  return (
+    <Flex justifyContent="end" width="100%">
+      <SmallNumeral color="textLite" whiteSpace="nowrap">
+        {value}
+      </SmallNumeral>
+    </Flex>
+  )
+}
+
+const CountCell = ({ getValue }) => (
+  <Flex justifyContent="end" width="100%">
+    <SmallNumeral color="textLite" whiteSpace="nowrap">
+      {getValue()}
+    </SmallNumeral>
+  </Flex>
+)
+
+const alertDots = [
+  { key: "cr", background: "error", name: "critical" },
+  { key: "wr", background: "warning", name: "warning" },
+  { key: "cl", background: "success", name: "clear" },
 ]
 
 const AlertsCell = ({ getValue, row }) => {
@@ -135,19 +148,19 @@ const AlertsCell = ({ getValue, row }) => {
   if (!al) return <TextSmall color="textLite">{getValue()}</TextSmall>
 
   return (
-    <Flex justifyContent="end" gap={0.5} width="100%" data-testid="modern-filter-alerts">
-      {alertPills.map(({ key, flavour, name, hollow }) =>
+    <Flex justifyContent="end" gap={2} width="100%" data-testid="modern-filter-alerts">
+      {alertDots.map(({ key, background, name }) =>
         al[key] ? (
-          <Pill
+          <Flex
             key={key}
-            flavour={flavour}
-            hollow={hollow}
-            tiny
+            alignItems="center"
+            gap={1}
             title={`${al[key]} ${name}`}
             data-testid={`modern-filter-alerts-${name}`}
           >
-            {al[key]}
-          </Pill>
+            <Dot background={background} />
+            <SmallNumeral color="textDescription">{al[key]}</SmallNumeral>
+          </Flex>
         ) : null
       )}
     </Flex>
@@ -160,23 +173,40 @@ const plainHeaders = {
   metrics: "Metrics",
 }
 
-export const modernizeColumns = (columns, { nameHeader = "Name" } = {}) =>
+const statHeaders = {
+  min: "Min",
+  avg: "Avg",
+  max: "Max",
+  range: "Range",
+}
+
+const fixed = { fullWidth: false, numeric: true }
+
+export const modernizeColumns = (columns, { nameHeader = "Name", showColor = false } = {}) =>
   columns.map(column => {
     switch (column.id) {
       case "label":
-        return { ...column, header: () => <Head>{nameHeader}</Head>, cell: NameCell }
+        return {
+          ...column,
+          header: () => <Head>{nameHeader}</Head>,
+          cell: NameCell,
+          fullWidth: true,
+          showColor,
+        }
       case "contribution":
         return {
           ...column,
-          header: () => <Head>Share of volume</Head>,
+          ...fixed,
+          header: () => <NumericHead>Share of volume</NumericHead>,
           headerString: "Share of volume",
           cell: ShareCell,
-          size: 120,
+          size: 140,
         }
       case "anomalyRate":
         return {
           ...column,
-          header: () => <Head>Anomaly</Head>,
+          ...fixed,
+          header: () => <NumericHead>Anomaly</NumericHead>,
           headerString: "Anomaly",
           cell: AnomalyCell,
           size: 72,
@@ -184,17 +214,40 @@ export const modernizeColumns = (columns, { nameHeader = "Name" } = {}) =>
       case "alerts":
         return {
           ...column,
-          header: () => <Head>Alerts</Head>,
+          ...fixed,
+          header: () => <NumericHead>Alerts</NumericHead>,
           headerString: "Alerts",
           cell: AlertsCell,
-          size: 84,
+          size: 88,
+        }
+      case "unique":
+        return {
+          ...column,
+          ...fixed,
+          header: () => <NumericHead>{plainHeaders.unique}</NumericHead>,
+          headerString: plainHeaders.unique,
+          cell: CountCell,
+          size: 64,
+        }
+      case "instances":
+      case "metrics":
+        return {
+          ...column,
+          ...fixed,
+          numeric: false,
+          header: () => <Head>{plainHeaders[column.id]}</Head>,
+          headerString: plainHeaders[column.id],
+          size: 88,
         }
       default:
-        return plainHeaders[column.id]
+        return statHeaders[column.id]
           ? {
               ...column,
-              header: () => <Head>{plainHeaders[column.id]}</Head>,
-              headerString: plainHeaders[column.id],
+              ...fixed,
+              header: () => <StatHead>{statHeaders[column.id]}</StatHead>,
+              headerString: statHeaders[column.id],
+              cell: StatCell,
+              size: 80,
             }
           : column
     }

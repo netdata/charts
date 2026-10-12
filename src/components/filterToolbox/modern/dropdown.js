@@ -18,13 +18,19 @@ const Container = styled(Flex)`
     box-sizing: border-box;
   }
   [data-testid^="netdata-table-row"] {
-    border-bottom-color: transparent;
+    border-bottom-color: ${getColor("borderSecondary")};
+  }
+  [data-testid^="netdata-table-row"]:hover .row-content {
+    background: ${getColor("mainChartTboxHover")};
+  }
+  [data-testid="styled-checkbox"] {
+    background-color: transparent;
   }
 `
 
 export const modernMeta = (row, cell, index) => ({
   cellStyles: {
-    padding: [1, 2],
+    padding: cell?.columnDef?.numeric ? [1, 5, 1, 2] : [1, 2],
     ...(row.depth > 0 && { backgroundOpacity: 0.4 }),
     ...(row.depth > 0 && index === 0 && { border: { side: "left", size: "4px" } }),
   },
@@ -156,7 +162,10 @@ const ModernDropdown = ({
   const nameHeader = resourceName ? uppercase(chart.intl(resourceName)) : "Name"
   const pluralName = resourceName ? chart.intl(resourceName, { count: items.length }) : "options"
 
-  const modernColumns = useMemo(() => modernizeColumns(columns, { nameHeader }), [columns])
+  const modernColumns = useMemo(
+    () => modernizeColumns(columns, { nameHeader, showColor: resourceName === "dimension" }),
+    [columns, resourceName]
+  )
   const { toggleable, visibility, toggle } = useColumnVisibility(columns)
 
   const placeholder = `Search ${items.length} ${pluralName}`
@@ -221,9 +230,13 @@ const ModernDropdown = ({
           enableSubRowSelection={enableSubRowSelection}
           columnVisibility={visibility}
           coloredSortedColumn={false}
-          width={{ base: 250, max: "80vw" }}
+          width={{ min: 100, max: "80vw" }}
         />
-        {sidebar}
+        {!!sidebar && (
+          <Flex column flex={false} width={{ min: 50, max: 70 }} overflow={{ vertical: "auto" }}>
+            {sidebar}
+          </Flex>
+        )}
       </Flex>
 
       <Flex

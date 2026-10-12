@@ -210,12 +210,42 @@ describe("filter dropdowns, modern flavour", () => {
     expect(screen.getByText("env")).toBeInTheDocument()
   })
 
+  it("lists host label values with plain counts and selects them", async () => {
+    const { chart } = await openDropdown(Nodes, {
+      ...modern,
+      nodesById: {
+        "nd-prod-db-1": { labels: { env: "prod" } },
+        "nd-staging-1": { labels: { env: "staging" } },
+      },
+    })
+
+    expect(screen.getByText("prod")).toBeInTheDocument()
+    expect(screen.getByTestId("undefined-filters-env-count")).toHaveTextContent("2")
+    expect(screen.getByTestId("undefined-filters-prod-count")).toHaveTextContent("1")
+
+    fireEvent.click(screen.getByTestId("undefined-filters-checkbox-prod"))
+    await waitFor(() =>
+      expect(chart.getAttribute("selectedNodeLabelsFilter")).toEqual(["env|prod"])
+    )
+  })
+
   it("names the rows after the resource", async () => {
     await openDropdown(Dimensions, modern)
 
     expect(screen.getByPlaceholderText("Search 3 dimensions")).toBeInTheDocument()
     expect(screen.getByText("Dimension")).toBeInTheDocument()
     expect(screen.getByText("load15")).toBeInTheDocument()
+  })
+
+  it("shows colour swatches for dimensions only", async () => {
+    const { unmount } = await openDropdown(Dimensions, modern)
+    const dimensions = screen.getByTestId("modern-filter-dropdown")
+    expect(within(dimensions).getAllByTestId("modernLegend-swatch").length).toBeGreaterThan(0)
+    unmount()
+
+    await openDropdown(Nodes, modern)
+    const nodes = screen.getByTestId("modern-filter-dropdown")
+    expect(within(nodes).queryByTestId("modernLegend-swatch")).not.toBeInTheDocument()
   })
 
   it("offers the unique column for labels", async () => {
