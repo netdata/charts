@@ -237,5 +237,20 @@ describe("BarsChart", () => {
         expect(opacity).toBeLessThan(top)
       })
     })
+
+    it("keeps each row compact at 24px", async () => {
+      await renderBars({ designFlavour: "modern" })
+
+      screen.getAllByTestId("modern-bars-row").forEach(row => {
+        expect(row).toHaveStyle({ height: "24px" })
+      })
+    })
+
+    it("shows only the tint, with no end marker", async () => {
+      await renderBars({ designFlavour: "modern" })
+
+      expect(screen.queryByTestId("modern-bars-edge")).not.toBeInTheDocument()
+      expect(screen.getAllByTestId("modern-bars-fill").length).toBeGreaterThan(0)
+    })
   })
 })

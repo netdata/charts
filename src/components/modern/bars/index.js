@@ -134,7 +134,7 @@ const BarRow = ({ id, rank, strong, fullCols }) => {
       alignItems="center"
       gap={2}
       padding={[0, 1]}
-      height={{ min: 10 }}
+      height={rowHeight / 4}
       opacity={visible ? 1 : 0.45}
       data-testid="modern-bars-row"
     >
