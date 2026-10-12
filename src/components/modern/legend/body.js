@@ -2,11 +2,9 @@ import React, { useLayoutEffect, useRef, useState } from "react"
 import { Flex } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart, useImmediateListener } from "@/components/provider"
 import { unregister } from "@/helpers/makeListeners"
-import { getLegendLayout, resolveLegendMode } from "./mode"
+import { getLegendLayout, placeableLibraries, resolveLegendMode } from "./mode"
 import DirectLabels from "./directLabels"
 import LegendTable from "./legendTable"
-
-const placeableLibraries = { dygraph: true, uplot: true }
 
 const useWidth = ref => {
   const [width, setWidth] = useState(0)
@@ -34,7 +32,7 @@ const useWidth = ref => {
 const getCount = chart => chart.getDimensionIds()?.length || 0
 const getVisibleCount = chart => chart.getVisibleDimensionIds?.()?.length ?? getCount(chart)
 
-const useDimensionCounts = () => {
+export const useDimensionCounts = () => {
   const chart = useChart()
   const [count, setCount] = useState(() => getCount(chart))
   const [visibleCount, setVisibleCount] = useState(() => getVisibleCount(chart))

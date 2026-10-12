@@ -12,6 +12,16 @@ export const getLegendLayout = (legendLayout, chartLegendLayout) =>
 const directChartTypes = { line: true, area: true }
 const labelledModes = { direct: true, live: true }
 
+export const placeableLibraries = { dygraph: true, uplot: true }
+
+export const tooManyToLabel = visibleCount => visibleCount > maxLabelledSeries
+
+export const canPlaceLabels = ({ chartType = "line", canPlaceDirect = true }) =>
+  !!directChartTypes[chartType] && canPlaceDirect
+
+export const canShowLabels = ({ chartType, visibleCount, canPlaceDirect }) =>
+  !tooManyToLabel(visibleCount) && canPlaceLabels({ chartType, canPlaceDirect })
+
 export const resolveLegendMode = ({
   width,
   count,
@@ -29,8 +39,8 @@ export const resolveLegendMode = ({
   let mode = legendModes.includes(legendLayout) ? legendLayout : pickLegend({ width, count })
 
   if (heatmap && mode !== "hidden") mode = "below"
-  if (labelledModes[mode] && visibleCount > maxLabelledSeries) mode = "table"
-  if (labelledModes[mode] && (!directChartTypes[chartType] || !canPlaceDirect)) mode = "below"
+  if (labelledModes[mode] && tooManyToLabel(visibleCount)) mode = "table"
+  if (labelledModes[mode] && !canPlaceLabels({ chartType, canPlaceDirect })) mode = "below"
   if (mode === "below" && !hasFooter) mode = "hidden"
 
   return mode
