@@ -20,4 +20,23 @@ const Fullscreen = props => {
   )
 }
 
+Fullscreen.menu = {
+  id: "fullscreen",
+  group: "navigate",
+  order: 40,
+  useItem: ({ chart, onClose }) => {
+    const fullscreen = useAttributeValue("fullscreen")
+
+    return {
+      label: fullscreen ? "Exit full screen" : "Full screen",
+      testId: "chartMore-fullscreen",
+      track: "fullscreen",
+      onClick: () => {
+        chart.toggleFullscreen()
+        onClose()
+      },
+    }
+  },
+}
+
 export default Fullscreen

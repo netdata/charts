@@ -126,7 +126,7 @@ const DaysRange = ({ afterDate, beforeDate, after, before }) => {
   )
 }
 
-const Range = ({ after, before }) => {
+export const Range = ({ after, before }) => {
   const beforeDate = useFormatDate(before * 1000)
   const afterDate = useFormatDate(after * 1000)
 

@@ -53,6 +53,12 @@ const Button = styled.button.attrs(({ icon, hoverIndicator = true, padding = 0, 
         stroked ? getColor(color({ defaultColor, disabled }))({ theme }) : "none"};
     }
   }
+
+  &:focus-visible {
+    outline: 2px solid ${getColor("primary")};
+    outline-offset: 1px;
+    border-radius: 4px;
+  }
 `
 
 export default withTooltip(Button)

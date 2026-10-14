@@ -2,19 +2,22 @@ import EasyPie from "easy-pie-chart"
 import makeChartUI from "@/sdk/makeChartUI"
 import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
+import { isModernFlavour, sumRow, toPercentage } from "./ringValue"
 
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
   let easyPie = null
   let listeners
   let resizeObserver
+  let mounted = false
 
   let prevMin
   let prevMax
 
   const mount = element => {
-    if (easyPie) return
+    if (easyPie || mounted) return
 
+    mounted = true
     chartUI.mount(element)
 
     const theme = chart.getAttribute("theme")
@@ -31,13 +34,16 @@ export default (sdk, chart) => {
       })
     }
 
-    makeEasyPie()
+    if (!isModernFlavour(chart)) makeEasyPie()
 
     const reMake = () => {
-      const canvas = easyPie.renderer.getCanvas()
-      easyPie.renderer.clear()
-      element.removeChild(canvas)
-      makeEasyPie()
+      if (easyPie) {
+        const canvas = easyPie.renderer.getCanvas()
+        easyPie.renderer.clear()
+        if (canvas.parentNode === element) element.removeChild(canvas)
+        easyPie = null
+      }
+      if (!isModernFlavour(chart)) makeEasyPie()
     }
 
     resizeObserver = makeResizeObserver(
@@ -51,7 +57,7 @@ export default (sdk, chart) => {
 
     listeners = unregister(
       chart.onAttributeChange("hoverX", (hoverX, prevHoverX) => {
-        if (Boolean(prevHoverX) !== Boolean(hoverX)) {
+        if (easyPie && Boolean(prevHoverX) !== Boolean(hoverX)) {
           if (hoverX) easyPie.disableAnimation()
           else easyPie.enableAnimation()
         }
@@ -59,7 +65,12 @@ export default (sdk, chart) => {
         render()
       }),
       !loaded && chart.onceAttributeChange("loaded", render),
-      chart.onAttributeChange("theme", reMake)
+      chart.onAttributeChange("theme", reMake),
+      chart.onAttributeChange("designFlavour", () => {
+        if (isModernFlavour(chart) !== Boolean(easyPie)) return
+        reMake()
+        render()
+      })
     )
 
     render()
@@ -87,7 +98,7 @@ export default (sdk, chart) => {
   const render = () => {
     const { hoverX, loaded } = chart.getAttributes()
 
-    if (!easyPie || !loaded) return false
+    if ((!easyPie && !isModernFlavour(chart)) || !loaded) return false
 
     const { data } = chart.getPayload()
 
@@ -98,13 +109,10 @@ export default (sdk, chart) => {
     const rowData = data[row]
     if (!Array.isArray(rowData)) return chartUI.render()
 
-    const [, ...rows] = rowData
-    const value = rows.reduce((acc, v = 0) => acc + v, 0)
+    const value = sumRow(rowData)
     let [min, max] = getMinMax()
 
-    const percentage = ((value - min) / (max - min)) * 100
-
-    easyPie.update(percentage)
+    if (easyPie) easyPie.update(toPercentage(value, min, max))
 
     if (min !== prevMin || max !== prevMax) {
       chart.trigger("yAxisChange", min, max)
@@ -126,6 +134,8 @@ export default (sdk, chart) => {
       easyPie.renderer.clear()
       easyPie = null
     }
+
+    mounted = false
 
     prevMin = null
     prevMax = null

@@ -3,6 +3,7 @@ import makeContainer from "./makeContainer"
 import makeChart from "./makeChart"
 import initialAttributes from "./initialAttributes"
 import makeDataQuery from "./dataQuery"
+import { applyTimeSeriesRenderer } from "./makeChart/timeSeriesRenderer"
 
 export default ({
   ui,
@@ -57,6 +58,7 @@ export default ({
 
   const makeSDKChart = (options = {}) => {
     const chart = makeChartCore(options)
+    applyTimeSeriesRenderer(chart)
     const chartUi = makeChartUI(chart)
     chart.setUI({ ...chartUi, ...options.ui }, "default")
 

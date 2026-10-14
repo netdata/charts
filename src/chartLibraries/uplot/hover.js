@@ -1,0 +1,109 @@
+import { isVisibleDimension } from "@/chartLibraries/helpers/dimensionVisibility"
+import { getSeriesStackBounds, getStackBounds } from "./stacking"
+
+const anomalyBand = 15
+const annotationBand = 10
+
+const bandDistance = (top, aY, bY) => {
+  const hi = Math.min(aY, bY)
+  const lo = Math.max(aY, bY)
+  return top < hi ? hi - top : top > lo ? top - lo : 0
+}
+
+const getNearestSeries = (chart, self, top, idx) => {
+  const dimensionIds = chart.getPayloadDimensionIds()
+
+  let closestId
+  let closestDistance = Infinity
+
+  dimensionIds.forEach((id, index) => {
+    if (!isVisibleDimension(chart, id)) return
+
+    const value = self.data[index + 1]?.[idx]
+    if (value == null) return
+
+    const y = self.valToPos(value, "y")
+    if (!Number.isFinite(y)) return
+
+    const distance = Math.abs(y - top)
+    if (distance < closestDistance) {
+      closestDistance = distance
+      closestId = id
+    }
+  })
+
+  return closestId ?? chart.getVisibleDimensionIds()?.[0]
+}
+
+const getStackedBounds = chart =>
+  getStackBounds(chart.getPayload().data, chart.getPayloadDimensionIds(), id =>
+    isVisibleDimension(chart, id)
+  )
+
+const getStackedBarBounds = (chart, self) => {
+  const dimensionIds = chart.getPayloadDimensionIds()
+  return getSeriesStackBounds(self.data, index => isVisibleDimension(chart, dimensionIds[index]))
+}
+
+const getNearestBandSeries = (chart, self, top, idx, bounds) => {
+  let closestId
+  let closestDistance = Infinity
+
+  chart.getPayloadDimensionIds().forEach((id, index) => {
+    const bound = bounds[index]?.[idx]
+    if (!bound) return
+
+    const distance = bandDistance(top, self.valToPos(bound[0], "y"), self.valToPos(bound[1], "y"))
+    if (distance < closestDistance) {
+      closestDistance = distance
+      closestId = id
+    }
+  })
+
+  return closestId ?? chart.getVisibleDimensionIds()?.[0]
+}
+
+const getNearestHeatmapBucket = (chart, self, top) => {
+  const ids = chart.getVisibleHeatmapIds?.()
+  if (!ids?.length) return undefined
+
+  let closestId
+  let closestDistance = Infinity
+
+  ids.forEach(id => {
+    const yIndex = chart.getHeatmapYIndex(id)
+    if (yIndex === -1) return
+
+    const y = self.valToPos(yIndex, "y")
+    if (!Number.isFinite(y)) return
+
+    const distance = Math.abs(y - top)
+    if (distance < closestDistance) {
+      closestDistance = distance
+      closestId = id
+    }
+  })
+
+  return closestId
+}
+
+export default chart => self => {
+  const { top, idx } = self.cursor
+  if (idx == null) return chart.getVisibleDimensionIds()?.[0]
+
+  if (top != null) {
+    if (chart.getAttribute("showAnnotations") && top > self.over.clientHeight - annotationBand)
+      return "ANNOTATIONS"
+    if (chart.getAttribute("showAnomalies") && top < anomalyBand) return "ANOMALY_RATE"
+  }
+
+  const chartType = chart.getAttribute("chartType")
+
+  if (chartType === "heatmap") return getNearestHeatmapBucket(chart, self, top)
+  if (chartType === "stacked")
+    return getNearestBandSeries(chart, self, top, idx, getStackedBounds(chart))
+  if (chartType === "stackedBar")
+    return getNearestBandSeries(chart, self, top, idx, getStackedBarBounds(chart, self))
+
+  return getNearestSeries(chart, self, top, idx)
+}

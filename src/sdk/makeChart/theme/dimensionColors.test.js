@@ -29,6 +29,6 @@ describe("dimensionColors", () => {
   })
 
   it("first color pair is correct", () => {
-    expect(dimensionColors[0]).toEqual(["#3366CC", "#66AA00"])
+    expect(dimensionColors[0]).toEqual(["#00914A", "#1FA35E"])
   })
 })

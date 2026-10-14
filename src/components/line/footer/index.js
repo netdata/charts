@@ -3,11 +3,12 @@ import { Flex } from "@netdata/netdata-ui"
 import Legend from "@/components/line/legend"
 import HeatmapColors from "@/components/line/legend/heatmapColors"
 import DimensionSort from "@/components/line/dimensionSort"
-import { useAttributeValue, usePayload, useIsMinimal } from "@/components/provider"
+import { useAttributeValue, usePayload, useIsMinimal, useIsModern } from "@/components/provider"
 import Indicators from "@/components/line/indicators"
 import { useIsHeatmap } from "@/helpers/heatmap"
 import Drawer from "@/components/drawer"
 import Separator from "@/components/drawer/separator"
+import ModernFooter from "@/components/modern/legend/footer"
 import Expander from "./expander"
 
 export const Container = props => (
@@ -20,7 +21,7 @@ export const Container = props => (
   />
 )
 
-const Footer = () => {
+const ClassicFooter = () => {
   const showingInfo = useAttributeValue("showingInfo")
   const expandable = useAttributeValue("expandable")
   const expanded = useAttributeValue("expanded")
@@ -62,5 +63,7 @@ const Footer = () => {
     </Container>
   )
 }
+
+const Footer = () => (useIsModern() ? <ModernFooter /> : <ClassicFooter />)
 
 export default Footer

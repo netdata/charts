@@ -1,5 +1,6 @@
 import makeKeyboardListener from "@/helpers/makeKeyboardListener"
 import makeExecuteLatest from "@/helpers/makeExecuteLatest"
+import { timeRender } from "@/sdk/plugins/perfMonitor/registry"
 import formatNumber from "@/helpers/formatNumber"
 import convert from "@/helpers/units"
 import unitConversion from "@/helpers/unitConversion"
@@ -10,6 +11,7 @@ import makeFilterControllers from "./filters/makeControllers"
 import makeDataFetch from "./makeDataFetch"
 import makeGetUnitSign from "./makeGetUnitSign"
 import getAggregateMethod from "./filters/getAggregateMethod"
+import timeSeriesRenderer from "./timeSeriesRenderer"
 
 const themeIndex = {
   default: 0,
@@ -149,17 +151,21 @@ export default ({
       const chartUI = uiInstances[uiName]
       if (!chartUI?.render) return
 
+      const timedRender = () =>
+        timeRender(node.getId(), node.getAttribute("chartLibrary"), () => chartUI.render())
+
       if (chartUI.renderIfStale) {
-        chartUI.renderIfStale(chartUI.render)
+        chartUI.renderIfStale(timedRender)
         return
       }
 
-      chartUI.render()
+      timedRender()
     })
   })
 
   node.on("render", render)
   unitConversion(node)
+  const offTimeSeriesRenderer = timeSeriesRenderer(node)
 
   node.getConvertedValue = (
     value,
@@ -416,6 +422,7 @@ export default ({
     if (node.getAttribute("focused")) node.blur()
     if (executeLatest) executeLatest.clear()
 
+    offTimeSeriesRenderer()
     node.destroy()
     node.stopAutofetch()
     clearKeyboardListener()

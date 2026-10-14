@@ -1,6 +1,8 @@
 import React from "react"
 import { Flex } from "@netdata/netdata-ui"
 import Indicators from "@/components/line/indicators"
+import { useIsModern } from "@/components/provider"
+import ModernLegend from "@/components/modern/groupBoxes/legend"
 import Legend from "./legend"
 
 export const Container = props => (
@@ -13,13 +15,17 @@ export const Container = props => (
   />
 )
 
-const Footer = () => (
-  <Container>
-    <Indicators />
-    <Flex alignItems="center" padding={[2]}>
-      <Legend />
-    </Flex>
-  </Container>
-)
+const Footer = () => {
+  const isModern = useIsModern()
+
+  return (
+    <Container>
+      <Indicators />
+      <Flex alignItems="center" padding={[2]}>
+        {isModern ? <ModernLegend /> : <Legend />}
+      </Flex>
+    </Container>
+  )
+}
 
 export default Footer

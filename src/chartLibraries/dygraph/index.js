@@ -23,11 +23,14 @@ import { makeReusableLineDataHandler } from "./reusableLineDataHandler"
 
 const touchEvents = ["touchstart", "touchmove", "touchend"]
 
+const preventTouch = event => event.preventDefault()
+
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
   const DivergingStackedDataHandler = makeDivergingStackedDataHandler(chart)
   const ReusableLineDataHandler = makeReusableLineDataHandler()
   let dygraph = null
+  let touchElement = null
   let listeners = []
   let navigation = null
   let hoverX = null
@@ -139,14 +142,9 @@ export default (sdk, chart) => {
       () => chartUI.trigger("resize")
     )
 
+    touchElement = element
     touchEvents.forEach(eventType => {
-      element.addEventListener(
-        eventType,
-        event => {
-          event.preventDefault()
-        },
-        { passive: false }
-      )
+      element.addEventListener(eventType, preventTouch, { passive: false })
     })
 
     hoverX.toggle(attributes.enabledHover)
@@ -483,6 +481,10 @@ export default (sdk, chart) => {
 
     if (executeLatest) executeLatest.clear()
 
+    if (touchElement)
+      touchEvents.forEach(eventType => touchElement.removeEventListener(eventType, preventTouch))
+    touchElement = null
+
     resizeObserver()
     listeners.forEach(listener => listener())
     listeners = []
@@ -519,32 +521,30 @@ export default (sdk, chart) => {
     return true
   }
 
-  const getPreceded = () => {
-    if (!dygraph) return -1
-
-    const firstEntryMs = chart.getFirstEntry() * 1000
-    const [after] = dygraph.xAxisRange()
-
-    if (firstEntryMs < after) return -1
-
-    const [afterExtreme] = dygraph.xAxisExtremes()
-    return dygraph.toDomXCoord(afterExtreme)
-  }
-
   const getChartWidth = () => (dygraph ? dygraph.getArea().w : chartUI.getChartWidth())
   const getChartHeight = () => (dygraph ? dygraph.getArea().h : 100)
 
   const getXAxisRange = () => dygraph?.xAxisRange()
 
+  const getPlotArea = () => {
+    const area = dygraph?.getArea()
+    return area
+      ? { left: area.x, top: area.y, width: area.w, height: area.h }
+      : { left: 0, top: 0, width: 0, height: 0 }
+  }
+
+  const getXCoord = timestampMs => (dygraph ? dygraph.toDomXCoord(timestampMs) : 0)
+
   const instance = {
     ...chartUI,
     getChartWidth,
     getChartHeight,
-    getPreceded,
     mount,
     unmount,
     getDygraph,
     getXAxisRange,
+    getPlotArea,
+    getXCoord,
     render,
   }
 

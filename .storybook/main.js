@@ -57,21 +57,6 @@ const config = {
           },
         },
         {
-          test: /\.(png\?.*|jpg\?.*|jpg|png)$/,
-          loader: "url-loader",
-        },
-        {
-          test: /\.md$/,
-          use: [
-            {
-              loader: "html-loader",
-            },
-            {
-              loader: "markdown-loader",
-            },
-          ],
-        },
-        {
           test: /\.svg$/,
           use: [
             {

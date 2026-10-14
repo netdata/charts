@@ -14,11 +14,14 @@ export default ({ sdk, parent, attributes } = {}) => {
   }
 
   const removeChild = id => {
+    const removed = children.find(n => n.getId() === id)
     children = children.filter(n => n.getId() !== id)
-    instance.trigger("nodeRemoved", node)
-    sdk.trigger("nodeRemoved", instance, node)
-    instance.trigger(`${node.type}Removed`, node)
-    sdk.trigger(`${node.type}Removed`, instance, node)
+    if (!removed) return
+
+    instance.trigger("nodeRemoved", removed)
+    sdk.trigger("nodeRemoved", instance, removed)
+    instance.trigger(`${removed.type}Removed`, removed)
+    sdk.trigger(`${removed.type}Removed`, instance, removed)
   }
 
   const getNode = (attributes, options, nodes = [instance]) => {

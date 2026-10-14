@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useMemo, useRef } from "react"
 import styled from "styled-components"
 import { Flex, TextSmall, Menu, Table, Button, getColor } from "@netdata/netdata-ui"
-import { useAttributeValue } from "@/components/provider"
+import { useAttributeValue, useIsModern } from "@/components/provider"
 import deepEqual from "@/helpers/deepEqual"
 import Label from "./label"
 import Totals from "./totals"
+import ModernDropdown from "./modern/dropdown"
+import usePrefersReducedMotion from "@/components/helpers/usePrefersReducedMotion"
 
 const Container = styled(Flex)`
   box-shadow: 0 18px 28px ${getColor("dropdownShadow")};
@@ -204,16 +206,19 @@ const DropdownTable = ({
   }, [])
 
   const id = useAttributeValue("id")
+  const isModern = useIsModern()
+  const reducedMotion = usePrefersReducedMotion()
 
   return (
     <Menu
+      animation={isModern && !reducedMotion}
       onChange={values => {
         newValuesRef.current = values
         setNewValues(values)
       }}
       hasSearch={false}
       closeOnClick={false}
-      Dropdown={Dropdown}
+      Dropdown={isModern ? ModernDropdown : Dropdown}
       dropProps={{
         align: { top: "bottom", left: "left" },
         "data-toolbox": id,
@@ -241,6 +246,7 @@ const DropdownTable = ({
         filterSelectedCount,
         sidebar,
         totalSelected,
+        ...(isModern && { resourceName, defaultMeta: meta }),
       }}
       value={value}
       onOpen={() => setIsOpen(true)}

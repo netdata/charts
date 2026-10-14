@@ -3,7 +3,8 @@ import ReactDOM from "react-dom"
 import DropContainer from "@netdata/netdata-ui/dist/components/drops/drop/container"
 import useDropElement from "@netdata/netdata-ui/dist/hooks/useDropElement"
 import { unregister } from "@/helpers/makeListeners"
-import { useChart } from "@/components/provider"
+import { useChart, useIsModern } from "@/components/provider"
+import ModernTooltip from "@/components/modern/legend/tooltip"
 import Dimensions from "./dimensions"
 
 const leftTopAlign = { right: "left", bottom: "top" }
@@ -80,6 +81,7 @@ const Popover = ({ uiName }) => {
   const schedulePositionRef = useRef(null)
   const [open, setOpen] = useState(false)
   const [align, setAlign] = useState(rightBottomAlign)
+  const isModern = useIsModern()
 
   alignRef.current = align
   updatePositionRef.current = () => {
@@ -207,7 +209,7 @@ const Popover = ({ uiName }) => {
         sx={{ pointerEvents: "none" }}
         zIndex={101}
       >
-        <Dimensions uiName={uiName} data-testid="chartPopover" />
+        {isModern ? <ModernTooltip /> : <Dimensions uiName={uiName} data-testid="chartPopover" />}
       </DropContainer>,
       el
     )

@@ -79,12 +79,6 @@ const Header = rest => {
             />
           </Tooltip>
           <SelectedAreaButton chart={chart} selected={tabs.selectedArea === tab} />
-          {/*<Button
-            neutral={tabs.point !== tab}
-            label="Point"
-            disabled
-            onClick={() => chart.updateAttribute("drawer.tab", tabs.point)}
-          />*/}
         </Flex>
       </Flex>
       {supportsAdvancedStats[action] && (

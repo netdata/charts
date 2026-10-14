@@ -104,6 +104,14 @@ const DrillDown = () => {
     )
   }
 
+  if (loading && (!hierarchicalData || hierarchicalData.length === 0)) {
+    return (
+      <Flex padding={[3]} justifyContent="center">
+        <TextBig color="textLite">Loading…</TextBig>
+      </Flex>
+    )
+  }
+
   if (!loading && (!hierarchicalData || hierarchicalData.length === 0)) {
     return (
       <Flex padding={[3]} justifyContent="center" alignItems="center" column gap={2}>

@@ -1,29 +1,17 @@
 import React, { memo, useRef } from "react"
-import styled, { keyframes } from "styled-components"
 import { Box, Flex, TextMicro } from "@netdata/netdata-ui"
-import { useLoadingColor, useAttributeValue, useColor } from "@/components/provider"
+import { useAttributeValue, useColor, useIsModern } from "@/components/provider"
 import Details from "@/components/details"
 import GroupBox from "./groupBox"
 import useGroupBox from "./useGroupBox"
+import Treemap from "./treemap"
+import { BlockSkeleton } from "@/components/skeleton"
 
-const frames = keyframes`
-  from { opacity: 0.2; }
-  to { opacity: 0.6; }
-`
-
-const Skeleton = styled(Flex).attrs(props => ({
-  background: "borderSecondary",
-  flex: true,
-  height: 50,
-  ...props,
-}))`
-  animation: ${frames} 1.6s ease-in infinite;
-`
-
-export const SkeletonIcon = () => {
-  const color = useLoadingColor()
-  return <Skeleton background={color} />
-}
+export const SkeletonIcon = () => (
+  <Flex flex height={50}>
+    <BlockSkeleton width="100%" height="100%" />
+  </Flex>
+)
 
 const GroupBoxWrapper = ({ uiName, subTree, data, label, groupedBy, hasMore }) => {
   const dimensions = subTree === "OTHERS" ? [subTree] : Object.values(subTree)
@@ -76,7 +64,7 @@ const GroupBoxWrapper = ({ uiName, subTree, data, label, groupedBy, hasMore }) =
   )
 }
 
-const GroupBoxes = ({ uiName }) => {
+const GroupBoxes = ({ uiName, fit }) => {
   const { data, tree } = useGroupBox(uiName)
   const ref = useRef()
 
@@ -86,16 +74,21 @@ const GroupBoxes = ({ uiName }) => {
   const viewDimensions = useAttributeValue("viewDimensions")
   const [first, ...rest] = viewDimensions.grouped || []
 
+  const isModern = useIsModern()
+
   if (!loaded) return <SkeletonIcon />
+
+  if (isModern && !showingInfo) return <Treemap uiName={uiName} fit={fit} />
 
   return (
     <Flex
       data-testid="groupBoxes"
-      flexWrap
+      flexWrap={!isModern}
       flex
       position="relative"
       height={{ min: "150px" }}
       ref={ref}
+      {...(isModern && { column: true, gap: 2 })}
     >
       {showingInfo ? (
         <Details />

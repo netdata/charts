@@ -49,7 +49,7 @@ const Dimensions = ({ labelProps, ...rest }) => {
     [dimensions, value]
   )
 
-  const [sortBy, onSortByChange] = useAttribute("nodesSortBy")
+  const [sortBy, onSortByChange] = useAttribute("dimensionsSortBy")
 
   return (
     <DropdownTable

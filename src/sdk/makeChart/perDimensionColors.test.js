@@ -1,4 +1,5 @@
 import { makeTestChart } from "@jest/testUtilities"
+import dimensionColors from "./theme/dimensionColors"
 
 describe("per-dimension custom colors", () => {
   it("array form: a late-arriving dimension cannot receive a named custom color", () => {
@@ -52,5 +53,21 @@ describe("per-dimension custom colors", () => {
 
     expect(a1.selectDimensionColor("a")).toBe(a2.selectDimensionColor("a"))
     expect(a1.selectDimensionColor("b")).toBe(a2.selectDimensionColor("b"))
+  })
+})
+
+describe("renderer palettes", () => {
+  it("gives dygraph and uPlot charts the same palette", () => {
+    const uplot = makeTestChart({ attributes: { chartLibrary: "uplot" } }).chart
+    const dygraph = makeTestChart({ attributes: { chartLibrary: "dygraph" } }).chart
+
+    expect(uplot.selectDimensionColor("a")).toBe(dimensionColors[0][0])
+    expect(dygraph.selectDimensionColor("a")).toBe(dimensionColors[0][0])
+  })
+
+  it("resolves a numeric colour index against the shared palette", () => {
+    const { chart } = makeTestChart({ attributes: { chartLibrary: "uplot", colors: { cpu: 2 } } })
+
+    expect(chart.selectDimensionColor("cpu")).toBe(dimensionColors[2][0])
   })
 })

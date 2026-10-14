@@ -8,6 +8,7 @@ module.exports = {
   },
   testEnvironment: "jsdom",
   testRegex: ".*\\.test\\.js$",
+  globalSetup: "<rootDir>/jest/globalSetup.js",
   setupFiles: ["<rootDir>/jest/setup.js"],
   setupFilesAfterEnv: ["<rootDir>/jest/setupForEach.js"],
   verbose: true,

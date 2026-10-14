@@ -18,7 +18,8 @@ export const getWidth = (dimensions, { aspectRatio, cellSize } = {}) => {
   return getFullWidth(columns, cellSize)
 }
 
-const getCanvasAttributes = (dimensions, { aspectRatio, cellSize, padding } = {}) => {
+const getCanvasAttributes = (dimensions, options = {}) => {
+  const { aspectRatio, cellSize, padding } = options
   const rows = getRows(dimensions, aspectRatio)
   const columns = getColumns(rows, aspectRatio)
   const width = getFullWidth(columns, cellSize)

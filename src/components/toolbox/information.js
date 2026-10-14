@@ -20,4 +20,24 @@ const Information = props => {
   )
 }
 
+Information.menu = {
+  id: "info",
+  group: "show",
+  order: 30,
+  useItem: ({ onClose }) => {
+    const [showingInfo, setShowingInfo] = useAttribute("showingInfo")
+
+    return {
+      label: "Chart info",
+      check: !!showingInfo,
+      testId: "chartMore-info",
+      track: "information",
+      onClick: () => {
+        setShowingInfo(!showingInfo)
+        onClose()
+      },
+    }
+  },
+}
+
 export default Information

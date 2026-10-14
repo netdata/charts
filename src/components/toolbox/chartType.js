@@ -130,10 +130,10 @@ const ChartType = ({ disabled }) => {
   const chart = useChart()
   const chartLibrary = useAttributeValue("chartLibrary") || "dygraph"
   const chartType = useAttributeValue("chartType") || "line"
-  const value = chartLibrary === "dygraph" ? chartType : chartLibrary
+  const value = chart.isTimeSeriesRenderer(chartLibrary) ? chartType : chartLibrary
 
   const items = useItems(chart)
-  const { label, svg } = items.find(({ value: v }) => v === value)
+  const { label, svg } = items.find(({ value: v }) => v === value) || {}
 
   return (
     <Menu

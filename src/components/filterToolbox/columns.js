@@ -5,7 +5,7 @@ import Units from "@/components/line/dimensions/units"
 import { useChart, useConverted } from "@/components/provider"
 import Label from "./label"
 
-const useMetricsByValue = chart =>
+export const useMetricsByValue = chart =>
   useMemo(
     () => ({
       dimension: "dimensions",
@@ -21,6 +21,7 @@ const useMetricsByValue = chart =>
 
 export const labelColumn = fallbackExpandKey => ({
   id: "label",
+  fallbackExpandKey,
   header: () => <TextSmall strong>Name</TextSmall>,
   size: 200,
   minSize: 60,

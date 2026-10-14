@@ -13,6 +13,7 @@ export default (sdk, chart) => {
   let resizeObserver
   let prevMin
   let prevMax
+  let modern = false
 
   const executeLatest = makeExecuteLatest()
 
@@ -24,29 +25,39 @@ export default (sdk, chart) => {
   }
 
   const mount = element => {
-    if (pie) return
+    if (pie || modern) return
 
     chartUI.mount(element)
 
-    const theme = chart.getAttribute("theme")
-    element.classList.add(theme)
-
     const { loaded } = chart.getAttributes()
 
-    pie = new d3pie(element, getInitialOptions(chartUI))
+    modern = chart.getAttribute("designFlavour") === "modern"
 
-    resizeObserver = makeResizeObserver(
-      element.parentNode,
-      () => {
-        pie.options = {
-          ...pie.options,
-          size: getInitialOptions(chartUI).size,
-        }
-        reMake()
-        chartUI.trigger("resize")
-      },
-      () => chartUI.trigger("resize")
-    )
+    if (modern) {
+      resizeObserver = makeResizeObserver(
+        element.parentNode,
+        () => chartUI.trigger("resize"),
+        () => chartUI.trigger("resize")
+      )
+    } else {
+      const theme = chart.getAttribute("theme")
+      element.classList.add(theme)
+
+      pie = new d3pie(element, getInitialOptions(chartUI))
+
+      resizeObserver = makeResizeObserver(
+        element.parentNode,
+        () => {
+          pie.options = {
+            ...pie.options,
+            size: getInitialOptions(chartUI).size,
+          }
+          reMake()
+          chartUI.trigger("resize")
+        },
+        () => chartUI.trigger("resize")
+      )
+    }
 
     const latestRender = executeLatest.add(render)
 
@@ -62,10 +73,28 @@ export default (sdk, chart) => {
 
   const getMinMax = () => chart.getAttribute("getValueRange")(chart)
 
+  const triggerValueRange = () => {
+    const [min, max] = getMinMax()
+
+    if (min !== prevMin || max !== prevMax) {
+      chart.trigger("yAxisChange", min, max)
+    }
+
+    prevMin = min
+    prevMax = max
+  }
+
   const render = () => {
     const { hoverX, loaded } = chart.getAttributes()
 
-    if (!pie || !loaded) return false
+    if ((!pie && !modern) || !loaded) return false
+
+    if (modern) {
+      triggerValueRange()
+      chartUI.render()
+      chartUI.trigger("rendered")
+      return true
+    }
 
     const { data } = chart.getPayload()
 
@@ -89,14 +118,7 @@ export default (sdk, chart) => {
       })
       .filter(v => !!v.value)
 
-    let [min, max] = getMinMax()
-
-    if (min !== prevMin || max !== prevMax) {
-      chart.trigger("yAxisChange", min, max)
-    }
-
-    prevMin = min
-    prevMax = max
+    triggerValueRange()
 
     pie.options.data.content = values.length
       ? values
@@ -129,6 +151,7 @@ export default (sdk, chart) => {
 
     prevMin = null
     prevMax = null
+    modern = false
 
     chartUI.unmount()
   }

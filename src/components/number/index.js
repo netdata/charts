@@ -2,6 +2,8 @@ import React from "react"
 import { Text } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
 import {
+  useIsModern,
+  useInitialLoading,
   useLatestDisplayValueWithUnit,
   useOnResize,
   useVisibleDimensionIds,
@@ -9,6 +11,8 @@ import {
 import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
 import FontSizer from "@/components/helpers/fontSizer"
+import ModernNumber from "@/components/modern/number"
+import { NumberSkeleton } from "@/components/skeleton"
 
 export const Value = props => {
   const { width, height } = useOnResize()
@@ -51,20 +55,35 @@ export const Unit = props => {
   )
 }
 
-export const NumberChart = ({ uiName, ref, ...rest }) => (
-  <ChartWrapper ref={ref}>
-    <ChartContainer
-      uiName={uiName}
-      column
-      alignItems="center"
-      justifyContent="center"
-      position="relative"
-      {...rest}
-    >
-      <Value />
-      <Unit />
-    </ChartContainer>
-  </ChartWrapper>
-)
+export const NumberChart = ({ uiName, ref, ...rest }) => {
+  const isModern = useIsModern()
+  const initialLoading = useInitialLoading()
+
+  return (
+    <ChartWrapper ref={ref}>
+      <ChartContainer
+        uiName={uiName}
+        column
+        alignItems={isModern ? "stretch" : "center"}
+        justifyContent="center"
+        position="relative"
+        {...rest}
+      >
+        {isModern ? (
+          initialLoading ? (
+            <NumberSkeleton />
+          ) : (
+            <ModernNumber uiName={uiName} />
+          )
+        ) : (
+          <>
+            <Value />
+            <Unit />
+          </>
+        )}
+      </ChartContainer>
+    </ChartWrapper>
+  )
+}
 
 export default withChart(NumberChart, { tile: true })

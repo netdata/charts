@@ -50,6 +50,7 @@ const { updatePristine, resetPristine } = makePristine(pristineKey, [
   "enabledYAxis",
   "enabledXAxis",
   "legend",
+  "chartLegendLayout",
   "staticValueRange",
   "desiredUnits",
   "staticFractionDigits",

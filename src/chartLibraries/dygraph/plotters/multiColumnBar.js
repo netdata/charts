@@ -1,4 +1,4 @@
-import { darkenColor } from "./helpers"
+import { darkenColor } from "@/chartLibraries/helpers/color"
 
 export default () => plotter => {
   if (plotter.seriesIndex !== 0) return

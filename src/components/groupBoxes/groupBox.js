@@ -70,6 +70,7 @@ const GroupBox = ({ uiName, dimensions, groupLabel, ...options }) => {
   const [, startTransitionEffect, stopTransitionEffect] = useTransition()
 
   const theme = useAttributeValue("theme")
+  const threshold = useAttributeValue("groupBoxesThreshold")
 
   useLayoutEffect(() => {
     startTransitionEffect(function* () {
@@ -87,7 +88,7 @@ const GroupBox = ({ uiName, dimensions, groupLabel, ...options }) => {
     })
 
     return () => stopTransitionEffect()
-  }, [pointData, startTransitionEffect, stopTransitionEffect, theme])
+  }, [pointData, startTransitionEffect, stopTransitionEffect, theme, threshold])
 
   const label = useMemo(() => {
     if (!hover) return

@@ -172,7 +172,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     const pristineValue = getAttribute("pristineStaticValueRange")
     if (pristineValue !== undefined) return resetStaticValueRange()
 
-    moveX(-900)
+    moveX(getAttribute("liveAfter"))
   }
 
   updateIntls(getAttribute("timezone"), getAttribute("locale"))

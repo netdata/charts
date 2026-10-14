@@ -1,4 +1,4 @@
-import { darkenColor } from "./helpers"
+import { darkenColor } from "@/chartLibraries/helpers/color"
 import { getDivergingStackBounds } from "../divergingStack"
 
 const getBarWidth = ({ points, plotArea }) => {
@@ -39,9 +39,7 @@ export default () => plotter => {
   ctx.strokeStyle = darkenColor(plotter.color)
 
   points.forEach(p => {
-    const rect = getDivergingBarRect(p, barWidth, value =>
-      plotter.dygraph.toDomYCoord(value)
-    )
+    const rect = getDivergingBarRect(p, barWidth, value => plotter.dygraph.toDomYCoord(value))
     if (!rect) return
 
     p.canvasy = plotter.dygraph.toDomYCoord(getDivergingStackBounds(p).end)
