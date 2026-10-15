@@ -7,6 +7,7 @@ export default chartUI => {
   const drawOverlay = id => {
     const overlays = chartUI.chart.getAttribute("overlays")
     const { type } = overlays[id]
+    if (type === "annotation" && chartUI.chart.getAttribute("annotationsEnabled") === false) return
     const makeOverlay = types[type]
     if (!makeOverlay) return
     makeOverlay(chartUI, id)
@@ -25,7 +26,7 @@ export default chartUI => {
 
     ids.forEach(drawOverlay)
 
-    if (draftAnnotation) {
+    if (draftAnnotation && chartUI.chart.getAttribute("annotationsEnabled") !== false) {
       const makeOverlay = types["annotation"]
       if (makeOverlay) makeOverlay(chartUI, "draftAnnotation")
     }

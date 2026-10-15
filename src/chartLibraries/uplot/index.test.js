@@ -3212,7 +3212,7 @@ describe("uplotChart overlay z-order (drawClear behind series, dygraph underlay 
       overlays: { proceeded: { type: "proceeded" } },
     })
 
-    expect(u.hooks.drawClear).toHaveLength(2)
+    expect(u.hooks.drawClear).toHaveLength(3)
     expect(Array.isArray(u.hooks.draw)).toBe(true)
     expect(u.hooks.draw).not.toContain(u.hooks.drawClear[0])
 

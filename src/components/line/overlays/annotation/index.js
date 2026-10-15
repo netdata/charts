@@ -400,6 +400,7 @@ const AnnotationActions = memo(({ id, annotation, onEdit }) => {
 
 const Annotation = ({ id }) => {
   const chart = useChart()
+  const chartLibrary = useAttributeValue("chartLibrary")
   const overlays = useAttributeValue("overlays")
   const [ref, popoverHovered] = useHovered({}, [id, overlays])
   const [mouseHovered, setMouseHovered] = useState(false)
@@ -437,7 +438,7 @@ const Annotation = ({ id }) => {
       element.removeEventListener("mousemove", handleMouseMove)
       element.removeEventListener("mouseleave", handleMouseLeave)
     }
-  }, [annotation, annotation?.timestamp, chart, id])
+  }, [annotation, annotation?.timestamp, chart, chartLibrary, id])
 
   useEffect(() => {
     const hovered = mouseHovered || popoverHovered
