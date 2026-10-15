@@ -73,6 +73,7 @@ const Actions = ({ hasFilters, filtersOpen, onToggleFilters }) => {
           onClickOutside={closeMenu}
           data-toolbox={chart.getId()}
           {...dropProps}
+          stretch={false}
         >
           <MoreMenu
             onClose={closeMenu}
