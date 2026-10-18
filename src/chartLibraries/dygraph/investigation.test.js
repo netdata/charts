@@ -1,5 +1,6 @@
 import { makeTestChart } from "@jest/testUtilities"
 import { makePayload, makeWave } from "../../../fixtures/makeWavePayload"
+import highlight from "./overlays/highlight"
 
 const payload = makePayload({
   context: "anomaly_detection.dimensions",
@@ -141,3 +142,41 @@ test("dygraph forwards the post-underlay callback after its own underlay", async
     teardown()
   }
 })
+
+const alphasAtDraw = events =>
+  events.reduce(
+    (state, { type, props }) => {
+      if (type === "save") state.stack.push(state.alpha)
+      if (type === "restore") state.alpha = state.stack.pop() ?? 1
+      if (type === "globalAlpha") state.alpha = props.value
+      if (type === "fill" || type === "stroke") state.alphas.push(state.alpha)
+      return state
+    },
+    { alpha: 1, stack: [], alphas: [] }
+  ).alphas
+
+test.each([
+  [0.25, 0.25],
+  [-1, 0],
+  [2, 1],
+  [NaN, 1],
+  ["0.25", 1],
+])(
+  "dygraph highlight opacity %s dims fill and borders without leaking canvas state",
+  async (value, expected) => {
+    const { chart, ui, teardown } = await mount({
+      highlightOpacity: value,
+      overlays: { highlight: { type: "highlight", range: [after + 50, after + 150] } },
+    })
+    try {
+      const ctx = ui.getDygraph().hidden_ctx_
+      ctx.__clearEvents()
+      highlight(ui, "highlight")
+      expect(alphasAtDraw(ctx.__getEvents())).toEqual([expected, expected, expected, expected])
+      expect(ctx.globalAlpha).toBe(1)
+      expect(chart.getAttribute("overlays").highlight.range).toEqual([after + 50, after + 150])
+    } finally {
+      teardown()
+    }
+  }
+)

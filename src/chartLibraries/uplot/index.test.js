@@ -3225,13 +3225,19 @@ describe("uplotChart overlay z-order (drawClear behind series, dygraph underlay 
   }
 
   it("registers overlays on drawClear and keeps crosshair/dots on draw for a normal frame", async () => {
-    const { chart, u, teardown } = await mountLine({
+    const { chart, instance, u, teardown } = await mountLine({
       firstEntry: 1617946865,
       error: false,
       overlays: { proceeded: { type: "proceeded" } },
     })
 
-    expect(u.hooks.drawClear).toHaveLength(3)
+    const extensions = []
+    const offExtension = instance.on("afterUnderlayCallback", () => extensions.push(true))
+    u.hooks.drawClear.slice(0, -1).forEach(hook => hook(u))
+    expect(extensions).toEqual([])
+    u.hooks.drawClear[u.hooks.drawClear.length - 1](u)
+    expect(extensions).toEqual([true])
+    offExtension()
     expect(Array.isArray(u.hooks.draw)).toBe(true)
     expect(u.hooks.draw).not.toContain(u.hooks.drawClear[0])
 

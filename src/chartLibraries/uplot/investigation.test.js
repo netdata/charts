@@ -88,7 +88,7 @@ test("underlay extension restores the canvas if a listener throws", async () => 
       ctx.translate(10, 20)
       throw new Error("extension failed")
     })
-    expect(() => u.hooks.drawClear[u.hooks.drawClear.length - 1](u)).toThrow("extension failed")
+    expect(() => u.batch(() => u.redraw())).toThrow("extension failed")
     off()
     expect(u.ctx.getTransform()).toEqual(original)
     expect(u.ctx.globalAlpha).toBe(1)
@@ -223,6 +223,18 @@ test("strict annotation opt-out suppresses saved and draft drawings, not highlig
   }
 })
 
+const alphasAtDraw = events =>
+  events.reduce(
+    (state, { type, props }) => {
+      if (type === "save") state.stack.push(state.alpha)
+      if (type === "restore") state.alpha = state.stack.pop() ?? 1
+      if (type === "globalAlpha") state.alpha = props.value
+      if (type === "fill" || type === "stroke") state.alphas.push(state.alpha)
+      return state
+    },
+    { alpha: 1, stack: [], alphas: [] }
+  ).alphas
+
 test.each([
   [0.25, 0.25],
   [-1, 0],
@@ -238,13 +250,9 @@ test.each([
     })
     try {
       const ctx = ui.getUPlot().ctx
-      const alphas = []
-      const fill = ctx.fill.bind(ctx)
-      const stroke = ctx.stroke.bind(ctx)
-      ctx.fill = (...args) => (alphas.push(ctx.globalAlpha), fill(...args))
-      ctx.stroke = (...args) => (alphas.push(ctx.globalAlpha), stroke(...args))
+      ctx.__clearEvents()
       highlight(ui, "highlight")
-      expect(alphas).toEqual([expected, expected, expected, expected])
+      expect(alphasAtDraw(ctx.__getEvents())).toEqual([expected, expected, expected, expected])
       expect(ctx.globalAlpha).toBe(1)
     } finally {
       teardown()
