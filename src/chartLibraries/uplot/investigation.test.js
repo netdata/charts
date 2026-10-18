@@ -161,6 +161,38 @@ test("touch taps forward finding selection without pinning when annotations are 
   }
 })
 
+test("touch taps forward the click and pin while annotations are enabled", async () => {
+  const { chart, ui, teardown } = await mount({ annotationsEnabled: true })
+  try {
+    const clicks = []
+    ui.on("click", (event, x) => clicks.push(x))
+    const over = ui.getUPlot().over
+    const touch = { clientX: 60, clientY: 50, target: over }
+    fireEvent.touchStart(over, { touches: [touch] })
+    fireEvent.touchEnd(over, { touches: [], changedTouches: [touch] })
+    expect(clicks).toHaveLength(1)
+    expect(chart.getAttribute("clickX")).toEqual([clicks[0], null])
+  } finally {
+    teardown()
+  }
+})
+
+test("touch taps outside the plot rectangle are ignored", async () => {
+  const { chart, ui, teardown } = await mount({ annotationsEnabled: true })
+  try {
+    const clicks = []
+    ui.on("click", event => clicks.push(event))
+    const over = ui.getUPlot().over
+    const touch = { clientX: over.getBoundingClientRect().right + 10, clientY: 50, target: over }
+    fireEvent.touchStart(over, { touches: [touch] })
+    fireEvent.touchEnd(over, { touches: [], changedTouches: [touch] })
+    expect(clicks).toEqual([])
+    expect(chart.getAttribute("clickX") == null).toBe(true)
+  } finally {
+    teardown()
+  }
+})
+
 test("strict annotation opt-out suppresses saved and draft drawings, not highlights", async () => {
   const { chart, ui, teardown } = await mount({
     annotationsEnabled: false,
