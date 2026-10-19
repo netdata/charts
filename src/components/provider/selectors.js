@@ -676,9 +676,15 @@ export const useIsMinimal = () => useAttributeValue("designFlavour") === "minima
 
 export const useIsModern = () => useAttributeValue("designFlavour") === "modern"
 
+export const useChartUI = (uiName = "default") => {
+  const chart = useChart()
+  useAttributeValue("chartLibrary")
+  return chart.getUI(uiName)
+}
+
 export const usePlotArea = (uiName = "default") => {
   const chart = useChart()
-  const chartLibrary = useAttributeValue("chartLibrary")
+  const ui = useChartUI(uiName)
   const forceUpdate = useForceUpdate()
 
   useImmediateListener(() => {
@@ -688,12 +694,12 @@ export const usePlotArea = (uiName = "default") => {
         clearTimeout(timer)
         timer = setTimeout(forceUpdate, 300)
       }),
-      chart.getUI(uiName)?.on("rendered", forceUpdate).on("resize", forceUpdate),
+      ui?.on("rendered", forceUpdate).on("resize", forceUpdate),
       () => clearTimeout(timer)
     )
-  }, [uiName, chart, chartLibrary])
+  }, [chart, ui])
 
-  const area = chart.getUI(uiName)?.getPlotArea?.()
+  const area = ui?.getPlotArea?.()
 
   return {
     left: area?.left ?? 0,

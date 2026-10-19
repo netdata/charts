@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useState } from "react"
 import Icon, { Button } from "@/components/icon"
-import { useAttributeValue, useChart } from "@/components/provider"
+import { useAttributeValue, useChart, useChartUI } from "@/components/provider"
 import Tooltip from "@/components/tooltip"
 import { Flex, TextSmall, TextMicro } from "@netdata/netdata-ui"
 import expandIcon from "@netdata/netdata-ui/dist/components/icon/assets/chevron_expand.svg"
@@ -400,7 +400,7 @@ const AnnotationActions = memo(({ id, annotation, onEdit }) => {
 
 const Annotation = ({ id }) => {
   const chart = useChart()
-  const chartLibrary = useAttributeValue("chartLibrary")
+  const chartUI = useChartUI()
   const overlays = useAttributeValue("overlays")
   const [ref, popoverHovered] = useHovered({}, [id, overlays])
   const [mouseHovered, setMouseHovered] = useState(false)
@@ -411,10 +411,7 @@ const Annotation = ({ id }) => {
   const isSynced = !!annotation?.originallyFrom
 
   useEffect(() => {
-    if (!annotation || !annotation.timestamp || !chart) return
-
-    const chartUI = chart.getUI()
-    if (!chartUI) return
+    if (!annotation || !annotation.timestamp || !chartUI) return
 
     const element = chartUI.getElement()
     if (!element) return
@@ -438,7 +435,7 @@ const Annotation = ({ id }) => {
       element.removeEventListener("mousemove", handleMouseMove)
       element.removeEventListener("mouseleave", handleMouseLeave)
     }
-  }, [annotation, annotation?.timestamp, chart, chartLibrary, id])
+  }, [annotation, annotation?.timestamp, chartUI, id])
 
   useEffect(() => {
     const hovered = mouseHovered || popoverHovered
