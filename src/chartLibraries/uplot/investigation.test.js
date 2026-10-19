@@ -259,3 +259,31 @@ test.each([
     }
   }
 )
+
+test("toggling annotations or highlight opacity redraws the uPlot canvas", async () => {
+  const { chart, ui, teardown } = await mount({
+    enabledAnnotations: false,
+    overlays: {
+      saved: { type: "annotation", timestamp: after + 100 },
+      highlight: { type: "highlight", range: [after + 50, after + 150] },
+    },
+  })
+  try {
+    const areas = []
+    const off = ui.on("overlayedAreaChanged:saved", () => areas.push("saved"))
+    await new Promise(resolve => requestAnimationFrame(resolve))
+    expect(areas).toEqual([])
+    chart.updateAttribute("enabledAnnotations", true)
+    await settle()
+    await new Promise(resolve => requestAnimationFrame(resolve))
+    expect(areas.length).toBeGreaterThan(0)
+    off()
+    const ctx = ui.getUPlot().ctx
+    ctx.__clearEvents()
+    chart.updateAttribute("highlightOpacity", 0.25)
+    await settle()
+    expect(alphasAtDraw(ctx.__getEvents())).toContain(0.25)
+  } finally {
+    teardown()
+  }
+})

@@ -339,6 +339,7 @@ export default {
 
   canCreateAnnotations: true,
   enabledAnnotations: true,
+  highlightOpacity: 1,
   draftAnnotation: null, // { timestamp, createdAt, status: "draft"|"editing"|"saving" }
 
   comparePeriods: [],

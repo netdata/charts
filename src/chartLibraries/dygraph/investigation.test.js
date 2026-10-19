@@ -60,6 +60,12 @@ test("annotations are enabled by default", () => {
   chart.destroy()
 })
 
+test("highlight opacity defaults to fully opaque", () => {
+  const { chart } = makeTestChart()
+  expect(chart.getAttribute("highlightOpacity")).toBe(1)
+  chart.destroy()
+})
+
 test.each([true, false])(
   "dygraph clicks pin and draft only while annotations are enabled (%s)",
   async enabled => {
@@ -180,3 +186,29 @@ test.each([
     }
   }
 )
+
+test("toggling annotations or highlight opacity redraws the dygraph canvas", async () => {
+  const { chart, ui, teardown } = await mount({
+    enabledAnnotations: false,
+    overlays: {
+      saved: { type: "annotation", timestamp: after + 100 },
+      highlight: { type: "highlight", range: [after + 50, after + 150] },
+    },
+  })
+  try {
+    const areas = []
+    const off = ui.on("overlayedAreaChanged:saved", () => areas.push("saved"))
+    await nextFrame()
+    expect(areas).toEqual([])
+    chart.updateAttribute("enabledAnnotations", true)
+    await nextFrame()
+    expect(areas.length).toBeGreaterThan(0)
+    off()
+    const ctx = ui.getDygraph().hidden_ctx_
+    ctx.__clearEvents()
+    chart.updateAttribute("highlightOpacity", 0.25)
+    expect(alphasAtDraw(ctx.__getEvents())).toContain(0.25)
+  } finally {
+    teardown()
+  }
+})

@@ -188,6 +188,8 @@ export default (sdk, chart) => {
       chart.onAttributeChange("navigation", navigation.set),
       chart.onAttributeChange("overlays", overlays.toggle),
       chart.onAttributeChange("draftAnnotation", overlays.toggle),
+      chart.onAttributeChange("enabledAnnotations", overlays.toggle),
+      chart.onAttributeChange("highlightOpacity", overlays.toggle),
       chart.onAttributeChange("theme", (nextTheme, prevTheme) => {
         element.classList.remove(prevTheme)
         element.classList.add(nextTheme)

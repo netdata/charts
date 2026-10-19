@@ -1668,6 +1668,8 @@ export default (sdk, chart) => {
       chart.getRoot().onAttributeChange("paused", onPausedChange),
       chart.onAttributeChange("overlays", overlays.toggle),
       chart.onAttributeChange("draftAnnotation", overlays.toggle),
+      chart.onAttributeChange("enabledAnnotations", overlays.toggle),
+      chart.onAttributeChange("highlightOpacity", overlays.toggle),
       chart.onAttributeChange("selectedLegendDimensions", rebuild),
       chart.onAttributeChange("chartType", rebuild),
       chart.onAttributeChange("stepPlot", rebuild),
