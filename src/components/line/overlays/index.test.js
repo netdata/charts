@@ -9,7 +9,7 @@ test.each([true, false])(
   enabled => {
     const { chart, unmount } = renderWithChart(<Overlays uiName="default" />, {
       attributes: {
-        annotationsEnabled: enabled,
+        enabledAnnotations: enabled,
         draftAnnotation: { timestamp: 1617946900, status: "draft" },
       },
     })

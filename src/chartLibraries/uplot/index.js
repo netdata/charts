@@ -1268,7 +1268,7 @@ export default (sdk, chart) => {
       const xMs = snappedX == null ? rawMs : snappedX * 1000
 
       chartUI.trigger("click", event, xMs, [])
-      if (chart.getAttribute("annotationsEnabled") === false) return
+      if (chart.getAttribute("enabledAnnotations") === false) return
 
       annotate(offsetX, xMs)
 
@@ -1416,7 +1416,7 @@ export default (sdk, chart) => {
         if (offsetX < 0 || offsetX > rect.width) return
         const xMs = u.posToVal(offsetX, "x") * 1000
         chartUI.trigger("click", touch, xMs, [])
-        if (chart.getAttribute("annotationsEnabled") !== false)
+        if (chart.getAttribute("enabledAnnotations") !== false)
           chart.updateAttribute("clickX", [xMs, null])
         return
       }

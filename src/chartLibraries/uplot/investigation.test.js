@@ -100,7 +100,7 @@ test("underlay extension restores the canvas if a listener throws", async () => 
 test.each([false, true])(
   "stationary clicks are forwarded; annotation opt-out is %s",
   async enabled => {
-    const { sdk, chart, ui, teardown } = await mount({ annotationsEnabled: enabled })
+    const { sdk, chart, ui, teardown } = await mount({ enabledAnnotations: enabled })
     try {
       const clicks = []
       const pins = []
@@ -127,7 +127,7 @@ test.each([false, true])(
 )
 
 test("drag and modifier gestures do not emit finding clicks", async () => {
-  const { ui, teardown } = await mount({ annotationsEnabled: false })
+  const { ui, teardown } = await mount({ enabledAnnotations: false })
   try {
     const clicks = []
     ui.on("click", event => clicks.push(event))
@@ -145,7 +145,7 @@ test("drag and modifier gestures do not emit finding clicks", async () => {
 })
 
 test("touch taps forward finding selection without pinning when annotations are disabled", async () => {
-  const { chart, ui, teardown } = await mount({ annotationsEnabled: false })
+  const { chart, ui, teardown } = await mount({ enabledAnnotations: false })
   try {
     const clicks = []
     ui.on("click", event => clicks.push(event))
@@ -162,7 +162,7 @@ test("touch taps forward finding selection without pinning when annotations are 
 })
 
 test("touch taps forward the click and pin while annotations are enabled", async () => {
-  const { chart, ui, teardown } = await mount({ annotationsEnabled: true })
+  const { chart, ui, teardown } = await mount({ enabledAnnotations: true })
   try {
     const clicks = []
     ui.on("click", (event, x) => clicks.push(x))
@@ -178,7 +178,7 @@ test("touch taps forward the click and pin while annotations are enabled", async
 })
 
 test("touch taps outside the plot rectangle are ignored", async () => {
-  const { chart, ui, teardown } = await mount({ annotationsEnabled: true })
+  const { chart, ui, teardown } = await mount({ enabledAnnotations: true })
   try {
     const clicks = []
     ui.on("click", event => clicks.push(event))
@@ -195,7 +195,7 @@ test("touch taps outside the plot rectangle are ignored", async () => {
 
 test("strict annotation opt-out suppresses saved and draft drawings, not highlights", async () => {
   const { chart, ui, teardown } = await mount({
-    annotationsEnabled: false,
+    enabledAnnotations: false,
     overlays: {
       saved: { type: "annotation", timestamp: after + 100 },
       highlight: { type: "highlight", range: [after + 50, after + 150] },
@@ -213,7 +213,7 @@ test("strict annotation opt-out suppresses saved and draft drawings, not highlig
     expect(areas.length).toBeGreaterThan(0)
     expect(new Set(areas)).toEqual(new Set(["highlight"]))
     areas.length = 0
-    chart.updateAttribute("annotationsEnabled", true)
+    chart.updateAttribute("enabledAnnotations", true)
     makeOverlays(ui).draw(ui.getUPlot())
     await new Promise(resolve => requestAnimationFrame(resolve))
     expect(new Set(areas)).toEqual(new Set(["saved", "highlight", "draftAnnotation"]))

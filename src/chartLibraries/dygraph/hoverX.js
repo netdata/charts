@@ -130,7 +130,7 @@ export default chartUI => {
   }
 
   const click = (event, x, points) => {
-    if (chartUI.chart.getAttribute("annotationsEnabled") === false) return
+    if (chartUI.chart.getAttribute("enabledAnnotations") === false) return
     if (lastTimestamp === x) return
 
     lastPoints = points

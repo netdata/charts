@@ -6,17 +6,17 @@ import types from "./types"
 const Overlays = ({ uiName }) => {
   const overlays = useAttributeValue("overlays")
   const draftAnnotation = useAttributeValue("draftAnnotation")
-  const annotationsEnabled = useAttributeValue("annotationsEnabled") !== false
+  const enabledAnnotations = useAttributeValue("enabledAnnotations") !== false
 
   return (
     <Fragment>
-      {annotationsEnabled && draftAnnotation && (
+      {enabledAnnotations && draftAnnotation && (
         <types.draftAnnotation id="draftAnnotation" uiName={uiName} />
       )}
 
       {Object.keys(overlays).map(id => {
         const { type, ...rest } = overlays[id]
-        if (type === "annotation" && !annotationsEnabled) return null
+        if (type === "annotation" && !enabledAnnotations) return null
         const Overlay = types[type]
 
         if (!Overlay) return null

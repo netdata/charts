@@ -56,14 +56,14 @@ const tap = ui => {
 
 test("annotations are enabled by default", () => {
   const { chart } = makeTestChart()
-  expect(chart.getAttribute("annotationsEnabled")).toBe(true)
+  expect(chart.getAttribute("enabledAnnotations")).toBe(true)
   chart.destroy()
 })
 
 test.each([true, false])(
   "dygraph clicks pin and draft only while annotations are enabled (%s)",
   async enabled => {
-    const { sdk, chart, ui, teardown } = await mount({ annotationsEnabled: enabled })
+    const { sdk, chart, ui, teardown } = await mount({ enabledAnnotations: enabled })
     try {
       const pins = []
       const drafts = []
@@ -83,7 +83,7 @@ test.each([true, false])(
 )
 
 test.each([true, false])("dygraph touch taps follow the annotation setting (%s)", async enabled => {
-  const { chart, ui, teardown } = await mount({ annotationsEnabled: enabled })
+  const { chart, ui, teardown } = await mount({ enabledAnnotations: enabled })
   try {
     const clicks = []
     ui.on("click", (event, x) => clicks.push(x))
@@ -98,7 +98,7 @@ test.each([true, false])("dygraph touch taps follow the annotation setting (%s)"
 
 test("dygraph canvas skips saved and draft annotations when annotations are disabled", async () => {
   const { chart, ui, teardown } = await mount({
-    annotationsEnabled: false,
+    enabledAnnotations: false,
     overlays: {
       saved: { type: "annotation", timestamp: after + 100 },
       highlight: { type: "highlight", range: [after + 50, after + 150] },
@@ -114,7 +114,7 @@ test("dygraph canvas skips saved and draft annotations when annotations are disa
     await nextFrame()
     expect(new Set(areas)).toEqual(new Set(["highlight"]))
     areas.length = 0
-    chart.updateAttribute("annotationsEnabled", true)
+    chart.updateAttribute("enabledAnnotations", true)
     ui.getDygraph().renderGraph_(false)
     await nextFrame()
     expect(new Set(areas)).toEqual(new Set(["saved", "highlight", "draftAnnotation"]))

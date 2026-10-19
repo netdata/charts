@@ -151,7 +151,7 @@ export default chartUI => {
     }
 
     if (dygraphLastTouchMove === 0 && dygraphLastTouchPageX !== 0) {
-      if (chartUI.chart.getAttribute("annotationsEnabled") === false) {
+      if (chartUI.chart.getAttribute("enabledAnnotations") === false) {
         const touch = event.changedTouches?.[0]
         if (touch) chartUI.trigger("click", touch, context.initialTouches?.[0]?.dataX, [])
         return
