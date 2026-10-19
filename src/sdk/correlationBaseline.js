@@ -5,6 +5,8 @@ export const getCorrelationBaseline = ({ after, before }) => {
   return { after: start - duration * multiplier, before: start, multiplier }
 }
 
+export const usesAdaptiveBaseline = method => ["volume", "ks2"].includes(method || "volume")
+
 export const getWeightsBaseline = ({
   method = "volume",
   after,
@@ -12,7 +14,7 @@ export const getWeightsBaseline = ({
   baselineAfter,
   baselineBefore,
 }) => {
-  if (["volume", "ks2"].includes(method || "volume") && Number.isFinite(after) && before > after) {
+  if (usesAdaptiveBaseline(method) && Number.isFinite(after) && before > after) {
     const baseline = getCorrelationBaseline(
       after > 0 ? { after, before } : { after: 0, before: before - after }
     )

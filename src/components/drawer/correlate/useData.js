@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef } from "react"
 import { useChart, useAttributeValue } from "@/components/provider"
 import { fetchChartWeights } from "@/sdk/makeChart/api"
-import { getWeightsBaseline } from "@/sdk/correlationBaseline"
 import { transformCorrelationData, groupByContext } from "./dataTransformer"
 
 export const getCorrelationQueryAttributes = ({
@@ -10,32 +9,21 @@ export const getCorrelationQueryAttributes = ({
   aggregation,
   dataType,
   nodesScope,
-}) => {
-  const baseline = getWeightsBaseline({
-    method,
-    after: timeRange.highlightAfter,
-    before: timeRange.highlightBefore,
-    baselineAfter: timeRange.baselineAfter,
-    baselineBefore: timeRange.baselineBefore,
-  })
-  return {
-    ...timeRange,
-    baselineAfter: baseline.after,
-    baselineBefore: baseline.before,
-    method,
-    aggregationMethod: aggregation,
-    options: dataType ? [dataType] : [],
-    groupBy: ["node", "context", "dimension"],
-    groupByLabel: [],
-    contextScope: [],
-    nodesScope,
-    selectedContexts: [],
-    selectedNodes: [],
-    selectedInstances: [],
-    selectedDimensions: [],
-    selectedLabels: [],
-  }
-}
+}) => ({
+  ...timeRange,
+  method,
+  aggregationMethod: aggregation,
+  options: dataType ? [dataType] : [],
+  groupBy: ["node", "context", "dimension"],
+  groupByLabel: [],
+  contextScope: [],
+  nodesScope,
+  selectedContexts: [],
+  selectedNodes: [],
+  selectedInstances: [],
+  selectedDimensions: [],
+  selectedLabels: [],
+})
 
 const useData = () => {
   const chart = useChart()

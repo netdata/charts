@@ -1,4 +1,8 @@
-import { getCorrelationBaseline, getWeightsBaseline } from "./correlationBaseline"
+import {
+  getCorrelationBaseline,
+  getWeightsBaseline,
+  usesAdaptiveBaseline,
+} from "./correlationBaseline"
 
 test.each([
   [3599, 4],
@@ -40,4 +44,16 @@ test.each(["anomaly-rate", "value"])("preserves %s baselines", method => {
       baselineBefore: 2.5,
     })
   ).toEqual({ after: 1, before: 2 })
+})
+
+test.each([
+  ["volume", true],
+  ["ks2", true],
+  [undefined, true],
+  [null, true],
+  ["", true],
+  ["anomaly-rate", false],
+  ["value", false],
+])("%s weights use the adaptive baseline: %s", (method, expected) => {
+  expect(usesAdaptiveBaseline(method)).toBe(expected)
 })
