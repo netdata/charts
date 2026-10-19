@@ -18,7 +18,7 @@ describe("Title component", () => {
 
     expect(screen.getByText("CPU Usage")).toHaveStyle({
       color: DefaultTheme.colors.text,
-      fontWeight: "bold",
+      fontWeight: 600,
     })
     expect(screen.getByText(/system\.cpu/)).toBeInTheDocument()
   })
@@ -50,7 +50,7 @@ describe("Title component", () => {
 
     expect(screen.getByText("CPU Usage")).toHaveStyle({
       color: DarkTheme.colors.text,
-      fontWeight: "bold",
+      fontWeight: 600,
     })
   })
 
