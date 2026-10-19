@@ -5,8 +5,9 @@ const wildcardArray = ["*"]
 
 const getPayload = (chart, attrs = {}) => {
   const chartAttributes = chart.getAttributes()
-  const { after, before, points, time_group, time_resampling } = getChartPayload(chart, attrs)
-  const weightsWindow = getWeightsWindow(chart, attrs)
+  const chartPayload = getChartPayload(chart, attrs)
+  const { after, before, points, time_group, time_resampling } = chartPayload
+  const weightsWindow = getWeightsWindow(chart, attrs, chartPayload)
 
   const {
     selectedContexts,

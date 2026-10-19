@@ -9,6 +9,7 @@ import limitRange from "@/helpers/limitRange"
 import { makeGetColor, withoutPrefix } from "@/helpers/heatmap"
 import { darkenColor } from "@/chartLibraries/helpers/color"
 import { isVisibleDimension } from "@/chartLibraries/helpers/dimensionVisibility"
+import { areAnnotationsDisabled } from "@/chartLibraries/helpers/annotations"
 import { formatHeatmapLabel } from "@/helpers/heatmapScale"
 import {
   getSeriesStackBounds,
@@ -1268,7 +1269,7 @@ export default (sdk, chart) => {
       const xMs = snappedX == null ? rawMs : snappedX * 1000
 
       chartUI.trigger("click", event, xMs, [])
-      if (chart.getAttribute("enabledAnnotations") === false) return
+      if (areAnnotationsDisabled(chart)) return
 
       annotate(offsetX, xMs)
 
@@ -1416,8 +1417,7 @@ export default (sdk, chart) => {
         if (offsetX < 0 || offsetX > rect.width) return
         const xMs = u.posToVal(offsetX, "x") * 1000
         chartUI.trigger("click", touch, xMs, [])
-        if (chart.getAttribute("enabledAnnotations") !== false)
-          chart.updateAttribute("clickX", [xMs, null])
+        if (!areAnnotationsDisabled(chart)) chart.updateAttribute("clickX", [xMs, null])
         return
       }
 

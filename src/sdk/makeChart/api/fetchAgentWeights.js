@@ -5,8 +5,9 @@ const wildcard = "*"
 
 const getPayload = (chart, attrs = {}) => {
   const chartAttributes = chart.getAttributes()
-  const { after, before, points, time_group, time_resampling } = getChartPayload(chart, attrs)
-  const weightsWindow = getWeightsWindow(chart, attrs)
+  const chartPayload = getChartPayload(chart, attrs)
+  const { after, before, points, time_group, time_resampling } = chartPayload
+  const weightsWindow = getWeightsWindow(chart, attrs, chartPayload)
 
   const {
     selectedContexts,
@@ -48,7 +49,7 @@ const getPayload = (chart, attrs = {}) => {
     ...(Array.isArray(groupByLabel) &&
       groupByLabel.length && { group_by_label: groupByLabel.join("|") }),
     aggregation: aggregationMethod,
-    ...getChartPayload(chart, attrs),
+    ...chartPayload,
     ...weightsWindow,
     baseline_after: baseline.after,
     baseline_before: baseline.before,

@@ -1,3 +1,4 @@
+import { applyHighlightOpacity } from "@/chartLibraries/helpers/highlightOpacity"
 import { trigger, getArea } from "./helpers"
 
 export default (chartUI, id) => {
@@ -20,8 +21,7 @@ export default (chartUI, id) => {
   trigger(chartUI, id, area)
 
   ctx.save()
-  const opacity = chartUI.chart.getAttribute("highlightOpacity")
-  if (Number.isFinite(opacity)) ctx.globalAlpha *= Math.max(0, Math.min(1, opacity))
+  applyHighlightOpacity(ctx, chartUI.chart)
   ctx.beginPath()
 
   ctx.rect(from, top, width, h - 1)

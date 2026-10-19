@@ -1,4 +1,5 @@
 import types from "./types"
+import { areAnnotationsDisabled } from "@/chartLibraries/helpers/annotations"
 import getPxRatio from "../pxRatio"
 import { drawLabels as drawThresholdLabels } from "./threshold"
 import { isModern } from "./modern"
@@ -7,7 +8,7 @@ export default chartUI => {
   const drawOverlay = id => {
     const overlays = chartUI.chart.getAttribute("overlays")
     const { type } = overlays[id]
-    if (type === "annotation" && chartUI.chart.getAttribute("enabledAnnotations") === false) return
+    if (type === "annotation" && areAnnotationsDisabled(chartUI.chart)) return
     const makeOverlay = types[type]
     if (!makeOverlay) return
     makeOverlay(chartUI, id)
@@ -26,7 +27,7 @@ export default chartUI => {
 
     ids.forEach(drawOverlay)
 
-    if (draftAnnotation && chartUI.chart.getAttribute("enabledAnnotations") !== false) {
+    if (draftAnnotation && !areAnnotationsDisabled(chartUI.chart)) {
       const makeOverlay = types["annotation"]
       if (makeOverlay) makeOverlay(chartUI, "draftAnnotation")
     }

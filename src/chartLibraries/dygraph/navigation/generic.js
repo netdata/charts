@@ -1,6 +1,7 @@
 import Dygraph from "dygraphs"
 import { debounce } from "throttle-debounce"
 import limitRange from "@/helpers/limitRange"
+import { areAnnotationsDisabled } from "@/chartLibraries/helpers/annotations"
 import makeHoverX from "../hoverX"
 
 const doubleTapDelay = 300
@@ -151,7 +152,7 @@ export default chartUI => {
     }
 
     if (dygraphLastTouchMove === 0 && dygraphLastTouchPageX !== 0) {
-      if (chartUI.chart.getAttribute("enabledAnnotations") === false) {
+      if (areAnnotationsDisabled(chartUI.chart)) {
         const touch = event.changedTouches?.[0]
         if (touch) chartUI.trigger("click", touch, context.initialTouches?.[0]?.dataX, [])
         return

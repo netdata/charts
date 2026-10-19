@@ -109,9 +109,8 @@ export const getChartPayload = (chart, attrs = {}) => {
   }
 }
 
-export const getWeightsWindow = (chart, attrs = {}) => {
+export const getWeightsWindow = (chart, attrs = {}, payload = getChartPayload(chart, attrs)) => {
   const attributes = { ...chart.getAttributes(), ...attrs }
-  const payload = getChartPayload(chart, attrs)
   const window = {
     after: Math.floor(attributes.highlightAfter || payload.after),
     before: Math.floor(attributes.highlightBefore || payload.before),

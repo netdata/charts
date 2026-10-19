@@ -456,6 +456,18 @@ describe("API helpers", () => {
         }
       }
     )
+
+    it("reuses a chart payload the caller already computed", () => {
+      const { chart } = makeTestChart({ attributes: { after: 1000, before: 2000 } })
+      try {
+        expect(getWeightsWindow(chart, {}, { after: 3000.7, before: 4000.2 })).toEqual({
+          after: 3000,
+          before: 4000,
+        })
+      } finally {
+        chart.destroy()
+      }
+    })
   })
 
   describe("errorCodesToMessage", () => {
