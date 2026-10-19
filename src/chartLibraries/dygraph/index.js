@@ -20,6 +20,7 @@ import crosshair from "./crosshair"
 import { makeDivergingStackedDataHandler } from "./divergingStack"
 import makeDygraphWithoutLegend from "./makeDygraph"
 import { makeReusableLineDataHandler } from "./reusableLineDataHandler"
+import isInXRange from "@/helpers/isInXRange"
 
 const touchEvents = ["touchstart", "touchmove", "touchend"]
 
@@ -169,7 +170,11 @@ export default (sdk, chart) => {
         crosshair(instance, row)
       }),
       chart.onAttributeChange("clickX", dimensions => {
-        const row = Array.isArray(dimensions) ? chart.getClosestRow(dimensions[0]) : -1
+        const row =
+          Array.isArray(dimensions) &&
+          isInXRange(dimensions[0], dygraph.xAxisRange(), chart.getAttribute("viewUpdateEvery"))
+            ? chart.getClosestRow(dimensions[0])
+            : -1
 
         if (row === -1) return dygraph.setSelection()
 

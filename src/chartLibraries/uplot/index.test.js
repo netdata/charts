@@ -11,6 +11,7 @@ import Popover from "@/components/line/popover"
 import makeDefaultSDK from "../../makeDefaultSDK"
 import systemLoadLine from "../../../fixtures/systemLoadLine"
 import initialAttributes from "@/sdk/initialAttributes"
+import makeGetClosestRow from "@/sdk/makeChart/makeGetClosestRow"
 import uplotChart from "./index"
 import { getStackBounds, getStackValueRange } from "./stacking"
 
@@ -2990,6 +2991,24 @@ describe("uplotChart crosshair overlay (separate canvas, no main redraw)", () =>
     expect(drawnX).toContain(expectedX)
 
     moveToSpy.mockRestore()
+    teardown()
+  })
+
+  it("skips the clicked line and dots when the clicked time is outside the visible window", async () => {
+    const { chart, element, teardown } = await mount("line")
+    makeGetClosestRow(chart)
+
+    const octx = element.querySelector(".netdata-crosshair-overlay").getContext("2d")
+    const lineToSpy = jest.spyOn(octx, "lineTo")
+    const arcSpy = jest.spyOn(octx, "arc")
+
+    chart.updateAttribute("clickX", [1617946800000, null])
+
+    expect(lineToSpy).not.toHaveBeenCalled()
+    expect(arcSpy).not.toHaveBeenCalled()
+
+    lineToSpy.mockRestore()
+    arcSpy.mockRestore()
     teardown()
   })
 
