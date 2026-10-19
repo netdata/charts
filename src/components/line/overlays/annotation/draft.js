@@ -1,6 +1,6 @@
 import React, { memo } from "react"
 import Icon, { Button } from "@/components/icon"
-import { useAttributeValue, useChart } from "@/components/provider"
+import { useAttributeValue, useChart, useIsModern } from "@/components/provider"
 import Tooltip from "@/components/tooltip"
 import { Flex, TextNano } from "@netdata/netdata-ui"
 import plusIcon from "@netdata/netdata-ui/dist/components/icon/assets/plus.svg"
@@ -9,6 +9,7 @@ import styled from "styled-components"
 import { Divider } from "../highlight"
 import makeLog from "@/sdk/makeLog"
 import AnnotationForm from "./form"
+import ClickActions from "./clickActions"
 
 const StyledDraftAnnotation = styled(Flex).attrs({
   justifyContent: "center",
@@ -142,8 +143,12 @@ const DraftAnnotationForm = memo(() => {
 const DraftAnnotation = () => {
   const chart = useChart()
   const draftAnnotation = useAttributeValue("draftAnnotation")
+  const isModern = useIsModern()
 
   if (!draftAnnotation) return null
+
+  if (isModern && draftAnnotation.status === "draft")
+    return <ClickActions annotation={draftAnnotation} />
 
   return (
     <StyledDraftAnnotation data-track={chart.track("annotation-draft-display")}>

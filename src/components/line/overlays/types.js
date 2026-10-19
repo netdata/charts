@@ -11,7 +11,7 @@ import LatestValue from "./latestValue"
 import LatestTime from "./latestTime"
 import Annotation from "./annotation"
 import DraftAnnotation from "./annotation/draft"
-import { useAttributeValue } from "@/components/provider"
+import { useAttributeValue, useIsModern } from "@/components/provider"
 
 const NoEventsContainer = styled(LayerContainer)`
   pointer-events: none;
@@ -71,11 +71,19 @@ const AnnotationOverlay = ({ id, ...rest }) => (
   </Container>
 )
 
-const DraftAnnotationOverlay = ({ id, ...rest }) => (
-  <Container id={id} align={alignment.elementRight} top="60px" right={-5} {...rest}>
-    <DraftAnnotation />
-  </Container>
-)
+const DraftAnnotationOverlay = ({ id, ...rest }) => {
+  const isModern = useIsModern()
+
+  return isModern ? (
+    <Container id={id} align={alignment.elementSide} top="40px" {...rest}>
+      <DraftAnnotation />
+    </Container>
+  ) : (
+    <Container id={id} align={alignment.elementRight} top="60px" right={-5} {...rest}>
+      <DraftAnnotation />
+    </Container>
+  )
+}
 
 export default {
   alarm: AlarmOverlay,
