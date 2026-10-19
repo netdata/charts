@@ -145,6 +145,16 @@ describe("modern line legend", () => {
     expect(screen.queryByTestId("chartLegendDimension")).not.toBeInTheDocument()
   })
 
+  it("reads the table at the clicked time when not hovering", async () => {
+    const { chart } = await renderLine({ designFlavour: "modern", legendLayout: "table" })
+    const [timestamp] = chart.getPayload().all[5]
+
+    await act(async () => chart.updateAttribute("clickX", [timestamp, null]))
+
+    expect(screen.getByText("Pinned")).toBeInTheDocument()
+    expect(screen.getByTestId("modernLegend-time")).toHaveTextContent(chart.formatTime(timestamp))
+  })
+
   it("turns the table into the readout while hovering", async () => {
     const { chart } = await renderLine({ designFlavour: "modern", legendLayout: "table" })
     const { all } = chart.getPayload()
@@ -286,6 +296,26 @@ describe("modern line legend", () => {
     fireEvent.click(screen.getByTestId("modernFooter-highlight"))
     expect(chart.getAttribute("after")).toBe(after)
     expect(chart.getAttribute("before")).toBe(before)
+  })
+
+  it("shows the clicked time in the footer when not hovering", async () => {
+    const { chart } = await renderLine({ designFlavour: "modern", legendLayout: "below" })
+    const [timestamp] = chart.getPayload().all[3]
+
+    await act(async () => chart.updateAttribute("clickX", [timestamp, null]))
+    expect(screen.getByTestId("modernFooter-time")).toHaveTextContent(/^Pinned/)
+    expect(screen.getByTestId("modernFooter-time")).toHaveTextContent(chart.formatTime(timestamp))
+
+    await act(async () => chart.updateAttribute("hoverX", [chart.getPayload().all[5][0], "load1"]))
+    expect(screen.getByTestId("modernFooter-time")).toHaveTextContent(/^Hovering/)
+  })
+
+  it("keeps the latest time when the clicked time is outside the data", async () => {
+    const { chart } = await renderLine({ designFlavour: "modern", legendLayout: "below" })
+    const [first] = chart.getPayload().all[0]
+
+    await act(async () => chart.updateAttribute("clickX", [first - 3600000, null]))
+    expect(screen.getByTestId("modernFooter-time")).toHaveTextContent(/^Latest/)
   })
 
   it("shows the latest and hovered time in the footer", async () => {

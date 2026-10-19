@@ -2,6 +2,7 @@ import { useRef } from "react"
 import { convert, useChart, useForceUpdate, useImmediateListener } from "@/components/provider"
 import { unregister } from "@/helpers/makeListeners"
 import { isIncremental } from "@/helpers/heatmap"
+import isInXRange from "@/helpers/isInXRange"
 import { formatReadout, formatReadoutUnit } from "@/components/modern/format"
 
 const isNumber = value => typeof value === "number" && isFinite(value)
@@ -12,10 +13,14 @@ export const getReadoutIndex = chart => {
 
   const hover = chart.getAttribute("hoverX")
   const closest = hover ? chart.getClosestRow(hover[0]) : -1
+  if (closest !== -1) return { index: closest, hovering: true, pinned: false }
 
-  return closest === -1
-    ? { index: all.length - 1, hovering: false }
-    : { index: closest, hovering: true }
+  const click = chart.getAttribute("clickX")?.[0]
+  const range = [all[0][0], all[all.length - 1][0]]
+  if (click != null && isInXRange(click, range, chart.getAttribute("viewUpdateEvery")))
+    return { index: chart.getClosestRow(click), hovering: false, pinned: true }
+
+  return { index: all.length - 1, hovering: false, pinned: false }
 }
 
 const scanWindow = (chart, id, data) => {
@@ -95,6 +100,7 @@ export const makeRow = (chart, id, index, stats, formatted) => {
 const events = ["dimensionChanged", "visibleDimensionsChanged", "payloadChanged", "successFetch"]
 const attributes = [
   "hoverX",
+  "clickX",
   "selectedLegendDimensions",
   "unitsConversionPrefix",
   "unitsConversionBase",
@@ -128,7 +134,7 @@ export const useLegendRows = ({ withStats = false, withRows = true } = {}) => {
   )
 
   const ids = chart.getDimensionIds() || []
-  const { index, hovering } = getReadoutIndex(chart)
+  const { index, hovering, pinned } = getReadoutIndex(chart)
   const payload = chart.getPayload()
 
   const key = [payload, ids, withStats, ...cacheAttributes.map(name => chart.getAttribute(name))]
@@ -147,6 +153,7 @@ export const useLegendRows = ({ withStats = false, withRows = true } = {}) => {
     stats,
     index,
     hovering,
+    pinned,
     timestamp,
   }
 }

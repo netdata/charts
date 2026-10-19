@@ -216,9 +216,13 @@ const LegendTable = () => {
   const sort = useAttributeValue("dimensionsSort")
   const isHeatmap = useIsHeatmap()
   const initialLoading = useInitialLoading()
-  const { ids, getRow, hovering, timestamp } = useLegendRows({ withStats: true, withRows: false })
+  const { ids, getRow, hovering, pinned, timestamp } = useLegendRows({
+    withStats: true,
+    withRows: false,
+  })
   useClearFocusOnUnmount()
   const time = useFormatTime(timestamp)
+  const readout = hovering || pinned
   const [scrollRef, fade, onScroll] = useScrollFade([ids.length])
   const onSort = value => chart.updateAttribute("dimensionsSort", value)
 
@@ -243,13 +247,13 @@ const LegendTable = () => {
                   column="name"
                   sort={sort}
                   onSort={onSort}
-                  disabled={hovering}
-                  {...(hovering && { "data-testid": "modernLegend-time" })}
+                  disabled={readout}
+                  {...(readout && { "data-testid": "modernLegend-time" })}
                 >
-                  {hovering ? time : "Name"}
+                  {readout ? time : "Name"}
                 </SortHeader>
                 <SortHeader column="value" sort={sort} onSort={onSort}>
-                  {hovering ? "At cursor" : "Last"}
+                  {hovering ? "At cursor" : pinned ? "Pinned" : "Last"}
                 </SortHeader>
                 <HeaderCell>Mean</HeaderCell>
                 <HeaderCell>Max</HeaderCell>
