@@ -1,3 +1,5 @@
+import { usesAdaptiveBaseline } from "@/sdk/correlationBaseline"
+
 const defaultUrlOptionsByLibrary = {
   groupBoxes: ["group-by-labels"],
   default: [],
@@ -107,6 +109,20 @@ export const getChartPayload = (chart, attrs = {}) => {
     time_resampling: groupingTime,
     ...afterBefore,
   }
+}
+
+export const getWeightsWindow = (chart, attrs = {}, payload = getChartPayload(chart, attrs)) => {
+  const attributes = { ...chart.getAttributes(), ...attrs }
+  const window = {
+    after: Math.floor(attributes.highlightAfter || payload.after),
+    before: Math.floor(attributes.highlightBefore || payload.before),
+  }
+  if (usesAdaptiveBaseline(attributes.method) && window.after < 0 && window.before <= 0) {
+    const anchor = getLiveFetchBefore({ ...attributes, after: window.after, viewUpdateEvery: 0 })
+    if (Number.isFinite(anchor) && anchor > 0)
+      return { after: anchor + window.after, before: anchor + window.before }
+  }
+  return window
 }
 
 export const getChartDataRequestAttributes = (chart, attrs = {}) => ({

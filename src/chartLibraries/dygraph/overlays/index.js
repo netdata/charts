@@ -1,4 +1,5 @@
 import types from "./types"
+import { areAnnotationsDisabled } from "@/chartLibraries/helpers/annotations"
 
 export default chartUI => {
   let off = null
@@ -6,6 +7,7 @@ export default chartUI => {
   const drawOverlay = id => {
     const overlays = chartUI.chart.getAttribute("overlays")
     const { type } = overlays[id]
+    if (type === "annotation" && areAnnotationsDisabled(chartUI.chart)) return
     const makeOverlay = types[type]
     if (!makeOverlay) return
     makeOverlay(chartUI, id)
@@ -16,7 +18,7 @@ export default chartUI => {
     Object.keys(overlays).forEach(drawOverlay)
 
     const draftAnnotation = chartUI.chart.getAttribute("draftAnnotation")
-    if (draftAnnotation) {
+    if (draftAnnotation && !areAnnotationsDisabled(chartUI.chart)) {
       const makeOverlay = types["annotation"]
       if (makeOverlay) makeOverlay(chartUI, "draftAnnotation")
     }

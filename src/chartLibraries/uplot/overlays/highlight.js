@@ -1,3 +1,4 @@
+import { applyHighlightOpacity } from "@/chartLibraries/helpers/highlightOpacity"
 import { trigger, getArea } from "./helpers"
 
 export default (chartUI, id) => {
@@ -20,6 +21,7 @@ export default (chartUI, id) => {
   trigger(chartUI, id, area)
 
   ctx.save()
+  applyHighlightOpacity(ctx, chartUI.chart)
   ctx.beginPath()
 
   ctx.rect(from, top, width, h - 1)
