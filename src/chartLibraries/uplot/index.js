@@ -25,6 +25,7 @@ import makeAnnotations from "./plotters/annotations"
 import makeLiveEdge, { haloRadius, isLiveLayout } from "./plotters/liveEdge"
 import makeGetHoverDimension from "./hover"
 import getPxRatio from "./pxRatio"
+import isInXRange from "@/helpers/isInXRange"
 
 const barGroupWidth = 0.6
 
@@ -549,11 +550,20 @@ export default (sdk, chart) => {
     return [xAxis, yAxis]
   }
 
+  const isInWindow = (self, timestamp) => {
+    const { min, max } = self.scales.x
+    return isInXRange(
+      timestamp,
+      min == null || max == null ? null : [min * 1000, max * 1000],
+      chart.getAttribute("viewUpdateEvery")
+    )
+  }
+
   const drawVerticalLine = (self, ctx, dimensions, color, dash) => {
     if (!Array.isArray(dimensions)) return
 
     const timestamp = dimensions[0]
-    if (timestamp == null) return
+    if (timestamp == null || !isInWindow(self, timestamp)) return
 
     const row = chart.getClosestRow(timestamp)
     const rowData = row === -1 ? null : chart.getPayload().data[row]
@@ -822,7 +832,7 @@ export default (sdk, chart) => {
     if (!Array.isArray(dimensions)) return
 
     const timestamp = dimensions[0]
-    if (timestamp == null) return
+    if (timestamp == null || !isInWindow(self, timestamp)) return
     if (chart.getAttribute("chartType") === "heatmap") return
 
     const row = chart.getClosestRow(timestamp)

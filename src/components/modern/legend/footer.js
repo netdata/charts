@@ -85,15 +85,18 @@ const Highlight = () => {
 const Time = () => {
   const chart = useChart()
   useAttributeValue("hoverX")
+  useAttributeValue("clickX")
   usePayload()
-  const { index, hovering } = getReadoutIndex(chart)
+  const { index, hovering, pinned } = getReadoutIndex(chart)
   const timestamp = index === -1 ? null : chart.getPayload().all[index]?.[0]
   const date = useFormatDate(timestamp || 0)
   const time = useFormatTime(timestamp || 0)
 
   if (!timestamp) return null
 
-  return <TimeText>{`${hovering ? "Hovering" : "Latest"} ${date} • ${time}`}</TimeText>
+  const label = hovering ? "Hovering" : pinned ? "Pinned" : "Latest"
+
+  return <TimeText>{`${label} ${date} • ${time}`}</TimeText>
 }
 
 const Footer = () => {

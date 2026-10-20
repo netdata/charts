@@ -9,6 +9,17 @@ export const alignment = {
   elementRight: "elementRight",
   elementLeft: "elementLeft",
   elementFull: "elementFull",
+  elementSide: "elementSide",
+}
+
+const sideGap = 8
+
+export const getSideRight = ({ from, chartWidth, elementWidth, gap = sideGap }) => {
+  const right = from + gap + elementWidth
+  if (right <= chartWidth) return right
+  if (from - gap - elementWidth >= 0) return from - gap
+
+  return Math.min(Math.max(right, elementWidth), chartWidth)
 }
 
 const calcByAlignment = {
@@ -26,6 +37,10 @@ const calcByAlignment = {
   ],
   [alignment.elementRight]: ({ from, width }) => [from, from + width],
   [alignment.elementLeft]: ({ from }) => [from, from],
+  [alignment.elementSide]: ({ from, chartWidth, element }) => [
+    from,
+    getSideRight({ from, chartWidth, elementWidth: element.firstChild?.offsetWidth || 0 }),
+  ],
 }
 
 const HorizontalContainer = styled(Flex)`

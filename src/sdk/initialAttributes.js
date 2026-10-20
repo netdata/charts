@@ -337,6 +337,7 @@ export default {
 
   showAnomalies: true,
 
+  canCreateAnnotations: true,
   draftAnnotation: null, // { timestamp, createdAt, status: "draft"|"editing"|"saving" }
 
   comparePeriods: [],
