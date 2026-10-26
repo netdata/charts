@@ -120,6 +120,17 @@ describe("modern tile at rest", () => {
     }
   )
 
+  it("hides the title when hideTitle is set and brings it back when cleared", async () => {
+    const { chart } = await renderModern({ hideTitle: true })
+
+    expect(screen.queryByTestId("modernTile-title")).not.toBeInTheDocument()
+    expect(screen.getByTestId("tileBody")).toBeInTheDocument()
+
+    act(() => chart.updateAttribute("hideTitle", false))
+
+    expect(screen.getByTestId("modernTile-title")).toHaveTextContent("System load")
+  })
+
   it("triggers goToLink from the title like the default tile title", async () => {
     const { chart } = await renderModern()
     const links = []
