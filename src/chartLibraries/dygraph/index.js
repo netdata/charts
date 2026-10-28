@@ -79,7 +79,10 @@ export default (sdk, chart) => {
       ),
       unhighlightCallback: executeLatest.add(() => chartUI.trigger("unhighlightCallback")),
       drawCallback: (...args) => chartUI.trigger("drawCallback", ...args),
-      underlayCallback: (...args) => chartUI.trigger("underlayCallback", ...args),
+      underlayCallback: (...args) => {
+        chartUI.trigger("underlayCallback", ...args)
+        chartUI.trigger("afterUnderlayCallback", ...args)
+      },
       interactionModel: {
         willDestroyContextMyself: true,
         mouseout: (...args) => chartUI.trigger("mouseout", ...args),
@@ -185,6 +188,8 @@ export default (sdk, chart) => {
       chart.onAttributeChange("navigation", navigation.set),
       chart.onAttributeChange("overlays", overlays.toggle),
       chart.onAttributeChange("draftAnnotation", overlays.toggle),
+      chart.onAttributeChange("enabledAnnotations", overlays.toggle),
+      chart.onAttributeChange("highlightOpacity", overlays.toggle),
       chart.onAttributeChange("theme", (nextTheme, prevTheme) => {
         element.classList.remove(prevTheme)
         element.classList.add(nextTheme)
@@ -540,6 +545,8 @@ export default (sdk, chart) => {
 
   const getXCoord = timestampMs => (dygraph ? dygraph.toDomXCoord(timestampMs) : 0)
 
+  const getYCoord = value => (dygraph ? dygraph.toDomYCoord(value) : null)
+
   const instance = {
     ...chartUI,
     getChartWidth,
@@ -550,6 +557,7 @@ export default (sdk, chart) => {
     getXAxisRange,
     getPlotArea,
     getXCoord,
+    getYCoord,
     render,
   }
 

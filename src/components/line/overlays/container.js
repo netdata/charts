@@ -1,7 +1,7 @@
 import React, { useRef, useState, useLayoutEffect, memo } from "react"
 import styled from "styled-components"
 import { Flex } from "@netdata/netdata-ui"
-import { useChart } from "@/components/provider"
+import { useChart, useChartUI } from "@/components/provider"
 
 export const alignment = {
   chartMiddle: "chartMiddle",
@@ -68,6 +68,7 @@ const Container = ({ id, align, right = 0, fixed, children, uiName, ...rest }) =
   const ref = useRef()
   const [area, setArea] = useState()
   const chart = useChart()
+  const ui = useChartUI(uiName)
 
   const updateRight = area => {
     if (!chart || !chart.getUI(uiName) || !area || !ref.current) return
@@ -80,11 +81,11 @@ const Container = ({ id, align, right = 0, fixed, children, uiName, ...rest }) =
   useLayoutEffect(
     () =>
       !fixed &&
-      chart.getUI(uiName).on(`overlayedAreaChanged:${id}`, area => {
+      ui.on(`overlayedAreaChanged:${id}`, area => {
         updateRight(area)
         setArea(s => (!!s !== !!area ? area : s))
       }),
-    []
+    [chart, ui, uiName, id, fixed, align, right]
   )
 
   useLayoutEffect(() => !fixed && updateRight(area), [area])

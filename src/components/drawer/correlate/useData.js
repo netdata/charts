@@ -43,21 +43,11 @@ const useData = () => {
   const getTimeRange = () => {
     if (tab === "selectedArea" && overlays?.highlight?.range) {
       const [highlightAfter, highlightBefore] = overlays.highlight.range
-      const baselineDuration = highlightBefore - highlightAfter
-      const baselineAfter = highlightAfter - baselineDuration * 4
-      const baselineBefore = highlightAfter
-
       return {
         highlightAfter,
         highlightBefore,
-        baselineAfter,
-        baselineBefore,
       }
     }
-
-    const windowDuration = before - after
-    const baselineAfter = after - windowDuration * 4
-    const baselineBefore = after
 
     if (after < 0) {
       const { renderedAt, fetchStartedAt } = chart.getAttributes()
@@ -65,16 +55,12 @@ const useData = () => {
       return {
         highlightAfter: now + after,
         highlightBefore: now + before,
-        baselineAfter: now + baselineAfter,
-        baselineBefore: now + baselineBefore,
       }
     }
 
     return {
       highlightAfter: after,
       highlightBefore: before,
-      baselineAfter,
-      baselineBefore,
     }
   }
 

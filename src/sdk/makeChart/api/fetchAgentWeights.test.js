@@ -101,6 +101,34 @@ describe("fetchAgentWeights", () => {
     expect(urlParams.get("options")).toContain("option")
   })
 
+  it("sends the adaptive baseline for volume weights", async () => {
+    await fetchAgentWeights(chart, { attrs: { after: 3000, before: 4000 } })
+
+    const callUrl = global.fetch.mock.calls[0][0]
+    const urlParams = new URLSearchParams(callUrl.split("?")[1])
+
+    expect(urlParams.get("baseline_after")).toBe("-1000")
+    expect(urlParams.get("baseline_before")).toBe("3000")
+  })
+
+  it("keeps explicit baselines for value weights", async () => {
+    await fetchAgentWeights(chart, {
+      attrs: {
+        method: "value",
+        after: 3000,
+        before: 4000,
+        baselineAfter: 1000.5,
+        baselineBefore: 2000.5,
+      },
+    })
+
+    const callUrl = global.fetch.mock.calls[0][0]
+    const urlParams = new URLSearchParams(callUrl.split("?")[1])
+
+    expect(urlParams.get("baseline_after")).toBe("1000")
+    expect(urlParams.get("baseline_before")).toBe("2000")
+  })
+
   it("passes through additional fetch options", async () => {
     const signal = new AbortController().signal
 

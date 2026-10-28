@@ -1,4 +1,5 @@
 import getOffsets from "@/helpers/eventOffset"
+import { areAnnotationsDisabled } from "@/chartLibraries/helpers/annotations"
 import { isHeatmap } from "@/helpers/heatmap"
 import { findDivergingStackedPoint } from "./divergingStack"
 
@@ -130,6 +131,7 @@ export default chartUI => {
   }
 
   const click = (event, x, points) => {
+    if (areAnnotationsDisabled(chartUI.chart)) return
     if (lastTimestamp === x) return
 
     lastPoints = points
