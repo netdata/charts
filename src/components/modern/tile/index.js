@@ -65,6 +65,7 @@ const Root = styled(Flex).attrs({
 
 const Header = styled(Flex).attrs({
   alignItems: "center",
+  justifyContent: "end",
   flex: false,
   gap: 1.5,
   position: "relative",
@@ -161,6 +162,7 @@ const ModernTile = ({ children, customChildren, hasFilters = true, height, width
   const chart = useChart()
   const { width: chartWidth } = useOnResize()
   const focused = useAttributeValue("focused")
+  const hideTitle = useAttributeValue("hideTitle")
   const hasToolbox = useAttributeValue("hasToolbox")
   const overlays = useAttributeValue("overlays")
   const error = useAttributeValue("error")
@@ -201,7 +203,7 @@ const ModernTile = ({ children, customChildren, hasFilters = true, height, width
     >
       <HeadArea>
         <Header>
-          <TileTitle />
+          {!hideTitle && <TileTitle />}
           {alert && !revealed && (
             <span data-tile-alert>
               <AlertDot alert={alert} />
