@@ -1,23 +1,7 @@
 import makeHeatPayload from "../../../../fixtures/makeHeatPayload"
-import { getLevels, findNode, getBoxIds, buildBoxTree, findGroup } from "./tree"
+import { getBoxIds, buildBoxTree, findGroup } from "./tree"
 
 describe("group boxes tree", () => {
-  it("reads level kinds from grouped", () => {
-    expect(getLevels(["dimension", "label:k8s_namespace", "node"])).toEqual([
-      { kind: "dimension", key: "dimension" },
-      { kind: "label", key: "k8s_namespace" },
-      { kind: "node", key: "node" },
-    ])
-    expect(getLevels(undefined)).toEqual([])
-  })
-
-  it("finds nodes by machine guid or node id", () => {
-    const nodes = { n1: { mg: "mg-1", nd: "n1", nm: "web-1" }, "mg-2": { mg: "mg-2", nm: "db" } }
-    expect(findNode(nodes, "mg-1")).toEqual({ key: "n1", node: nodes.n1 })
-    expect(findNode(nodes, "mg-2")).toEqual({ key: "mg-2", node: nodes["mg-2"] })
-    expect(findNode(nodes, "nope")).toBeNull()
-  })
-
   it("takes box ids from the payload labels without time and the appended columns", () => {
     const ids = getBoxIds({ labels: ["time", "a,1", "a,2", "ANOMALY_RATE", "ANNOTATIONS"] })
     expect(ids).toEqual(["a,1", "a,2"])

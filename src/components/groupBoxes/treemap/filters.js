@@ -1,6 +1,4 @@
-import { getLevels, findNode } from "./tree"
-
-const unsetValue = "[unset]"
+import { getLevels, findNode, unsetValue } from "@/helpers/groupParts"
 
 const toFilter = (level, value, nodes) => {
   if (level.kind === "label" && value !== unsetValue)

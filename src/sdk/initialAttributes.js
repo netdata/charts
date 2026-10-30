@@ -163,6 +163,7 @@ export default {
 
   groupBy: ["dimension"],
   groupByLabel: [],
+  groupByLabelDisplay: {},
   postGroupBy: ["selected"],
   postGroupByLabel: [],
 
@@ -338,6 +339,7 @@ export default {
   showAnomalies: true,
 
   canCreateAnnotations: true,
+  groupClickable: false,
   enabledAnnotations: true,
   highlightOpacity: 1,
   draftAnnotation: null, // { timestamp, createdAt, status: "draft"|"editing"|"saving" }

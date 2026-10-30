@@ -9,6 +9,7 @@ import { ChartWrapper } from "@/components/hocs/withTile"
 import Toolbox from "@/components/toolbox"
 import Status from "@/components/status"
 import sanitizeId from "@/helpers/sanitizeId"
+import { triggerGroupClick } from "@/helpers/groupParts"
 import useTableMatrix from "./useTableMatrix"
 import {
   ModernTable,
@@ -63,6 +64,21 @@ const Dimensions = () => {
 
   const debouncedData = useDebouncedValue(data, 300)
 
+  const groupClickable = useAttributeValue("groupClickable")
+  const onClickRow = useMemo(
+    () =>
+      groupClickable
+        ? ({ data: { key, ids } }) =>
+            triggerGroupClick(chart, {
+              source: "table",
+              groupId: key,
+              dimensionIds: ids,
+              omit: chart.getAttribute("tableColumns"),
+            })
+        : undefined,
+    [chart, groupClickable]
+  )
+
   const isModern = useIsModern()
   const initialLoading = useInitialLoading()
   const [columnVisibility, setColumnVisibility] = useModernColumnVisibility(columns, isModern)
@@ -87,6 +103,7 @@ const Dimensions = () => {
             sortBy={sortBy}
             columnVisibility={columnVisibility}
             onColumnVisibilityChange={setColumnVisibility}
+            onClickRow={onClickRow}
             width="100%"
           />
         )}
@@ -101,6 +118,7 @@ const Dimensions = () => {
       dataColumns={columns}
       data={debouncedData || data}
       enableCustomSearch
+      onClickRow={onClickRow}
       // onRowSelected={onItemClick}
       // onSearch={noop}
       // meta={meta}

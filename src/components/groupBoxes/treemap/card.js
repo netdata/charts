@@ -13,6 +13,7 @@ import { numerals } from "@/components/modern/numerals"
 import { makeModernColor } from "@/components/modern/groupBoxes/scale"
 import SparklineCanvas from "@/components/drawer/correlate/sparklineCanvas"
 import { getBoxDetails } from "./details"
+import { triggerGroupClick } from "@/helpers/groupParts"
 import { getDrillFilters, applyDrillFilter } from "./filters"
 
 const ActionButton = styled(Button).attrs(({ label }) => ({
@@ -95,6 +96,7 @@ const BoxCard = ({
   const max = useAttributeValue("max")
   const grouped = useAttributeValue("viewDimensions")?.grouped
   const nodes = useAttributeValue("nodes")
+  const groupClickable = useAttributeValue("groupClickable")
   const units = useUnitSign()
   const details = getBoxDetails(chart, id, rowData)
   const { convertedValue, convertedUnit } = useValueWithUnit(details.value, {
@@ -194,6 +196,15 @@ const BoxCard = ({
               }}
             />
           ))}
+          {groupClickable && (
+            <ActionButton
+              label="Open in Metrics"
+              onClick={() => {
+                triggerGroupClick(chart, { source: "treemap", groupId: id, dimensionIds: [id] })
+                onClose()
+              }}
+            />
+          )}
           <CopyToClipboard
             text={details.labels
               .map(({ key, values }) => `${key}: ${values.join(", ")}`)

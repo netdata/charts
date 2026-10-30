@@ -1,3 +1,4 @@
+import isEmpty from "lodash/isEmpty"
 import { usesAdaptiveBaseline } from "@/sdk/correlationBaseline"
 
 const defaultUrlOptionsByLibrary = {
@@ -12,6 +13,7 @@ export const getChartURLOptions = chart => {
     chartLibrary,
     chartType,
     nulls2zero,
+    groupByLabelDisplay,
   } = chart.getAttributes()
   const opts = defaultUrlOptionsByLibrary[chartLibrary] || defaultUrlOptionsByLibrary.default
   const canEliminateZeroDimensions = chartLibrary !== "table" && chartType !== "heatmap"
@@ -26,6 +28,7 @@ export const getChartURLOptions = chart => {
     "jw-anomaly-rates",
     "minify",
     ...opts,
+    !isEmpty(groupByLabelDisplay) && !opts.includes("group-by-labels") && "group-by-labels",
   ].filter(Boolean)
 }
 

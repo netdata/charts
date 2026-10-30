@@ -11,6 +11,7 @@ import { detectHeatmapScale, formatHeatmapLabel, sortHeatmapValues } from "@/hel
 import { getConversionAttributes } from "@/helpers/unitConversion/getConversionUnits"
 import groupBy from "lodash/groupBy"
 import isEmpty from "lodash/isEmpty"
+import { getDimensionLabelValue } from "@/helpers/groupParts"
 import { getPointValue } from "./getPointValue"
 
 const dimensionNameCollator = new Intl.Collator(undefined, {
@@ -347,6 +348,19 @@ export default (chart, sdk) => {
     return typeof color === "string" ? color : color[index]
   }
 
+  const getDisplayLabel = (viewDimensions, id, partIndex) => {
+    const grouped = viewDimensions.grouped?.[partIndex]
+    if (!grouped?.startsWith("label:")) return null
+
+    const preferred = chart.getAttribute("groupByLabelDisplay")?.[grouped.slice("label:".length)]
+    if (!Array.isArray(preferred)) return null
+
+    const index = dimensionsById[id]
+    return (
+      preferred.map(key => getDimensionLabelValue(viewDimensions, key, index)).find(Boolean) ?? null
+    )
+  }
+
   chart.getDimensionName = (id, partIndex) => {
     const viewDimensions = chart.getAttribute("viewDimensions")
 
@@ -354,7 +368,9 @@ export default (chart, sdk) => {
 
     let dimName = viewDimensions.names[dimensionsById[id]] || id
 
-    if (!isNaN(partIndex)) dimName = dimName.split(",")?.[partIndex] ?? dimName
+    if (!isNaN(partIndex))
+      dimName =
+        getDisplayLabel(viewDimensions, id, partIndex) ?? dimName.split(",")?.[partIndex] ?? dimName
 
     if (isHeatmap(chart)) return formatHeatmapLabel(withoutPrefix(dimName), heatmapScale)
 

@@ -1,18 +1,6 @@
+import { getLevels, findNode } from "@/helpers/groupParts"
+
 const unknownLevel = { kind: "unknown", key: "" }
-
-const toLevel = grouped =>
-  grouped.startsWith("label:")
-    ? { kind: "label", key: grouped.slice("label:".length) }
-    : { kind: grouped, key: grouped }
-
-export const getLevels = grouped => (Array.isArray(grouped) ? grouped.map(toLevel) : [])
-
-export const findNode = (nodes, value) => {
-  const entry = Object.entries(nodes || {}).find(
-    ([, node]) => node.mg === value || node.nd === value
-  )
-  return entry ? { key: entry[0], node: entry[1] } : null
-}
 
 export const getBoxIds = payload => payload.labels.slice(1, payload.labels.length - 2)
 

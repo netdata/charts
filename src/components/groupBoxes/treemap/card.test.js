@@ -6,13 +6,14 @@ import makeHeatPayload from "../../../../fixtures/makeHeatPayload"
 import { getBoxDetails, getRank } from "./details"
 import BoxCard from "./card"
 
-const makeChart = async () => {
+const makeChart = async (attributes = {}) => {
   const { chart } = makeTestChart({
     mockData: makeHeatPayload(),
     attributes: {
       contextScope: ["modern.nodes.cpu"],
       chartLibrary: "groupBoxes",
       designFlavour: "modern",
+      ...attributes,
     },
   })
   await act(async () => {
@@ -64,8 +65,8 @@ describe("group boxes card", () => {
     expect(screen.queryByTestId("groupBoxCard-actions")).not.toBeInTheDocument()
   })
 
-  const renderPinned = async ({ focus, zooms }) => {
-    const chart = await makeChart()
+  const renderPinned = async ({ focus, zooms, closes = [], attributes }) => {
+    const chart = await makeChart(attributes)
     const { all } = chart.getPayload()
     renderWithChart(
       <BoxCard
@@ -79,7 +80,7 @@ describe("group boxes card", () => {
         pinned
         focus={focus}
         onZoom={path => zooms.push(path)}
-        onClose={() => {}}
+        onClose={() => closes.push(true)}
       />,
       { chart }
     )
@@ -123,6 +124,37 @@ describe("group boxes card", () => {
     expect(filter).toHaveStyle({ maxWidth: "100%" })
     expect(filter.querySelector("span")).toHaveStyle({ textOverflow: "ellipsis" })
     expect(screen.getByTestId("groupBoxCard-value")).toHaveStyle({ whiteSpace: "nowrap" })
+  })
+
+  it("opens the box in metrics through groupClick and closes the card", async () => {
+    const closes = []
+    const chart = await renderPinned({
+      focus: [],
+      zooms: [],
+      closes,
+      attributes: { groupClickable: true },
+    })
+    const clicks = []
+    const off = chart.sdk.on("groupClick", (target, payload) => clicks.push(payload))
+
+    fireEvent.click(button("Open in Metrics"))
+    off()
+
+    expect(clicks).toEqual([
+      {
+        source: "treemap",
+        groupId: id,
+        dimensionIds: [id],
+        parts: { labels: { group: "prod-db" }, node: "prod-db-01" },
+      },
+    ])
+    expect(closes).toEqual([true])
+  })
+
+  it("hides the metrics action unless groups are clickable", async () => {
+    await renderPinned({ focus: [], zooms: [] })
+
+    expect(screen.queryByText("Open in Metrics")).not.toBeInTheDocument()
   })
 
   it("confirms the copy and keeps the card open", async () => {
