@@ -34,8 +34,7 @@ const getMaxRows = height => {
   return rows < 2 ? 2 : rows
 }
 
-const Fill = styled(Box).attrs({ position: "absolute", round: 1 })`
-  top: 0;
+const Fill = styled(Box).attrs({ position: "absolute", height: 0.5, round: 1 })`
   bottom: 0;
   left: 0;
   pointer-events: none;
@@ -51,7 +50,7 @@ const getPercent = (value, min, max) => {
   return percent > 100 ? 100 : percent
 }
 
-const Bar = ({ id, emphasis }) => {
+const Bar = ({ id }) => {
   const chart = useChart()
   const value = useLatestValue(id) || 0
   const min = useAttributeValue("min")
@@ -60,7 +59,6 @@ const Bar = ({ id, emphasis }) => {
   return (
     <Fill
       fillColor={chart.selectDimensionColor(id)}
-      opacity={emphasis ? 0.24 : 0.16}
       style={{ width: `${getPercent(value, min, max)}%` }}
       data-testid="modern-bars-fill"
     />
@@ -138,7 +136,7 @@ const BarRow = ({ id, rank, strong, fullCols }) => {
       opacity={visible ? 1 : 0.45}
       data-testid="modern-bars-row"
     >
-      <Bar id={id} emphasis={rank === 0} />
+      <Bar id={id} />
       <Flex position="relative" flex overflow="hidden">
         <TextSmall color="text" strong={strong} truncate title={chart.getDimensionName(id)}>
           {chart.getDimensionName(id)}

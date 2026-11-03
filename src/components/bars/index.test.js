@@ -189,14 +189,15 @@ describe("BarsChart", () => {
       expect(screen.queryByText("12.50%")).not.toBeInTheDocument()
     })
 
-    it("tints the whole row behind the label and value, without a separate track", async () => {
+    it("draws the bar as a line along the bottom of the row, without a separate track", async () => {
       await renderBars({ designFlavour: "modern" })
 
       expect(screen.queryByTestId("modern-bars-track")).not.toBeInTheDocument()
       screen.getAllByTestId("modern-bars-row").forEach(row => {
         const fill = within(row).getByTestId("modern-bars-fill")
         expect(fill.parentElement).toBe(row)
-        expect(fill).toHaveStyle({ position: "absolute", top: "0px", bottom: "0px", left: "0px" })
+        expect(fill).toHaveStyle({ position: "absolute", bottom: "0px", left: "0px", height: "2px" })
+        expect(fill).not.toHaveStyle({ top: "0px" })
         expect(row).toHaveStyle({ position: "relative" })
         expect(row).not.toHaveStyle({ display: "grid" })
       })
@@ -224,17 +225,11 @@ describe("BarsChart", () => {
       expect(widths[0] - widths[1]).toBeLessThan(0.1)
     })
 
-    it("tints the emphasised top row stronger than the others", async () => {
+    it("draws every bar in the solid series colour", async () => {
       await renderBars({ designFlavour: "modern" })
 
-      const [top, ...rest] = screen
-        .getAllByTestId("modern-bars-fill")
-        .map(fill => parseFloat(getComputedStyle(fill).opacity))
-      expect(top).toBeGreaterThan(0)
-      expect(top).toBeLessThanOrEqual(0.3)
-      rest.forEach(opacity => {
-        expect(opacity).toBeGreaterThanOrEqual(0.15)
-        expect(opacity).toBeLessThan(top)
+      screen.getAllByTestId("modern-bars-fill").forEach(fill => {
+        expect(getComputedStyle(fill).opacity).toMatch(/^(1)?$/)
       })
     })
 
@@ -244,13 +239,6 @@ describe("BarsChart", () => {
       screen.getAllByTestId("modern-bars-row").forEach(row => {
         expect(row).toHaveStyle({ height: "24px" })
       })
-    })
-
-    it("shows only the tint, with no end marker", async () => {
-      await renderBars({ designFlavour: "modern" })
-
-      expect(screen.queryByTestId("modern-bars-edge")).not.toBeInTheDocument()
-      expect(screen.getAllByTestId("modern-bars-fill").length).toBeGreaterThan(0)
     })
   })
 })
