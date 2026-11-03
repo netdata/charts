@@ -68,10 +68,16 @@ export const getGroupParts = (chart, id, { omit = [] } = {}) => {
   return parts
 }
 
-export const triggerGroupClick = (chart, { source, groupId, dimensionIds, omit }) =>
+// Placeholder groups (such as "Others") and empty rows stand for no single group, so they have nothing to open.
+export const isClickableGroup = id => !!id && !placeholderIds.has(id)
+
+export const triggerGroupClick = (chart, { source, groupId, dimensionIds = [], omit }) => {
+  if (!isClickableGroup(dimensionIds[0])) return
+
   chart.sdk.trigger("groupClick", chart, {
     source,
     groupId,
     dimensionIds,
     parts: getGroupParts(chart, dimensionIds[0], { omit }),
   })
+}

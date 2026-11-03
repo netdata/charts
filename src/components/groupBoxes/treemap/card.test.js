@@ -65,12 +65,12 @@ describe("group boxes card", () => {
     expect(screen.queryByTestId("groupBoxCard-actions")).not.toBeInTheDocument()
   })
 
-  const renderPinned = async ({ focus, zooms, closes = [], attributes }) => {
+  const renderPinned = async ({ focus, zooms, closes = [], attributes, boxId = id }) => {
     const chart = await makeChart(attributes)
     const { all } = chart.getPayload()
     renderWithChart(
       <BoxCard
-        id={id}
+        id={boxId}
         name="prod-db-01"
         path={["prod-db"]}
         groupName="prod-db"
@@ -149,6 +149,17 @@ describe("group boxes card", () => {
       },
     ])
     expect(closes).toEqual([true])
+  })
+
+  it("hides the metrics action on a placeholder box", async () => {
+    await renderPinned({
+      focus: [],
+      zooms: [],
+      attributes: { groupClickable: true },
+      boxId: "OTHERS",
+    })
+
+    expect(screen.queryByText("Open in Metrics")).not.toBeInTheDocument()
   })
 
   it("hides the metrics action unless groups are clickable", async () => {

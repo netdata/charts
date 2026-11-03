@@ -13,7 +13,7 @@ import { numerals } from "@/components/modern/numerals"
 import { makeModernColor } from "@/components/modern/groupBoxes/scale"
 import SparklineCanvas from "@/components/drawer/correlate/sparklineCanvas"
 import { getBoxDetails } from "./details"
-import { triggerGroupClick } from "@/helpers/groupParts"
+import { isClickableGroup, triggerGroupClick } from "@/helpers/groupParts"
 import { getDrillFilters, applyDrillFilter } from "./filters"
 
 const ActionButton = styled(Button).attrs(({ label }) => ({
@@ -196,7 +196,7 @@ const BoxCard = ({
               }}
             />
           ))}
-          {groupClickable && (
+          {groupClickable && isClickableGroup(id) && (
             <ActionButton
               label="Open in Metrics"
               onClick={() => {

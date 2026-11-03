@@ -1,7 +1,7 @@
 import { act } from "@testing-library/react"
 import { makeTestChart } from "@jest/testUtilities"
 import makeInterfacePayload, { machineGuid, nodeId } from "../../fixtures/makeInterfacePayload"
-import { getLevels, findNode, getGroupParts } from "./groupParts"
+import { getLevels, findNode, getGroupParts, triggerGroupClick } from "./groupParts"
 
 const trafficId = `in,Gi0/1,ethernetCsmacd,${machineGuid},snmp.device_prof_ifTraffic`
 
@@ -90,5 +90,36 @@ describe("group parts", () => {
     expect(getGroupParts(chart, id).labels).toEqual({ if_type: "ethernetCsmacd" })
     expect(getGroupParts(chart, "OTHERS")).toEqual({ labels: {} })
     expect(getGroupParts(chart, "__hidden_dimensions__")).toEqual({ labels: {} })
+  })
+
+  it("emits groupClick only for a real group", async () => {
+    const chart = await makeChart(makeInterfacePayload())
+    const trigger = jest.spyOn(chart.sdk, "trigger")
+
+    triggerGroupClick(chart, { source: "table", groupId: "others", dimensionIds: ["OTHERS"] })
+    triggerGroupClick(chart, { source: "table", groupId: "empty", dimensionIds: [] })
+    triggerGroupClick(chart, { source: "table", groupId: "missing" })
+    expect(trigger).not.toHaveBeenCalledWith("groupClick", expect.anything(), expect.anything())
+
+    triggerGroupClick(chart, { source: "table", groupId: "row", dimensionIds: [trafficId] })
+    expect(trigger).toHaveBeenCalledWith(
+      "groupClick",
+      chart,
+      expect.objectContaining({ source: "table", groupId: "row", dimensionIds: [trafficId] })
+    )
+  })
+
+  it("does not take an empty per dimension label as the label value", async () => {
+    const chart = await makeChart(makeInterfacePayload())
+    const viewDimensions = chart.getAttribute("viewDimensions")
+    const index = chart.getDimensionIndex(trafficId)
+    const interfaces = [...viewDimensions.labels.interface]
+    interfaces[index] = ["", "Gi0/1.100"]
+    chart.updateAttribute("viewDimensions", {
+      ...viewDimensions,
+      labels: { ...viewDimensions.labels, interface: interfaces },
+    })
+
+    expect(getGroupParts(chart, trafficId).labels.interface).toBe("Gi0/1.100")
   })
 })
