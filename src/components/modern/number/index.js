@@ -259,7 +259,7 @@ const ModernNumber = ({ uiName }) => {
                     <span>{change.text.slice(change.delta.length)}</span>
                   </>
                 ) : (
-                  change.text
+                  <span>{change.text}</span>
                 )}
               </Numerals>
             )}

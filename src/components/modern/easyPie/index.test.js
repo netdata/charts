@@ -11,7 +11,12 @@ import ModernEasyPie, { toFraction } from "./index"
 
 const loadChart = async (attributes = {}, payload = systemLoadLine[0]) => {
   const { chart } = makeTestChart({
-    attributes: { chartLibrary: "easypiechart", designFlavour: "modern", ...attributes },
+    attributes: {
+      chartLibrary: "easypiechart",
+      designFlavour: "modern",
+      locale: "en-US",
+      ...attributes,
+    },
   })
   chart.doneFetch(payload)
   await new Promise(resolve => setTimeout(resolve, 0))

@@ -2,7 +2,13 @@ import React from "react"
 import { act, screen, waitFor, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { DefaultTheme } from "@netdata/netdata-ui"
-import { renderWithChart, renderHookWithChart, makeTestChart } from "@jest/testUtilities"
+import {
+  renderWithChart,
+  renderHookWithChart,
+  makeTestChart,
+  simulateTranslate,
+  collectRenderErrors,
+} from "@jest/testUtilities"
 import { TableChart } from "@/components/table"
 import useTableColumns from "@/components/table/useTableColumns"
 import Settings from "@/components/toolbox/settings"
@@ -32,6 +38,7 @@ const makeTableChart = async (designFlavour = "default", { payload, attributes }
       designFlavour,
       after: 1700000000,
       before: 1700000900,
+      locale: "en-US",
       ...attributes,
     },
   })
@@ -891,7 +898,7 @@ describe("modern table value focus", () => {
         const pill = within(cell).getByTestId("modernTable-delta")
         expect(pill.textContent).toMatch(/^\+\S+$/)
         expect(getComputedStyle(pill).borderRadius).toBe("999px")
-        expect(colorOf(pill)).toBe(DefaultTheme.colors.text)
+        expect(colorOf(pill.firstChild)).toBe(DefaultTheme.colors.text)
       })
       expectEvery(steady(container), cell =>
         expect(within(cell).queryByTestId("modernTable-delta")).not.toBeInTheDocument()
@@ -1018,5 +1025,15 @@ describe("modern table value focus", () => {
         expect(within(cell).getByTestId("modernTable-trend")).toBeInTheDocument()
       )
     })
+  })
+
+  it("survives page translation when the focus switches", async () => {
+    const { chart, container } = await renderFocus({ valueFocus: "changes" })
+    simulateTranslate(container)
+
+    expect(
+      collectRenderErrors(() => act(() => chart.updateAttribute("valueFocus", "trends")))
+    ).toEqual([])
+    expect(screen.getByTestId("modernTable-key")).toHaveTextContent(/dot = now/)
   })
 })

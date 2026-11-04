@@ -87,7 +87,9 @@ WithShortcut.menu = {
 }
 
 const makeModern = (attributes = {}) =>
-  makeTestChart({ attributes: { designFlavour: "modern", title: "System load", ...attributes } })
+  makeTestChart({
+    attributes: { designFlavour: "modern", title: "System load", locale: "en-US", ...attributes },
+  })
 
 const renderModern = async (attributes, props = { hasFilters: true }) => {
   const { chart } = makeModern(attributes)

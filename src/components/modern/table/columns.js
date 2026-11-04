@@ -1,6 +1,6 @@
 import React from "react"
 import styled from "styled-components"
-import { Box, Flex, TextSmall, getRgbColor } from "@netdata/netdata-ui"
+import { Box, Flex, TextSmall } from "@netdata/netdata-ui"
 import Name from "@/components/line/dimensions/name"
 import {
   useChart,
@@ -226,26 +226,32 @@ const ValueUnit = styled(TextSmall)`
 const Bar = styled(Box).attrs(({ isHot }) => ({
   as: "span",
   position: "absolute",
+  height: "2px",
+  round: "1px",
+  opacity: 0.6,
   background: isHot ? "warning" : undefined,
 }))`
   right: 0;
   bottom: -4px;
-  height: 2px;
-  border-radius: 1px;
-  opacity: 0.6;
   pointer-events: none;
   transition: width 200ms ease;
   ${reducedMotion("transition: none;")}
 `
 
-export const DeltaPill = styled(SmallNumeral).attrs({ color: "text", fontSize: "11px" })`
-  font-weight: 600;
-  line-height: 14px;
-  padding: 1px 6px;
-  border-radius: ${radius.pill};
-  background: ${getRgbColor("text", 0.1)};
-  white-space: nowrap;
-`
+export const DeltaPill = ({ children, ...rest }) => (
+  <Box
+    as="span"
+    padding={[0.25, 1.5]}
+    round={radius.pill}
+    background="text"
+    backgroundOpacity={0.1}
+    {...rest}
+  >
+    <SmallNumeral color="text" fontSize="11px" lineHeight="14px" strong whiteSpace="nowrap">
+      {children}
+    </SmallNumeral>
+  </Box>
+)
 
 const toneOf = ({ focus, hot, zero }) => {
   if (hot) return "hot"
@@ -261,11 +267,11 @@ const TooltipValue = ({ id, detail }) => {
 
   return (
     <>
-      {`${value} ${units}`}
+      <span>{`${value} ${units}`}</span>
       {!!detail && (
         <>
           <br />
-          {detail}
+          <span>{detail}</span>
         </>
       )}
     </>

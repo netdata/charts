@@ -15,7 +15,9 @@ const readLatest = (chart, id) =>
   renderHookWithChart(() => useLatestDisplayValueWithUnit(id), { chart }).result.current
 
 const loadChart = async (attributes = {}, payload = systemLoadLine[0]) => {
-  const { chart } = makeTestChart({ attributes: { designFlavour: "modern", ...attributes } })
+  const { chart } = makeTestChart({
+    attributes: { designFlavour: "modern", locale: "en-US", ...attributes },
+  })
   chart.doneFetch(payload)
   await new Promise(resolve => setTimeout(resolve, 0))
   return chart
@@ -287,7 +289,7 @@ describe("number value focus", () => {
   })
 
   describe("changes", () => {
-    it("makes the delta the hero with the value smaller under it", async () => {
+    it("makes the neutral-coloured delta the hero with the value smaller under it", async () => {
       const chart = await sized({ valueFocus: "changes" }, rising)
       const change = describeChange(chart)
 
@@ -296,6 +298,9 @@ describe("number value focus", () => {
       expect(hero).toHaveAttribute("aria-label", change.label)
       expect(change.label).toMatch(/^Up 8\S* in 8 min, from 40\S* to 48\S*$/)
       expect(within(hero).getByTestId("modernNumberDelta")).toHaveTextContent(change.delta)
+      expect(rgbToHex(getComputedStyle(screen.getByTestId("modernNumberDelta")).color)).toBe(
+        DefaultTheme.colors.text
+      )
       expect(within(hero).getByTestId("modernNumberArrow")).toHaveAttribute("aria-hidden", "true")
       expect(within(hero).getByTestId("modernNumberArrow")).toHaveAttribute("data-direction", "up")
       expect(screen.getByTestId("modernNumberFromTo")).toHaveTextContent(
@@ -303,14 +308,6 @@ describe("number value focus", () => {
       )
       expect(fontSize("modernNumberDelta")).toBeGreaterThan(fontSize("modernNumberFromTo") * 2)
       expect(screen.queryByTestId("modernNumberSpark")).not.toBeInTheDocument()
-    })
-
-    it("keeps the delta colour neutral", async () => {
-      await sized({ valueFocus: "changes" }, rising)
-
-      expect(rgbToHex(getComputedStyle(screen.getByTestId("modernNumberDelta")).color)).toBe(
-        DefaultTheme.colors.text
-      )
     })
 
     it("points the arrow down on a decrease", async () => {

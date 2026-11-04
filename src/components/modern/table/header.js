@@ -54,14 +54,14 @@ const TrendKey = ({ window }) => (
       <path d={keyTrendPath} fill="none" stroke="currentColor" strokeWidth="1.2" />
       <circle cx="11" cy="2" r="1.6" fill="currentColor" />
     </KeyGlyph>
-    {window ? ` last ${window} · ${trendKeyText}` : ` ${trendKeyText}`}
+    <span>{window ? ` last ${window} · ${trendKeyText}` : ` ${trendKeyText}`}</span>
   </>
 )
 
 const ChangeKey = ({ window }) => (
   <>
-    <DeltaPill as="span">+n</DeltaPill>
-    {window ? ` change in ${window}` : " change"}
+    <DeltaPill>+n</DeltaPill>
+    <span>{window ? ` change in ${window}` : " change"}</span>
   </>
 )
 

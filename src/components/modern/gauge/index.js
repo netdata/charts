@@ -186,7 +186,7 @@ const ChangeCenter = ({ change, unit, scale, color }) => {
           fontSize={legibleSize(17, scale)}
           style={numerals}
         >
-          {change.varied ? "now at " : "steady at "}
+          <tspan>{change.varied ? "now at " : "steady at "}</tspan>
           <tspan fill={color("text")} fontWeight="600">
             {change.to}
           </tspan>
@@ -236,7 +236,7 @@ const ChangeCenter = ({ change, unit, scale, color }) => {
         fontWeight="600"
         style={numerals}
       >
-        {number}
+        <tspan>{number}</tspan>
         <UnitSpan unit={percent} size={percentSize} fill={color("textLite")} />
       </text>
       <text
@@ -250,7 +250,7 @@ const ChangeCenter = ({ change, unit, scale, color }) => {
         style={numerals}
       >
         <tspan opacity="0.7">{change.from}</tspan>
-        {" → "}
+        <tspan>{" → "}</tspan>
         <tspan fill={color("text")} fontWeight="600">
           {change.to}
         </tspan>
@@ -477,7 +477,7 @@ export const Dial = ({ uiName }) => {
           fontWeight="600"
           style={numerals}
         >
-          {readout}
+          <tspan>{readout}</tspan>
           {!!unit && (
             <tspan
               fontSize={unitFontSize(valueSize)}
@@ -510,7 +510,7 @@ export const Dial = ({ uiName }) => {
                 {!compact && <tspan>{change.text.slice(change.delta.length)}</tspan>}
               </>
             ) : (
-              change.text
+              <tspan>{change.text}</tspan>
             )}
           </text>
           <TrendLine

@@ -1,16 +1,8 @@
 import React, { useState } from "react"
-import styled from "styled-components"
-import { Box, Flex, TextMicro } from "@netdata/netdata-ui"
+import { Flex, TextMicro } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart } from "@/components/provider"
 import { Item } from "@/components/modern/menu"
 import { getSupportedValueFocus, resolveValueFocus, valueFocusOptions } from "@/helpers/valueFocus"
-
-const OptionText = styled(Box).attrs({ as: "span" })`
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-`
 
 export const useValueFocus = chartType => {
   const requested = useAttributeValue("valueFocus")
@@ -48,12 +40,12 @@ export const FocusOptions = ({ onSelect }) => {
         onSelect?.(value)
       }}
     >
-      <OptionText>
+      <Flex as="span" column gap={0.25} width={{ min: 0 }}>
         <span>{label}</span>
         <TextMicro as="span" color="textLite">
           {question}
         </TextMicro>
-      </OptionText>
+      </Flex>
     </Item>
   ))
 }

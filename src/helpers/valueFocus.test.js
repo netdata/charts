@@ -17,7 +17,7 @@ import {
 } from "./valueFocus"
 
 const loadChart = async (values, unit = "requests/s") => {
-  const { chart } = makeTestChart({ attributes: { designFlavour: "modern" } })
+  const { chart } = makeTestChart({ attributes: { designFlavour: "modern", locale: "en-US" } })
   chart.doneFetch(
     makePayload({
       context: "modern.requests",

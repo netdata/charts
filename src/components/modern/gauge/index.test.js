@@ -29,6 +29,7 @@ const load = async (attributes = {}, options = {}) => {
       chartLibrary: "gauge",
       designFlavour: "modern",
       staticValueRange: [0, 100],
+      locale: "en-US",
       ...attributes,
     },
   })
@@ -345,6 +346,7 @@ describe("gauge value focus", () => {
         chartLibrary: "gauge",
         designFlavour: "modern",
         staticValueRange: [0, 100],
+        locale: "en-US",
         ...attributes,
       },
     })
