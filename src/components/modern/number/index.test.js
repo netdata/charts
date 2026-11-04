@@ -1,5 +1,5 @@
 import React from "react"
-import { act, screen } from "@testing-library/react"
+import { act, screen, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { DefaultTheme } from "@netdata/netdata-ui"
 import { makeTestChart, renderHookWithChart, renderWithChart } from "@jest/testUtilities"
@@ -8,7 +8,8 @@ import { formatReadout } from "@/components/modern/format"
 import { makePayload, makeWave } from "../../../../fixtures/makeWavePayload"
 import { NumberChart } from "@/components/number"
 import systemLoadLine from "../../../../fixtures/systemLoadLine"
-import ModernNumber, { getMean, isStateUnit } from "./index"
+import { describeWindowChange } from "@/helpers/valueFocus"
+import ModernNumber, { isStateUnit } from "./index"
 
 const readLatest = (chart, id) =>
   renderHookWithChart(() => useLatestDisplayValueWithUnit(id), { chart }).result.current
@@ -46,16 +47,8 @@ describe("isStateUnit", () => {
   )
 })
 
-describe("getMean", () => {
-  it("averages the numbers and skips gaps", () => {
-    expect(getMean([1, null, 3])).toBe(2)
-    expect(getMean([null])).toBeNull()
-    expect(getMean([])).toBeNull()
-  })
-})
-
 describe("ModernNumber", () => {
-  it("shows the latest value, units, change vs mean and the window sparkline", async () => {
+  it("shows the latest value, units, change across the window and the window sparkline", async () => {
     const chart = await loadChart()
     renderWithChart(<ModernNumber />, { chart })
 
@@ -66,13 +59,13 @@ describe("ModernNumber", () => {
       formatReadout(chart, value, { dimensionId: id, unitAttributes })
     )
     expect(screen.getByTestId("modernNumberUnit")).toHaveTextContent(convertedUnit)
-    expect(screen.getByTestId("modernNumberDelta")).toHaveTextContent(/^[+−].+ vs mean$/)
+    expect(screen.getByTestId("modernNumberDelta")).toHaveTextContent(/^[+−].+ in \d+ min$/)
     expect(screen.getByTestId("modernNumberSpark")).toBeInTheDocument()
     expect(screen.getByTestId("modernNumberSparkMarker").style.left).toBe("100%")
     expect(screen.queryByTestId("modernNumberStatus")).not.toBeInTheDocument()
   })
 
-  it("shows no change vs mean for a state metric", async () => {
+  it("shows no window change for a state metric", async () => {
     const chart = await loadChart({}, requests(makeWave({ center: 1, amplitude: 1 })))
     act(() => chart.updateAttribute("units", ["{state}"]))
     renderWithChart(<ModernNumber />, { chart })
@@ -97,20 +90,24 @@ describe("ModernNumber", () => {
     expect(getComputedStyle(value).fontFamily).toContain("IBM Plex Sans Condensed")
   })
 
-  it("computes the delta against the window mean", async () => {
+  it("computes the delta against the window start", async () => {
     const chart = await loadChart()
     renderWithChart(<ModernNumber />, { chart })
 
     const [id] = chart.getVisibleDimensionIds()
     const { all } = chart.getPayload()
     const values = all.map((_, i) => chart.getDimensionValue(id, i, { abs: false }))
-    const delta = values[values.length - 1] - getMean(values)
+    const delta = values[values.length - 1] - values[0]
     const sign = delta >= 0 ? "+" : "−"
 
     const { unitAttributes } = readLatest(chart, id)
     const converted = formatReadout(chart, Math.abs(delta), { dimensionId: id, unitAttributes })
 
-    expect(screen.getByTestId("modernNumberDelta")).toHaveTextContent(`${sign}${converted} vs mean`)
+    expect(screen.getByTestId("modernNumberDelta").textContent).toMatch(/ in \d+ min$/)
+    expect(
+      screen.getByTestId("modernNumberDelta").textContent.startsWith(`${sign}${converted} in `)
+    ).toBe(true)
+    expect(screen.getByTestId("modernNumberDelta")).not.toHaveTextContent("vs mean")
   })
 
   it("shows the value with the same digits as the default number chart", async () => {
@@ -124,13 +121,16 @@ describe("ModernNumber", () => {
   })
 
   it("scales thousands on the same unit as the default number chart", async () => {
-    const chart = await loadChart({}, requests([...Array(96).fill(2000), 2022.7]))
+    const chart = await loadChart(
+      {},
+      requests([...Array(48).fill(2000), ...Array(49).fill(2022.7)])
+    )
     renderWithChart(<ModernNumber />, { chart })
 
     const { convertedValue, convertedUnit } = readLatest(chart, "requests")
     expect(screen.getByTestId("modernNumberValue")).toHaveTextContent(convertedValue)
     expect(screen.getByTestId("modernNumberUnit")).toHaveTextContent(convertedUnit)
-    expect(screen.getByTestId("modernNumberDelta")).toHaveTextContent(/^\+.+ vs mean$/)
+    expect(screen.getByTestId("modernNumberDelta")).toHaveTextContent(/^\+.+ in \d+ min$/)
   })
 
   it("keeps the decimals the user chose", async () => {
@@ -138,7 +138,7 @@ describe("ModernNumber", () => {
     renderWithChart(<ModernNumber />, { chart })
 
     expect(screen.getByTestId("modernNumberValue").textContent).toMatch(/\.\d{4}$/)
-    expect(screen.getByTestId("modernNumberDelta").textContent).toMatch(/\.\d{4} vs mean$/)
+    expect(screen.getByTestId("modernNumberDelta").textContent).toMatch(/\.\d{4} in \d+ min$/)
   })
 
   it("moves the marker with the hovered point", async () => {
@@ -231,5 +231,160 @@ describe("number status in other flavours", () => {
     expect(screen.queryByTestId("modernNumberStatus")).not.toBeInTheDocument()
     expect(screen.queryByTestId("modernStatus-dot")).not.toBeInTheDocument()
     expect(screen.queryByText("1 critical")).not.toBeInTheDocument()
+  })
+})
+
+describe("number value focus", () => {
+  const rising = requests([...Array(48).fill(40), ...Array(49).fill(48)])
+  const falling = requests([...Array(48).fill(64), ...Array(49).fill(62)])
+  const flat = requests(Array(97).fill(48))
+
+  const describeChange = chart => {
+    const values = chart
+      .getPayload()
+      .all.map((_, i) => chart.getDimensionValue("requests", i, { abs: false }))
+    const { unitAttributes } = readLatest(chart, "requests")
+    return describeWindowChange(chart, values, { dimensionId: "requests", unitAttributes })
+  }
+
+  const sized = async (attributes, payload, { width = 240, height = 160 } = {}) => {
+    const chart = await loadChart(attributes, payload)
+    chart.getUI().getChartWidth = () => width
+    chart.getUI().getChartHeight = () => height
+    renderWithChart(<ModernNumber />, { chart })
+    return chart
+  }
+
+  const fontSize = testId => parseFloat(getComputedStyle(screen.getByTestId(testId)).fontSize)
+
+  describe("totals", () => {
+    it("shows the value huge and alone", async () => {
+      const chart = await sized({ valueFocus: "totals" }, rising)
+
+      expect(screen.getByTestId("modernNumberValue")).toHaveTextContent(
+        readLatest(chart, "requests").convertedValue
+      )
+      expect(fontSize("modernNumberValue")).toBeGreaterThan(44)
+      expect(screen.queryByTestId("modernNumberDelta")).not.toBeInTheDocument()
+      expect(screen.queryByTestId("modernNumberHero")).not.toBeInTheDocument()
+      expect(screen.queryByTestId("modernNumberSpark")).not.toBeInTheDocument()
+    })
+  })
+
+  describe("changes", () => {
+    it("makes the delta the hero with the value smaller under it", async () => {
+      const chart = await sized({ valueFocus: "changes" }, rising)
+      const change = describeChange(chart)
+
+      const hero = screen.getByTestId("modernNumberHero")
+      expect(hero).toHaveAttribute("role", "img")
+      expect(hero).toHaveAttribute("aria-label", change.label)
+      expect(change.label).toMatch(/^Up 8\S* in 8 min, from 40\S* to 48\S*$/)
+      expect(within(hero).getByTestId("modernNumberDelta")).toHaveTextContent(change.delta)
+      expect(within(hero).getByTestId("modernNumberArrow")).toHaveAttribute("aria-hidden", "true")
+      expect(within(hero).getByTestId("modernNumberArrow")).toHaveAttribute("data-direction", "up")
+      expect(screen.getByTestId("modernNumberFromTo")).toHaveTextContent(
+        `${change.from} → now ${change.to} · 8 min`
+      )
+      expect(fontSize("modernNumberDelta")).toBeGreaterThan(fontSize("modernNumberFromTo") * 2)
+      expect(screen.queryByTestId("modernNumberSpark")).not.toBeInTheDocument()
+    })
+
+    it("keeps the delta colour neutral", async () => {
+      await sized({ valueFocus: "changes" }, rising)
+
+      expect(rgbToHex(getComputedStyle(screen.getByTestId("modernNumberDelta")).color)).toBe(
+        DefaultTheme.colors.text
+      )
+    })
+
+    it("points the arrow down on a decrease", async () => {
+      await sized({ valueFocus: "changes" }, falling)
+
+      expect(screen.getByTestId("modernNumberDelta").textContent).toMatch(/^−2/)
+      expect(screen.getByTestId("modernNumberArrow")).toHaveAttribute("data-direction", "down")
+    })
+
+    it("drops the now and the window on a narrow tile", async () => {
+      const chart = await sized({ valueFocus: "changes" }, rising, { width: 170 })
+      const change = describeChange(chart)
+
+      expect(screen.getByTestId("modernNumberFromTo")).toHaveTextContent(
+        new RegExp(`^${change.from} → ${change.to}$`)
+      )
+    })
+
+    it("says No change and the steady value on a flat window", async () => {
+      const chart = await sized({ valueFocus: "changes" }, flat)
+      const { convertedValue, convertedUnit } = readLatest(chart, "requests")
+
+      const hero = screen.getByTestId("modernNumberHero")
+      expect(hero).toHaveTextContent(/^No change/)
+      expect(hero).toHaveAttribute("aria-label", `No change in 8 min, steady at ${convertedValue}`)
+      expect(screen.getByTestId("modernNumberSteady")).toHaveTextContent(
+        `steady at ${convertedValue}${convertedUnit || ""} · 8 min`
+      )
+      expect(screen.queryByTestId("modernNumberDelta")).not.toBeInTheDocument()
+      expect(screen.queryByTestId("modernNumberArrow")).not.toBeInTheDocument()
+    })
+
+    it("measures the delta at the hovered point", async () => {
+      const chart = await sized({ valueFocus: "changes" }, rising)
+      const { all } = chart.getPayload()
+
+      act(() => chart.updateAttribute("hoverX", [all[10][0], null]))
+
+      expect(screen.getByTestId("modernNumberHero")).toHaveTextContent(/^No change/)
+    })
+  })
+
+  describe("trends", () => {
+    it("makes the sparkline the hero with start and end dots", async () => {
+      await sized({ valueFocus: "trends" }, rising)
+
+      const spark = screen.getByTestId("modernNumberSpark")
+      expect(parseFloat(getComputedStyle(spark).height)).toBe(96)
+      expect(screen.getByTestId("modernNumberSparkStart").style.left).toBe("0%")
+      expect(screen.getByTestId("modernNumberSparkMarker").style.left).toBe("100%")
+      expect(spark).not.toHaveAttribute("data-flat")
+    })
+
+    it("shows the value small with the delta beside it", async () => {
+      const chart = await sized({ valueFocus: "trends" }, rising)
+
+      expect(screen.getByTestId("modernNumberDelta")).toHaveTextContent(describeChange(chart).text)
+      expect(fontSize("modernNumberValue")).toBeLessThan(24)
+      expect(screen.queryByTestId("modernNumberHero")).not.toBeInTheDocument()
+    })
+
+    it("draws a dashed line and the steady text on a flat window", async () => {
+      const chart = await sized({ valueFocus: "trends" }, flat)
+      const { convertedValue, convertedUnit } = readLatest(chart, "requests")
+
+      const spark = screen.getByTestId("modernNumberSpark")
+      expect(spark).toHaveAttribute("data-flat", "true")
+      expect(spark.querySelector("[stroke-dasharray]")).not.toBeNull()
+      expect(screen.getByTestId("modernNumberSteady")).toHaveTextContent(
+        `steady at ${convertedValue}${convertedUnit || ""} · 8 min`
+      )
+      expect(screen.queryByTestId("modernNumberDelta")).not.toBeInTheDocument()
+    })
+
+    it("is the default", async () => {
+      const chart = await sized({}, rising)
+
+      expect(chart.getAttribute("valueFocus")).toBeNull()
+      expect(screen.getByTestId("modernNumberDelta")).toBeInTheDocument()
+      expect(screen.getByTestId("modernNumberSparkStart")).toBeInTheDocument()
+    })
+  })
+
+  it("switches marks when the attribute changes", async () => {
+    const chart = await sized({}, rising)
+
+    act(() => chart.updateAttribute("valueFocus", "totals"))
+
+    expect(screen.queryByTestId("modernNumberDelta")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("modernNumberSpark")).not.toBeInTheDocument()
   })
 })

@@ -5,6 +5,7 @@ import { DarkTheme } from "@netdata/netdata-ui"
 import { renderWithChart, makeTestChart } from "@jest/testUtilities"
 import { Gauge } from "@/components/gauge"
 import { formatReadout, formatReadoutUnit } from "@/components/modern/format"
+import { makePayload } from "../../../../fixtures/makeWavePayload"
 import { Attention } from "./index"
 import {
   fitValueFontSize,
@@ -70,10 +71,12 @@ describe("modern gauge", () => {
     expect(number.textContent).toMatch(/\d/)
     expect(number.querySelector("tspan")).not.toBeNull()
     const [value, unit] = number.childNodes
-    expect(screen.getByTestId("modernGauge")).toHaveAttribute(
-      "aria-label",
-      `${value.textContent} ${unit.textContent}`
-    )
+    expect(
+      screen
+        .getByTestId("modernGauge")
+        .getAttribute("aria-label")
+        .startsWith(`${value.textContent} ${unit.textContent}. `)
+    ).toBe(true)
     expect(screen.getByTestId("modernGauge-min").textContent).toMatch(/^0/)
     expect(screen.getByTestId("modernGauge-max").textContent).toMatch(/^100/)
   })
@@ -219,7 +222,7 @@ describe("modern gauge", () => {
       { staticFractionDigits: 6, gaugeThresholds: [{ id: "c", from: 1, color: red }] },
     ],
   ])("sizes the number to fit inside the arc (%s)", async (name, attributes) => {
-    await load(attributes)
+    await load({ valueFocus: "totals", ...attributes })
 
     const number = screen.getByTestId("modernGauge-number")
     const [value, unit] = number.childNodes
@@ -310,5 +313,149 @@ describe("gauge flavours other than modern", () => {
     const { chart } = makeTestChart({ attributes: { chartLibrary: "gauge" } })
     renderWithChart(<Gauge />, { chart })
     expect(screen.queryByTestId("modernGauge-skeleton")).toBeNull()
+  })
+})
+
+describe("gauge value focus", () => {
+  const percent = values =>
+    makePayload({
+      context: "modern.disk",
+      title: "Disk used",
+      unit: "%",
+      dimensions: [{ id: "used", values }],
+    })
+  const rising = percent([...Array(48).fill(58), ...Array(49).fill(81.2)])
+  const flat = percent(Array(97).fill(72.4))
+
+  const loadFocus = async (payload, attributes = {}) => {
+    const { chart } = makeTestChart({
+      attributes: {
+        chartLibrary: "gauge",
+        designFlavour: "modern",
+        staticValueRange: [0, 100],
+        ...attributes,
+      },
+    })
+    chart.doneFetch(payload)
+    const result = renderWithChart(<Gauge />, { chart })
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
+    return { ...result, chart }
+  }
+
+  const sizeOf = node => parseFloat(node.getAttribute("font-size"))
+
+  it("shows only the gauge in totals", async () => {
+    await loadFocus(rising, { valueFocus: "totals" })
+
+    expect(screen.getByTestId("modernGauge-value")).toBeInTheDocument()
+    expect(screen.getByTestId("modernGauge-number")).toHaveTextContent("81.2%")
+    expect(screen.getByTestId("modernGauge")).toHaveAttribute("aria-label", "81.2 %")
+    expect(screen.queryByTestId("modernGauge-delta")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("modernGauge-ghost")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("modernGauge-sparkline")).not.toBeInTheDocument()
+  })
+
+  describe("changes", () => {
+    it("ghosts the arc from the window start with a start tick", async () => {
+      await loadFocus(rising, { valueFocus: "changes" })
+
+      expect(screen.getByTestId("modernGauge-ghost").getAttribute("stroke")).toMatch(/^url\(#.+\)$/)
+      expect(screen.getByTestId("modernGauge-startTick")).toBeInTheDocument()
+      expect(screen.getByTestId("modernGauge-value")).toBeInTheDocument()
+      expect(screen.queryByTestId("modernGauge-sparkline")).not.toBeInTheDocument()
+    })
+
+    it("makes the delta the hero with the value smaller under it", async () => {
+      await loadFocus(rising, { valueFocus: "changes" })
+
+      const delta = screen.getByTestId("modernGauge-delta")
+      expect(delta).toHaveTextContent(/^\+23\.2%$/)
+      expect(screen.getByTestId("modernGauge-fromTo")).toHaveTextContent("58 → 81.2%")
+      expect(sizeOf(delta)).toBeGreaterThan(sizeOf(screen.getByTestId("modernGauge-fromTo")) * 1.5)
+      expect(screen.getByTestId("modernGauge-arrow")).toHaveAttribute("aria-hidden", "true")
+      expect(screen.getByTestId("modernGauge-arrow")).toHaveAttribute("data-direction", "up")
+      expect(screen.queryByTestId("modernGauge-number")).not.toBeInTheDocument()
+      expect(screen.getByTestId("modernGauge")).toHaveAttribute(
+        "aria-label",
+        "Up 23.2% in 8 min, from 58 to 81.2"
+      )
+    })
+
+    it("says No change and the steady value on a flat window", async () => {
+      await loadFocus(flat, { valueFocus: "changes" })
+
+      expect(screen.getByTestId("modernGauge-noChange")).toHaveTextContent("No change")
+      expect(screen.getByTestId("modernGauge-steady")).toHaveTextContent("steady at 72.4%")
+      expect(screen.getByTestId("modernGauge")).toHaveAttribute(
+        "aria-label",
+        "No change in 8 min, steady at 72.4"
+      )
+      expect(screen.queryByTestId("modernGauge-ghost")).not.toBeInTheDocument()
+      expect(screen.queryByTestId("modernGauge-startTick")).not.toBeInTheDocument()
+      expect(screen.queryByTestId("modernGauge-delta")).not.toBeInTheDocument()
+    })
+  })
+
+  describe("trends", () => {
+    it("draws a larger mini trend with start and end dots and the value and delta smaller", async () => {
+      await loadFocus(rising, { valueFocus: "trends" })
+
+      const sparkline = screen.getByTestId("modernGauge-sparkline")
+      expect(sparkline).toHaveAttribute("data-width", "150")
+      expect(sparkline).toHaveAttribute("data-height", "44")
+      expect(sparkline.querySelector("title")).toHaveTextContent("58 → 81.2, +23.2% in 8 min")
+      expect(screen.getByTestId("modernGauge-sparkStart")).toBeInTheDocument()
+      expect(screen.getByTestId("modernGauge-sparkEnd")).toBeInTheDocument()
+      expect(screen.getByTestId("modernGauge-delta")).toHaveTextContent("+23.2% in 8 min")
+      expect(sizeOf(screen.getByTestId("modernGauge-number"))).toBeLessThanOrEqual(34)
+      expect(screen.getByTestId("modernGauge")).toHaveAttribute(
+        "aria-label",
+        "81.2 %. Up 23.2% in 8 min, from 58 to 81.2"
+      )
+    })
+
+    it("draws a flat window as a dashed line", async () => {
+      await loadFocus(flat, { valueFocus: "trends" })
+
+      expect(screen.getByTestId("modernGauge-sparkline")).toHaveAttribute("data-flat", "true")
+      expect(
+        screen.getByTestId("modernGauge-sparkline").querySelector("[stroke-dasharray]")
+      ).not.toBeNull()
+      expect(screen.getByTestId("modernGauge-delta")).toHaveTextContent("no change in 8 min")
+    })
+
+    it("shrinks the trend before the text on a small tile", async () => {
+      const { chart } = makeTestChart({
+        attributes: {
+          chartLibrary: "gauge",
+          designFlavour: "modern",
+          staticValueRange: [0, 100],
+          valueFocus: "trends",
+        },
+      })
+      chart.getUI().getChartWidth = () => 170
+      chart.getUI().getChartHeight = () => 110
+      chart.doneFetch(rising)
+      renderWithChart(<Gauge />, { chart })
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
+
+      const scale = Math.min(170 / 240, 110 / 200)
+      const sparkline = screen.getByTestId("modernGauge-sparkline")
+      expect(Number(sparkline.getAttribute("data-width"))).toBeLessThan(150)
+      expect(Number(sparkline.getAttribute("data-height"))).toBeLessThan(44)
+      expect(sizeOf(screen.getByTestId("modernGauge-delta")) * scale).toBeGreaterThanOrEqual(11)
+    })
+
+    it("is the default", async () => {
+      const { chart } = await loadFocus(rising)
+
+      expect(chart.getAttribute("valueFocus")).toBeNull()
+      expect(screen.getByTestId("modernGauge-sparkline")).toBeInTheDocument()
+      expect(screen.getByTestId("modernGauge-delta")).toBeInTheDocument()
+    })
   })
 })

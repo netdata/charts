@@ -1,22 +1,25 @@
 import React from "react"
 import styled from "styled-components"
-import { Box, Flex, TextSmall, getColor } from "@netdata/netdata-ui"
+import { Box, Flex, TextSmall, getRgbColor } from "@netdata/netdata-ui"
 import Name from "@/components/line/dimensions/name"
 import {
   useChart,
   useAttributeValue,
   useVisibleDimensionId,
-  useVisibleDimensionIds,
   useLatestDisplayValue,
   useLatestDisplayValueWithUnit,
   useUnitSign,
   usePayload,
+  useVisibleDimensionIds,
 } from "@/components/provider"
 import Tooltip from "@/components/tooltip"
 import Label from "@/components/filterToolbox/label"
 import { labelColumn, valueColumn } from "@/components/table/columns"
-import { getAlias } from "@/helpers/units"
+import reducedMotion from "@/components/helpers/reducedMotion"
+import { describeWindowChange, isPercentUnit } from "@/helpers/valueFocus"
+import { useValueFocus } from "@/components/modern/focus"
 import { SmallNumeral } from "@/components/modern/numerals"
+import { radius } from "@/components/modern/tokens"
 import { formatReadout } from "@/components/modern/format"
 import { StatusDot, getRowStatus } from "./status"
 import Trend, { useTrend } from "./trend"
@@ -34,8 +37,6 @@ const metricsByValue = {
 const emptyArray = []
 
 export const missingValueText = "This device reports no value for this column"
-
-const rowHover = '[data-testid^="netdata-table-row"]:hover &'
 
 export const ModernHeader = ({ label, sorted }) => (
   <TextSmall
@@ -203,9 +204,19 @@ export const modernLabelColumn = (chart, options = {}) => {
   }
 }
 
-const Numeral = styled(SmallNumeral)`
+const valueStylesByTone = {
+  bold: { color: "text", weight: 700, size: "12px" },
+  dim: { color: "textLite", weight: 400, size: "12px" },
+  lite: { color: "textLite", weight: 400, size: "11px" },
+  hot: { color: "warning", weight: 600, size: "12px" },
+}
+
+const Numeral = styled(SmallNumeral).attrs(({ tone }) => ({
+  color: valueStylesByTone[tone].color,
+  fontSize: valueStylesByTone[tone].size,
+}))`
   position: relative;
-  font-weight: 600;
+  font-weight: ${({ tone }) => valueStylesByTone[tone].weight};
 `
 
 const ValueUnit = styled(TextSmall)`
@@ -215,48 +226,50 @@ const ValueUnit = styled(TextSmall)`
 const Bar = styled(Box).attrs(({ isHot }) => ({
   as: "span",
   position: "absolute",
-  round: true,
-  background: isHot ? "warning" : "text",
-  opacity: isHot ? 0.18 : 0.06,
+  background: isHot ? "warning" : undefined,
 }))`
-  top: -3px;
-  bottom: -3px;
-  left: -6px;
-  right: -6px;
+  right: 0;
+  bottom: -4px;
+  height: 2px;
+  border-radius: 1px;
+  opacity: 0.6;
   pointer-events: none;
-  transform-origin: right;
-  transition: transform 200ms ease;
-
-  ${rowHover} {
-    opacity: ${({ isHot }) => (isHot ? 0.24 : 0.1)};
-  }
+  transition: width 200ms ease;
+  ${reducedMotion("transition: none;")}
 `
 
-const TrendHolder = styled(Box).attrs({ as: "span", position: "relative", opacity: 0.55 })`
-  display: inline-flex;
-  flex: none;
-  transition: opacity 120ms ease;
-
-  path {
-    stroke: ${getColor("textLite")};
-  }
-
-  ${rowHover} {
-    opacity: 1;
-  }
-
-  ${rowHover} path {
-    stroke: var(--modern-trend-color);
-  }
+export const DeltaPill = styled(SmallNumeral).attrs({ color: "text", fontSize: "11px" })`
+  font-weight: 600;
+  line-height: 14px;
+  padding: 1px 6px;
+  border-radius: ${radius.pill};
+  background: ${getRgbColor("text", 0.1)};
+  white-space: nowrap;
 `
 
-export const isPercentUnit = unit => typeof unit === "string" && getAlias(unit) === "%"
+const toneOf = ({ focus, hot, zero }) => {
+  if (hot) return "hot"
+  if (focus !== "totals") return "lite"
+  return zero ? "dim" : "bold"
+}
 
-const TooltipValue = ({ id }) => {
+export { isPercentUnit }
+
+const TooltipValue = ({ id, detail }) => {
   const units = useUnitSign({ long: true, dimensionId: id, withoutConversion: true })
   const value = useLatestDisplayValue(id)
 
-  return `${value} ${units}`
+  return (
+    <>
+      {`${value} ${units}`}
+      {!!detail && (
+        <>
+          <br />
+          {detail}
+        </>
+      )}
+    </>
+  )
 }
 
 const useContextScale = (table, context) => {
@@ -286,51 +299,80 @@ export const ModernGroupHeader = ({ context }) => {
   )
 }
 
+const useHoveredRow = () => {
+  const chart = useChart()
+  const hoverX = useAttributeValue("hoverX")
+  if (!hoverX) return undefined
+
+  const index = chart.getClosestRow(hoverX[0])
+  return index === -1 ? undefined : index
+}
+
 const ModernValue = ({ id, table, context, dimension }) => {
   const chart = useChart()
+  const focus = useValueFocus("table")
   const { value, convertedUnit, unitAttributes } = useLatestDisplayValueWithUnit(id)
   const scale = useContextScale(table, context)
   const convertedValue = formatReadout(chart, value, { dimensionId: id, unitAttributes })
-  const trend = useTrend(id)
+  const { series, trend, moved } = useTrend(id)
+  const index = useHoveredRow()
   const percent = isPercentUnit(chart.getDimensionUnit(id))
   const hot = percent && isHotPercent(value)
   const share = getShare(value, scale.columns[dimension])
+  const color = chart.selectDimensionColor(id)
+
+  const change =
+    focus === "totals"
+      ? null
+      : describeWindowChange(chart, series, {
+          dimensionId: id,
+          unitAttributes,
+          unit: convertedUnit,
+          index,
+        })
+  const zero = focus === "totals" && value === 0
+  const showsTrend = focus === "trends" && moved && !percent && trend.length > 0
+  const showsPill = focus === "changes" && !!change?.moved
 
   return (
-    <Flex
-      position="relative"
-      alignItems="center"
-      gap={2}
-      width="100%"
-      justifyContent="end"
-      height={{ min: 4.5 }}
+    <Tooltip
+      content={<TooltipValue id={id} detail={showsTrend || showsPill ? change.detail : null} />}
     >
-      <Bar
-        isHot={hot}
-        style={{ transform: `scaleX(${share})` }}
-        data-testid="modernTable-bar"
-        data-share={share}
-        data-hot={hot || undefined}
-      />
-      {!percent && !!trend.length && (
-        <TrendHolder style={{ "--modern-trend-color": chart.selectDimensionColor(id) }}>
-          <Trend trend={trend} color={chart.selectDimensionColor(id)} />
-        </TrendHolder>
-      )}
-      <Numeral
-        data-testid="modernTable-value"
-        data-hot={hot || undefined}
-        color={hot ? "warning" : "text"}
-        whiteSpace="nowrap"
+      <Flex
+        position="relative"
+        alignItems="center"
+        gap={1}
+        width={{ base: "100%", min: "0px" }}
+        justifyContent="end"
+        height={{ min: 4.5 }}
       >
-        {convertedValue}
-      </Numeral>
-      {!!convertedUnit && (
-        <ValueUnit color="textLite" whiteSpace="nowrap" data-testid="modernTable-unit">
-          {convertedUnit}
-        </ValueUnit>
-      )}
-    </Flex>
+        {focus !== "totals" && (
+          <Bar
+            isHot={hot}
+            style={{ width: `${share * 100}%`, ...(!hot && { background: color }) }}
+            data-testid="modernTable-bar"
+            data-share={share}
+            data-hot={hot || undefined}
+          />
+        )}
+        {showsTrend && <Trend trend={trend} color={color} />}
+        <Numeral
+          data-testid="modernTable-value"
+          data-hot={hot || undefined}
+          data-zero={zero || undefined}
+          tone={toneOf({ focus, hot, zero })}
+          whiteSpace="nowrap"
+        >
+          {convertedValue}
+        </Numeral>
+        {!!convertedUnit && (
+          <ValueUnit color="textLite" whiteSpace="nowrap" data-testid="modernTable-unit">
+            {convertedUnit}
+          </ValueUnit>
+        )}
+        {showsPill && <DeltaPill data-testid="modernTable-delta">{change.delta}</DeltaPill>}
+      </Flex>
+    </Tooltip>
   )
 }
 
@@ -371,11 +413,7 @@ export const modernValueColumn = (chart, options = {}) => {
 
       if (!visible) return null
 
-      return (
-        <Tooltip content={<TooltipValue id={id} />}>
-          <ModernValue id={id} table={table} context={context} dimension={dimension} />
-        </Tooltip>
-      )
+      return <ModernValue id={id} table={table} context={context} dimension={dimension} />
     },
   }
 }

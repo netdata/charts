@@ -21,6 +21,7 @@ import { makeDivergingStackedDataHandler } from "./divergingStack"
 import makeDygraphWithoutLegend from "./makeDygraph"
 import { makeReusableLineDataHandler } from "./reusableLineDataHandler"
 import isInXRange from "@/helpers/isInXRange"
+import { resolveXAxisTimeStyle } from "@/sdk/makeIntls"
 
 const touchEvents = ["touchstart", "touchmove", "touchend"]
 
@@ -403,7 +404,14 @@ export default (sdk, chart) => {
         x: enabledXAxis
           ? {
               ticker: Dygraph.dateTicker,
-              axisLabelFormatter: chart.formatXAxis,
+              axisLabelFormatter: (date, granularity) =>
+                chart.formatXAxis(
+                  date,
+                  resolveXAxisTimeStyle(
+                    chart.getAttribute("xAxisTimeStyle"),
+                    granularity < Dygraph.Granularity.MINUTELY
+                  )
+                ),
               axisLabelWidth: 60,
             }
           : { drawAxis: false },

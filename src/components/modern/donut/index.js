@@ -12,6 +12,7 @@ import {
 import { SmallNumeral, numerals } from "@/components/modern/numerals"
 import { formatReadout } from "@/components/modern/format"
 import { SquareSwatch } from "@/components/modern/swatch"
+import { useInModernTile } from "@/components/modern/tile/context"
 import getDonutData from "./getDonutData"
 
 const size = 180
@@ -145,6 +146,7 @@ const Legend = ({ chart, slices, focus, setFocus }) => (
 const ModernDonut = ({ uiName }) => {
   const chart = useChart()
   const { width } = useOnResize(uiName)
+  const inTile = useInModernTile()
 
   useAttributeValue("hoverX")
   useAttributeValue("theme")
@@ -176,7 +178,7 @@ const ModernDonut = ({ uiName }) => {
       alignItems="center"
       justifyContent="center"
       gap={3}
-      padding={[2, 3]}
+      padding={[2, inTile ? 0 : 3]}
       width="100%"
       height="100%"
       overflow="hidden"

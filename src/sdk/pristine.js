@@ -32,6 +32,7 @@ const { updatePristine, resetPristine } = makePristine(pristineKey, [
   "groupBySortBy",
   "labelsSortBy",
   "dimensionsSort",
+  "valueFocus",
 
   "nodesExpanded",
   "groupByExpanded",

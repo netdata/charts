@@ -19,7 +19,7 @@ import {
 import useTableColumns from "./useTableColumns"
 import { TableRowsSkeleton } from "@/components/skeleton"
 
-const Dimensions = () => {
+const Dimensions = ({ hasFilters }) => {
   const chart = useChart()
   const tab = useAttributeValue("drawer.tab")
   const { tableSortBy } = chart.getAttributes()
@@ -74,6 +74,7 @@ const Dimensions = () => {
           columns={columns}
           columnVisibility={columnVisibility}
           onColumnVisibilityChange={setColumnVisibility}
+          hasFilters={hasFilters}
         />
         {initialLoading ? (
           <TableRowsSkeleton />
@@ -120,7 +121,7 @@ const Dimensions = () => {
   )
 }
 
-export const TableChart = ({ uiName, ref, ...rest }) => (
+export const TableChart = ({ uiName, ref, hasFilters = true, ...rest }) => (
   <ChartWrapper ref={ref}>
     <ChartContainer
       uiName={uiName}
@@ -130,7 +131,7 @@ export const TableChart = ({ uiName, ref, ...rest }) => (
       position="relative"
       {...rest}
     >
-      <Dimensions />
+      <Dimensions hasFilters={hasFilters} />
     </ChartContainer>
   </ChartWrapper>
 )

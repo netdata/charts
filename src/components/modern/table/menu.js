@@ -4,6 +4,7 @@ import { useAttributeValue, useChart } from "@/components/provider"
 import Settings from "@/components/toolbox/settings"
 import { getConsumerElements } from "@/components/modern/tile/menu"
 import { Divider, Item, MenuElements, Panel } from "@/components/modern/menu"
+import { FocusItem } from "@/components/modern/focus"
 
 export const getColumnOptions = (columns = []) =>
   columns.flatMap(group =>
@@ -82,6 +83,7 @@ const TableMenu = ({
         columnVisibility={columnVisibility}
         onColumnVisibilityChange={onColumnVisibilityChange}
       />
+      <FocusItem />
       <Divider />
       {hasSettings && (
         <Item

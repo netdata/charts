@@ -11,8 +11,14 @@ const resolve = color => props => getColor(color)(props)
 const Line = styled.path`
   fill: none;
   stroke: ${({ tint }) => resolve(tint)};
-  stroke-width: 1.5px;
+  stroke-width: 1.75px;
+  stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
+`
+
+const FlatLine = styled(Line)`
+  stroke-width: 1.5px;
+  stroke-opacity: 0.55;
 `
 
 const Stop = styled.stop`
@@ -30,6 +36,15 @@ const Marker = styled(Box).attrs({
   box-shadow: 0 0 0 2px ${getColor("mainChartBg")};
   pointer-events: none;
 `
+
+const StartMarker = styled(Marker)`
+  background: ${getColor("mainChartBg")};
+  box-shadow: inset 0 0 0 1.5px ${({ tint }) => resolve(tint)};
+`
+
+const flatTop = 62
+
+const toPercent = (part, whole) => `${(part / whole) * 100}%`
 
 export const toRuns = values =>
   values.reduce((runs, value, index) => {
@@ -72,18 +87,27 @@ export const makePaths = values => {
   return { line, area, y }
 }
 
-const Sparkline = ({ values, color, id, height, markerIndex }) => {
+const Sparkline = ({ values, color, id, height, markerIndex, flat = false }) => {
   if (!values || values.length < 2) return null
 
   const { line, area, y } = makePaths(values)
   if (!line) return null
 
   const width = values.length - 1
+  const tint = flat ? "textLite" : color
+  const top = value => (flat ? `${flatTop}%` : toPercent(y(value), viewHeight))
+  const startIndex = values.findIndex(value => typeof value === "number")
   const marker = values[markerIndex]
   const gradientId = `modern-number-spark-${id}`
 
   return (
-    <Box position="relative" width="100%" height={`${height}px`} data-testid="modernNumberSpark">
+    <Box
+      position="relative"
+      width="100%"
+      height={`${height}px`}
+      data-testid="modernNumberSpark"
+      data-flat={flat || undefined}
+    >
       <svg
         width="100%"
         height="100%"
@@ -92,23 +116,33 @@ const Sparkline = ({ values, color, id, height, markerIndex }) => {
         style={{ display: "block" }}
         aria-hidden="true"
       >
-        <defs>
-          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0%" tint={color} stopOpacity={0.35} />
-            <Stop offset="100%" tint={color} stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        <path d={area} fill={`url(#${gradientId})`} />
-        <Line d={line} tint={color} />
+        {flat ? (
+          <FlatLine d={`M0,${flatTop} L${width},${flatTop}`} tint={tint} strokeDasharray="3 3" />
+        ) : (
+          <>
+            <defs>
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                <Stop offset="0%" tint={color} stopOpacity={0.4} />
+                <Stop offset="100%" tint={color} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <path d={area} fill={`url(#${gradientId})`} />
+            <Line d={line} tint={color} />
+          </>
+        )}
       </svg>
+      {startIndex !== markerIndex && (
+        <StartMarker
+          tint={tint}
+          data-testid="modernNumberSparkStart"
+          style={{ left: toPercent(startIndex, width), top: top(values[startIndex]) }}
+        />
+      )}
       {typeof marker === "number" && (
         <Marker
-          tint={color}
+          tint={tint}
           data-testid="modernNumberSparkMarker"
-          style={{
-            left: `${(markerIndex / width) * 100}%`,
-            top: `${(y(marker) / viewHeight) * 100}%`,
-          }}
+          style={{ left: toPercent(markerIndex, width), top: top(marker) }}
         />
       )}
     </Box>

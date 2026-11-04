@@ -7,7 +7,7 @@ import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
 import limitRange from "@/helpers/limitRange"
 import { makeGetColor, withoutPrefix } from "@/helpers/heatmap"
-import { darkenColor } from "@/chartLibraries/helpers/color"
+import { darkenColor, withAlpha } from "@/chartLibraries/helpers/color"
 import { isVisibleDimension } from "@/chartLibraries/helpers/dimensionVisibility"
 import { areAnnotationsDisabled } from "@/chartLibraries/helpers/annotations"
 import { formatHeatmapLabel } from "@/helpers/heatmapScale"
@@ -27,8 +27,16 @@ import makeLiveEdge, { haloRadius, isLiveLayout } from "./plotters/liveEdge"
 import makeGetHoverDimension from "./hover"
 import getPxRatio from "./pxRatio"
 import isInXRange from "@/helpers/isInXRange"
+import { resolveXAxisTimeStyle } from "@/sdk/makeIntls"
 
 const barGroupWidth = 0.6
+const barGradientTopAlpha = 0.8
+const barGradientBaseAlpha = 0.4
+const barGradientBaseAlphaByTheme = { dark: 0.25 }
+const barGlowAlpha = 0.4
+const barGlowBlur = 8
+const barTopRadius = 2
+const barEdgeWidth = 1
 
 const doubleTapDelay = 300
 const minDragPx = 5
@@ -59,6 +67,7 @@ const xTickSize = 3
 const xAxisGap = 3
 const rightPad = 0
 const xTickSpace = 80
+const secondsPerMinute = 60
 const heatmapPixelsPerLabel = 15
 const heatmapRowPad = 0.5
 
@@ -138,6 +147,33 @@ const makeAreaFill = color => {
 }
 
 const makeSolidFill = color => () => color
+
+const makeBarGradient = (ctx, color, top, height, theme) => {
+  const gradient = ctx.createLinearGradient(0, top, 0, top + height)
+  gradient.addColorStop(0, withAlpha(color, barGradientTopAlpha))
+  gradient.addColorStop(
+    1,
+    withAlpha(color, barGradientBaseAlphaByTheme[theme] ?? barGradientBaseAlpha)
+  )
+  return gradient
+}
+
+const traceBar = (ctx, { left, top, width, height, radius }, offset = 0) => {
+  const x = left - offset
+  ctx.beginPath()
+
+  if (!radius) ctx.rect(x, top, width, height)
+  else if (ctx.roundRect) ctx.roundRect(x, top, width, height, [radius, radius, 0, 0])
+  else {
+    ctx.moveTo(x, top + height)
+    ctx.lineTo(x, top + radius)
+    ctx.quadraticCurveTo(x, top, x + radius, top)
+    ctx.lineTo(x + width - radius, top)
+    ctx.quadraticCurveTo(x + width, top, x + width, top + radius)
+    ctx.lineTo(x + width, top + height)
+    ctx.closePath()
+  }
+}
 
 const defaultRows = (start, end) => {
   const rows = new Array(end - start + 1)
@@ -485,10 +521,15 @@ export default (sdk, chart) => {
         ? {
             ticks: { show: false },
             size: () => getVerticalBudget().xAxisSize,
-            values: (self, splits) =>
-              getVerticalBudget().xAxisSize > 0
-                ? splits.map(value => chart.formatXAxis(new Date(value * 1000)))
-                : [],
+            values: (self, splits, axisIdx, space, incr) => {
+              if (getVerticalBudget().xAxisSize <= 0) return []
+
+              const timeStyle = resolveXAxisTimeStyle(
+                chart.getAttribute("xAxisTimeStyle"),
+                incr < secondsPerMinute
+              )
+              return splits.map(value => chart.formatXAxis(new Date(value * 1000), timeStyle))
+            },
           }
         : { ticks: { show: false }, values: () => [], size: hiddenAxisSize }),
     }
@@ -711,56 +752,59 @@ export default (sdk, chart) => {
     return Number.isFinite(minSep) ? minSep : self.bbox.width
   }
 
-  const drawGroupedBars = (self, dimensionIds, groupWidth) => {
+  const getGroupedBars = (self, dimensionIds, groupWidth) => {
     const xs = self.data[0]
-    const { ctx } = self
     const y0 = self.valToPos(0, "y", true)
 
     const visibleIds = dimensionIds.filter(isVisible)
     const barCount = visibleIds.length || 1
     const barWidth = groupWidth / barCount
 
-    dimensionIds.forEach((id, index) => {
-      if (!isVisible(id)) return
-
-      const values = self.data[index + 1]
-      const barIndex = visibleIds.indexOf(id)
-      const color = chart.selectDimensionColor(id)
-      ctx.fillStyle = color
-      ctx.strokeStyle = darkenColor(color)
-      ctx.lineWidth = getPxRatio()
-      if (isModern()) ctx.globalAlpha = getSeriesAlpha(id)
+    return visibleIds.map((id, barIndex) => {
+      const values = self.data[dimensionIds.indexOf(id) + 1]
+      const rects = []
 
       for (let row = 0; row < xs.length; row++) {
         const value = values[row]
         if (value == null) continue
 
         const valuePos = self.valToPos(value, "y", true)
-        const left = self.valToPos(xs[row], "x", true) - groupWidth / 2 + barIndex * barWidth
-        const top = Math.min(y0, valuePos)
-        const height = Math.abs(valuePos - y0)
 
-        ctx.fillRect(left, top, barWidth, height)
-        ctx.strokeRect(left, top, barWidth, height)
+        rects.push({
+          left: self.valToPos(xs[row], "x", true) - groupWidth / 2 + barIndex * barWidth,
+          top: Math.min(y0, valuePos),
+          width: barWidth,
+          height: Math.abs(valuePos - y0),
+          radius: 0,
+        })
       }
+
+      return { id, rects }
     })
   }
 
-  const drawStackedBars = (self, dimensionIds, groupWidth) => {
+  const getStackTopIndexes = (bounds, rows) => {
+    const topIndexes = new Array(rows).fill(-1)
+
+    for (let row = 0; row < rows; row++)
+      topIndexes[row] = bounds.findIndex(
+        columnBounds => columnBounds?.[row] && columnBounds[row][1] > columnBounds[row][0]
+      )
+
+    return topIndexes
+  }
+
+  const getStackedBars = (self, dimensionIds, groupWidth, rounded) => {
     const xs = self.data[0]
-    const { ctx } = self
-
     const bounds = seriesStackBounds(self)
+    const topIndexes = rounded ? getStackTopIndexes(bounds, xs.length) : []
+    const maxRadius = barTopRadius * getPxRatio()
 
-    dimensionIds.forEach((id, index) => {
+    return dimensionIds.reduce((bars, id, index) => {
       const columnBounds = bounds[index]
-      if (!columnBounds) return
+      if (!columnBounds) return bars
 
-      const color = chart.selectDimensionColor(id)
-      ctx.fillStyle = color
-      ctx.strokeStyle = darkenColor(color)
-      ctx.lineWidth = getPxRatio()
-      if (isModern()) ctx.globalAlpha = getSeriesAlpha(id)
+      const rects = []
 
       for (let row = 0; row < xs.length; row++) {
         const bound = columnBounds[row]
@@ -768,14 +812,83 @@ export default (sdk, chart) => {
 
         const topPos = self.valToPos(bound[1], "y", true)
         const basePos = self.valToPos(bound[0], "y", true)
-        const left = self.valToPos(xs[row], "x", true) - groupWidth / 2
-
-        const top = Math.min(topPos, basePos)
         const height = Math.abs(topPos - basePos)
 
-        ctx.fillRect(left, top, groupWidth, height)
-        ctx.strokeRect(left, top, groupWidth, height)
+        rects.push({
+          left: self.valToPos(xs[row], "x", true) - groupWidth / 2,
+          top: Math.min(topPos, basePos),
+          width: groupWidth,
+          height,
+          radius: topIndexes[row] === index ? Math.min(maxRadius, height, groupWidth / 2) : 0,
+        })
       }
+
+      bars.push({ id, rects })
+      return bars
+    }, [])
+  }
+
+  const applyBarAlpha = (ctx, id) => {
+    if (isModern()) ctx.globalAlpha = getSeriesAlpha(id)
+  }
+
+  const drawBarGlow = (ctx, { id, rects }) => {
+    const color = chart.selectDimensionColor(id)
+    const offset = ctx.canvas.width * 2
+
+    ctx.save()
+    applyBarAlpha(ctx, id)
+    ctx.fillStyle = color
+    ctx.shadowBlur = barGlowBlur * getPxRatio()
+    ctx.shadowColor = withAlpha(color, barGlowAlpha)
+    ctx.shadowOffsetX = offset
+
+    rects.forEach(rect => {
+      traceBar(ctx, rect, offset)
+      ctx.fill()
+    })
+
+    ctx.restore()
+  }
+
+  const drawSolidBars = (ctx, { id, rects }) => {
+    const color = chart.selectDimensionColor(id)
+    ctx.fillStyle = color
+    ctx.strokeStyle = darkenColor(color)
+    ctx.lineWidth = getPxRatio()
+    applyBarAlpha(ctx, id)
+
+    rects.forEach(({ left, top, width, height }) => {
+      ctx.fillRect(left, top, width, height)
+      ctx.strokeRect(left, top, width, height)
+    })
+  }
+
+  let barGradients = new Map()
+  let nextBarGradients = new Map()
+
+  const getBarGradient = (ctx, color, top, height) => {
+    const theme = chart.getAttribute("theme")
+    const key = `${color}:${top}:${height}:${theme}`
+    const gradient = barGradients.get(key) || makeBarGradient(ctx, color, top, height, theme)
+    nextBarGradients.set(key, gradient)
+    return gradient
+  }
+
+  const drawGradientBars = (ctx, { id, rects }) => {
+    const color = chart.selectDimensionColor(id)
+    applyBarAlpha(ctx, id)
+
+    rects.forEach(rect => {
+      const { left, top, width, height, radius } = rect
+      if (!height) return
+
+      ctx.fillStyle = getBarGradient(ctx, color, top, height)
+      traceBar(ctx, rect)
+      ctx.fill()
+
+      ctx.fillStyle = color
+      ctx.fillRect(left + radius, top, width - 2 * radius, barEdgeWidth)
     })
   }
 
@@ -795,8 +908,18 @@ export default (sdk, chart) => {
     ctx.rect(self.bbox.left, self.bbox.top, self.bbox.width, self.bbox.height)
     ctx.clip()
 
-    if (chartType === "stackedBar") drawStackedBars(self, dimensionIds, groupWidth)
-    else drawGroupedBars(self, dimensionIds, groupWidth)
+    const gradient = chart.getAttribute("barFillStyle") === "gradient"
+    const bars =
+      chartType === "stackedBar"
+        ? getStackedBars(self, dimensionIds, groupWidth, gradient)
+        : getGroupedBars(self, dimensionIds, groupWidth)
+    const glowIds = chart.getAttribute("barGlowDimensionIds") || []
+
+    bars.filter(bar => glowIds.includes(bar.id)).forEach(bar => drawBarGlow(ctx, bar))
+    bars.forEach(bar => (gradient ? drawGradientBars(ctx, bar) : drawSolidBars(ctx, bar)))
+
+    barGradients = nextBarGradients
+    nextBarGradients = new Map()
 
     ctx.restore()
   }
@@ -1529,6 +1652,28 @@ export default (sdk, chart) => {
     }
   }
 
+  const getLastXLabelOverflow = self => {
+    const axis = self.axes[0]
+    const splits = axis._splits || []
+    const label = (axis._values || [])[splits.length - 1]
+    if (label == null || label === "") return 0
+
+    const { min, max } = self.scales.x
+    if (min == null || max == null || max === min) return 0
+
+    const plotWidth = self.bbox.width / getPxRatio()
+    const distanceToEdge = ((max - splits[splits.length - 1]) / (max - min)) * plotWidth
+
+    return Math.ceil(measureLabel(label, axis.font[0]) / 2 - distanceToEdge)
+  }
+
+  const getRightPad = self => {
+    const pad = isLiveLayout(chart) ? haloRadius : rightPad
+    if (!chart.getAttribute("xAxisFitLastLabel")) return pad
+
+    return Math.max(pad, getLastXLabelOverflow(self))
+  }
+
   const create = () => {
     if (!element) return
 
@@ -1543,12 +1688,7 @@ export default (sdk, chart) => {
       {
         width: chartUI.getChartWidth(),
         height: chartUI.getChartHeight(),
-        padding: [
-          () => getVerticalBudget().topPad,
-          () => (isLiveLayout(chart) ? haloRadius : rightPad),
-          null,
-          null,
-        ],
+        padding: [() => getVerticalBudget().topPad, getRightPad, null, null],
         legend: { show: false },
         cursor: getCursor(),
         scales,
@@ -1684,6 +1824,8 @@ export default (sdk, chart) => {
       }),
       chart.onAttributeChange("timezone", () => u && u.redraw()),
       chart.onAttributeChange("anomalySpotlight", () => u && u.redraw(false, false)),
+      chart.onAttributeChange("barFillStyle", () => u && u.redraw(false, false)),
+      chart.onAttributeChange("barGlowDimensionIds", () => u && u.redraw(false, false)),
       chart.onAttributeChange("unitsConversionPrefix", onUnitsConversionChange),
       chart.onAttributeChange("unitsConversionBase", onUnitsConversionChange),
       chart.onAttributeChange("theme", (next, prev) => {

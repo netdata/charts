@@ -35,3 +35,8 @@ export const darkenColor = colorStr => {
   color.b = Math.floor((255 + color.b) / 2)
   return "rgb(" + color.r + "," + color.g + "," + color.b + ")"
 }
+
+export const withAlpha = (colorStr, alpha) => {
+  const { r, g, b } = parseColor(colorStr)
+  return `rgba(${r},${g},${b},${alpha})`
+}

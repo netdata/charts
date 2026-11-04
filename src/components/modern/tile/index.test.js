@@ -1,6 +1,7 @@
 import React from "react"
 import { act, fireEvent, screen, waitFor, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
+import { DefaultTheme, getColor } from "@netdata/netdata-ui"
 import { renderWithChart, makeTestChart } from "@jest/testUtilities"
 import withTile from "@/components/hocs/withTile"
 import Settings from "@/components/toolbox/settings"
@@ -159,6 +160,43 @@ describe("modern tile at rest", () => {
 
     act(() => chart.updateAttribute("alerts", { load: { nm: "load_average_15", wr: 1 } }))
     expect(screen.queryByTestId("modernTileAlert")).not.toBeInTheDocument()
+  })
+})
+
+describe("modern tile fetch error", () => {
+  const colorOf = name => {
+    const probe = document.createElement("span")
+    probe.style.color = getColor(name)({ theme: DefaultTheme })
+    return probe.style.color
+  }
+
+  it("keeps the last data and marks the failure with a quiet dot", async () => {
+    const { chart } = await renderModern()
+
+    act(() => chart.failFetch({ message: "Failed to fetch" }))
+
+    const dot = screen.getByTestId("modernTileError")
+    expect(dot).toHaveAttribute("title", "Error: Failed to fetch")
+    expect(getComputedStyle(screen.getByTestId("modernTile-scope")).visibility).toBe("hidden")
+    expect(screen.getByTestId("chartScope-error")).toHaveTextContent("Error: Failed to fetch")
+    expect(getComputedStyle(screen.getByTestId("chartScope-error")).color).toBe(colorOf("textLite"))
+  })
+
+  it("shows the error in the scope row when there is no data", async () => {
+    const { chart } = makeTestChart({
+      attributes: { title: "System load", designFlavour: "modern" },
+      mockData: { errorMsgKey: "ErrQuery", errorMessage: "Query failed" },
+    })
+    renderWithChart(<Tiled />, { chart })
+    await act(async () => {
+      chart.fetch()
+    })
+
+    const error = await screen.findByTestId("chartScope-error")
+    expect(error).toHaveTextContent(/^Error: /)
+    expect(getComputedStyle(error).color).toBe(colorOf("error"))
+    expect(getComputedStyle(screen.getByTestId("modernTile-scope")).visibility).toBe("visible")
+    expect(screen.queryByTestId("modernTileError")).not.toBeInTheDocument()
   })
 })
 

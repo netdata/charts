@@ -16,6 +16,7 @@ import { radius } from "@/components/modern/tokens"
 import { onToggle } from "@/components/modern/legend/parts"
 import { LineSwatch } from "@/components/modern/swatch"
 import { Divider, Item, MenuHeading, Panel, useMenuNavigation } from "@/components/modern/menu"
+import { focusMenuItem } from "@/components/modern/focus"
 import { showAllDimensions, useHiddenDimensionsCount } from "./hiddenDimensions"
 
 export const navigationModes = [
@@ -332,6 +333,7 @@ const builtInItems = [
     },
   },
   Information.menu,
+  focusMenuItem,
   {
     id: "filters",
     group: "data",

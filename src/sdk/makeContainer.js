@@ -100,6 +100,13 @@ export default ({ sdk, parent, attributes } = {}) => {
   node.type = "container"
   node.getApplicableNodes = getApplicableNodes
 
+  node.onAttributeChange("valueFocusDefault", (value, prevValue) =>
+    children.forEach(child => {
+      if (child.getAttribute("valueFocusDefault") === prevValue)
+        child.updateAttribute("valueFocusDefault", value)
+    })
+  )
+
   const instance = {
     ...node,
     destroy,

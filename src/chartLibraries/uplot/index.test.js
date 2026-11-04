@@ -1,3 +1,4 @@
+import uPlot from "uplot"
 import React from "react"
 import { render, screen, act } from "@testing-library/react"
 import { ThemeProvider } from "styled-components"
@@ -4900,5 +4901,448 @@ describe("uplotChart modern y-axis labels", () => {
     })
 
     labels.forEach(label => expect(label).toMatch(/ °F$/))
+  })
+})
+
+describe("uplotChart x-axis labels", () => {
+  const after = 1617946800
+  const hour = 3600
+  const withSeconds = /^\d{2}:\d{2}:\d{2}$/
+  const withoutSeconds = /^\d{2}:\d{2}$/
+
+  const mountTimeline = async ({ before = after + hour, ...attributes } = {}) => {
+    const { sdk, chart } = makeTestChart({
+      attributes: { loaded: true, chartType: "stackedBar", after, before, ...attributes },
+    })
+    chart.getPayload = () => ({
+      data: [
+        [after * 1000, 1],
+        [(after + hour / 2) * 1000, 2],
+        [before * 1000, 3],
+      ],
+      labels: ["time", "requests"],
+    })
+    chart.getPayloadDimensionIds = () => ["requests"]
+    chart.getVisibleDimensionIds = () => ["requests"]
+    chart.isDimensionVisible = () => true
+    chart.selectDimensionColor = () => "#3366CC"
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getConvertedValueWithUnit = value => `${value}`
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    Object.defineProperty(element, "offsetWidth", { value: 800 })
+    Object.defineProperty(element, "offsetHeight", { value: 300 })
+    document.body.appendChild(element)
+    instance.mount(element)
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
+
+    return {
+      u: instance.getUPlot(),
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  const measure = (u, text) => {
+    const ctx = document.createElement("canvas").getContext("2d")
+    ctx.font = u.axes[0].font[0]
+    return ctx.measureText(text).width
+  }
+
+  const lastLabelRight = u => {
+    const splits = u.axes[0]._splits
+    const values = u.axes[0]._values
+    const last = splits.length - 1
+    return (
+      u.bbox.left / (uPlot.pxRatio || 1) +
+      u.valToPos(splits[last], "x") +
+      measure(u, values[last]) / 2
+    )
+  }
+
+  it("ships the x-axis options unset", () => {
+    expect(initialAttributes.xAxisTimeStyle).toBe("medium")
+    expect(initialAttributes.xAxisFitLastLabel).toBe(false)
+  })
+
+  it("keeps seconds on minute-spaced ticks by default", async () => {
+    const { u, teardown } = await mountTimeline()
+
+    expect(u.axes[0]._found[0]).toBeGreaterThanOrEqual(60)
+    expect(u.axes[0]._values.length).toBeGreaterThan(1)
+    u.axes[0]._values.forEach(label => expect(label).toMatch(withSeconds))
+
+    teardown()
+  })
+
+  it("drops seconds with the short time style", async () => {
+    const { u, teardown } = await mountTimeline({ xAxisTimeStyle: "short" })
+
+    u.axes[0]._values.forEach(label => expect(label).toMatch(withoutSeconds))
+    expect(u.axes[0].values(u, [after + 15, after + 45], 0, 80, 30)[0]).toMatch(withoutSeconds)
+
+    teardown()
+  })
+
+  it("shows seconds only on sub-minute ticks with the auto time style", async () => {
+    const { u, teardown } = await mountTimeline({ xAxisTimeStyle: "auto" })
+
+    u.axes[0]._values.forEach(label => expect(label).toMatch(withoutSeconds))
+    expect(u.axes[0].values(u, [after + 15, after + 45], 0, 80, 30)[0]).toMatch(withSeconds)
+    expect(u.axes[0].values(u, [after, after + 60], 0, 80, 60)[0]).toMatch(withoutSeconds)
+
+    teardown()
+  })
+
+  it("keeps the right padding and clips the last label by default", async () => {
+    const { u, teardown } = await mountTimeline()
+
+    expect(u._padding[1]).toBe(0)
+    expect(lastLabelRight(u)).toBeGreaterThan(u.width)
+
+    teardown()
+  })
+
+  it("pads the right edge to fit the last label when enabled", async () => {
+    const { u, teardown } = await mountTimeline({ xAxisFitLastLabel: true })
+
+    expect(u._padding[1]).toBeGreaterThan(0)
+    expect(lastLabelRight(u)).toBeLessThanOrEqual(u.width)
+
+    teardown()
+  })
+
+  it("adds no padding when the last label already fits", async () => {
+    const before = after + hour + 290
+    const fitted = await mountTimeline({ before, xAxisFitLastLabel: true })
+    const plain = await mountTimeline({ before })
+
+    expect(lastLabelRight(plain.u)).toBeLessThanOrEqual(plain.u.width)
+    expect(fitted.u._padding[1]).toBe(0)
+    expect(fitted.u.bbox).toEqual(plain.u.bbox)
+
+    fitted.teardown()
+    plain.teardown()
+  })
+
+  it("keeps a line chart layout unchanged when the last label already fits", async () => {
+    const before = after + hour + 290
+    const fitted = await mountTimeline({ before, chartType: "line", xAxisFitLastLabel: true })
+    const plain = await mountTimeline({ before, chartType: "line" })
+
+    expect(fitted.u._padding).toEqual(plain.u._padding)
+    expect(fitted.u.bbox).toEqual(plain.u.bbox)
+
+    fitted.teardown()
+    plain.teardown()
+  })
+
+  it("keeps the live halo padding when the last label already fits", async () => {
+    const live = { chartType: "line", designFlavour: "modern", legendMode: "live" }
+    const before = after + hour + 290
+    const { u, teardown } = await mountTimeline({ before, ...live, xAxisFitLastLabel: true })
+
+    expect(u._padding[1]).toBe(8)
+
+    teardown()
+  })
+})
+
+describe("uplotChart bar fill styles", () => {
+  const colors = { a: "#3366CC", b: "#DC3912" }
+  const rows = [
+    [1617946860000, 10, 5],
+    [1617946865000, 12, 6],
+    [1617946870000, 11, 4],
+  ]
+
+  const normalize = (prop, value) => {
+    const ctx = document.createElement("canvas").getContext("2d")
+    ctx[prop] = value
+    return ctx[prop]
+  }
+
+  const mountBars = async (chartType, attributes = {}) => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        loaded: true,
+        chartType,
+        chartLibrary: "uplot",
+        after: 1617946860,
+        before: 1617946870,
+        ...attributes,
+      },
+    })
+    chart.getPayload = () => ({ data: rows, labels: ["time", "a", "b"] })
+    chart.getPayloadDimensionIds = () => ["a", "b"]
+    chart.getVisibleDimensionIds = () => ["a", "b"]
+    chart.isDimensionVisible = () => true
+    chart.selectDimensionColor = id => colors[id]
+    chart.getThemeAttribute = () => "#E4E8E8"
+    chart.getConvertedValueWithUnit = value => `${value}`
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    return {
+      chart,
+      u: instance.getUPlot(),
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  const redraw = async u => {
+    u.redraw()
+    await Promise.resolve()
+  }
+
+  const record = ctx => {
+    const gradients = []
+    const fills = []
+    const rects = []
+    const originals = {}
+    const snapshot = () => ({
+      fillStyle: ctx.fillStyle,
+      strokeStyle: ctx.strokeStyle,
+      lineWidth: ctx.lineWidth,
+      shadowBlur: ctx.shadowBlur,
+      shadowColor: ctx.shadowColor,
+      globalAlpha: ctx.globalAlpha,
+    })
+    const wrap = (name, onCall = () => {}) => {
+      const original = ctx[name]
+      originals[name] = original
+      ctx[name] = jest.fn((...args) => {
+        const result = original.apply(ctx, args)
+        onCall(args, result)
+        return result
+      })
+      return ctx[name]
+    }
+
+    wrap("createLinearGradient", (args, gradient) => gradients.push({ args, gradient }))
+    wrap("fill", () => fills.push(snapshot()))
+    const fillRect = wrap("fillRect", args => rects.push({ args, ...snapshot() }))
+    const strokeRect = wrap("strokeRect")
+
+    return {
+      gradients,
+      fills,
+      rects,
+      fillRect,
+      strokeRect,
+      restore: () => Object.entries(originals).forEach(([name, fn]) => (ctx[name] = fn)),
+      gradientFills: () => fills.filter(f => typeof f.fillStyle === "object"),
+    }
+  }
+
+  it("ships solid bars without glow", () => {
+    expect(initialAttributes.barFillStyle).toBe("solid")
+    expect(initialAttributes.barGlowDimensionIds).toEqual([])
+  })
+
+  it.each(["multiBar", "stackedBar"])(
+    "keeps the solid fill and darkened outline for %s by default",
+    async chartType => {
+      const { u, teardown } = await mountBars(chartType)
+      const calls = record(u.ctx)
+      await redraw(u)
+
+      expect(calls.gradients).toHaveLength(0)
+      expect(calls.fillRect).toHaveBeenCalledTimes(rows.length * 2)
+      expect(calls.strokeRect).toHaveBeenCalledTimes(rows.length * 2)
+      expect(calls.fills.filter(f => f.shadowBlur > 0)).toHaveLength(0)
+
+      calls.restore()
+      teardown()
+    }
+  )
+
+  it.each([
+    ["multiBar", "dark", 0.25],
+    ["stackedBar", "dark", 0.25],
+    ["multiBar", "default", 0.4],
+    ["stackedBar", "default", 0.4],
+  ])(
+    "fills %s segments with a vertical gradient in the %s theme",
+    async (chartType, theme, base) => {
+      const { chart, u, teardown } = await mountBars(chartType, { theme })
+      const calls = record(u.ctx)
+      chart.updateAttribute("barFillStyle", "gradient")
+      await Promise.resolve()
+
+      expect(calls.strokeRect).not.toHaveBeenCalled()
+      expect(calls.gradientFills()).toHaveLength(rows.length * 2)
+      calls.gradients.forEach(({ args: [x0, y0, x1, y1] }) => {
+        expect(x0).toBe(x1)
+        expect(y1).toBeGreaterThan(y0)
+      })
+
+      const stops = calls.gradients.map(({ gradient }) => gradient.addColorStop.mock.calls)
+      expect(stops).toContainEqual([
+        [0, "rgba(51,102,204,0.8)"],
+        [1, `rgba(51,102,204,${base})`],
+      ])
+      expect(stops).toContainEqual([
+        [0, "rgba(220,57,18,0.8)"],
+        [1, `rgba(220,57,18,${base})`],
+      ])
+
+      calls.restore()
+      teardown()
+    }
+  )
+
+  it("reuses cached gradients across redraws of the same geometry", async () => {
+    const { u, teardown } = await mountBars("stackedBar", { barFillStyle: "gradient" })
+    await redraw(u)
+    const calls = record(u.ctx)
+    await redraw(u)
+
+    expect(calls.gradients).toHaveLength(0)
+    expect(calls.fills.filter(f => typeof f.fillStyle !== "string")).toHaveLength(rows.length * 2)
+
+    calls.restore()
+    teardown()
+  })
+
+  it.each(["multiBar", "stackedBar"])(
+    "draws a 1 device px top edge in the series colour on %s gradient bars",
+    async chartType => {
+      const { u, teardown } = await mountBars(chartType, { barFillStyle: "gradient" })
+      const calls = record(u.ctx)
+      await redraw(u)
+
+      const edges = calls.rects.filter(rect => rect.args[3] === 1)
+      expect(
+        edges.filter(rect => rect.fillStyle === normalize("fillStyle", colors.a))
+      ).toHaveLength(rows.length)
+      expect(
+        edges.filter(rect => rect.fillStyle === normalize("fillStyle", colors.b))
+      ).toHaveLength(rows.length)
+
+      calls.restore()
+      teardown()
+    }
+  )
+
+  it.each(["multiBar", "stackedBar"])(
+    "glows only the listed dimensions on %s and resets the shadow after",
+    async chartType => {
+      const { u, teardown } = await mountBars(chartType, {
+        barFillStyle: "gradient",
+        barGlowDimensionIds: ["a"],
+      })
+      const calls = record(u.ctx)
+      await redraw(u)
+
+      const glows = calls.fills.filter(f => f.shadowBlur > 0)
+      expect(glows).toHaveLength(rows.length)
+      glows.forEach(glow => {
+        expect(glow.shadowBlur).toBe(8 * (uPlot.pxRatio || 1))
+        expect(glow.shadowColor).toBe(normalize("shadowColor", "rgba(51,102,204,0.4)"))
+      })
+      calls.gradientFills().forEach(f => expect(f.shadowBlur).toBe(0))
+      expect(u.ctx.shadowBlur).toBe(0)
+
+      calls.restore()
+      teardown()
+    }
+  )
+
+  it("glows listed dimensions with solid bars too", async () => {
+    const { u, teardown } = await mountBars("stackedBar", { barGlowDimensionIds: ["b"] })
+    const calls = record(u.ctx)
+    await redraw(u)
+
+    const glows = calls.fills.filter(f => f.shadowBlur > 0)
+    expect(glows).toHaveLength(rows.length)
+    glows.forEach(glow =>
+      expect(glow.shadowColor).toBe(normalize("shadowColor", "rgba(220,57,18,0.4)"))
+    )
+    expect(u.ctx.shadowBlur).toBe(0)
+
+    calls.restore()
+    teardown()
+  })
+
+  it("rounds only the top segment of each gradient stack with roundRect", async () => {
+    const { u, teardown } = await mountBars("stackedBar", { barFillStyle: "gradient" })
+    const radius = 2 * (uPlot.pxRatio || 1)
+    u.ctx.roundRect = jest.fn()
+    await redraw(u)
+
+    expect(u.ctx.roundRect).toHaveBeenCalledTimes(rows.length)
+    u.ctx.roundRect.mock.calls.forEach(call => expect(call[4]).toEqual([radius, radius, 0, 0]))
+
+    delete u.ctx.roundRect
+    teardown()
+  })
+
+  it("rounds the top segment with curves when roundRect is unavailable", async () => {
+    const { u, teardown } = await mountBars("stackedBar", { barFillStyle: "gradient" })
+    const calls = record(u.ctx)
+    const quadratic = jest.fn()
+    const quadraticCurveTo = u.ctx.quadraticCurveTo
+    u.ctx.quadraticCurveTo = quadratic
+    await redraw(u)
+
+    expect(quadratic).toHaveBeenCalledTimes(rows.length * 2)
+    expect(calls.gradientFills()).toHaveLength(rows.length * 2)
+
+    u.ctx.quadraticCurveTo = quadraticCurveTo
+    calls.restore()
+    teardown()
+  })
+
+  it("does not round grouped or solid bars", async () => {
+    const grouped = await mountBars("multiBar", { barFillStyle: "gradient" })
+    grouped.u.ctx.roundRect = jest.fn()
+    await redraw(grouped.u)
+    expect(grouped.u.ctx.roundRect).not.toHaveBeenCalled()
+    grouped.teardown()
+
+    const solid = await mountBars("stackedBar")
+    solid.u.ctx.roundRect = jest.fn()
+    await redraw(solid.u)
+    expect(solid.u.ctx.roundRect).not.toHaveBeenCalled()
+    solid.teardown()
+  })
+
+  it("dims unfocused gradient bars in the modern design", async () => {
+    const { u, teardown } = await mountBars("stackedBar", {
+      barFillStyle: "gradient",
+      designFlavour: "modern",
+      focusedDimensionId: "b",
+    })
+    const calls = record(u.ctx)
+    await redraw(u)
+
+    const alphas = calls.gradientFills().map(f => f.globalAlpha)
+    expect(alphas.filter(alpha => alpha < 1)).toHaveLength(rows.length)
+    expect(alphas.filter(alpha => alpha === 1)).toHaveLength(rows.length)
+
+    calls.restore()
+    teardown()
+  })
+
+  it("redraws when the bar fill style changes", async () => {
+    const { chart, u, teardown } = await mountBars("stackedBar")
+    const calls = record(u.ctx)
+    chart.updateAttribute("barFillStyle", "gradient")
+    await Promise.resolve()
+
+    expect(calls.gradientFills().length).toBeGreaterThan(0)
+
+    calls.restore()
+    teardown()
   })
 })

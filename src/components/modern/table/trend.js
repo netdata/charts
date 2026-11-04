@@ -1,21 +1,26 @@
 import React, { useMemo } from "react"
 import { useChart, usePayload } from "@/components/provider"
+import { getWindowDelta } from "@/helpers/valueFocus"
 
 const maxPoints = 40
 
-export const getTrend = (chart, id, points = maxPoints) => {
+export const getSeries = (chart, id) => {
   const { all = [] } = chart.getPayload() || {}
-  if (!id || all.length < 2) return []
+  if (!id) return []
 
-  const values = []
-  for (let index = 0; index < all.length; index++) {
-    const value = chart.getRowDimensionValue(id, all[index], {
+  return all.map(row => {
+    const value = chart.getRowDimensionValue(id, row, {
       abs: false,
       incrementable: false,
       allowNull: true,
     })
-    values.push(typeof value === "number" && Number.isFinite(value) ? value : null)
-  }
+    return typeof value === "number" && Number.isFinite(value) ? value : null
+  })
+}
+
+export const getTrend = (chart, id, points = maxPoints) => {
+  const values = getSeries(chart, id)
+  if (values.length < 2) return []
 
   const size = Math.max(1, Math.ceil(values.length / points))
   const trend = []
@@ -34,41 +39,56 @@ export const getTrend = (chart, id, points = maxPoints) => {
   return trend.filter(value => value !== null).length < 2 ? [] : trend
 }
 
-export const makeTrendPath = (trend, width, height, inset = 1.5) => {
+export const getTrendPoints = (trend, width, height, inset = 1.5) => {
   const numbers = trend.filter(value => value !== null)
-  if (numbers.length < 2) return ""
+  if (numbers.length < 2) return []
 
   const min = Math.min(...numbers)
   const max = Math.max(...numbers)
   const span = max - min || 1
   const step = width / (trend.length - 1)
 
-  let path = ""
+  return trend.map((value, index) =>
+    value === null
+      ? null
+      : [
+          index * step,
+          max === min ? height / 2 : inset + (1 - (value - min) / span) * (height - inset * 2),
+        ]
+  )
+}
+
+export const makeTrendPath = (trend, width, height, inset = 1.5) => {
   let pen = "M"
 
-  trend.forEach((value, index) => {
-    if (value === null) {
+  return getTrendPoints(trend, width, height, inset).reduce((path, point) => {
+    if (!point) {
       pen = "M"
-      return
+      return path
     }
-    const x = index * step
-    const y = max === min ? height / 2 : inset + (1 - (value - min) / span) * (height - inset * 2)
-    path += `${pen}${x.toFixed(1)},${y.toFixed(1)}`
+    const next = `${path}${pen}${point[0].toFixed(1)},${point[1].toFixed(1)}`
     pen = "L"
-  })
-
-  return path
+    return next
+  }, "")
 }
 
 export const useTrend = id => {
   const chart = useChart()
   const payload = usePayload()
 
-  return useMemo(() => getTrend(chart, id), [chart, payload, id])
+  return useMemo(() => {
+    const series = getSeries(chart, id)
+    return { series, trend: getTrend(chart, id), moved: !!getWindowDelta(series) }
+  }, [chart, payload, id])
 }
 
-const Trend = ({ trend, color, width = 64, height = 18 }) => {
+export const trendWidth = 40
+export const trendHeight = 16
+
+const Trend = ({ trend, color, width = trendWidth, height = trendHeight }) => {
+  const points = useMemo(() => getTrendPoints(trend, width, height), [trend, width, height])
   const path = useMemo(() => makeTrendPath(trend, width, height), [trend, width, height])
+  const end = points.filter(Boolean).pop()
 
   if (!path) return null
 
@@ -85,10 +105,11 @@ const Trend = ({ trend, color, width = 64, height = 18 }) => {
         d={path}
         fill="none"
         stroke={color}
-        strokeWidth={1.5}
+        strokeWidth={1.6}
         strokeLinejoin="round"
         strokeLinecap="round"
       />
+      <circle data-testid="modernTable-trendEnd" cx={end[0]} cy={end[1]} r={2.4} fill={color} />
     </svg>
   )
 }

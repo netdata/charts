@@ -50,8 +50,28 @@ export const sparklinePath = (values, { width, height, pad = 2 }) => {
     .map((value, index) => `${index ? "L" : "M"}${x(index).toFixed(2)},${y(value).toFixed(2)}`)
     .join(" ")
 
-  return { line, area: `${line} L${width},${height} L0,${height} Z` }
+  return {
+    line,
+    area: `${line} L${width},${height} L0,${height} Z`,
+    start: [x(0), y(points[0])],
+    end: [x(points.length - 1), y(points[points.length - 1])],
+  }
 }
+
+export const trendSize = { width: 150, height: 44 }
+
+export const trendBox = scale => {
+  const fraction = clamp(scale, 0, 1)
+  return {
+    width: Math.round(clamp(trendSize.width * fraction, 96, trendSize.width)),
+    height: Math.round(clamp(trendSize.height * fraction * fraction, 18, trendSize.height)),
+  }
+}
+
+export const minScreenFontSize = 11
+
+export const legibleSize = (size, scale, min = minScreenFontSize) =>
+  scale > 0 ? Math.max(size, Math.ceil(min / scale)) : size
 
 export const valueRadius = radius - 10
 

@@ -41,6 +41,26 @@ export const withValue = (payload, id, value) => {
   return next
 }
 
+export const withSeries = (payload, ids, valueAt) => {
+  const next = copy(payload)
+  const valueIndex = next.result.point?.value ?? 0
+  const rows = next.result.data
+
+  ids.forEach(id => {
+    const index = next.view.dimensions.ids.indexOf(id)
+    if (index === -1) return
+
+    rows.forEach((row, rowIndex) => {
+      const value = valueAt(rowIndex, rows.length)
+      const cell = row[index + 1]
+      if (Array.isArray(cell)) cell[valueIndex] = value
+      else row[index + 1] = value
+    })
+  })
+
+  return next
+}
+
 export const withNodeAlerts = (payload, alertsByIndex = {}) => {
   const next = copy(payload)
   Object.keys(alertsByIndex).forEach(index => {

@@ -4,6 +4,7 @@ import { Box, Flex, getColor } from "@netdata/netdata-ui"
 import {
   useAttributeValue,
   useChart,
+  useEmpty,
   useOnResize,
   useTitle,
   useUnitSign,
@@ -12,7 +13,7 @@ import useHover from "@/components/useHover"
 import FiltersSwap from "@/components/modern/header/filtersSwap"
 import { radius } from "@/components/modern/tokens"
 import { TileContext } from "./context"
-import AlertDot, { useTileAlert } from "./alertDot"
+import AlertDot, { ErrorDot, useTileAlert } from "./alertDot"
 import TileActions from "./actions"
 import TileReadout from "./readout"
 import AnomalyIndicator from "./anomaly"
@@ -166,6 +167,8 @@ const ModernTile = ({ children, customChildren, hasFilters = true, height, width
   const hasToolbox = useAttributeValue("hasToolbox")
   const overlays = useAttributeValue("overlays")
   const error = useAttributeValue("error")
+  const empty = useEmpty()
+  const quietError = !!error && !empty
   const leftElements = useTileLeftElements(hasToolbox)
   const chartLibrary = useAttributeValue("chartLibrary")
   const ownStatus = selfSignallingLibraries.has(chartLibrary)
@@ -209,6 +212,11 @@ const ModernTile = ({ children, customChildren, hasFilters = true, height, width
               <AlertDot alert={alert} />
             </span>
           )}
+          {quietError && !revealed && (
+            <span data-tile-alert>
+              <ErrorDot error={error} />
+            </span>
+          )}
           {(hasToolbox || leftElements.length > 0) && (
             <Reveal data-tile-actions isVisible={revealed} data-testid="modernTile-reveal">
               {leftElements.map((Element, index) => (
@@ -220,7 +228,7 @@ const ModernTile = ({ children, customChildren, hasFilters = true, height, width
         </Header>
         <ScopeRow
           data-tile-scope
-          isVisible={menuActive || filtersOpen || !!error}
+          isVisible={menuActive || filtersOpen || (!!error && empty)}
           data-testid="modernTile-scope"
         >
           <FiltersSwap
@@ -229,6 +237,7 @@ const ModernTile = ({ children, customChildren, hasFilters = true, height, width
             onToggle={() => setFiltersOpen(prev => !prev)}
             onClose={closeFilters}
             closeOnClickOutside
+            quietError
           />
         </ScopeRow>
       </HeadArea>

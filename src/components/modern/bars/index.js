@@ -17,6 +17,7 @@ import Tooltip from "@/components/tooltip"
 import { radius } from "@/components/modern/tokens"
 import { SmallNumeral } from "@/components/modern/numerals"
 import { formatReadout, formatReadoutUnit } from "@/components/modern/format"
+import { useInModernTile } from "@/components/modern/tile/context"
 
 const rowHeight = 24
 const emptyArray = [null, null]
@@ -172,6 +173,7 @@ const ModernBars = ({ height }) => {
   const dimensionsSort = useAttributeValue("dimensionsSort")
   const cols = useAttributeValue("cols")
   const { data } = usePayload()
+  const inTile = useInModernTile()
 
   const [from, to, total, ids] = useMemo(() => {
     const index = chart.getClosestRow(x) || data.length - 1
@@ -193,7 +195,7 @@ const ModernBars = ({ height }) => {
   }, [chart, row, x, data, height, dimensionsSort])
 
   return (
-    <Flex column gap={1} width="100%" padding={[1, 2]} data-testid="modern-bars">
+    <Flex column gap={1} width="100%" padding={[1, inTile ? 0 : 2]} data-testid="modern-bars">
       <More count={from} direction="up" />
       {ids.map((id, index) => (
         <BarRow
