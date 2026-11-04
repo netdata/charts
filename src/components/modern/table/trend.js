@@ -1,6 +1,6 @@
 import React, { useMemo } from "react"
 import { useChart, usePayload } from "@/components/provider"
-import { getWindowDelta } from "@/helpers/valueFocus"
+import { isWindowActive } from "@/helpers/valueFocus"
 
 const maxPoints = 40
 
@@ -78,7 +78,7 @@ export const useTrend = id => {
 
   return useMemo(() => {
     const series = getSeries(chart, id)
-    return { series, trend: getTrend(chart, id), moved: !!getWindowDelta(series) }
+    return { series, trend: getTrend(chart, id), moved: isWindowActive(series) }
   }, [chart, payload, id])
 }
 

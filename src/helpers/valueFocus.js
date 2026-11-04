@@ -1,4 +1,4 @@
-import { formatReadout } from "@/components/modern/format"
+import { formatReadout, readoutRoundsToZero } from "@/components/modern/format"
 import { getAlias } from "@/helpers/units"
 
 export const valueFocusOptions = [
@@ -69,8 +69,11 @@ export const getWindowDelta = (values = [], { index, compare } = {}) => {
   const from = hasCompare ? compare : points[0]
   const delta = to - from
 
-  const start = hasCompare ? compare : average(points.slice(0, edgePoints))
-  const finish = average(points.slice(-edgePoints))
+  const edge = hasCompare
+    ? edgePoints
+    : Math.max(1, Math.min(edgePoints, Math.floor(points.length / 2)))
+  const start = hasCompare ? compare : average(points.slice(0, edge))
+  const finish = average(points.slice(-edge))
   const scale = Math.max(
     ...values.filter(isFiniteNumber).map(Math.abs),
     hasCompare ? Math.abs(compare) : 0
@@ -81,6 +84,17 @@ export const getWindowDelta = (values = [], { index, compare } = {}) => {
   return { from, to, delta }
 }
 
+export const isWindowActive = (values = []) => {
+  const points = values.filter(isFiniteNumber)
+  if (points.length < 2) return false
+
+  const low = Math.min(...points)
+  const high = Math.max(...points)
+  const scale = Math.max(Math.abs(low), Math.abs(high))
+
+  return scale > 0 && high - low >= noiseShare * scale
+}
+
 export const minusSign = "−"
 
 export const isPercentUnit = unit => typeof unit === "string" && getAlias(unit) === "%"
@@ -88,8 +102,9 @@ export const isPercentUnit = unit => typeof unit === "string" && getAlias(unit) 
 export const formatSignedDelta = (chart, delta, { dimensionId, unitAttributes, unit } = {}) => {
   if (!isFiniteNumber(delta) || delta === 0) return null
 
+  if (readoutRoundsToZero(chart, Math.abs(delta), { dimensionId, unitAttributes })) return null
+
   const text = formatReadout(chart, Math.abs(delta), { dimensionId, unitAttributes })
-  if (!/[1-9]/.test(text)) return null
 
   return `${delta > 0 ? "+" : minusSign}${text}${isPercentUnit(unit) ? "%" : ""}`
 }
@@ -142,8 +157,10 @@ export const describeWindowChange = (
         : points[points.length - 1]
     const text = inWindow("no change", window)
     const steady = format(shown)
+    const varied = isWindowActive(values)
     return {
       moved: false,
+      varied,
       direction: null,
       delta: null,
       from: steady,
@@ -151,7 +168,7 @@ export const describeWindowChange = (
       window,
       text,
       detail: `${steady} → ${steady}, ${text}`,
-      label: `${inWindow("No change", window)}, steady at ${steady}`,
+      label: `${inWindow("No change", window)}, ${varied ? "now" : "steady"} at ${steady}`,
     }
   }
 
@@ -161,6 +178,7 @@ export const describeWindowChange = (
   const text = inWindow(delta, window)
   return {
     moved: true,
+    varied: true,
     direction,
     delta,
     from,

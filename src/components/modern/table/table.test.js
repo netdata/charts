@@ -807,6 +807,10 @@ describe("modern table value focus", () => {
     [pick("reads", "disk.io"), (index, count) => (index < count / 2 ? 100 : 200)],
     [pick("writes", "disk.io"), () => 50],
     [pick("reads", "disk.ops"), () => 0],
+    [
+      pick("writes", "disk.ops"),
+      (index, count) => (index > count / 3 && index < (count * 2) / 3 ? 90 : 40),
+    ],
   ].reduce(
     (payload, [dimensionIds, valueAt]) => withSeries(payload, dimensionIds, valueAt),
     tableFixture[0]
@@ -841,6 +845,7 @@ describe("modern table value focus", () => {
   const rising = container => columnCells(container, "valuedisk_io_reads")
   const steady = container => columnCells(container, "valuedisk_io_writes")
   const zeros = container => columnCells(container, "valuedisk_ops_reads")
+  const spiking = container => columnCells(container, "valuedisk_ops_writes")
 
   const expectEvery = (cells, check) => {
     expect(cells.length).toBeGreaterThan(0)
@@ -893,6 +898,14 @@ describe("modern table value focus", () => {
       )
     })
 
+    it("shows no pill where the value moved and came back", async () => {
+      const { container } = await renderFocus({ valueFocus: "changes" })
+
+      expectEvery(spiking(container), cell =>
+        expect(within(cell).queryByTestId("modernTable-delta")).not.toBeInTheDocument()
+      )
+    })
+
     it("puts the values in textLite over the share underline, with no trend", async () => {
       const { container } = await renderFocus({ valueFocus: "changes" })
 
@@ -937,6 +950,14 @@ describe("modern table value focus", () => {
         expect(within(cell).queryByTestId("modernTable-trend")).not.toBeInTheDocument()
       )
       expect(screen.queryByTestId("modernTable-delta")).not.toBeInTheDocument()
+    })
+
+    it("draws a trend where the value moved and came back", async () => {
+      const { container } = await renderFocus({ valueFocus: "trends" })
+
+      expectEvery(spiking(container), cell =>
+        expect(within(cell).getByTestId("modernTable-trend")).toBeInTheDocument()
+      )
     })
 
     it("draws a right-anchored 2px share underline at 60% of the series colour", async () => {

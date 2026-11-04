@@ -13,6 +13,7 @@ import {
   getWindowSeconds,
   describeWindowChange,
   isPercentUnit,
+  isWindowActive,
 } from "./valueFocus"
 
 const loadChart = async values => {
@@ -178,6 +179,39 @@ describe("getWindowDelta", () => {
     expect(getWindowDelta([64, 64, 64, 62, 62, 62])).toEqual({ from: 64, to: 62, delta: -2 }))
 
   it("treats an all-zero window as unchanged", () => expect(getWindowDelta([0, 0, 0])).toBeNull())
+
+  it("compares the endpoints of a two-point window", () =>
+    expect(getWindowDelta([40, 80])).toEqual({ from: 40, to: 80, delta: 40 }))
+
+  it("compares the outer points of a three-point window", () =>
+    expect(getWindowDelta([40, 60, 80])).toEqual({ from: 40, to: 80, delta: 40 }))
+
+  it("keeps the edges of a short window apart", () =>
+    expect(getWindowDelta([100, 100, 100, 101.25, 101.25])).toEqual({
+      from: 100,
+      to: 101.25,
+      delta: 1.25,
+    }))
+})
+
+describe("isWindowActive", () => {
+  it("sees a spike that returns to where it started", () =>
+    expect(
+      isWindowActive([...Array(30).fill(40), ...Array(37).fill(90), ...Array(30).fill(40)])
+    ).toBe(true))
+
+  it("sees a steady change", () => expect(isWindowActive([40, 42, 44, 46, 48])).toBe(true))
+
+  it("is quiet on a flat window", () => expect(isWindowActive([5, 5, 5, 5, 5])).toBe(false))
+
+  it("is quiet when the spread is under 1% of the window maximum", () =>
+    expect(isWindowActive([1000, 1009, 1000, 1009])).toBe(false))
+
+  it("is quiet without two numbers", () => {
+    expect(isWindowActive([7, null])).toBe(false)
+    expect(isWindowActive([0, 0, 0])).toBe(false)
+    expect(isWindowActive()).toBe(false)
+  })
 })
 
 describe("isPercentUnit", () => {
@@ -212,6 +246,23 @@ describe("formatSignedDelta", () => {
     expect(formatSignedDelta(chart, 23.2, { dimensionId: "requests", unit: "%" })).toBe(
       `+${formatReadout(chart, 23.2, { dimensionId: "requests" })}%`
     )
+  })
+
+  it("signs an increase written in locale digits", async () => {
+    const chart = await loadChart(flat(40))
+    chart.updateAttribute("locale", "ar-EG")
+    const text = formatReadout(chart, 8, { dimensionId: "requests" })
+
+    expect(text).not.toMatch(/[0-9]/)
+    expect(formatSignedDelta(chart, 8, { dimensionId: "requests" })).toBe(`+${text}`)
+  })
+
+  it("returns null when the change rounds to zero in locale digits", async () => {
+    const chart = await loadChart(flat(40))
+    chart.updateAttribute("locale", "ar-EG")
+    chart.updateAttribute("staticFractionDigits", 0)
+
+    expect(formatSignedDelta(chart, 0.2, { dimensionId: "requests" })).toBeNull()
   })
 
   it("returns null when the change rounds to zero", async () => {
@@ -265,6 +316,7 @@ describe("describeWindowChange", () => {
 
     expect(describeWindowChange(chart, rising, { dimensionId: "requests" })).toEqual({
       moved: true,
+      varied: true,
       direction: "up",
       delta,
       from,
@@ -295,6 +347,7 @@ describe("describeWindowChange", () => {
 
     expect(describeWindowChange(chart, flat(48), { dimensionId: "requests" })).toEqual({
       moved: false,
+      varied: false,
       direction: null,
       delta: null,
       from: to,
@@ -304,6 +357,29 @@ describe("describeWindowChange", () => {
       detail: `${to} → ${to}, no change in 8 min`,
       label: `No change in 8 min, steady at ${to}`,
     })
+  })
+
+  it("says there was no change but not steady when the window moved and came back", async () => {
+    const spike = [...Array(30).fill(40), ...Array(37).fill(90), ...Array(30).fill(40)]
+    const chart = await loadChart(spike)
+    const now = formatReadout(chart, 40, { dimensionId: "requests" })
+
+    expect(describeWindowChange(chart, spike, { dimensionId: "requests" })).toMatchObject({
+      moved: false,
+      varied: true,
+      delta: null,
+      text: "no change in 8 min",
+      label: `No change in 8 min, now at ${now}`,
+    })
+  })
+
+  it("marks a flat window as not varied", async () => {
+    const chart = await loadChart(flat(48))
+
+    expect(describeWindowChange(chart, flat(48), { dimensionId: "requests" })).toHaveProperty(
+      "varied",
+      false
+    )
   })
 
   it("returns null without values", async () => {

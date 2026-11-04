@@ -18,7 +18,7 @@ import { useAttention } from "./attention"
 import { useStableChars } from "@/components/modern/tile/readout"
 import { useInModernTile } from "@/components/modern/tile/context"
 import { useValueFocus } from "@/components/modern/focus"
-import { describeWindowChange, getWindowDelta } from "@/helpers/valueFocus"
+import { describeWindowChange, isPercentUnit, isWindowActive } from "@/helpers/valueFocus"
 
 const clamp = (value, low, high) => Math.min(Math.max(value, low), high)
 
@@ -72,7 +72,7 @@ const Unit = ({ unit, size }) =>
 
 const Steady = ({ change, unit, ...rest }) => (
   <Numerals fontSize="12px" color="textLite" data-testid="modernNumberSteady" {...rest}>
-    <span>steady at </span>
+    <span>{change.varied ? "now at " : "steady at "}</span>
     <Numerals as="span" fontSize="12px" color="text" strong data-testid="modernNumberValue">
       {change.to}
     </Numerals>
@@ -132,7 +132,9 @@ const ChangeHero = ({ change, unit, width, height }) => {
           <BigValue fontSize={`${deltaSize}px`} color="text" data-testid="modernNumberDelta">
             {change.delta}
           </BigValue>
-          <Unit unit={unit} size={Math.max(11, Math.round(deltaSize * 0.38))} />
+          {!isPercentUnit(unit) && (
+            <Unit unit={unit} size={Math.max(11, Math.round(deltaSize * 0.38))} />
+          )}
         </Flex>
       </Flex>
       <Numerals fontSize="12px" color="textLite" data-testid="modernNumberFromTo">
@@ -186,7 +188,7 @@ const ModernNumber = ({ uiName }) => {
         })
 
   const mode = focus === "trends" ? "trends" : change ? focus : "totals"
-  const windowMoved = !!getWindowDelta(values)
+  const windowMoved = isWindowActive(values)
   const steadyWindow = !!change && !windowMoved
   const showsSpark = mode === "trends" && (windowMoved || steadyWindow)
   const sparkHeight = showsSpark && height >= 60 ? Math.round(height * 0.6) : 0

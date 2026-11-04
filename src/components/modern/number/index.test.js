@@ -238,6 +238,21 @@ describe("number value focus", () => {
   const rising = requests([...Array(48).fill(40), ...Array(49).fill(48)])
   const falling = requests([...Array(48).fill(64), ...Array(49).fill(62)])
   const flat = requests(Array(97).fill(48))
+  const spike = requests([...Array(30).fill(40), ...Array(37).fill(90), ...Array(30).fill(40)])
+  const percent = values =>
+    makePayload({
+      context: "modern.cpu",
+      title: "CPU",
+      unit: "percentage",
+      dimensions: [{ id: "requests", values }],
+    })
+  const transfer = values =>
+    makePayload({
+      context: "modern.io",
+      title: "IO",
+      unit: "KiB/s",
+      dimensions: [{ id: "requests", values }],
+    })
 
   const describeChange = chart => {
     const values = chart
@@ -328,6 +343,41 @@ describe("number value focus", () => {
       expect(screen.queryByTestId("modernNumberArrow")).not.toBeInTheDocument()
     })
 
+    it("says No change without calling a window that moved steady", async () => {
+      const chart = await sized({ valueFocus: "changes" }, spike)
+      const { convertedValue } = readLatest(chart, "requests")
+
+      const hero = screen.getByTestId("modernNumberHero")
+      expect(hero).toHaveTextContent(/^No change/)
+      expect(hero).not.toHaveTextContent("steady")
+      expect(hero).toHaveAttribute("aria-label", `No change in 8 min, now at ${convertedValue}`)
+    })
+
+    it("writes the percent sign once on a percentage delta", async () => {
+      await sized(
+        { valueFocus: "changes" },
+        percent([...Array(48).fill(40), ...Array(49).fill(60)])
+      )
+
+      expect(screen.getByTestId("modernNumberHero").textContent).toMatch(/^\+20%40/)
+    })
+
+    it("writes both ends of the change in the shown unit", async () => {
+      const chart = await sized(
+        { valueFocus: "changes" },
+        transfer([...Array(48).fill(1), ...Array(49).fill(2048)])
+      )
+      const { unitAttributes } = readLatest(chart, "requests")
+      const from = formatReadout(chart, 1, { dimensionId: "requests", unitAttributes })
+
+      expect(screen.getByTestId("modernNumberFromTo")).toHaveTextContent(
+        new RegExp(
+          `^${from} → now ${formatReadout(chart, 2048, { dimensionId: "requests", unitAttributes })}`
+        )
+      )
+      expect(from).not.toBe("1")
+    })
+
     it("measures the delta at the hovered point", async () => {
       const chart = await sized({ valueFocus: "changes" }, rising)
       const { all } = chart.getPayload()
@@ -368,6 +418,14 @@ describe("number value focus", () => {
         `steady at ${convertedValue}${convertedUnit || ""} · 8 min`
       )
       expect(screen.queryByTestId("modernNumberDelta")).not.toBeInTheDocument()
+    })
+
+    it("draws the shape of a window that moved and came back", async () => {
+      await sized({ valueFocus: "trends" }, spike)
+
+      expect(screen.getByTestId("modernNumberSpark")).not.toHaveAttribute("data-flat")
+      expect(screen.queryByTestId("modernNumberSteady")).not.toBeInTheDocument()
+      expect(screen.getByTestId("modernNumberDelta")).toHaveTextContent("no change in 8 min")
     })
 
     it("is the default", async () => {

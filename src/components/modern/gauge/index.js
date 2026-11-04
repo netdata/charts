@@ -11,7 +11,11 @@ import {
 } from "@/components/provider"
 import { ChartWrapper } from "@/components/hocs/withTile"
 import { numeralsFont } from "@/components/modern/tokens"
-import { formatReadout, formatReadoutUnit } from "@/components/modern/format"
+import {
+  formatReadout,
+  formatReadoutUnit,
+  getReadoutUnitAttributes,
+} from "@/components/modern/format"
 import StatusIndicator, { getClearDescription, summarizeAlerts } from "@/components/modern/status"
 import {
   viewBox,
@@ -182,7 +186,7 @@ const ChangeCenter = ({ change, unit, scale, color }) => {
           fontSize={legibleSize(17, scale)}
           style={numerals}
         >
-          {"steady at "}
+          {change.varied ? "now at " : "steady at "}
           <tspan fill={color("text")} fontWeight="600">
             {change.to}
           </tspan>
@@ -258,7 +262,7 @@ const ChangeCenter = ({ change, unit, scale, color }) => {
 
 const TrendLine = ({ series, change, scale, color, valueColor, gradientId }) => {
   const box = trendBox(scale)
-  const flat = !change?.moved
+  const flat = !change?.varied
   const { line, area, start, end } = sparklinePath(series, box)
   if (!line) return null
 
@@ -318,8 +322,9 @@ export const Dial = ({ uiName }) => {
 
   const { min, max, data, rowIndex, value, zones, zone, zoneSeverity } = useDialState(uiName)
   const focus = useValueFocus("gauge")
-  const readout = formatReadout(chart, latest, { dimensionId })
-  const unit = formatReadoutUnit(chart, latest, { dimensionId })
+  const unitAttributes = getReadoutUnitAttributes(chart, latest, { dimensionId })
+  const readout = formatReadout(chart, latest, { dimensionId, unitAttributes })
+  const unit = formatReadoutUnit(chart, latest, { dimensionId, unitAttributes })
   const withUnit = edge => {
     const text = formatReadout(chart, edge, { dimensionId })
     const edgeUnit = formatReadoutUnit(chart, edge, { dimensionId })
@@ -334,7 +339,7 @@ export const Dial = ({ uiName }) => {
   const change =
     focus === "totals" || value === null
       ? null
-      : describeWindowChange(chart, series, { dimensionId, unit, index: rowIndex })
+      : describeWindowChange(chart, series, { dimensionId, unitAttributes, unit, index: rowIndex })
   const mode = change ? focus : "totals"
   const ghost = mode === "changes" && change.moved
 

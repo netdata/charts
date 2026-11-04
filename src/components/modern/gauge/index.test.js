@@ -4,7 +4,11 @@ import "@testing-library/jest-dom"
 import { DarkTheme } from "@netdata/netdata-ui"
 import { renderWithChart, makeTestChart } from "@jest/testUtilities"
 import { Gauge } from "@/components/gauge"
-import { formatReadout, formatReadoutUnit } from "@/components/modern/format"
+import {
+  formatReadout,
+  formatReadoutUnit,
+  getReadoutUnitAttributes,
+} from "@/components/modern/format"
 import { makePayload } from "../../../../fixtures/makeWavePayload"
 import { Attention } from "./index"
 import {
@@ -326,6 +330,14 @@ describe("gauge value focus", () => {
     })
   const rising = percent([...Array(48).fill(58), ...Array(49).fill(81.2)])
   const flat = percent(Array(97).fill(72.4))
+  const spike = percent([...Array(30).fill(40), ...Array(37).fill(90), ...Array(30).fill(40)])
+  const transfer = values =>
+    makePayload({
+      context: "modern.io",
+      title: "IO",
+      unit: "KiB/s",
+      dimensions: [{ id: "io", values }],
+    })
 
   const loadFocus = async (payload, attributes = {}) => {
     const { chart } = makeTestChart({
@@ -398,7 +410,32 @@ describe("gauge value focus", () => {
     })
   })
 
+  describe("changes across units", () => {
+    it("writes both ends and the delta in the shown unit", async () => {
+      const { chart } = await loadFocus(transfer([...Array(48).fill(1), ...Array(49).fill(2048)]), {
+        valueFocus: "changes",
+        staticValueRange: [0, 4096],
+      })
+      const unitAttributes = getReadoutUnitAttributes(chart, 2048, { dimensionId: "io" })
+      const shown = value => formatReadout(chart, value, { dimensionId: "io", unitAttributes })
+      const unit = formatReadoutUnit(chart, 2048, { dimensionId: "io" })
+
+      expect(screen.getByTestId("modernGauge-fromTo")).toHaveTextContent(
+        `${shown(1)} → ${shown(2048)}${unit}`
+      )
+      expect(screen.getByTestId("modernGauge-delta")).toHaveTextContent(`+${shown(2047)}`)
+      expect(shown(1)).not.toBe("1")
+    })
+  })
+
   describe("trends", () => {
+    it("draws the shape of a window that moved and came back", async () => {
+      await loadFocus(spike, { valueFocus: "trends" })
+
+      expect(screen.getByTestId("modernGauge-sparkline")).not.toHaveAttribute("data-flat")
+      expect(screen.getByTestId("modernGauge-delta")).toHaveTextContent("no change in 8 min")
+    })
+
     it("draws a larger mini trend with start and end dots and the value and delta smaller", async () => {
       await loadFocus(rising, { valueFocus: "trends" })
 
