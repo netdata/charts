@@ -15,6 +15,7 @@ import initialAttributes from "@/sdk/initialAttributes"
 import makeGetClosestRow from "@/sdk/makeChart/makeGetClosestRow"
 import uplotChart from "./index"
 import { getStackBounds, getStackValueRange } from "./stacking"
+import { anomalyBadgeHeight } from "@/components/modern/anomaly"
 
 const withLoadedPayload = chart => {
   chart.getPayload = () => ({
@@ -4887,8 +4888,8 @@ describe("uplotChart modern y-axis labels", () => {
   })
 
   it("keeps the unit on ticks scaled away from the source unit", async () => {
-    const { labels: defaults } = await mountWave(...bytes)
-    const { labels } = await mountWave(...bytes, { designFlavour: "modern" })
+    const { labels: defaults } = await mountWave(...bytes, { showAnomalies: false })
+    const { labels } = await mountWave(...bytes, { designFlavour: "modern", showAnomalies: false })
 
     expect(labels).toEqual(defaults)
     expect(labels.some(label => / MiB$/.test(label))).toBe(true)
@@ -5344,5 +5345,63 @@ describe("uplotChart bar fill styles", () => {
 
     calls.restore()
     teardown()
+  })
+})
+
+describe("uplotChart modern anomaly badge clearance", () => {
+  const mountModern = async anomalyRate => {
+    const payload = makePayload({
+      context: "anomaly.cpu",
+      title: "CPU",
+      unit: "percentage",
+      dimensions: [
+        {
+          id: "user",
+          values: makeWave({ center: 50, amplitude: 30 }),
+          anomalyRates: Array.from({ length: 97 }, (_, index) => (index === 40 ? anomalyRate : 0)),
+        },
+      ],
+    })
+    const { after, before } = payload.view
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        chartLibrary: "uplot",
+        chartType: "line",
+        designFlavour: "modern",
+        showAnomalies: true,
+        after,
+        before,
+      },
+    })
+    chart.doneFetch(payload)
+    await new Promise(resolve => setTimeout(resolve, 0))
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    const topPad = instance.getUPlot()._padding[0]
+    const labelHalf = Math.ceil(chart.getAttribute("axisLabelFontSize") / 2)
+    instance.unmount()
+    document.body.removeChild(element)
+
+    return { topPad, labelHalf }
+  }
+
+  it("keeps the top tick label below the badge when the window has anomalies", async () => {
+    const { topPad, labelHalf } = await mountModern(42)
+
+    expect(topPad - labelHalf).toBeGreaterThanOrEqual(anomalyBadgeHeight)
+  })
+
+  it("keeps the plain top padding on a calm window", async () => {
+    const { topPad, labelHalf } = await mountModern(0)
+
+    expect(topPad).toBe(labelHalf)
   })
 })

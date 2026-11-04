@@ -119,7 +119,7 @@ const Footer = () => {
           <Highlight />
           {mode !== "hidden" && <Time />}
         </Flex>
-        <Flex alignItems="center" gap={2} flex={false}>
+        <Flex alignItems="center" gap={2} flex={false} padding={[0, 4, 0, 0]}>
           {expandable && <Expander />}
         </Flex>
       </Flex>

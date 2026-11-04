@@ -28,6 +28,7 @@ import makeGetHoverDimension from "./hover"
 import getPxRatio from "./pxRatio"
 import isInXRange from "@/helpers/isInXRange"
 import { resolveXAxisTimeStyle } from "@/sdk/makeIntls"
+import { anomalyBadgeHeight, getAnomalyBadgeSummary } from "@/components/modern/anomaly"
 
 const barGroupWidth = 0.6
 const barGradientTopAlpha = 0.8
@@ -477,7 +478,8 @@ export default (sdk, chart) => {
 
     const height = chartUI.getChartHeight()
     const fontSize = chart.getAttribute("axisLabelFontSize") || defaultAxisFontSize
-    const topPad = Math.min(Math.ceil(fontSize / 2), Math.max(0, height - minPlotHeight))
+    const badgePad = isModern() && getAnomalyBadgeSummary(chart) ? anomalyBadgeHeight : 0
+    const topPad = Math.min(Math.ceil(fontSize / 2) + badgePad, Math.max(0, height - minPlotHeight))
     const xAxisSize = Math.min(
       fontSize + xTickSize + xAxisGap,
       Math.max(0, height - topPad - minPlotHeight)

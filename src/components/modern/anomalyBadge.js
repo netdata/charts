@@ -1,12 +1,16 @@
 import React, { useEffect } from "react"
 import styled from "styled-components"
-import { Flex, TextSmall } from "@netdata/netdata-ui"
+import { Flex, TextMicro, TextSmall } from "@netdata/netdata-ui"
 import anomalyBadgeIcon from "@netdata/netdata-ui/dist/components/icon/assets/anomaly_badge.svg"
 import Icon from "@/components/icon"
 import Tooltip from "@/components/tooltip"
 import { useAttributeValue, useChart, usePayload, usePlotArea } from "@/components/provider"
 import { numeralsFont } from "@/components/modern/tokens"
-import { formatAnomalyRate, getAnomalyColor, getAnomalySummary } from "@/components/modern/anomaly"
+import {
+  formatAnomalyRate,
+  getAnomalyBadgeSummary,
+  getAnomalyColor,
+} from "@/components/modern/anomaly"
 
 const wideWidth = 480
 
@@ -73,12 +77,10 @@ const AnomalyBadge = ({ uiName = "default" }) => {
 
   useEffect(() => () => chart.updateAttribute("anomalySpotlight", false), [chart])
 
-  if (!showAnomalies || chart.isSparkline()) return null
-  if (chart.getAttribute("enabledYAxis") === false) return null
-  if (chart.getAttribute("chartType") === "heatmap") return null
+  if (!showAnomalies) return null
 
-  const summary = getAnomalySummary(chart)
-  if (!summary.periods) return null
+  const summary = getAnomalyBadgeSummary(chart)
+  if (!summary) return null
 
   const area = chart.getUI(uiName)?.getPlotArea?.()
   if (!area?.width) return null
@@ -91,7 +93,7 @@ const AnomalyBadge = ({ uiName = "default" }) => {
     <Flex
       position="absolute"
       zIndex={2}
-      style={{ left: Math.max(0, area.left - 30), top: Math.max(0, area.top - 18) }}
+      style={{ left: Math.max(0, area.left - 30), top: 0 }}
       onMouseEnter={() => setSpotlight(true)}
       onMouseLeave={() => setSpotlight(false)}
       onFocus={() => setSpotlight(true)}
@@ -105,7 +107,7 @@ const AnomalyBadge = ({ uiName = "default" }) => {
         <Badge
           ink={ink}
           isActive={spotlight}
-          padding={wide ? [0.5, 2, 0.5, 1] : [0.5]}
+          padding={wide ? [0.25, 1, 0.25, 0.5] : [0.25]}
           background={spotlight ? "elementBackground" : undefined}
           onClick={expandable ? () => openCorrelate(chart) : undefined}
           aria-label={
@@ -116,9 +118,11 @@ const AnomalyBadge = ({ uiName = "default" }) => {
           data-testid="modernAnomalyBadge"
           data-track={chart.track("anomalyBadge")}
         >
-          <Icon svg={anomalyBadgeIcon} size="14px" color={ink} />
+          <Icon svg={anomalyBadgeIcon} size="10px" color={ink} />
           {wide && (
-            <TextSmall color={ink} strong>{`${formatAnomalyRate(summary.peak)}%`}</TextSmall>
+            <TextMicro color={ink} strong lineHeight="10px">
+              {`${formatAnomalyRate(summary.peak)}%`}
+            </TextMicro>
           )}
         </Badge>
       </Tooltip>

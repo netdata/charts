@@ -16,13 +16,13 @@ import {
   isWindowActive,
 } from "./valueFocus"
 
-const loadChart = async values => {
+const loadChart = async (values, unit = "requests/s") => {
   const { chart } = makeTestChart({ attributes: { designFlavour: "modern" } })
   chart.doneFetch(
     makePayload({
       context: "modern.requests",
       title: "Requests",
-      unit: "requests/s",
+      unit,
       dimensions: [{ id: "requests", values }],
     })
   )
@@ -263,6 +263,34 @@ describe("formatSignedDelta", () => {
     chart.updateAttribute("staticFractionDigits", 0)
 
     expect(formatSignedDelta(chart, 0.2, { dimensionId: "requests" })).toBeNull()
+  })
+
+  it("signs a change that only shows at the sixth decimal", async () => {
+    const chart = await loadChart(flat(40))
+    chart.updateAttribute("staticFractionDigits", 6)
+    const text = formatReadout(chart, 0.0000005, { dimensionId: "requests" })
+
+    expect(text).toBe("0.000001")
+    expect(formatSignedDelta(chart, 0.0000005, { dimensionId: "requests" })).toBe(`+${text}`)
+  })
+
+  it("returns null when a duration change shows as zero seconds", async () => {
+    const chart = await loadChart(flat(4000), "s")
+    const unitAttributes = chart.getUnitAttributesForValue(4000, { dimensionId: "requests" })
+
+    expect(formatReadout(chart, 0.001, { dimensionId: "requests", unitAttributes })).toBe("0s")
+    expect(formatSignedDelta(chart, 0.001, { dimensionId: "requests", unitAttributes })).toBeNull()
+  })
+
+  it("signs a duration change that shows as a non-zero duration", async () => {
+    const chart = await loadChart(flat(4000), "s")
+    const unitAttributes = chart.getUnitAttributesForValue(4000, { dimensionId: "requests" })
+    const text = formatReadout(chart, 75, { dimensionId: "requests", unitAttributes })
+
+    expect(text).toBe("1m15s")
+    expect(formatSignedDelta(chart, 75, { dimensionId: "requests", unitAttributes })).toBe(
+      `+${text}`
+    )
   })
 
   it("returns null when the change rounds to zero", async () => {

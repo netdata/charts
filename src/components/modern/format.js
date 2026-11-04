@@ -1,6 +1,3 @@
-import convert from "@/helpers/units"
-import { getMaximumFractionDigits } from "@/helpers/formatNumber"
-
 const isMissing = value => value === null || value === undefined || Number.isNaN(value)
 
 export const getReadoutUnitAttributes = (chart, value, { dimensionId, key = "units" } = {}) =>
@@ -39,14 +36,8 @@ export const readoutRoundsToZero = (
   value,
   { dimensionId, key = "units", unitAttributes: scaled } = {}
 ) => {
-  const { method, divider, fractionDigits } =
-    scaled || getReadoutUnitAttributes(chart, value, { dimensionId, key })
-  const converted = convert(chart, method, value, divider)
-  if (typeof converted !== "number") return false
+  const unitAttributes = scaled || getReadoutUnitAttributes(chart, value, { dimensionId, key })
+  const options = { dimensionId, key, unitAttributes }
 
-  const digits = getMaximumFractionDigits(
-    chart.getAttribute("staticFractionDigits"),
-    fractionDigits
-  )
-  return Number(Math.abs(converted).toFixed(digits)) === 0
+  return formatReadout(chart, Math.abs(value), options) === formatReadout(chart, 0, options)
 }
