@@ -3,7 +3,7 @@ import styled from "styled-components"
 import { Flex, TextSmall } from "@netdata/netdata-ui"
 import anomalyBadgeIcon from "@netdata/netdata-ui/dist/components/icon/assets/anomaly_badge.svg"
 import Icon from "@/components/icon"
-import Tooltip, { tooltipStyleProps } from "@/components/tooltip"
+import Tooltip from "@/components/tooltip"
 import { useAttributeValue, useChart, usePayload, usePlotArea } from "@/components/provider"
 import { numeralsFont } from "@/components/modern/tokens"
 import { formatAnomalyRate, getAnomalyColor, getAnomalySummary } from "@/components/modern/anomaly"
@@ -41,18 +41,16 @@ const Summary = ({ chart, summary, canCorrelate }) => {
   const peakAt = all[peakRow]?.[0]
 
   return (
-    <Flex column gap={1} {...tooltipStyleProps}>
-      <TextSmall color="tooltipText" strong>
+    <Flex column gap={1}>
+      <TextSmall strong>
         {`Anomalous ${periods} ${periods === 1 ? "time" : "times"} in this window`}
       </TextSmall>
-      <TextSmall color="tooltipText">
+      <TextSmall>
         {`Peak ${formatAnomalyRate(peak)}%${peakAt ? ` at ${chart.formatTime(peakAt)}` : ""}, ${formatDuration(
           anomalousRows * getStepSeconds(all)
         )} in total`}
       </TextSmall>
-      {canCorrelate && (
-        <TextSmall color="tooltipText">Click to find what else changed in this window</TextSmall>
-      )}
+      {canCorrelate && <TextSmall>Click to find what else changed in this window</TextSmall>}
     </Flex>
   )
 }
@@ -102,7 +100,6 @@ const AnomalyBadge = ({ uiName = "default" }) => {
     >
       <Tooltip
         content={<Summary chart={chart} summary={summary} canCorrelate={expandable} />}
-        Content={({ children }) => children}
         align="bottom"
       >
         <Badge

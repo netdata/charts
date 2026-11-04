@@ -1,27 +1,10 @@
 import React from "react"
-import { Flex, TextSmall, Tooltip as BaseTooltip } from "@netdata/netdata-ui"
+import { Tooltip as BaseTooltip } from "@netdata/netdata-ui"
 import { useAttributeValue } from "@/components/provider"
 
-export const tooltipStyleProps = {
-  padding: [1, 2],
-  margin: [2],
-  round: 1,
-  width: { max: "300px", base: "fit-content" },
-  background: "tooltip",
-}
-
-const DefaultContent = ({ children, ...rest }) => (
-  <Flex {...tooltipStyleProps} {...rest}>
-    <TextSmall color="tooltipText" wordBreak="break-word">
-      {children}
-    </TextSmall>
-  </Flex>
-)
-
-const Tooltip = ({ content, Content = DefaultContent, ...rest }) => (
+const Tooltip = ({ content, ...rest }) => (
   <BaseTooltip
-    plain
-    content={content ? <Content {...rest}>{content}</Content> : ""}
+    content={content || ""}
     {...rest}
     dropProps={{ "data-toolbox": rest["data-toolbox"] }}
     zIndex={100}
