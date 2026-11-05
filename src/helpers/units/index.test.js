@@ -61,6 +61,29 @@ describe("units helpers", () => {
       expect(config.name).toBe("seconds")
     })
 
+    it("resolves physical unit aliases to metric specifications with scalable labels", () => {
+      const cases = [
+        ["illuminance", "lx", "lux", "lx", "klx"],
+        ["pressure", "pa", "pascals", "Pa", "kPa"],
+        ["resistence", "ohms", "ohms", "\u03a9", "k\u03a9"],
+      ]
+
+      cases.forEach(([alias, unit, name, symbol, scaledSymbol]) => {
+        expect(getAlias(alias)).toBe(unit)
+        expect(unitsMissing(alias)).toBe(false)
+        expect(getUnitConfig(alias)).toMatchObject({
+          symbol: unit,
+          name,
+          print_symbol: symbol,
+          is_metric: true,
+          is_scalable: true,
+          is_binary: false,
+        })
+        expect(getUnitsString(alias, "", unit)).toBe(symbol)
+        expect(getUnitsString(alias, "k", unit)).toBe(scaledSymbol)
+      })
+    })
+
     it("uses the micro sign for microsecond display labels", () => {
       const config = getUnitConfig("us")
       expect(config.print_symbol).toBe("\u00b5s")
