@@ -61,11 +61,12 @@ describe("units helpers", () => {
       expect(config.name).toBe("seconds")
     })
 
-    it("resolves physical unit aliases to metric specifications with scalable labels", () => {
+    it("resolves Windows sensor units to metric specifications with scalable labels", () => {
       const cases = [
-        ["illuminance", "lx", "lux", "lx", "klx"],
-        ["pressure", "pa", "pascals", "Pa", "kPa"],
-        ["resistence", "ohms", "ohms", "\u03a9", "k\u03a9"],
+        ["lx", "lx", "lux", "lx", "klx"],
+        ["Pa", "Pa", "pascals", "Pa", "kPa"],
+        ["Ohm", "Ohm", "ohms", "\u03a9", "k\u03a9"],
+        ["Ohms", "Ohm", "ohms", "\u03a9", "k\u03a9"],
       ]
 
       cases.forEach(([alias, unit, name, symbol, scaledSymbol]) => {

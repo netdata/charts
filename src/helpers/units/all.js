@@ -559,8 +559,8 @@ export default {
       is_scalable: false,
       is_binary: false,
     },
-    ohms: {
-      symbol: "ohms",
+    Ohm: {
+      symbol: "Ohm",
       name: "ohms",
       print_symbol: "\u03a9",
       is_metric: true,
@@ -568,8 +568,8 @@ export default {
       is_scalable: true,
       is_binary: false,
     },
-    pa: {
-      symbol: "pa",
+    Pa: {
+      symbol: "Pa",
       name: "pascals",
       print_symbol: "Pa",
       is_metric: true,
@@ -4504,7 +4504,6 @@ export default {
     iops: "{iop}",
     ips: "{ip}",
     items: "{item}",
-    illuminance: "lx",
     iterations: "{iteration}",
     J: "J",
     joules: "J",
@@ -4551,6 +4550,7 @@ export default {
     objects: "{object}",
     observations: "{observation}",
     octets: "{octet}",
+    Ohms: "Ohm",
     opcodes: "{opcode}",
     operations: "{operation}",
     packets: "{packet}",
@@ -4566,7 +4566,6 @@ export default {
     pools: "{pool}",
     ppm: "[ppm]",
     prefetches: "{prefetch}",
-    pressure: "pa",
     profile_units: "{profile unit}",
     processes: "{process}",
     producers: "{producer}",
@@ -4584,7 +4583,6 @@ export default {
     replies: "{reply}",
     requests: "{request}",
     respawns: "{respawn}",
-    resistence: "ohms",
     restarts: "{restart}",
     retries: "{retry}",
     rows: "{row}",
