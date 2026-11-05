@@ -18,8 +18,7 @@ export const getSeries = (chart, id) => {
   })
 }
 
-export const getTrend = (chart, id, points = maxPoints) => {
-  const values = getSeries(chart, id)
+const toTrend = (values, points = maxPoints) => {
   if (values.length < 2) return []
 
   const size = Math.max(1, Math.ceil(values.length / points))
@@ -38,6 +37,8 @@ export const getTrend = (chart, id, points = maxPoints) => {
 
   return trend.filter(value => value !== null).length < 2 ? [] : trend
 }
+
+export const getTrend = (chart, id, points) => toTrend(getSeries(chart, id), points)
 
 export const getTrendPoints = (trend, width, height, inset = 1.5) => {
   const numbers = trend.filter(value => value !== null)
@@ -78,7 +79,7 @@ export const useTrend = id => {
 
   return useMemo(() => {
     const series = getSeries(chart, id)
-    return { series, trend: getTrend(chart, id), moved: isWindowActive(series) }
+    return { series, trend: toTrend(series), moved: isWindowActive(series) }
   }, [chart, payload, id])
 }
 

@@ -15,7 +15,7 @@ import Settings from "@/components/toolbox/settings"
 import Fullscreen from "@/components/toolbox/fullscreen"
 import tableFixture from "../../../../fixtures/table"
 import { getRowStatus } from "./status"
-import { getTrend, makeTrendPath } from "./trend"
+import { getTrend, makeTrendPath, useTrend } from "./trend"
 import { clampPercent } from "./meter"
 import { isPercentUnit, getMergedLabelVisibility, missingValueText } from "./columns"
 import { getShare, isHotPercent, getContextScale } from "./scale"
@@ -319,6 +319,18 @@ describe("modern table", () => {
       expect(trend.length).toBeGreaterThan(1)
       expect(trend.length).toBeLessThanOrEqual(40)
       expect(getTrend(chart, undefined)).toEqual([])
+    })
+
+    it("reads each point once when building the row trend", async () => {
+      const chart = await makeTableChart("modern")
+      const id = chart.getDimensionIds().find(dimId => dimId.startsWith("reads"))
+      const reads = jest.spyOn(chart, "getRowDimensionValue")
+
+      const { result } = renderHookWithChart(() => useTrend(id), { chart })
+
+      expect(reads).toHaveBeenCalledTimes(result.current.series.length)
+      reads.mockRestore()
+      expect(result.current.trend).toEqual(getTrend(chart, id))
     })
 
     it("makes an svg path and skips gaps", () => {
