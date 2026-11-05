@@ -2417,6 +2417,11 @@
   dependencies:
     "@floating-ui/core" "^1.0.2"
 
+"@fontsource/ibm-plex-sans@^5.3.0":
+  version "5.3.0"
+  resolved "https://registry.yarnpkg.com/@fontsource/ibm-plex-sans/-/ibm-plex-sans-5.3.0.tgz#8099950b404e625f65e7bd833bcb84ffe6bcd40c"
+  integrity sha512-CbE4CbbEEZJX860XyUiRpsksXIQR8Rp2XDva2VO53NJox9tVNtusrysd2x5YkUEY3ErQ66W1IiiQL8/wihhw5w==
+
 "@humanfs/core@^0.19.1":
   version "0.19.1"
   resolved "https://registry.yarnpkg.com/@humanfs/core/-/core-0.19.1.tgz#17c55ca7d426733fe3c561906b8173c336b40a77"
@@ -2887,16 +2892,17 @@
     "@emnapi/runtime" "^1.4.3"
     "@tybys/wasm-util" "^0.10.0"
 
-"@netdata/netdata-ui@^5.4.17":
-  version "5.4.17"
-  resolved "https://registry.npmjs.org/@netdata/netdata-ui/-/netdata-ui-5.4.17.tgz#a6df61f8539530bffa10778e5f9216153600ec7d"
-  integrity sha512-qh15R+iGhEl7dsM+oUMalgzRqFZK5hAoao28Wa0Fto9fOwTZjz5F4VtbGDY6DraiY7lFawJ7JK0CkIorXqFLFg==
+"@netdata/netdata-ui@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.yarnpkg.com/@netdata/netdata-ui/-/netdata-ui-5.6.0.tgz#bbc93304ccb704f6202c0ac34c10c82d5b317d61"
+  integrity sha512-ZGAjBv21nyXSe6YbPXTZyaiPthcjaqKrl/yXrlZJ7OMExH/xbWxqftcaXZlQ/+F32+HSKv034HymtZeTRqJkVg==
   dependencies:
     "@dnd-kit/core" "^6.3.1"
     "@dnd-kit/modifiers" "^9.0.0"
     "@dnd-kit/sortable" "^10.0.0"
     "@elastic/react-search-ui" "^1.24.2"
     "@elastic/search-ui-site-search-connector" "^1.24.2"
+    "@fontsource/ibm-plex-sans" "^5.3.0"
     "@prismicio/client" "^7.21.6"
     "@styled-system/css" "^5.1.5"
     "@tanstack/react-table" "^8.21.3"
