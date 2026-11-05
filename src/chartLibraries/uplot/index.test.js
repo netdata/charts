@@ -5065,7 +5065,7 @@ describe("uplotChart bar fill styles", () => {
     return ctx[prop]
   }
 
-  const mountBars = async (chartType, attributes = {}) => {
+  const mountBars = async (chartType, attributes = {}, data = rows) => {
     const { sdk, chart } = makeTestChart({
       attributes: {
         loaded: true,
@@ -5076,7 +5076,7 @@ describe("uplotChart bar fill styles", () => {
         ...attributes,
       },
     })
-    chart.getPayload = () => ({ data: rows, labels: ["time", "a", "b"] })
+    chart.getPayload = () => ({ data, labels: ["time", "a", "b"] })
     chart.getPayloadDimensionIds = () => ["a", "b"]
     chart.getVisibleDimensionIds = () => ["a", "b"]
     chart.isDimensionVisible = () => true
@@ -5096,6 +5096,7 @@ describe("uplotChart bar fill styles", () => {
     return {
       chart,
       u: instance.getUPlot(),
+      getU: () => instance.getUPlot(),
       teardown: () => (instance.unmount(), document.body.removeChild(element)),
     }
   }
@@ -5273,6 +5274,108 @@ describe("uplotChart bar fill styles", () => {
 
     calls.restore()
     teardown()
+  })
+
+  it("creates one gradient per distinct bar geometry within a draw", async () => {
+    const identical = Array.from({ length: 8 }, (_, index) => [1617946860000 + index * 5000, 10, 5])
+    const { chart, u, teardown } = await mountBars("multiBar", {}, identical)
+    const calls = record(u.ctx)
+    chart.updateAttribute("barFillStyle", "gradient")
+    await Promise.resolve()
+
+    expect(calls.gradientFills()).toHaveLength(identical.length * 2)
+    expect(calls.gradients).toHaveLength(2)
+
+    calls.restore()
+    teardown()
+  })
+
+  describe("gradient cache keeps output in step with the bars", () => {
+    const xs = [1617946860000, 1617946865000, 1617946870000]
+    const setBars = async (u, a, b) => {
+      u.setData([xs, a, b])
+      await Promise.resolve()
+    }
+    const signature = ({ args, gradient }) =>
+      JSON.stringify([args, gradient.addColorStop.mock.calls])
+    const gradientCount = async (u, change) => {
+      const calls = record(u.ctx)
+      await change()
+      const signatures = new Set(calls.gradients.map(signature))
+      const fills = calls.gradientFills().length
+      calls.restore()
+      return { count: signatures.size, fills }
+    }
+    const mountGradient = (chartType = "multiBar") =>
+      mountBars(
+        chartType,
+        { barFillStyle: "gradient", theme: "default" },
+        xs.map(x => [x, 10, 5])
+      )
+
+    it("creates nothing for an identical redraw", async () => {
+      const { u, teardown } = await mountGradient()
+      await redraw(u)
+
+      const { count, fills } = await gradientCount(u, () => redraw(u))
+
+      expect(count).toBe(0)
+      expect(fills).toBe(6)
+      teardown()
+    })
+
+    it("creates new gradients when the series colour changes", async () => {
+      const { chart, u, teardown } = await mountGradient()
+      await redraw(u)
+      chart.selectDimensionColor = id => ({ a: "#00AA00", b: "#DC3912" })[id]
+
+      const { count } = await gradientCount(u, () => redraw(u))
+
+      expect(count).toBe(1)
+      teardown()
+    })
+
+    it("creates new gradients when the theme changes", async () => {
+      const { chart, u, teardown } = await mountGradient()
+      const proto = Object.getPrototypeOf(u.ctx)
+      const created = []
+      const original = proto.createLinearGradient
+      proto.createLinearGradient = function (...args) {
+        const gradient = original.apply(this, args)
+        created.push({ args, gradient })
+        return gradient
+      }
+      chart.updateAttribute("theme", "dark")
+      await Promise.resolve()
+      await Promise.resolve()
+      proto.createLinearGradient = original
+
+      const dark = new Set(created.map(signature))
+      expect(dark.size).toBe(2)
+      expect([...dark].every(entry => entry.includes("0.25"))).toBe(true)
+      teardown()
+    })
+
+    it("creates new gradients when a value changes the bar geometry", async () => {
+      const { u, teardown } = await mountGradient()
+      await redraw(u)
+
+      const { count } = await gradientCount(u, () => setBars(u, [10, 10, 20], [5, 5, 5]))
+
+      expect(count).toBe(1)
+      teardown()
+    })
+
+    it("drops gradients for geometry that left the frame", async () => {
+      const { u, teardown } = await mountGradient()
+      await redraw(u)
+      await setBars(u, [20, 20, 20], [5, 5, 5])
+
+      const { count } = await gradientCount(u, () => setBars(u, [10, 10, 10], [5, 5, 5]))
+
+      expect(count).toBe(1)
+      teardown()
+    })
   })
 
   it("rounds only the top segment of each gradient stack with roundRect", async () => {

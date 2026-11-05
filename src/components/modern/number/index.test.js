@@ -1,5 +1,5 @@
 import React from "react"
-import { act, screen, within } from "@testing-library/react"
+import { act, cleanup, screen, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { DefaultTheme } from "@netdata/netdata-ui"
 import { makeTestChart, renderHookWithChart, renderWithChart } from "@jest/testUtilities"
@@ -8,6 +8,7 @@ import { formatReadout } from "@/components/modern/format"
 import { makePayload, makeWave } from "../../../../fixtures/makeWavePayload"
 import { NumberChart } from "@/components/number"
 import systemLoadLine from "../../../../fixtures/systemLoadLine"
+import * as valueFocus from "@/helpers/valueFocus"
 import { describeWindowChange } from "@/helpers/valueFocus"
 import ModernNumber, { isStateUnit } from "./index"
 
@@ -285,6 +286,668 @@ describe("number value focus", () => {
       expect(screen.queryByTestId("modernNumberDelta")).not.toBeInTheDocument()
       expect(screen.queryByTestId("modernNumberHero")).not.toBeInTheDocument()
       expect(screen.queryByTestId("modernNumberSpark")).not.toBeInTheDocument()
+    })
+  })
+
+  describe("rendered output per focus", () => {
+    const testIds = [
+      "modernNumberValue",
+      "modernNumberUnit",
+      "modernNumberDelta",
+      "modernNumberHero",
+      "modernNumberSteady",
+      "modernNumberFromTo",
+      "modernNumberSpark",
+      "modernNumberArrow",
+    ]
+    const shapes = {
+      rising,
+      falling,
+      flat,
+      spike,
+      short: requests([4, 9]),
+      gaps: requests([...Array(40).fill(null), ...Array(57).fill(12)]),
+    }
+    const capture = () =>
+      Object.fromEntries(
+        testIds.map(id => {
+          const node = screen.queryByTestId(id)
+          return [
+            id,
+            node && [
+              node.textContent,
+              node.getAttribute("aria-label"),
+              node.getAttribute("data-flat"),
+              node.getAttribute("data-direction"),
+            ],
+          ]
+        })
+      )
+
+    const expected = {
+      "rising/totals": {
+        modernNumberValue: ["48", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "rising/totals/hover": {
+        modernNumberValue: ["48", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "rising/totals/cleared": {
+        modernNumberValue: ["48", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "rising/changes": {
+        modernNumberValue: ["48", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: ["+8", null, null, null],
+        modernNumberHero: ["+840 → now 48 · 8 min", "Up 8 in 8 min, from 40 to 48", null, null],
+        modernNumberSteady: null,
+        modernNumberFromTo: ["40 → now 48 · 8 min", null, null, null],
+        modernNumberSpark: null,
+        modernNumberArrow: ["", null, null, "up"],
+      },
+      "rising/changes/hover": {
+        modernNumberValue: ["48", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: ["+8", null, null, null],
+        modernNumberHero: ["+840 → now 48 · 8 min", "Up 8 in 8 min, from 40 to 48", null, null],
+        modernNumberSteady: null,
+        modernNumberFromTo: ["40 → now 48 · 8 min", null, null, null],
+        modernNumberSpark: null,
+        modernNumberArrow: ["", null, null, "up"],
+      },
+      "rising/changes/cleared": {
+        modernNumberValue: ["48", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: ["+8", null, null, null],
+        modernNumberHero: ["+840 → now 48 · 8 min", "Up 8 in 8 min, from 40 to 48", null, null],
+        modernNumberSteady: null,
+        modernNumberFromTo: ["40 → now 48 · 8 min", null, null, null],
+        modernNumberSpark: null,
+        modernNumberArrow: ["", null, null, "up"],
+      },
+      "rising/trends": {
+        modernNumberValue: ["48", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: ["+8 in 8 min", "Up 8 in 8 min, from 40 to 48", null, null],
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: ["", null, null, null],
+        modernNumberArrow: null,
+      },
+      "rising/trends/hover": {
+        modernNumberValue: ["48", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: ["+8 in 8 min", "Up 8 in 8 min, from 40 to 48", null, null],
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: ["", null, null, null],
+        modernNumberArrow: null,
+      },
+      "rising/trends/cleared": {
+        modernNumberValue: ["48", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: ["+8 in 8 min", "Up 8 in 8 min, from 40 to 48", null, null],
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: ["", null, null, null],
+        modernNumberArrow: null,
+      },
+      "falling/totals": {
+        modernNumberValue: ["62", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "falling/totals/hover": {
+        modernNumberValue: ["62", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "falling/totals/cleared": {
+        modernNumberValue: ["62", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "falling/changes": {
+        modernNumberValue: ["62", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: ["−2", null, null, null],
+        modernNumberHero: ["−264 → now 62 · 8 min", "Down 2 in 8 min, from 64 to 62", null, null],
+        modernNumberSteady: null,
+        modernNumberFromTo: ["64 → now 62 · 8 min", null, null, null],
+        modernNumberSpark: null,
+        modernNumberArrow: ["", null, null, "down"],
+      },
+      "falling/changes/hover": {
+        modernNumberValue: ["62", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: ["−2", null, null, null],
+        modernNumberHero: ["−264 → now 62 · 8 min", "Down 2 in 8 min, from 64 to 62", null, null],
+        modernNumberSteady: null,
+        modernNumberFromTo: ["64 → now 62 · 8 min", null, null, null],
+        modernNumberSpark: null,
+        modernNumberArrow: ["", null, null, "down"],
+      },
+      "falling/changes/cleared": {
+        modernNumberValue: ["62", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: ["−2", null, null, null],
+        modernNumberHero: ["−264 → now 62 · 8 min", "Down 2 in 8 min, from 64 to 62", null, null],
+        modernNumberSteady: null,
+        modernNumberFromTo: ["64 → now 62 · 8 min", null, null, null],
+        modernNumberSpark: null,
+        modernNumberArrow: ["", null, null, "down"],
+      },
+      "falling/trends": {
+        modernNumberValue: ["62", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: ["−2 in 8 min", "Down 2 in 8 min, from 64 to 62", null, null],
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: ["", null, null, null],
+        modernNumberArrow: null,
+      },
+      "falling/trends/hover": {
+        modernNumberValue: ["62", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: ["−2 in 8 min", "Down 2 in 8 min, from 64 to 62", null, null],
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: ["", null, null, null],
+        modernNumberArrow: null,
+      },
+      "falling/trends/cleared": {
+        modernNumberValue: ["62", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: ["−2 in 8 min", "Down 2 in 8 min, from 64 to 62", null, null],
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: ["", null, null, null],
+        modernNumberArrow: null,
+      },
+      "flat/totals": {
+        modernNumberValue: ["48", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "flat/totals/hover": {
+        modernNumberValue: ["48", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "flat/totals/cleared": {
+        modernNumberValue: ["48", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "flat/changes": {
+        modernNumberValue: ["48", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: [
+          "No changesteady at 48 · 8 min",
+          "No change in 8 min, steady at 48",
+          null,
+          null,
+        ],
+        modernNumberSteady: ["steady at 48 · 8 min", null, null, null],
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "flat/changes/hover": {
+        modernNumberValue: ["48", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: [
+          "No changesteady at 48 · 8 min",
+          "No change in 8 min, steady at 48",
+          null,
+          null,
+        ],
+        modernNumberSteady: ["steady at 48 · 8 min", null, null, null],
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "flat/changes/cleared": {
+        modernNumberValue: ["48", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: [
+          "No changesteady at 48 · 8 min",
+          "No change in 8 min, steady at 48",
+          null,
+          null,
+        ],
+        modernNumberSteady: ["steady at 48 · 8 min", null, null, null],
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "flat/trends": {
+        modernNumberValue: ["48", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: ["steady at 48 · 8 min", null, null, null],
+        modernNumberFromTo: null,
+        modernNumberSpark: ["", null, "true", null],
+        modernNumberArrow: null,
+      },
+      "flat/trends/hover": {
+        modernNumberValue: ["48", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: ["steady at 48 · 8 min", null, null, null],
+        modernNumberFromTo: null,
+        modernNumberSpark: ["", null, "true", null],
+        modernNumberArrow: null,
+      },
+      "flat/trends/cleared": {
+        modernNumberValue: ["48", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: ["steady at 48 · 8 min", null, null, null],
+        modernNumberFromTo: null,
+        modernNumberSpark: ["", null, "true", null],
+        modernNumberArrow: null,
+      },
+      "spike/totals": {
+        modernNumberValue: ["40", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "spike/totals/hover": {
+        modernNumberValue: ["90", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "spike/totals/cleared": {
+        modernNumberValue: ["40", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "spike/changes": {
+        modernNumberValue: ["40", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: [
+          "No changenow at 40 · 8 min",
+          "No change in 8 min, now at 40",
+          null,
+          null,
+        ],
+        modernNumberSteady: ["now at 40 · 8 min", null, null, null],
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "spike/changes/hover": {
+        modernNumberValue: ["90", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: ["+50", null, null, null],
+        modernNumberHero: ["+5040 → now 90 · 8 min", "Up 50 in 8 min, from 40 to 90", null, null],
+        modernNumberSteady: null,
+        modernNumberFromTo: ["40 → now 90 · 8 min", null, null, null],
+        modernNumberSpark: null,
+        modernNumberArrow: ["", null, null, "up"],
+      },
+      "spike/changes/cleared": {
+        modernNumberValue: ["40", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: [
+          "No changenow at 40 · 8 min",
+          "No change in 8 min, now at 40",
+          null,
+          null,
+        ],
+        modernNumberSteady: ["now at 40 · 8 min", null, null, null],
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "spike/trends": {
+        modernNumberValue: ["40", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: ["no change in 8 min", "No change in 8 min, now at 40", null, null],
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: ["", null, null, null],
+        modernNumberArrow: null,
+      },
+      "spike/trends/hover": {
+        modernNumberValue: ["90", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: ["+50 in 8 min", "Up 50 in 8 min, from 40 to 90", null, null],
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: ["", null, null, null],
+        modernNumberArrow: null,
+      },
+      "spike/trends/cleared": {
+        modernNumberValue: ["40", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: ["no change in 8 min", "No change in 8 min, now at 40", null, null],
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: ["", null, null, null],
+        modernNumberArrow: null,
+      },
+      "short/totals": {
+        modernNumberValue: ["-", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "short/totals/hover": {
+        modernNumberValue: ["-", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "short/totals/cleared": {
+        modernNumberValue: ["-", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "short/changes": {
+        modernNumberValue: ["-", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "short/changes/hover": {
+        modernNumberValue: ["-", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "short/changes/cleared": {
+        modernNumberValue: ["-", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "short/trends": {
+        modernNumberValue: ["-", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: ["", null, null, null],
+        modernNumberArrow: null,
+      },
+      "short/trends/hover": {
+        modernNumberValue: ["-", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: ["", null, null, null],
+        modernNumberArrow: null,
+      },
+      "short/trends/cleared": {
+        modernNumberValue: ["-", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: ["", null, null, null],
+        modernNumberArrow: null,
+      },
+      "gaps/totals": {
+        modernNumberValue: ["12", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "gaps/totals/hover": {
+        modernNumberValue: ["12", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "gaps/totals/cleared": {
+        modernNumberValue: ["12", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: null,
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "gaps/changes": {
+        modernNumberValue: ["12", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: [
+          "No changesteady at 12 · 8 min",
+          "No change in 8 min, steady at 12",
+          null,
+          null,
+        ],
+        modernNumberSteady: ["steady at 12 · 8 min", null, null, null],
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "gaps/changes/hover": {
+        modernNumberValue: ["12", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: [
+          "No changesteady at 12 · 8 min",
+          "No change in 8 min, steady at 12",
+          null,
+          null,
+        ],
+        modernNumberSteady: ["steady at 12 · 8 min", null, null, null],
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "gaps/changes/cleared": {
+        modernNumberValue: ["12", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: [
+          "No changesteady at 12 · 8 min",
+          "No change in 8 min, steady at 12",
+          null,
+          null,
+        ],
+        modernNumberSteady: ["steady at 12 · 8 min", null, null, null],
+        modernNumberFromTo: null,
+        modernNumberSpark: null,
+        modernNumberArrow: null,
+      },
+      "gaps/trends": {
+        modernNumberValue: ["12", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: ["steady at 12 · 8 min", null, null, null],
+        modernNumberFromTo: null,
+        modernNumberSpark: ["", null, "true", null],
+        modernNumberArrow: null,
+      },
+      "gaps/trends/hover": {
+        modernNumberValue: ["12", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: ["steady at 12 · 8 min", null, null, null],
+        modernNumberFromTo: null,
+        modernNumberSpark: ["", null, "true", null],
+        modernNumberArrow: null,
+      },
+      "gaps/trends/cleared": {
+        modernNumberValue: ["12", null, null, null],
+        modernNumberUnit: null,
+        modernNumberDelta: null,
+        modernNumberHero: null,
+        modernNumberSteady: ["steady at 12 · 8 min", null, null, null],
+        modernNumberFromTo: null,
+        modernNumberSpark: ["", null, "true", null],
+        modernNumberArrow: null,
+      },
+    }
+
+    it("renders the same for every shape, focus and hover", async () => {
+      const actual = {}
+      for (const [name, payload] of Object.entries(shapes)) {
+        for (const focus of ["totals", "changes", "trends"]) {
+          const chart = await sized({ valueFocus: focus }, payload)
+          const { all } = chart.getPayload()
+          actual[`${name}/${focus}`] = capture()
+          act(() => chart.updateAttribute("hoverX", [all[Math.floor(all.length / 2)][0], null]))
+          actual[`${name}/${focus}/hover`] = capture()
+          act(() => chart.updateAttribute("hoverX", null))
+          actual[`${name}/${focus}/cleared`] = capture()
+          cleanup()
+        }
+      }
+
+      expect(actual).toEqual(expected)
+    })
+  })
+
+  describe("window activity", () => {
+    it("is not scanned in totals mode while hovering", async () => {
+      const active = jest.spyOn(valueFocus, "isWindowActive")
+      const chart = await sized({ valueFocus: "totals" }, rising)
+      const { all } = chart.getPayload()
+      act(() => chart.updateAttribute("hoverX", [all[10][0], null]))
+      act(() => chart.updateAttribute("hoverX", [all[20][0], null]))
+
+      expect(active).not.toHaveBeenCalled()
+      active.mockRestore()
+    })
+
+    it("is not rescanned in trends mode when only the pointer moves", async () => {
+      const active = jest.spyOn(valueFocus, "isWindowActive")
+      const chart = await sized({ valueFocus: "trends" }, rising)
+      const { all } = chart.getPayload()
+      active.mockClear()
+      act(() => chart.updateAttribute("hoverX", [all[10][0], null]))
+      act(() => chart.updateAttribute("hoverX", [all[20][0], null]))
+
+      expect(active).not.toHaveBeenCalled()
+      active.mockRestore()
     })
   })
 

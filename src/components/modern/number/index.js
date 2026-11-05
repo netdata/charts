@@ -188,7 +188,7 @@ const ModernNumber = ({ uiName }) => {
         })
 
   const mode = focus === "trends" ? "trends" : change ? focus : "totals"
-  const windowMoved = isWindowActive(values)
+  const windowMoved = useMemo(() => mode === "trends" && isWindowActive(values), [mode, values])
   const steadyWindow = !!change && !windowMoved
   const showsSpark = mode === "trends" && (windowMoved || steadyWindow)
   const sparkHeight = showsSpark && height >= 60 ? Math.round(height * 0.6) : 0

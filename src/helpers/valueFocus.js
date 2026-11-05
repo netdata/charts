@@ -56,44 +56,63 @@ const isFiniteNumber = value => typeof value === "number" && Number.isFinite(val
 
 const average = list => list.reduce((sum, value) => sum + value, 0) / list.length
 
+const analyses = new WeakMap()
+
+const analyze = values => {
+  const cached = analyses.get(values)
+  if (cached) return cached
+
+  const points = []
+  const counts = new Array(values.length)
+  let low = Infinity
+  let high = -Infinity
+
+  for (let index = 0; index < values.length; index++) {
+    const value = values[index]
+    if (isFiniteNumber(value)) {
+      points.push(value)
+      if (value < low) low = value
+      if (value > high) high = value
+    }
+    counts[index] = points.length
+  }
+
+  const scale = points.length ? Math.max(Math.abs(low), Math.abs(high)) : -Infinity
+  const analysis = {
+    points,
+    counts,
+    scale,
+    varied: points.length >= 2 && scale > 0 && high - low >= noiseShare * scale,
+  }
+  analyses.set(values, analysis)
+  return analysis
+}
+
 export const getWindowDelta = (values = [], { index, compare } = {}) => {
   const end = Number.isInteger(index) && index >= 0 && index < values.length ? index : null
-  const shown = end === null ? values : values.slice(0, end + 1)
   if (end !== null && !isFiniteNumber(values[end])) return null
 
-  const points = shown.filter(isFiniteNumber)
+  const analysis = analyze(values)
+  const { points } = analysis
+  const count = end === null ? points.length : analysis.counts[end]
   const hasCompare = isFiniteNumber(compare)
-  if (points.length < (hasCompare ? 1 : 2)) return null
+  if (count < (hasCompare ? 1 : 2)) return null
 
-  const to = points[points.length - 1]
+  const to = points[count - 1]
   const from = hasCompare ? compare : points[0]
   const delta = to - from
 
-  const edge = hasCompare
-    ? edgePoints
-    : Math.max(1, Math.min(edgePoints, Math.floor(points.length / 2)))
+  const edge = hasCompare ? edgePoints : Math.max(1, Math.min(edgePoints, Math.floor(count / 2)))
   const start = hasCompare ? compare : average(points.slice(0, edge))
-  const finish = average(points.slice(-edge))
-  const scale = Math.max(
-    ...values.filter(isFiniteNumber).map(Math.abs),
-    hasCompare ? Math.abs(compare) : 0
-  )
+  const finish = average(points.slice(Math.max(0, count - edge), count))
+  const scale = Math.max(analysis.scale, hasCompare ? Math.abs(compare) : 0)
 
   if (!delta || !(scale > 0) || Math.abs(finish - start) < noiseShare * scale) return null
 
   return { from, to, delta }
 }
 
-export const isWindowActive = (values = []) => {
-  const points = values.filter(isFiniteNumber)
-  if (points.length < 2) return false
-
-  const low = Math.min(...points)
-  const high = Math.max(...points)
-  const scale = Math.max(Math.abs(low), Math.abs(high))
-
-  return scale > 0 && high - low >= noiseShare * scale
-}
+export const isWindowActive = (values = []) => analyze(values).varied
 
 export const minusSign = "−"
 
@@ -141,7 +160,7 @@ export const describeWindowChange = (
   values = [],
   { dimensionId, unitAttributes, unit, index, compare } = {}
 ) => {
-  const points = values.filter(isFiniteNumber)
+  const { points } = analyze(values)
   if (!points.length) return null
 
   const window = formatWindowDuration(getWindowSeconds(chart))
@@ -157,7 +176,7 @@ export const describeWindowChange = (
         : points[points.length - 1]
     const text = inWindow("no change", window)
     const steady = format(shown)
-    const varied = isWindowActive(values)
+    const varied = analyze(values).varied
     return {
       moved: false,
       varied,

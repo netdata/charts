@@ -872,7 +872,10 @@ export default (sdk, chart) => {
   const getBarGradient = (ctx, color, top, height) => {
     const theme = chart.getAttribute("theme")
     const key = `${color}:${top}:${height}:${theme}`
-    const gradient = barGradients.get(key) || makeBarGradient(ctx, color, top, height, theme)
+    const gradient =
+      nextBarGradients.get(key) ||
+      barGradients.get(key) ||
+      makeBarGradient(ctx, color, top, height, theme)
     nextBarGradients.set(key, gradient)
     return gradient
   }
