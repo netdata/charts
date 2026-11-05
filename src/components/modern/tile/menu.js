@@ -5,6 +5,7 @@ import FilterToolbox from "@/components/filterToolbox"
 import Settings from "@/components/toolbox/settings"
 import Fullscreen from "@/components/toolbox/fullscreen"
 import { Divider, Item, MenuElements, Panel } from "@/components/modern/menu"
+import { FocusItem } from "@/components/modern/focus"
 
 export const getConsumerElements = (toolboxElements = []) =>
   toolboxElements.filter(Element => Element !== Settings && Element !== Fullscreen)
@@ -38,6 +39,7 @@ const TileMenu = ({ hasFilters, onClose, onOpenSettings }) => {
           Chart settings…
         </Item>
       )}
+      <FocusItem />
       <Item
         check={!!showingInfo}
         contentGap={1}

@@ -68,6 +68,7 @@ const FiltersSwap = ({
   onToggle,
   onClose,
   closeOnClickOutside = false,
+  quietError = false,
 }) => {
   const chart = useChart()
   const reduced = usePrefersReducedMotion()
@@ -108,7 +109,12 @@ const FiltersSwap = ({
   return (
     <Stack ref={ref}>
       <Layer isIn={!isOpen} reduced={reduced} column data-filters-layer="scope">
-        <ScopeLine hasFilters={hasFilters} open={isOpen} onToggle={onToggle} />
+        <ScopeLine
+          hasFilters={hasFilters}
+          open={isOpen}
+          onToggle={onToggle}
+          quietError={quietError}
+        />
       </Layer>
       {hasFilters && (
         <Layer

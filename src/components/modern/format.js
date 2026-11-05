@@ -30,3 +30,14 @@ export const formatReadout = (
     ? chart.getConvertedValueWithUnit(value, options)
     : chart.getConvertedValue(value, options)
 }
+
+export const readoutRoundsToZero = (
+  chart,
+  value,
+  { dimensionId, key = "units", unitAttributes: scaled } = {}
+) => {
+  const unitAttributes = scaled || getReadoutUnitAttributes(chart, value, { dimensionId, key })
+  const options = { dimensionId, key, unitAttributes }
+
+  return formatReadout(chart, Math.abs(value), options) === formatReadout(chart, 0, options)
+}

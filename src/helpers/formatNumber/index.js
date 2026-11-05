@@ -25,14 +25,19 @@ const getNumberFormatter = (locale, minimumFractionDigits, maximumFractionDigits
   return formatter
 }
 
+export const getMaximumFractionDigits = (fractionDigits, unitsConversionFractionDigits) =>
+  fractionDigits === null || isNaN(fractionDigits) || fractionDigits < 0
+    ? unitsConversionFractionDigits === -1
+      ? 4
+      : unitsConversionFractionDigits
+    : fractionDigits
+
 export const formatRegularNumber = (node, value, fractionDigits, unitsConversionFractionDigits) => {
   const minimumFractionDigits = isNaN(fractionDigits) || fractionDigits < 0 ? 0 : fractionDigits
-  const maximumFractionDigits =
-    fractionDigits === null || isNaN(fractionDigits) || fractionDigits < 0
-      ? unitsConversionFractionDigits === -1
-        ? 4
-        : unitsConversionFractionDigits
-      : fractionDigits
+  const maximumFractionDigits = getMaximumFractionDigits(
+    fractionDigits,
+    unitsConversionFractionDigits
+  )
 
   return getNumberFormatter(
     node.getAttribute("locale"),

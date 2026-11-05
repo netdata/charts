@@ -6,6 +6,8 @@ import {
   arcPath,
   sumRow,
   sparklinePath,
+  trendBox,
+  legibleSize,
   radius,
   valueRadius,
   valueBaseline,
@@ -56,6 +58,28 @@ describe("modern gauge geometry", () => {
     const { line, area } = sparklinePath([0, 5, 10], { width: 100, height: 20, pad: 0 })
     expect(line).toBe("M0.00,20.00 L50.00,10.00 L100.00,0.00")
     expect(area).toBe(`${line} L100,20 L0,20 Z`)
+  })
+
+  it("returns the first and last points for the trend dots", () => {
+    const { start, end } = sparklinePath([0, 5, 10], { width: 100, height: 20, pad: 0 })
+    expect(start).toEqual([0, 20])
+    expect(end).toEqual([100, 0])
+  })
+
+  it("keeps the trend at its design size on a full-size gauge", () =>
+    expect(trendBox(1)).toEqual({ width: 150, height: 44 }))
+
+  it("shrinks the trend height faster than the tile", () => {
+    const { width, height } = trendBox(0.6)
+    expect(width).toBeLessThan(150)
+    expect(height / 44).toBeLessThan(0.6)
+    expect(height).toBeGreaterThanOrEqual(18)
+  })
+
+  it("keeps text at least 11px on screen", () => {
+    expect(legibleSize(17, 1)).toBe(17)
+    expect(legibleSize(17, 0.5)).toBe(22)
+    expect(legibleSize(17, 0)).toBe(17)
   })
 
   it("handles a flat series without dividing by zero", () => {

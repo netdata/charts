@@ -55,4 +55,16 @@ const AlertDot = ({ alert, ...rest }) => (
   </Container>
 )
 
+export const ErrorDot = ({ error }) => (
+  <Container
+    role="img"
+    color="error"
+    title={`Error: ${error}`}
+    aria-label={`Error: ${error}`}
+    data-testid="modernTileError"
+  >
+    <Dot background="error" size="7px" />
+  </Container>
+)
+
 export default AlertDot

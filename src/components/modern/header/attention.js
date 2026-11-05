@@ -23,9 +23,9 @@ const Units = styled(Box).attrs({ as: "span" })`
   color: ${getColor("textLite")};
 `
 
-const formatValue = value =>
+const formatValue = (value, locale) =>
   typeof value === "number"
-    ? value.toLocaleString(undefined, { maximumFractionDigits: 2 })
+    ? value.toLocaleString(locale || undefined, { maximumFractionDigits: 2 })
     : String(value)
 
 const hoursMinutes = text => text.replace(/(\d{1,2}[:.]\d{2})[:.]\d{2}/, "$1")
@@ -45,6 +45,7 @@ const useDetail = ({ names, when }) => {
 
 const Raised = ({ status, count, value, names, when }) => {
   const units = useUnitSign({ withoutConversion: true })
+  const locale = useAttributeValue("locale")
   const tone = toneColor[status]
   const detail = useDetail({ names, when })
 
@@ -60,7 +61,7 @@ const Raised = ({ status, count, value, names, when }) => {
         {value !== null && value !== undefined && (
           <Flex alignItems="baseline" gap={1}>
             <Value tone={tone} data-testid="chartAttention-value">
-              {formatValue(value)}
+              {formatValue(value, locale)}
             </Value>
             {!!units && <Units>{units}</Units>}
           </Flex>

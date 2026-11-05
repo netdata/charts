@@ -138,7 +138,7 @@ const Hidden = ({ count, leading }) => {
   )
 }
 
-const ScopeLine = ({ hasFilters = true, open = false, onToggle }) => {
+const ScopeLine = ({ hasFilters = true, open = false, onToggle, quietError = false }) => {
   const initialLoading = useInitialLoading()
   const empty = useEmpty()
   const error = useAttributeValue("error")
@@ -148,7 +148,7 @@ const ScopeLine = ({ hasFilters = true, open = false, onToggle }) => {
 
   if (error)
     return (
-      <Status status="error" color="error" {...statusProps}>
+      <Status status="error" color={quietError && !empty ? "textLite" : "error"} {...statusProps}>
         {`Error: ${error}`}
       </Status>
     )

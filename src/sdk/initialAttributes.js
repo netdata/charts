@@ -145,6 +145,12 @@ export default {
 
   width: "",
   enabledXAxis: true,
+  xAxisTimeStyle: "medium",
+  xAxisFitLastLabel: false,
+  barFillStyle: "solid",
+  barGlowDimensionIds: [],
+  valueFocus: null,
+  valueFocusDefault: null,
 
   hasToolbox: true,
   hideTitle: false,

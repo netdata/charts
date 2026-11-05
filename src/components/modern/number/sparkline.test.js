@@ -80,4 +80,24 @@ describe("Sparkline", () => {
 
     expect(screen.queryByTestId("modernNumberSparkMarker")).not.toBeInTheDocument()
   })
+
+  it("marks the window start with a hollow dot", () => {
+    renderWithProviders(
+      <Sparkline values={[null, 1, 3, 2]} color="text" id="start" height={30} markerIndex={3} />
+    )
+
+    expect(screen.getByTestId("modernNumberSparkStart").style.left).toBe(`${(1 / 3) * 100}%`)
+  })
+
+  it("draws a flat window as a dashed line without the area", () => {
+    const { container } = renderWithProviders(
+      <Sparkline values={[5, 5, 5]} color="text" id="flat" height={30} markerIndex={2} flat />
+    )
+
+    expect(screen.getByTestId("modernNumberSpark")).toHaveAttribute("data-flat", "true")
+    expect(container.querySelectorAll("path")).toHaveLength(1)
+    expect(container.querySelector("path")).toHaveAttribute("stroke-dasharray")
+    expect(screen.getByTestId("modernNumberSparkStart").style.top).toBe("62%")
+    expect(screen.getByTestId("modernNumberSparkMarker").style.top).toBe("62%")
+  })
 })

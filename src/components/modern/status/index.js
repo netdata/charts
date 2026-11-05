@@ -1,7 +1,7 @@
 import React from "react"
 import styled from "styled-components"
 import { Box, Flex, TextSmall, getColor } from "@netdata/netdata-ui"
-import Tooltip, { tooltipStyleProps } from "@/components/tooltip"
+import Tooltip from "@/components/tooltip"
 import { radius } from "@/components/modern/tokens"
 import { Dot } from "@/components/modern/dot"
 import { capNames, getClearDescription, getStatusLabel } from "./summary"
@@ -28,12 +28,6 @@ const Label = styled(Box).attrs({ as: "span" })`
   color: ${({ tone, theme }) => getColor(tone)({ theme })};
 `
 
-const TooltipBox = ({ children }) => (
-  <Flex {...tooltipStyleProps} column gap={0.5}>
-    {children}
-  </Flex>
-)
-
 const toLines = description =>
   (Array.isArray(description) ? description : [description]).filter(Boolean)
 
@@ -41,23 +35,17 @@ export const StatusDetails = ({ description, names = [] }) => {
   const { shown, more } = capNames(names)
 
   return (
-    <>
+    <Flex column gap={0.5}>
       {toLines(description).map(line => (
-        <TextSmall key={line} color="tooltipText">
-          {line}
-        </TextSmall>
+        <TextSmall key={line}>{line}</TextSmall>
       ))}
       {shown.map(name => (
-        <TextSmall key={name} color="tooltipText" strong data-testid="modernStatus-name">
+        <TextSmall key={name} strong data-testid="modernStatus-name">
           {name}
         </TextSmall>
       ))}
-      {more > 0 && (
-        <TextSmall color="tooltipText" data-testid="modernStatus-more">
-          {`${more} more`}
-        </TextSmall>
-      )}
-    </>
+      {more > 0 && <TextSmall data-testid="modernStatus-more">{`${more} more`}</TextSmall>}
+    </Flex>
   )
 }
 
@@ -85,11 +73,7 @@ const StatusIndicator = ({
   const label = status === "clear" ? null : getStatusLabel({ status, count })
 
   return (
-    <Tooltip
-      content={<StatusDetails description={description} names={names} />}
-      Content={TooltipBox}
-      align="bottom"
-    >
+    <Tooltip content={<StatusDetails description={description} names={names} />} align="bottom">
       <Holder
         alignItems="center"
         flex={false}

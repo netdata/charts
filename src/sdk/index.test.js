@@ -41,3 +41,100 @@ it("add charts in containers", () => {
 
   expect(sdk.getNodes()).toEqual([sdk.getRoot(), container1, chart1, container2, ...group2])
 })
+
+it("lets a chart inherit valueFocus from its container and override it", () => {
+  const sdk = makeSDK({
+    attributes: { chartLibrary: "myChartLibrary" },
+    ui: { myChartLibrary: () => {} },
+  })
+  const container = sdk.makeContainer({ attributes: { valueFocus: "totals" } })
+  sdk.appendChild(container)
+
+  const following = sdk.makeChart()
+  container.appendChild(following)
+  const overriding = sdk.makeChart({ attributes: { valueFocus: "changes" } })
+  container.appendChild(overriding)
+  const loose = sdk.makeChart()
+  sdk.appendChild(loose)
+
+  expect(following.getAttribute("valueFocus")).toBe("totals")
+  expect(overriding.getAttribute("valueFocus")).toBe("changes")
+  expect(loose.getAttribute("valueFocus")).toBeNull()
+})
+
+it("tracks a valueFocus change as unsaved", () => {
+  const sdk = makeSDK({
+    attributes: { chartLibrary: "myChartLibrary" },
+    ui: { myChartLibrary: () => {} },
+  })
+  const chart = sdk.makeChart()
+  sdk.appendChild(chart)
+
+  chart.updateAttribute("valueFocus", "totals")
+
+  expect(chart.getAttribute("pristine")).toHaveProperty("valueFocus", null)
+})
+
+describe("valueFocusDefault", () => {
+  const makeTree = () => {
+    const sdk = makeSDK({
+      attributes: { chartLibrary: "myChartLibrary" },
+      ui: { myChartLibrary: () => {} },
+    })
+    const container = sdk.makeContainer()
+    sdk.appendChild(container)
+    const following = sdk.makeChart()
+    container.appendChild(following)
+    const own = sdk.makeChart({ attributes: { valueFocus: "changes" } })
+    container.appendChild(own)
+    return { sdk, container, following, own }
+  }
+
+  it("is null on the root by default", () => {
+    const { sdk } = makeTree()
+    expect(sdk.getRoot().getAttribute("valueFocusDefault")).toBeNull()
+  })
+
+  it("reaches every descendant when the root changes it live", () => {
+    const { sdk, container, following, own } = makeTree()
+    const changes = []
+    following.onAttributeChange("valueFocusDefault", value => changes.push(value))
+
+    sdk.getRoot().updateAttribute("valueFocusDefault", "totals")
+
+    expect(container.getAttribute("valueFocusDefault")).toBe("totals")
+    expect(following.getAttribute("valueFocusDefault")).toBe("totals")
+    expect(own.getAttribute("valueFocusDefault")).toBe("totals")
+    expect(changes).toEqual(["totals"])
+    expect(following.getAttribute("valueFocus")).toBeNull()
+    expect(own.getAttribute("valueFocus")).toBe("changes")
+  })
+
+  it("keeps a container's own default when the root changes", () => {
+    const { sdk, container, following } = makeTree()
+    container.updateAttribute("valueFocusDefault", "trends")
+
+    sdk.getRoot().updateAttribute("valueFocusDefault", "totals")
+
+    expect(container.getAttribute("valueFocusDefault")).toBe("trends")
+    expect(following.getAttribute("valueFocusDefault")).toBe("trends")
+  })
+
+  it("is inherited by charts added later", () => {
+    const { sdk, container } = makeTree()
+    sdk.getRoot().updateAttribute("valueFocusDefault", "totals")
+
+    const late = sdk.makeChart()
+    container.appendChild(late)
+
+    expect(late.getAttribute("valueFocusDefault")).toBe("totals")
+  })
+
+  it("is not tracked as an unsaved chart change", () => {
+    const { sdk, following } = makeTree()
+
+    sdk.getRoot().updateAttribute("valueFocusDefault", "totals")
+
+    expect(following.getAttribute("pristine")).not.toHaveProperty("valueFocusDefault")
+  })
+})

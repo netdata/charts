@@ -1,14 +1,21 @@
 import React from "react"
 import { act, screen, waitFor, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
-import { renderWithChart, renderHookWithChart, makeTestChart } from "@jest/testUtilities"
+import { DefaultTheme } from "@netdata/netdata-ui"
+import {
+  renderWithChart,
+  renderHookWithChart,
+  makeTestChart,
+  simulateTranslate,
+  collectRenderErrors,
+} from "@jest/testUtilities"
 import { TableChart } from "@/components/table"
 import useTableColumns from "@/components/table/useTableColumns"
 import Settings from "@/components/toolbox/settings"
 import Fullscreen from "@/components/toolbox/fullscreen"
 import tableFixture from "../../../../fixtures/table"
 import { getRowStatus } from "./status"
-import { getTrend, makeTrendPath } from "./trend"
+import { getTrend, makeTrendPath, useTrend } from "./trend"
 import { clampPercent } from "./meter"
 import { isPercentUnit, getMergedLabelVisibility, missingValueText } from "./columns"
 import { getShare, isHotPercent, getContextScale } from "./scale"
@@ -17,6 +24,7 @@ import { getColumnOptions } from "./menu"
 import makeTablePayload, {
   withoutDimensions,
   withValue,
+  withSeries,
   findDimension,
 } from "../../../../fixtures/makeTablePayload"
 
@@ -30,6 +38,7 @@ const makeTableChart = async (designFlavour = "default", { payload, attributes }
       designFlavour,
       after: 1700000000,
       before: 1700000900,
+      locale: "en-US",
       ...attributes,
     },
   })
@@ -42,6 +51,13 @@ const makeTableChart = async (designFlavour = "default", { payload, attributes }
   return chart
 }
 
+const rgbToHex = rgb =>
+  `#${rgb
+    .match(/\d+/g)
+    .slice(0, 3)
+    .map(n => Number(n).toString(16).padStart(2, "0"))
+    .join("")}`.toUpperCase()
+
 const settle = (ms = 350) =>
   act(async () => {
     await new Promise(resolve => setTimeout(resolve, ms))
@@ -49,7 +65,7 @@ const settle = (ms = 350) =>
 
 const renderTable = async (designFlavour, options) => {
   const chart = await makeTableChart(designFlavour, options)
-  const result = renderWithChart(<TableChart />, { chart })
+  const result = renderWithChart(<TableChart {...options?.props} />, { chart })
 
   await settle()
 
@@ -305,6 +321,18 @@ describe("modern table", () => {
       expect(getTrend(chart, undefined)).toEqual([])
     })
 
+    it("reads each point once when building the row trend", async () => {
+      const chart = await makeTableChart("modern")
+      const id = chart.getDimensionIds().find(dimId => dimId.startsWith("reads"))
+      const reads = jest.spyOn(chart, "getRowDimensionValue")
+
+      const { result } = renderHookWithChart(() => useTrend(id), { chart })
+
+      expect(reads).toHaveBeenCalledTimes(result.current.series.length)
+      reads.mockRestore()
+      expect(result.current.trend).toEqual(getTrend(chart, id))
+    })
+
     it("makes an svg path and skips gaps", () => {
       expect(makeTrendPath([1, 2, 3], 20, 10)).toMatch(/^M0\.0,.*L10\.0,.*L20\.0,/)
       expect(makeTrendPath([1, null, 3, 4], 30, 10)).toContain("M20.0")
@@ -475,6 +503,42 @@ describe("modern table chrome", () => {
     expect(columnCells(container, "valuedisk_io_reads")).toHaveLength(0)
     expect(findReads()).toHaveAttribute("aria-checked", "false")
   })
+  it("swaps the scope line for the filter chips and back from the close control", async () => {
+    const { chart, user } = await renderTable("modern")
+    const header = screen.getByTestId("modernTableHeader")
+
+    await user.click(within(header).getByTestId("chartScope"))
+
+    expect(chart.getAttribute("filtersOpen")).toBe(true)
+    const row = await within(header).findByTestId("chartFiltersRow")
+    expect(within(row).getByTestId("chartFilters")).toBeInTheDocument()
+
+    await user.click(within(row).getByTestId("chartFilters-close"))
+
+    expect(chart.getAttribute("filtersOpen")).toBe(false)
+    await waitFor(() => expect(screen.queryByTestId("chartFiltersRow")).not.toBeInTheDocument())
+    expect(within(header).getByTestId("chartScope")).toHaveFocus()
+  })
+
+  it("keeps the value focus key under the open filter chips", async () => {
+    const { user } = await renderTable("modern", { attributes: { valueFocus: "changes" } })
+    const header = screen.getByTestId("modernTableHeader")
+
+    await user.click(within(header).getByTestId("chartScope"))
+    await within(header).findByTestId("chartFiltersRow")
+
+    expect(within(header).getByTestId("modernTable-key")).toBeInTheDocument()
+  })
+
+  it("keeps the scope line static when hasFilters is false", async () => {
+    const { chart, user } = await renderTable("modern", { props: { hasFilters: false } })
+
+    expect(screen.getByTestId("chartScope")).toBeDisabled()
+    await user.click(screen.getByTestId("chartScope"))
+
+    expect(chart.getAttribute("filtersOpen")).toBeFalsy()
+    expect(screen.queryByTestId("chartFiltersRow")).not.toBeInTheDocument()
+  })
 })
 
 describe("modern table cells", () => {
@@ -541,20 +605,18 @@ describe("modern table cells", () => {
     expect(empty).toHaveLength(1)
   })
 
-  it("keeps trends neutral and colours them only on the hovered row", async () => {
+  it("stops the share underline from animating under reduced motion", async () => {
     await renderTable("modern")
-    const trend = screen.getAllByTestId("modernTable-trend")[0]
-    const holder = trend.parentElement
+    const bar = screen.getAllByTestId("modernTable-bar")[0]
     const css = Array.from(document.querySelectorAll("style"))
       .map(style => style.textContent)
       .join("\n")
+    const [className] = Array.from(bar.classList).slice(-1)
 
-    expect(holder.style.getPropertyValue("--modern-trend-color")).toBe(
-      trend.querySelector("path").getAttribute("stroke")
-    )
-    expect(css).toContain("--modern-trend-color")
     expect(css).toMatch(
-      /netdata-table-row"\]:hover [^{]*path\s*\{\s*stroke:\s*var\(--modern-trend-color\)/
+      new RegExp(
+        `prefers-reduced-motion:\\s*reduce\\)\\s*\\{[^}]*\\.${className}[^{]*\\{[^}]*transition:\\s*none`
+      )
     )
   })
 
@@ -588,6 +650,7 @@ describe("modern table cells", () => {
     expect(hot).toHaveLength(1)
     expect(within(hot[0]).getByTestId("modernTable-value")).toHaveTextContent("93.4")
     expect(within(hot[0]).getByTestId("modernTable-bar")).toHaveAttribute("data-share", "1")
+    expect(within(hot[0]).getByTestId("modernTable-bar")).toHaveAttribute("data-hot", "true")
   })
 })
 
@@ -751,5 +814,238 @@ describe("modern table helpers", () => {
     expect(getMergedLabelVisibility([{ id: "Instance", columns: [{ id: "labelA" }] }])).toBe(
       undefined
     )
+  })
+})
+
+describe("modern table value focus", () => {
+  const ids = tableFixture[0].view.dimensions.ids
+  const pick = (prefix, context) =>
+    ids.filter(id => id.startsWith(`${prefix},`) && id.endsWith(`,${context}`))
+
+  const focusPayload = [
+    [pick("reads", "disk.io"), (index, count) => (index < count / 2 ? 100 : 200)],
+    [pick("writes", "disk.io"), () => 50],
+    [pick("reads", "disk.ops"), () => 0],
+    [
+      pick("writes", "disk.ops"),
+      (index, count) => (index > count / 3 && index < (count * 2) / 3 ? 90 : 40),
+    ],
+  ].reduce(
+    (payload, [dimensionIds, valueAt]) => withSeries(payload, dimensionIds, valueAt),
+    tableFixture[0]
+  )
+
+  const renderFocus = async attributes => {
+    const { chart } = makeTestChart({
+      attributes: {
+        contextScope: ["disk.io", "disk.ops", "disk.await", "disk.util"],
+        chartLibrary: "table",
+        tableColumns: ["context", "dimension"],
+        designFlavour: "modern",
+        after: 1700000000,
+        before: 1700000900,
+        ...attributes,
+      },
+    })
+    await act(async () => {
+      chart.doneFetch(focusPayload)
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
+    const result = renderWithChart(<TableChart />, { chart })
+    await settle()
+    await waitFor(() =>
+      expect(
+        result.container.querySelector('[data-testid^="netdata-table-cell-value"]')
+      ).not.toBeNull()
+    )
+    return { ...result, chart }
+  }
+
+  const rising = container => columnCells(container, "valuedisk_io_reads")
+  const steady = container => columnCells(container, "valuedisk_io_writes")
+  const zeros = container => columnCells(container, "valuedisk_ops_reads")
+  const spiking = container => columnCells(container, "valuedisk_ops_writes")
+
+  const expectEvery = (cells, check) => {
+    expect(cells.length).toBeGreaterThan(0)
+    cells.forEach(check)
+  }
+
+  const weightOf = node => getComputedStyle(node).fontWeight
+  const colorOf = node => rgbToHex(getComputedStyle(node).color)
+
+  describe("totals", () => {
+    it("shows bold numbers only", async () => {
+      const { container } = await renderFocus({ valueFocus: "totals" })
+
+      expect(screen.queryByTestId("modernTable-trend")).not.toBeInTheDocument()
+      expect(screen.queryByTestId("modernTable-bar")).not.toBeInTheDocument()
+      expect(screen.queryByTestId("modernTable-delta")).not.toBeInTheDocument()
+      expect(screen.queryByTestId("modernTable-key")).not.toBeInTheDocument()
+      expectEvery(rising(container), cell => {
+        const value = within(cell).getByTestId("modernTable-value")
+        expect(value).not.toHaveAttribute("data-zero")
+        expect(weightOf(value)).toBe("700")
+        expect(colorOf(value)).toBe(DefaultTheme.colors.text)
+      })
+    })
+
+    it("dims the zeros", async () => {
+      const { container } = await renderFocus({ valueFocus: "totals" })
+
+      expectEvery(zeros(container), cell => {
+        const value = within(cell).getByTestId("modernTable-value")
+        expect(value).toHaveAttribute("data-zero", "true")
+        expect(weightOf(value)).toBe("400")
+        expect(colorOf(value)).toBe(DefaultTheme.colors.textLite)
+      })
+    })
+  })
+
+  describe("changes", () => {
+    it("shows a delta pill only where the value moved", async () => {
+      const { container } = await renderFocus({ valueFocus: "changes" })
+
+      expectEvery(rising(container), cell => {
+        const pill = within(cell).getByTestId("modernTable-delta")
+        expect(pill.textContent).toMatch(/^\+\S+$/)
+        expect(getComputedStyle(pill).borderRadius).toBe("999px")
+        expect(colorOf(pill.firstChild)).toBe(DefaultTheme.colors.text)
+      })
+      expectEvery(steady(container), cell =>
+        expect(within(cell).queryByTestId("modernTable-delta")).not.toBeInTheDocument()
+      )
+    })
+
+    it("shows no pill where the value moved and came back", async () => {
+      const { container } = await renderFocus({ valueFocus: "changes" })
+
+      expectEvery(spiking(container), cell =>
+        expect(within(cell).queryByTestId("modernTable-delta")).not.toBeInTheDocument()
+      )
+    })
+
+    it("puts the values in textLite over the share underline, with no trend", async () => {
+      const { container } = await renderFocus({ valueFocus: "changes" })
+
+      expectEvery(steady(container), cell => {
+        expect(colorOf(within(cell).getByTestId("modernTable-value"))).toBe(
+          DefaultTheme.colors.textLite
+        )
+        expect(within(cell).getByTestId("modernTable-bar")).toBeInTheDocument()
+      })
+      expect(screen.queryByTestId("modernTable-trend")).not.toBeInTheDocument()
+    })
+
+    it("explains the pill in a key under the header", async () => {
+      await renderFocus({ valueFocus: "changes" })
+
+      const key = within(screen.getByTestId("modernTableHeader")).getByTestId("modernTable-key")
+      expect(key).toHaveTextContent(/^\+n change in \d+ min$/)
+    })
+  })
+
+  describe("trends", () => {
+    it("draws a wider trend with an end dot only where the value moved", async () => {
+      const { chart, container } = await renderFocus({ valueFocus: "trends" })
+
+      expectEvery(rising(container), cell => {
+        const trend = within(cell).getByTestId("modernTable-trend")
+        expect(trend).toHaveAttribute("width", "40")
+        expect(trend).toHaveAttribute("height", "16")
+        const path = trend.querySelector("path")
+        expect(chart.getDimensionIds().map(id => chart.selectDimensionColor(id))).toContain(
+          path.getAttribute("stroke")
+        )
+        expect(within(cell).getByTestId("modernTable-trendEnd")).toHaveAttribute(
+          "fill",
+          path.getAttribute("stroke")
+        )
+        expect(colorOf(within(cell).getByTestId("modernTable-value"))).toBe(
+          DefaultTheme.colors.textLite
+        )
+      })
+      expectEvery(steady(container), cell =>
+        expect(within(cell).queryByTestId("modernTable-trend")).not.toBeInTheDocument()
+      )
+      expect(screen.queryByTestId("modernTable-delta")).not.toBeInTheDocument()
+    })
+
+    it("draws a trend where the value moved and came back", async () => {
+      const { container } = await renderFocus({ valueFocus: "trends" })
+
+      expectEvery(spiking(container), cell =>
+        expect(within(cell).getByTestId("modernTable-trend")).toBeInTheDocument()
+      )
+    })
+
+    it("draws a right-anchored 2px share underline at 60% of the series colour", async () => {
+      const { chart, container } = await renderFocus({ valueFocus: "trends" })
+      const colors = chart.getDimensionIds().map(id => chart.selectDimensionColor(id))
+
+      expectEvery(steady(container), cell => {
+        const bar = within(cell).getByTestId("modernTable-bar")
+        const share = Number(bar.getAttribute("data-share"))
+        expect(bar.style.width).toBe(`${share * 100}%`)
+        expect(colors.map(color => color.toUpperCase())).toContain(rgbToHex(bar.style.background))
+        expect(getComputedStyle(bar).height).toBe("2px")
+        expect(getComputedStyle(bar).right).toBe("0px")
+        expect(getComputedStyle(bar).opacity).toBe("0.6")
+      })
+    })
+
+    it("colours a resting row's trend in the series colour at full opacity", async () => {
+      const { chart, container } = await renderFocus({ valueFocus: "trends" })
+      const colors = chart.getDimensionIds().map(id => chart.selectDimensionColor(id))
+
+      expectEvery(rising(container), cell => {
+        const trend = within(cell).getByTestId("modernTable-trend")
+        const path = trend.querySelector("path")
+        expect(colors).toContain(path.getAttribute("stroke"))
+        expect(path).not.toHaveAttribute("stroke-opacity")
+        let node = trend
+        while (node && node !== cell) {
+          expect(getComputedStyle(node).opacity || "1").toBe("1")
+          node = node.parentElement
+        }
+      })
+    })
+
+    it("explains the marks in a key under the header", async () => {
+      await renderFocus({ valueFocus: "trends" })
+
+      expect(
+        within(screen.getByTestId("modernTableHeader")).getByTestId("modernTable-key")
+      ).toHaveTextContent(/^last \d+ min · dot = now · line = share of column max$/)
+    })
+
+    it("describes the change of a trend in its tooltip", async () => {
+      const { container, user } = await renderFocus({ valueFocus: "trends" })
+      const [cell] = rising(container)
+
+      await user.hover(within(cell).getByTestId("modernTable-value"))
+
+      expect(await screen.findByText(/→ .+, \+\S+ in \d+ min$/)).toBeInTheDocument()
+    })
+
+    it("is the default", async () => {
+      const { chart, container } = await renderFocus()
+
+      expect(chart.getAttribute("valueFocus")).toBeNull()
+      expect(screen.getByTestId("modernTable-key")).toBeInTheDocument()
+      expectEvery(rising(container), cell =>
+        expect(within(cell).getByTestId("modernTable-trend")).toBeInTheDocument()
+      )
+    })
+  })
+
+  it("survives page translation when the focus switches", async () => {
+    const { chart, container } = await renderFocus({ valueFocus: "changes" })
+    simulateTranslate(container)
+
+    expect(
+      collectRenderErrors(() => act(() => chart.updateAttribute("valueFocus", "trends")))
+    ).toEqual([])
+    expect(screen.getByTestId("modernTable-key")).toHaveTextContent(/dot = now/)
   })
 })

@@ -14,6 +14,7 @@ const makeChart = async (attributes = {}, mockData = makeHeatPayload()) => {
     attributes: {
       contextScope: ["modern.nodes.cpu"],
       chartLibrary: "groupBoxes",
+      locale: "en-US",
       ...attributes,
     },
   })

@@ -3,7 +3,7 @@ import styled from "styled-components"
 import { Flex, TextSmall, getColor } from "@netdata/netdata-ui"
 import chevronDown from "@netdata/netdata-ui/dist/components/icon/assets/chevron_down.svg"
 import Icon from "@/components/icon"
-import { withTooltip, tooltipStyleProps } from "@/components/tooltip"
+import { withTooltip } from "@/components/tooltip"
 
 export const Container = styled(Flex).attrs(({ width = { max: 100 }, open, ...rest }) => ({
   cursor: "pointer",
@@ -59,11 +59,16 @@ const Label = ({
     </Container>
   )
 
-const TooltipContent = ({ heading, body }) => (
-  <Flex column gap={1} {...tooltipStyleProps}>
-    {heading && <TextSmall strong>{heading}</TextSmall>}
-    {body && <TextSmall>{body}</TextSmall>}
-  </Flex>
+const LabelWithTooltip = withTooltip(Label, { align: "top" })
+
+const TooltipLabel = ({ tooltipProps: { heading, body, ...tooltipProps } = {}, ...rest }) => (
+  <LabelWithTooltip
+    {...rest}
+    tooltipProps={{
+      ...tooltipProps,
+      ...((heading || body) && { content: { title: heading, description: body } }),
+    }}
+  />
 )
 
-export default withTooltip(Label, { Content: TooltipContent, align: "top" })
+export default TooltipLabel

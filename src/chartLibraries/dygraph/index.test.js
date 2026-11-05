@@ -419,3 +419,53 @@ describe("dygraphChart", () => {
     expect(instance.getXAxisRange()).toEqual([1617946860000, 1617947750000])
   })
 })
+
+describe("dygraphChart x-axis labels", () => {
+  const Dygraph = require("dygraphs")
+  const minutely = 12
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+    Dygraph.Granularity = { MINUTELY: minutely }
+  })
+
+  const getFormatter = attributes => {
+    const { sdk, chart } = makeTestChart({ attributes })
+    chart.getPayload = () => ({
+      data: [[1617946860000, 10]],
+      labels: ["time", "load1"],
+    })
+    chart.getDateWindow = () => [1617946860000, 1617947750000]
+    chart.formatXAxis = jest.fn((date, timeStyle) => timeStyle)
+    chart.getThemeAttribute = () => "#333"
+    chart.getUnitSign = () => ""
+
+    dygraphChart(sdk, chart).mount(document.createElement("div"))
+
+    const [, , options] = Dygraph.mock.calls.at(-1)
+    return { format: options.axes.x.axisLabelFormatter, chart }
+  }
+
+  const date = new Date(1617946860000)
+
+  it("formats with the medium style by default", () => {
+    const { format, chart } = getFormatter({})
+
+    expect(format(date, minutely - 1)).toBe("medium")
+    expect(format(date, minutely)).toBe("medium")
+    expect(chart.formatXAxis).toHaveBeenCalledWith(date, "medium")
+  })
+
+  it("formats with the short style", () => {
+    const { format } = getFormatter({ xAxisTimeStyle: "short" })
+
+    expect(format(date, minutely - 1)).toBe("short")
+  })
+
+  it("resolves the auto style from the tick granularity", () => {
+    const { format } = getFormatter({ xAxisTimeStyle: "auto" })
+
+    expect(format(date, minutely - 1)).toBe("medium")
+    expect(format(date, minutely)).toBe("short")
+  })
+})

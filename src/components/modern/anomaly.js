@@ -3,6 +3,8 @@ import { isVisibleDimension } from "@/chartLibraries/helpers/dimensionVisibility
 
 export const isAnomalous = rate => rate > 0
 
+export const anomalyBadgeHeight = 14
+
 export const formatAnomalyRate = rate => (rate < 1 ? rate.toFixed(1) : `${Math.round(rate)}`)
 
 const toRgb = hex => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16))
@@ -55,4 +57,13 @@ export const getAnomalySummary = chart => {
   }
 
   return { peak, periods, peakRow, anomalousRows }
+}
+
+export const getAnomalyBadgeSummary = chart => {
+  if (!chart.getAttribute("showAnomalies") || chart.isSparkline()) return null
+  if (chart.getAttribute("enabledYAxis") === false) return null
+  if (chart.getAttribute("chartType") === "heatmap") return null
+
+  const summary = getAnomalySummary(chart)
+  return summary.periods ? summary : null
 }
