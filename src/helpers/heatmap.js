@@ -16,7 +16,7 @@ export const useIsHeatmap = () => useAttributeValue("chartType") === "heatmap"
 export const isIncremental = chart =>
   isHeatmap(chart) && chart.getAttribute("heatmapType") === heatmapTypes.incremental
 
-const regex = /(.+)_(\d+?\.?(\d+)?|\+[Ii]nf)$/
+const regex = /(.+)_(-?\d+?\.?(\d+)?|\+[Ii]nf)$/
 
 export const heatmapOrChartType = (ids, chartType) =>
   Array.isArray(ids) && ids.length && ids.every(id => id.match(regex)) ? "heatmap" : chartType
@@ -33,14 +33,19 @@ const getColors = opacity => [
 ]
 
 export const makeGetColor = (chart, opacity = 1) => {
-  const max = chart.getAttribute("max")
+  const max = Number(chart.getAttribute("max"))
   const colors = getColors(opacity)
+
+  if (!Number.isFinite(max) || max <= 0) {
+    return value => (value == null || value === 0 ? "transparent" : colors[0])
+  }
+
   const step = max / (colors.length - 1)
   const getLinearColor = scaleLinear()
     .domain(Array.from({ length: colors.length - 1 }, (_, i) => i * step))
     .range(colors)
 
-  return value => (!value ? "transparent" : getLinearColor(value))
+  return value => (value == null || value === 0 ? "transparent" : getLinearColor(value))
 }
 
 export const useGetColor = (opacity = 1) => {
@@ -50,4 +55,36 @@ export const useGetColor = (opacity = 1) => {
 }
 
 export const withoutPrefix = label =>
-  label ? label.replace(/.+_(\d+?\.?(\d+)?|\+[Ii]nf)$/, "$1") : label
+  label ? label.replace(/.+_(-?\d+?\.?(\d+)?|\+[Ii]nf)$/, "$1") : label
+
+export const cropHeatmapZeroEdges = (ids, isZeroOnly, minVisible = 5) => {
+  if (!Array.isArray(ids) || typeof isZeroOnly !== "function" || ids.length <= minVisible)
+    return ids
+
+  const zeroOnly = ids.map(isZeroOnly)
+  const firstNonZero = zeroOnly.findIndex(isZero => !isZero)
+
+  if (firstNonZero === -1) return ids
+
+  let lastNonZero = zeroOnly.length - 1
+  while (lastNonZero >= 0 && zeroOnly[lastNonZero]) lastNonZero--
+
+  let first = firstNonZero > 0 ? firstNonZero - 1 : firstNonZero
+  let last = lastNonZero < ids.length - 1 ? lastNonZero + 1 : lastNonZero
+  const targetLength = Math.min(minVisible, ids.length)
+
+  while (last - first + 1 < targetLength) {
+    const bottomDistance = firstNonZero - first
+    const topDistance = last - lastNonZero
+
+    if (first > 0 && (last === ids.length - 1 || bottomDistance <= topDistance)) {
+      first--
+    } else if (last < ids.length - 1) {
+      last++
+    } else {
+      break
+    }
+  }
+
+  return ids.slice(first, last + 1)
+}

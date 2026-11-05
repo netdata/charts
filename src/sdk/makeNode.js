@@ -121,7 +121,7 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
       ...attributes,
       overlays: { ...parentAttributes.overlays, ...attributes.overlays },
     }
-    updateIntls(attributes.timezone)
+    updateIntls(attributes.timezone, attributes.locale)
   }
 
   const moveY = (min, max) => {
@@ -172,17 +172,53 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     const pristineValue = getAttribute("pristineStaticValueRange")
     if (pristineValue !== undefined) return resetStaticValueRange()
 
-    moveX(-900)
+    moveX(getAttribute("liveAfter"))
   }
 
-  updateIntls(getAttribute("timezone"))
-  onAttributeChange("timezone", updateIntls)
+  updateIntls(getAttribute("timezone"), getAttribute("locale"))
+  onAttributeChange("timezone", tz => updateIntls(tz, getAttribute("locale")))
+  onAttributeChange("locale", locale => updateIntls(getAttribute("timezone"), locale))
+
+  const pauseReasons = new Map()
+  const computeAggregatePaused = () => {
+    const blurReason = !getAttribute("autofetchOnWindowBlur") && getAttribute("blurred")
+    return Boolean(blurReason) || pauseReasons.size > 0
+  }
+  const applyAggregatePaused = () => {
+    updateAttribute("paused", computeAggregatePaused())
+  }
+  const addPauseReason = (reasonId, reasonType = "interaction") => {
+    if (!reasonId) return
+    pauseReasons.set(reasonId, reasonType)
+    applyAggregatePaused()
+  }
+  const removePauseReason = reasonId => {
+    if (!reasonId) return
+    if (!pauseReasons.delete(reasonId)) return
+    applyAggregatePaused()
+  }
+  const removePauseReasonsByType = reasonType => {
+    let removed = false
+    pauseReasons.forEach((type, reasonId) => {
+      if (type !== reasonType) return
+
+      pauseReasons.delete(reasonId)
+      removed = true
+    })
+    if (removed) applyAggregatePaused()
+  }
+  const getPauseReasons = () =>
+    Array.from(pauseReasons, ([reasonId, reasonType]) => ({ reasonId, reasonType }))
+  const reconcilePlaybackState = (options = {}) => sdk.trigger("reconcilePlaybackState", options)
+  onAttributeChange("blurred", applyAggregatePaused)
+  onAttributeChange("autofetchOnWindowBlur", applyAggregatePaused)
 
   const destroy = () => {
     if (parent) parent.removeChild(getId())
 
     listeners.offAll()
     attributeListeners.offAll()
+    pauseReasons.clear()
     setTimeout(() => (parent = null), 2000)
     destroyIntls()
   }
@@ -219,6 +255,11 @@ export default ({ sdk, parent = null, attributes: initialAttributes }) => {
     formatTime,
     formatDate,
     formatXAxis,
+    addPauseReason,
+    removePauseReason,
+    removePauseReasonsByType,
+    getPauseReasons,
+    reconcilePlaybackState,
   }
 
   return instance

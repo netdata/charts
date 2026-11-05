@@ -3,7 +3,7 @@ import { calculateAllStats } from "@/helpers/statistics"
 export const calculateStats = (payload, highlightRange = null) => {
   if (!payload?.data?.length) return null
 
-  const { data } = payload
+  const { data, viewUpdateEvery = 1 } = payload
 
   const filteredData = highlightRange
     ? data.filter(row => {
@@ -16,17 +16,21 @@ export const calculateStats = (payload, highlightRange = null) => {
 
   if (!filteredData.length) return null
 
-  const values = filteredData.flatMap(row =>
-    row.slice(1).filter(val => val !== null && !isNaN(val) && isFinite(val))
-  )
+  const values = filteredData.reduce((acc, row) => {
+    const dims = row.slice(1).filter(val => val !== null && !isNaN(val) && isFinite(val))
+    if (dims.length) acc.push(dims.reduce((a, b) => a + Math.abs(b), 0))
+    return acc
+  }, [])
 
   if (!values.length) return null
 
-  const stats = calculateAllStats(values)
+  const dimensions = filteredData[0]?.length - 1 || 0
+  const stats = calculateAllStats(values, values.length, viewUpdateEvery)
 
   return {
     ...stats,
     points: filteredData.length,
+    dimensions,
   }
 }
 
@@ -47,6 +51,26 @@ export const calculatePercentageChange = (current, base) => {
     direction: !change ? "neutral" : change > 0 ? "up" : "down",
     formatted: `${Math.abs(change).toFixed(1)}%`,
   }
+}
+
+const SYNTHETIC_LABELS = new Set(["ANOMALY_RATE", "ANNOTATIONS"])
+
+export const extractDimensionValues = (payload, rowIndex = -1) => {
+  if (!payload?.data?.length || !Array.isArray(payload.labels)) return null
+  const { data, labels } = payload
+  const idx = rowIndex < 0 ? data.length + rowIndex : rowIndex
+  const row = data[idx]
+  if (!row) return null
+
+  const bag = {}
+  for (let i = 1; i < labels.length; i++) {
+    const label = labels[i]
+    if (SYNTHETIC_LABELS.has(label)) continue
+    const value = row[i]
+    if (value == null) continue
+    bag[label] = Number(value) || 0
+  }
+  return bag
 }
 
 export const calculateComparisons = periods => {

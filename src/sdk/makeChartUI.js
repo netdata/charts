@@ -1,15 +1,53 @@
 import makeListeners from "@/helpers/makeListeners"
-import makeExecuteLatest from "@/helpers/makeExecuteLatest"
 
 export default (sdk, chart) => {
   const listeners = makeListeners()
-  const executeLatest = makeExecuteLatest()
 
   let element = null
+  let mounted = false
   let renderedAt = chart.getDateWindow()[1]
+  let uiRenderRevision = 0
+  let renderedUIRevision = -1
+  let renderedChartRevision = -1
+  let offVisibleDimensionsChanged = null
+
+  const getChartRenderRevision = () => chart.getRenderRevision?.() ?? 0
+
+  const invalidateRender = () => {
+    uiRenderRevision += 1
+    return uiRenderRevision
+  }
+
+  const isRenderStale = () =>
+    renderedUIRevision !== uiRenderRevision || renderedChartRevision !== getChartRenderRevision()
+
+  const render = () => {
+    renderedAt = chart.getDateWindow()[1]
+    renderedUIRevision = uiRenderRevision
+    renderedChartRevision = getChartRenderRevision()
+    return true
+  }
+
+  const renderIfStale = callback => {
+    if (!mounted || !isRenderStale()) return false
+
+    const rendered = callback()
+    if (rendered === false) return false
+
+    render()
+    return true
+  }
+
+  const listenForVisibleDimensions = () => {
+    if (offVisibleDimensionsChanged) return
+    offVisibleDimensionsChanged = chart.on("visibleDimensionsChanged", invalidateRender)
+  }
 
   const mount = el => {
     element = el
+    mounted = true
+    invalidateRender()
+    listenForVisibleDimensions()
 
     sdk.trigger("mountChartUI", chart)
     chart.trigger("mountChartUI")
@@ -19,13 +57,12 @@ export default (sdk, chart) => {
     sdk.trigger("unmountChartUI", chart)
     chart.trigger("unmountChartUI")
     listeners.offAll()
+    offVisibleDimensionsChanged?.()
+    offVisibleDimensionsChanged = null
     element = null
-    if (executeLatest) executeLatest.clear()
+    mounted = false
+    invalidateRender()
   }
-
-  const render = () => (renderedAt = chart.getDateWindow()[1])
-
-  chart.on("visibleDimensionsChanged", executeLatest.add(render))
 
   const getRenderedAt = () => renderedAt
 
@@ -42,6 +79,9 @@ export default (sdk, chart) => {
     mount,
     unmount,
     render,
+    renderIfStale,
+    invalidateRender,
+    isRenderStale,
     getRenderedAt,
     getElement,
     getChartWidth,

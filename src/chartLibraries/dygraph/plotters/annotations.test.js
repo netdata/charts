@@ -4,12 +4,15 @@ describe("annotations plotter", () => {
   let mockChartUI
   let mockPlotter
   let mockCtx
+  let fillAlphaValues
 
   beforeEach(() => {
+    fillAlphaValues = []
     mockCtx = {
       strokeStyle: "black",
       fillStyle: "black",
-      fillRect: jest.fn(),
+      globalAlpha: 1,
+      fillRect: jest.fn(() => fillAlphaValues.push(mockCtx.globalAlpha)),
       strokeRect: jest.fn(),
     }
 
@@ -73,6 +76,14 @@ describe("annotations plotter", () => {
 
     expect(mockCtx.fillRect).toHaveBeenCalled()
     expect(mockCtx.strokeRect).toHaveBeenCalled()
+  })
+
+  it("renders the annotation line with reduced intensity", () => {
+    const plotter = annotationsPlotter(mockChartUI)
+    plotter(mockPlotter)
+
+    expect(fillAlphaValues).toContain(0.45)
+    expect(mockCtx.globalAlpha).toBe(1)
   })
 
   it("processes points with selected legend dimensions", () => {

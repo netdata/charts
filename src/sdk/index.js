@@ -2,6 +2,8 @@ import makeListeners from "@/helpers/makeListeners"
 import makeContainer from "./makeContainer"
 import makeChart from "./makeChart"
 import initialAttributes from "./initialAttributes"
+import makeDataQuery from "./dataQuery"
+import { applyTimeSeriesRenderer } from "./makeChart/timeSeriesRenderer"
 
 export default ({
   ui,
@@ -56,6 +58,7 @@ export default ({
 
   const makeSDKChart = (options = {}) => {
     const chart = makeChartCore(options)
+    applyTimeSeriesRenderer(chart)
     const chartUi = makeChartUI(chart)
     chart.setUI({ ...chartUi, ...options.ui }, "default")
 
@@ -72,6 +75,8 @@ export default ({
 
   const removeChild = id => root.removeChild(id)
 
+  const queryData = makeDataQuery({ getAttributes: () => root.getAttributes() })
+
   const instance = {
     ...listeners,
     getRoot,
@@ -86,6 +91,7 @@ export default ({
     getNodes,
     appendChild,
     removeChild,
+    queryData,
     version,
     ui,
   }

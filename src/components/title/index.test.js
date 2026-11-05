@@ -1,7 +1,8 @@
 import React from "react"
-import { screen } from "@testing-library/react"
+import { screen, act } from "@testing-library/react"
 import "@testing-library/jest-dom"
-import { renderWithChart } from "@jest/testUtilities"
+import { DarkTheme, DefaultTheme } from "@netdata/netdata-ui"
+import { renderWithChart, simulateTranslate, collectRenderErrors } from "@jest/testUtilities"
 import { Title } from "./index"
 
 describe("Title component", () => {
@@ -15,7 +16,10 @@ describe("Title component", () => {
       },
     })
 
-    expect(screen.getByText("CPU Usage")).toBeInTheDocument()
+    expect(screen.getByText("CPU Usage")).toHaveStyle({
+      color: DefaultTheme.colors.text,
+      fontWeight: 600,
+    })
     expect(screen.getByText(/system\.cpu/)).toBeInTheDocument()
   })
 
@@ -34,6 +38,51 @@ describe("Title component", () => {
 
     expect(screen.getByText("Memory Usage")).toBeInTheDocument()
     expect(screen.getByText(/\[.*\]/)).toBeInTheDocument() // Units in brackets
+  })
+
+  it("uses the strong chart-title color in the dark theme", () => {
+    renderWithChart(<Title />, {
+      theme: DarkTheme,
+      attributes: {
+        title: "CPU Usage",
+      },
+    })
+
+    expect(screen.getByText("CPU Usage")).toHaveStyle({
+      color: DarkTheme.colors.text,
+      fontWeight: 600,
+    })
+  })
+
+  it("shows the normalized base unit for pre-scaled source units", () => {
+    renderWithChart(<Title />, {
+      attributes: {
+        title: "Memory Usage",
+        name: "system.memory",
+        isMinimal: false,
+        units: ["KiBy"],
+        unitsCurrent: ["KiBy"],
+        unitsConversionBase: ["By"],
+        unitsConversionPrefix: ["Ki"],
+      },
+    })
+
+    expect(screen.getByText(/\[bytes\]/)).toBeInTheDocument()
+    expect(screen.queryByText(/\[kibibytes\]/)).not.toBeInTheDocument()
+  })
+
+  it("shows items for the unknown source-unit sentinel", () => {
+    renderWithChart(<Title />, {
+      attributes: {
+        title: "Generic Count",
+        name: "system.generic_count",
+        isMinimal: false,
+        units: ["unknown"],
+      },
+    })
+
+    expect(screen.getByText(/\[items\]/)).toBeInTheDocument()
+    expect(screen.queryByText(/\[unknown\]/)).not.toBeInTheDocument()
   })
 
   it("hides name and units when isMinimal is true", () => {
@@ -159,5 +208,47 @@ describe("Title component", () => {
     const titleElement = screen.getByText(/This is a very long title/)
     // TextSmall component should have truncate prop
     expect(titleElement).toBeInTheDocument()
+  })
+
+  it("hides the context name when hideName is true", () => {
+    renderWithChart(<Title />, {
+      attributes: {
+        title: "CPU Usage",
+        name: "system.cpu",
+        isMinimal: false,
+        hideName: true,
+      },
+    })
+
+    expect(screen.getByText("CPU Usage")).toBeInTheDocument()
+    expect(screen.queryByText(/system\.cpu/)).not.toBeInTheDocument()
+  })
+
+  it("hides the units when hideUnits is true", () => {
+    renderWithChart(<Title />, {
+      attributes: {
+        title: "Memory Usage",
+        name: "system.memory",
+        isMinimal: false,
+        units: ["%"],
+        hideUnits: true,
+      },
+    })
+
+    expect(screen.getByText("Memory Usage")).toBeInTheDocument()
+    expect(screen.queryByText(/\[.*\]/)).not.toBeInTheDocument()
+  })
+
+  it("survives page translation when the title arrives after the name", () => {
+    const { container, chart } = renderWithChart(<Title />, {
+      attributes: { title: "", name: "system.cpu", isMinimal: false },
+    })
+    simulateTranslate(container)
+
+    expect(
+      collectRenderErrors(() => act(() => chart.updateAttribute("title", "CPU Usage")))
+    ).toEqual([])
+    expect(screen.getByText(/system\.cpu/).textContent).toBe("• system.cpu")
+    expect(screen.getByTestId("chartHeaderStatus-title").textContent).toBe("CPU Usage• system.cpu")
   })
 })

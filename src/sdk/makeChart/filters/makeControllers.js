@@ -1,35 +1,16 @@
 import deepEqual from "@/helpers/deepEqual"
 import pristine, { pristineKey } from "@/sdk/pristine"
-import getInitialFilterAttributes, { stackedAggregations } from "./getInitialAttributes"
+import getInitialFilterAttributes from "./getInitialAttributes"
 import { isHeatmap } from "@/helpers/heatmap"
 import makeLog from "@/sdk/makeLog"
+import { applyTimeSeriesRenderer } from "@/sdk/makeChart/timeSeriesRenderer"
 
 export default chart => {
-  const chartType = chart.getAttribute("chartType")
-  let prevChartType = chartType
-
   const log = ({ value, ...rest }) =>
     makeLog(chart)({
       ...rest,
       value: value && typeof value !== "string" ? JSON.stringify(value) : value,
     })
-
-  const onGroupChange = groupBy => {
-    chart.updateAttribute("selectedLegendDimensions", [])
-    if (chart.getAttribute("selectedChartType")) return
-
-    if (groupBy.length > 1 || groupBy[0] !== "dimension") {
-      prevChartType = prevChartType || chart.getAttribute("chartType")
-      const aggregationMethod = chart.getAttribute("aggregationMethod")
-      return chart.updateAttribute(
-        "chartType",
-        stackedAggregations[aggregationMethod] ? "stacked" : chartType
-      )
-    } else {
-      chart.updateAttributes({ chartType: prevChartType, processing: true })
-    }
-    prevChartType = chartType
-  }
 
   const allowedGroupByValues = {
     node: true,
@@ -85,8 +66,9 @@ export default chart => {
     const changed = baseUpdateGroupBy(selected, {})
     if (!changed) return
 
+    chart.updateAttribute("selectedLegendDimensions", [])
     chart.updateAttributes(getInitialFilterAttributes(chart))
-    chart.fetch({ processing: true }).then(() => onGroupChange(chart.getAttribute("groupBy")))
+    chart.fetch({ processing: true })
 
     log({
       chartAction: "chart-groupby-change",
@@ -138,18 +120,33 @@ export default chart => {
     table: true,
   }
 
+  const timeSeriesRenderers = ["dygraph", "uplot"]
+
+  const isTimeSeriesRenderer = chartLibrary =>
+    timeSeriesRenderers.includes(chartLibrary) ||
+    Object.values(chart.getAttribute("chartLibrariesByType") || {}).includes(chartLibrary)
+
+  const getRendererForChartType = chartType => {
+    const current = chart.getAttribute("chartLibrary")
+
+    return (
+      (chart.getAttribute("chartLibrariesByType") || {})[chartType] ||
+      (isTimeSeriesRenderer(current) ? current : "dygraph")
+    )
+  }
+
   const updateChartTypeAttribute = selected => {
     const prevChartLibrary = chart.getAttribute("chartLibrary")
     const prevGroupBy = chart.getAttribute("groupBy")
 
     if (!chartLibraries[selected]) {
       chart.updateAttributes({
-        chartLibrary: "dygraph",
-        selectedChartType: selected,
+        chartLibrary: getRendererForChartType(selected),
         chartType: selected,
         processing: true,
       })
-      if (prevChartLibrary !== "dygraph") {
+      applyTimeSeriesRenderer(chart)
+      if (prevChartLibrary !== chart.getAttribute("chartLibrary")) {
         chart.getUI().unmount()
         chart.setUI({ ...chart.sdk.makeChartUI(chart), ...(chart.ui || {}) }, "default")
       }
@@ -366,6 +363,8 @@ export default chart => {
     updateGroupByAttribute,
     updatePostGroupByAttribute,
     updateChartTypeAttribute,
+    getRendererForChartType,
+    isTimeSeriesRenderer,
     updateNodesAttribute,
     updateInstancesAttribute,
     updateDimensionsAttribute,

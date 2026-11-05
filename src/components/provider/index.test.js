@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { renderWithChart, makeTestChart } from "@jest/testUtilities"
 import ChartProvider, { withChartProvider } from "./index"
-import { useChart } from "./selectors"
+import { convert, useChart } from "./selectors"
 
 describe("ChartProvider", () => {
   it("provides chart context to children", () => {
@@ -70,7 +70,7 @@ describe("withChartProvider", () => {
   it("excludes chart prop from passed props", () => {
     const { chart } = makeTestChart()
 
-    const TestComponent = ({ chart: propChart, ...props }) => {
+    const TestComponent = ({ chart: propChart }) => {
       const contextChart = useChart()
       return (
         <div>
@@ -86,5 +86,38 @@ describe("withChartProvider", () => {
 
     expect(screen.getByTestId("context-chart")).toHaveTextContent(chart.getId())
     expect(screen.getByTestId("prop-chart")).toHaveTextContent("no prop chart")
+  })
+})
+
+describe("convert", () => {
+  it("scales a displayed value independently from the dimension time-series scale", () => {
+    const { chart } = makeTestChart({
+      attributes: {
+        units: ["operations/s"],
+        desiredUnits: ["auto"],
+        viewDimensions: {
+          ids: ["spiky"],
+          names: ["spiky"],
+          units: ["operations/s"],
+          contexts: ["storybook.units_scaling"],
+        },
+        dimensionIds: ["spiky"],
+        visibleDimensionIds: ["spiky"],
+      },
+    })
+
+    chart.updateDimensions()
+
+    const spikeAttributes = chart.getUnitAttributesForValue(10000000, {
+      dimensionId: "spiky",
+    })
+
+    chart.updateAttribute("unitsByDimension", {
+      spiky: spikeAttributes,
+    })
+
+    expect(convert(chart, 95.9, { dimensionId: "spiky" })).toBe("0.0001")
+    expect(convert(chart, 95.9, { dimensionId: "spiky", scaleByValue: true })).toBe("95.9")
+    expect(convert(chart, 10000000, { dimensionId: "spiky", scaleByValue: true })).toBe("10")
   })
 })

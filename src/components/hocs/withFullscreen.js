@@ -1,14 +1,15 @@
 import React from "react"
 import { Flex, Layer } from "@netdata/netdata-ui"
-import { useAttributeValue } from "@/components/provider"
+import { useAttributeValue, useChart } from "@/components/provider"
 
 const Fullscreen = ({ children }) => {
+  const chart = useChart()
   const fullscreen = useAttributeValue("fullscreen")
 
   if (!fullscreen) return children
 
   return (
-    <Layer full>
+    <Layer full onEsc={chart.toggleFullscreen}>
       <Flex background="mainBackground" flex width={{ max: "inherit" }} padding={[4]}>
         {children}
       </Flex>

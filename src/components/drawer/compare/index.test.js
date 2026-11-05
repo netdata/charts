@@ -3,12 +3,9 @@ import { screen, fireEvent } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { renderWithChart } from "@jest/testUtilities"
 import Compare from "./index"
-import { useComparisonData } from "./useComparisonData"
-
-jest.mock("./useComparisonData")
 
 describe("Compare", () => {
-  const mockPeriods = [
+  const periods = [
     {
       id: "selected",
       label: "Selected timeframe",
@@ -21,13 +18,6 @@ describe("Compare", () => {
           [2, 60, 40],
         ],
         dimensions: ["cpu", "memory"],
-      },
-      stats: {
-        min: 30,
-        avg: 45,
-        max: 60,
-        points: 2,
-        dimensions: 2,
       },
       error: null,
     },
@@ -43,20 +33,6 @@ describe("Compare", () => {
         ],
         dimensions: ["cpu", "memory"],
       },
-      stats: {
-        min: 25,
-        avg: 40,
-        max: 55,
-        points: 2,
-        dimensions: 2,
-      },
-      changes: {
-        min: { value: 16.7, direction: "down", formatted: "16.7%" },
-        avg: { value: 11.1, direction: "down", formatted: "11.1%" },
-        max: { value: 8.3, direction: "down", formatted: "8.3%" },
-        points: { value: 0, direction: "up", formatted: "0%" },
-        dimensions: { value: 0, direction: "up", formatted: "0%" },
-      },
       error: null,
     },
     {
@@ -65,99 +41,78 @@ describe("Compare", () => {
       after: 1644854625,
       before: 1644854685,
       payload: null,
-      stats: null,
       error: "Failed to fetch data",
     },
   ]
 
-  beforeEach(() => {
-    jest.clearAllMocks()
-    useComparisonData.mockReturnValue({
-      periods: mockPeriods,
-      loading: false,
-      error: null,
+  const defaultAttributes = {
+    comparePeriods: periods,
+    compareLoading: false,
+    compareError: null,
+    drawer: { action: "compare", tab: "window", showAdvancedStats: false },
+  }
+
+  const renderCompare = (attributes = {}) =>
+    renderWithChart(<Compare />, {
+      attributes: {
+        ...defaultAttributes,
+        ...attributes,
+        drawer: {
+          ...defaultAttributes.drawer,
+          ...attributes.drawer,
+        },
+      },
     })
-  })
 
   it("renders comparison cards for each period", () => {
-    renderWithChart(<Compare />)
+    renderCompare()
 
     expect(screen.getByText("Selected timeframe")).toBeInTheDocument()
     expect(screen.getByText("24 hours before")).toBeInTheDocument()
     expect(screen.getByText("7 days before")).toBeInTheDocument()
   })
 
-  it("displays formatted date ranges for each period", () => {
-    renderWithChart(<Compare />)
-
-    const dateRanges = screen.getAllByText(/→/)
-    expect(dateRanges).toHaveLength(3)
-  })
-
-  it("shows data points and dimensions for loaded periods", () => {
-    renderWithChart(<Compare />)
-
-    const dataPointsElements = screen.getAllByText("Data Points")
-    const dimensionsElements = screen.getAllByText("Dimensions")
-
-    expect(dataPointsElements).toHaveLength(2)
-    expect(dimensionsElements).toHaveLength(2)
-    expect(screen.getAllByText("2")).toHaveLength(4)
-  })
-
   it("shows error state for failed periods", () => {
-    renderWithChart(<Compare />)
+    renderCompare()
 
     expect(screen.getByText("Error loading data")).toBeInTheDocument()
   })
 
-  it("shows loading state when comparison data is loading", () => {
-    useComparisonData.mockReturnValue({
-      periods: [],
-      loading: true,
-      error: null,
-    })
-
-    renderWithChart(<Compare />)
-
-    expect(screen.getByText("Loading comparison data...")).toBeInTheDocument()
-  })
-
   it("shows error message when hook returns error", () => {
     const error = "Network connection failed"
-    useComparisonData.mockReturnValue({
-      periods: [],
-      loading: false,
-      error,
-    })
-
-    renderWithChart(<Compare />)
+    renderCompare({ compareError: error })
 
     expect(screen.getByText(`Error: ${error}`)).toBeInTheDocument()
   })
 
   it("shows custom period selector when periods are loaded", () => {
-    renderWithChart(<Compare />)
+    renderCompare()
 
     expect(screen.getByText("Custom")).toBeInTheDocument()
     expect(screen.getByText("Select a timeframe")).toBeInTheDocument()
   })
 
-  it("does not show custom period selector when no periods loaded", () => {
-    useComparisonData.mockReturnValue({
-      periods: [],
-      loading: false,
-      error: null,
-    })
+  it("uses the design-system scale for its grid, card, change, and edit icon", () => {
+    renderCompare()
 
-    renderWithChart(<Compare />)
+    expect(screen.getByTestId("comparison-grid")).toHaveStyle(
+      "display: grid; gap: 12px; grid-template-columns: repeat(auto-fill,minmax(260px,1fr))"
+    )
+    expect(screen.getByTestId("custom-period-card")).toHaveStyle("min-height: 144px")
 
-    expect(screen.queryByText("Custom")).not.toBeInTheDocument()
-    expect(screen.queryByText("Select a timeframe")).not.toBeInTheDocument()
+    const editIcon = screen.getAllByTestId("period-edit")[0].querySelector("svg")
+    expect(editIcon).toHaveStyle({ height: "12px", width: "12px" })
+  })
+
+  it("shows custom period selector even when no periods loaded", () => {
+    renderCompare({ comparePeriods: [] })
+
+    expect(screen.getByText("Custom")).toBeInTheDocument()
+    expect(screen.getByText("Select a timeframe")).toBeInTheDocument()
   })
 
   it("shows min, avg, max values for periods with data", () => {
-    renderWithChart(<Compare />)
+    renderCompare()
 
     const minElements = screen.getAllByText("Min")
     const avgElements = screen.getAllByText("Avg")
@@ -180,20 +135,14 @@ describe("Compare", () => {
       },
     ]
 
-    useComparisonData.mockReturnValue({
-      periods: periodsWithoutPayload,
-      loading: false,
-      error: null,
-    })
+    renderCompare({ comparePeriods: periodsWithoutPayload })
 
-    renderWithChart(<Compare />)
-
-    expect(screen.getByText("Loading...")).toBeInTheDocument()
+    expect(screen.getByText("No data available for the selected time range")).toBeInTheDocument()
   })
 
   describe("Custom Period Form", () => {
     it("shows custom period form when button is clicked", () => {
-      renderWithChart(<Compare />)
+      renderCompare()
 
       fireEvent.click(screen.getByText("Select a timeframe"))
 
@@ -204,7 +153,7 @@ describe("Compare", () => {
     })
 
     it("hides custom period selector when form is shown", () => {
-      renderWithChart(<Compare />)
+      renderCompare()
 
       fireEvent.click(screen.getByText("Select a timeframe"))
 
@@ -213,7 +162,7 @@ describe("Compare", () => {
     })
 
     it("cancels form and shows selector again", () => {
-      renderWithChart(<Compare />)
+      renderCompare()
 
       fireEvent.click(screen.getByText("Select a timeframe"))
       fireEvent.click(screen.getByRole("button", { name: "Cancel" }))
@@ -224,8 +173,7 @@ describe("Compare", () => {
     })
 
     it("adds custom period and updates chart attribute", () => {
-      const { chart } = renderWithChart(<Compare />)
-      const updateAttributeSpy = jest.spyOn(chart, "updateAttribute")
+      const { chart } = renderCompare()
 
       fireEvent.click(screen.getByText("Select a timeframe"))
 
@@ -236,8 +184,7 @@ describe("Compare", () => {
       fireEvent.change(numberInputs[0], { target: { value: "3" } })
       fireEvent.click(screen.getByRole("button", { name: "Add" }))
 
-      expect(updateAttributeSpy).toHaveBeenCalledWith(
-        "customPeriods",
+      expect(chart.getAttribute("customPeriods")).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
             id: expect.stringMatching(/^custom_\d+$/),
@@ -247,16 +194,11 @@ describe("Compare", () => {
         ])
       )
       expect(screen.queryByText("Add Custom Period")).not.toBeInTheDocument()
-
-      updateAttributeSpy.mockRestore()
     })
 
     it("appends to existing custom periods", () => {
       const existingPeriods = [{ id: "existing", label: "Existing", offsetSeconds: 3600 }]
-      const { chart } = renderWithChart(<Compare />)
-
-      chart.updateAttribute("customPeriods", existingPeriods)
-      const updateAttributeSpy = jest.spyOn(chart, "updateAttribute")
+      const { chart } = renderCompare({ customPeriods: existingPeriods })
 
       fireEvent.click(screen.getByText("Select a timeframe"))
 
@@ -267,7 +209,7 @@ describe("Compare", () => {
       fireEvent.change(numberInputs[1], { target: { value: "6" } })
       fireEvent.click(screen.getByRole("button", { name: "Add" }))
 
-      expect(updateAttributeSpy).toHaveBeenCalledWith("customPeriods", [
+      expect(chart.getAttribute("customPeriods")).toEqual([
         ...existingPeriods,
         expect.objectContaining({
           id: expect.stringMatching(/^custom_\d+$/),
@@ -275,26 +217,50 @@ describe("Compare", () => {
           offsetSeconds: 21600,
         }),
       ])
-
-      updateAttributeSpy.mockRestore()
     })
   })
 
-  describe("ComparisonCard", () => {
-    it("shows correct data metrics for successful periods", () => {
-      renderWithChart(<Compare />)
+  describe("Volume visibility", () => {
+    const periodsWithVolume = [
+      {
+        id: "selected",
+        label: "Selected timeframe",
+        after: 1645459425,
+        before: 1645459485,
+        isBase: true,
+        payload: { data: [[1, 50, 30]], dimensions: ["a", "b"] },
+        error: null,
+      },
+    ]
 
-      expect(screen.getAllByText("2")).toHaveLength(4)
-      expect(screen.getAllByText("Min")).toHaveLength(2)
-      expect(screen.getAllByText("Avg")).toHaveLength(2)
-      expect(screen.getAllByText("Max")).toHaveLength(2)
+    it("shows volume for rate units ending with /s", () => {
+      renderCompare({
+        comparePeriods: periodsWithVolume,
+        units: ["kilobits/s"],
+        drawer: { showAdvancedStats: true },
+      })
+
+      expect(screen.getByText("Volume")).toBeInTheDocument()
     })
 
-    it("formats date ranges correctly", () => {
-      renderWithChart(<Compare />)
+    it("hides volume for non-rate units", () => {
+      renderCompare({
+        comparePeriods: periodsWithVolume,
+        units: ["%"],
+        drawer: { showAdvancedStats: true },
+      })
 
-      const dateRanges = screen.getAllByText(/→/)
-      expect(dateRanges).toHaveLength(3)
+      expect(screen.queryByText("Volume")).not.toBeInTheDocument()
+    })
+
+    it("hides volume when units is empty", () => {
+      renderCompare({
+        comparePeriods: periodsWithVolume,
+        units: [""],
+        drawer: { showAdvancedStats: true },
+      })
+
+      expect(screen.queryByText("Volume")).not.toBeInTheDocument()
     })
   })
 })

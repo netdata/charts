@@ -1,18 +1,21 @@
 import React from "react"
-import styled, { keyframes } from "styled-components"
+import styled from "styled-components"
 import { Flex, Text, getColor } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
 import {
   useChart,
-  useUnitSign,
   useAttributeValue,
   useOnResize,
-  useLatestConvertedValue,
-  useDimensionIds,
+  useLatestDisplayValueWithUnit,
+  useValueWithUnit,
+  useVisibleDimensionIds,
+  useIsModern,
 } from "@/components/provider"
 import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
+import { ModernGauge } from "@/components/modern/gauge"
 import textAnimation from "../helpers/textAnimation"
+import { RingSkeleton } from "@/components/skeleton"
 
 const Label = styled(Text)`
   line-height: 1;
@@ -30,7 +33,8 @@ const StrokeLabel = styled(Label)`
 `
 
 export const Value = () => {
-  const value = useLatestConvertedValue("selected")
+  const [dimensionId] = useVisibleDimensionIds()
+  const { convertedValue: value } = useLatestDisplayValueWithUnit(dimensionId)
 
   return (
     <StrokeLabel flex="2" color="text" fontSize="2em" strong>
@@ -40,8 +44,8 @@ export const Value = () => {
 }
 
 export const Unit = () => {
-  const [firstDimId] = useDimensionIds()
-  const unit = useUnitSign({ dimensionId: firstDimId })
+  const [dimensionId] = useVisibleDimensionIds()
+  const { convertedUnit: unit } = useLatestDisplayValueWithUnit(dimensionId)
   return (
     <Label color="textLite" fontSize="1em">
       {unit}
@@ -51,12 +55,24 @@ export const Unit = () => {
 
 export const Bound = ({ empty, index, uiName, ...rest }) => {
   const chart = useChart()
-  const minMax = chart.getUI(uiName).getMinMax()
+  const [dimensionId] = useVisibleDimensionIds()
+  const minMax = chart.getUI(uiName).getMinMax?.()
+  const { convertedValue, convertedUnit } = useValueWithUnit(minMax?.[index], {
+    dimensionId,
+    scaleByValue: true,
+  })
 
   return (
-    <Label color="textLite" fontSize="1.3em" {...rest}>
-      {empty ? "-" : chart.getConvertedValue(minMax[index])}
-    </Label>
+    <Flex alignItems="center" gap={1} {...rest}>
+      <Label color="textLite" fontSize="1.3em">
+        {empty ? "-" : convertedValue}
+      </Label>
+      {!empty && !!convertedUnit && (
+        <Label color="textLite" fontSize="1em">
+          {convertedUnit}
+        </Label>
+      )}
+    </Flex>
   )
 }
 
@@ -106,23 +122,13 @@ export const Stats = ({ uiName }) => {
   )
 }
 
-const frames = keyframes`
-  from { opacity: 0.2; }
-  to { opacity: 0.6; }
-`
-
-export const Skeleton = styled(Flex).attrs(props => ({
-  background: "borderSecondary",
-  round: "100%",
-  width: "100%",
-  height: "100%",
-  ...props,
-}))`
-  animation: ${frames} 1.6s ease-in infinite;
-`
+export const Skeleton = () => <RingSkeleton gauge thickness={6} width="100%" height="100%" />
 
 export const Gauge = ({ uiName, ref, ...rest }) => {
   const loaded = useAttributeValue("loaded")
+  const isModern = useIsModern()
+
+  if (isModern) return <ModernGauge uiName={uiName} ref={ref} {...rest} />
 
   return (
     <ChartWrapper alignItems="center" justifyContent="center" column ref={ref} gap={0}>

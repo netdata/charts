@@ -1,8 +1,11 @@
 import React from "react"
-import { render, screen, waitFor } from "@testing-library/react"
+import { screen, waitFor } from "@testing-library/react"
 import "@testing-library/jest-dom"
-import { renderWithChart } from "@jest/testUtilities"
-import Tooltip, { withTooltip, tooltipStyleProps } from "./index"
+import { DefaultTheme } from "@netdata/netdata-ui"
+import { renderWithChart, inkOf, bubblesAround } from "@jest/testUtilities"
+import Tooltip, { withTooltip } from "./index"
+
+const { tooltip, tooltipText } = DefaultTheme.colors
 
 describe("Tooltip component", () => {
   it("renders tooltip when content is provided", () => {
@@ -49,18 +52,6 @@ describe("Tooltip component", () => {
     })
   })
 
-  it("uses custom Content component when provided", () => {
-    const CustomContent = ({ children }) => <div data-testid="custom-content">{children}</div>
-
-    renderWithChart(
-      <Tooltip content="Custom tooltip" Content={CustomContent}>
-        <button>Button</button>
-      </Tooltip>
-    )
-
-    expect(screen.getByText("Button")).toBeInTheDocument()
-  })
-
   it("passes dropProps with data-toolbox", () => {
     renderWithChart(
       <Tooltip content="Test" data-toolbox="test-id">
@@ -71,7 +62,7 @@ describe("Tooltip component", () => {
     expect(screen.getByText("Button")).toBeInTheDocument()
   })
 
-  it("applies tooltip style props to default content", async () => {
+  it("draws a string in the kit tooltip bubble with the tooltip ink", async () => {
     const { user } = renderWithChart(
       <Tooltip content="Styled tooltip">
         <button>Hover me</button>
@@ -80,8 +71,27 @@ describe("Tooltip component", () => {
 
     await user.hover(screen.getByText("Hover me"))
 
-    const tooltipContent = await screen.findByText("Styled tooltip")
-    expect(tooltipContent).toBeInTheDocument()
+    const text = await screen.findByText("Styled tooltip")
+    const bubbles = bubblesAround(text, tooltip)
+    expect(bubbles).toHaveLength(1)
+    expect(getComputedStyle(bubbles[0]).borderRadius).toBe("6px")
+    expect(inkOf(text)).toBe(tooltipText.toUpperCase())
+  })
+
+  it("formats a { title, description } object through the kit bubble", async () => {
+    const { user } = renderWithChart(
+      <Tooltip content={{ title: "Heading", description: "Details" }}>
+        <button>Hover me</button>
+      </Tooltip>
+    )
+
+    await user.hover(screen.getByText("Hover me"))
+
+    const title = await screen.findByText("Heading")
+    const description = await screen.findByText("Details")
+    expect(bubblesAround(title, tooltip)).toHaveLength(1)
+    expect(inkOf(title)).toBe(tooltipText.toUpperCase())
+    expect(inkOf(description)).toBe(tooltipText.toUpperCase())
   })
 
   it("respects disabled prop", async () => {
@@ -95,6 +105,41 @@ describe("Tooltip component", () => {
 
     // Tooltip should not appear when disabled
     expect(screen.queryByText("Should not show")).not.toBeInTheDocument()
+  })
+
+  it("keeps the same child DOM node when content toggles empty/non-empty", () => {
+    const { rerender } = renderWithChart(
+      <Tooltip content="">
+        <button data-testid="target">Target</button>
+      </Tooltip>
+    )
+    const initial = screen.getByTestId("target")
+
+    rerender(
+      <Tooltip content="Now with content">
+        <button data-testid="target">Target</button>
+      </Tooltip>
+    )
+    expect(screen.getByTestId("target")).toBe(initial)
+
+    rerender(
+      <Tooltip content="">
+        <button data-testid="target">Target</button>
+      </Tooltip>
+    )
+    expect(screen.getByTestId("target")).toBe(initial)
+  })
+
+  it("shows no tooltip on hover when content is empty", async () => {
+    const { user } = renderWithChart(
+      <Tooltip content="">
+        <button>Hover target</button>
+      </Tooltip>
+    )
+
+    await user.hover(screen.getByText("Hover target"))
+
+    expect(screen.getByText("Hover target")).not.toHaveAttribute("aria-describedby")
   })
 })
 
@@ -140,16 +185,24 @@ describe("withTooltip HOC", () => {
 
     expect(screen.getByTestId("no-title")).toBeInTheDocument()
   })
-})
 
-describe("tooltipStyleProps", () => {
-  it("exports correct style properties", () => {
-    expect(tooltipStyleProps).toEqual({
-      padding: [1, 2],
-      margin: [2],
-      round: 1,
-      width: { max: "300px", base: "fit-content" },
-      background: "tooltip",
-    })
+  it("shows the title as tooltip content on hover", async () => {
+    const TestComponent = props => <button {...props}>Target</button>
+    const WrappedComponent = withTooltip(TestComponent)
+
+    const { user } = renderWithChart(<WrappedComponent title="Wrapped title" />)
+    await user.hover(screen.getByText("Target"))
+
+    expect(await screen.findByText("Wrapped title")).toBeInTheDocument()
+  })
+
+  it("shows no tooltip on hover when title is absent", async () => {
+    const TestComponent = props => <button {...props}>Target</button>
+    const WrappedComponent = withTooltip(TestComponent)
+
+    const { user } = renderWithChart(<WrappedComponent />)
+    await user.hover(screen.getByText("Target"))
+
+    expect(screen.getByText("Target")).not.toHaveAttribute("aria-describedby")
   })
 })

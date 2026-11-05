@@ -1,10 +1,14 @@
 import {
   getChartURLOptions,
   pointMultiplierByChartType,
+  getLiveFetchBefore,
   getChartPayload,
+  getChartDataRequestAttributes,
+  getWeightsWindow,
   errorCodesToMessage,
 } from "./helpers"
 import { makeTestChart } from "@jest/testUtilities"
+import { getWeightsBaseline } from "@/sdk/correlationBaseline"
 
 describe("API helpers", () => {
   describe("getChartURLOptions", () => {
@@ -64,6 +68,21 @@ describe("API helpers", () => {
       expect(result).not.toContain("nonzero")
     })
 
+    it("excludes nonzero for heatmap chart type", () => {
+      const { chart } = makeTestChart({
+        attributes: {
+          eliminateZeroDimensions: true,
+          urlOptions: [],
+          chartLibrary: "dygraph",
+          chartType: "heatmap",
+        },
+      })
+
+      const result = getChartURLOptions(chart)
+
+      expect(result).not.toContain("nonzero")
+    })
+
     it("includes group-by-labels for groupBoxes library", () => {
       const { chart } = makeTestChart({
         attributes: {
@@ -92,6 +111,16 @@ describe("API helpers", () => {
     })
   })
 
+  describe("getChartDataRequestAttributes", () => {
+    it("keeps the configured chart host when fetch attributes contain a host", () => {
+      const { chart } = makeTestChart({ attributes: { host: "configured-host" } })
+
+      const result = getChartDataRequestAttributes(chart, { host: "ignored-host" })
+
+      expect(result.host).toBe("configured-host")
+    })
+  })
+
   describe("pointMultiplierByChartType", () => {
     it("exports correct multipliers", () => {
       expect(pointMultiplierByChartType).toEqual({
@@ -101,6 +130,69 @@ describe("API helpers", () => {
         heatmap: 0.7,
         default: 0.7,
       })
+    })
+  })
+
+  describe("getLiveFetchBefore", () => {
+    it("rounds the live request anchor from fetchStartedAt", () => {
+      const result = getLiveFetchBefore({
+        after: -300,
+        renderedAt: null,
+        hovering: false,
+        fetchStartedAt: 1000500,
+        viewUpdateEvery: 0,
+      })
+
+      expect(result).toBe(1001)
+    })
+
+    it("uses renderedAt when the chart is hovering", () => {
+      const result = getLiveFetchBefore({
+        after: -300,
+        renderedAt: 1000000,
+        hovering: true,
+        fetchStartedAt: 1001500,
+        viewUpdateEvery: 0,
+      })
+
+      expect(result).toBe(1000)
+    })
+
+    it("does not anchor absolute windows", () => {
+      const result = getLiveFetchBefore({
+        after: 1000,
+        renderedAt: null,
+        hovering: false,
+        fetchStartedAt: 1000500,
+        viewUpdateEvery: 0,
+      })
+
+      expect(result).toBe(null)
+    })
+
+    it("does not anchor view update windows kept relative for the API", () => {
+      const result = getLiveFetchBefore({
+        after: -300,
+        renderedAt: null,
+        hovering: false,
+        fetchStartedAt: 1000500,
+        viewUpdateEvery: 600,
+      })
+
+      expect(result).toBe(null)
+    })
+
+    it("uses an explicit live request anchor for a frozen view update window", () => {
+      const result = getLiveFetchBefore({
+        after: -300,
+        renderedAt: null,
+        hovering: false,
+        fetchStartedAt: 1000500,
+        viewUpdateEvery: 600,
+        liveRequestBefore: 900.25,
+      })
+
+      expect(result).toBe(901)
     })
   })
 
@@ -201,6 +293,55 @@ describe("API helpers", () => {
       expect(result.before).toBe(2000)
     })
 
+    it("uses the same live request anchor as getLiveFetchBefore", () => {
+      const { chart } = makeTestChart({
+        attributes: {
+          after: -300,
+          before: 0,
+          groupingMethod: "average",
+          groupingTime: "auto",
+          renderedAt: null,
+          hovering: false,
+          fetchStartedAt: 1000500,
+          chartType: "line",
+          pixelsPerPoint: 4,
+          chartLibrary: "dygraph",
+        },
+      })
+
+      chart.getUI().getChartWidth = () => 800
+
+      const result = getChartPayload(chart)
+
+      expect(result.after).toBe(701)
+      expect(result.before).toBe(1001)
+    })
+
+    it("keeps an explicit live request anchor when chart state changes", () => {
+      const { chart } = makeTestChart({
+        attributes: {
+          after: -300,
+          before: 0,
+          groupingMethod: "average",
+          groupingTime: "auto",
+          renderedAt: 1200000,
+          hovering: true,
+          fetchStartedAt: 1200500,
+          chartType: "line",
+          pixelsPerPoint: 4,
+          chartLibrary: "dygraph",
+          viewUpdateEvery: 600,
+        },
+      })
+
+      chart.getUI().getChartWidth = () => 800
+
+      const result = getChartPayload(chart, { liveRequestBefore: 1000 })
+
+      expect(result.after).toBe(700)
+      expect(result.before).toBe(1000)
+    })
+
     it("uses different multiplier for multiBar", () => {
       const { chart } = makeTestChart({
         attributes: {
@@ -242,6 +383,90 @@ describe("API helpers", () => {
       const result = getChartPayload(chart)
 
       expect(result.points).toBe(300)
+    })
+  })
+
+  describe("getWeightsWindow", () => {
+    it.each(["volume", "ks2", undefined])(
+      "coarse live %s weights use the captured clock even when data requests remain relative",
+      method => {
+        const { chart } = makeTestChart({
+          attributes: {
+            after: -900,
+            before: 0,
+            renderedAt: 1791000000000,
+            fetchStartedAt: 1791000000000,
+            viewUpdateEvery: 3600,
+            method,
+          },
+        })
+        try {
+          const window = getWeightsWindow(chart)
+          expect(window).toEqual({ after: 1790999100, before: 1791000000 })
+          expect(getWeightsBaseline({ method, ...window })).toEqual({
+            after: 1790995500,
+            before: 1790999100,
+          })
+          expect(getWeightsWindow(chart, { liveRequestBefore: 1791000100.1 })).toEqual({
+            after: 1790999201,
+            before: 1791000101,
+          })
+        } finally {
+          chart.destroy()
+        }
+      }
+    )
+
+    it("fresh live charts without a captured clock retain a relative window and correctly encoded baseline", () => {
+      const { chart } = makeTestChart({
+        attributes: { after: -900, before: 0, fetchStartedAt: 0, renderedAt: null },
+      })
+      try {
+        const window = getWeightsWindow(chart)
+        expect(window).toEqual({ after: -900, before: 0 })
+        expect(getWeightsBaseline(window)).toEqual({ after: -3600, before: 0 })
+      } finally {
+        chart.destroy()
+      }
+    })
+
+    it.each(["anomaly-rate", "value"])(
+      "coarse live %s requests retain their relative window",
+      method => {
+        const { chart } = makeTestChart({
+          attributes: {
+            after: -900,
+            before: 0,
+            fetchStartedAt: 1791000000000,
+            viewUpdateEvery: 3600,
+            method,
+          },
+        })
+        try {
+          const window = getWeightsWindow(chart)
+          expect(window).toEqual({ after: -900, before: 0 })
+          expect(
+            getWeightsBaseline({ method, ...window, baselineAfter: -1800, baselineBefore: -900 })
+          ).toEqual({
+            after: -1800,
+            before: -900,
+          })
+        } finally {
+          chart.destroy()
+        }
+      }
+    )
+
+    it("reuses a chart payload the caller already computed", () => {
+      const { chart } = makeTestChart({ attributes: { after: 1000, before: 2000 } })
+      try {
+        expect(getWeightsWindow(chart, {}, { after: 3000.7, before: 4000.2 })).toEqual({
+          after: 3000,
+          before: 4000,
+        })
+      } finally {
+        chart.destroy()
+      }
     })
   })
 

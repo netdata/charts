@@ -12,11 +12,13 @@ import {
   minColumn,
   avgColumn,
   maxColumn,
+  rangeColumn,
 } from "./columns"
 
-const useDefaultItems = chart =>
-  useMemo(
-    () => [
+const useDefaultItems = (chart, { groupByKey, contextScope, showPostAggregations }) =>
+  useMemo(() => {
+    const hasMultipleContexts = contextScope.length > 1
+    return [
       { nm: "node", id: "node", key: "nodes" },
       {
         nm: `${chart.intl("instance")} ${
@@ -26,14 +28,14 @@ const useDefaultItems = chart =>
         key: "instances",
       },
       { nm: "dimension", id: "dimension", key: "dimensions" },
-      {
+      (showPostAggregations || "drilldown.groupBy" === groupByKey) && {
         nm: `percentage of ${chart.intl("instance")}`,
         id: "percentage-of-instance",
         key: "instances",
       },
-    ],
-    []
-  )
+      hasMultipleContexts && { nm: "context", id: "context", key: "contexts" },
+    ].filter(Boolean)
+  }, [groupByKey, contextScope])
 
 const tooltipProps = {
   heading: "Group by",
@@ -49,6 +51,7 @@ const columns = [
   minColumn(),
   avgColumn(),
   maxColumn(),
+  rangeColumn(),
 ]
 
 const GroupBy = ({
@@ -65,10 +68,12 @@ const GroupBy = ({
   const chart = useChart()
   const groupBy = useAttributeValue(groupByKey)
   const groupByLabel = useAttributeValue(groupByLabelKey)
+  const contextScope = useAttributeValue("contextScope")
+  const showPostAggregations = useAttributeValue("showPostAggregations")
 
   let label = "everything"
 
-  const defaultItems = useDefaultItems(chart)
+  const defaultItems = useDefaultItems(chart, { groupByKey, contextScope, showPostAggregations })
 
   const getOptions = useCallback(() => {
     const attributes = chart.getAttributes()

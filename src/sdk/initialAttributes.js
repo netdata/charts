@@ -1,8 +1,6 @@
-import ChartType from "@/components/toolbox/chartType"
 import Fullscreen from "@/components/toolbox/fullscreen"
-import Information from "@/components/toolbox/information"
-import Download from "@/components/toolbox/download"
 import Settings from "@/components/toolbox/settings"
+import { DisplayTab, DataTab, InfoTab, DownloadTab } from "@/components/toolbox/settings/tabs"
 
 import Status from "@/components/status"
 
@@ -10,14 +8,20 @@ export default {
   id: "",
   name: "",
   chartLibrary: "",
+  timeSeriesRenderer: null,
+  rendererOverridden: false,
   theme: "default",
   host: "",
   description: null,
   before: 0,
   after: 0,
+  liveAfter: -900,
+  anomalySpotlight: false,
   title: null,
   min: 0,
   max: 0,
+  autofetchOnHovering: false,
+  perfMonitor: false,
 
   pristineStaticValueRange: undefined,
   valueRange: null,
@@ -65,6 +69,7 @@ export default {
   active: false,
   sparkline: false,
   chartType: "",
+  stepPlot: false,
   selectedLegendDimensions: [],
 
   contextItems: [],
@@ -100,16 +105,20 @@ export default {
   unitsConversionFractionDigits: [0],
   unitsConversionPrefix: [""],
   unitsConversionBase: [""],
+  unitsConversionLabelMode: [""],
 
   dbUnitsConversionMethod: [""],
   dbUnitsConversionDivider: [-1],
   dbUnitsConversionFractionDigits: [0],
   dbUnitsConversionPrefix: [""],
   dbUnitsConversionBase: [""],
+  dbUnitsConversionLabelMode: [""],
 
-  temperature: "celsius",
+  // unset means "render whatever the agent reported"; only an explicit choice converts
+  temperature: undefined,
   secondsAsTime: true,
   timezone: undefined,
+  locale: undefined,
   syncTimezone: true,
 
   dimensionsSort: "default", // default | nameAsc | nameDesc | valueAsc | valueDesc
@@ -118,7 +127,9 @@ export default {
   autofetchOnWindowBlur: false,
   paused: false,
   pixelsPerPoint: 3,
+  points: null,
   legend: true,
+  chartLegendLayout: null,
   groupingMethod: "average",
   groupingTime: 0,
   urlOptions: [],
@@ -134,13 +145,22 @@ export default {
 
   width: "",
   enabledXAxis: true,
+  xAxisTimeStyle: "medium",
+  xAxisFitLastLabel: false,
+  barFillStyle: "solid",
+  barGlowDimensionIds: [],
+  valueFocus: null,
+  valueFocusDefault: null,
 
   hasToolbox: true,
+  hideTitle: false,
+  hideName: false,
+  hideUnits: null,
   hasHoverPopover: true,
   expandable: true,
+  showAnnotations: true,
 
-  hasYlabel: true,
-  yAxisLabelWidth: 60,
+  yAxisLabelWidth: 68,
   axisLabelFontSize: 10,
 
   outOfLimits: false,
@@ -170,8 +190,21 @@ export default {
     error: null,
     sortBy: [],
     expanded: {},
+    search: "",
     groupBySortBy: [],
     groupByExpanded: {},
+  },
+
+  correlate: {
+    data: null,
+    loading: false,
+    error: null,
+    method: "volume",
+    aggregation: "average",
+    dataType: "",
+    threshold: 0.01,
+    expanded: {},
+    search: "",
   },
 
   pristine: {},
@@ -188,20 +221,42 @@ export default {
   themeGaugePointer: ["#8F9EAA", "#536775"],
   themeGaugeStroke: ["#DBE1E1", "#353F3F"],
 
+  gaugeLineWidth: 0.1,
+  gaugeGradient: true,
+  gaugeThresholds: null,
+
   themeD3pieSmallColor: ["#536775", "#CFD5DA"],
   themeD3pieStroke: ["#DBE1E1", "#353F3F"],
   themeInnerLabelColor: ["#F7F8F8", "#282827"],
 
   themeLabelColor: ["#35414a", "#ffffff"],
+  themeAxisLabelColor: ["#5C6C77", "#7C8C96"],
   themeBackground: ["#ffffff", "#282C34"],
   themeNeutralBackground: ["#DBE1E1", "#353F3F"],
+  themeSkeleton: ["#E8ECEC", "#1E2424"],
+  themeSkeletonGrid: ["#EEF1F1", "#1A1F1F"],
+  themeSkeletonSpark: ["#FFFFFF", "#FFFFFF"],
   themeWarningBackground: ["#FFCC26", "#FFCC26"],
   themeErrorBackground: ["#F95251", "#F95251"],
 
   themeAnomalyScaleColor: ["#9F75F9", "#9F75F9"],
+  themeAnomalyRampLow: ["#D6CAFF", "#4A3A8C"],
+  themeAnomalyRampHigh: ["#6234D6", "#C4A0FF"],
+  themeAnomalySpotlightDim: ["rgba(255, 255, 255, 0.55)", "rgba(21, 24, 24, 0.55)"],
+
+  themeAlertWarning: ["#C98A00", "#E0A526"],
+  themeAlertCritical: ["#D63F3F", "#E5484D"],
+  themeAlertClear: ["#00914A", "#1FA35E"],
 
   themeGroupBoxesMin: ["#E4F1FF", "#000C18"],
   themeGroupBoxesMax: ["#0075F2", "#0075F2"],
+  themeGroupBoxesScale: [
+    ["#EAF1FC", "#C9DCF7", "#9CC0F0", "#6A9EE6", "#3D7AD6", "#2358B0", "#173E80"],
+    ["#172230", "#1B3350", "#224B78", "#2C66A3", "#3F84D4", "#6FA6EE", "#A9CBF8"],
+  ],
+  groupBoxesThreshold: null,
+  groupBoxesFocus: [],
+  groupBoxesPinned: null,
 
   themeLoadingStart: ["#BFE5C6", "#2f5446"],
   themeNetdata: ["#00AB44", "#00AB44"],
@@ -217,8 +272,11 @@ export default {
 
   agent: true,
 
-  toolboxElements: [Settings, Information, ChartType, Fullscreen, Download],
+  toolboxElements: [Settings, Fullscreen],
   toolboxProps: {},
+  settingsTabs: [DisplayTab, DataTab, InfoTab, DownloadTab],
+  nulls2zero: false,
+  filterToolboxMode: "fixed",
   leftHeaderElements: [Status],
 
   expanded: false,
@@ -237,12 +295,14 @@ export default {
   units: [""],
   unitsStsByContext: {},
   unitsByContext: {},
+  unitsByDimension: {},
   viewUpdateEvery: 0, // view.update_every
 
   // db
   dbUnits: [""],
   dbUnitsStsByContext: {},
   dbUnitsByContext: {},
+  dbUnitsByDimension: {},
   updateEvery: 0,
   firstEntry: 0,
   lastEntry: 0,
@@ -255,13 +315,15 @@ export default {
   alerts: {},
 
   drawer: {
-    action: "values",
+    action: "compare",
     tab: "window",
     showAdvancedStats: false,
+    valuesSearch: "",
   },
 
   renderedAt: null,
   fetchAt: null,
+  liveAnchor: null,
 
   dimensionsOnNonDimensionGrouping: null,
 
@@ -281,9 +343,11 @@ export default {
 
   showAnomalies: true,
 
+  canCreateAnnotations: true,
+  enabledAnnotations: true,
+  highlightOpacity: 1,
   draftAnnotation: null, // { timestamp, createdAt, status: "draft"|"editing"|"saving" }
 
-  compareData: {},
   comparePeriods: [],
   compareLoading: false,
   compareError: null,

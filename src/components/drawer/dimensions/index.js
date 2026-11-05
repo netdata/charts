@@ -1,4 +1,4 @@
-import React, { useMemo } from "react"
+import React, { useCallback, useMemo } from "react"
 import { Flex, Table, TextSmall, downloadCsvAction } from "@netdata/netdata-ui"
 import { uppercase } from "@/helpers/objectTransform"
 import { useChart, useDimensionIds, useAttributeValue } from "@/components/provider/selectors"
@@ -16,8 +16,8 @@ import {
   rangeColumn,
   volumeColumn,
 } from "./columns"
-
-const noop = () => {}
+import useDimensionValueCache from "./useDimensionValueCache"
+import { matchesSearch } from "@/components/drawer/search"
 
 const useColumns = (period, options = {}) => {
   const chart = useChart()
@@ -25,14 +25,14 @@ const useColumns = (period, options = {}) => {
 
   return useMemo(() => {
     const columnOptions = { period, ...options }
-    const dbOptions = { ...columnOptions, objKey: "dbDimensions", unitsKey: "dbUnits" }
 
     return [
       {
         id: "Dimensions",
         header: () => <TextSmall>Dimension ({hover ? "hovering" : "latest"} value)</TextSmall>,
+        headerString: () => "",
         fullWidth: true,
-        columns: [labelColumn(chart), valueColumn(chart)],
+        columns: [labelColumn(chart), valueColumn(chart, columnOptions)],
       },
       {
         id: "visible",
@@ -41,6 +41,7 @@ const useColumns = (period, options = {}) => {
             {period === "highlight" ? "Selected area" : uppercase(period)} points
           </TextSmall>
         ),
+        headerString: () => "",
         fullWidth: true,
         columns: [
           minColumn(chart, columnOptions),
@@ -66,12 +67,11 @@ const useColumns = (period, options = {}) => {
       //   ],
       // },
     ]
-  }, [period, !!hover])
+  }, [period, !!hover, options.valueCache])
 }
 
 const meta = (row, cell, index) => ({
   cellStyles: {
-    height: "40px",
     ...(row?.getIsExpanded?.() && { background: "columnHighlight", backgroundOpacity: 0.7 }),
     ...(row.depth > 0 && { backgroundOpacity: 0.4 }),
     ...(row.depth > 0 && index === 0 && { border: { side: "left", size: "4px" } }),
@@ -86,11 +86,22 @@ const Dimensions = () => {
 
   const tab = useAttributeValue("drawer.tab")
   const period = tab === "selectedArea" ? "highlight" : "window"
-  const columns = useColumns(period)
 
   const showAdvancedStats = useAttributeValue("drawer.showAdvancedStats", false)
+  const valueCache = useDimensionValueCache(period, { includeAdvancedStats: showAdvancedStats })
+  const columns = useColumns(period, { valueCache })
 
   const chart = useChart()
+  const search = useAttributeValue("drawer.valuesSearch", "")
+  const onSearch = useCallback(
+    query => chart.updateAttribute("drawer.valuesSearch", query),
+    [chart]
+  )
+  const filteredDimensionIds = useMemo(
+    () =>
+      dimensionIds.filter(id => matchesSearch([chart.getDimensionName(id)], search)),
+    [chart, dimensionIds, search]
+  )
   useMemo(() => chart.makeChartUI("custom", "bars"), [])
 
   const columnVisibility = useMemo(
@@ -117,17 +128,26 @@ const Dimensions = () => {
   }, [chart])
 
   return (
-    <Flex gap={2}>
+    <Flex
+      flex
+      column
+      gap={2}
+      height={{ min: "0px", base: "100%" }}
+      overflow="hidden"
+      data-testid="chart-values-table-container"
+    >
       <Table
         key={period}
         enableSorting
         enableColumnVisibility
         columnVisibility={columnVisibility}
         // enableSelection
+        enableCustomSearch
         dataColumns={columns}
-        data={dimensionIds}
+        data={filteredDimensionIds}
         // onRowSelected={onItemClick}
-        onSearch={noop}
+        globalFilter={search}
+        onSearch={onSearch}
         meta={meta}
         // sortBy={sortBy}
         // rowSelection={rowSelection}

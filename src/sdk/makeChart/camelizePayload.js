@@ -1,33 +1,34 @@
 import { heatmapOrChartType } from "@/helpers/heatmap"
-import { getAlias } from "@/helpers/units"
+import { getAlias, isStateUnits } from "@/helpers/units"
+import normalizeSelectedInstances from "@/helpers/normalizeSelectedInstances"
+import { getPointValue } from "./getPointValue"
 
-const transformDataRow = (row, point, labels, byDimension) =>
-  row.reduce(
-    (h, dim, i) => {
-      h.values.push(i === 0 ? dim : dim[point.value])
-      h.all.push(
-        i === 0
-          ? { value: dim }
-          : Object.keys(point).reduce((p, k) => {
-              p[k] = dim[point[k]]
-              return p
-            }, {})
-      )
+const transformDataRow = (row, point, labels, statsByIndex, byDimension) => {
+  const values = new Array(row.length + 2)
+  values[0] = row[0]
 
-      if (i === row.length - 1) {
-        h.values = [...h.values, null, null]
-        h.all = [...h.all, {}, {}]
+  for (let index = 1; index < row.length; index++) {
+    const value = getPointValue(row[index], point)
+    let stats = statsByIndex[index]
+
+    values[index] = value
+    if (!stats) {
+      const label = labels[index]
+      stats = byDimension[label]
+      if (!stats) {
+        stats = { min: Infinity, max: -Infinity }
+        byDimension[label] = stats
       }
+      statsByIndex[index] = stats
+    }
+    if (value <= stats.min) stats.min = value
+    if (value >= stats.max) stats.max = value
+  }
 
-      const label = labels[i]
-      if (!byDimension[label]) byDimension[label] = { min: Infinity, max: -Infinity }
-      if (dim[point.value] <= byDimension[label].min) byDimension[label].min = dim[point.value]
-      if (dim[point.value] >= byDimension[label].max) byDimension[label].max = dim[point.value]
-
-      return h
-    },
-    { values: [], all: [] }
-  )
+  values[row.length] = null
+  values[row.length + 1] = null
+  return values
+}
 
 const buildTree = (h, keys, id) => {
   const [key, ...subKeys] = keys
@@ -44,16 +45,11 @@ const buildTree = (h, keys, id) => {
 }
 
 const transformResult = result => {
-  const enhancedData = result.data.reduce(
-    (h, row) => {
-      const enhancedRow = transformDataRow(row, result.point, result.labels, h.byDimension)
-
-      h.data.push(enhancedRow.values)
-      h.all.push(enhancedRow.all)
-
-      return h
-    },
-    { data: [], all: [], byDimension: {} }
+  const all = result.data
+  const byDimension = {}
+  const statsByIndex = new Array(result.labels.length)
+  const data = all.map(row =>
+    transformDataRow(row, result.point, result.labels, statsByIndex, byDimension)
   )
 
   const tree = result.labels.reduce((h, id, i) => {
@@ -66,7 +62,10 @@ const transformResult = result => {
 
   return {
     labels: [...result.labels, "ANOMALY_RATE", "ANNOTATIONS"],
-    ...enhancedData,
+    data,
+    all,
+    byDimension,
+    point: result.point,
     tree,
   }
 }
@@ -76,6 +75,7 @@ const getStsByContext = (groups, units, dimensions, contextsArray) => {
   if (!Array.isArray(contextsArray) || !contextsArray.length) return [[], {}]
 
   const unitsByKey = {}
+  const groupedByContext = groups.includes("context")
 
   const regex = new RegExp(
     groups.reduce((s, g) => {
@@ -98,39 +98,29 @@ const getStsByContext = (groups, units, dimensions, contextsArray) => {
 
     const [, ctx] = match
 
-    if (ctx && dimensions.sts) {
-      stsByCtx[ctx] = stsByCtx[ctx] || { min: Infinity, max: -Infinity }
-      stsByCtx[ctx].min =
-        stsByCtx[ctx].min > dimensions.sts.min[index]
-          ? dimensions.sts.min[index]
-          : stsByCtx[ctx].min
-      stsByCtx[ctx].max =
-        stsByCtx[ctx].max < dimensions.sts.max[index]
-          ? dimensions.sts.max[index]
-          : stsByCtx[ctx].max
+    if (ctx) {
+      if (
+        groupedByContext &&
+        !Object.prototype.hasOwnProperty.call(unitsByKey, ctx) &&
+        dimensions.units
+      )
+        unitsByKey[ctx] = dimensions.units[index]
+
+      if (dimensions.sts) {
+        stsByCtx[ctx] = stsByCtx[ctx] || { min: Infinity, max: -Infinity }
+        stsByCtx[ctx].min =
+          stsByCtx[ctx].min > dimensions.sts.min[index]
+            ? dimensions.sts.min[index]
+            : stsByCtx[ctx].min
+        stsByCtx[ctx].max =
+          stsByCtx[ctx].max < dimensions.sts.max[index]
+            ? dimensions.sts.max[index]
+            : stsByCtx[ctx].max
+      }
     }
 
     return ctx || contextsArray[0].id
   })
-
-  if (groups.includes("context")) {
-    contextsArray.forEach(ctx => {
-      const regex = new RegExp(
-        groups.reduce((s, g) => {
-          s = s + (s ? "," : "")
-          s = s + ("context" === g ? ctx.id : ".*")
-
-          return s
-        }, "")
-      )
-
-      const dimIndex = dimensions.ids.findIndex(id => regex.test(id))
-
-      if (dimIndex === -1) return
-
-      unitsByKey[ctx.id] = dimensions.units[dimIndex]
-    })
-  }
 
   return [
     dimensionContexts,
@@ -144,6 +134,16 @@ const getStsByContext = (groups, units, dimensions, contextsArray) => {
     }, {}),
   ]
 }
+
+const aliasUnits = units => (Array.isArray(units) ? units.map(getAlias) : [getAlias(units)])
+
+const aliasDimensionUnits = dimensions =>
+  Array.isArray(dimensions?.units)
+    ? {
+        ...dimensions,
+        units: aliasUnits(dimensions.units),
+      }
+    : dimensions
 
 export default (payload, chart) => {
   const {
@@ -184,6 +184,9 @@ export default (payload, chart) => {
     result,
     ...rest
   } = payload
+  let contexts = {}
+  contextsArray.forEach(c => (contexts[c.id] = c))
+
   let nodes = {}
   let nodesIndexes = {}
   nodesArray.forEach(n => {
@@ -206,34 +209,46 @@ export default (payload, chart) => {
     return h
   }, {})
 
+  const selectedInstances = normalizeSelectedInstances(
+    chart?.getAttribute("selectedInstances"),
+    instances
+  )
+
   const grouped = viewDimensions?.grouped_by
+
+  const aliasedViewDimensions = aliasDimensionUnits(viewDimensions)
+  const aliasedDbDimensions = aliasDimensionUnits(dbDimensions)
 
   const [dimContexts, unitsStsByContext] = getStsByContext(
     grouped,
     units,
-    viewDimensions,
+    aliasedViewDimensions,
     contextsArray
   )
 
   const [dbDimContexts, dbUnitsStsByContext] = getStsByContext(
     grouped,
     dbUnits,
-    dbDimensions,
+    aliasedDbDimensions,
     contextsArray
   )
 
+  const aliasedUnits = aliasUnits(units)
+
   const details = {
     viewDimensions: {
-      ...viewDimensions,
+      ...aliasedViewDimensions,
       contexts: dimContexts,
       grouped,
     },
-    units: Array.isArray(units) ? units.map(getAlias) : [getAlias(units)],
+    units: aliasedUnits,
     unitsStsByContext,
     chartType: heatmapOrChartType(viewDimensions.ids, chartType),
+    stepPlot: isStateUnits(aliasedUnits),
     title,
     tiers,
     perTier,
+    contexts,
     nodes,
     instances,
     dimensions,
@@ -247,10 +262,10 @@ export default (payload, chart) => {
       return h
     }, {}),
     dbDimensions: {
-      ...dbDimensions,
+      ...aliasedDbDimensions,
       contexts: dbDimContexts,
     },
-    dbUnits: Array.isArray(dbUnits) ? dbUnits.map(getAlias) : [getAlias(dbUnits)],
+    dbUnits: aliasUnits(dbUnits),
     dbUnitsStsByContext,
   }
 
@@ -272,5 +287,6 @@ export default (payload, chart) => {
     nodesTotals,
     min,
     max,
+    selectedInstances,
   }
 }

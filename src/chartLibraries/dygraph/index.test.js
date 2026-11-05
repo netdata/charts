@@ -1,4 +1,4 @@
-import { makeTestChart } from "@jest/testUtilities"
+import { loadHeatmapPayload, makeTestChart } from "@jest/testUtilities"
 import dygraphChart from "./index"
 
 const mockDygraph = {
@@ -10,6 +10,7 @@ const mockDygraph = {
   getArea: jest.fn(() => ({ w: 800, h: 400 })),
   toDomXCoord: jest.fn(x => x),
   xAxisExtremes: jest.fn(() => [1617946860000, 1617947750000]),
+  renderGraph_: jest.fn(x => x),
 }
 
 jest.mock("dygraphs", () => jest.fn(() => mockDygraph))
@@ -25,7 +26,7 @@ describe("dygraphChart", () => {
     const instance = dygraphChart(sdk, chart)
 
     expect(instance).toHaveProperty("mount")
-    expect(instance).toHaveProperty("unmount") 
+    expect(instance).toHaveProperty("unmount")
     expect(instance).toHaveProperty("render")
     expect(instance).toHaveProperty("getDygraph")
     expect(instance).toHaveProperty("getChartWidth")
@@ -39,24 +40,24 @@ describe("dygraphChart", () => {
     const { sdk, chart } = makeTestChart({
       attributes: {
         theme: "dark",
-        outOfLimits: false
-      }
+        outOfLimits: false,
+      },
     })
 
     chart.getPayload = () => ({
       data: [[1617946860000, 10, 20]],
-      labels: ["time", "load1", "load5"]
+      labels: ["time", "load1", "load5"],
     })
     chart.getDateWindow = () => [1617946860000, 1617947750000]
     chart.formatXAxis = x => x.toString()
     chart.getThemeAttribute = () => "#333"
     chart.getUnitSign = () => ""
-    
+
     const instance = dygraphChart(sdk, chart)
     const element = document.createElement("div")
-    
+
     expect(() => instance.mount(element)).not.toThrow()
-    
+
     const Dygraph = require("dygraphs")
     expect(Dygraph).toHaveBeenCalledWith(element, expect.any(Array), expect.any(Object))
     expect(element.classList.contains("dark")).toBe(true)
@@ -66,51 +67,55 @@ describe("dygraphChart", () => {
     const { sdk, chart } = makeTestChart({
       attributes: {
         theme: "light",
-        outOfLimits: true
-      }
+        outOfLimits: true,
+      },
     })
 
     chart.getPayload = () => ({
       data: [],
-      labels: []
+      labels: [],
     })
     chart.getDateWindow = () => [1617946860000, 1617947750000]
     chart.formatXAxis = x => x.toString()
     chart.getThemeAttribute = () => "#333"
     chart.getUnitSign = () => ""
-    
+
     const instance = dygraphChart(sdk, chart)
     const element = document.createElement("div")
-    
+
     instance.mount(element)
-    
+
     const Dygraph = require("dygraphs")
-    expect(Dygraph).toHaveBeenCalledWith(element, [[0]], expect.objectContaining({
-      labels: ["X"]
-    }))
+    expect(Dygraph).toHaveBeenCalledWith(
+      element,
+      [[0]],
+      expect.objectContaining({
+        labels: ["X"],
+      })
+    )
   })
 
   it("prevents multiple mounts on same element", () => {
     const { sdk, chart } = makeTestChart({
-      attributes: { theme: "dark" }
+      attributes: { theme: "dark" },
     })
 
     chart.getPayload = () => ({
-      data: [[1617946860000, 10]], 
-      labels: ["time", "value"]
+      data: [[1617946860000, 10]],
+      labels: ["time", "value"],
     })
     chart.getDateWindow = () => [1617946860000, 1617947750000]
     chart.formatXAxis = x => x.toString()
     chart.getThemeAttribute = () => "#333"
     chart.getUnitSign = () => ""
-    
+
     const instance = dygraphChart(sdk, chart)
     const element = document.createElement("div")
-    
+
     instance.mount(element)
     const Dygraph = require("dygraphs")
     const firstCallCount = Dygraph.mock.calls.length
-    
+
     instance.mount(element)
     expect(Dygraph.mock.calls.length).toBe(firstCallCount)
   })
@@ -119,8 +124,68 @@ describe("dygraphChart", () => {
     const { sdk, chart } = makeTestChart()
 
     const instance = dygraphChart(sdk, chart)
-    
+
     expect(() => instance.render()).not.toThrow()
+  })
+
+  it("blocks a nested option redraw while preserving the outer redraw", () => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        highlighting: false,
+        panning: false,
+        processing: false,
+      },
+    })
+
+    chart.getPayload = () => ({
+      data: [[1617946860000, 10]],
+      labels: ["time", "value"],
+    })
+    chart.getDateWindow = () => [1617946860000, 1617947750000]
+    chart.formatXAxis = x => x.toString()
+    chart.getThemeAttribute = () => "#333"
+    chart.getUnitSign = () => ""
+
+    const instance = dygraphChart(sdk, chart)
+    instance.mount(document.createElement("div"))
+    mockDygraph.updateOptions.mockClear()
+    mockDygraph.updateOptions.mockImplementationOnce(() => {
+      chart.updateAttribute("unitsConversionPrefix", ["Ki"])
+    })
+
+    instance.render()
+
+    expect(mockDygraph.updateOptions).toHaveBeenCalledTimes(2)
+    expect(mockDygraph.updateOptions.mock.calls[0][1]).toBe(false)
+    expect(mockDygraph.updateOptions.mock.calls[1][1]).toBe(true)
+  })
+
+  it("redraws when a conversable conversion changes the base unit", () => {
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        highlighting: false,
+        panning: false,
+        processing: false,
+      },
+    })
+
+    chart.getPayload = () => ({
+      data: [[1617946860000, 10]],
+      labels: ["time", "value"],
+    })
+    chart.getDateWindow = () => [1617946860000, 1617947750000]
+    chart.formatXAxis = x => x.toString()
+    chart.getThemeAttribute = () => "#333"
+    chart.getUnitSign = () => ""
+
+    const instance = dygraphChart(sdk, chart)
+    instance.mount(document.createElement("div"))
+    instance.render()
+    mockDygraph.updateOptions.mockClear()
+
+    chart.updateAttribute("unitsConversionBase", ["[degF]"])
+
+    expect(mockDygraph.updateOptions).toHaveBeenCalled()
   })
 
   it("skips render when highlighting, panning, or processing", () => {
@@ -128,25 +193,25 @@ describe("dygraphChart", () => {
       attributes: {
         highlighting: true,
         panning: false,
-        processing: false
-      }
+        processing: false,
+      },
     })
 
     chart.getPayload = () => ({
-      data: [[1617946860000, 10]], 
-      labels: ["time", "value"]
+      data: [[1617946860000, 10]],
+      labels: ["time", "value"],
     })
     chart.getDateWindow = () => [1617946860000, 1617947750000]
     chart.formatXAxis = x => x.toString()
     chart.getThemeAttribute = () => "#333"
     chart.getUnitSign = () => ""
-    
+
     const instance = dygraphChart(sdk, chart)
     const element = document.createElement("div")
-    
+
     instance.mount(element)
     instance.render()
-    
+
     expect(mockDygraph.updateOptions).not.toHaveBeenCalled()
   })
 
@@ -154,19 +219,19 @@ describe("dygraphChart", () => {
     const { sdk, chart } = makeTestChart()
 
     chart.getPayload = () => ({
-      data: [[1617946860000, 10]], 
-      labels: ["time", "value"]
+      data: [[1617946860000, 10]],
+      labels: ["time", "value"],
     })
     chart.getDateWindow = () => [1617946860000, 1617947750000]
     chart.formatXAxis = x => x.toString()
     chart.getThemeAttribute = () => "#333"
     chart.getUnitSign = () => ""
-    
+
     const instance = dygraphChart(sdk, chart)
     const element = document.createElement("div")
-    
+
     instance.mount(element)
-    
+
     expect(() => instance.unmount()).not.toThrow()
     expect(mockDygraph.destroy).toHaveBeenCalled()
   })
@@ -175,21 +240,21 @@ describe("dygraphChart", () => {
     const { sdk, chart } = makeTestChart()
 
     chart.getPayload = () => ({
-      data: [[1617946860000, 10]], 
-      labels: ["time", "value"]
+      data: [[1617946860000, 10]],
+      labels: ["time", "value"],
     })
     chart.getDateWindow = () => [1617946860000, 1617947750000]
     chart.formatXAxis = x => x.toString()
     chart.getThemeAttribute = () => "#333"
     chart.getUnitSign = () => ""
-    
+
     const instance = dygraphChart(sdk, chart)
     const element = document.createElement("div")
-    
+
     expect(instance.getDygraph()).toBeNull()
-    
+
     instance.mount(element)
-    
+
     expect(instance.getDygraph()).toBe(mockDygraph)
   })
 
@@ -197,40 +262,210 @@ describe("dygraphChart", () => {
     const { sdk, chart } = makeTestChart()
 
     chart.getPayload = () => ({
-      data: [[1617946860000, 10]], 
-      labels: ["time", "value"]
+      data: [[1617946860000, 10]],
+      labels: ["time", "value"],
     })
     chart.getDateWindow = () => [1617946860000, 1617947750000]
     chart.formatXAxis = x => x.toString()
     chart.getThemeAttribute = () => "#333"
     chart.getUnitSign = () => ""
-    
+
     const instance = dygraphChart(sdk, chart)
     const element = document.createElement("div")
-    
+
     instance.mount(element)
-    
+
     expect(instance.getChartWidth()).toBe(800)
     expect(instance.getChartHeight()).toBe(400)
+  })
+
+  it("enables dygraph stepPlot when the stepPlot attribute is set", () => {
+    const { sdk, chart } = makeTestChart({
+      attributes: { theme: "dark", chartType: "line", stepPlot: true },
+    })
+
+    chart.getPayload = () => ({ data: [[1617946860000, 1]], labels: ["time", "value"] })
+    chart.getDateWindow = () => [1617946860000, 1617947750000]
+    chart.formatXAxis = x => x.toString()
+    chart.getThemeAttribute = () => "#333"
+    chart.getUnitSign = () => ""
+
+    const instance = dygraphChart(sdk, chart)
+    instance.mount(document.createElement("div"))
+
+    const Dygraph = require("dygraphs")
+    expect(Dygraph).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.any(Array),
+      expect.objectContaining({ stepPlot: true })
+    )
+  })
+
+  it("does not enable dygraph stepPlot by default", () => {
+    const { sdk, chart } = makeTestChart({
+      attributes: { theme: "dark", chartType: "line" },
+    })
+
+    chart.getPayload = () => ({ data: [[1617946860000, 10]], labels: ["time", "value"] })
+    chart.getDateWindow = () => [1617946860000, 1617947750000]
+    chart.formatXAxis = x => x.toString()
+    chart.getThemeAttribute = () => "#333"
+    chart.getUnitSign = () => ""
+
+    const instance = dygraphChart(sdk, chart)
+    instance.mount(document.createElement("div"))
+
+    const Dygraph = require("dygraphs")
+    expect(Dygraph).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.any(Array),
+      expect.objectContaining({ stepPlot: false })
+    )
+  })
+
+  it("preserves compact scaled heatmap y-axis labels", () => {
+    const ids = ["0.005", "1000", "+Inf"]
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        chartType: "heatmap",
+        groupBy: ["dimension"],
+        selectedLegendDimensions: [],
+        viewDimensions: {
+          ids,
+          names: ids,
+          priorities: ids.map((_, index) => index),
+          units: ids.map(() => ""),
+          contexts: ids.map(() => ""),
+          grouped: ["dimension"],
+        },
+      },
+    })
+
+    chart.updateDimensions()
+    chart.getPayload = () => ({
+      data: [[1617946860000, 1, 2, 3]],
+      labels: ["time", "0.005", "1000", "+Inf"],
+    })
+    chart.getDateWindow = () => [1617946860000, 1617947750000]
+    chart.formatXAxis = x => x.toString()
+    chart.getThemeAttribute = () => "#333"
+    chart.getUnitSign = () => ""
+
+    const instance = dygraphChart(sdk, chart)
+    instance.mount(document.createElement("div"))
+
+    const Dygraph = require("dygraphs")
+    const options = Dygraph.mock.calls[Dygraph.mock.calls.length - 1][2]
+    const formatter = options.axes.y.axisLabelFormatter
+
+    expect(formatter("5m")).toBe("5m")
+    expect(formatter("1k")).toBe("1k")
+    expect(formatter("+Inf")).toBe("+Inf")
+    expect(formatter("0.005")).toBe(0.005)
+  })
+
+  it("uses cropped heatmap bucket count for y-axis range", async () => {
+    const ids = ["0", "1", "2", "3", "4", "5", "6"]
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        chartType: "heatmap",
+        groupBy: ["dimension"],
+        selectedLegendDimensions: [],
+        viewDimensions: {
+          ids,
+          names: ids,
+          priorities: ids.map((_, index) => index),
+          units: ids.map(() => ""),
+          contexts: ids.map(() => ""),
+          grouped: ["dimension"],
+        },
+      },
+    })
+
+    await loadHeatmapPayload(chart, ids, [[0, 0, 1, 0, 2, 0, 0]], {
+      timestamp: 1617946860000,
+    })
+    chart.getDateWindow = () => [1617946860000, 1617947750000]
+    chart.formatXAxis = x => x.toString()
+    chart.getThemeAttribute = () => "#333"
+    chart.getUnitSign = () => ""
+
+    const instance = dygraphChart(sdk, chart)
+    instance.mount(document.createElement("div"))
+
+    const Dygraph = require("dygraphs")
+    const options = Dygraph.mock.calls[Dygraph.mock.calls.length - 1][2]
+
+    expect(options.valueRange).toEqual([0, 5])
   })
 
   it("returns axis range from dygraph", () => {
     const { sdk, chart } = makeTestChart()
 
     chart.getPayload = () => ({
-      data: [[1617946860000, 10]], 
-      labels: ["time", "value"]
+      data: [[1617946860000, 10]],
+      labels: ["time", "value"],
     })
     chart.getDateWindow = () => [1617946860000, 1617947750000]
     chart.formatXAxis = x => x.toString()
     chart.getThemeAttribute = () => "#333"
     chart.getUnitSign = () => ""
-    
+
     const instance = dygraphChart(sdk, chart)
     const element = document.createElement("div")
-    
+
     instance.mount(element)
-    
+
     expect(instance.getXAxisRange()).toEqual([1617946860000, 1617947750000])
+  })
+})
+
+describe("dygraphChart x-axis labels", () => {
+  const Dygraph = require("dygraphs")
+  const minutely = 12
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+    Dygraph.Granularity = { MINUTELY: minutely }
+  })
+
+  const getFormatter = attributes => {
+    const { sdk, chart } = makeTestChart({ attributes })
+    chart.getPayload = () => ({
+      data: [[1617946860000, 10]],
+      labels: ["time", "load1"],
+    })
+    chart.getDateWindow = () => [1617946860000, 1617947750000]
+    chart.formatXAxis = jest.fn((date, timeStyle) => timeStyle)
+    chart.getThemeAttribute = () => "#333"
+    chart.getUnitSign = () => ""
+
+    dygraphChart(sdk, chart).mount(document.createElement("div"))
+
+    const [, , options] = Dygraph.mock.calls.at(-1)
+    return { format: options.axes.x.axisLabelFormatter, chart }
+  }
+
+  const date = new Date(1617946860000)
+
+  it("formats with the medium style by default", () => {
+    const { format, chart } = getFormatter({})
+
+    expect(format(date, minutely - 1)).toBe("medium")
+    expect(format(date, minutely)).toBe("medium")
+    expect(chart.formatXAxis).toHaveBeenCalledWith(date, "medium")
+  })
+
+  it("formats with the short style", () => {
+    const { format } = getFormatter({ xAxisTimeStyle: "short" })
+
+    expect(format(date, minutely - 1)).toBe("short")
+  })
+
+  it("resolves the auto style from the tick granularity", () => {
+    const { format } = getFormatter({ xAxisTimeStyle: "auto" })
+
+    expect(format(date, minutely - 1)).toBe("medium")
+    expect(format(date, minutely)).toBe("short")
   })
 })

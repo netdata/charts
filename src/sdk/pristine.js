@@ -32,6 +32,7 @@ const { updatePristine, resetPristine } = makePristine(pristineKey, [
   "groupBySortBy",
   "labelsSortBy",
   "dimensionsSort",
+  "valueFocus",
 
   "nodesExpanded",
   "groupByExpanded",
@@ -40,8 +41,23 @@ const { updatePristine, resetPristine } = makePristine(pristineKey, [
   "expanded",
   "staticZones",
 
+  "gaugeLineWidth",
+  "gaugeGradient",
+  "gaugeThresholds",
+
   "showPostAggregations",
   "selectedNodeLabelsFilter",
+
+  "enabledYAxis",
+  "enabledXAxis",
+  "legend",
+  "chartLegendLayout",
+  "staticValueRange",
+  "desiredUnits",
+  "staticFractionDigits",
+
+  "nulls2zero",
+  "points",
 ])
 
 export default { update: updatePristine, reset: resetPristine }

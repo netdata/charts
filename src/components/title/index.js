@@ -8,13 +8,18 @@ import {
   useIsMinimal,
   useAttributeValue,
 } from "@/components/provider"
+import { withTooltip } from "@/components/tooltip"
+
+const TextWithTooltip = withTooltip(TextSmall)
 
 export const Title = props => {
   const title = useTitle()
-  const units = useUnitSign({ long: true })
+  const units = useUnitSign({ withoutConversion: true, long: true })
   const name = useName()
   const isMinimal = useIsMinimal()
   const contextScope = useAttributeValue("contextScope")
+  const hideName = useAttributeValue("hideName")
+  const hideUnits = useAttributeValue("hideUnits")
 
   return (
     <Flex
@@ -25,23 +30,27 @@ export const Title = props => {
       justifyContent="start"
       {...props}
     >
-      <TextSmall color="textDescription" truncate>
+      <TextSmall color="text" strong truncate>
         {title}
       </TextSmall>
-      {!!name && (!isMinimal || !title) && (
+      {!!name && !hideName && (!isMinimal || !title) && (
         <CopyToClipboard
           text={contextScope && contextScope.length ? contextScope.join(", ") : name}
         >
           <TextSmall color="textLite" whiteSpace="nowrap">
-            {title ? "• " : ""}
-            {name}
+            {`${title ? "• " : ""}${name}`}
           </TextSmall>
         </CopyToClipboard>
       )}
-      {!!units && !isMinimal && (
-        <TextSmall color="textLite" whiteSpace="nowrap">
+      {!!units && !hideUnits && !isMinimal && (
+        <TextWithTooltip
+          color="textLite"
+          whiteSpace="nowrap"
+          title="Source unit"
+          tooltipProps={{ align: "top" }}
+        >
           • [{units}]
-        </TextSmall>
+        </TextWithTooltip>
       )}
     </Flex>
   )

@@ -1,76 +1,108 @@
 import React, { useMemo, useState, useEffect } from "react"
 import { Flex, TextSmall, TextInput, Select } from "@netdata/netdata-ui"
-import { useAttributeValue } from "@/components/provider"
-import { getScales, isScalable } from "@/helpers/units"
-import conversableUnits, { keys as conversableKeys } from "@/helpers/units/conversableUnits"
+import { useAttributeValue, useChart } from "@/components/provider"
+import { getScales, getUnitConfig, isScalable } from "@/helpers/units"
+import conversableUnits, {
+  keys as conversableKeys,
+  isTemperatureUnit,
+} from "@/helpers/units/conversableUnits"
 
-const NumberFormat = ({ formState, onChange }) => {
+const symbolOf = unit => getUnitConfig(unit).print_symbol || unit
+
+// what "auto" resolves to right now, asked of the converter itself rather than restated here
+const resolvePreferred = (chart, unit) => {
+  const target = (conversableKeys[unit] || []).find(key =>
+    conversableUnits[unit][key].check(chart, 0)
+  )
+
+  return symbolOf(target || unit)
+}
+
+const NumberFormat = () => {
+  const chart = useChart()
   const units = useAttributeValue("units")
+  const desiredUnitsAttr = useAttributeValue("desiredUnits") || ["auto"]
+  const staticFractionDigitsAttr = useAttributeValue("staticFractionDigits")
+  const temperature = useAttributeValue("temperature")
+
   const [selectedUnitIndex, setSelectedUnitIndex] = useState(0)
 
   const availableUnits = units?.filter(unit => unit && unit !== "") || []
   const selectedUnit = availableUnits[selectedUnitIndex] || ""
 
-  const currentDesiredUnits = formState.desiredUnits[selectedUnitIndex] || "auto"
+  const currentDesiredUnits = desiredUnitsAttr[selectedUnitIndex] || "auto"
   const [desiredUnits, setDesiredUnits] = useState(currentDesiredUnits)
-  const [staticFractionDigits, setStaticFractionDigits] = useState(formState.staticFractionDigits)
+  const [staticFractionDigits, setStaticFractionDigits] = useState(staticFractionDigitsAttr)
 
-  const unitOptions = useMemo(() => {
-    return availableUnits.map((unit, index) => ({
-      value: index,
-      label: unit,
-    }))
-  }, [availableUnits])
+  const unitOptions = useMemo(
+    () => availableUnits.map((unit, index) => ({ value: index, label: unit })),
+    [availableUnits]
+  )
 
   const scaleOptions = useMemo(() => {
+    if (isTemperatureUnit(selectedUnit)) {
+      return [
+        { value: "auto", label: `Follow preference (${resolvePreferred(chart, selectedUnit)})` },
+        { value: "original", label: symbolOf(selectedUnit) },
+        ...(conversableKeys[selectedUnit] || []).map(key => ({
+          value: key,
+          label: symbolOf(key),
+        })),
+      ]
+    }
+
     const options = [
       { value: "auto", label: "Auto scale" },
       { value: "original", label: "No conversion" },
     ]
 
-    if (isScalable(selectedUnit)) {
+    if (isScalable(selectedUnit) || conversableUnits[selectedUnit]) {
       if (conversableUnits[selectedUnit]) {
         const scaleKeys =
           conversableKeys[selectedUnit] || Object.keys(conversableUnits[selectedUnit])
         scaleKeys.forEach(key => {
-          options.push({ value: key, label: key })
+          options.push({ value: key, label: symbolOf(key) })
         })
       } else {
         const [scaleKeys] = getScales(selectedUnit)
+        const config = getUnitConfig(selectedUnit)
+        const base = config.base_unit ?? selectedUnit
         scaleKeys.forEach(key => {
           const prefix = key === "1" ? "" : key
-          const unitLabel = `${prefix} ${selectedUnit}`
+          const unitLabel = `${prefix} ${base}`.trim()
           options.push({ value: key, label: unitLabel })
         })
       }
     }
 
     return options
-  }, [selectedUnit])
+  }, [chart, selectedUnit, temperature])
 
   useEffect(() => {
-    const currentDesiredUnits = formState.desiredUnits[selectedUnitIndex] || "auto"
-    setDesiredUnits(currentDesiredUnits)
-    setStaticFractionDigits(formState.staticFractionDigits)
-  }, [formState.desiredUnits, formState.staticFractionDigits, selectedUnitIndex])
+    setDesiredUnits(desiredUnitsAttr[selectedUnitIndex] || "auto")
+    setStaticFractionDigits(staticFractionDigitsAttr)
+  }, [desiredUnitsAttr, staticFractionDigitsAttr, selectedUnitIndex])
+
+  const update = changes => {
+    chart.updateAttributes(changes)
+    chart.trigger("yAxisChange")
+  }
 
   const handleDesiredUnitsChange = option => {
-    setDesiredUnits(option?.value || "auto")
-    const newDesiredUnitsArray = Array.isArray(formState.desiredUnits)
-      ? [...formState.desiredUnits]
-      : []
-    while (newDesiredUnitsArray.length < availableUnits.length) {
-      newDesiredUnitsArray.push("auto")
-    }
-    newDesiredUnitsArray[selectedUnitIndex] = option?.value || "auto"
-    onChange({ desiredUnits: newDesiredUnitsArray })
+    const value = option?.value || "auto"
+    setDesiredUnits(value)
+    const next = Array.isArray(desiredUnitsAttr) ? [...desiredUnitsAttr] : []
+    while (next.length < availableUnits.length) next.push("auto")
+    next[selectedUnitIndex] = value
+    update({ desiredUnits: next })
   }
 
   const handleFractionDigitsChange = e => {
     const value = e.target.value === "" ? null : Number(e.target.value)
     setStaticFractionDigits(value)
-    onChange({ staticFractionDigits: value })
+    update({ staticFractionDigits: value })
   }
+
 
   return (
     <Flex column gap={2}>

@@ -1,10 +1,13 @@
-import { getChartURLOptions, getChartPayload } from "./helpers"
+import { getChartURLOptions, getChartPayload, getWeightsWindow } from "./helpers"
+import { getWeightsBaseline } from "@/sdk/correlationBaseline"
 
 const wildcard = "*"
 
 const getPayload = (chart, attrs = {}) => {
   const chartAttributes = chart.getAttributes()
-  const { after, before, points, time_group, time_resampling } = getChartPayload(chart, attrs)
+  const chartPayload = getChartPayload(chart, attrs)
+  const { after, before, points, time_group, time_resampling } = chartPayload
+  const weightsWindow = getWeightsWindow(chart, attrs, chartPayload)
 
   const {
     selectedContexts,
@@ -20,11 +23,16 @@ const getPayload = (chart, attrs = {}) => {
     groupByLabel,
     options = getChartURLOptions(chart),
     method,
-    highlightAfter,
-    highlightBefore,
     baselineAfter,
     baselineBefore,
   } = { ...chartAttributes, ...attrs }
+
+  const baseline = getWeightsBaseline({
+    method,
+    ...weightsWindow,
+    baselineAfter: baselineAfter || after,
+    baselineBefore: baselineBefore || before,
+  })
 
   return {
     format: "json",
@@ -41,11 +49,10 @@ const getPayload = (chart, attrs = {}) => {
     ...(Array.isArray(groupByLabel) &&
       groupByLabel.length && { group_by_label: groupByLabel.join("|") }),
     aggregation: aggregationMethod,
-    ...getChartPayload(chart, attrs),
-    after: Math.floor(highlightAfter || after),
-    before: Math.floor(highlightBefore || before),
-    baseline_after: Math.floor(baselineAfter || after),
-    baseline_before: Math.floor(baselineBefore || before),
+    ...chartPayload,
+    ...weightsWindow,
+    baseline_after: baseline.after,
+    baseline_before: baseline.before,
     method: method || "volume",
     points,
     time_group: time_group || "average",

@@ -1,22 +1,22 @@
 import React, { memo } from "react"
 import styled from "styled-components"
 import { Flex, TextMicro } from "@netdata/netdata-ui"
-import { useChart, useConverted, useAttributeValue, useUnitSign } from "@/components/provider"
+import { useChart, useAttributeValue, useValueWithUnit, useColor } from "@/components/provider"
 import { BaseColorBar } from "@/components/line/dimensions/color"
 import Label from "./label"
 
 const Container = styled(Flex).attrs(props => ({
   round: true,
   border: { side: "all", color: "elementBackground" },
-  width: { min: "196px", max: props.maxWidth ? `${props.maxWidth}px` : "80vw" },
+  width: { min: "300px", max: props.maxWidth ? `${props.maxWidth}px` : "80vw" },
   background: "dropdown",
   column: true,
   padding: [4],
   gap: 1,
 }))`
   box-shadow:
-    0px 8px 12px rgba(9, 30, 66, 0.15),
-    0px 0px 1px rgba(9, 30, 66, 0.31);
+    0px 8px 12px ${({ shadowColor }) => shadowColor},
+    0px 0px 1px ${({ shadowColor }) => shadowColor};
 `
 
 const ColorBackground = styled(BaseColorBar).attrs({
@@ -30,12 +30,13 @@ const ColorBackground = styled(BaseColorBar).attrs({
 const Grid = styled.div`
   display: grid;
   width: 100%;
-  grid-template-columns: auto 2fr;
+  grid-template-columns: minmax(0, max-content) minmax(0, 2fr);
   column-gap: 8px;
   align-items: center;
 `
 
 const Labels = ({ label, groupLabel, data, id, ref }) => {
+  const shadow = useColor("themeShadow")
   const chart = useChart()
   const viewDimensions = chart.getAttribute("viewDimensions")
   const index = chart.getDimensionIndex(id)
@@ -45,24 +46,31 @@ const Labels = ({ label, groupLabel, data, id, ref }) => {
 
   const chartWidth = chart.getUI().getChartWidth() * 0.9
   const value = chart.getRowDimensionValue(id, data)
-  const convertedValue = useConverted(value)
-  const unitSign = useUnitSign()
+  const displayValue = chart.getRowDimensionValue(id, data, { abs: false })
+  const { convertedValue, convertedUnit } = useValueWithUnit(displayValue, {
+    dimensionId: id,
+    scaleByValue: true,
+  })
+
+  const barColor = chart.getThemeAttribute("themeGroupBoxesMax")
 
   return (
-    <Container data-testid="chartPopover-labels" maxWidth={chartWidth} gap={2} ref={ref}>
+    <Container
+      data-testid="chartPopover-labels"
+      maxWidth={chartWidth}
+      gap={2}
+      ref={ref}
+      shadowColor={shadow}
+    >
       <Flex column gap={1}>
         <TextMicro>{groupLabel}</TextMicro>
         <TextMicro strong>{label}</TextMicro>
         <Flex alignItems="center" position="relative">
-          <ColorBackground
-            value={value}
-            min={min}
-            max={max}
-            bg={chart.getThemeAttribute("themeGroupBoxesMax")}
-            height="18px"
-          />
+          <ColorBackground value={value} min={min} max={max} bg={barColor} height="18px" />
           <TextMicro padding={[1.5, 2]} strong>
-            {convertedValue} {convertedValue !== "-" && unitSign}
+            {convertedValue !== "-" && convertedUnit
+              ? `${convertedValue} ${convertedUnit}`
+              : `${convertedValue}`}
           </TextMicro>
         </Flex>
       </Flex>

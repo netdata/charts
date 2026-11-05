@@ -15,20 +15,28 @@ export const useTableMatrix = () => {
     return chart.getTableMatrix()
   }, [chart, dimensionIds, groups, tableColumns])
 
+  const matcher = useMemo(() => {
+    if (!searchQuery) return null
+    try {
+      const re = new RegExp(searchQuery)
+      return value => re.test(value)
+    } catch {
+      return value => value.includes(searchQuery)
+    }
+  }, [searchQuery])
+
   const data = useMemo(() => {
     return Object.keys(rowGroups).reduce((h, g) => {
-      if (!!searchQuery && !new RegExp(searchQuery).test(g)) return h
+      if (matcher && !matcher(g)) return h
 
       h.push({
         key: g,
-        ids: searchQuery
-          ? rowGroups[g].filter(rg => new RegExp(searchQuery).test(rg))
-          : rowGroups[g],
+        ids: matcher ? rowGroups[g].filter(matcher) : rowGroups[g],
         contextGroups,
       })
       return h
     }, [])
-  }, [searchQuery, rowGroups, hover, contextGroups])
+  }, [matcher, rowGroups, hover, contextGroups])
 
   return {
     rowGroups,

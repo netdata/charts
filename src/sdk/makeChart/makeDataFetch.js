@@ -1,4 +1,5 @@
 import { errorCodesToMessage } from "./api"
+import { getLiveFetchBefore } from "./api/helpers"
 import makeGetClosestRow from "./makeGetClosestRow"
 import getInitialFilterAttributes from "./filters/getInitialAttributes"
 import camelizePayload from "./camelizePayload"
@@ -10,10 +11,18 @@ const initialPayload = {
   tree: {},
 }
 
+const getLiveAnchor = payload => {
+  const lastRow = payload?.data?.[payload.data.length - 1]
+  const lastTimestamp = lastRow?.[0]
+
+  return typeof lastTimestamp === "number" && isFinite(lastTimestamp) ? lastTimestamp : null
+}
+
 export default chart => {
   let abortController = null
   let payload = initialPayload
   let nextPayload = null
+  let currentFetchKey = null
 
   chart.lastFetch = [null, null]
 
@@ -21,11 +30,62 @@ export default chart => {
 
   makeGetClosestRow(chart)
 
+  const getFetchKey = () => {
+    const {
+      after,
+      before,
+      points,
+      selectedContexts,
+      context,
+      nodesScope,
+      contextScope,
+      selectedInstances,
+      selectedDimensions,
+      selectedLabels,
+      aggregationMethod,
+      groupBy,
+      groupByLabel,
+      postGroupBy,
+      postGroupByLabel,
+      postAggregationMethod,
+      showPostAggregations,
+      agent,
+      host,
+      nulls2zero,
+    } = chart.getAttributes()
+    const selectedNodes = chart.getFilteredNodeIds()
+
+    return JSON.stringify({
+      after,
+      before,
+      points,
+      selectedContexts,
+      context,
+      nodesScope,
+      contextScope,
+      selectedNodes,
+      selectedInstances,
+      selectedDimensions,
+      selectedLabels,
+      aggregationMethod,
+      groupBy,
+      groupByLabel,
+      postGroupBy,
+      postGroupByLabel,
+      postAggregationMethod,
+      showPostAggregations,
+      agent,
+      host,
+      nulls2zero,
+    })
+  }
+
   chart.cancelFetch = () => abortController && abortController.abort()
 
   const finishFetch = () => {
     if (!chart) return
 
+    currentFetchKey = null
     chart.startAutofetch()
     chart.trigger("finishFetch")
     chart.trigger("render")
@@ -36,14 +96,53 @@ export default chart => {
     return data?.length || 0
   }
 
-  chart.doneFetch = nextRawPayload => {
+  const getFrozenWindowEnd = () => {
+    const { after, hovering } = chart.getAttributes()
+    if (after > 0) return null
+
+    const paused = chart.getRoot?.()?.getAttribute?.("paused")
+    if (!hovering && !paused) return null
+
+    const windowEnd = chart.getDateWindow?.()?.[1]
+    return typeof windowEnd === "number" && isFinite(windowEnd) ? windowEnd : null
+  }
+
+  const isFrozenAtAnotherAnchor = requestAnchor => {
+    if (
+      !chart.getAttribute("loaded") ||
+      typeof requestAnchor !== "number" ||
+      !isFinite(requestAnchor)
+    )
+      return false
+
+    const frozenWindowEnd = getFrozenWindowEnd()
+    if (frozenWindowEnd === null) return false
+
+    return Math.ceil(frozenWindowEnd / 1000) * 1000 !== requestAnchor
+  }
+
+  chart.doneFetch = (nextRawPayload, { liveAnchor, requestAnchor = liveAnchor } = {}) => {
     chart.backoffMs = 0
 
     setTimeout(() => {
-      const { result, chartType, versions, title, ...restPayload } = camelizePayload(
-        nextRawPayload,
-        chart
-      )
+      if (isFrozenAtAnotherAnchor(requestAnchor)) {
+        chart.updateAttributes({
+          loading: false,
+          processing: false,
+        })
+        finishFetch()
+        return
+      }
+
+      let camelized
+      try {
+        camelized = camelizePayload(nextRawPayload, chart)
+      } catch (error) {
+        chart.failFetch(error)
+        return
+      }
+
+      const { result, chartType, versions, title, ...restPayload } = camelized
 
       const prevPayload = nextPayload
       nextPayload = result
@@ -58,7 +157,7 @@ export default chart => {
       const attributes = chart.getAttributes()
 
       chart.setAttributes({
-        chartType: attributes.selectedChartType || attributes.chartType || chartType,
+        chartType: attributes.chartType || chartType,
         title: attributes.title === null ? title : attributes.title,
       })
 
@@ -66,6 +165,7 @@ export default chart => {
         loaded: true,
         loading: false,
         processing: false,
+        liveAnchor: liveAnchor ?? getLiveAnchor(nextPayload),
         updatedAt: Date.now(),
         outOfLimits: !dataLength,
         ...restPayload,
@@ -152,23 +252,14 @@ export default chart => {
     failFetch = chart.failFetch,
     signal,
     params = {},
+    attrs,
   } = {}) => {
     if (!chart) return
 
     const options = {
+      ...(attrs && { attrs }),
       params,
       signal,
-      ...((chart.getAttribute("bearer") || chart.getAttribute("xNetdataBearer")) && {
-        headers: {
-          ...(chart.getAttribute("bearer")
-            ? {
-                Authorization: `Bearer ${chart.getAttribute("bearer")}`,
-              }
-            : {
-                "X-Netdata-Auth": `Bearer ${chart.getAttribute("xNetdataBearer")}`,
-              }),
-        },
-      }),
     }
 
     return chart
@@ -176,7 +267,7 @@ export default chart => {
       .then(data => {
         if (data?.errorMsgKey) return failFetch?.(data)
         if (!(Array.isArray(data?.result) || Array.isArray(data?.result?.data)))
-          return failFetch?.()
+          return failFetch?.(data)
 
         return doneFetch?.(data)
       })
@@ -186,11 +277,41 @@ export default chart => {
   chart.fetch = ({ processing = false } = {}) => {
     if (!chart) return
 
+    const fetchKey = getFetchKey()
+
+    if (abortController && !abortController.signal.aborted && currentFetchKey === fetchKey) {
+      return Promise.resolve()
+    }
+
+    const fetchStartedAt = Date.now()
+
     chart.updateAttributes({
       processing,
       loading: true,
-      fetchStartedAt: Date.now(),
+      fetchStartedAt,
     })
+    const frozenWindowEnd = getFrozenWindowEnd()
+    const liveRequestBefore =
+      frozenWindowEnd === null ? undefined : Math.ceil(frozenWindowEnd / 1000)
+    const { after, hovering, renderedAt, viewUpdateEvery } = chart.getAttributes()
+    const fetchBefore = getLiveFetchBefore({
+      after,
+      hovering,
+      renderedAt,
+      fetchStartedAt,
+      viewUpdateEvery,
+      liveRequestBefore,
+    })
+    const liveAnchor =
+      typeof fetchBefore === "number" && isFinite(fetchBefore) && fetchBefore > 0
+        ? fetchBefore * 1000
+        : null
+    const requestAnchor =
+      after > 0
+        ? null
+        : (typeof fetchBefore === "number" && isFinite(fetchBefore)
+            ? fetchBefore
+            : Math.ceil(fetchStartedAt / 1000)) * 1000
 
     chart.cancelFetch()
     chart.trigger("startFetch")
@@ -198,12 +319,21 @@ export default chart => {
     if (!isNewerThanRetention())
       return Promise.resolve().then(() => chart.failFetch({ message: "Exceeds data retention" }))
 
-    abortController = new AbortController()
+    currentFetchKey = fetchKey
+    const controller = new AbortController()
+    abortController = controller
 
     return chart.baseFetch({
-      doneFetch: chart.doneFetch,
-      failFetch: chart.failFetch,
-      signal: abortController.signal,
+      doneFetch: data => chart.doneFetch(data, { liveAnchor, requestAnchor }),
+      failFetch: error => {
+        if (error?.name === "AbortError" && controller !== abortController) return
+        chart.failFetch(error)
+      },
+      signal: controller.signal,
+      attrs:
+        typeof fetchBefore === "number" && isFinite(fetchBefore)
+          ? { liveRequestBefore: fetchBefore }
+          : undefined,
     })
   }
 
@@ -212,7 +342,10 @@ export default chart => {
 
     const prevPayload = payload
     payload = nextPayload
-    if (chart) chart.trigger("payloadChanged", nextPayload, prevPayload)
+    if (chart) {
+      chart.invalidateRender()
+      chart.trigger("payloadChanged", nextPayload, prevPayload)
+    }
 
     return true
   }

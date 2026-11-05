@@ -1,4 +1,9 @@
-import { calculateStats, calculatePercentageChange, calculateComparisons } from "./calculations"
+import {
+  calculateStats,
+  calculatePercentageChange,
+  calculateComparisons,
+  extractDimensionValues,
+} from "./calculations"
 
 describe("calculations", () => {
   describe("calculateStats", () => {
@@ -10,27 +15,26 @@ describe("calculations", () => {
           [3, 50, 60],
         ],
         dimensions: ["cpu", "memory"],
+        viewUpdateEvery: 2,
       }
 
       const result = calculateStats(payload)
 
       expect(result).toEqual({
-        min: 10,
-        avg: 35,
-        max: 60,
+        min: 30,
+        avg: 70,
+        max: 110,
         points: 3,
         dimensions: 2,
-        value: 60,
-        arp: 0,
-        cv: 48.79500364742666,
-        median: 35,
-        stddev: 17.07825127659933,
-        p25: 22.5,
-        p75: 47.5,
-        p95: 57.5,
-        range: 50,
-        count: 6,
-        volume: 210,
+        cv: 46.656947481584346,
+        median: 70,
+        stddev: 32.65986323710904,
+        p25: 50,
+        p75: 90,
+        p95: 106,
+        range: 80,
+        count: 3,
+        volume: 420,
       })
     })
 
@@ -43,28 +47,27 @@ describe("calculations", () => {
           [4000000, 70, 80], // 4000 seconds in ms
         ],
         dimensions: ["cpu", "memory"],
+        viewUpdateEvery: 2,
       }
 
       // Highlight range in seconds (1500-3500), will be converted to ms internally
       const result = calculateStats(payload, [1500, 3500])
 
       expect(result).toEqual({
-        min: 30,
-        avg: 45,
-        max: 60,
+        min: 70,
+        avg: 90,
+        max: 110,
         points: 2,
         dimensions: 2,
-        value: 60,
-        arp: 0,
-        cv: 24.845199749997665,
-        median: 45,
-        stddev: 11.180339887498949,
-        p25: 37.5,
-        p75: 52.5,
-        p95: 58.5,
-        range: 30,
-        count: 4,
-        volume: 180,
+        cv: 22.22222222222222,
+        median: 90,
+        stddev: 20,
+        p25: 80,
+        p75: 100,
+        p95: 108,
+        range: 40,
+        count: 2,
+        volume: 360,
       })
     })
 
@@ -90,6 +93,7 @@ describe("calculations", () => {
           [3, Infinity, 60],
         ],
         dimensions: ["cpu"],
+        viewUpdateEvery: 1,
       }
 
       const result = calculateStats(payload)
@@ -99,9 +103,7 @@ describe("calculations", () => {
         avg: 40,
         max: 60,
         points: 3,
-        dimensions: 1,
-        value: 60,
-        arp: 0,
+        dimensions: 2,
         cv: 40.8248290463863,
         median: 40,
         stddev: 16.32993161855452,
@@ -112,6 +114,27 @@ describe("calculations", () => {
         count: 3,
         volume: 120,
       })
+    })
+
+    it("uses absolute values for dimension aggregation", () => {
+      const payload = {
+        data: [
+          [1, -500, 100],
+          [2, -300, 200],
+          [3, -100, 50],
+        ],
+        dimensions: ["received", "sent"],
+        viewUpdateEvery: 1,
+      }
+
+      const result = calculateStats(payload)
+
+      expect(result.min).toBe(150)
+      expect(result.avg).toBeCloseTo(416.67, 1)
+      expect(result.max).toBe(600)
+      expect(result.median).toBe(500)
+      expect(result.volume).toBeCloseTo(1250, 0)
+      expect(result.range).toBe(450)
     })
 
     it("returns null for empty or invalid payload", () => {
@@ -150,10 +173,20 @@ describe("calculations", () => {
         formatted: "100.0%",
       })
 
-      expect(calculatePercentageChange(100, 0)).toBeNull()
+      expect(calculatePercentageChange(100, 0)).toEqual({
+        value: 0,
+        direction: "neutral",
+        formatted: "0.0%",
+      })
+
+      expect(calculatePercentageChange(0, 0)).toEqual({
+        value: 0,
+        direction: "neutral",
+        formatted: "0.0%",
+      })
+
       expect(calculatePercentageChange(null, 100)).toBeNull()
       expect(calculatePercentageChange(100, null)).toBeNull()
-      expect(calculatePercentageChange(0, 0)).toBeNull()
     })
   })
 
@@ -197,6 +230,71 @@ describe("calculations", () => {
 
       const result = calculateComparisons(periodsWithoutBase)
       expect(result).toEqual(periodsWithoutBase)
+    })
+  })
+
+  describe("extractDimensionValues", () => {
+    it("returns null when payload is null or undefined", () => {
+      expect(extractDimensionValues(null)).toBeNull()
+      expect(extractDimensionValues(undefined)).toBeNull()
+    })
+
+    it("returns null when payload.data is empty", () => {
+      expect(
+        extractDimensionValues({ data: [], labels: ["time", "in", "ANOMALY_RATE", "ANNOTATIONS"] })
+      ).toBeNull()
+    })
+
+    it("returns null when payload.labels is missing or not an array", () => {
+      expect(extractDimensionValues({ data: [[1, 10]] })).toBeNull()
+      expect(extractDimensionValues({ data: [[1, 10]], labels: "nope" })).toBeNull()
+    })
+
+    it("returns a label -> value bag for a bare camelized payload", () => {
+      const payload = {
+        labels: ["time", "in", "out", "ANOMALY_RATE", "ANNOTATIONS"],
+        data: [[1000, 100, 200, null, null]],
+      }
+
+      expect(extractDimensionValues(payload)).toEqual({ in: 100, out: 200 })
+    })
+
+    it("skips synthetic ANOMALY_RATE and ANNOTATIONS labels", () => {
+      const payload = {
+        labels: ["time", "in", "ANOMALY_RATE", "out", "ANNOTATIONS"],
+        data: [[1000, 100, 0.5, 200, "x"]],
+      }
+
+      expect(extractDimensionValues(payload)).toEqual({ in: 100, out: 200 })
+    })
+
+    it("picks the requested row when rowIndex is provided", () => {
+      const payload = {
+        labels: ["time", "in", "out", "ANOMALY_RATE", "ANNOTATIONS"],
+        data: [
+          [1000, 10, 20, null, null],
+          [2000, 30, 40, null, null],
+          [3000, 50, 60, null, null],
+        ],
+      }
+
+      expect(extractDimensionValues(payload, 0)).toEqual({ in: 10, out: 20 })
+      expect(extractDimensionValues(payload, 1)).toEqual({ in: 30, out: 40 })
+    })
+
+    it("counts from end for negative rowIndex", () => {
+      const payload = {
+        labels: ["time", "in", "out", "ANOMALY_RATE", "ANNOTATIONS"],
+        data: [
+          [1000, 10, 20, null, null],
+          [2000, 30, 40, null, null],
+          [3000, 50, 60, null, null],
+        ],
+      }
+
+      expect(extractDimensionValues(payload)).toEqual({ in: 50, out: 60 })
+      expect(extractDimensionValues(payload, -1)).toEqual({ in: 50, out: 60 })
+      expect(extractDimensionValues(payload, -2)).toEqual({ in: 30, out: 40 })
     })
   })
 })

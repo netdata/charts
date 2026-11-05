@@ -1,9 +1,10 @@
 import React, { useCallback, useMemo } from "react"
 import difference from "lodash/difference"
-import { useAttributeValue, useChart } from "@/components/provider"
+import { useAttributeValue, useChart, useIsModern } from "@/components/provider"
 import useUpdateEffect from "@netdata/netdata-ui/dist/hooks/useUpdateEffect"
 import { CheckboxesContainer, checkboxesDefaultProps } from "./checkboxes"
 import FilterGroup from "../filterGroup"
+import ModernCheckboxItem, { modernItemsProps } from "../modern/checkboxItem"
 
 const nodeLabelsLowPriority = ["_aclk_available", "_aclk_ng_new_cloud_protocol", "_aclk_proxy"]
 
@@ -103,9 +104,17 @@ const buildItems = ({ options, selected, itemsProps = {} }) => {
   ]
 }
 
+const modernCheckboxesProps = {
+  ...checkboxesDefaultProps,
+  itemProps: { multi: true },
+  itemsProps: modernItemsProps,
+  Item: ModernCheckboxItem,
+}
+
 const HostLabelsFilter = props => {
+  const isModern = useIsModern()
   const { testIdPrefix, itemsProps, itemProps, nodesById, ...rest } = {
-    ...checkboxesDefaultProps,
+    ...(isModern ? modernCheckboxesProps : checkboxesDefaultProps),
     ...props,
   }
 

@@ -1,43 +1,56 @@
 import React, { useState } from "react"
 import { Flex, TextSmall, TextMicro, Button } from "@netdata/netdata-ui"
+import { useAttributeValue } from "@/components/provider"
 
-const CustomPeriodForm = ({ onAdd, onCancel }) => {
-  const [label, setLabel] = useState("")
-  const [offsetDays, setOffsetDays] = useState("")
-  const [offsetHours, setOffsetHours] = useState("")
+const normalizeInitialValues = initialValues => {
+  const { label = "", offsetSeconds = 0 } = initialValues || {}
 
-  const generateLabel = (days, hours) => {
-    const rtf = new Intl.RelativeTimeFormat("en", { numeric: "always" })
+  const days = Math.floor(offsetSeconds / (24 * 60 * 60))
+  const hours = Math.floor((offsetSeconds % (24 * 60 * 60)) / (60 * 60))
+  return { label, days: days ? days.toString() : "", hours: hours ? hours.toString() : "" }
+}
 
-    if (days > 0 && hours === 0) {
-      return rtf.format(-days, "day")
-    }
-    if (hours > 0 && days === 0) {
-      return rtf.format(-hours, "hour")
-    }
-    if (days > 0 && hours > 0) {
-      return rtf.format(-days, "day")
-    }
-    return ""
+const generateLabel = (days, hours, locale) => {
+  const rtf = new Intl.RelativeTimeFormat(locale || "en", { numeric: "always" })
+
+  if (days > 0 && hours === 0) {
+    return rtf.format(-days, "day")
   }
+  if (hours > 0 && days === 0) {
+    return rtf.format(-hours, "hour")
+  }
+  if (days > 0 && hours > 0) {
+    return `${rtf.format(-days, "day")} and ${rtf.format(-hours, "hour")}`
+  }
+  return ""
+}
+
+const CustomPeriodForm = ({ onSubmit, onCancel, initialValues }) => {
+  const normalizedValues = normalizeInitialValues(initialValues)
+  const locale = useAttributeValue("locale")
+
+  const [label, setLabel] = useState(normalizedValues.label)
+  const [offsetDays, setOffsetDays] = useState(normalizedValues.days)
+  const [offsetHours, setOffsetHours] = useState(normalizedValues.hours)
+
+  const days = parseInt(offsetDays) || 0
+  const hours = parseInt(offsetHours) || 0
+  const offsetSeconds = days * 24 * 60 * 60 + hours * 60 * 60
+  const hasOffset = offsetSeconds > 0
 
   const handleAdd = () => {
-    const days = parseInt(offsetDays) || 0
-    const hours = parseInt(offsetHours) || 0
-    const offsetSeconds = days * 24 * 60 * 60 + hours * 60 * 60
-
     if (offsetSeconds <= 0) return
 
-    const finalLabel = label.trim() || generateLabel(days, hours)
+    const finalLabel = label.trim() || generateLabel(days, hours, locale)
     if (!finalLabel) return
 
     const customPeriod = {
-      id: `custom_${Date.now()}`,
+      id: initialValues?.id || `custom_${Date.now()}`,
       label: finalLabel,
       offsetSeconds,
     }
 
-    onAdd(customPeriod)
+    onSubmit(customPeriod)
   }
 
   return (
@@ -102,9 +115,19 @@ const CustomPeriodForm = ({ onAdd, onCancel }) => {
         </Flex>
       </Flex>
 
-      <Flex gap={2}>
-        <Button tiny label="Add" onClick={handleAdd} />
+      <Flex gap={2} alignItems="center">
+        <Button
+          tiny
+          label={initialValues ? "Update" : "Add"}
+          onClick={handleAdd}
+          disabled={!hasOffset}
+        />
         <Button tiny label="Cancel" onClick={onCancel} />
+        {!hasOffset && (
+          <TextMicro color="textDescription" data-testid="customPeriod-hint">
+            Set an offset of at least 1 hour
+          </TextMicro>
+        )}
       </Flex>
     </Flex>
   )

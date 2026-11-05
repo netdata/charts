@@ -135,4 +135,32 @@ describe("Line Component", () => {
     expect(chart).toBeInTheDocument()
     expect(screen.getByTestId("chartContentWrapper")).toBeInTheDocument()
   })
+
+  describe("filter bar placement", () => {
+    const countFilters = () => screen.queryAllByTestId("chartFilters").length
+
+    it("renders one fixed filter bar in the default flavour", () => {
+      renderWithChart(<Line />, { attributes: { loaded: true, designFlavour: "default" } })
+      expect(countFilters()).toBe(1)
+    })
+
+    it("leaves the filter bar to the modern header, closed until opened", () => {
+      renderWithChart(<Line />, { attributes: { loaded: true, designFlavour: "modern" } })
+      expect(countFilters()).toBe(0)
+    })
+
+    it("shows a single filter bar when the modern panel is open", () => {
+      renderWithChart(<Line />, {
+        attributes: { loaded: true, designFlavour: "modern", filtersOpen: true },
+      })
+      expect(countFilters()).toBe(1)
+    })
+
+    it("keeps the fixed filter bar in modern when the header is off", () => {
+      renderWithChart(<Line hasHeader={false} />, {
+        attributes: { loaded: true, designFlavour: "modern" },
+      })
+      expect(countFilters()).toBe(1)
+    })
+  })
 })

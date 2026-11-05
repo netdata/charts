@@ -1,3 +1,5 @@
+import { isStateUnits } from "@/helpers/units"
+
 const averageUnits = new Set([
   "%",
   "percentage",
@@ -48,28 +50,23 @@ const averageUnits = new Set([
   "A",
   "W",
   "dB[mW]",
-  "1",
   "{stratum}",
-  "Cel",
   "[degF]",
-  "{rotation}/min",
 ])
 
 const averageRegex = /(%|\/operation|\/run| run|\/request)/
 
 export default chart => {
-  const unit = chart.getUnits()
+  let unit = chart.getUnits()
+
+  unit = unit || chart.getAttribute("contextUnit")
 
   if (!unit) return "avg"
 
   let lowerUnit = unit.toLowerCase()
   if (averageUnits.has(unit) || averageRegex.test(lowerUnit)) return "avg"
 
-  const unitSign = chart.getUnitSign()
-  if (unitSign) {
-    lowerUnit = unitSign.toLowerCase()
-    if (averageUnits.has(unitSign) || averageRegex.test(lowerUnit)) return "avg"
-  }
+  if (isStateUnits(unit)) return "sum"
 
-  return "sum"
+  return "avg"
 }

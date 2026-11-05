@@ -3,6 +3,28 @@ import { useChart, useAttributeValue } from "@/components/provider"
 import { fetchChartWeights } from "@/sdk/makeChart/api"
 import { transformCorrelationData, groupByContext } from "./dataTransformer"
 
+export const getCorrelationQueryAttributes = ({
+  timeRange,
+  method,
+  aggregation,
+  dataType,
+  nodesScope,
+}) => ({
+  ...timeRange,
+  method,
+  aggregationMethod: aggregation,
+  options: dataType ? [dataType] : [],
+  groupBy: ["node", "context", "dimension"],
+  groupByLabel: [],
+  contextScope: [],
+  nodesScope,
+  selectedContexts: [],
+  selectedNodes: [],
+  selectedInstances: [],
+  selectedDimensions: [],
+  selectedLabels: [],
+})
+
 const useData = () => {
   const chart = useChart()
   const abortControllerRef = useRef(null)
@@ -21,44 +43,40 @@ const useData = () => {
   const getTimeRange = () => {
     if (tab === "selectedArea" && overlays?.highlight?.range) {
       const [highlightAfter, highlightBefore] = overlays.highlight.range
-      const baselineDuration = highlightBefore - highlightAfter
-      const baselineAfter = highlightAfter - baselineDuration * 4
-      const baselineBefore = highlightAfter
-
       return {
         highlightAfter,
         highlightBefore,
-        baselineAfter,
-        baselineBefore,
       }
     }
 
-    const windowDuration = before - after
-    const baselineAfter = after - windowDuration * 4
-    const baselineBefore = after
+    if (after < 0) {
+      const { renderedAt, fetchStartedAt } = chart.getAttributes()
+      const now = Math.ceil((renderedAt || fetchStartedAt || Date.now()) / 1000)
+      return {
+        highlightAfter: now + after,
+        highlightBefore: now + before,
+      }
+    }
 
     return {
       highlightAfter: after,
       highlightBefore: before,
-      baselineAfter,
-      baselineBefore,
     }
   }
 
   const fetchWeights = async signal => {
     const timeRange = getTimeRange()
+    const nodesScope = chart.getFilteredAvailableNodeIds()
 
     try {
       const response = await fetchChartWeights(chart, {
-        attrs: {
-          ...timeRange,
+        attrs: getCorrelationQueryAttributes({
+          timeRange,
           method,
-          aggregationMethod: aggregation,
-          options: dataType ? [dataType] : [],
-          groupBy: ["node", "instance", "dimension"],
-          contextScope: [],
-          nodesScope: [],
-        },
+          aggregation,
+          dataType,
+          nodesScope,
+        }),
         signal,
       })
 

@@ -1,5 +1,7 @@
 import makeKeyboardListener from "@/helpers/makeKeyboardListener"
 import makeExecuteLatest from "@/helpers/makeExecuteLatest"
+import { timeRender } from "@/sdk/plugins/perfMonitor/registry"
+import formatNumber from "@/helpers/formatNumber"
 import convert from "@/helpers/units"
 import unitConversion from "@/helpers/unitConversion"
 import makeNode from "../makeNode"
@@ -8,7 +10,8 @@ import makeDimensions from "./makeDimensions"
 import makeFilterControllers from "./filters/makeControllers"
 import makeDataFetch from "./makeDataFetch"
 import makeGetUnitSign from "./makeGetUnitSign"
-import makeWeights from "./makeWeights"
+import getAggregateMethod from "./filters/getAggregateMethod"
+import timeSeriesRenderer from "./timeSeriesRenderer"
 
 const themeIndex = {
   default: 0,
@@ -16,19 +19,23 @@ const themeIndex = {
 }
 
 const maxBackoffMs = 30 * 1000
-
 const defaultMakeTrack = () => value => value
 
 export default ({
   sdk,
   parent,
   getChart = fetchChartData,
-  attributes,
+  attributes = {},
   makeTrack = defaultMakeTrack,
 } = {}) => {
   const executeLatest = makeExecuteLatest()
 
-  let node = makeNode({ sdk, parent, attributes })
+  let node = makeNode({
+    sdk,
+    parent,
+    attributes,
+  })
+
   node.getChart = getChart
 
   let fetchTimeoutId = null
@@ -48,6 +55,13 @@ export default ({
   }
 
   let uiInstances = {}
+  let renderRevision = 0
+
+  node.getRenderRevision = () => renderRevision
+  node.invalidateRender = () => {
+    renderRevision += 1
+    return renderRevision
+  }
 
   node.getUpdateEvery = () => {
     if (!node) return
@@ -61,16 +75,24 @@ export default ({
   let cachedDateWindow = null
   let prevAfter = null
   let prevRenderedAt = null
+  let prevLiveAnchor = null
   let prevNow = null
   node.getDateWindow = () => {
-    const { after, before, renderedAt } = node.getAttributes()
+    const { after, before, renderedAt, liveAnchor } = node.getAttributes()
     const now = sdk.getRoot().getAttribute("fetchAt", Date.now())
+    const anchor = liveAnchor ?? now
 
-    if (prevAfter === after && prevRenderedAt === renderedAt && prevNow === now)
+    if (
+      prevAfter === after &&
+      prevRenderedAt === renderedAt &&
+      prevLiveAnchor === liveAnchor &&
+      prevNow === now
+    )
       return cachedDateWindow
 
     prevAfter = after
     prevRenderedAt = renderedAt
+    prevLiveAnchor = liveAnchor
     prevNow = now
 
     cachedDateWindow =
@@ -78,7 +100,7 @@ export default ({
         ? [after * 1000, before * 1000]
         : renderedAt
           ? [renderedAt + after * 1000, renderedAt]
-          : [now + after * 1000, now]
+          : [anchor + after * 1000, anchor]
 
     return cachedDateWindow
   }
@@ -122,14 +144,33 @@ export default ({
     uiInstances[uiName] = newUi
   }
 
-  const render = executeLatest.add(() =>
-    Object.keys(uiInstances).forEach(uiName => uiInstances[uiName].render())
-  )
+  const render = executeLatest.add(() => {
+    if (!uiInstances) return
+
+    Object.keys(uiInstances).forEach(uiName => {
+      const chartUI = uiInstances[uiName]
+      if (!chartUI?.render) return
+
+      const timedRender = () =>
+        timeRender(node.getId(), node.getAttribute("chartLibrary"), () => chartUI.render())
+
+      if (chartUI.renderIfStale) {
+        chartUI.renderIfStale(timedRender)
+        return
+      }
+
+      timedRender()
+    })
+  })
 
   node.on("render", render)
   unitConversion(node)
+  const offTimeSeriesRenderer = timeSeriesRenderer(node)
 
-  node.getConvertedValue = (value, { fractionDigits, key = "units", dimensionId } = {}) => {
+  node.getConvertedValue = (
+    value,
+    { fractionDigits, key = "units", dimensionId, unitAttributes } = {}
+  ) => {
     if (!node) return
 
     if (value === null) return "-"
@@ -138,7 +179,7 @@ export default ({
       method,
       fractionDigits: unitsConversionFractionDigits,
       divider,
-    } = node.getUnitAttributes(dimensionId, key)
+    } = unitAttributes || node.getUnitAttributes(dimensionId, key)
 
     const converted = convert(node, method, value, divider)
 
@@ -146,16 +187,23 @@ export default ({
 
     fractionDigits = fractionDigits ?? node.getAttribute("staticFractionDigits")
 
-    return Intl.NumberFormat(undefined, {
-      useGrouping: true,
-      minimumFractionDigits: isNaN(fractionDigits) || fractionDigits < 0 ? 0 : fractionDigits,
-      maximumFractionDigits:
-        fractionDigits === null || isNaN(fractionDigits) || fractionDigits < 0
-          ? unitsConversionFractionDigits === -1
-            ? 4
-            : unitsConversionFractionDigits
-          : fractionDigits,
-    }).format(converted)
+    return formatNumber(node, converted, fractionDigits, unitsConversionFractionDigits)
+  }
+
+  node.getConvertedValueWithUnit = (
+    value,
+    { fractionDigits, key = "units", dimensionId, unitAttributes } = {}
+  ) => {
+    const attrs = unitAttributes || node.getUnitAttributes(dimensionId, key)
+    const convertedValue = node.getConvertedValue(value, {
+      fractionDigits,
+      key,
+      dimensionId,
+      unitAttributes: attrs,
+    })
+    const unit = node.getUnitSign({ key, dimensionId, unitAttributes: attrs })
+
+    return unit ? `${convertedValue} ${unit}` : convertedValue
   }
 
   node.focus = event => {
@@ -187,7 +235,10 @@ export default ({
 
   node.deactivate = () => {
     if (!node) return
+
     node.updateAttribute("active", false)
+    if (node.getAttribute("focused")) node.blur()
+
     sdk.trigger("active", node, false)
     node.trigger("active", false)
   }
@@ -228,7 +279,6 @@ export default ({
 
   makeDimensions(node, sdk)
   makeDataFetch(node, sdk)
-  makeWeights(node, sdk)
 
   node.type = "chart"
   makeGetUnitSign(node)
@@ -269,6 +319,12 @@ export default ({
 
     focused ? initKeyboardListener() : clearKeyboardListener()
     node.invalidateClosestRowCache()
+  })
+
+  node.onAttributeChange("fullscreen", fullscreen => {
+    if (!node) return
+
+    sdk.trigger("fullscreen", node, fullscreen)
   })
 
   node.makeChartUI = (uiName, chartLibrary = node.getAttribute("chartLibrary"), force = false) => {
@@ -349,11 +405,24 @@ export default ({
     return [...new Set([...selectedNodes, ...nodeIdsForHostLabels])]
   }
 
+  node.getFilteredAvailableNodeIds = () => {
+    const selectedNodes = node.getFilteredNodeIds()
+    const dataNodes = node.getAttribute("nodes") || {}
+    const dataNodeIds = Object.keys(dataNodes)
+
+    if (!selectedNodes?.length) return dataNodeIds.length ? dataNodeIds : undefined
+
+    return selectedNodes.filter(nodeId => dataNodeIds.includes(nodeId))
+  }
+
   const destroy = () => {
     if (!node) return
 
+    node.updateAttribute("active", false)
+    if (node.getAttribute("focused")) node.blur()
     if (executeLatest) executeLatest.clear()
 
+    offTimeSeriesRenderer()
     node.destroy()
     node.stopAutofetch()
     clearKeyboardListener()
@@ -364,8 +433,6 @@ export default ({
       uiInstances = null
       node = null
     }, 2000)
-
-    node.destroy()
   }
 
   node.intl = (key, { count = 1, pluralize = true, fallback = "" } = {}) => {
@@ -379,6 +446,8 @@ export default ({
 
     return count === 1 ? en[key]?.one || key : en[key]?.other || (pluralize ? `${key}s` : key)
   }
+
+  node.setAttribute("aggregationMethod", attributes.aggregationMethod || getAggregateMethod(node))
 
   return {
     ...node,

@@ -2,17 +2,17 @@ import React from "react"
 import { Flex, TextSmall } from "@netdata/netdata-ui"
 import Color from "@/components/line/dimensions/color"
 import Name from "@/components/line/dimensions/name"
-import Units from "@/components/line/dimensions/units"
-import Value, { Value as ValuePart } from "@/components/line/dimensions/value"
+import ValueWithUnit from "@/components/line/dimensions/valueWithUnit"
 import {
   getValueByPeriod,
   useChart,
   useAttributeValue,
   useVisibleDimensionId,
-  useLatestValue,
+  useLatestDisplayValue,
   useUnitSign,
 } from "@/components/provider"
 import Tooltip from "@/components/tooltip"
+import sanitizeId from "@/helpers/sanitizeId"
 import Label from "@/components/filterToolbox/label"
 import { getValue } from "@/helpers/crud"
 
@@ -33,7 +33,7 @@ export const labelColumn = (chart, { fallbackExpandKey, partIndex, header = "Nam
   header: () => <TextSmall strong>{header}</TextSmall>,
   sortingFn: (rowA, rowB) => {
     return (chart.getDimensionName(rowA.original.ids?.[0], partIndex) || "-").localeCompare(
-      chart.getDimensionName((rowB.original.ids?.[0], partIndex) || "-"),
+      chart.getDimensionName(rowB.original.ids?.[0], partIndex) || "-",
       undefined,
       {
         sensitivity: "accent",
@@ -93,60 +93,44 @@ export const labelColumn = (chart, { fallbackExpandKey, partIndex, header = "Nam
 
 const compareBasic = (a, b) => (a === b ? 0 : a > b ? 1 : -1)
 
-const ValueOnDot = ({ children, fractionDigits = 0, ref, ...rest }) => {
-  const [first, last] = children.toString().split(".")
-  fractionDigits = fractionDigits === -1 ? 4 : fractionDigits
+export const findDimensionId = (value, key) => {
+  const ids = Array.isArray(value) ? value : value == null ? [] : [value]
 
-  return (
-    <Flex alignItems="center" justifyContent="start" ref={ref}>
-      <ValuePart {...rest} flex={false} basis={3 * 1.6} textAlign="right">
-        {first}
-      </ValuePart>
-      {typeof last !== "undefined" && <ValuePart {...rest}>.</ValuePart>}
-      <ValuePart as={Flex} flex={false} width={fractionDigits * 1.6} {...rest} textAlign="left">
-        {last}
-      </ValuePart>
-    </Flex>
-  )
+  return ids.find(id => typeof id === "string" && id.includes(key))
+}
+
+const getRowDimensionId = (keysStr, { key, ids, contextGroups }) =>
+  findDimensionId(getValue(keysStr, ids, contextGroups, "|"), key)
+
+const DisplayValue = ({ id, visible }) => {
+  const value = useLatestDisplayValue(id, { allowNull: true })
+
+  return <ValueWithUnit value={value} dimensionId={id} visible={visible} />
 }
 
 const TooltipValue = ({ id }) => {
   const units = useUnitSign({ long: true, dimensionId: id, withoutConversion: true })
-  const value = useLatestValue(id)
+  const value = useLatestDisplayValue(id)
 
   return `${value} ${units}`
 }
 
-export const valueColumn = (
-  chart,
-  { contextLabel = "Dimensions", dimensionLabel = "Value", dimensionId, keys = [] }
-) => {
+export const valueColumn = (chart, { dimensionLabel = "Value", dimensionId, keys = [] }) => {
   const keysStr = keys.length ? keys.join("|") : ""
 
   return {
-    id: `value${keysStr}`,
-    name: `${contextLabel} > ${dimensionLabel}`,
-    header: () => {
-      return (
-        <Flex column>
-          <TextSmall>{dimensionLabel}</TextSmall>
-          <Units visible dimensionId={dimensionId} />
-        </Flex>
-      )
-    },
+    id: sanitizeId(`value${keysStr}`),
+    name: dimensionLabel,
+    header: () => <TextSmall>{dimensionLabel}</TextSmall>,
     sortingFn: (rowA, rowB) => {
       return compareBasic(
         getValueByPeriod.latest({
           chart,
-          id: (getValue(keysStr, null, rowA.original.contextGroups, "|") || rowA.original.ids).find(
-            id => id.includes(rowA.original.key)
-          ),
+          id: getRowDimensionId(keysStr, rowA.original),
         }),
         getValueByPeriod.latest({
           chart,
-          id: (getValue(keysStr, null, rowB.original.contextGroups, "|") || rowB.original.ids).find(
-            id => id.includes(rowB.original.key)
-          ),
+          id: getRowDimensionId(keysStr, rowB.original),
         })
       )
     },
@@ -168,22 +152,12 @@ export const valueColumn = (
         original: { key, ids, contextGroups },
       },
     }) => {
-      const id = (getValue(keysStr, null, contextGroups, "|") || ids).find(id => id.includes(key))
+      const id = getRowDimensionId(keysStr, { key, ids, contextGroups })
       const visible = useVisibleDimensionId(id)
-
-      const chart = useChart()
-      const fractionDigits = chart.getAttribute("unitsConversionFractionDigits")
 
       return (
         <Tooltip content={visible ? <TooltipValue id={id} /> : null}>
-          <Value
-            period="latest"
-            id={id}
-            visible={visible}
-            Component={ValueOnDot}
-            fractionDigits={fractionDigits}
-            color="text"
-          />
+          <DisplayValue id={id} visible={visible} />
         </Tooltip>
       )
     },

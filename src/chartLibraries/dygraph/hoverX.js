@@ -1,4 +1,7 @@
 import getOffsets from "@/helpers/eventOffset"
+import { areAnnotationsDisabled } from "@/chartLibraries/helpers/annotations"
+import { isHeatmap } from "@/helpers/heatmap"
+import { findDivergingStackedPoint } from "./divergingStack"
 
 const shouldFindMaxValue = {
   stacked: true,
@@ -6,6 +9,28 @@ const shouldFindMaxValue = {
 }
 
 export default chartUI => {
+  const getClosestHeatmapDimension = offsetY => {
+    const ids = chartUI.chart.getVisibleHeatmapIds?.()
+    if (!ids?.length) return
+
+    const dygraph = chartUI.getDygraph()
+    let closestId
+    let closestDistance = Infinity
+
+    ids.forEach((id, index) => {
+      const y = dygraph.toDomYCoord(index)
+      if (!Number.isFinite(y)) return
+
+      const distance = Math.abs(y - offsetY)
+      if (distance < closestDistance) {
+        closestId = id
+        closestDistance = distance
+      }
+    })
+
+    return closestId
+  }
+
   const findClosest = (event, points) => {
     if (!Array.isArray(points)) return {}
 
@@ -16,21 +41,17 @@ export default chartUI => {
     if (offsetY > _dygraph.getArea().h - 10) return { seriesName: "ANNOTATIONS" }
     if (offsetY < 15) return { seriesName: "ANOMALY_RATE" }
 
+    if (isHeatmap(chartUI.chart)) {
+      const dimensionId = getClosestHeatmapDimension(offsetY)
+      return dimensionId ? { dimensionId } : {}
+    }
+
     if (shouldFindMaxValue[chartUI.chart.getAttribute("chartType")]) {
-      let closestPoint = _dygraph.findStackedPoint(offsetX, offsetY)
+      const closestPoint = findDivergingStackedPoint(points, offsetY, value =>
+        _dygraph.toDomYCoord(value)
+      )
 
-      if (closestPoint.point?.canvasy > offsetY) {
-        closestPoint = points.reduce((max, p) => (p.yval > max.yval ? p : max), {
-          yval: -Infinity,
-        })
-
-        closestPoint = {
-          point: closestPoint,
-          row: closestPoint.idx,
-          seriesName: closestPoint.name,
-        }
-      }
-      return closestPoint
+      return closestPoint.seriesName ? closestPoint : _dygraph.findClosestPoint(offsetX, offsetY)
     }
 
     return _dygraph.findClosestPoint(offsetX, offsetY)
@@ -42,7 +63,9 @@ export default chartUI => {
   let lastTimestamp
 
   const getDimension = (event, points) => {
-    const { seriesName } = findClosest(event, points)
+    const { seriesName, dimensionId } = findClosest(event, points)
+
+    if (dimensionId) return dimensionId
 
     if (!seriesName) return
 
@@ -108,6 +131,7 @@ export default chartUI => {
   }
 
   const click = (event, x, points) => {
+    if (areAnnotationsDisabled(chartUI.chart)) return
     if (lastTimestamp === x) return
 
     lastPoints = points

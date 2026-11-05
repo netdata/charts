@@ -1,34 +1,38 @@
 import React, { useState, useEffect } from "react"
 import { Flex, TextSmall, TextInput } from "@netdata/netdata-ui"
-import { useUnitSign } from "@/components/provider"
+import { useAttributeValue, useChart, useUnitSign } from "@/components/provider"
 
-const ValueRange = ({ formState, onChange }) => {
-  const [minValue, setMinValue] = useState(formState.staticValueRange?.[0] ?? "")
-  const [maxValue, setMaxValue] = useState(formState.staticValueRange?.[1] ?? "")
+const ValueRange = () => {
+  const chart = useChart()
+  const staticValueRange = useAttributeValue("staticValueRange")
+  const [minValue, setMinValue] = useState(staticValueRange?.[0] ?? "")
+  const [maxValue, setMaxValue] = useState(staticValueRange?.[1] ?? "")
 
   const units = useUnitSign({ withoutConversion: true })
 
   useEffect(() => {
-    setMinValue(formState.staticValueRange?.[0] ?? "")
-    setMaxValue(formState.staticValueRange?.[1] ?? "")
-  }, [formState.staticValueRange])
+    setMinValue(staticValueRange?.[0] ?? "")
+    setMaxValue(staticValueRange?.[1] ?? "")
+  }, [staticValueRange])
+
+  const commit = (rawMin, rawMax) => {
+    const min = rawMin === "" ? null : Number(rawMin)
+    const max = rawMax === "" ? null : Number(rawMax)
+    const next = min === null && max === null ? null : [min, max]
+    chart.updateAttributes({ staticValueRange: next })
+    chart.trigger("yAxisChange")
+  }
 
   const handleMinChange = e => {
     const value = e.target.value
     setMinValue(value)
-    const min = value === "" ? null : Number(value)
-    const max = maxValue === "" ? null : Number(maxValue)
-    const staticValueRange = min === null && max === null ? null : [min, max]
-    onChange({ staticValueRange })
+    commit(value, maxValue)
   }
 
   const handleMaxChange = e => {
     const value = e.target.value
     setMaxValue(value)
-    const min = minValue === "" ? null : Number(minValue)
-    const max = value === "" ? null : Number(value)
-    const staticValueRange = min === null && max === null ? null : [min, max]
-    onChange({ staticValueRange })
+    commit(minValue, value)
   }
 
   return (

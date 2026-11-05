@@ -1,17 +1,19 @@
 import React from "react"
-import styled, { keyframes } from "styled-components"
+import styled from "styled-components"
 import { Flex, Text } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
 import {
-  useUnitSign,
   useAttributeValue,
-  useLatestConvertedValue,
+  useIsModern,
+  useLatestDisplayValueWithUnit,
   useOnResize,
-  useDimensionIds,
+  useVisibleDimensionIds,
 } from "@/components/provider"
 import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
+import ModernEasyPie from "@/components/modern/easyPie"
 import textAnimation from "../helpers/textAnimation"
+import { RingSkeleton } from "@/components/skeleton"
 
 export const Label = styled(Text)`
   line-height: 1;
@@ -20,7 +22,8 @@ export const Label = styled(Text)`
 `
 
 export const Value = () => {
-  const value = useLatestConvertedValue("selected")
+  const [dimensionId] = useVisibleDimensionIds()
+  const { convertedValue: value } = useLatestDisplayValueWithUnit(dimensionId)
 
   return (
     <Label color="text" fontSize="3em" strong>
@@ -30,8 +33,8 @@ export const Value = () => {
 }
 
 export const Unit = () => {
-  const [firstDimId] = useDimensionIds()
-  const unit = useUnitSign({ dimensionId: firstDimId })
+  const [dimensionId] = useVisibleDimensionIds()
+  const { convertedUnit: unit } = useLatestDisplayValueWithUnit(dimensionId)
   return (
     <Label color="textLite" fontSize="1.5em">
       {unit}
@@ -58,23 +61,11 @@ export const Stats = ({ size }) => (
   </StatsContainer>
 )
 
-const frames = keyframes`
-  from { opacity: 0.2; }
-  to { opacity: 0.6; }
-`
-
-export const Skeleton = styled(Flex).attrs(props => ({
-  background: "borderSecondary",
-  round: "100%",
-  width: "100%",
-  height: "100%",
-  ...props,
-}))`
-  animation: ${frames} 1.6s ease-in infinite;
-`
+export const Skeleton = () => <RingSkeleton width="100%" height="100%" />
 
 export const EasyPie = ({ uiName, ref, ...rest }) => {
   const loaded = useAttributeValue("loaded")
+  const isModern = useIsModern()
 
   const { width, height } = useOnResize(uiName)
   const size = width < height ? width : height
@@ -89,10 +80,10 @@ export const EasyPie = ({ uiName, ref, ...rest }) => {
           alignItems="center"
           {...rest}
         >
-          <Stats size={size} />
+          {isModern ? <ModernEasyPie uiName={uiName} size={size} /> : <Stats size={size} />}
         </ChartContainer>
       ) : (
-        <Skeleton size={size} />
+        <Skeleton />
       )}
     </ChartWrapper>
   )

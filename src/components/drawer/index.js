@@ -18,9 +18,11 @@ const componentsByAction = {
 const Drawer = () => {
   const expandedHeight = useAttributeValue("expandedHeight")
   const action = useAttributeValue("drawer.action")
+  const hasManagedOverflow =
+    action === actions.values || action === actions.drillDown || action === actions.correlate
 
   const Component = useMemo(() => {
-    return componentsByAction[action] || componentsByAction.values
+    return componentsByAction[action] || componentsByAction.compare
   }, [action])
 
   return (
@@ -32,7 +34,14 @@ const Drawer = () => {
       background="mainChartBg"
     >
       <Header padding={[0, 2, 2, 2]} />
-      <Flex flex column padding={[0, 2, 3, 2]} overflow={{ vertical: "scroll" }} height="100%">
+      <Flex
+        flex
+        column
+        padding={[0, 2, 3, 2]}
+        overflow={{ vertical: hasManagedOverflow ? "hidden" : "scroll" }}
+        height={{ min: "0px", base: "100%" }}
+        data-testid="drawer-content"
+      >
         <Component />
       </Flex>
     </Flex>

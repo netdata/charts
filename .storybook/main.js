@@ -1,12 +1,44 @@
-const path = require("path")
+import path from "node:path"
+import { fileURLToPath } from "node:url"
+import { prepareHighCardinalityFixtures } from "./prepareHighCardinalityFixtures.mjs"
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const hasLocalHighCardinalityFixtures = process.env.LOCAL_HIGH_CARDINALITY_STORIES === "1"
+const highCardinalitySourceDir = path.resolve(
+  __dirname,
+  "../.local/high-cardinality/responses"
+)
+const highCardinalityOutputDir = path.resolve(
+  __dirname,
+  "../.local/high-cardinality/sanitized"
+)
+
+if (hasLocalHighCardinalityFixtures) {
+  prepareHighCardinalityFixtures({
+    sourceDir: highCardinalitySourceDir,
+    outputDir: highCardinalityOutputDir,
+  })
+}
+
+const stories = ["../src/**/*.mdx", "../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"]
+if (hasLocalHighCardinalityFixtures) stories.push("./highCardinality.stories.js")
 
 const config = {
-  stories: ["../src/**/*.mdx", "../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"],
+  stories,
+
+  ...(hasLocalHighCardinalityFixtures && {
+    staticDirs: [
+      {
+        from: highCardinalityOutputDir,
+        to: "/high-cardinality-fixtures",
+      },
+    ],
+  }),
 
   addons: [
     "@storybook/addon-links",
     "@storybook/addon-webpack5-compiler-babel",
-    "@storybook/addon-docs"
+    "@storybook/addon-docs",
   ],
 
   framework: {
@@ -23,21 +55,6 @@ const config = {
           resolve: {
             fullySpecified: false,
           },
-        },
-        {
-          test: /\.(png\?.*|jpg\?.*|jpg|png)$/,
-          loader: "url-loader",
-        },
-        {
-          test: /\.md$/,
-          use: [
-            {
-              loader: "html-loader",
-            },
-            {
-              loader: "markdown-loader",
-            },
-          ],
         },
         {
           test: /\.svg$/,
@@ -63,6 +80,6 @@ const config = {
       return data
     })
     return config
-  }
+  },
 }
 export default config

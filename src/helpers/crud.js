@@ -27,9 +27,10 @@ export const setValue = (path, value, obj = {}) => {
     return obj
   }
 
-  if (obj[currentKey] == null || typeof obj[currentKey] !== "object") {
-    obj[currentKey] = {}
-  }
+  const currentValue = obj[currentKey]
+  const isObject = currentValue != null && typeof currentValue === "object" && !Array.isArray(currentValue)
+
+  obj[currentKey] = isObject ? { ...currentValue } : {}
 
   return setValue(remainingKeys.join("."), value, obj[currentKey])
 }

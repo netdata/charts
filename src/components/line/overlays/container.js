@@ -1,7 +1,7 @@
 import React, { useRef, useState, useLayoutEffect, memo } from "react"
 import styled from "styled-components"
 import { Flex } from "@netdata/netdata-ui"
-import { useChart } from "@/components/provider"
+import { useChart, useChartUI } from "@/components/provider"
 
 export const alignment = {
   chartMiddle: "chartMiddle",
@@ -9,6 +9,17 @@ export const alignment = {
   elementRight: "elementRight",
   elementLeft: "elementLeft",
   elementFull: "elementFull",
+  elementSide: "elementSide",
+}
+
+const sideGap = 8
+
+export const getSideRight = ({ from, chartWidth, elementWidth, gap = sideGap }) => {
+  const right = from + gap + elementWidth
+  if (right <= chartWidth) return right
+  if (from - gap - elementWidth >= 0) return from - gap
+
+  return Math.min(Math.max(right, elementWidth), chartWidth)
 }
 
 const calcByAlignment = {
@@ -26,6 +37,10 @@ const calcByAlignment = {
   ],
   [alignment.elementRight]: ({ from, width }) => [from, from + width],
   [alignment.elementLeft]: ({ from }) => [from, from],
+  [alignment.elementSide]: ({ from, chartWidth, element }) => [
+    from,
+    getSideRight({ from, chartWidth, elementWidth: element.firstChild?.offsetWidth || 0 }),
+  ],
 }
 
 const HorizontalContainer = styled(Flex)`
@@ -53,6 +68,7 @@ const Container = ({ id, align, right = 0, fixed, children, uiName, ...rest }) =
   const ref = useRef()
   const [area, setArea] = useState()
   const chart = useChart()
+  const ui = useChartUI(uiName)
 
   const updateRight = area => {
     if (!chart || !chart.getUI(uiName) || !area || !ref.current) return
@@ -65,11 +81,11 @@ const Container = ({ id, align, right = 0, fixed, children, uiName, ...rest }) =
   useLayoutEffect(
     () =>
       !fixed &&
-      chart.getUI(uiName).on(`overlayedAreaChanged:${id}`, area => {
+      ui.on(`overlayedAreaChanged:${id}`, area => {
         updateRight(area)
         setArea(s => (!!s !== !!area ? area : s))
       }),
-    []
+    [chart, ui, uiName, id, fixed, align, right]
   )
 
   useLayoutEffect(() => !fixed && updateRight(area), [area])

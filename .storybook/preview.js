@@ -2,6 +2,7 @@ import React from "react"
 import { ThemeProvider, StyleSheetManager } from "styled-components"
 import isPropValid from "@emotion/is-prop-valid"
 import { Flex, DefaultTheme, DarkTheme, GlobalStyles } from "@netdata/netdata-ui"
+import "uplot/dist/uPlot.min.css"
 
 const shouldForwardProp = (propName, target) => {
   if (typeof target === "string") {
@@ -12,6 +13,11 @@ const shouldForwardProp = (propName, target) => {
   return true
 }
 
+const isDarkStory = context =>
+  context.parameters.netdataTheme === "dark" ||
+  context.args?.theme === "dark" ||
+  context.globals.theme === "dark"
+
 const preview = {
   parameters: {
     controls: {
@@ -20,19 +26,24 @@ const preview = {
         date: /Date$/i,
       },
     },
-    layout: "centered",
-    backgrounds: { disable: true },
+    layout: "fullscreen",
+    backgrounds: { disabled: true },
   },
 
   decorators: [
     (Story, context) => {
-      const theme = context.globals.theme === "dark" ? DarkTheme : DefaultTheme
+      const theme = isDarkStory(context) ? DarkTheme : DefaultTheme
 
       return (
         <StyleSheetManager shouldForwardProp={shouldForwardProp}>
           <ThemeProvider theme={theme}>
             <GlobalStyles />
-            <Flex width="100vw" height="100vh" background="mainBackground" justifyContent="center">
+            <Flex
+              width="100%"
+              background="mainBackground"
+              justifyContent="center"
+              style={{ minHeight: "100vh" }}
+            >
               <Story />
             </Flex>
           </ThemeProvider>

@@ -1,10 +1,23 @@
 import dimensionColors from "./theme/dimensionColors"
 import deepEqual, { setsAreEqual } from "@/helpers/deepEqual"
-import { heatmapTypes, isHeatmap, isIncremental, withoutPrefix } from "@/helpers/heatmap"
+import {
+  cropHeatmapZeroEdges,
+  heatmapTypes,
+  isHeatmap,
+  isIncremental,
+  withoutPrefix,
+} from "@/helpers/heatmap"
+import { detectHeatmapScale, formatHeatmapLabel, sortHeatmapValues } from "@/helpers/heatmapScale"
+import { getConversionAttributes } from "@/helpers/unitConversion/getConversionUnits"
 import groupBy from "lodash/groupBy"
 import isEmpty from "lodash/isEmpty"
+import { getPointValue } from "./getPointValue"
 
-const noop = () => {}
+const dimensionNameCollator = new Intl.Collator(undefined, {
+  sensitivity: "accent",
+  ignorePunctuation: true,
+})
+const defaultDimensionNameCollator = new Intl.Collator()
 
 export default (chart, sdk) => {
   let prevDimensionIds = []
@@ -12,9 +25,15 @@ export default (chart, sdk) => {
   let sortedDimensionIds = []
   let visibleDimensionIds = []
   let visibleDimensionSet = new Set()
+  let heatmapSortedIds = null
+  let heatmapScale = null
+  let heatmapVisiblePayload = null
+  let heatmapVisibleKey = null
+  let heatmapVisibleIds = null
   let colorCursor = 0
 
   const sparklineDimensions = ["sum"]
+  const noDimensions = []
 
   chart.isSparkline = () => chart.getAttribute("sparkline")
   chart.getHeatmapType = () => chart.getAttribute("heatmapType")
@@ -24,100 +43,105 @@ export default (chart, sdk) => {
 
     const viewDimensions = chart.getAttribute("viewDimensions")
 
-    return [...(viewDimensions?.ids || [])]
+    return viewDimensions?.ids || noDimensions
   }
 
-  const withSortByNameFallback =
-    (cb = noop, fallbackCb = noop) =>
-    (a, b) =>
-      cb(a, b) ||
-      fallbackCb(a, b) ||
-      chart.getDimensionName(a).localeCompare(chart.getDimensionName(b), undefined, {
-        sensitivity: "accent",
-        ignorePunctuation: true,
-      })
+  const sortDimensionIds = ({
+    getIds = chart.getPayloadDimensionIds,
+    getPrimary,
+    getSecondary,
+    descending = false,
+    namesDescending = false,
+  } = {}) => {
+    const dimensions = getIds().map(id => ({
+      id,
+      name: chart.getDimensionName(id),
+      primary: getPrimary?.(id),
+      secondary: getSecondary?.(id),
+    }))
+    const direction = descending ? -1 : 1
+
+    dimensions.sort((a, b) => {
+      const primary = getPrimary ? direction * (a.primary - b.primary) : 0
+      if (primary) return primary
+
+      const secondary = getSecondary ? direction * (a.secondary - b.secondary) : 0
+      if (secondary) return secondary
+
+      return namesDescending
+        ? defaultDimensionNameCollator.compare(b.name, a.name)
+        : dimensionNameCollator.compare(a.name, b.name)
+    })
+
+    return dimensions.map(({ id }) => id)
+  }
 
   const bySortMethod = {
     default: (getIds = chart.getPayloadDimensionIds) =>
-      getIds().sort(
-        withSortByNameFallback(
-          (a, b) => chart.getDimensionPriority(a) - chart.getDimensionPriority(b)
-        )
-      ),
-    nameAsc: (getIds = chart.getPayloadDimensionIds) => getIds().sort(withSortByNameFallback()),
+      sortDimensionIds({ getIds, getPrimary: id => chart.getDimensionPriority(id) }),
+    nameAsc: (getIds = chart.getPayloadDimensionIds) => sortDimensionIds({ getIds }),
     nameDesc: (getIds = chart.getPayloadDimensionIds) =>
-      getIds().sort((a, b) => chart.getDimensionName(b).localeCompare(chart.getDimensionName(a))),
+      sortDimensionIds({ getIds, namesDescending: true }),
     valueDesc: (getIds = chart.getPayloadDimensionIds, x) => {
       const { data } = chart.getPayload()
       x = x || data.length - 1
 
-      return getIds().sort(
-        withSortByNameFallback(
-          (a, b) => chart.getDimensionValue(b, x) - chart.getDimensionValue(a, x)
-        )
-      )
+      return sortDimensionIds({
+        getIds,
+        getPrimary: id => chart.getDimensionValue(id, x),
+        descending: true,
+      })
     },
     valueAsc: (getIds = chart.getPayloadDimensionIds, x) => {
       const { data } = chart.getPayload()
       x = x || data.length - 1
 
-      return getIds().sort(
-        withSortByNameFallback(
-          (a, b) => chart.getDimensionValue(a, x) - chart.getDimensionValue(b, x)
-        )
-      )
+      return sortDimensionIds({
+        getIds,
+        getPrimary: id => chart.getDimensionValue(id, x),
+      })
     },
     anomalyDesc: (getIds = chart.getPayloadDimensionIds, x) => {
       const { all } = chart.getPayload()
       x = x || all.length - 1
 
-      return getIds().sort(
-        withSortByNameFallback(
-          (a, b) =>
-            chart.getDimensionValue(b, x, { valueKey: "arp" }) -
-            chart.getDimensionValue(a, x, { valueKey: "arp" }),
-          (a, b) => chart.getDimensionValue(b, x) - chart.getDimensionValue(a, x)
-        )
-      )
+      return sortDimensionIds({
+        getIds,
+        getPrimary: id => chart.getDimensionValue(id, x, { valueKey: "arp" }),
+        getSecondary: id => chart.getDimensionValue(id, x),
+        descending: true,
+      })
     },
     anomalyAsc: (getIds = chart.getPayloadDimensionIds, x) => {
       const { all } = chart.getPayload()
       x = x || all.length - 1
 
-      return getIds().sort(
-        withSortByNameFallback(
-          (a, b) =>
-            chart.getDimensionValue(a, x, { valueKey: "arp" }) -
-            chart.getDimensionValue(b, x, { valueKey: "arp" }),
-          (a, b) => chart.getDimensionValue(a, x) - chart.getDimensionValue(b, x)
-        )
-      )
+      return sortDimensionIds({
+        getIds,
+        getPrimary: id => chart.getDimensionValue(id, x, { valueKey: "arp" }),
+        getSecondary: id => chart.getDimensionValue(id, x),
+      })
     },
     annotationsDesc: (getIds = chart.getPayloadDimensionIds, x) => {
       const { all } = chart.getPayload()
       x = x || all.length - 1
 
-      return getIds().sort(
-        withSortByNameFallback(
-          (a, b) =>
-            chart.getDimensionValue(b, x, { valueKey: "pa" }) -
-            chart.getDimensionValue(a, x, { valueKey: "pa" }),
-          (a, b) => chart.getDimensionValue(b, x) - chart.getDimensionValue(a, x)
-        )
-      )
+      return sortDimensionIds({
+        getIds,
+        getPrimary: id => chart.getDimensionValue(id, x, { valueKey: "pa" }),
+        getSecondary: id => chart.getDimensionValue(id, x),
+        descending: true,
+      })
     },
     annotationsAsc: (getIds = chart.getPayloadDimensionIds, x) => {
       const { all } = chart.getPayload()
       x = x || all.length - 1
 
-      return getIds().sort(
-        withSortByNameFallback(
-          (a, b) =>
-            chart.getDimensionValue(a, x, { valueKey: "pa" }) -
-            chart.getDimensionValue(b, x, { valueKey: "pa" }),
-          (a, b) => chart.getDimensionValue(a, x) - chart.getDimensionValue(b, x)
-        )
-      )
+      return sortDimensionIds({
+        getIds,
+        getPrimary: id => chart.getDimensionValue(id, x, { valueKey: "pa" }),
+        getSecondary: id => chart.getDimensionValue(id, x),
+      })
     },
   }
 
@@ -132,13 +156,13 @@ export default (chart, sdk) => {
 
   const updateVisibleDimensions = () => {
     const selectedLegendDimensions = chart.getAttribute("selectedLegendDimensions")
+    const matchesSelectedLegendDimension = id =>
+      selectedLegendDimensions.includes(id) ||
+      selectedLegendDimensions.includes(chart.getDimensionName(id)) ||
+      (isHeatmap(chart) && selectedLegendDimensions.includes(withoutPrefix(id)))
 
     visibleDimensionIds = selectedLegendDimensions.length
-      ? sortedDimensionIds.filter(
-          id =>
-            selectedLegendDimensions.includes(id) ||
-            selectedLegendDimensions.includes(chart.getDimensionName(id))
-        )
+      ? sortedDimensionIds.filter(matchesSelectedLegendDimension)
       : sortedDimensionIds
 
     const prevDimensionSet = visibleDimensionSet
@@ -161,24 +185,26 @@ export default (chart, sdk) => {
   }
 
   chart.onHoverSortDimensions = (x, dimensionsSort = chart.getAttribute("dimensionsSort")) => {
-    const sort = isHeatmap(chart)
-      ? bySortMethod.default
-      : bySortMethod[dimensionsSort] || bySortMethod.default
+    if (isHeatmap(chart)) return [...chart.getVisibleHeatmapIds()]
+
+    const sort = bySortMethod[dimensionsSort] || bySortMethod.default
+
     return sort(() => [...chart.getVisibleDimensionIds()], x)
   }
 
   const getNextColor = () => {
     const colorsAttribute = chart.getAttribute("colors", [])
-    const index = colorCursor++ % (colorsAttribute.length + dimensionColors.length)
+    const positional = Array.isArray(colorsAttribute) ? colorsAttribute : []
+    const index = colorCursor++ % (positional.length + dimensionColors.length)
 
     const nextColor =
-      index < colorsAttribute.length
-        ? typeof colorsAttribute[index] === "number"
-          ? dimensionColors[colorsAttribute[index]]
-          : !colorsAttribute[index]
+      index < positional.length
+        ? typeof positional[index] === "number"
+          ? dimensionColors[positional[index]]
+          : !positional[index]
             ? dimensionColors[colorCursor % dimensionColors.length]
-            : colorsAttribute[index]
-        : dimensionColors[index - colorsAttribute.length]
+            : positional[index]
+        : dimensionColors[index - positional.length]
 
     return nextColor
   }
@@ -207,7 +233,7 @@ export default (chart, sdk) => {
         )
 
         if (prefix === newPrefix)
-          chart.setAttribute("heatmapType", heatmapTypes[prefix] || heatmapTypes.incremental)
+          chart.setAttribute("heatmapType", heatmapTypes[prefix] || heatmapTypes.default)
 
         prefix = newPrefix
       }
@@ -221,6 +247,9 @@ export default (chart, sdk) => {
     else if (/latency/.test(chart.getAttribute("context")))
       chart.setAttribute("heatmapType", heatmapTypes.default)
 
+    heatmapSortedIds = isHeatmap(chart) ? sortHeatmapValues(dimensionIds) : null
+    heatmapScale = isHeatmap(chart) ? detectHeatmapScale(dimensionIds) : null
+
     chart.sortDimensions()
     chart.updateColors()
   }
@@ -232,6 +261,53 @@ export default (chart, sdk) => {
   chart.getVisibleDimensionIds = () => visibleDimensionIds
 
   chart.isDimensionVisible = id => visibleDimensionSet.has(id)
+
+  chart.getHeatmapSortedIds = () => heatmapSortedIds
+
+  const getBaseVisibleHeatmapIds = () =>
+    heatmapSortedIds
+      ? heatmapSortedIds.filter(id => visibleDimensionSet.has(id))
+      : visibleDimensionIds
+
+  const isZeroOnlyHeatmapBucket = id => {
+    const { all = [] } = chart.getPayload()
+    if (!all.length) return false
+
+    return all.every(row => {
+      const value = chart.getRowDimensionValue(id, row, { allowNull: true })
+      return value === null || value === 0
+    })
+  }
+
+  chart.getVisibleHeatmapIds = () => {
+    const ids = getBaseVisibleHeatmapIds()
+    if (!isHeatmap(chart)) return ids
+
+    const payload = chart.getPayload()
+    const key = ids.join("\u0000")
+
+    if (payload === heatmapVisiblePayload && key === heatmapVisibleKey) return heatmapVisibleIds
+
+    heatmapVisiblePayload = payload
+    heatmapVisibleKey = key
+    heatmapVisibleIds = cropHeatmapZeroEdges(ids, isZeroOnlyHeatmapBucket)
+
+    return heatmapVisibleIds
+  }
+
+  chart.getHeatmapScale = () => heatmapScale
+
+  chart.getHeatmapYIndex = id => {
+    const visibleHeatmapIds = chart.getVisibleHeatmapIds()
+    const heatmapIndex = visibleHeatmapIds.findIndex(visibleId => visibleId === id)
+
+    if (heatmapIndex !== -1) return heatmapIndex
+    if (isHeatmap(chart)) return -1
+
+    const index = chart.getDimensionIndex(id)
+
+    return index === undefined ? -1 : index
+  }
 
   let memKey = null
   const getMemKey = () => {
@@ -249,15 +325,23 @@ export default (chart, sdk) => {
     const sparkline = chart.isSparkline()
     if (sparkline && Array.isArray(colorsAttr)) return colorsAttr[0]
 
+    const keyedColors = colorsAttr && !Array.isArray(colorsAttr) ? colorsAttr : null
+
     const isSelected = id === "selected"
     id = !id || isSelected ? chart.getAttribute("selectedDimensions")[0] || id : id
 
     if (!isNaN(partIndex)) id = id.split(",")?.[partIndex] || id
 
-    const color =
-      isSelected && colorsAttr?.length
-        ? colorsAttr[0]
-        : sdk.getRoot().getNextColor(getNextColor, key, id)
+    let color
+    if (keyedColors && id in keyedColors) {
+      const value = keyedColors[id]
+      color = typeof value === "number" ? dimensionColors[value] : value
+    } else {
+      color =
+        isSelected && Array.isArray(colorsAttr) && colorsAttr.length
+          ? colorsAttr[0]
+          : sdk.getRoot().getNextColor(getNextColor, key, id)
+    }
 
     const index = chart.getThemeIndex()
     return typeof color === "string" ? color : color[index]
@@ -272,7 +356,7 @@ export default (chart, sdk) => {
 
     if (!isNaN(partIndex)) dimName = dimName.split(",")?.[partIndex] ?? dimName
 
-    if (isHeatmap(chart)) return withoutPrefix(dimName)
+    if (isHeatmap(chart)) return formatHeatmapLabel(withoutPrefix(dimName), heatmapScale)
 
     return dimName
   }
@@ -303,6 +387,12 @@ export default (chart, sdk) => {
   }
 
   chart.getUnitAttributes = (id, key = "units") => {
+    const unitsByDimension = chart.getAttribute(`${key}ByDimension`) || {}
+
+    if (id && unitsByDimension[id]) {
+      return unitsByDimension[id]
+    }
+
     const context = chart.getDimensionContext(id)
 
     if (context) {
@@ -320,9 +410,24 @@ export default (chart, sdk) => {
     const method = chart.getAttribute(`${key}ConversionMethod`)[unitIndex]
     const fractionDigits = chart.getAttribute(`${key}ConversionFractionDigits`)[unitIndex]
     const divider = chart.getAttribute(`${key}ConversionDivider`)[unitIndex]
+    const labelMode = chart.getAttribute(`${key}ConversionLabelMode`)?.[unitIndex]
     const unit = chart.getAttribute(key)[unitIndex]
 
-    return { method, fractionDigits, base, prefix, divider, unit }
+    return { method, fractionDigits, base, prefix, divider, labelMode, unit }
+  }
+
+  chart.getUnitAttributesForValue = (
+    value,
+    { dimensionId, key = "units", min = value, max = value } = {}
+  ) => {
+    const units = chart.getAttribute(key)
+    const unit = dimensionId
+      ? chart.getDimensionUnit(dimensionId)
+      : Array.isArray(units)
+        ? units[0]
+        : units
+
+    return getConversionAttributes(chart, unit, { min, max })
   }
 
   chart.getDimensionGroups = () => {
@@ -338,13 +443,13 @@ export default (chart, sdk) => {
     pointData,
     { valueKey = "value", abs = true, incrementable = true, allowNull = false } = {}
   ) => {
-    let value = pointData?.[dimensionsById[id] + 1]
+    const cell = pointData?.[dimensionsById[id] + 1]
+    let value = getPointValue(cell, chart.getPayload().point, valueKey)
     if (typeof value === "undefined") return null
 
-    value = value !== null && typeof value === "object" ? value[valueKey] : value
     value = allowNull && value === null ? value : abs ? Math.abs(value) : value
 
-    if (incrementable && isIncremental(chart)) {
+    if (valueKey === "value" && incrementable && isIncremental(chart)) {
       let index = chart.getDimensionIds().findIndex(dimId => dimId === id)
 
       if (index === -1) return value
@@ -361,6 +466,8 @@ export default (chart, sdk) => {
           incrementable: false,
           allowNull,
         }) || 0)
+
+      if (value === 0) return null
     }
 
     return value
@@ -373,12 +480,16 @@ export default (chart, sdk) => {
     return chart.getRowDimensionValue(id, pointData, options)
   }
 
-  chart.getAggregatedDimensionValue = (dimensionIds, index, { aggregationMethod = "sum", ...options } = {}) => {
+  chart.getAggregatedDimensionValue = (
+    dimensionIds,
+    index,
+    { aggregationMethod = "sum", ...options } = {}
+  ) => {
     const { all } = chart.getPayload()
     const pointData = all[index]
-    
+
     let targetDimensionIds = dimensionIds
-    
+
     if (!Array.isArray(dimensionIds) || dimensionIds.length === 0) {
       const visibleIds = chart.getVisibleDimensionIds()
       targetDimensionIds = visibleIds.length > 0 ? visibleIds : chart.getDimensionIds()
@@ -412,6 +523,7 @@ export default (chart, sdk) => {
   const applyGroupByRecursively = (obj, groupByRegex) => {
     if (Array.isArray(obj)) {
       return groupBy(obj, value => {
+        if (value === "OTHERS") return value
         const [, ...matches] = value.match(groupByRegex)
         return matches.join(",")
       })
@@ -449,6 +561,7 @@ export default (chart, sdk) => {
 
     if (isEmpty(result)) {
       result = groupBy(ids, value => {
+        if (value === "OTHERS") return value
         const [, ...matches] = value.match(groupByRegex)
         return matches.join(",")
       })
@@ -486,6 +599,7 @@ export default (chart, sdk) => {
     )
 
     const baseGroup = groupBy(dimensionIds, value => {
+      if (value === "OTHERS") return value
       const [, ...matches] = value.match(groupByRegex)
       return matches.join(",")
     })
@@ -526,7 +640,7 @@ export default (chart, sdk) => {
     let dimensionIds = chart.getAttribute("dimensionIds")
     if (!dimensionIds.length) return
 
-    const keys = chart.isSparkline() ? sparklineDimensions : dimensionIds
+    const keys = chart.isSparkline() ? sparklineDimensions : [...dimensionIds].sort()
 
     keys.forEach(id => chart.selectDimensionColor(id))
   }

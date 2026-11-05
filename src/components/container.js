@@ -12,13 +12,6 @@ const Container = styled(Flex).attrs(({ height = "100%", width = "100%", ...rest
   height: typeof height === "string" ? height : `${height}px`,
   width: typeof width === "string" ? width : `${width}px`,
   ...rest,
-}))`
-  ::selection {
-    background: transparent;
-  }
-  ::-moz-selection {
-    background: transparent;
-  }
-`
+}))``
 
 export default Container

@@ -2,6 +2,28 @@ import Gauge from "./library"
 import makeChartUI from "@/sdk/makeChartUI"
 import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
+import lightenColor from "./makeGradientColors"
+import makeThresholdStops from "./makeThresholdStops"
+
+const makeGradientFillStyle = (lightColor, fullColor) => g => {
+  if (!g.ctx.createConicGradient) return fullColor
+
+  const w = g.canvas.width / 2
+  const h =
+    g.canvas.height * g.paddingTop +
+    g.availableHeight -
+    (g.radius + g.lineWidth / 2) * g.extraPadding
+
+  const arcStart = (1 + g.options.angle) * Math.PI
+  const displayedAngle = g.getAngle(g.displayedValue)
+  const fraction = Math.max((displayedAngle - arcStart) / (2 * Math.PI), 0.001)
+
+  const gradient = g.ctx.createConicGradient(arcStart, w, h)
+  gradient.addColorStop(0, lightColor)
+  gradient.addColorStop(fraction, fullColor)
+
+  return gradient
+}
 
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
@@ -10,19 +32,44 @@ export default (sdk, chart) => {
   let prevMin
   let prevMax
   let resizeObserver
+  let svgMounted = false
+
+  const mountWithoutCanvas = element => {
+    svgMounted = true
+    chartUI.mount(element)
+
+    resizeObserver = makeResizeObserver(
+      element,
+      () => chartUI.trigger("resize"),
+      () => chartUI.trigger("resize")
+    )
+
+    const { loaded } = chart.getAttributes()
+
+    listeners = unregister(
+      chart.onAttributeChange("hoverX", render),
+      !loaded && chart.onceAttributeChange("loaded", render)
+    )
+
+    render()
+  }
 
   const mount = element => {
-    if (gauge) return
+    if (gauge || svgMounted) return
+
+    if (chart.getAttribute("designFlavour") === "modern") return mountWithoutCanvas(element)
 
     chartUI.mount(element)
 
     const { color, strokeColor } = makeThemingOptions()
-    const { staticZones } = chart.getAttributes()
+    const { staticZones, gaugeLineWidth, gaugeGradient, gaugeThresholds } = chart.getAttributes()
+    const hasThresholds = Array.isArray(gaugeThresholds) && gaugeThresholds.length > 0
+    const dimensionColor = chart.selectDimensionColor()
 
     const makeGaugeOptions = () => ({
-      angle: -0.2, // The span of the gauge arc
-      lineWidth: 0.2, // The line thickness
-      radiusScale: 1, // Relative radius
+      angle: -0.2,
+      lineWidth: gaugeLineWidth,
+      radiusScale: 1,
       pointer: {
         length: 0.6,
         strokeWidth: 0.035,
@@ -31,9 +78,13 @@ export default (sdk, chart) => {
       strokeColor,
       limitMax: false,
       limitMin: false,
-      colorStart: chart.selectDimensionColor(), // Colors
+      colorStart: dimensionColor,
       generateGradient: true,
-      highDpiSupport: true, // High resolution support
+      highDpiSupport: true,
+      ...(gaugeGradient &&
+        !hasThresholds && {
+          customFillStyle: makeGradientFillStyle(lightenColor(dimensionColor), dimensionColor),
+        }),
       ...(staticZones && {
         staticZones: [{ strokeStyle: strokeColor, min: 0, max: 100, height: 1 }, ...staticZones],
       }),
@@ -68,9 +119,24 @@ export default (sdk, chart) => {
     listeners = unregister(
       chart.onAttributeChange("hoverX", render),
       !loaded && chart.onceAttributeChange("loaded", render),
+      chart.onAttributeChange("gaugeThresholds", applyThresholds),
       chart.onAttributeChange("theme", () => {
         const { color, strokeColor } = makeThemingOptions()
-        gauge.setOptions({ strokeColor, pointer: { color } })
+        const updatedDimensionColor = chart.selectDimensionColor()
+        const { gaugeThresholds: thresholds } = chart.getAttributes()
+        const themeHasThresholds = Array.isArray(thresholds) && thresholds.length > 0
+        gauge.setOptions({
+          strokeColor,
+          pointer: { color },
+          ...(gaugeGradient &&
+            !themeHasThresholds && {
+              customFillStyle: makeGradientFillStyle(
+                lightenColor(updatedDimensionColor),
+                updatedDimensionColor
+              ),
+            }),
+        })
+        if (themeHasThresholds) applyThresholds()
       })
     )
 
@@ -92,21 +158,51 @@ export default (sdk, chart) => {
 
   const getMinMax = () => chart.getAttribute("getValueRange")(chart)
 
-  const render = () => {
-    chartUI.render()
+  const applyThresholds = () => {
+    if (!gauge) return
 
+    const { gaugeGradient, gaugeThresholds: thresholds } = chart.getAttributes()
+    const [min, max] = getMinMax()
+    const stops = makeThresholdStops(
+      thresholds,
+      min,
+      max,
+      chart.getThemeIndex(),
+      chart.selectDimensionColor()
+    )
+
+    if (stops) {
+      gauge.setOptions({
+        percentColors: stops,
+        generateGradient: false,
+        customFillStyle: undefined,
+      })
+      return
+    }
+
+    const dimensionColor = chart.selectDimensionColor()
+    gauge.setOptions({
+      percentColors: undefined,
+      generateGradient: true,
+      ...(gaugeGradient && {
+        customFillStyle: makeGradientFillStyle(lightenColor(dimensionColor), dimensionColor),
+      }),
+    })
+  }
+
+  const render = () => {
     const { hoverX, loaded } = chart.getAttributes()
 
-    if (!gauge || !loaded) return
+    if ((!gauge && !svgMounted) || !loaded) return false
 
     const { data } = chart.getPayload()
 
-    if (data?.length === undefined) return
+    if (data?.length === undefined) return false
 
     const row = hoverX ? chart.getClosestRow(hoverX[0]) : data.length - 1
 
     const rowData = data[row]
-    if (!Array.isArray(rowData)) return
+    if (!Array.isArray(rowData)) return chartUI.render()
 
     const [, ...rows] = rowData
 
@@ -116,17 +212,18 @@ export default (sdk, chart) => {
 
     if (min !== prevMin || max !== prevMax) {
       chart.trigger("yAxisChange", min, max)
+      applyThresholds()
     }
 
     prevMin = min
     prevMax = max
 
-    chartUI.render()
-
     const percentage = Math.max(Math.min(((value - min) / (max - min)) * 100, 99.999), 0.001)
-    gauge.set(percentage)
+    if (gauge) gauge.set(percentage)
 
+    chartUI.render()
     chartUI.trigger("rendered")
+    return true
   }
 
   const unmount = () => {
@@ -134,6 +231,7 @@ export default (sdk, chart) => {
 
     if (resizeObserver) resizeObserver()
     gauge = null
+    svgMounted = false
     prevMin = null
     prevMax = null
 

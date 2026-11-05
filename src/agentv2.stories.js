@@ -304,7 +304,7 @@ export default {
   tags: ["autodocs"],
   args: {
     nodesScope: [],
-    contextScope: ["system.load"],
+    contextScope: ["system.net"],
     selectedContexts: [],
     selectedDimensions: [],
     theme: "default",
@@ -316,11 +316,11 @@ export default {
     },
     contextScope: {
       control: { type: "multi-select" },
-      options: ["system.load"],
+      options: ["system.load", "system.net", "disk.io", "disk.ops", "disk.await", "disk.util"],
     },
     selectedContexts: {
       control: { type: "multi-select" },
-      options: ["system.load"],
+      options: ["system.load", "system.net", "disk.io", "disk.ops", "disk.await", "disk.util"],
     },
     selectedDimensions: {
       control: { type: "multi-select" },

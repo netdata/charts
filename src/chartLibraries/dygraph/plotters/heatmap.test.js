@@ -46,6 +46,7 @@ describe("heatmap plotter", () => {
       const map = { dim1: 0, dim2: 1, dim3: 2 }
       return map[name] ?? -1
     })
+    jest.spyOn(chart, "getHeatmapYIndex").mockImplementation(name => chart.getDimensionIndex(name))
     jest.spyOn(chart, "getDimensionValue").mockReturnValue(42)
     jest.spyOn(chart, "getAttribute").mockImplementation(attr => {
       if (attr === "max") return 100
@@ -87,11 +88,56 @@ describe("heatmap plotter", () => {
   })
 
   it("skips series with unknown dimension index", () => {
-    chartUI.chart.getDimensionIndex.mockReturnValue(-1)
+    chartUI.chart.getHeatmapYIndex.mockReturnValue(-1)
     const plotterFunc = heatmapPlotter(chartUI)
     plotterFunc(plotter)
 
     expect(ctx.fillRect).not.toHaveBeenCalled()
+  })
+
+  it("draws rows using sorted heatmap y-index while reading values by series id", () => {
+    plotter.allSeriesPoints = [
+      [{ canvasx: 10 }, { canvasx: 20 }],
+      [{ canvasx: 10 }, { canvasx: 20 }],
+      [{ canvasx: 10 }, { canvasx: 20 }],
+    ]
+    plotter.dygraph.layout_.setNames = ["+Inf", "0.3", "2"]
+    plotter.dygraph.toDomYCoord = jest.fn(index => 50 + index * 20)
+
+    chartUI.chart.getHeatmapYIndex.mockImplementation(id => {
+      const indexes = { "0.3": 0, 2: 1, "+Inf": 2 }
+      return indexes[id] ?? -1
+    })
+    chartUI.chart.getDimensionValue.mockImplementation(id => {
+      const values = { "0.3": 1, 2: 2, "+Inf": 3 }
+      return values[id]
+    })
+
+    const plotterFunc = heatmapPlotter(chartUI)
+    plotterFunc(plotter)
+
+    expect(ctx.fillRect.mock.calls[0][1]).toBe(80)
+    expect(ctx.fillRect.mock.calls[2][1]).toBe(40)
+    expect(ctx.fillRect.mock.calls[4][1]).toBe(60)
+    expect(chartUI.chart.getDimensionValue).toHaveBeenCalledWith("+Inf", 0, { allowNull: true })
+    expect(chartUI.chart.getDimensionValue).toHaveBeenCalledWith("0.3", 0, { allowNull: true })
+    expect(chartUI.chart.getDimensionValue).toHaveBeenCalledWith("2", 0, { allowNull: true })
+  })
+
+  it("reads values by dygraph payload row index when points are clipped", () => {
+    plotter.allSeriesPoints = [
+      [
+        { canvasx: 10, idx: 4 },
+        { canvasx: 20, idx: 5 },
+      ],
+    ]
+    plotter.dygraph.layout_.setNames = ["dim1"]
+
+    const plotterFunc = heatmapPlotter(chartUI)
+    plotterFunc(plotter)
+
+    expect(chartUI.chart.getDimensionValue).toHaveBeenCalledWith("dim1", 4, { allowNull: true })
+    expect(chartUI.chart.getDimensionValue).toHaveBeenCalledWith("dim1", 5, { allowNull: true })
   })
 
   it("uses color based on dimension value", () => {

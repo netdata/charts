@@ -1,4 +1,5 @@
 import { scaleLinear } from "d3-scale"
+import { getRowPointValue } from "@/sdk/makeChart/getPointValue"
 
 export default chartUI => plotter => {
   if (!chartUI) return
@@ -31,18 +32,19 @@ export default chartUI => plotter => {
       return h
     }, new Set())
 
-    const { all } = chartUI.chart.getPayload()
+    const { all, point } = chartUI.chart.getPayload()
 
     points.forEach(p => {
       const center_x = p.canvasx
 
       const row = chartUI.chart.getClosestRow(p.xval)
-      const [, ...anomalyRow] = all[row]
-      const value = anomalyRow.reduce(
-        (max, { arp }, index) =>
-          selectedIdsSet.has(index) ? (max > (arp || 0) ? max : arp || 0) : max,
-        0
-      )
+      const pointData = all[row]
+      let value = 0
+
+      selectedIdsSet.forEach(index => {
+        const anomalyRate = getRowPointValue(pointData, index + 1, point, "arp") || 0
+        if (anomalyRate > value) value = anomalyRate
+      })
 
       ctx.strokeStyle = ctx.fillStyle = getColor(value)
       ctx.fillRect(center_x - bar_width / 2, 0, bar_width, 15)

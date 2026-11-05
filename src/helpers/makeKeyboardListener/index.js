@@ -40,8 +40,10 @@ export default () => {
       return true
     }
     handlers.push(handler)
-    const i = handlers.length - 1
-    return () => handlers.splice(i, 1)
+    return () => {
+      const index = handlers.indexOf(handler)
+      if (index !== -1) handlers.splice(index, 1)
+    }
   }
 
   const eventListener = event => {

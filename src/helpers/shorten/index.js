@@ -44,11 +44,25 @@ export const shortForLength = (string, maxLength = 30) => {
   let round = 0
 
   while (string.length > maxLength) {
-    string = shorten(string, round)
+    const next = shorten(string, round)
     round = round + 1
+
+    if (next === string) {
+      if (round > 3) break
+    } else {
+      string = next
+    }
   }
 
   return string
+}
+
+export const shortenToWidth = (text, contentWidth, containerWidth) => {
+  if (!text || contentWidth <= 0 || contentWidth <= containerWidth) return text
+
+  const targetChars = Math.max(3, Math.floor(text.length * (containerWidth / contentWidth)))
+
+  return shortForLength(text, targetChars)
 }
 
 export default shorten

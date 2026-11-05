@@ -1,10 +1,11 @@
 import React, { Fragment } from "react"
 import { Flex } from "@netdata/netdata-ui"
-import { useAttributeValue, useIsMinimal } from "@/components/provider"
+import { useAttributeValue, useIsMinimal, useIsModern } from "@/components/provider"
 import Toolbox from "@/components/toolbox"
 import FilterToolbox from "@/components/filterToolbox"
 import Separator from "@/components/line/separator"
 import { Title } from "@/components/title"
+import ModernHeader from "@/components/modern/header"
 
 export const Container = props => {
   const isMinimal = useIsMinimal()
@@ -26,9 +27,11 @@ export const Container = props => {
   )
 }
 
-const Header = ({ hasFilters }) => {
+const DefaultHeader = ({ hasFilters }) => {
   const isMinimal = useIsMinimal()
   const leftHeaderElements = useAttributeValue("leftHeaderElements")
+  const hasToolbox = useAttributeValue("hasToolbox")
+  const hideTitle = useAttributeValue("hideTitle")
   const focused = useAttributeValue("focused")
 
   return (
@@ -39,11 +42,17 @@ const Header = ({ hasFilters }) => {
           {arr[index + 1] ? <Separator /> : null}
         </Fragment>
       ))}
-      <Title />
+      {!hideTitle && <Title />}
       {isMinimal && hasFilters && <FilterToolbox opacity={focused ? 1 : 0.7} />}
-      <Toolbox />
+      {hasToolbox && <Toolbox />}
     </Container>
   )
+}
+
+const Header = props => {
+  const isModern = useIsModern()
+
+  return isModern ? <ModernHeader {...props} /> : <DefaultHeader {...props} />
 }
 
 export default Header

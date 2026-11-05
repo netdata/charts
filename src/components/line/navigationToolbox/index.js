@@ -30,6 +30,7 @@ const Container = styled(Flex).attrs({
 const ZoomReset = ({ log = () => {} }) => {
   const chart = useChart()
   const after = useAttributeValue("after")
+  const liveAfter = useAttributeValue("liveAfter")
 
   if (!chart.getAttribute("enabledResetRange")) return null
 
@@ -47,7 +48,7 @@ const ZoomReset = ({ log = () => {} }) => {
       onClick={onResetZoom}
       data-testid="chartToolbox-zoomReset"
       data-track={chart.track("zoomReset")}
-      disabled={after === -900}
+      disabled={after === liveAfter}
       padding="2px"
       small
     />
@@ -60,7 +61,8 @@ const NavigationToolbox = props => {
 
   const highlighting = useAttributeValue("highlighting")
   const panning = useAttributeValue("panning")
-  if (highlighting || panning) return null
+  if (chart.sdk.getRoot().getAttribute("autofetchOnHovering") || highlighting || panning)
+    return null
 
   const log = makeLog(chart)
 

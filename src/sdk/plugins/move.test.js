@@ -64,6 +64,7 @@ describe("move plugin", () => {
     expect(mockNode.updateAttributes).toHaveBeenCalledWith({
       after: -300,
       before: 0,
+      liveAfter: -300,
     })
   })
 
@@ -76,6 +77,7 @@ describe("move plugin", () => {
     expect(mockNode.updateAttributes).toHaveBeenCalledWith({
       after: -1999,
       before: 0,
+      liveAfter: -1999,
     })
   })
 
@@ -111,5 +113,31 @@ describe("move plugin", () => {
     sdk.trigger("moveX", chart, 1000, 2000)
 
     expect(mockNode.updateAttribute).toHaveBeenCalledWith("loaded", false)
+  })
+})
+
+describe("reset zoom", () => {
+  it("returns to the last live window", () => {
+    const { sdk, chart } = makeTestChart({ attributes: { autoPlay: false } })
+    const now = Math.floor(Date.now() / 1000)
+
+    sdk.getRoot().moveX(-3600)
+    chart.moveX(now - 600, now - 300)
+    expect(chart.getAttribute("after")).toBeGreaterThan(0)
+
+    chart.resetNavigation()
+
+    expect(chart.getAttribute("after")).toBe(-3600)
+    expect(chart.getAttribute("before")).toBe(0)
+  })
+
+  it("falls back to the last 15 minutes when no live window was set", () => {
+    const { chart } = makeTestChart({ attributes: { autoPlay: false } })
+    const now = Math.floor(Date.now() / 1000)
+
+    chart.moveX(now - 600, now - 300)
+    chart.resetNavigation()
+
+    expect(chart.getAttribute("after")).toBe(-900)
   })
 })

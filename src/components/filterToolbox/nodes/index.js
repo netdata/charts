@@ -17,6 +17,7 @@ import {
   minColumn,
   avgColumn,
   maxColumn,
+  rangeColumn,
 } from "../columns"
 import HostLabelsFilter from "./hostLabelsFilter"
 
@@ -35,6 +36,7 @@ const columns = [
   minColumn(),
   avgColumn(),
   maxColumn(),
+  rangeColumn(),
 ]
 
 const NodesTable = ({ labelProps, ...rest }) => {

@@ -1,6 +1,6 @@
 import React, { memo } from "react"
 import { TextMicro } from "@netdata/netdata-ui"
-import { useUnitSign } from "@/components/provider"
+import { useUnitSign, useValueUnitAttributes } from "@/components/provider"
 
 export const Value = props => (
   <TextMicro
@@ -12,10 +12,29 @@ export const Value = props => (
   />
 )
 
-const Units = ({ visible, dimensionId, ...rest }) => {
-  const units = useUnitSign({ dimensionId })
+const Units = ({
+  visible,
+  dimensionId,
+  value,
+  valueKey,
+  scaleByValue,
+  unitAttributes,
+  unitsKey = "units",
+  ...rest
+}) => {
+  const valueUnitAttributes = useValueUnitAttributes(value, {
+    valueKey,
+    dimensionId,
+    unitsKey,
+    scaleByValue,
+  })
+  const units = useUnitSign({
+    dimensionId,
+    key: unitsKey,
+    unitAttributes: unitAttributes || valueUnitAttributes,
+  })
 
-  if (!visible) return null
+  if (!visible || !units) return null
 
   return <Value {...rest}>{units}</Value>
 }

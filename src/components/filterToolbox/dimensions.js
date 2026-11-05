@@ -11,6 +11,7 @@ import {
   minColumn,
   avgColumn,
   maxColumn,
+  rangeColumn,
 } from "./columns"
 
 const tooltipProps = {
@@ -26,6 +27,7 @@ const columns = [
   minColumn(),
   avgColumn(),
   maxColumn(),
+  rangeColumn(),
 ]
 
 const Dimensions = ({ labelProps, ...rest }) => {
@@ -47,7 +49,7 @@ const Dimensions = ({ labelProps, ...rest }) => {
     [dimensions, value]
   )
 
-  const [sortBy, onSortByChange] = useAttribute("nodesSortBy")
+  const [sortBy, onSortByChange] = useAttribute("dimensionsSortBy")
 
   return (
     <DropdownTable

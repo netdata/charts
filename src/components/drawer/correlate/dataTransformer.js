@@ -1,50 +1,8 @@
-export const transformCorrelationData = (response, threshold = 0.01, scopeContexts = []) => {
-  if (!response?.result || !response?.v_schema) {
-    return []
-  }
+const requiredGroupFields = ["dimension", "context", "node"]
 
-  const items = response.result.map(item => {
-    const [dimension, context, nodeId] = item.id.split(",")
-    const [dimensionName, contextName, nodeName] = item.nm.split(",")
+const getGroupBy = response => response?.request?.aggregations?.metrics?.[0]?.group_by || []
 
-    const [weight, timeframe, baseline] = item.v
-
-    const correlationWeight = weight[0]
-    const weightMin = weight[0]
-    const weightMax = weight[2]
-
-    const timeframeAvg = timeframe[1]
-    const timeframeCount = timeframe[4]
-    const baselineAvg = baseline[1]
-    const baselineCount = baseline[4]
-
-    const percentChange = baselineAvg !== 0 ? ((timeframeAvg - baselineAvg) / baselineAvg) * 100 : 0
-
-    return {
-      dimension,
-      dimensionName,
-      context,
-      contextName,
-      nodeId,
-      nodeName,
-      correlationWeight,
-      weightMin,
-      weightMax,
-      timeframeAvg,
-      timeframeCount,
-      baselineAvg,
-      baselineCount,
-      percentChange,
-      correlationStrength: getCorrelationStrength(correlationWeight),
-    }
-  })
-
-  return items
-    .filter(
-      item => Math.abs(item.correlationWeight) < threshold && !scopeContexts.includes(item.context)
-    )
-    .sort((a, b) => Math.abs(a.correlationWeight) - Math.abs(b.correlationWeight))
-}
+const splitGroupedValue = value => (typeof value === "string" ? value.split(",") : [])
 
 const getCorrelationStrength = weight => {
   const absWeight = Math.abs(weight)
@@ -54,27 +12,93 @@ const getCorrelationStrength = weight => {
   return "Very Weak"
 }
 
+const transformItem = (item, indexes) => {
+  const ids = splitGroupedValue(item?.id)
+  const names = splitGroupedValue(item?.nm)
+  const [weight, timeframe, baseline] = item?.v || []
+  const correlationWeight = weight?.[0]
+
+  if (
+    ids.length < indexes.groupCount ||
+    names.length < indexes.groupCount ||
+    typeof correlationWeight !== "number" ||
+    !Array.isArray(timeframe) ||
+    !Array.isArray(baseline)
+  )
+    return null
+
+  const dimension = ids[indexes.dimension]
+  const context = ids[indexes.context]
+  const nodeId = ids[indexes.node]
+  const timeframeAvg = timeframe[1]
+  const baselineAvg = baseline[1]
+
+  return {
+    rowId: JSON.stringify(["dimension", context, nodeId, dimension]),
+    kind: "dimension",
+    dimension,
+    dimensionName: names[indexes.dimension],
+    context,
+    contextName: names[indexes.context],
+    nodeId,
+    nodeName: names[indexes.node],
+    correlationWeight,
+    weightMin: weight[0],
+    weightMax: weight[2],
+    timeframeAvg,
+    timeframeCount: timeframe[4],
+    baselineAvg,
+    baselineCount: baseline[4],
+    percentChange: baselineAvg !== 0 ? ((timeframeAvg - baselineAvg) / baselineAvg) * 100 : 0,
+    correlationStrength: getCorrelationStrength(correlationWeight),
+  }
+}
+
+export const transformCorrelationData = (response, threshold = 0.01, scopeContexts = []) => {
+  if (!Array.isArray(response?.result) || !response?.v_schema) return []
+
+  const groupBy = getGroupBy(response)
+  const indexes = requiredGroupFields.reduce(
+    (result, field) => ({ ...result, [field]: groupBy.indexOf(field) }),
+    { groupCount: groupBy.length }
+  )
+
+  if (requiredGroupFields.some(field => indexes[field] < 0)) return []
+
+  const excludedContexts = new Set(scopeContexts)
+
+  return response.result
+    .map(item => transformItem(item, indexes))
+    .filter(
+      item =>
+        item && Math.abs(item.correlationWeight) < threshold && !excludedContexts.has(item.context)
+    )
+    .sort((a, b) => Math.abs(a.correlationWeight) - Math.abs(b.correlationWeight))
+}
+
 export const groupByContext = data => {
-  const grouped = {}
+  const groups = new Map()
 
   data.forEach(item => {
-    if (!grouped[item.context]) {
-      grouped[item.context] = {
+    let group = groups.get(item.context)
+
+    if (!group) {
+      group = {
+        rowId: JSON.stringify(["context", item.context]),
+        kind: "context",
         context: item.context,
         contextName: item.contextName,
-        dimensions: [],
+        children: [],
         minWeight: 1,
         count: 0,
       }
+      groups.set(item.context, group)
     }
 
-    grouped[item.context].dimensions.push(item)
-    grouped[item.context].minWeight = Math.min(
-      grouped[item.context].minWeight,
-      Math.abs(item.correlationWeight)
-    )
-    grouped[item.context].count++
+    group.children.push(item)
+    group.minWeight = Math.min(group.minWeight, Math.abs(item.correlationWeight))
+    group.count++
   })
 
-  return Object.values(grouped).sort((a, b) => a.minWeight - b.minWeight)
+  return [...groups.values()].sort((a, b) => a.minWeight - b.minWeight)
 }

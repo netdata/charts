@@ -1,34 +1,15 @@
 import React from "react"
-import { Flex, TextSmall, Tooltip as BaseTooltip } from "@netdata/netdata-ui"
+import { Tooltip as BaseTooltip } from "@netdata/netdata-ui"
 import { useAttributeValue } from "@/components/provider"
 
-export const tooltipStyleProps = {
-  padding: [1, 2],
-  margin: [2],
-  round: 1,
-  width: { max: "300px", base: "fit-content" },
-  background: "tooltip",
-}
-
-const DefaultContent = ({ children, ...rest }) => (
-  <Flex {...tooltipStyleProps} {...rest}>
-    <TextSmall color="tooltipText" wordBreak="break-word">
-      {children}
-    </TextSmall>
-  </Flex>
+const Tooltip = ({ content, ...rest }) => (
+  <BaseTooltip
+    content={content || ""}
+    {...rest}
+    dropProps={{ "data-toolbox": rest["data-toolbox"] }}
+    zIndex={100}
+  />
 )
-
-const Tooltip = ({ content, Content = DefaultContent, ...rest }) =>
-  content ? (
-    <BaseTooltip
-      plain
-      content={<Content {...rest}>{content}</Content>}
-      {...rest}
-      dropProps={{ "data-toolbox": rest["data-toolbox"] }}
-    />
-  ) : (
-    rest.children
-  )
 
 export const withTooltip =
   (Component, tooltipDefaultProps = {}) =>
@@ -46,7 +27,7 @@ export const withTooltip =
         {...tooltipDefaultProps}
         {...rest.tooltipProps}
       >
-        <Component {...rest} />
+        <Component aria-label={typeof title === "string" ? title : undefined} {...rest} />
       </Tooltip>
     )
   }

@@ -142,8 +142,9 @@ export const useTitle = () => {
   const title = useAttributeValue("title")
   const contextScope = useAttributeValue("contextScope")
 
-  const titleByContext = contextScope.length === 1 && chartTitleByContextMap[contextScope[0]]
+  if (title) return title
 
+  const titleByContext = contextScope.length === 1 && chartTitleByContextMap[contextScope[0]]
   if (titleByContext) return titleByContext
 
   return title
@@ -228,19 +229,20 @@ export const useOnResize = uiName => {
   const [invalidated, invalidate] = useState(1)
   const forceUpdate = useForceUpdate()
 
-  useImmediateListener(
-    () =>
-      unregister(
-        chart.on("mountChartUI", () => {
-          setTimeout(() => {
-            invalidate(prev => prev + 1)
-            forceUpdate()
-          }, 300)
-        }),
-        chart.getUI(uiName).on("rendered", forceUpdate).on("resize", forceUpdate)
-      ),
-    [uiName, chart, invalidated]
-  )
+  useImmediateListener(() => {
+    let timer
+    return unregister(
+      chart.on("mountChartUI", () => {
+        clearTimeout(timer)
+        timer = setTimeout(() => {
+          invalidate(prev => prev + 1)
+          forceUpdate()
+        }, 300)
+      }),
+      chart.getUI(uiName).on("rendered", forceUpdate).on("resize", forceUpdate),
+      () => clearTimeout(timer)
+    )
+  }, [uiName, chart, invalidated])
 
   return {
     width: chart.getUI(uiName).getChartWidth(),
@@ -259,15 +261,37 @@ export const useDimensionIds = () => {
   return chart.getDimensionIds()
 }
 
+export const useVisibleDimensionIds = () => {
+  const chart = useChart()
+  const forceUpdate = useForceUpdate()
+
+  useImmediateListener(
+    () =>
+      unregister(
+        chart.on("dimensionChanged", forceUpdate),
+        chart.on("visibleDimensionsChanged", forceUpdate)
+      ),
+    [chart]
+  )
+
+  return chart.getVisibleDimensionIds()
+}
+
 export const useUnitSign = ({ key = "units", ...options } = {}) => {
   const chart = useChart()
 
   const forceUpdate = useForceUpdate()
 
-  useImmediateListener(
-    () => chart.onAttributeChange(`${key}ConversionPrefix`, forceUpdate),
-    [chart, key]
-  )
+  useImmediateListener(() => {
+    const offListeners = [
+      chart.onAttributeChange(`${key}ConversionPrefix`, forceUpdate),
+      chart.onAttributeChange(`${key}ConversionBase`, forceUpdate),
+      chart.onAttributeChange(`${key}ByContext`, forceUpdate),
+      chart.onAttributeChange(`${key}ByDimension`, forceUpdate),
+    ]
+
+    return () => offListeners.forEach(off => off())
+  }, [chart, key])
 
   return chart.getUnitSign({ key, ...options })
 }
@@ -277,10 +301,14 @@ export const useUnits = (key = "units") => {
 
   const forceUpdate = useForceUpdate()
 
-  useImmediateListener(
-    () => chart.onAttributeChange(`${key}ConversionPrefix`, forceUpdate),
-    [chart, key]
-  )
+  useImmediateListener(() => {
+    const offListeners = [
+      chart.onAttributeChange(`${key}ConversionPrefix`, forceUpdate),
+      chart.onAttributeChange(`${key}ConversionBase`, forceUpdate),
+    ]
+
+    return () => offListeners.forEach(off => off())
+  }, [chart, key])
 
   return chart.getUnits(key)
 }
@@ -313,7 +341,7 @@ const formatByType = {
 export const convert = (
   chart,
   value,
-  { valueKey, fractionDigits, dimensionId, unitsKey = "units" } = {}
+  { valueKey, fractionDigits, dimensionId, unitsKey = "units", scaleByValue, unitAttributes } = {}
 ) => {
   if (value === null || value === "-") return "-"
 
@@ -322,20 +350,119 @@ export const convert = (
     return formatter(value, { fractionDigits, dimensionId, unitsKey })
   }
 
-  return chart.getConvertedValue(value, { fractionDigits, key: unitsKey, dimensionId })
+  const attrs =
+    unitAttributes ||
+    (scaleByValue && typeof value !== "undefined"
+      ? chart.getUnitAttributesForValue(value, { dimensionId, key: unitsKey })
+      : undefined)
+
+  return chart.getConvertedValue(value, {
+    fractionDigits,
+    key: unitsKey,
+    dimensionId,
+    unitAttributes: attrs,
+  })
+}
+
+export const useValueUnitAttributes = (
+  value,
+  { valueKey, dimensionId, unitsKey = "units", scaleByValue } = {}
+) => {
+  const chart = useChart()
+  const units = useAttributeValue(unitsKey)
+  const desiredUnits = useAttributeValue("desiredUnits")
+  const secondsAsTime = useAttributeValue("secondsAsTime")
+  const temperature = useAttributeValue("temperature")
+  const viewDimensions = useAttributeValue("viewDimensions")
+
+  return useMemo(() => {
+    if (!scaleByValue || value === null || value === "-" || typeof value === "undefined") {
+      return undefined
+    }
+
+    if (formatByType[valueKey]) return undefined
+
+    return chart.getUnitAttributesForValue(value, { dimensionId, key: unitsKey })
+  }, [
+    chart,
+    value,
+    valueKey,
+    dimensionId,
+    unitsKey,
+    scaleByValue,
+    units,
+    desiredUnits,
+    secondsAsTime,
+    temperature,
+    viewDimensions,
+  ])
 }
 
 export const useConverted = (
   value,
-  { valueKey, fractionDigits, dimensionId, unitsKey = "units" } = {}
+  { valueKey, fractionDigits, dimensionId, unitsKey = "units", scaleByValue, unitAttributes } = {}
 ) => {
   const chart = useChart()
   const unitsConversionPrefix = useAttributeValue(`${unitsKey}ConversionPrefix`)
+  const unitsConversionBase = useAttributeValue(`${unitsKey}ConversionBase`)
+  const unitsByContext = useAttributeValue(`${unitsKey}ByContext`)
+  const unitsByDimension = useAttributeValue(`${unitsKey}ByDimension`)
+  const derivedUnitAttributes = useValueUnitAttributes(unitAttributes ? undefined : value, {
+    valueKey,
+    dimensionId,
+    unitsKey,
+    scaleByValue,
+  })
+  const attrs = unitAttributes || derivedUnitAttributes
 
   return useMemo(
-    () => convert(chart, value, { valueKey, fractionDigits, dimensionId, unitsKey }),
-    [chart, value, valueKey, unitsConversionPrefix]
+    () =>
+      convert(chart, value, {
+        valueKey,
+        fractionDigits,
+        dimensionId,
+        unitsKey,
+        scaleByValue,
+        unitAttributes: attrs,
+      }),
+    [
+      chart,
+      value,
+      valueKey,
+      fractionDigits,
+      dimensionId,
+      unitsKey,
+      unitsConversionPrefix,
+      unitsConversionBase,
+      unitsByContext,
+      unitsByDimension,
+      scaleByValue,
+      attrs,
+    ]
   )
+}
+
+export const useValueWithUnit = (
+  value,
+  { valueKey, fractionDigits, dimensionId, unitsKey = "units", scaleByValue } = {}
+) => {
+  const unitAttributes = useValueUnitAttributes(value, {
+    valueKey,
+    dimensionId,
+    unitsKey,
+    scaleByValue,
+  })
+  const convertedValue = useConverted(value, {
+    valueKey,
+    fractionDigits,
+    dimensionId,
+    unitsKey,
+    scaleByValue,
+    unitAttributes,
+  })
+  const convertedUnit = useUnitSign({ key: unitsKey, dimensionId, unitAttributes })
+
+  return { convertedValue, convertedUnit, unitAttributes }
 }
 
 export const useLatestRowValue = (options = {}) => {
@@ -365,7 +492,7 @@ export const useLatestRowValue = (options = {}) => {
     return unregister(
       chart.onAttributeChange("hoverX", () => setState(getValue())),
       chart.on("dimensionChanged", () => setState(getValue())),
-      chart.on("render", () => setState(getValue()))
+      chart.on("successFetch", () => setState(getValue()))
     )
   }, [chart])
 
@@ -474,7 +601,7 @@ export const getValueByPeriod = {
     return dimValue
   },
   window: ({ chart, id, ...options }) => calculateStats(chart, id, "window", options),
-  highlight: ({ chart, id, options }) => calculateStats(chart, id, "highlight", options),
+  highlight: ({ chart, id, ...options }) => calculateStats(chart, id, "highlight", options),
 }
 
 export const useValue = (
@@ -500,15 +627,21 @@ export const useValue = (
     return unregister(
       chart.onAttributeChange("hoverX", () => setState(getValue())),
       chart.on("dimensionChanged", () => setState(getValue())),
-      chart.onAttributeChange(`${unitsKey}Conversion`, () => setState(getValue())),
-      chart.on("render", () => setState(getValue()))
+      chart.onAttributeChange(`${unitsKey}ConversionPrefix`, () => setState(getValue())),
+      chart.onAttributeChange(`${unitsKey}ConversionBase`, () => setState(getValue())),
+      chart.on("successFetch", () => setState(getValue()))
     )
-  }, [chart, id, valueKey, period, unitsKey])
+  }, [chart, id, valueKey, period, unitsKey, abs, allowNull])
 
   return value
 }
 
 export const useLatestValue = (id, options = {}) => useValue(id, "latest", options)
+
+export const useDisplayValue = (id, period = "latest", options = {}) =>
+  useValue(id, period, { ...options, abs: false })
+
+export const useLatestDisplayValue = (id, options = {}) => useDisplayValue(id, "latest", options)
 
 export const useConvertedValue = (id, period = "latest", options = {}) => {
   const value = useValue(id, period, options)
@@ -516,7 +649,61 @@ export const useConvertedValue = (id, period = "latest", options = {}) => {
   return useConverted(value, { ...options, dimensionId: id })
 }
 
+export const useDisplayConvertedValue = (id, period = "latest", options = {}) => {
+  const value = useDisplayValue(id, period, options)
+
+  return useConverted(value, { ...options, dimensionId: id })
+}
+
 export const useLatestConvertedValue = (id, options = {}) =>
   useConvertedValue(id, "latest", { allowNull: true, dimensionId: id, ...options })
 
+export const useLatestDisplayConvertedValue = (id, options = {}) =>
+  useDisplayConvertedValue(id, "latest", { allowNull: true, dimensionId: id, ...options })
+
+export const useLatestDisplayValueWithUnit = (id, options = {}) => {
+  const value = useLatestDisplayValue(id, { allowNull: true, ...options })
+  const converted = useValueWithUnit(value, {
+    ...options,
+    dimensionId: id,
+    scaleByValue: true,
+  })
+
+  return { value, ...converted }
+}
+
 export const useIsMinimal = () => useAttributeValue("designFlavour") === "minimal"
+
+export const useIsModern = () => useAttributeValue("designFlavour") === "modern"
+
+export const useChartUI = (uiName = "default") => {
+  const chart = useChart()
+  useAttributeValue("chartLibrary")
+  return chart.getUI(uiName)
+}
+
+export const usePlotArea = (uiName = "default") => {
+  const chart = useChart()
+  const ui = useChartUI(uiName)
+  const forceUpdate = useForceUpdate()
+
+  useImmediateListener(() => {
+    let timer
+    return unregister(
+      chart.on("mountChartUI", () => {
+        clearTimeout(timer)
+        timer = setTimeout(forceUpdate, 300)
+      }),
+      ui?.on("rendered", forceUpdate).on("resize", forceUpdate),
+      () => clearTimeout(timer)
+    )
+  }, [chart, ui])
+
+  const area = ui?.getPlotArea?.()
+
+  return {
+    left: area?.left ?? 0,
+    top: area?.top ?? 0,
+    width: area?.width ?? 0,
+  }
+}

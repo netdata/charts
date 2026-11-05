@@ -6,26 +6,43 @@ const useHover = ({ onHover, onBlur, isOut = defaultIsOut }, deps) => {
   const ref = useRef()
 
   useLayoutEffect(() => {
-    if (!ref.current) return
+    const element = ref.current
+    if (!element) return
 
     const mouseout = e => {
       let node = e.relatedTarget
 
-      while (node && node !== ref.current && isOut(node)) {
+      while (node && node !== element && isOut(node)) {
         node = node.parentElement
       }
 
-      if (node !== ref.current && isOut(node)) onBlur()
+      if (node !== element && isOut(node)) onBlur()
     }
 
-    ref.current.addEventListener("mouseover", onHover)
-    ref.current.addEventListener("mouseout", mouseout)
+    const reconcileHover = () => {
+      if (typeof element.matches !== "function") return
+
+      if (element.matches(":hover")) onHover()
+      else onBlur()
+    }
+
+    const visibilityChange = () => {
+      if (document.visibilityState !== "visible") return
+      if (typeof document.hasFocus === "function" && !document.hasFocus()) return
+
+      reconcileHover()
+    }
+
+    element.addEventListener("mouseover", onHover)
+    element.addEventListener("mouseout", mouseout)
+    window.addEventListener("focus", reconcileHover)
+    document.addEventListener("visibilitychange", visibilityChange)
 
     return () => {
-      if (!ref.current) return
-
-      ref.current.removeEventListener("mouseover", onHover)
-      ref.current.removeEventListener("mouseout", mouseout)
+      element.removeEventListener("mouseover", onHover)
+      element.removeEventListener("mouseout", mouseout)
+      window.removeEventListener("focus", reconcileHover)
+      document.removeEventListener("visibilitychange", visibilityChange)
     }
   }, [...deps, ref.current])
 

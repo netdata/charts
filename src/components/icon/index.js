@@ -40,9 +40,10 @@ const getElement = (svg, id) => {
 
   const viewbox = container.firstChild.getAttribute("viewBox")
   const xmlns = container.firstChild.getAttribute("xmlns")
-  const preserveAspectRatio = container.firstChild.getAttribute("preserveAspectRatio", "")
+  const preserveAspectRatio = container.firstChild.getAttribute("preserveAspectRatio")
+  const aspectAttribute = preserveAspectRatio ? ` preserveAspectRatio="${preserveAspectRatio}"` : ""
 
-  container.innerHTML = `<svg viewbox="${viewbox}" id="${id}" xmlns="${xmlns}" preserveAspectRatio="${preserveAspectRatio || ""}">${container.firstChild.innerHTML}</svg>`
+  container.innerHTML = `<svg viewbox="${viewbox}" id="${id}" xmlns="${xmlns}"${aspectAttribute}>${container.firstChild.innerHTML}</svg>`
 
   return container.firstChild
 }

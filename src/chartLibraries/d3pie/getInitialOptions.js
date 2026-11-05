@@ -82,12 +82,24 @@ export default (chartUI, dataOptions = {}) => {
         truncateLength: 30,
       },
       formatter(context) {
-        if (context.part === "value")
-          return `${
-            context.realLabel === "No data"
-              ? "-"
-              : chartUI.chart.getConvertedValue(context.value, { dimensionId: context.id })
-          } ${chartUI.chart.getUnitSign({ dimensionId: context.id })}`
+        if (context.part === "value") {
+          if (context.realLabel === "No data") return "-"
+
+          const value = context.signedValue ?? context.value
+          const unitAttributes = chartUI.chart.getUnitAttributesForValue(value, {
+            dimensionId: context.id,
+          })
+          const convertedValue = chartUI.chart.getConvertedValue(value, {
+            dimensionId: context.id,
+            unitAttributes,
+          })
+          const convertedUnit = chartUI.chart.getUnitSign({
+            dimensionId: context.id,
+            unitAttributes,
+          })
+
+          return [convertedValue, convertedUnit].filter(Boolean).join(" ")
+        }
         if (context.part === "percentage") return `${context.label}%`
 
         return context.label

@@ -1,5 +1,10 @@
 import { renderHook, act } from "@testing-library/react"
-import { renderHookWithChart, makeTestChart } from "@jest/testUtilities"
+import {
+  loadHeatmapPayload,
+  makeHeatmapPayload,
+  renderHookWithChart,
+  makeTestChart,
+} from "@jest/testUtilities"
 import {
   useChart,
   useAttributeValue,
@@ -8,6 +13,11 @@ import {
   useTitle,
   useName,
   useIsMinimal,
+  useLatestRowValue,
+  useLatestDisplayValue,
+  useLatestDisplayValueWithUnit,
+  useLatestValue,
+  useValueWithUnit,
   getValueByPeriod,
 } from "./selectors"
 
@@ -111,6 +121,39 @@ describe("Chart Provider Selectors", () => {
 
       expect(result.current).toBe("Test Chart Title")
     })
+
+    it("prefers explicit title over chartTitleByContextMap value", () => {
+      const { result } = renderHookWithChart(() => useTitle(), {
+        attributes: {
+          title: "Web 01",
+          contextScope: ["fping.latency"],
+        },
+      })
+
+      expect(result.current).toBe("Web 01")
+    })
+
+    it("falls back to chartTitleByContextMap when title is empty", () => {
+      const { result } = renderHookWithChart(() => useTitle(), {
+        attributes: {
+          title: "",
+          contextScope: ["fping.latency"],
+        },
+      })
+
+      expect(result.current).toBe("FPing Latency")
+    })
+
+    it("returns explicit title when context is not in the map", () => {
+      const { result } = renderHookWithChart(() => useTitle(), {
+        attributes: {
+          title: "My Custom",
+          contextScope: ["system.cpu"],
+        },
+      })
+
+      expect(result.current).toBe("My Custom")
+    })
   })
 
   describe("useName", () => {
@@ -172,6 +215,10 @@ describe("Chart Provider Selectors", () => {
       jest.spyOn(chart, "getDimensionIndex").mockReturnValue(0)
       jest.spyOn(chart, "isDimensionVisible").mockReturnValue(true)
       jest.spyOn(chart, "getVisibleDimensionIds").mockReturnValue(["dim1"])
+      jest.spyOn(chart, "getRowDimensionValue").mockImplementation((id, row) => {
+        const dimIndex = chart.getDimensionIndex(id)
+        return row[dimIndex + 1]
+      })
     })
 
     describe("highlight period", () => {
@@ -265,6 +312,128 @@ describe("Chart Provider Selectors", () => {
 
         expect(result).toBe(52.5)
       })
+    })
+  })
+
+  describe("display values", () => {
+    it("returns to the latest value when chart hover ends without a Dygraph mouseout", async () => {
+      const { chart, sdk } = makeTestChart()
+      await loadHeatmapPayload(chart, ["dim1"], [[50], [60]])
+
+      const { result } = renderHookWithChart(() => useLatestValue("dim1"), { chart })
+
+      await act(async () => {
+        chart.focus()
+        sdk.trigger("highlightHover", chart, 1000, "dim1")
+        await new Promise(resolve => setTimeout(resolve, 20))
+      })
+
+      expect(result.current).toBe(50)
+
+      act(() => chart.blur())
+
+      expect(result.current).toBe(60)
+    })
+
+    it("refreshes latest values for successful fetches instead of render requests", () => {
+      jest.useFakeTimers()
+      const { chart } = makeTestChart()
+      jest.spyOn(chart, "getPayload").mockReturnValue({ all: [[0, 11]], data: [[0, 11]] })
+      jest.spyOn(chart, "isDimensionVisible").mockReturnValue(true)
+      const getDimensionValue = jest.spyOn(chart, "getDimensionValue").mockReturnValue(11)
+
+      const { result } = renderHookWithChart(() => useLatestValue("dim1"), { chart })
+
+      expect(result.current).toBe(11)
+      getDimensionValue.mockClear()
+
+      act(() => {
+        for (let i = 0; i < 20; i++) chart.trigger("render")
+        jest.runOnlyPendingTimers()
+      })
+
+      expect(getDimensionValue).not.toHaveBeenCalled()
+
+      act(() => chart.trigger("successFetch"))
+
+      expect(getDimensionValue).toHaveBeenCalledTimes(1)
+      jest.useRealTimers()
+    })
+
+    it("refreshes complete latest rows for successful fetches instead of render requests", () => {
+      jest.useFakeTimers()
+      const { chart } = makeTestChart()
+      jest.spyOn(chart, "getPayload").mockReturnValue({ all: [[0, 11]], data: [[0, 11]] })
+      jest.spyOn(chart, "getVisibleDimensionIds").mockReturnValue(["dim1"])
+      const getDimensionValue = jest.spyOn(chart, "getDimensionValue").mockReturnValue(11)
+      jest.spyOn(chart, "selectDimensionColor").mockReturnValue("#123456")
+
+      const { result } = renderHookWithChart(() => useLatestRowValue(), { chart })
+
+      act(() => {
+        for (let i = 0; i < 20; i++) chart.trigger("render")
+        jest.runOnlyPendingTimers()
+      })
+
+      expect(result.current).toBeNull()
+      expect(getDimensionValue).not.toHaveBeenCalled()
+
+      act(() => chart.trigger("successFetch"))
+
+      expect(result.current).toEqual([{ label: "dim1", value: 11, color: "#123456" }])
+      expect(getDimensionValue).toHaveBeenCalledTimes(1)
+      jest.useRealTimers()
+    })
+
+    it("keeps magnitude retrieval separate from signed atomic presentation", async () => {
+      const payload = makeHeatmapPayload(["bytes"], [[-1536]])
+      payload.view.chart_type = "line"
+      payload.view.units = "By"
+      payload.view.dimensions.grouped_by = []
+      payload.view.dimensions.units = ["By"]
+
+      const { chart } = makeTestChart({
+        attributes: {
+          groupBy: [],
+          selectedDimensions: [],
+          selectedLegendDimensions: [],
+        },
+      })
+
+      chart.doneFetch(payload)
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      const { result } = renderHookWithChart(
+        () => ({
+          magnitude: useLatestValue("bytes", { allowNull: true }),
+          display: useLatestDisplayValue("bytes", { allowNull: true }),
+          formatted: useLatestDisplayValueWithUnit("bytes"),
+        }),
+        { chart }
+      )
+
+      expect(result.current.magnitude).toBe(1536)
+      expect(result.current.display).toBe(-1536)
+      expect(result.current.formatted.convertedValue).toBe("-1.5")
+      expect(result.current.formatted.convertedUnit).toBe("KiB")
+    })
+  })
+
+  describe("useValueWithUnit", () => {
+    it("reconverts when the temperature preference changes", () => {
+      const { result, chart } = renderHookWithChart(
+        () => useValueWithUnit(100, { scaleByValue: true }),
+        { attributes: { units: ["Cel"], desiredUnits: ["auto"] } }
+      )
+
+      expect(result.current.convertedUnit).toBe("°C")
+
+      act(() => {
+        chart.updateAttribute("temperature", "fahrenheit")
+      })
+
+      expect(result.current.convertedUnit).toBe("°F")
+      expect(result.current.convertedValue).toBe("212")
     })
   })
 })

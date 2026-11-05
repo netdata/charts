@@ -1,16 +1,7 @@
 import React from "react"
-import { TextSmall, Flex } from "@netdata/netdata-ui"
 import { useAttributeValue } from "@/components/provider"
 import Row from "./row"
-
-const Info = ({ title, children }) => (
-  <Flex gap={2}>
-    <TextSmall color="textDescription">{title}</TextSmall>
-    <Flex as={TextSmall} background="elementBackground">
-      {children}
-    </Flex>
-  </Flex>
-)
+import Info from "./info"
 
 const Context = () => {
   const contextScope = useAttributeValue("contextScope")

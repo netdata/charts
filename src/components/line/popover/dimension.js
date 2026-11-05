@@ -3,11 +3,16 @@ import styled from "styled-components"
 import { Flex } from "@netdata/netdata-ui"
 import Color, { ColorBar } from "@/components/line/dimensions/color"
 import Name from "@/components/line/dimensions/name"
+import { Value as UnitValue } from "@/components/line/dimensions/units"
 import Value, { Value as ValuePart } from "@/components/line/dimensions/value"
-import { useChart, useVisibleDimensionId } from "@/components/provider"
+import {
+  useLatestDisplayValueWithUnit,
+  useVisibleDimensionId,
+} from "@/components/provider"
 import { labels as annotationLabels } from "@/helpers/annotations"
 import { useIsHeatmap } from "@/helpers/heatmap"
 import { rowFlavours } from "./dimensions"
+import { popoverGridColumns } from "./layout"
 
 const GridRow = styled(Flex).attrs({
   position: "relative",
@@ -25,24 +30,52 @@ const ColorBackground = styled(ColorBar).attrs({
   round: 0.5,
 })``
 
+const DimensionNameCell = styled(Flex).attrs({
+  "data-testid": "chartPopover-dimensionNameCell",
+  alignItems: "center",
+  gap: 1,
+  position: "relative",
+  overflow: "hidden",
+  width: { min: 0 },
+})`
+  min-width: ${popoverGridColumns.dimensionMin};
+
+  [data-testid="chartDimensions-name"] {
+    min-width: 0;
+    max-width: 100%;
+  }
+`
+
 const rowValueKeys = {
   ANOMALY_RATE: "arp",
   default: "value",
 }
 
-const ValueOnDot = ({ children, fractionDigits = 0, ...rest }) => {
-  const [first, last] = children.toString().split(".")
+const PlainValue = props => <ValuePart {...props} textAlign="right" whiteSpace="nowrap" />
+
+const UnitCell = styled(Flex).attrs({
+  "data-testid": "chartPopover-dimensionUnitCell",
+  alignItems: "center",
+  overflow: "hidden",
+  width: { min: 0 },
+  padding: [0, 0, 0, 2],
+})`
+  box-sizing: border-box;
+`
+
+const ValueWithUnits = ({ id, visible, ...rest }) => {
+  const isHeatmap = useIsHeatmap()
+  const { convertedValue, convertedUnit } = useLatestDisplayValueWithUnit(id)
+
+  if (!visible) return null
 
   return (
-    <Flex alignItems="center" justifyContent="end">
-      <ValuePart {...rest} textAlign="right">
-        {first}
-      </ValuePart>
-      {typeof last !== "undefined" && <ValuePart {...rest}>.</ValuePart>}
-      <ValuePart as={Flex} flex={false} width={fractionDigits * 1.6} {...rest} textAlign="left">
-        {last}
-      </ValuePart>
-    </Flex>
+    <>
+      <PlainValue {...rest}>{convertedValue}</PlainValue>
+      <UnitCell>
+        {!isHeatmap && convertedUnit && <UnitValue>{convertedUnit}</UnitValue>}
+      </UnitCell>
+    </>
   )
 }
 
@@ -66,14 +99,11 @@ const AnnotationsValue = ({ children: annotations, showFull, ...rest }) => (
 
 const Dimension = ({ id, strong, rowFlavour }) => {
   const visible = useVisibleDimensionId(id)
-
-  const chart = useChart()
-  const fractionDigits = chart.getAttribute("unitsConversionFractionDigits")
   const isHeatmap = useIsHeatmap()
 
   return (
     <GridRow opacity={visible ? null : "weak"}>
-      <Flex alignItems="center" gap={1} position="relative">
+      <DimensionNameCell>
         <ColorBackground
           id={id}
           valueKey={rowValueKeys[rowFlavour] || rowValueKeys.default}
@@ -89,13 +119,11 @@ const Dimension = ({ id, strong, rowFlavour }) => {
           noTooltip
           color={strong ? "textFocus" : "text"}
         />
-      </Flex>
-      <Value
+      </DimensionNameCell>
+      <ValueWithUnits
         id={id}
         strong={strong}
         visible={visible}
-        Component={ValueOnDot}
-        fractionDigits={fractionDigits}
         color={rowFlavour === rowFlavours.default ? (strong ? "textFocus" : "text") : "textLite"}
       />
       <Value
@@ -103,7 +131,7 @@ const Dimension = ({ id, strong, rowFlavour }) => {
         strong={strong}
         visible={visible}
         valueKey="arp"
-        Component={ValueOnDot}
+        Component={PlainValue}
         fractionDigits={2}
         color={rowFlavour === rowFlavours.ANOMALY_RATE ? "anomalyTextFocus" : "anomalyText"}
       />

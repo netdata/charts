@@ -1,15 +1,25 @@
 import React, { useMemo } from "react"
-import { Table } from "@netdata/netdata-ui"
+import { Flex, Table } from "@netdata/netdata-ui"
 import useHover from "@/components/useHover"
 import ChartContainer from "@/components/chartContainer"
 import useDebouncedValue from "@netdata/netdata-ui/dist/hooks/useDebouncedValue"
-import { useChart, useAttributeValue } from "@/components/provider"
+import { useChart, useAttributeValue, useIsModern, useInitialLoading } from "@/components/provider"
 import withChart from "@/components/hocs/withChart"
 import { ChartWrapper } from "@/components/hocs/withTile"
+import Toolbox from "@/components/toolbox"
+import Status from "@/components/status"
+import sanitizeId from "@/helpers/sanitizeId"
 import useTableMatrix from "./useTableMatrix"
+import {
+  ModernTable,
+  ModernTableHeader,
+  modernTableProps,
+  useModernColumnVisibility,
+} from "@/components/modern/table"
 import useTableColumns from "./useTableColumns"
+import { TableRowsSkeleton } from "@/components/skeleton"
 
-const Dimensions = () => {
+const Dimensions = ({ hasFilters }) => {
   const chart = useChart()
   const tab = useAttributeValue("drawer.tab")
   const { tableSortBy } = chart.getAttributes()
@@ -26,14 +36,15 @@ const Dimensions = () => {
   })
 
   const sortBy = useMemo(() => {
-    if (!tableSortBy || tableSortBy.length > 1 || !contextGroups) return tableSortBy
+    if (!tableSortBy || tableSortBy.length > 1 || !contextGroups)
+      return tableSortBy?.map(s => ({ ...s, id: sanitizeId(s.id) }))
 
     const [first] = tableSortBy
     if (!first || !contextGroups[first.id] || !Object.keys(contextGroups[first.id]))
-      return tableSortBy
+      return tableSortBy.map(s => ({ ...s, id: sanitizeId(s.id) }))
 
     return Object.keys(contextGroups[first.id]).map(id => ({
-      id: `value${first.id}${id}`,
+      id: sanitizeId(`value${first.id}|${id}`),
       desc: first.desc,
     }))
   }, [tableSortBy, contextGroups])
@@ -51,6 +62,37 @@ const Dimensions = () => {
   )
 
   const debouncedData = useDebouncedValue(data, 300)
+
+  const isModern = useIsModern()
+  const initialLoading = useInitialLoading()
+  const [columnVisibility, setColumnVisibility] = useModernColumnVisibility(columns, isModern)
+
+  if (isModern)
+    return (
+      <Flex ref={hoverRef} column width="100%" height={{ max: "100%" }} overflow="hidden">
+        <ModernTableHeader
+          columns={columns}
+          columnVisibility={columnVisibility}
+          onColumnVisibilityChange={setColumnVisibility}
+          hasFilters={hasFilters}
+        />
+        {initialLoading ? (
+          <TableRowsSkeleton />
+        ) : (
+          <ModernTable
+            {...modernTableProps}
+            enableSorting
+            dataColumns={columns}
+            data={debouncedData || data}
+            enableCustomSearch
+            sortBy={sortBy}
+            columnVisibility={columnVisibility}
+            onColumnVisibilityChange={setColumnVisibility}
+            width="100%"
+          />
+        )}
+      </Flex>
+    )
 
   return (
     <Table
@@ -73,11 +115,13 @@ const Dimensions = () => {
       onSearch={q => chart.updateAttribute("searchQuery", q)}
       // bulkActions={bulkActions}
       // rowActions={rowActions}
+      title={<Status />}
+      headerChildren={<Toolbox />}
     />
   )
 }
 
-export const TableChart = ({ uiName, ref, ...rest }) => (
+export const TableChart = ({ uiName, ref, hasFilters = true, ...rest }) => (
   <ChartWrapper ref={ref}>
     <ChartContainer
       uiName={uiName}
@@ -87,7 +131,7 @@ export const TableChart = ({ uiName, ref, ...rest }) => (
       position="relative"
       {...rest}
     >
-      <Dimensions />
+      <Dimensions hasFilters={hasFilters} />
     </ChartContainer>
   </ChartWrapper>
 )

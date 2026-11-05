@@ -31,8 +31,8 @@ describe("makeResizeObserver", () => {
 
     makeResizeObserver(mockElement, action, initialAction)
 
-    expect(global.ResizeObserver).toBeCalledWith(expect.any(Function))
-    expect(mockObserver.observe).toBeCalledWith(mockElement)
+    expect(global.ResizeObserver).toHaveBeenCalledWith(expect.any(Function))
+    expect(mockObserver.observe).toHaveBeenCalledWith(mockElement)
   })
 
   it("calls initialAction on first resize after delay", () => {
@@ -42,11 +42,11 @@ describe("makeResizeObserver", () => {
     makeResizeObserver(mockElement, action, initialAction)
 
     observeCallback()
-    expect(initialAction).not.toBeCalled()
+    expect(initialAction).not.toHaveBeenCalled()
 
     jest.advanceTimersByTime(200)
-    expect(initialAction).toBeCalled()
-    expect(action).not.toBeCalled()
+    expect(initialAction).toHaveBeenCalled()
+    expect(action).not.toHaveBeenCalled()
   })
 
   it("calls action on subsequent resizes after delay", () => {
@@ -59,11 +59,11 @@ describe("makeResizeObserver", () => {
     jest.advanceTimersByTime(200)
 
     observeCallback()
-    expect(action).not.toBeCalled()
+    expect(action).not.toHaveBeenCalled()
 
     jest.advanceTimersByTime(200)
-    expect(action).toBeCalled()
-    expect(initialAction).toBeCalledTimes(1)
+    expect(action).toHaveBeenCalled()
+    expect(initialAction).toHaveBeenCalledTimes(1)
   })
 
   it("debounces rapid resize events", () => {
@@ -79,10 +79,10 @@ describe("makeResizeObserver", () => {
     observeCallback()
 
     jest.advanceTimersByTime(100)
-    expect(action).not.toBeCalled()
+    expect(action).not.toHaveBeenCalled()
 
     jest.advanceTimersByTime(200)
-    expect(action).toBeCalledTimes(1)
+    expect(action).toHaveBeenCalledTimes(1)
   })
 
   it("handles missing initialAction", () => {
@@ -93,7 +93,7 @@ describe("makeResizeObserver", () => {
     observeCallback()
     jest.advanceTimersByTime(200)
 
-    expect(action).not.toBeCalled()
+    expect(action).not.toHaveBeenCalled()
   })
 
   it("returns cleanup function that disconnects observer", () => {
@@ -102,7 +102,7 @@ describe("makeResizeObserver", () => {
 
     cleanup()
 
-    expect(mockObserver.disconnect).toBeCalled()
+    expect(mockObserver.disconnect).toHaveBeenCalled()
   })
 
   it("clears pending timeouts on cleanup", () => {
@@ -113,6 +113,6 @@ describe("makeResizeObserver", () => {
     cleanup()
     jest.advanceTimersByTime(300)
 
-    expect(action).not.toBeCalled()
+    expect(action).not.toHaveBeenCalled()
   })
 })

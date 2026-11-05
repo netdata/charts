@@ -1,8 +1,23 @@
 import React from "react"
-import { screen } from "@testing-library/react"
+import { screen, waitFor } from "@testing-library/react"
 import "@testing-library/jest-dom"
-import { renderWithChart, makeTestChart } from "@jest/testUtilities"
+import { renderWithChart, makeTestChart, renderWithProviders } from "@jest/testUtilities"
+import makeMockPayload from "@/helpers/makeMockPayload"
+import systemLoadLine from "../../../fixtures/systemLoadLine"
+import HeadlessChart from "."
 import useHeadlessChart from "./useHeadlessChart"
+
+const signedSystemLoad = {
+  ...systemLoadLine[0],
+  result: {
+    ...systemLoadLine[0].result,
+    data: systemLoadLine[0].result.data.map(([timestamp, first, ...rest]) => [
+      timestamp,
+      [-Math.abs(first[0]), ...first.slice(1)],
+      ...rest,
+    ]),
+  },
+}
 
 const TestComponent = () => {
   const { chart, data, dimensionIds, helpers, state } = useHeadlessChart()
@@ -77,5 +92,25 @@ describe("useHeadlessChart", () => {
 
     expect(screen.getByTestId("data-available")).toHaveTextContent(/^(has data|no data)$/)
     expect(screen.getByTestId("dimensions-count")).toHaveTextContent(/^\d+$/)
+  })
+
+  it("preserves signs in render-ready dimension values", async () => {
+    const SignedValue = () => {
+      const { currentRow } = useHeadlessChart()
+      return <div data-testid="signed-value">{currentRow?.dimensions[0]?.value}</div>
+    }
+
+    renderWithProviders(
+      <HeadlessChart
+        getChart={makeMockPayload(signedSystemLoad, { delay: 0 })}
+        contextScope={["system.load"]}
+      >
+        <SignedValue />
+      </HeadlessChart>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId("signed-value")).toHaveTextContent(/^-/)
+    })
   })
 })

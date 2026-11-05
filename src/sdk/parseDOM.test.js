@@ -43,6 +43,6 @@ describe("parseDOM", () => {
     ])
 
     parseDOM(mockSDK)
-    expect(mockSDK.getRoot).toBeCalled()
+    expect(mockSDK.getRoot).toHaveBeenCalled()
   })
 })

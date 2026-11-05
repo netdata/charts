@@ -2,12 +2,13 @@ import React from "react"
 import useForwardRef from "@netdata/netdata-ui/dist/hooks/useForwardRef"
 import useHover from "@/components/useHover"
 import withChart from "@/components/hocs/withChart"
-import { useChart, useAttributeValue, useIsMinimal } from "@/components/provider"
+import { useChart, useAttributeValue, useIsMinimal, useIsModern } from "@/components/provider"
 import Header from "@/components/header"
 import Details from "@/components/details"
 import ChartContentWrapper, { ContentWrapper } from "./chartContentWrapper"
 import FilterToolbox from "@/components/filterToolbox"
 import Container from "@/components/container"
+import ModernBody from "@/components/modern/legend/body"
 import Footer from "./footer"
 
 export const Line = ({
@@ -40,7 +41,18 @@ export const Line = ({
   })
 
   const focused = useAttributeValue("focused")
+  const filterToolboxMode = useAttributeValue("filterToolboxMode") || "fixed"
   const isMinimal = useIsMinimal()
+  const isModern = useIsModern()
+  const showFilters = !isMinimal && hasFilters && !(isModern && hasHeader)
+  const isFloating = filterToolboxMode === "floating"
+
+  const content = (
+    <ContentWrapper>
+      {showFilters && isFloating && <FilterToolbox opacity={focused ? 1 : 0.7} />}
+      {showingInfo ? <Details /> : <ChartContentWrapper uiName={uiName} />}
+    </ContentWrapper>
+  )
 
   return (
     <Container
@@ -50,10 +62,14 @@ export const Line = ({
       {...(isMinimal && { border: 0 })}
     >
       {hasHeader && <Header hasFilters={hasFilters} />}
-      {!isMinimal && hasFilters && <FilterToolbox opacity={focused ? 1 : 0.7} />}
-      <ContentWrapper>
-        {showingInfo ? <Details /> : <ChartContentWrapper uiName={uiName} />}
-      </ContentWrapper>
+      {showFilters && !isFloating && <FilterToolbox opacity={focused ? 1 : 0.7} />}
+      {isModern ? (
+        <ModernBody uiName={uiName} hasFooter={hasFooter}>
+          {content}
+        </ModernBody>
+      ) : (
+        content
+      )}
       {hasFooter && <Footer />}
     </Container>
   )

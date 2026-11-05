@@ -238,6 +238,108 @@ describe("makeNode", () => {
     })
   })
 
+  describe("pause reasons", () => {
+    it("starts with no reasons and paused=false (assuming blur is off)", () => {
+      expect(node.getAttribute("paused")).toBeUndefined()
+    })
+
+    it("addPauseReason flips paused to true", () => {
+      node.addPauseReason("hover")
+      expect(node.getAttribute("paused")).toBe(true)
+    })
+
+    it("removePauseReason after the only reason flips paused back to false", () => {
+      node.addPauseReason("hover")
+      node.removePauseReason("hover")
+      expect(node.getAttribute("paused")).toBe(false)
+    })
+
+    it("composes multiple reasons — removing one keeps paused true while others remain", () => {
+      node.addPauseReason("hover")
+      node.addPauseReason("modal")
+      expect(node.getAttribute("paused")).toBe(true)
+      node.removePauseReason("hover")
+      expect(node.getAttribute("paused")).toBe(true)
+      node.removePauseReason("modal")
+      expect(node.getAttribute("paused")).toBe(false)
+    })
+
+    it("is idempotent — same reason id added twice acts as one", () => {
+      node.addPauseReason("hover")
+      node.addPauseReason("hover")
+      node.removePauseReason("hover")
+      expect(node.getAttribute("paused")).toBe(false)
+    })
+
+    it("tracks reason types without exposing mutable internal state", () => {
+      node.addPauseReason("hover-1", "hover")
+      node.addPauseReason("modal-1")
+
+      const reasons = node.getPauseReasons()
+      expect(reasons).toEqual([
+        { reasonId: "hover-1", reasonType: "hover" },
+        { reasonId: "modal-1", reasonType: "interaction" },
+      ])
+
+      reasons.pop()
+      expect(node.getPauseReasons()).toHaveLength(2)
+    })
+
+    it("removes all reasons of one type and preserves the others", () => {
+      node.addPauseReason("hover-1", "hover")
+      node.addPauseReason("hover-2", "hover")
+      node.addPauseReason("modal-1")
+
+      node.removePauseReasonsByType("hover")
+
+      expect(node.getPauseReasons()).toEqual([{ reasonId: "modal-1", reasonType: "interaction" }])
+      expect(node.getAttribute("paused")).toBe(true)
+
+      node.removePauseReason("modal-1")
+      expect(node.getAttribute("paused")).toBe(false)
+    })
+
+    it("requests playback reconciliation through the SDK", () => {
+      node.reconcilePlaybackState({ clearHover: true })
+
+      expect(mockSdk.trigger).toHaveBeenCalledWith("reconcilePlaybackState", {
+        clearHover: true,
+      })
+    })
+
+    it("ignores empty/missing reason ids", () => {
+      node.addPauseReason("")
+      node.addPauseReason(null)
+      node.addPauseReason(undefined)
+      expect(node.getAttribute("paused")).toBeUndefined()
+    })
+
+    it("recomputes when the blur attributes flip — window blur fires pause without an explicit reason", () => {
+      node.updateAttribute("autofetchOnWindowBlur", false)
+      node.updateAttribute("blurred", true)
+      expect(node.getAttribute("paused")).toBe(true)
+      node.updateAttribute("blurred", false)
+      expect(node.getAttribute("paused")).toBe(false)
+    })
+
+    it("blur and explicit reasons combine — un-blurring keeps paused true if a reason is still registered", () => {
+      node.updateAttribute("autofetchOnWindowBlur", false)
+      node.updateAttribute("blurred", true)
+      node.addPauseReason("modal")
+      expect(node.getAttribute("paused")).toBe(true)
+      node.updateAttribute("blurred", false)
+      expect(node.getAttribute("paused")).toBe(true)
+      node.removePauseReason("modal")
+      expect(node.getAttribute("paused")).toBe(false)
+    })
+
+    it("autofetchOnWindowBlur=true disables the blur reason — paused stays false while blurred", () => {
+      node.updateAttribute("autofetchOnWindowBlur", true)
+      node.updateAttribute("blurred", true)
+      expect(node.getAttribute("paused")).toBe(false)
+    })
+  })
+
   describe("inheritance", () => {
     it("inherits parent attributes", () => {
       mockParent.getAttributes.mockReturnValue({

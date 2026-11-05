@@ -1,16 +1,24 @@
 import React, { useState } from "react"
-import { Flex, TextSmall, TextMicro, Button, Icon } from "@netdata/netdata-ui"
+import {
+  Flex,
+  TextSmall,
+  TextMicro,
+  Button,
+  IconButton,
+  getSizeBy,
+} from "@netdata/netdata-ui"
 import styled from "styled-components"
 import Tooltip from "@/components/tooltip"
-import { useComparisonData } from "./useComparisonData"
-import { useChart, convert, useAttributeValue } from "@/components/provider"
+import useData from "./useData"
+import { useChart, useAttributeValue } from "@/components/provider"
 import ChangeIndicator from "./changeIndicator"
 import CustomPeriodForm from "./customPeriodForm"
+import StatValue from "./statValue"
 
 const GridContainer = styled(Flex)`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 12px;
+  gap: ${getSizeBy(1.5)};
+  grid-template-columns: repeat(auto-fill, minmax(${getSizeBy(32.5)}, 1fr));
 `
 
 const formatDateRange = (chart, after, before) => {
@@ -19,18 +27,26 @@ const formatDateRange = (chart, after, before) => {
   return `${chart.formatDate(afterDate)} ${chart.formatTime(afterDate)} → ${chart.formatDate(beforeDate)} ${chart.formatTime(beforeDate)}`
 }
 
-const StatRow = ({ label, value, change, valueKey = "value", tab, tooltip }) => {
-  const chart = useChart()
-  const formattedValue = convert(chart, value, { valueKey, fractionDigits: 2 })
+const StatRow = ({ label, value, change, valueKey = "value", tab, tooltip, prominent }) => {
+  if (prominent) {
+    return (
+      <Tooltip content={tooltip}>
+        <Flex column gap={1} flex="1 1 0">
+          <TextMicro color="textLite">{label}</TextMicro>
+          <StatValue value={value} valueKey={valueKey} prominent />
+          <ChangeIndicator change={change} tab={tab} />
+        </Flex>
+      </Tooltip>
+    )
+  }
 
   return (
     <Flex justifyContent="between" alignItems="center">
       <Tooltip content={tooltip}>
-        <TextMicro>{label}</TextMicro>
+        <TextMicro color="textLite">{label}</TextMicro>
       </Tooltip>
       <Flex alignItems="center" gap={1} flex="1 1 auto" justifyContent="end">
-        <TextMicro textAlign="right">{formattedValue}</TextMicro>
-
+        <StatValue value={value} valueKey={valueKey} justifyContent="end" />
         <ChangeIndicator change={change} tab={tab} />
       </Flex>
     </Flex>
@@ -45,46 +61,80 @@ const basicStats = [
 
 const advancedStats = [
   { key: "median", label: "Median", tooltip: "Middle value when sorted (50th percentile)" },
-  { key: "stddev", label: "StdDev", tooltip: "Standard deviation - measures data spread around the mean" },
+  {
+    key: "stddev",
+    label: "StdDev",
+    tooltip: "Standard deviation - measures data spread around the mean",
+  },
   { key: "p95", label: "P95", tooltip: "95th percentile - 95% of values are below this" },
   { key: "range", label: "Range", tooltip: "Difference between maximum and minimum values" },
-  { key: "volume", label: "Volume", tooltip: "Sum of all values in the time period" },
 ]
 
-const ComparisonCard = ({ period, showAdvanced, tab }) => {
+const volumeStat = {
+  key: "volume",
+  label: "Volume",
+  tooltip: "Total accumulated value over the time period (rate integrated over time)",
+}
+
+const isRateUnit = units => {
+  const unit = Array.isArray(units) ? units[0] : units
+  return typeof unit === "string" && unit.endsWith("/s")
+}
+
+const ComparisonCard = ({ period, loading, showAdvanced, showVolume, tab }) => {
   const chart = useChart()
   const dateRange = formatDateRange(chart, period.after, period.before)
   const hasData = period.payload && period.stats && !period.error
 
+  const [showEditForm, setShowEditForm] = useState(false)
+
+  const updatePeriod = updated => {
+    const currentCustomPeriods = chart.getAttribute("customPeriods", [])
+
+    const updatedPeriods = currentCustomPeriods.map(p => (p.id === updated.id ? updated : p))
+    chart.updateAttribute("customPeriods", updatedPeriods)
+    setShowEditForm(false)
+  }
+
   return (
     <Flex column gap={2} padding={[3]} border="all" round>
-      <Flex column gap={1}>
-        <TextSmall strong>{period.label}</TextSmall>
-        <TextMicro color="textDescription">{dateRange}</TextMicro>
+      <Flex alignItems="center" gap={1} justifyContent="between">
+        <Tooltip content={dateRange}>
+          <TextSmall strong>{period.label}</TextSmall>
+        </Tooltip>
+        {!period.isBase && (
+          <IconButton
+            icon="pencilOutline"
+            width="12px"
+            height="12px"
+            tooltip="Edit comparison period"
+            onClick={() => setShowEditForm(true)}
+            data-testid="period-edit"
+            data-track={chart.track("period-edit")}
+          />
+        )}
       </Flex>
 
       {!hasData ? (
         <Flex column gap={1}>
           <TextMicro color="textDescription">
-            {period.error ? "Error loading data" : "Loading..."}
+            {period.error
+              ? "Error loading data"
+              : loading
+                ? "Loading…"
+                : "No data available for the selected time range"}
           </TextMicro>
         </Flex>
+      ) : showEditForm ? (
+        <CustomPeriodForm
+          initialValues={period}
+          onSubmit={updatePeriod}
+          onCancel={() => setShowEditForm(false)}
+        />
       ) : (
-        <Flex column gap={1}>
-          {basicStats.map(stat => (
-            <StatRow
-              key={stat.key}
-              label={stat.label}
-              value={period.stats[stat.key]}
-              change={period.changes?.[stat.key]}
-              valueKey={stat.key}
-              tab={tab}
-              tooltip={stat.tooltip}
-            />
-          ))}
-
-          {showAdvanced &&
-            advancedStats.map(stat => (
+        <Flex column gap={2}>
+          <Flex gap={2}>
+            {basicStats.map(stat => (
               <StatRow
                 key={stat.key}
                 label={stat.label}
@@ -93,8 +143,36 @@ const ComparisonCard = ({ period, showAdvanced, tab }) => {
                 valueKey={stat.key}
                 tab={tab}
                 tooltip={stat.tooltip}
+                prominent
               />
             ))}
+          </Flex>
+
+          {showAdvanced && (
+            <Flex column gap={1} padding={[2, 0, 0]} border={{ side: "top", color: "separator" }}>
+              {advancedStats.map(stat => (
+                <StatRow
+                  key={stat.key}
+                  label={stat.label}
+                  value={period.stats[stat.key]}
+                  change={period.changes?.[stat.key]}
+                  valueKey={stat.key}
+                  tab={tab}
+                  tooltip={stat.tooltip}
+                />
+              ))}
+              {showVolume && (
+                <StatRow
+                  label={volumeStat.label}
+                  value={period.stats.volume}
+                  change={period.changes?.volume}
+                  valueKey="volume"
+                  tab={tab}
+                  tooltip={volumeStat.tooltip}
+                />
+              )}
+            </Flex>
+          )}
         </Flex>
       )}
     </Flex>
@@ -103,10 +181,12 @@ const ComparisonCard = ({ period, showAdvanced, tab }) => {
 
 const Compare = () => {
   const chart = useChart()
-  const { periods, loading, error } = useComparisonData()
+  const { periods, loading, error } = useData()
   const [showCustomForm, setShowCustomForm] = useState(false)
   const showAllStats = useAttributeValue("drawer.showAdvancedStats", false)
   const tab = useAttributeValue("drawer.tab", "window")
+  const units = useAttributeValue("units")
+  const showVolume = isRateUnit(units)
 
   const addCustomPeriod = customPeriod => {
     const currentCustomPeriods = chart.getAttribute("customPeriods", [])
@@ -124,14 +204,19 @@ const Compare = () => {
 
   return (
     <Flex column gap={3}>
-      {loading && <TextMicro color="textDescription">Loading comparison data...</TextMicro>}
-
-      <GridContainer>
+      <GridContainer data-testid="comparison-grid">
         {periods.map(period => (
-          <ComparisonCard key={period.id} period={period} showAdvanced={showAllStats} tab={tab} />
+          <ComparisonCard
+            key={period.id}
+            period={period}
+            loading={loading}
+            showAdvanced={showAllStats}
+            showVolume={showVolume}
+            tab={tab}
+          />
         ))}
 
-        {periods.length > 0 && !showCustomForm && (
+        {!showCustomForm ? (
           <Flex
             column
             gap={2}
@@ -140,17 +225,16 @@ const Compare = () => {
             round
             alignItems="center"
             justifyContent="center"
-            height={{ min: "142px" }}
+            height={{ min: 36 }}
+            data-testid="custom-period-card"
           >
             <TextSmall>Custom</TextSmall>
             <Tooltip content="Add a custom time period for comparison - Choose any specific date range to compare with the current view">
-              <Button tiny label="Select a timeframe" onClick={() => setShowCustomForm(true)} />
+              <Button label="Select a timeframe" onClick={() => setShowCustomForm(true)} />
             </Tooltip>
           </Flex>
-        )}
-
-        {showCustomForm && (
-          <CustomPeriodForm onAdd={addCustomPeriod} onCancel={() => setShowCustomForm(false)} />
+        ) : (
+          <CustomPeriodForm onSubmit={addCustomPeriod} onCancel={() => setShowCustomForm(false)} />
         )}
       </GridContainer>
     </Flex>

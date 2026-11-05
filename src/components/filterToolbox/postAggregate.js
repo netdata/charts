@@ -1,4 +1,5 @@
 import React, { memo, useMemo } from "react"
+import { TextMicro } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart, useIsMinimal } from "@/components/provider"
 import AggrAvg from "@netdata/netdata-ui/dist/components/icon/assets/aggregation_avg.svg"
 import AggrSum from "@netdata/netdata-ui/dist/components/icon/assets/aggregation_sum.svg"
@@ -25,6 +26,14 @@ const useItems = chart =>
         short: "SUM()",
         icon: <Icon svg={AggrSum} color="textLite" size="10px" />,
         "data-track": chart.track("sum"),
+      },
+      {
+        value: "percentage",
+        label: "Percentage",
+        description: "For each aggregated point, express the metrics as a percentage of their group total.",
+        short: "PCT()",
+        icon: <TextMicro color="textLite">%</TextMicro>,
+        "data-track": chart.track("percentage"),
       },
       {
         value: "min",

@@ -1,16 +1,26 @@
+import { usesAdaptiveBaseline } from "@/sdk/correlationBaseline"
+
 const defaultUrlOptionsByLibrary = {
   groupBoxes: ["group-by-labels"],
   default: [],
 }
 
 export const getChartURLOptions = chart => {
-  const { eliminateZeroDimensions, urlOptions = [], chartLibrary } = chart.getAttributes()
+  const {
+    eliminateZeroDimensions,
+    urlOptions = [],
+    chartLibrary,
+    chartType,
+    nulls2zero,
+  } = chart.getAttributes()
   const opts = defaultUrlOptionsByLibrary[chartLibrary] || defaultUrlOptionsByLibrary.default
+  const canEliminateZeroDimensions = chartLibrary !== "table" && chartType !== "heatmap"
 
   return [
     ...urlOptions,
     "jsonwrap",
-    chartLibrary !== "table" && eliminateZeroDimensions && "nonzero",
+    canEliminateZeroDimensions && eliminateZeroDimensions && "nonzero",
+    nulls2zero && "null2zero",
     "flip",
     "ms",
     "jw-anomaly-rates",
@@ -25,6 +35,22 @@ export const pointMultiplierByChartType = {
   table: 0.1,
   heatmap: 0.7,
   default: 0.7,
+}
+
+export const getLiveFetchBefore = ({
+  after,
+  renderedAt,
+  hovering,
+  fetchStartedAt,
+  viewUpdateEvery,
+  liveRequestBefore,
+}) => {
+  if (after > 0) return null
+  if (typeof liveRequestBefore === "number" && isFinite(liveRequestBefore))
+    return Math.ceil(liveRequestBefore)
+  if (viewUpdateEvery && viewUpdateEvery > Math.abs(after)) return null
+
+  return hovering && renderedAt ? Math.ceil(renderedAt / 1000) : Math.ceil(fetchStartedAt / 1000)
 }
 
 export const getChartPayload = (chart, attrs = {}) => {
@@ -43,6 +69,8 @@ export const getChartPayload = (chart, attrs = {}) => {
     pixelsPerPoint,
     chartLibrary,
     points: customPoints,
+    viewUpdateEvery,
+    liveRequestBefore,
   } = { ...chart.getAttributes(), ...attrs }
 
   const pointsMultiplier =
@@ -50,16 +78,27 @@ export const getChartPayload = (chart, attrs = {}) => {
     pointMultiplierByChartType[chartLibrary] ||
     pointMultiplierByChartType.default
 
-  const fetchOn =
-    hovering && renderedAt ? Math.ceil(renderedAt / 1000) : Math.ceil(fetchStartedAt / 1000)
+  const fetchBefore = getLiveFetchBefore({
+    after,
+    renderedAt,
+    hovering,
+    fetchStartedAt,
+    viewUpdateEvery,
+    liveRequestBefore,
+  })
 
   const afterBefore =
     after > 0
       ? { after, before }
-      : {
-          after: fetchOn + after,
-          before: fetchOn,
-        }
+      : fetchBefore === null
+        ? {
+            after,
+            before: 0,
+          }
+        : {
+            after: fetchBefore + after,
+            before: fetchBefore,
+          }
 
   const points = customPoints || Math.round((width / pixelsPerPoint) * pointsMultiplier)
 
@@ -71,6 +110,29 @@ export const getChartPayload = (chart, attrs = {}) => {
     ...afterBefore,
   }
 }
+
+export const getWeightsWindow = (chart, attrs = {}, payload = getChartPayload(chart, attrs)) => {
+  const attributes = { ...chart.getAttributes(), ...attrs }
+  const window = {
+    after: Math.floor(attributes.highlightAfter || payload.after),
+    before: Math.floor(attributes.highlightBefore || payload.before),
+  }
+  if (usesAdaptiveBaseline(attributes.method) && window.after < 0 && window.before <= 0) {
+    const anchor = getLiveFetchBefore({ ...attributes, after: window.after, viewUpdateEvery: 0 })
+    if (Number.isFinite(anchor) && anchor > 0)
+      return { after: anchor + window.after, before: anchor + window.before }
+  }
+  return window
+}
+
+export const getChartDataRequestAttributes = (chart, attrs = {}) => ({
+  ...chart.getAttributes(),
+  ...attrs,
+  ...getChartPayload(chart, attrs),
+  host: chart.getAttribute("host"),
+  selectedNodes: chart.getFilteredNodeIds(),
+  options: getChartURLOptions(chart),
+})
 
 export const errorCodesToMessage = {
   ErrAllNodesFailed: "All agents failed to return data",

@@ -1,21 +1,42 @@
 import getConversionUnits, { getConversionAttributes } from "./getConversionUnits"
 
+const getDimensionStats = (chart, result, dimensionId) => {
+  const byDimension = result?.byDimension
+  if (!byDimension) return null
+
+  const dimensionName = chart.getDimensionName(dimensionId)
+
+  return byDimension[dimensionId] || byDimension[dimensionName] || null
+}
+
+const getDimensionUnit = (chart, unitsKey, dimensionId) =>
+  unitsKey === "units" ? chart.getDimensionUnit(dimensionId) : chart.getAttribute(unitsKey)?.[0]
+
+const getUnitsByDimension = (chart, unitsKey, result, min, max) =>
+  (chart.getDimensionIds?.() || []).reduce((h, dimensionId) => {
+    const dimSts = getDimensionStats(chart, result, dimensionId)
+    const unit = getDimensionUnit(chart, unitsKey, dimensionId)
+
+    if (!dimSts || !unit) return h
+
+    h[dimensionId] = getConversionAttributes(chart, unit, {
+      min: dimSts.min ?? min,
+      max: dimSts.max ?? max,
+    })
+
+    return h
+  }, {})
+
 const baseConvert = (chart, unitsKey = "units", min, max) => {
+  const result = chart.getPayload()
   const {
     method,
     fractionDigits,
     prefix = "",
     base = "",
     divider,
+    labelMode,
   } = getConversionUnits(chart, unitsKey, { min, max })
-
-  chart.updateAttributes({
-    [`${unitsKey}ConversionMethod`]: method,
-    [`${unitsKey}ConversionPrefix`]: prefix,
-    [`${unitsKey}ConversionBase`]: base,
-    [`${unitsKey}ConversionFractionDigits`]: fractionDigits,
-    [`${unitsKey}ConversionDivider`]: divider,
-  })
 
   const unitsStsByContext = chart.getAttribute(`${unitsKey}StsByContext`)
 
@@ -23,12 +44,22 @@ const baseConvert = (chart, unitsKey = "units", min, max) => {
     `${unitsKey}ByContext`,
     Object.keys(unitsStsByContext).reduce((h, ctx) => {
       h[ctx] = getConversionAttributes(chart, unitsStsByContext[ctx].units, {
-        min: unitsStsByContext[ctx]?.min || min,
-        max: unitsStsByContext[ctx]?.max || max,
+        min: unitsStsByContext[ctx]?.min ?? min,
+        max: unitsStsByContext[ctx]?.max ?? max,
       })
       return h
     }, {})
   )
+
+  chart.updateAttributes({
+    [`${unitsKey}ByDimension`]: getUnitsByDimension(chart, unitsKey, result, min, max),
+    [`${unitsKey}ConversionMethod`]: method,
+    [`${unitsKey}ConversionPrefix`]: prefix,
+    [`${unitsKey}ConversionBase`]: base,
+    [`${unitsKey}ConversionLabelMode`]: labelMode,
+    [`${unitsKey}ConversionFractionDigits`]: fractionDigits,
+    [`${unitsKey}ConversionDivider`]: divider,
+  })
 }
 
 export default chart => {
@@ -54,8 +85,7 @@ export default chart => {
     const dimMinMax = result?.byDimension
       ? chart.getVisibleDimensionIds().reduce(
           (h, d) => {
-            const dname = chart.getDimensionName(d)
-            const dimSts = result.byDimension[d] || result.byDimension[dname]
+            const dimSts = getDimensionStats(chart, result, d)
 
             if (dimSts && dimSts.min <= h.min) h.min = dimSts.min
             if (dimSts && dimSts.max >= h.max) h.max = dimSts.max
@@ -78,9 +108,14 @@ export default chart => {
 
   const offVisibleDimensionsChanged = chart.on("visibleDimensionsChanged", () => onConvert())
   const offYAxisChange = chart.on("yAxisChange", onConvert)
+  // unit preferences feed the conversable checks, so they must re-run conversion themselves
+  const offTemperature = chart.onAttributeChange("temperature", () => onConvert())
+  const offSecondsAsTime = chart.onAttributeChange("secondsAsTime", () => onConvert())
 
   return () => {
     offYAxisChange()
     offVisibleDimensionsChanged()
+    offTemperature()
+    offSecondsAsTime()
   }
 }

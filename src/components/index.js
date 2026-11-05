@@ -1,4 +1,4 @@
-export { default as HeadlessChart, useHeadlessChart } from "./headlessChart"
+export { default as HeadlessChart, useHeadlessChart, useGroupedChart, BreakdownChart } from "./headlessChart"
 export { default as ChartProvider, useChart, useAttributeValue, usePayload } from "./provider"
 export { default as Line } from "./line"
 export { default as Table } from "./table"

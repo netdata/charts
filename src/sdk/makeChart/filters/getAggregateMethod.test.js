@@ -6,12 +6,13 @@ describe("getAggregateMethod", () => {
   beforeEach(() => {
     mockChart = {
       getUnits: jest.fn(),
-      getUnitSign: jest.fn(),
+      getAttribute: jest.fn(),
     }
   })
 
   it("returns avg when no unit", () => {
     mockChart.getUnits.mockReturnValue(null)
+    mockChart.getAttribute.mockReturnValue(null)
 
     const result = getAggregateMethod(mockChart)
     expect(result).toBe("avg")
@@ -40,39 +41,43 @@ describe("getAggregateMethod", () => {
 
   it("returns avg for ratio-based units", () => {
     mockChart.getUnits.mockReturnValue("count/operation")
-    mockChart.getUnitSign.mockReturnValue("c/op")
 
     const result = getAggregateMethod(mockChart)
     expect(result).toBe("avg")
   })
 
-  it("returns sum for byte units", () => {
-    mockChart.getUnits.mockReturnValue("bytes")
-    mockChart.getUnitSign.mockReturnValue("B")
+  it("returns sum for state units", () => {
+    mockChart.getUnits.mockReturnValue("state")
 
     const result = getAggregateMethod(mockChart)
     expect(result).toBe("sum")
   })
 
-  it("falls back to unit sign when unit doesn't match", () => {
-    mockChart.getUnits.mockReturnValue("custom")
-    mockChart.getUnitSign.mockReturnValue("%")
+  it("returns sum for status units", () => {
+    mockChart.getUnits.mockReturnValue("status")
+
+    const result = getAggregateMethod(mockChart)
+    expect(result).toBe("sum")
+  })
+
+  it("falls back to contextUnit when unit is not set", () => {
+    mockChart.getUnits.mockReturnValue(null)
+    mockChart.getAttribute.mockReturnValue("%")
 
     const result = getAggregateMethod(mockChart)
     expect(result).toBe("avg")
   })
 
-  it("returns sum when neither unit nor unit sign match", () => {
+  it("returns avg when unit does not match any known patterns", () => {
     mockChart.getUnits.mockReturnValue("custom")
-    mockChart.getUnitSign.mockReturnValue("custom-sign")
+    mockChart.getAttribute.mockReturnValue(null)
 
     const result = getAggregateMethod(mockChart)
-    expect(result).toBe("sum")
+    expect(result).toBe("avg")
   })
 
-  it("handles case insensitive matching", () => {
+  it("handles case insensitive matching for regex patterns", () => {
     mockChart.getUnits.mockReturnValue("custom/operation")
-    mockChart.getUnitSign.mockReturnValue("custom/operation")
 
     const result = getAggregateMethod(mockChart)
     expect(result).toBe("avg")

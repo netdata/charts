@@ -4,11 +4,11 @@ import { TextBig, TextSmall, Flex, ProgressBar, getColor } from "@netdata/netdat
 import Color, { Color as ColorContainer } from "@/components/line/dimensions/color"
 import Name, { Name as NameContainer } from "@/components/line/dimensions/name"
 import Value, { Value as ValueContainer } from "@/components/line/dimensions/value"
-import { tooltipStyleProps } from "@/components/tooltip"
 import Units from "@/components/line/dimensions/units"
 import {
   useVisibleDimensionId,
   useChart,
+  useLatestDisplayValue,
   useLatestValue,
   useUnitSign,
   useIsMinimal,
@@ -72,27 +72,26 @@ const AnomalyProgressBar = ({ id }) => {
   return <ProgressBar height={0.5} color="anomalyText" width={`${Math.abs(value)}%`} />
 }
 
-const TooltipContent = props => <Flex {...tooltipStyleProps} {...props} column gap={1} />
-
 const TooltipValue = ({ id, name }) => {
   const units = useUnitSign({ long: true, dimensionId: id, withoutConversion: true })
-  const value = useLatestValue(id)
+  const value = useLatestDisplayValue(id)
 
   return (
-    <>
+    <Flex column gap={1}>
       <TextSmall strong wordBreak="break-word">
         {name}
       </TextSmall>
       <TextSmall whiteSpace="nowrap">
         {value} {units}
       </TextSmall>
-    </>
+    </Flex>
   )
 }
 
 const Dimension = ({ id, ref }) => {
   const visible = useVisibleDimensionId(id)
   const chart = useChart()
+  const value = useLatestDisplayValue(id, { allowNull: true })
 
   const name = chart.getDimensionName(id)
 
@@ -113,10 +112,7 @@ const Dimension = ({ id, ref }) => {
       data-track={chart.track(`dimension-${name}`)}
     >
       {!isHeatmap && <Color id={id} />}
-      <Tooltip
-        Content={TooltipContent}
-        content={visible ? <TooltipValue id={id} name={name} /> : null}
-      >
+      <Tooltip content={visible ? <TooltipValue id={id} name={name} /> : null}>
         <Flex flex column overflow="hidden" data-testid="chartLegendDimension-details">
           <Name id={id} noTooltip />
 
@@ -124,8 +120,8 @@ const Dimension = ({ id, ref }) => {
 
           {!isMinimal && (
             <Flex gap={1} alignItems="end" data-testid="chartLegendDimension-valueContainer" flex>
-              <Value id={id} strong visible={visible} Component={TextBig} />
-              <Units visible={visible} dimensionId={id} />
+              <Value id={id} strong visible={visible} Component={TextBig} scaleByValue />
+              <Units visible={visible} dimensionId={id} value={value} scaleByValue />
             </Flex>
           )}
         </Flex>

@@ -29,20 +29,17 @@ export default (sdk, chart) => {
   }
 
   const render = () => {
-    chartUI.render()
-
     const { hoverX, loaded } = chart.getAttributes()
 
-    if (!loaded) return
+    if (!loaded) return false
 
     const { data } = chart.getPayload()
 
     const row = hoverX ? chart.getClosestRow(hoverX[0]) : data.length - 1
 
     const rowData = data[row]
-    if (!Array.isArray(rowData)) return
+    if (!Array.isArray(rowData)) return chartUI.render()
 
-    chartUI.render()
     const min = chart.getAttribute("min")
     const max = chart.getAttribute("max")
 
@@ -54,7 +51,9 @@ export default (sdk, chart) => {
     prevMin = min
     prevMax = max
 
+    chartUI.render()
     chartUI.trigger("rendered")
+    return true
   }
 
   const unmount = () => {

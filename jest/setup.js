@@ -1,4 +1,10 @@
 import "jest-canvas-mock"
+import React from "react"
+import { TextEncoder, TextDecoder } from "util"
+
+globalThis.React = React
+globalThis.TextEncoder = TextEncoder
+globalThis.TextDecoder = TextDecoder
 
 class ResizeObserver {
   observe() {}
@@ -6,15 +12,71 @@ class ResizeObserver {
   disconnect() {}
 }
 
-window.ResizeObserver = ResizeObserver
+if (typeof window !== "undefined") {
+  window.ResizeObserver = ResizeObserver
 
-Element.prototype.getBoundingClientRect = jest.fn(() => {
-  return {
-    width: 120,
-    height: 120,
-    top: 0,
-    left: 0,
-    bottom: 0,
-    right: 0,
+  if (!window.matchMedia) {
+    window.matchMedia = query => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    })
   }
-})
+
+  Element.prototype.getBoundingClientRect = jest.fn(() => {
+    return {
+      width: 120,
+      height: 120,
+      top: 0,
+      left: 0,
+      bottom: 120,
+      right: 120,
+      x: 0,
+      y: 0,
+    }
+  })
+
+  Object.defineProperties(HTMLElement.prototype, {
+    offsetHeight: {
+      get() {
+        return parseFloat(this.style.height) || 500
+      },
+      configurable: true,
+    },
+    offsetWidth: {
+      get() {
+        return parseFloat(this.style.width) || 500
+      },
+      configurable: true,
+    },
+    scrollHeight: {
+      get() {
+        return parseFloat(this.style.minHeight) || parseFloat(this.style.height) || 500
+      },
+      configurable: true,
+    },
+    scrollWidth: {
+      get() {
+        return parseFloat(this.style.width) || 500
+      },
+      configurable: true,
+    },
+    clientHeight: {
+      get() {
+        return parseFloat(this.style.height) || 500
+      },
+      configurable: true,
+    },
+    clientWidth: {
+      get() {
+        return parseFloat(this.style.width) || 500
+      },
+      configurable: true,
+    },
+  })
+}

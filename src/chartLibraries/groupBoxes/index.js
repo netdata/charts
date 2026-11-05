@@ -12,6 +12,7 @@ export default (sdk, chart) => {
   let initialized = false
 
   const mount = () => {
+    chartUI.mount()
     updateGroupBox()
 
     chartUI.trigger("resize")
@@ -27,14 +28,15 @@ export default (sdk, chart) => {
   const unmount = () => {
     if (offs) offs()
     offs = null
+    chartUI.unmount()
   }
 
   const updateGroupBox = ({ force = false } = {}) => {
-    if (initialized && !force && !chart.consumePayload()) return
+    if (initialized && !force && !chart.consumePayload()) return false
 
     const payload = chart.getPayload()
 
-    if (!payload.data.length) return
+    if (!payload.data.length) return false
 
     groupBoxData = payload
 
@@ -42,7 +44,9 @@ export default (sdk, chart) => {
 
     initialized = true
 
+    chartUI.render()
     chartUI.trigger("groupBoxChanged", groupBoxData)
+    return true
   }
 
   const getGroupBox = () => groupBoxData
@@ -72,6 +76,7 @@ export default (sdk, chart) => {
     chartUI.render()
 
     chartUI.trigger("rendered")
+    return true
   }
 
   const instance = {

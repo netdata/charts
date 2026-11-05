@@ -5,12 +5,13 @@ import Units from "@/components/line/dimensions/units"
 import { useChart, useConverted } from "@/components/provider"
 import Label from "./label"
 
-const useMetricsByValue = chart =>
+export const useMetricsByValue = chart =>
   useMemo(
     () => ({
       dimension: "dimensions",
       node: "nodes",
       instance: chart.intl("instance", { count: 2 }),
+      context: "contexts",
       label: "labels",
       value: "values",
       default: "values",
@@ -20,6 +21,7 @@ const useMetricsByValue = chart =>
 
 export const labelColumn = fallbackExpandKey => ({
   id: "label",
+  fallbackExpandKey,
   header: () => <TextSmall strong>Name</TextSmall>,
   size: 200,
   minSize: 60,
@@ -129,6 +131,24 @@ export const maxColumn = () => ({
   header: (
     <TextMicro strong>
       Max <Units visible />
+    </TextMicro>
+  ),
+  size: 60,
+  minSize: 30,
+  maxSize: 300,
+  fullWidth: true,
+  cell: ({ getValue }) => {
+    const value = useConverted(getValue())
+    return <TextSmall color="textLite">{value}</TextSmall>
+  },
+  sortingFn: "basic",
+})
+
+export const rangeColumn = () => ({
+  id: "range",
+  header: (
+    <TextMicro strong>
+      Range <Units visible />
     </TextMicro>
   ),
   size: 60,

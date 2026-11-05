@@ -39,26 +39,61 @@ describe("getConversionUnits", () => {
     it("uses proper scale for large values", () => {
       const result = getConversionAttributes(chart, "By", { min: 0, max: 10000000 })
 
-      expect(result.prefix).toBeTruthy()
-      if (result.method === "adjust") {
-        expect(typeof result.divider).toBe("function")
-      } else if (result.method === "divide") {
-        expect(result.divider).toBeGreaterThan(1)
-      }
+      expect(result.method).toBe("adjust")
+      expect(result.prefix).toBe("Mi")
+      expect(typeof result.divider).toBe("function")
+    })
+
+    it("uses the normalized base unit when a scaled value needs exponential notation", () => {
+      chart.updateAttributes({ units: ["KiBy"], desiredUnits: ["auto"] })
+
+      const result = getConversionAttributes(chart, "KiBy", { min: 6.999e99, max: 6.999e99 })
+
+      expect(result).toMatchObject({ base: "By", prefix: "" })
+      expect(chart.getConvertedValueWithUnit(6.999e99, { unitAttributes: result })).toBe(
+        "7.167e+102 B"
+      )
     })
 
     it("handles zero range", () => {
       const result = getConversionAttributes(chart, "By", { min: 100, max: 100 })
 
-      expect(result).toHaveProperty("method")
-      expect(result).toHaveProperty("unit", "By")
+      expect(result.method).toBe("adjust")
+      expect(result.prefix).toBe("")
+      expect(result.base).toBe("B")
+      expect(result.unit).toBe("By")
+    })
+
+    it("uses print_symbol for base when base_unit is not defined", () => {
+      const result = getConversionAttributes(chart, "{entropy}", { min: 0, max: 256 })
+
+      expect(result.base).toBe("entropy")
+    })
+
+    it("scales the unknown sentinel as a generic item count", () => {
+      chart.updateAttributes({ units: ["unknown"], desiredUnits: ["auto"] })
+
+      const unscaled = getConversionAttributes(chart, "unknown", { min: 0, max: 999 })
+      const scaled = getConversionAttributes(chart, "unknown", { min: 0, max: 12000 })
+
+      expect(unscaled).toMatchObject({ base: "items", prefix: "" })
+      expect(scaled).toMatchObject({ base: "items", prefix: "K" })
+      expect(chart.getConvertedValueWithUnit(95, { unitAttributes: unscaled })).toBe("95")
+      expect(chart.getConvertedValueWithUnit(12000, { unitAttributes: scaled })).toBe("12 K")
+    })
+
+    it("preserves empty print_symbol for base when base_unit is not defined", () => {
+      const result = getConversionAttributes(chart, "{state}", { min: 0, max: 1 })
+
+      expect(result.base).toBe("")
     })
 
     it("handles negative values", () => {
       const result = getConversionAttributes(chart, "By", { min: -1000, max: 1000 })
 
-      expect(result).toHaveProperty("method")
-      expect(result).toHaveProperty("divider")
+      expect(result.method).toBe("adjust")
+      expect(result.prefix).toBe("")
+      expect(typeof result.divider).toBe("function")
     })
 
     it("respects desired units setting", () => {
@@ -69,18 +104,59 @@ describe("getConversionUnits", () => {
       // Should use Ki prefix for binary units
       expect(result.prefix).toContain("Ki")
     })
+
+    it("uses a smaller conversable scale before excessive fractional digits", () => {
+      chart.updateAttributes({
+        units: ["s"],
+        desiredUnits: ["auto"],
+        secondsAsTime: true,
+      })
+
+      const result = getConversionAttributes(chart, "s", {
+        min: 0.00512000001,
+        max: 0.00512000009,
+      })
+
+      expect(result.method).toBe("s-us")
+      expect(result.fractionDigits).toBe(5)
+    })
+
+    it("converts source hours through duration-aware scales", () => {
+      chart.updateAttributes({
+        units: ["h"],
+        desiredUnits: ["auto"],
+        secondsAsTime: true,
+      })
+
+      const result = getConversionAttributes(chart, "h", {
+        min: 0,
+        max: 26,
+      })
+
+      expect(result.method).toBe("h-d:h:mm")
+      expect(result.base).toBe("d:h:mm")
+    })
+
+    it("allows high precision when no smaller scale is available", () => {
+      chart.updateAttributes({
+        units: ["{operation}/s"],
+        desiredUnits: ["auto"],
+      })
+
+      const result = getConversionAttributes(chart, "{operation}/s", {
+        min: 5.12000001,
+        max: 5.12000009,
+      })
+
+      expect(result.method).toBe("adjust")
+      expect(result.prefix).toBe("")
+      expect(result.fractionDigits).toBe(8)
+    })
   })
 
   describe("getConversionUnits", () => {
     it("returns arrays of conversion parameters for dimensions", () => {
-      // Set up chart with multiple dimensions
       chart.updateAttribute("visibleDimensionIds", ["dim1", "dim2"])
-      chart.payload = {
-        byDimension: {
-          dim1: { min: 0, max: 1000 },
-          dim2: { min: 0, max: 2000 },
-        },
-      }
 
       const result = getConversionUnits(chart, "units", { min: 0, max: 2000 })
 
@@ -105,12 +181,13 @@ describe("getConversionUnits", () => {
       expect(result.prefix).toHaveLength(1)
     })
 
-    it("uses unitsCurrent when available", () => {
+    it("normalizes unitsCurrent source-scaled units when available", () => {
       chart.updateAttribute("unitsCurrent", ["KiB", "KiB"])
 
       const result = getConversionUnits(chart, "unitsCurrent", { min: 0, max: 1000 })
 
-      expect(result.base).toContain("KiB")
+      expect(result.base).toEqual(["By", "By"])
+      expect(result.prefix).toEqual(["Ki", "Ki"])
     })
 
     it("falls back to units when unitsCurrent not set", () => {
