@@ -1,4 +1,4 @@
-export default (chartUI, dataOptions = {}) => {
+const getInitialOptions = (chartUI, dataOptions = {}) => {
   const { clientWidth, clientHeight } = chartUI.getElement()
 
   return {
@@ -168,3 +168,12 @@ export default (chartUI, dataOptions = {}) => {
     },
   }
 }
+
+export const updateThemeOptions = (options, chartUI) => {
+  const themed = getInitialOptions(chartUI)
+  options.labels = themed.labels
+  options.data.smallSegmentGrouping.color = themed.data.smallSegmentGrouping.color
+  options.misc.colors.segmentStroke = themed.misc.colors.segmentStroke
+}
+
+export default getInitialOptions

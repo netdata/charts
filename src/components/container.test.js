@@ -1,3 +1,6 @@
+import { DefaultTheme } from "@netdata/netdata-ui/dist/theme"
+import Header from "./header"
+import { radius } from "./modern/tokens"
 import React from "react"
 import { screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
@@ -67,4 +70,30 @@ describe("Container", () => {
     expect(container).toHaveClass("custom-class")
     expect(container).toHaveAttribute("data-custom", "value")
   })
+})
+
+it("uses one rounded panel for the chart card and classic header without frame borders", () => {
+  const theme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      cardBackground: "#123456",
+      panelBg: "#334455",
+      mainChartBg: "#654321",
+      mainChartHeaderBg: "#abcdef",
+    },
+  }
+  renderWithChart(
+    <Container>
+      <Header />
+      Body
+    </Container>,
+    { theme }
+  )
+  const card = screen.getByTestId("chart")
+  const header = screen.getByTestId("chartHeader")
+  expect(card).toHaveStyle({ background: "#123456", borderRadius: radius.card })
+  expect(header).toHaveStyle({ background: "#123456" })
+  expect(parseFloat(getComputedStyle(card).borderTopWidth) || 0).toBe(0)
+  expect(parseFloat(getComputedStyle(header).borderBottomWidth) || 0).toBe(0)
 })

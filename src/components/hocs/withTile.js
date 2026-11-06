@@ -23,6 +23,7 @@ import { ColorBar } from "@/components/line/dimensions/color"
 import Tooltip from "@/components/tooltip"
 import Details from "@/components/details"
 import ModernTile from "@/components/modern/tile"
+import { radius } from "@/components/modern/tokens"
 
 const Label = styled(Text)`
   line-height: 1;
@@ -30,8 +31,8 @@ const Label = styled(Text)`
 `
 
 const ChartHeadWrapper = styled(Flex).attrs(({ size, ...rest }) => ({
-  background: "panelBg",
-  round: true,
+  background: "cardBackground",
+  round: radius.card,
   fontSize: parseInt(size / 3, 10),
   height: "100%",
   width: "100%",

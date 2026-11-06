@@ -300,7 +300,7 @@ const TrendLine = ({ series, change, scale, color, valueColor, gradientId }) => 
         cx={startX}
         cy={startY}
         r="3"
-        fill={color("mainChartBg")}
+        fill={color("cardBackground")}
         stroke={tint}
         strokeWidth="1.5"
       />
@@ -402,7 +402,7 @@ export const Dial = ({ uiName }) => {
       <path
         data-testid="modernGauge-track"
         d={arcPath(cx, cy, radius, startAngle, endAngle)}
-        stroke={color("borderSecondary")}
+        stroke={color("progressBg")}
         strokeWidth="12"
         fill="none"
         strokeLinecap="round"
@@ -458,7 +458,7 @@ export const Dial = ({ uiName }) => {
           cx={knobX}
           cy={knobY}
           r="7"
-          fill={color("mainChartBg")}
+          fill={color("cardBackground")}
           stroke={valueColor}
           strokeWidth="3"
         />

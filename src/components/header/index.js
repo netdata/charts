@@ -6,10 +6,9 @@ import FilterToolbox from "@/components/filterToolbox"
 import Separator from "@/components/line/separator"
 import { Title } from "@/components/title"
 import ModernHeader from "@/components/modern/header"
+import { radius } from "@/components/modern/tokens"
 
 export const Container = props => {
-  const isMinimal = useIsMinimal()
-
   return (
     <Flex
       alignItems="center"
@@ -18,10 +17,8 @@ export const Container = props => {
       gap={0.5}
       data-testid="chartHeader"
       height="25px"
-      {...(!isMinimal && {
-        background: "mainChartHeaderBg",
-        border: { side: "bottom", color: "borderSecondary" },
-      })}
+      background="cardBackground"
+      round={{ side: "top", size: radius.card }}
       {...props}
     />
   )

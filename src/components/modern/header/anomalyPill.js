@@ -1,6 +1,6 @@
 import React from "react"
 import styled from "styled-components"
-import { Flex } from "@netdata/netdata-ui"
+import { Flex, getReadableColor } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart, usePayload } from "@/components/provider"
 import { numeralsFont, radius } from "@/components/modern/tokens"
 import { formatAnomalyRate, getAnomalyColor, getAnomalySummary } from "@/components/modern/anomaly"
@@ -10,7 +10,6 @@ const Pill = styled(Flex).attrs({
   alignItems: "center",
   flex: false,
   round: radius.pill,
-  color: "mainBackground",
 })`
   display: inline-flex;
   padding: 2px 9px;
@@ -19,6 +18,7 @@ const Pill = styled(Flex).attrs({
   font-weight: 600;
   white-space: nowrap;
   background: ${({ pillBackground }) => pillBackground};
+  color: ${({ pillBackground, ...props }) => getReadableColor(pillBackground)(props)};
 `
 
 const AnomalyPill = () => {

@@ -140,6 +140,12 @@ describe("BarsChart", () => {
       expect(within(hidden).queryByTestId("modern-bars-value")).not.toBeInTheDocument()
     })
 
+    it("leaves missing annotation values out of the full layout", async () => {
+      await renderBars({ designFlavour: "modern", cols: "full" })
+
+      expect(screen.queryByTestId("modern-bars-annotation")).not.toBeInTheDocument()
+    })
+
     it("shows a non-empty anomaly rate only in the full layout", async () => {
       await renderBars({ designFlavour: "modern", cols: "full" })
 
@@ -196,7 +202,12 @@ describe("BarsChart", () => {
       screen.getAllByTestId("modern-bars-row").forEach(row => {
         const fill = within(row).getByTestId("modern-bars-fill")
         expect(fill.parentElement).toBe(row)
-        expect(fill).toHaveStyle({ position: "absolute", bottom: "0px", left: "0px", height: "2px" })
+        expect(fill).toHaveStyle({
+          position: "absolute",
+          bottom: "0px",
+          left: "0px",
+          height: "2px",
+        })
         expect(fill).not.toHaveStyle({ top: "0px" })
         expect(row).toHaveStyle({ position: "relative" })
         expect(row).not.toHaveStyle({ display: "grid" })

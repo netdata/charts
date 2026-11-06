@@ -1,4 +1,5 @@
 import Dygraph from "dygraphs"
+import { withAlpha } from "@/chartLibraries/helpers/color"
 import { dragGetX_ } from "dygraphs/src/dygraph-utils"
 
 export default chartUI => {
@@ -36,7 +37,7 @@ export default chartUI => {
     const { dragStartX, dragEndX } = context
 
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-    ctx.fillStyle = "rgba(128,128,128,0.3)"
+    ctx.fillStyle = withAlpha(chartUI.chart.getThemeAttribute("themeSelectionColor"), 0.3)
     ctx.fillRect(Math.min(dragStartX, dragEndX), area.y, Math.abs(dragEndX - dragStartX), area.h)
 
     context.prevEndX = dragEndX

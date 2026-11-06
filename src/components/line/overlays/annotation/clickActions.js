@@ -16,7 +16,7 @@ const Bar = styled(Flex).attrs({
   padding: [0.5, 1, 0.5, 2],
   round: 2,
   border: { side: "all", color: "borderSecondary" },
-  background: "mainBackground",
+  background: "popoverBackground",
   zIndex: 10,
   "data-testid": "click-actions",
 })``

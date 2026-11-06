@@ -1,3 +1,4 @@
+import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui/dist/theme"
 import { makeTestChart } from "@jest/testUtilities"
 import { makePayload, makeWave } from "../../../../fixtures/makeWavePayload"
 import uplotChart from "../index"
@@ -289,7 +290,7 @@ describe("threshold overlay", () => {
 
     drawLabels(instance, "alert")
 
-    expect(only(calls, "fill")[0].fillStyle).toBe("#282c34")
+    expect(only(calls, "fill")[0].fillStyle).toBe(DarkTheme.colors.cardBackground.toLowerCase())
 
     teardown()
   })
@@ -621,7 +622,9 @@ describe("annotation overlay flavours", () => {
     expect(only(calls, "fill")).toHaveLength(0)
     const strokes = only(calls, "stroke")
     expect(strokes).toHaveLength(2)
-    strokes.forEach(call => expect(call.strokeStyle).toBe("#5c6c77"))
+    strokes.forEach(call =>
+      expect(call.strokeStyle).toBe(DefaultTheme.colors.textLite.toLowerCase())
+    )
 
     teardown()
   })
@@ -672,7 +675,7 @@ describe("annotation overlay flavours", () => {
     teardown()
   })
 
-  it("keeps the grey half circle for the draft in the default flavour", async () => {
+  it("keeps the muted half circle for the draft in the default flavour", async () => {
     const { chart, u, instance, teardown } = await mountUplot()
     chart.updateAttribute("draftAnnotation", { timestamp: middle })
     const calls = record(u.ctx)
@@ -680,7 +683,9 @@ describe("annotation overlay flavours", () => {
     annotation(instance, "draftAnnotation")
 
     expect(only(calls, "arc")).toHaveLength(1)
-    only(calls, "stroke").forEach(call => expect(call.strokeStyle).toBe("#888888"))
+    only(calls, "stroke").forEach(call =>
+      expect(call.strokeStyle).toBe(DefaultTheme.colors.textLite.toLowerCase())
+    )
 
     teardown()
   })

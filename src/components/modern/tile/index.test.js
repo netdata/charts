@@ -13,6 +13,7 @@ import { getTileAlert } from "./alertDot"
 import { getConsumerElements } from "./menu"
 import { getReadoutSizes } from "./readout"
 import { getLatestValueOverlay } from "./index"
+import { radius } from "../tokens"
 import { useInModernTileMenu } from "./context"
 
 const Body = () => <div data-testid="tileBody">body</div>
@@ -26,9 +27,9 @@ const AddToDashboard = ({ disabled }) => (
 
 const ChartOptions = () => <span>Chart options</span>
 
-const renderTile = async (attributes = {}, props = {}) => {
+const renderTile = async (attributes = {}, props = {}, options = {}) => {
   const { chart } = makeTestChart({ attributes: { title: "System load", ...attributes } })
-  const result = renderWithChart(<Tiled {...props} />, { chart })
+  const result = renderWithChart(<Tiled {...props} />, { chart, ...options })
   await act(async () => {
     chart.fetch()
   })
@@ -540,5 +541,26 @@ describe("modern tile helpers", () => {
     expect(wide.value).toBeLessThanOrEqual(34)
     expect(narrow.value).toBeLessThan(wide.value)
     expect(narrow.unit).toBeGreaterThanOrEqual(11)
+  })
+})
+
+describe.each(["default", "minimal", "modern"])("%s card surface", designFlavour => {
+  it("keeps a rounded panel without a perimeter frame when revealed", async () => {
+    const theme = {
+      ...DefaultTheme,
+      colors: {
+        ...DefaultTheme.colors,
+        cardBackground: "#123456",
+        panelBg: "#334455",
+        mainChartBg: "#654321",
+      },
+    }
+    const { chart, container } = await renderTile({ designFlavour }, {}, { theme })
+    const card = container.firstChild
+    expect(card).toHaveStyle({ background: "#123456", borderRadius: radius.card })
+    expect(parseFloat(getComputedStyle(card).borderTopWidth) || 0).toBe(0)
+    act(() => chart.updateAttribute("focused", true))
+    expect(parseFloat(getComputedStyle(card).borderTopWidth) || 0).toBe(0)
+    expect(screen.getByTestId("tileBody")).toBeInTheDocument()
   })
 })

@@ -1,6 +1,6 @@
 import React from "react"
 import Tooltip from "@/components/tooltip"
-import { Flex } from "@netdata/netdata-ui"
+import { Flex, getColor } from "@netdata/netdata-ui"
 import styled from "styled-components"
 
 export const annotationPriorities = [
@@ -16,9 +16,9 @@ const ColorOption = styled.div`
   height: 8px;
   border-radius: 2px;
   cursor: pointer;
-  border: 1px solid ${props => (props.selected ? "#fff" : "transparent")};
+  border: 1px solid ${props => (props.selected ? getColor("controlFocused")(props) : "transparent")};
   background-color: ${props => props.color};
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 3px ${getColor("dropdownShadow")};
 
   &:hover {
     transform: scale(1.1);

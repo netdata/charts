@@ -7,7 +7,7 @@ const Track = styled(Flex).attrs({
   width: "56px",
   height: "6px",
   overflow: "hidden",
-  background: "borderSecondary",
+  background: "progressBg",
   "data-testid": "modernTable-meter",
 })`
   border-radius: 3px;

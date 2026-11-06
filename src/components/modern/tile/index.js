@@ -53,13 +53,11 @@ const Root = styled(Flex).attrs({
   position: "relative",
   gap: 1,
   round: radius.card,
-  background: "panelBg",
+  background: "cardBackground",
 })`
   box-sizing: border-box;
   padding: 8px 12px 10px;
-  border: 1px solid
-    ${({ isRevealed, theme }) =>
-      isRevealed ? getColor("borderSecondary")({ theme }) : "transparent"};
+  border: 0;
   font-size: ${({ rootFontSize }) => rootFontSize}px;
   ${focusRevealed};
 `
@@ -101,7 +99,7 @@ const Reveal = styled(Flex).attrs({
   right: 0,
   bottom: 0,
   padding: [0, 0, 0, 2],
-  background: "panelBg",
+  background: "cardBackground",
 })`
   opacity: ${({ isVisible }) => (isVisible ? 1 : 0)};
   pointer-events: ${({ isVisible }) => (isVisible ? "auto" : "none")};
@@ -126,7 +124,7 @@ const ScopeRow = styled(Box).attrs({
   width: { min: "0px" },
   height: { min: 4 },
   padding: [0, 0, 0.5],
-  background: "panelBg",
+  background: "cardBackground",
 })`
   visibility: ${({ isVisible }) => (isVisible ? "visible" : "hidden")};
 
@@ -198,7 +196,6 @@ const ModernTile = ({ children, customChildren, hasFilters = true, height, width
       ref={hoverRef}
       height={height}
       width={width}
-      isRevealed={revealed}
       rootFontSize={getFontSize(chartWidth)}
       data-testid="modernTile"
       data-flavour="modern"

@@ -79,7 +79,7 @@ export default (chartUI, id) => {
 
   if (id === "draftAnnotation" && draftAnnotation) {
     const { timestamp } = draftAnnotation
-    const color = "#888888"
+    const color = chartUI.chart.getThemeAttribute("themeDraftAnnotationColor")
 
     if (!timestamp) return
 

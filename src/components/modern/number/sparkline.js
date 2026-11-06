@@ -33,12 +33,12 @@ const Marker = styled(Box).attrs({
 })`
   margin: -3px 0 0 -3px;
   background: ${({ tint }) => resolve(tint)};
-  box-shadow: 0 0 0 2px ${getColor("mainChartBg")};
+  box-shadow: 0 0 0 2px ${getColor("cardBackground")};
   pointer-events: none;
 `
 
 const StartMarker = styled(Marker)`
-  background: ${getColor("mainChartBg")};
+  background: ${getColor("cardBackground")};
   box-shadow: inset 0 0 0 1.5px ${({ tint }) => resolve(tint)};
 `
 

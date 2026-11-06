@@ -136,7 +136,7 @@ export default (chart, el, { onMouseenter, onMouseout }, options = {}) => {
 
       if (lineWidth && cellStroke) {
         canvas.lineWidth = lineWidth
-        canvas.strokeStyle = "#fff"
+        canvas.strokeStyle = chart.getThemeAttribute("themeActiveBoxColor")
         canvas.strokeRect(
           offsetX + lineWidth,
           offsetY + lineWidth,

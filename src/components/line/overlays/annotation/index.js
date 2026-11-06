@@ -53,7 +53,7 @@ const StyledAnnotation = styled(Flex).attrs(({ isSynced }) => ({
   width: { min: "120px" },
   padding: [1, 2],
   border: { side: "all", color: isSynced ? "borderPrimary" : "borderSecondary" },
-  background: "mainBackground",
+  background: "popoverBackground",
   backgroundOpacity: isSynced ? 0.6 : 0.8,
   zIndex: 20,
 }))`

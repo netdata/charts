@@ -52,7 +52,7 @@ const Actions = ({ hasFilters, filtersOpen, onToggleFilters }) => {
       right="0"
       height="100%"
       padding={[0, 0, 0, 2]}
-      background="mainChartBg"
+      background="cardBackground"
     >
       <MenuEffects />
       <Button

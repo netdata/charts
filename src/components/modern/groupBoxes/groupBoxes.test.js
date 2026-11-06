@@ -71,8 +71,10 @@ describe("modern group boxes", () => {
       expect(events.some(event => event.type === "quadraticCurveTo")).toBe(false)
     })
 
-    it("keeps the default drawing when no modern options are given", () => {
-      const { chart } = makeTestChart()
+    it("keeps square drawing and applies the configured active edge", () => {
+      const { chart } = makeTestChart({
+        attributes: { themeActiveBoxColor: ["#123456", "#abcdef"] },
+      })
       const el = document.createElement("canvas")
       const boxes = drawBoxes(chart, el, { onMouseenter: () => {}, onMouseout: () => {} })
       const ids = ["a", "b", "c"]
@@ -88,7 +90,7 @@ describe("modern group boxes", () => {
       boxes.activateBox(1)
       const strokes = ctx.__getEvents().filter(event => event.type === "strokeRect")
       expect(strokes).toHaveLength(1)
-      expect(ctx.strokeStyle).toBe("#ffffff")
+      expect(ctx.strokeStyle).toBe("#123456")
       boxes.clear()
     })
   })

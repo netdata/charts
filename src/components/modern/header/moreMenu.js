@@ -60,14 +60,14 @@ const tabLabels = {
 
 const Segment = styled(Box).attrs(({ isActive }) => ({
   as: "button",
-  border: { side: "all", color: isActive ? "text" : "border" },
+  border: { side: "all", color: isActive ? "segmentedBorder" : "inputBorder" },
   round: radius.control,
   padding: [1, 0],
   cursor: "pointer",
 }))`
   flex: 1;
   background: ${({ isActive, theme }) =>
-    isActive ? getColor("borderSecondary")({ theme }) : "transparent"};
+    isActive ? getColor("controlPressedBackground")({ theme }) : "transparent"};
   font-family: inherit;
   font-size: 11.5px;
   color: ${getColor("text")};

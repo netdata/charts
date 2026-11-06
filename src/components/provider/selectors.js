@@ -56,6 +56,7 @@ export const useInitialLoading = () => {
 export const useLoadingColor = (defaultColor = "themeNeutralBackground") => {
   const chart = useChart()
   const [color, setColor] = useState(defaultColor)
+  const theme = useAttributeValue("theme")
   const fetchStartedAt = useAttributeValue("fetchStartedAt")
   const loading = useAttributeValue("loading")
 
@@ -80,7 +81,7 @@ export const useLoadingColor = (defaultColor = "themeNeutralBackground") => {
     }, 500)
 
     return () => clearInterval(id)
-  }, [loading, fetchStartedAt, chart])
+  }, [loading, fetchStartedAt, chart, theme, defaultColor])
 
   return color
 }

@@ -9,7 +9,7 @@ const Container = styled(Flex).attrs(props => ({
   round: true,
   border: { side: "all", color: "elementBackground" },
   width: { min: "300px", max: props.maxWidth ? `${props.maxWidth}px` : "80vw" },
-  background: "dropdown",
+  background: "popoverBackground",
   column: true,
   padding: [4],
   gap: 1,

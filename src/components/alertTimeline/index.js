@@ -2,7 +2,7 @@ import React, { useRef, useCallback, memo } from "react"
 import styled, { keyframes } from "styled-components"
 import { Flex } from "@netdata/netdata-ui"
 import { useHeadlessChart } from "@/components/headlessChart"
-import { usePlotArea } from "@/components/provider"
+import { usePlotArea, useColor } from "@/components/provider"
 import reducedMotion from "@/components/helpers/reducedMotion"
 
 const colorMap = {
@@ -10,8 +10,6 @@ const colorMap = {
   CRITICAL: "#FF4136",
   CLEAR: "#00AB44",
 }
-
-const DEFAULT_HOVER_COLOR = "#808080"
 
 const Container = styled(Flex)`
   position: relative;
@@ -74,6 +72,7 @@ const parseTimestamp = timestamp => {
 
 const AlertTimeline = () => {
   const containerRef = useRef(null)
+  const defaultHoverColor = useColor("themeCrosshair")
   const { chart, hover, helpers, attributes } = useHeadlessChart()
   const { left: plotLeft, width: plotWidth } = usePlotArea()
   const { transitions = [], showCleared = true } =
@@ -141,18 +140,18 @@ const AlertTimeline = () => {
   const hoverPercent = hoverTimestamp ? getPositionPercent(hoverTimestamp) : null
 
   const getColorAtTimestamp = timestamp => {
-    if (!timestamp) return DEFAULT_HOVER_COLOR
+    if (!timestamp) return defaultHoverColor
 
     for (let i = sortedTransitions.length - 1; i >= 0; i--) {
       const transition = sortedTransitions[i]
       const transitionMs = parseTimestamp(transition.timestamp)
       if (timestamp >= transitionMs) {
         const state = transition.to.toUpperCase()
-        if (!showCleared && state === "CLEAR") return DEFAULT_HOVER_COLOR
-        return colorMap[state] || DEFAULT_HOVER_COLOR
+        if (!showCleared && state === "CLEAR") return defaultHoverColor
+        return colorMap[state] || defaultHoverColor
       }
     }
-    return DEFAULT_HOVER_COLOR
+    return defaultHoverColor
   }
 
   const hoverColor = getColorAtTimestamp(hoverTimestamp)

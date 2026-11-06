@@ -1,3 +1,4 @@
+import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui/dist/theme"
 import React from "react"
 import { screen, fireEvent } from "@testing-library/react"
 import "@testing-library/jest-dom"
@@ -228,6 +229,22 @@ describe("CustomPeriodForm", () => {
       id: expect.stringMatching(/^custom_\d+$/),
       label: "Custom name",
       offsetSeconds: 259200,
+    })
+  })
+})
+
+describe.each([
+  ["light", DefaultTheme],
+  ["dark", DarkTheme],
+])("%s period input neutrals", (_, theme) => {
+  it("uses a coordinated field fill, ink and border", () => {
+    const { container } = renderWithChart(<CustomPeriodForm />, { theme })
+    container.querySelectorAll("input").forEach(input => {
+      expect(input).toHaveStyle({
+        backgroundColor: theme.colors.inputBg,
+        color: theme.colors.text,
+        borderColor: theme.colors.inputBorder,
+      })
     })
   })
 })

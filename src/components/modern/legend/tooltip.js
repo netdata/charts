@@ -32,7 +32,7 @@ export const pickShown = (rows, hoveredId, limit = maxTooltipRows) => {
 const Container = styled(Box).attrs({
   "data-testid": "modernTooltip",
   width: { min: 45, max: 90 },
-  background: "dropdown",
+  background: "popoverBackground",
   round: radius.control,
 })`
   padding: 8px 10px;

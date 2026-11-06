@@ -1,6 +1,16 @@
 import React, { useState } from "react"
-import { Flex, TextSmall, TextMicro, Button } from "@netdata/netdata-ui"
+import styled from "styled-components"
+import { Flex, TextSmall, TextMicro, Button, getColor } from "@netdata/netdata-ui"
 import { useAttributeValue } from "@/components/provider"
+
+const Field = styled.input`
+  padding: 4px;
+  font-size: 12px;
+  border: 1px solid ${getColor("inputBorder")};
+  border-radius: 4px;
+  background-color: ${getColor("inputBg")};
+  color: ${getColor("text")};
+`
 
 const normalizeInitialValues = initialValues => {
   const { label = "", offsetSeconds = 0 } = initialValues || {}
@@ -61,56 +71,38 @@ const CustomPeriodForm = ({ onSubmit, onCancel, initialValues }) => {
       border="all"
       round
       width={{ min: "200px" }}
-      background="neutral"
+      background="dropdown"
     >
       <TextSmall strong>Add Custom Period</TextSmall>
 
       <Flex column gap={1}>
         <TextMicro>Label</TextMicro>
-        <input
+        <Field
           type="text"
           value={label}
           onChange={e => setLabel(e.target.value)}
           placeholder="e.g. 3 days ago"
-          style={{
-            padding: "4px",
-            fontSize: "12px",
-            border: "1px solid #ddd",
-            borderRadius: "4px",
-          }}
         />
       </Flex>
 
       <Flex gap={2}>
         <Flex column gap={1} flex={1}>
           <TextMicro>Days</TextMicro>
-          <input
+          <Field
             type="number"
             value={offsetDays}
             onChange={e => setOffsetDays(e.target.value)}
             min="0"
-            style={{
-              padding: "4px",
-              fontSize: "12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-            }}
           />
         </Flex>
         <Flex column gap={1} flex={1}>
           <TextMicro>Hours</TextMicro>
-          <input
+          <Field
             type="number"
             value={offsetHours}
             onChange={e => setOffsetHours(e.target.value)}
             min="0"
             max="23"
-            style={{
-              padding: "4px",
-              fontSize: "12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-            }}
           />
         </Flex>
       </Flex>

@@ -4,7 +4,7 @@ import makeResizeObserver from "@/helpers/makeResizeObserver"
 import makeExecuteLatest from "@/helpers/makeExecuteLatest"
 import { shortForLength } from "@/helpers/shorten"
 import d3pie from "./library"
-import getInitialOptions from "./getInitialOptions"
+import getInitialOptions, { updateThemeOptions } from "./getInitialOptions"
 
 export default (sdk, chart) => {
   const chartUI = makeChartUI(sdk, chart)
@@ -129,7 +129,7 @@ export default (sdk, chart) => {
             color: chartUI.chart.getThemeAttribute("themeD3pieSmallColor"),
           },
         ]
-    pie.options.labels = getInitialOptions(chartUI).labels
+    updateThemeOptions(pie.options, chartUI)
 
     window.requestAnimationFrame(() => {
       reMake()

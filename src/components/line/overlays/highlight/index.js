@@ -15,7 +15,7 @@ const StyledHighlight = styled(Flex).attrs({
   padding: [1, 2],
   border: { side: "all", color: "borderSecondary" },
 })`
-  background-color: ${getColor("mainBackground")}80;
+  background-color: ${getColor("popoverBackground")}80;
 `
 
 export const Divider = styled(Flex)`

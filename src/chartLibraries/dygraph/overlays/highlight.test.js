@@ -32,6 +32,7 @@ describe("highlight overlay", () => {
       chartType: "line",
     })
 
+    chart.updateAttribute("themeHighlightColor", ["#123456", "#abcdef"])
     chart.getAttribute = () => ({
       "test-highlight": {
         range: [1000, 2000],
@@ -59,9 +60,9 @@ describe("highlight overlay", () => {
   it("applies correct styling", () => {
     highlight(chartUI, "test-highlight")
 
-    expect(mockDygraph.hidden_ctx_.fillStyle).toBe("rgba(207, 213, 218, 0.12)")
+    expect(mockDygraph.hidden_ctx_.fillStyle).toBe("rgba(18,52,86,0.12)")
     expect(mockDygraph.hidden_ctx_.lineWidth).toBe(1)
-    expect(mockDygraph.hidden_ctx_.strokeStyle).toBe("#CFD5DA")
+    expect(mockDygraph.hidden_ctx_.strokeStyle).toBe("#123456")
   })
 
   it("handles missing range gracefully", () => {
