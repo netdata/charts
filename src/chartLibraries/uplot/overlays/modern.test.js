@@ -190,15 +190,20 @@ describe("threshold overlay", () => {
     teardown()
   })
 
-  it("labels each threshold with its value", async () => {
-    const { u, instance, teardown } = await mountUplot({ overlays, designFlavour: "modern" })
+  it.each(["default", "dark"])("labels thresholds with theme ink in %s mode", async theme => {
+    const { chart, u, instance, teardown } = await mountUplot({
+      overlays,
+      designFlavour: "modern",
+      theme,
+    })
     const calls = record(u.ctx)
 
     drawThreshold(instance, "alert")
 
     const texts = only(calls, "fillText")
     expect(texts.map(call => call.args[0])).toEqual(["Warning at 60 %", "Critical at 70 %"])
-    expect(texts.map(call => call.fillStyle)).toEqual([light.warning, light.critical])
+    const ink = chart.getThemeAttribute("themeLabelColor").toLowerCase()
+    expect(texts.map(call => call.fillStyle)).toEqual([ink, ink])
     expect(texts.every(call => call.globalAlpha === 1)).toBe(true)
 
     teardown()
@@ -266,11 +271,12 @@ describe("threshold overlay", () => {
 
     drawLabels(instance, "alert")
 
+    const background = DefaultTheme.colors.cardBackground.toLowerCase()
     const fills = only(calls, "fill")
     expect(fills.map(call => call.fillStyle)).toEqual([
-      "#ffffff",
+      background,
       light.warning,
-      "#ffffff",
+      background,
       light.critical,
     ])
     expect(fills[0].globalAlpha).toBe(1)
@@ -418,7 +424,7 @@ describe("threshold overlay", () => {
     teardown()
   })
 
-  it("uses the dark theme colours", async () => {
+  it("keeps the dark severity colors in the pill fill", async () => {
     const { u, instance, teardown } = await mountUplot({
       overlays,
       designFlavour: "modern",
@@ -428,10 +434,8 @@ describe("threshold overlay", () => {
 
     drawThreshold(instance, "alert")
 
-    expect(only(calls, "fillText").map(call => call.fillStyle)).toEqual([
-      dark.warning,
-      dark.critical,
-    ])
+    const tints = only(calls, "fill").filter(call => call.globalAlpha < 1)
+    expect(tints.map(call => call.fillStyle)).toEqual([dark.warning, dark.critical])
 
     teardown()
   })

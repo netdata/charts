@@ -50,7 +50,7 @@ const buildDatetimePart = ({ value, unit, check, hasPrev }) => {
 }
 
 export const getDateDiff = (after, before) => {
-  const initialDiff = (diff = before - after)
+  const initialDiff = before - after
 
   const days = Math.floor(initialDiff / day1)
 

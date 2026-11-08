@@ -43,7 +43,7 @@ const UniverseButton = styled(Button)`
   }
 `
 
-const StyledAnnotation = styled(Flex).attrs(({ isSynced }) => ({
+const StyledAnnotation = styled(Flex).attrs(({ isSynced, theme }) => ({
   justifyContent: "center",
   alignItems: "center",
   gap: 2,
@@ -53,16 +53,10 @@ const StyledAnnotation = styled(Flex).attrs(({ isSynced }) => ({
   width: { min: "120px" },
   padding: [1, 2],
   border: { side: "all", color: isSynced ? "borderPrimary" : "borderSecondary" },
-  background: "popoverBackground",
-  backgroundOpacity: isSynced ? 0.6 : 0.8,
+  background: theme?.colors?.popoverBackground ?? "dropdown",
   zIndex: 20,
 }))`
-  ${({ isSynced }) =>
-    isSynced &&
-    `
-    opacity: 0.75;
-    border-style: dashed;
-  `}
+  ${({ isSynced }) => isSynced && "border-style: dashed;"}
 `
 
 export const AnnotationContent = memo(({ annotation }) => {

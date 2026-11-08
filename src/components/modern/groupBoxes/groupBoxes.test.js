@@ -1,5 +1,5 @@
 import React from "react"
-import { act, screen } from "@testing-library/react"
+import { act, fireEvent, screen, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { renderWithChart, makeTestChart } from "@jest/testUtilities"
 import { GroupBoxesContainer } from "@/components/groupBoxes"
@@ -233,6 +233,35 @@ describe("modern group boxes", () => {
       expect(legend).toHaveTextContent(`${chart.getConvertedValue(chart.getAttribute("min"))} %`)
       expect(legend).toHaveTextContent(`${chart.getConvertedValue(chart.getAttribute("max"))} %`)
       expect(legend).toHaveTextContent("27.86 %")
+    })
+
+    it("shows the timestamp of the treemap row and preserves highlight zoom", async () => {
+      const chart = await renderReadouts("modern")
+      const rows = chart.getPayload().all
+      const [latest] = rows.at(-1)
+      const [hovered] = rows[0]
+
+      const footer = screen.getByTestId("chartLegend")
+      const timestamp = within(footer).getByTestId("modernFooter-time")
+      expect(timestamp).toHaveTextContent("Latest")
+      expect(timestamp).toHaveTextContent(chart.formatTime(latest))
+
+      await act(async () => chart.updateAttribute("hoverX", [hovered, null]))
+      expect(chart.getUI().getGroupBoxRowData()[0]).toBe(hovered)
+      expect(timestamp).toHaveTextContent("Hovering")
+      expect(timestamp).toHaveTextContent(chart.formatTime(hovered))
+
+      const after = Math.floor(hovered / 1000)
+      const before = Math.floor(latest / 1000)
+      await act(async () =>
+        chart.updateAttribute("overlays", {
+          highlight: { range: [after, before], moveX: { after, before } },
+        })
+      )
+
+      fireEvent.click(within(footer).getByTestId("modernFooter-highlight"))
+      expect(chart.getAttribute("after")).toBe(after)
+      expect(chart.getAttribute("before")).toBe(before)
     })
 
     it("keeps the default legend range as it was", async () => {

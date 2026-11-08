@@ -1,7 +1,8 @@
 import React from "react"
 import { act, fireEvent, screen, waitFor, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
-import { renderWithChart, makeTestChart } from "@jest/testUtilities"
+import { DarkTheme, DefaultTheme } from "@netdata/netdata-ui"
+import { inkOf, renderWithChart, makeTestChart } from "@jest/testUtilities"
 import { filterDropdownsPayload } from "../../../../fixtures/filterDropdowns"
 import Nodes from "../nodes"
 import Dimensions from "../dimensions"
@@ -18,9 +19,9 @@ const loadChart = async (attributes = {}) => {
   return chart
 }
 
-const openDropdown = async (Component, attributes) => {
+const openDropdown = async (Component, attributes, theme) => {
   const chart = await loadChart(attributes)
-  const result = renderWithChart(<Component />, { chart })
+  const result = renderWithChart(<Component />, { chart, theme })
   fireEvent.click(screen.getAllByRole("button")[0])
   return { ...result, chart }
 }
@@ -55,6 +56,22 @@ describe("filter dropdowns, default flavour", () => {
 describe("filter dropdowns, modern flavour", () => {
   const modern = { designFlavour: "modern" }
 
+  it("keeps the dark filter table on the raised popover surface", async () => {
+    const popoverBackground = "#303a33"
+    const theme = {
+      ...DarkTheme,
+      colors: { ...DarkTheme.colors, popoverBackground },
+    }
+    await openDropdown(Nodes, modern, theme)
+
+    const dropdown = screen.getByTestId("modern-filter-dropdown")
+    const toolbar = within(dropdown).getByTestId("netdata-table-header-container")
+    const headers = within(dropdown).getAllByTestId("netdata-table-headRow")
+    const row = within(dropdown).getByText("prod-db-1").closest(".row-content")
+    for (const element of [dropdown, toolbar, ...headers, row])
+      expect(element).toHaveStyle({ backgroundColor: popoverBackground })
+  })
+
   it("renders search, columns and footer per node", async () => {
     await openDropdown(Nodes, modern)
 
@@ -73,6 +90,30 @@ describe("filter dropdowns, modern flavour", () => {
     expect(screen.getByTestId("modern-filter-reset")).toBeInTheDocument()
   })
 
+  it.each([DefaultTheme, DarkTheme])(
+    "keeps metric readouts legible on filter row fills in the $name theme",
+    async theme => {
+      await openDropdown(
+        Nodes,
+        { ...modern, filterColumnVisibility: { instances: true, metrics: true, min: true } },
+        theme
+      )
+
+      const row = screen.getByText("prod-db-1").closest('[data-testid^="netdata-table-row"]')
+      const cells = within(row)
+      const readouts = [
+        cells.getByText("19%"),
+        cells.getByText("12%"),
+        within(cells.getByTestId("modern-filter-alerts-warning")).getByText("2"),
+        within(cells.getByTestId("netdata-table-cell-instances")).getByText("1"),
+        within(cells.getByTestId("netdata-table-cell-metrics")).getByText("3"),
+        cells.getByTestId("netdata-table-cell-min").querySelector("span"),
+      ]
+
+      for (const readout of readouts) expect(inkOf(readout)).toBe(theme.colors.text.toUpperCase())
+    }
+  )
+
   it("shows alert pills only for non-zero counts", async () => {
     await openDropdown(Nodes, modern)
 
@@ -82,11 +123,17 @@ describe("filter dropdowns, modern flavour", () => {
     expect(screen.getByTestId("modern-filter-alerts-warning")).toHaveTextContent("2")
   })
 
-  it("mutes a zero anomaly rate", async () => {
+  it("marks non-zero anomaly rates with a purple cue", async () => {
     await openDropdown(Nodes, modern)
 
-    const anomalies = screen.getAllByTestId("modern-filter-anomaly").map(el => el.textContent)
-    expect(anomalies).toEqual(expect.arrayContaining(["0", "4%", "12%", "1%"]))
+    const anomalies = screen.getAllByTestId("modern-filter-anomaly")
+    const zero = anomalies.find(el => el.textContent === "0")
+    const nonZero = anomalies.find(el => el.textContent === "12%")
+    const dot = within(nonZero).getByText("12%").previousElementSibling
+
+    expect(within(zero).getByText("0").previousElementSibling).toBeNull()
+    expect(dot).not.toBeNull()
+    expect(dot).toHaveStyle({ backgroundColor: DefaultTheme.colors.anomalyTextFocus })
   })
 
   it("hides secondary columns behind the column toggle", async () => {
@@ -210,24 +257,36 @@ describe("filter dropdowns, modern flavour", () => {
     expect(screen.getByText("env")).toBeInTheDocument()
   })
 
-  it("lists host label values with plain counts and selects them", async () => {
-    const { chart } = await openDropdown(Nodes, {
-      ...modern,
-      nodesById: {
-        "nd-prod-db-1": { labels: { env: "prod" } },
-        "nd-staging-1": { labels: { env: "staging" } },
-      },
-    })
+  it.each([DefaultTheme, DarkTheme])(
+    "keeps selected host labels visible in the $name theme",
+    async theme => {
+      const { chart } = await openDropdown(
+        Nodes,
+        {
+          ...modern,
+          nodesById: {
+            "nd-prod-db-1": { labels: { env: "prod" } },
+            "nd-staging-1": { labels: { env: "staging" } },
+          },
+        },
+        theme
+      )
 
-    expect(screen.getByText("prod")).toBeInTheDocument()
-    expect(screen.getByTestId("undefined-filters-env-count")).toHaveTextContent("2")
-    expect(screen.getByTestId("undefined-filters-prod-count")).toHaveTextContent("1")
+      expect(screen.getByText("prod")).toBeInTheDocument()
+      expect(screen.getByTestId("undefined-filters-env-count")).toHaveTextContent("2")
+      expect(screen.getByTestId("undefined-filters-prod-count")).toHaveTextContent("1")
 
-    fireEvent.click(screen.getByTestId("undefined-filters-checkbox-prod"))
-    await waitFor(() =>
-      expect(chart.getAttribute("selectedNodeLabelsFilter")).toEqual(["env|prod"])
-    )
-  })
+      const checkbox = screen.getByTestId("undefined-filters-checkbox-prod")
+      const option = checkbox.closest('[role="option"]')
+      const initialFill = getComputedStyle(option).backgroundColor
+      fireEvent.click(checkbox)
+      await waitFor(() =>
+        expect(chart.getAttribute("selectedNodeLabelsFilter")).toEqual(["env|prod"])
+      )
+      expect(option).toHaveAttribute("aria-selected", "true")
+      expect(getComputedStyle(option).backgroundColor).not.toEqual(initialFill)
+    }
+  )
 
   it("names the rows after the resource", async () => {
     await openDropdown(Dimensions, modern)

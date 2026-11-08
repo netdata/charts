@@ -29,12 +29,12 @@ export const pickShown = (rows, hoveredId, limit = maxTooltipRows) => {
   return [...shown.slice(0, limit - 1), rows[hovered]]
 }
 
-const Container = styled(Box).attrs({
+const Container = styled(Box).attrs(({ theme }) => ({
   "data-testid": "modernTooltip",
   width: { min: 45, max: 90 },
-  background: "popoverBackground",
+  background: theme?.colors?.popoverBackground ?? "dropdown",
   round: radius.control,
-})`
+}))`
   padding: 8px 10px;
   box-shadow:
     0 6px 24px ${({ shadowColor }) => shadowColor},
@@ -68,7 +68,7 @@ const Value = styled(BaseValue)`
 `
 
 const Anomaly = styled(Numeral)`
-  color: ${getColor("anomalyText")};
+  color: ${getColor("text")};
   text-align: right;
 `
 

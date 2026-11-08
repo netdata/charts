@@ -51,7 +51,15 @@ export default sdk => {
     const isContainer = element.hasAttribute("data-netdata-wrapper")
 
     const attributes = parseTag(element)
-    const node = isContainer ? sdk.makeContainer({ attributes }) : sdk.makeChart(attributes)
+    const node = isContainer
+      ? sdk.makeContainer({ attributes })
+      : sdk.makeChart({
+          ...attributes,
+          attributes: {
+            ...(attributes.theme !== undefined && { theme: attributes.theme }),
+            ...attributes.attributes,
+          },
+        })
 
     nodeByElement.set(element, node)
 

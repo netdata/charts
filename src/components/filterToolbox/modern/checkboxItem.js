@@ -4,6 +4,8 @@ import styled from "styled-components"
 import { Flex, TextSmall, Icon, Checkbox } from "@netdata/netdata-ui"
 import { SmallNumeral } from "@/components/modern/numerals"
 import { radius } from "@/components/modern/tokens"
+import { menuItemStates } from "@/components/modern/menu"
+import { popoverItemColors } from "./popoverColors"
 
 const capitalize = s => (s ? s[0].toUpperCase() + s.slice(1) : "Unknown")
 
@@ -15,6 +17,7 @@ export const modernItemsProps = {
 export const ItemContainer = styled(Flex).attrs(({ disabled, stale, selected, ...props }) => ({
   as: "li",
   role: "option",
+  color: "text",
   padding: [1, 2],
   gap: 2,
   alignItems: "center",
@@ -23,9 +26,14 @@ export const ItemContainer = styled(Flex).attrs(({ disabled, stale, selected, ..
   round: radius.control,
   cursor: disabled ? "default" : "pointer",
   opacity: (stale || disabled) && !selected ? 0.6 : 1,
-  _hover: { background: "mainChartTboxHover" },
   ...props,
 }))`
+  ${menuItemStates(popoverItemColors)}
+
+  &:is(:hover, :focus-within, [data-selected="true"]) [data-option-label] {
+    color: inherit;
+  }
+
   [data-testid="styled-checkbox"] {
     background-color: transparent;
   }
@@ -61,7 +69,7 @@ const ModernCheckboxItem = ({ item, onItemClick, itemProps, ...rest }) => {
   }
 
   const name = (
-    <TextSmall color={textColor} title={text} whiteSpace="nowrap" truncate>
+    <TextSmall color={textColor} title={text} whiteSpace="nowrap" truncate data-option-label>
       {text}
     </TextSmall>
   )
@@ -69,6 +77,8 @@ const ModernCheckboxItem = ({ item, onItemClick, itemProps, ...rest }) => {
   return (
     <ItemContainer
       aria-selected={selected}
+      aria-disabled={isDisabled || undefined}
+      data-selected={!!selected || undefined}
       selected={selected}
       disabled={isDisabled}
       stale={count === 0 || count === "0" || stale || excluded}
@@ -92,6 +102,7 @@ const ModernCheckboxItem = ({ item, onItemClick, itemProps, ...rest }) => {
             disabled={isDisabled}
             indeterminate={indeterminate}
             onChange={onSelect}
+            iconProps={{ color: selected ? "menuItemSelectedText" : "text" }}
             overflow="hidden"
             label={
               <Flex gap={1} alignItems="center" overflow="hidden">
@@ -99,7 +110,7 @@ const ModernCheckboxItem = ({ item, onItemClick, itemProps, ...rest }) => {
                 {name}
               </Flex>
             }
-            labelProps={{ overflow: "hidden" }}
+            labelProps={{ overflow: "hidden", color: "inherit" }}
           />
         ) : (
           <Flex
@@ -117,9 +128,9 @@ const ModernCheckboxItem = ({ item, onItemClick, itemProps, ...rest }) => {
       {(!isNaN(count) || /%/.test(count || "") || pill) && (
         <Flex flex={false} gap={1} data-testid={`${testIdPrefix}-filters-${label}-count`}>
           {!!actualCount && (
-            <SmallNumeral color="textLite" whiteSpace="nowrap">{`${actualCount} ⊃`}</SmallNumeral>
+            <SmallNumeral color="inherit" whiteSpace="nowrap">{`${actualCount} ⊃`}</SmallNumeral>
           )}
-          <SmallNumeral color="textLite" whiteSpace="nowrap">
+          <SmallNumeral color="inherit" whiteSpace="nowrap">
             {(pill || count).toString()}
           </SmallNumeral>
         </Flex>

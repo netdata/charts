@@ -135,6 +135,7 @@ const DrillDown = () => {
       ref={containerRef}
     >
       <Table
+        surface="cardBackground"
         key={searching ? "search" : "browse"}
         enableSorting
         enableCustomSearch

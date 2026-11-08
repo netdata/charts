@@ -1,6 +1,7 @@
 import React from "react"
 import { screen, waitFor } from "@testing-library/react"
 import "@testing-library/jest-dom"
+import { DarkTheme } from "@netdata/netdata-ui"
 import { makeTestChart, renderWithChart } from "@jest/testUtilities"
 import systemLoadLine from "../../../../fixtures/systemLoadLine"
 import Dimensions from "./index"
@@ -10,6 +11,21 @@ describe("Dimensions", () => {
     renderWithChart(<Dimensions />)
 
     expect(screen.getByText("Window points")).toBeInTheDocument()
+  })
+
+  it("keeps the toolbar and column headings on the dark drawer card surface", () => {
+    const cardBackground = "#202723"
+    renderWithChart(<Dimensions />, {
+      theme: {
+        ...DarkTheme,
+        colors: { ...DarkTheme.colors, cardBackground },
+      },
+    })
+
+    const toolbar = screen.getByTestId("netdata-table-header-container")
+    const headers = screen.getAllByTestId("netdata-table-headRow")
+    for (const element of [toolbar, ...headers])
+      expect(element).toHaveStyle({ backgroundColor: cardBackground })
   })
 
   it("shows selected area header when selectedArea tab is active", () => {

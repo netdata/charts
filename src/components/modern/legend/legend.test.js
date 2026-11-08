@@ -1,6 +1,7 @@
 import React from "react"
 import { act, fireEvent, screen, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
+import { DefaultTheme } from "@netdata/netdata-ui/dist/theme"
 import { makeTestChart, renderWithChart } from "@jest/testUtilities"
 import { makePayload, makeWave } from "../../../../fixtures/makeWavePayload"
 import { Line } from "@/components/line"
@@ -256,7 +257,15 @@ describe("modern line legend", () => {
       "modernLegend-label"
     )
     expect(labels).toHaveLength(3)
-    labels.forEach(label => expect(label.style.top).toMatch(/px$/))
+    labels.forEach(label => {
+      expect(label.style.top).toMatch(/px$/)
+      const swatch = within(label).getByTestId("modernLegend-swatch")
+      const name = within(label).getByText(label.title)
+      expect(name).toHaveStyle({ color: DefaultTheme.colors.text })
+      expect(swatch).toHaveStyle({
+        backgroundColor: chart.selectDimensionColor(label.dataset.dimension),
+      })
+    })
     labels.forEach(label =>
       expect(within(label).getByTestId("modernLegend-directUnit")).toHaveTextContent(
         chart.getUnitSign({ dimensionId: label.getAttribute("data-dimension") })

@@ -77,7 +77,7 @@ const NameCell = ({ getValue, row, column }) => {
             setTimeout(() => e.target.scrollIntoView({ behavior: "smooth", block: "nearest" }))
           }}
           iconRotate={row.getIsExpanded() ? 2 : null}
-          textProps={{ fontSize: "10px", color: "textLite" }}
+          textProps={{ fontSize: "10px", color: "text" }}
           alignItems="center"
           width="auto"
         />
@@ -88,7 +88,7 @@ const NameCell = ({ getValue, row, column }) => {
 
 const ShareCell = ({ getValue, row }) => {
   const value = getValue()
-  if (!hasStats(row)) return <TextSmall color="textLite">{value}</TextSmall>
+  if (!hasStats(row)) return <TextSmall>{value}</TextSmall>
 
   return (
     <Flex alignItems="center" gap={2} width="100%" data-testid="modern-filter-share">
@@ -96,9 +96,7 @@ const ShareCell = ({ getValue, row }) => {
         <Box height="100%" width={`${clampPercent(value)}%`} background="textLite" />
       </Flex>
       <Flex flex={false} justifyContent="end" width={8}>
-        <SmallNumeral color="textDescription" whiteSpace="nowrap">
-          {formatPercent(value)}
-        </SmallNumeral>
+        <SmallNumeral whiteSpace="nowrap">{formatPercent(value)}</SmallNumeral>
       </Flex>
     </Flex>
   )
@@ -106,11 +104,18 @@ const ShareCell = ({ getValue, row }) => {
 
 const AnomalyCell = ({ getValue, row }) => {
   const value = getValue()
-  if (!hasStats(row)) return <TextSmall color="textLite">{value}</TextSmall>
+  if (!hasStats(row)) return <TextSmall>{value}</TextSmall>
 
   return (
-    <Flex justifyContent="end" width="100%" data-testid="modern-filter-anomaly">
-      <SmallNumeral color={value ? "anomalyText" : "textLite"} whiteSpace="nowrap">
+    <Flex
+      alignItems="center"
+      justifyContent="end"
+      gap={1}
+      width="100%"
+      data-testid="modern-filter-anomaly"
+    >
+      {!!value && <Dot size={1.25} background="anomalyTextFocus" aria-hidden="true" />}
+      <SmallNumeral strong={!!value} whiteSpace="nowrap">
         {formatPercent(value)}
       </SmallNumeral>
     </Flex>
@@ -122,18 +127,14 @@ const StatCell = ({ getValue }) => {
 
   return (
     <Flex justifyContent="end" width="100%">
-      <SmallNumeral color="textLite" whiteSpace="nowrap">
-        {value}
-      </SmallNumeral>
+      <SmallNumeral whiteSpace="nowrap">{value}</SmallNumeral>
     </Flex>
   )
 }
 
 const CountCell = ({ getValue }) => (
   <Flex justifyContent="end" width="100%">
-    <SmallNumeral color="textLite" whiteSpace="nowrap">
-      {getValue()}
-    </SmallNumeral>
+    <SmallNumeral whiteSpace="nowrap">{getValue()}</SmallNumeral>
   </Flex>
 )
 
@@ -145,7 +146,7 @@ const alertDots = [
 
 const AlertsCell = ({ getValue, row }) => {
   const al = row.original.info?.al
-  if (!al) return <TextSmall color="textLite">{getValue()}</TextSmall>
+  if (!al) return <TextSmall>{getValue()}</TextSmall>
 
   return (
     <Flex justifyContent="end" gap={2} width="100%" data-testid="modern-filter-alerts">
@@ -159,7 +160,7 @@ const AlertsCell = ({ getValue, row }) => {
             data-testid={`modern-filter-alerts-${name}`}
           >
             <Dot background={background} />
-            <SmallNumeral color="textDescription">{al[key]}</SmallNumeral>
+            <SmallNumeral>{al[key]}</SmallNumeral>
           </Flex>
         ) : null
       )}
@@ -235,6 +236,7 @@ export const modernizeColumns = (columns, { nameHeader = "Name", showColor = fal
           ...column,
           ...fixed,
           numeric: false,
+          countColor: "text",
           header: () => <Head>{plainHeaders[column.id]}</Head>,
           headerString: plainHeaders[column.id],
           size: 88,

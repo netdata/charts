@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react"
-import styled from "styled-components"
+import styled, { css } from "styled-components"
 import { Box, Flex, TextMicro, getColor } from "@netdata/netdata-ui"
 import { TileMenuContext } from "@/components/modern/tile/context"
 
@@ -31,6 +31,28 @@ export const Panel = styled(Flex).attrs(({ width = "260px" }) => ({
   font-size: 12.5px;
 `
 
+export const menuItemStates = ({
+  hover = getColor("menuItemHover"),
+  selected = getColor("menuItemSelected"),
+  selectedHover = getColor("menuItemSelectedHover"),
+} = {}) => css`
+  &:is(:hover, :focus-visible, :has(:focus-visible)):not(:disabled, [aria-disabled="true"]) {
+    background-color: ${hover};
+  }
+
+  &[data-selected="true"] {
+    background-color: ${selected};
+    color: ${getColor("menuItemSelectedText")};
+  }
+
+  &[data-selected="true"]:is(:hover, :focus-visible, :has(:focus-visible)):not(
+      :disabled,
+      [aria-disabled="true"]
+    ) {
+    background-color: ${selectedHover};
+  }
+`
+
 const Row = styled(Flex).attrs({
   as: "button",
   alignItems: "center",
@@ -48,12 +70,13 @@ const Row = styled(Flex).attrs({
   font-size: 12px;
   text-align: left;
 
-  &:hover:not(:disabled) {
-    background: ${getColor("mainChartTboxHover")};
-  }
+  ${menuItemStates()}
 
   &:disabled {
     cursor: default;
+  }
+
+  &:disabled:not([data-selected="true"]) {
     color: ${getColor("textLite")};
   }
 `
@@ -73,7 +96,7 @@ const Content = styled(Flex).attrs({ as: "span", alignItems: "center", overflow:
 
 const Hint = styled(Box).attrs({ as: "span" })`
   flex-shrink: 0;
-  color: ${getColor("textLite")};
+  color: inherit;
   white-space: nowrap;
 `
 
@@ -86,7 +109,7 @@ export const MenuHeading = ({ children, ...rest }) => (
 )
 
 export const Item = ({ children, hint, check, icon, drill, contentGap, ...rest }) => (
-  <Row type="button" role="menuitem" {...rest}>
+  <Row type="button" role="menuitem" data-selected={!!check || undefined} {...rest}>
     <Content gap={contentGap ?? (icon ? 1.5 : undefined)}>
       {check !== undefined && <Check>{check ? "✓" : ""}</Check>}
       {icon}

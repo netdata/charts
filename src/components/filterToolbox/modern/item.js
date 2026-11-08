@@ -6,10 +6,12 @@ import information from "@netdata/netdata-ui/dist/components/icon/assets/informa
 import Icon from "@/components/icon"
 import Tooltip from "@/components/tooltip"
 import { radius } from "@/components/modern/tokens"
+import { menuItemStates } from "@/components/modern/menu"
 
 const ItemContainer = styled(Flex).attrs(props => ({
   as: "li",
   role: "option",
+  color: "text",
   padding: [1, 2],
   margin: [0, 1],
   gap: 1,
@@ -18,11 +20,13 @@ const ItemContainer = styled(Flex).attrs(props => ({
   ...props,
 }))`
   border-radius: ${radius.control};
-  cursor: ${({ disabled }) => (disabled ? "default" : "pointer")};
-  ${({ selected, theme }) =>
-    selected && `background-color: ${getColor("elementBackground")({ theme })};`}
-  ${({ selected, theme }) =>
-    !selected && `&:hover { background-color: ${getColor("borderSecondary")({ theme })}; }`}
+  cursor: pointer;
+  ${menuItemStates()}
+
+  &[data-selected="true"] {
+    cursor: default;
+  }
+
   ${({ justDesc, theme }) =>
     justDesc &&
     `
@@ -46,14 +50,13 @@ const ModernItem = ({ value: selectedValue, item, onItemClick, itemProps }) => {
   return (
     <ItemContainer
       {...itemProps}
-      disabled={selected}
-      selected={selected}
+      data-selected={selected || undefined}
       aria-selected={selected}
       onClick={() => onItemClick(value)}
       data-testid="modern-filter-item"
     >
       <Flex gap={1} alignItems="center">
-        <TextSmall color={selected ? "text" : "textDescription"} strong={selected}>
+        <TextSmall color="inherit" strong={selected}>
           {label}
         </TextSmall>
         {!!description && (
@@ -64,7 +67,7 @@ const ModernItem = ({ value: selectedValue, item, onItemClick, itemProps }) => {
           </Tooltip>
         )}
       </Flex>
-      {selected && <Icon width="14px" height="14px" color="text" svg={checkmark_s} />}
+      {selected && <Icon width="14px" height="14px" color="currentColor" svg={checkmark_s} />}
     </ItemContainer>
   )
 }

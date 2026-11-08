@@ -1,13 +1,24 @@
-import React from "react"
+import React, { useCallback, useSyncExternalStore } from "react"
 import { createRoot } from "react-dom/client"
 import { ThemeProvider } from "styled-components"
-import { DefaultTheme } from "@netdata/netdata-ui"
+import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui"
 import Line from "./components/line"
 
-export default (chart, element) => {
-  createRoot(element).render(
-    <ThemeProvider theme={DefaultTheme}>
+const themes = [DefaultTheme, DarkTheme]
+
+const StandaloneChart = ({ chart }) => {
+  const subscribe = useCallback(listener => chart.onAttributeChange("theme", listener), [chart])
+  const themeIndex = useSyncExternalStore(subscribe, chart.getThemeIndex)
+
+  return (
+    <ThemeProvider theme={themes[themeIndex]}>
       <Line chart={chart} />
     </ThemeProvider>
   )
+}
+
+export default (chart, element) => {
+  const root = createRoot(element)
+  root.render(<StandaloneChart chart={chart} />)
+  return root
 }

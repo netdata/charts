@@ -1,8 +1,10 @@
 import React from "react"
 import { Flex } from "@netdata/netdata-ui"
 import Indicators from "@/components/line/indicators"
-import { useIsModern } from "@/components/provider"
+import { useAttributeValue, useIsModern } from "@/components/provider"
 import ModernLegend from "@/components/modern/groupBoxes/legend"
+import { Highlight, Timestamp } from "@/components/modern/legend/readouts"
+import useGroupBoxRowData from "../useGroupBoxRowData"
 import Legend from "./legend"
 
 export const Container = props => (
@@ -15,14 +17,30 @@ export const Container = props => (
   />
 )
 
-const Footer = () => {
+const ModernFooter = ({ uiName }) => {
+  const row = useGroupBoxRowData(uiName)
+  const hover = useAttributeValue("hoverX")
+
+  return (
+    <Container flex={false} gap={1} padding={[1, 6, 1, 2]}>
+      <ModernLegend />
+      <Flex alignItems="center" gap={2} flexWrap>
+        <Highlight />
+        <Timestamp label={hover ? "Hovering" : "Latest"} timestamp={row?.[0]} />
+      </Flex>
+    </Container>
+  )
+}
+
+const Footer = ({ uiName }) => {
   const isModern = useIsModern()
+  if (isModern) return <ModernFooter uiName={uiName} />
 
   return (
     <Container>
       <Indicators />
       <Flex alignItems="center" padding={[2]}>
-        {isModern ? <ModernLegend /> : <Legend />}
+        <Legend />
       </Flex>
     </Container>
   )
