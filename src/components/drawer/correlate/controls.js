@@ -41,6 +41,7 @@ const Controls = () => {
           </TextSmall>
         </Tooltip>
         <Select
+          selectionStyle="quiet"
           options={methodOptions}
           value={selectedMethod}
           onChange={({ value }) => chart.updateAttribute("correlate.method", value)}
@@ -52,6 +53,7 @@ const Controls = () => {
           </TextSmall>
         </Tooltip>
         <Select
+          selectionStyle="quiet"
           options={aggregationOptions}
           value={selectedAggregation}
           onChange={({ value }) => chart.updateAttribute("correlate.aggregation", value)}
@@ -63,6 +65,7 @@ const Controls = () => {
           </TextSmall>
         </Tooltip>
         <Select
+          selectionStyle="quiet"
           options={dataTypeOptions}
           value={selectedDataType}
           onChange={({ value }) => chart.updateAttribute("correlate.dataType", value)}

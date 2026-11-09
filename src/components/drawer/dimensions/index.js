@@ -137,6 +137,7 @@ const Dimensions = () => {
       data-testid="chart-values-table-container"
     >
       <Table
+        surface="cardBackground"
         key={period}
         enableSorting
         enableColumnVisibility

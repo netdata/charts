@@ -13,10 +13,10 @@ import makeGetUnitSign from "./makeGetUnitSign"
 import getAggregateMethod from "./filters/getAggregateMethod"
 import timeSeriesRenderer from "./timeSeriesRenderer"
 
-const themeIndex = {
-  default: 0,
-  dark: 1,
-}
+const themeIndex = new Map([
+  ["default", 0],
+  ["dark", 1],
+])
 
 const maxBackoffMs = 30 * 1000
 const defaultMakeTrack = () => value => value
@@ -352,7 +352,7 @@ export default ({
   node.getThemeIndex = () => {
     if (!node) return
 
-    return themeIndex[node.getAttribute("theme")] || themeIndex.default
+    return themeIndex.get(node.getAttribute("theme")) ?? themeIndex.get("default")
   }
 
   node.getThemeAttribute = name => {

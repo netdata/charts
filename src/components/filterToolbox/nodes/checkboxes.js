@@ -7,11 +7,10 @@ import {
   TextSmall,
   Icon,
   Checkbox,
-  getRgbColor,
-  getColor,
   Pill,
 } from "@netdata/netdata-ui"
 import Shortener from "@/components/helpers/shortener"
+import { menuItemStates } from "@/components/modern/menu"
 
 const capitalize = s => (s ? s[0].toUpperCase() + s.slice(1) : "Unknown")
 
@@ -19,15 +18,6 @@ const defaultItemsProps = {
   head: { textColor: "textLite" },
   row: { textColor: "text" },
 }
-const getBackground = ({ theme }) => {
-  const { name } = theme
-
-  const background =
-    name === "Dark" ? getRgbColor(["green", "green20"]) : getRgbColor(["green", "green170"])
-
-  return background({ theme })
-}
-
 export const ItemContainer = styled(Flex).attrs(props => ({
   as: "li",
   role: "option",
@@ -40,21 +30,7 @@ export const ItemContainer = styled(Flex).attrs(props => ({
   cursor: ${({ disabled }) => (disabled ? "default" : "pointer")};
   opacity: ${({ stale, disabled, selected }) => ((stale || disabled) && !selected ? 0.6 : 1)};
   align-items: ${({ alignItems }) => alignItems || "center"};
-  ${({ multi, selected, theme }) =>
-    !multi &&
-    selected &&
-    `
-    background-color: ${getBackground({ theme })};
-  `}
-  ${({ multi, selected, disabled, theme }) =>
-    !multi &&
-    !selected &&
-    !disabled &&
-    `
-    &:hover {
-      background-color: ${getColor("secondaryHighlight")({ theme })};
-    }
-  `}
+  ${menuItemStates({ surface: "modalTabsBackground" })}
 `
 
 const DefaultItem = ({ item, onItemClick, itemProps, ...rest }) => {
@@ -90,6 +66,8 @@ const DefaultItem = ({ item, onItemClick, itemProps, ...rest }) => {
   return (
     <ItemContainer
       aria-selected={selected}
+      aria-disabled={isDisabled || undefined}
+      data-selected={!!selected || undefined}
       selected={selected}
       disabled={isDisabled}
       stale={count === 0 || count === "0" || stale || excluded}

@@ -21,7 +21,7 @@ const StyledDraftAnnotation = styled(Flex).attrs({
   width: { min: "120px" },
   padding: [1, 2],
   border: { side: "all", color: "borderSecondary", style: "dashed" },
-  background: "mainBackground",
+  background: "popoverBackground",
   backgroundOpacity: 0.8,
   zIndex: 10,
 })``

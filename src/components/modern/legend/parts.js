@@ -43,7 +43,7 @@ export const Flags = ({ flags, full = false }) => {
           padding={[0, 0.5]}
           title={annotationLabels[flag] || flag}
         >
-          <TextMicro color={flags[flag]}>{full ? annotationLabels[flag] || flag : flag}</TextMicro>
+          <TextMicro color="text">{full ? annotationLabels[flag] || flag : flag}</TextMicro>
         </Flex>
       ))}
     </Flex>

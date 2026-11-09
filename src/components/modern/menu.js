@@ -1,13 +1,25 @@
 import React, { useEffect, useRef } from "react"
-import styled from "styled-components"
-import { Box, Flex, TextMicro, getColor } from "@netdata/netdata-ui"
+import styled, { css } from "styled-components"
+import {
+  Box,
+  CheckboxIndicator,
+  DropdownSelectionCheck,
+  Flex,
+  TextMicro,
+  getColor,
+} from "@netdata/netdata-ui"
+import {
+  getDropdownOptionColors,
+  insetMenuRound,
+  menuSelectionMarker,
+} from "@netdata/netdata-ui/dist/components/drops/dropdownStyles"
 import { TileMenuContext } from "@/components/modern/tile/context"
 
 export const dropProps = {
   align: { top: "bottom", right: "right" },
   background: "dropdown",
   margin: [1, 0, 0],
-  round: true,
+  round: insetMenuRound,
 }
 
 export const Toolbar = styled(Flex).attrs({ alignItems: "center", gap: 0.5 })`
@@ -31,6 +43,43 @@ export const Panel = styled(Flex).attrs(({ width = "260px" }) => ({
   font-size: 12.5px;
 `
 
+export const MenuScroll = ({ children, ...rest }) => (
+  <Flex column overflow={{ vertical: "auto" }} margin={[0, -1]} {...rest}>
+    <Flex column padding={[0, 1]} flex={false}>
+      {children}
+    </Flex>
+  </Flex>
+)
+
+export const menuItemStates =
+  ({ selectionStyle = "quiet", surface } = {}) =>
+  ({ theme }) => {
+    const { hover, selected, selectedHover, selectedText } = getDropdownOptionColors(
+      theme,
+      selectionStyle,
+      surface
+    )
+
+    return css`
+      &:is(:hover, :focus-visible, :has(:focus-visible)):not(:disabled, [aria-disabled="true"]) {
+        background-color: ${hover};
+      }
+
+      &[data-selected="true"] {
+        background-color: ${selected};
+        color: ${selectedText};
+        box-shadow: ${selectionStyle === "marker" ? menuSelectionMarker({ theme }) : "none"};
+      }
+
+      &[data-selected="true"]:is(:hover, :focus-visible, :has(:focus-visible)):not(
+          :disabled,
+          [aria-disabled="true"]
+        ) {
+        background-color: ${selectedHover};
+      }
+    `
+  }
+
 const Row = styled(Flex).attrs({
   as: "button",
   alignItems: "center",
@@ -48,20 +97,15 @@ const Row = styled(Flex).attrs({
   font-size: 12px;
   text-align: left;
 
-  &:hover:not(:disabled) {
-    background: ${getColor("mainChartTboxHover")};
-  }
+  ${({ "data-selection-style": selectionStyle }) => menuItemStates({ selectionStyle })}
 
   &:disabled {
     cursor: default;
+  }
+
+  &:disabled:not([data-selected="true"]) {
     color: ${getColor("textLite")};
   }
-`
-
-const Check = styled(Box).attrs({ as: "span", width: 4 })`
-  display: inline-block;
-  flex: none;
-  color: ${getColor("primary")};
 `
 
 const Content = styled(Flex).attrs({ as: "span", alignItems: "center", overflow: "hidden" })`
@@ -73,7 +117,7 @@ const Content = styled(Flex).attrs({ as: "span", alignItems: "center", overflow:
 
 const Hint = styled(Box).attrs({ as: "span" })`
   flex-shrink: 0;
-  color: ${getColor("textLite")};
+  color: inherit;
   white-space: nowrap;
 `
 
@@ -85,10 +129,26 @@ export const MenuHeading = ({ children, ...rest }) => (
   </TextMicro>
 )
 
-export const Item = ({ children, hint, check, icon, drill, contentGap, ...rest }) => (
-  <Row type="button" role="menuitem" {...rest}>
+export const Item = ({
+  children,
+  hint,
+  check,
+  icon,
+  drill,
+  contentGap,
+  role = check === undefined ? "menuitem" : "menuitemcheckbox",
+  selectionStyle = check === undefined ? "marker" : "quiet",
+  ...rest
+}) => (
+  <Row
+    type="button"
+    role={role}
+    aria-checked={role === "menuitem" ? undefined : check}
+    data-selected={(role !== "menuitemcheckbox" && !!check) || undefined}
+    data-selection-style={selectionStyle}
+    {...rest}
+  >
     <Content gap={contentGap ?? (icon ? 1.5 : undefined)}>
-      {check !== undefined && <Check>{check ? "✓" : ""}</Check>}
       {icon}
       {children}
     </Content>
@@ -98,6 +158,10 @@ export const Item = ({ children, hint, check, icon, drill, contentGap, ...rest }
         {drill && <Hint aria-hidden="true">›</Hint>}
       </Flex>
     )}
+    {selectionStyle === "quiet" && role === "menuitemcheckbox" && (
+      <CheckboxIndicator checked={check} size={3.5} flex="none" />
+    )}
+    {selectionStyle === "quiet" && role === "menuitemradio" && check && <DropdownSelectionCheck />}
   </Row>
 )
 

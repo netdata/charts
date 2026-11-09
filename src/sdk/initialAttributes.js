@@ -3,6 +3,10 @@ import Settings from "@/components/toolbox/settings"
 import { DisplayTab, DataTab, InfoTab, DownloadTab } from "@/components/toolbox/settings/tabs"
 
 import Status from "@/components/status"
+import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui/dist/theme"
+import { withAlpha } from "@/chartLibraries/helpers/color"
+
+const themeColors = name => [DefaultTheme.colors[name], DarkTheme.colors[name]]
 
 export default {
   id: "",
@@ -209,40 +213,44 @@ export default {
 
   pristine: {},
 
-  themeGridColor: ["#E4E8E8", "#212727"],
-  themeCrosshair: ["#536775", "#536775"],
+  themeGridColor: themeColors("borderSecondary"),
+  themeCrosshair: themeColors("highlight"),
+  themeHighlightColor: themeColors("highlight"),
+  themeSelectionColor: themeColors("highlight"),
+  themeDraftAnnotationColor: themeColors("textLite"),
+  themeActiveBoxColor: themeColors("controlFocused"),
 
-  themeTrackColor: ["#DBE1E1", "#353F3F"],
-  themeScaleColor: ["#F7F8F8", "#2B3136"],
+  themeTrackColor: themeColors("progressBg"),
+  themeScaleColor: themeColors("border"),
 
-  themeEasyPieTrackColor: ["#DBE1E1", "#353F3F"],
-  themeEasyPieScaleColor: ["#B7C2C2", "#424E4E"],
+  themeEasyPieTrackColor: themeColors("progressBg"),
+  themeEasyPieScaleColor: themeColors("border"),
 
-  themeGaugePointer: ["#8F9EAA", "#536775"],
-  themeGaugeStroke: ["#DBE1E1", "#353F3F"],
+  themeGaugePointer: themeColors("textLite"),
+  themeGaugeStroke: themeColors("progressBg"),
 
   gaugeLineWidth: 0.1,
   gaugeGradient: true,
   gaugeThresholds: null,
 
-  themeD3pieSmallColor: ["#536775", "#CFD5DA"],
-  themeD3pieStroke: ["#DBE1E1", "#353F3F"],
-  themeInnerLabelColor: ["#F7F8F8", "#282827"],
+  themeD3pieSmallColor: themeColors("placeholder"),
+  themeD3pieStroke: themeColors("cardBackground"),
+  themeInnerLabelColor: themeColors("actionContrastText"),
 
-  themeLabelColor: ["#35414a", "#ffffff"],
-  themeAxisLabelColor: ["#5C6C77", "#7C8C96"],
-  themeBackground: ["#ffffff", "#282C34"],
-  themeNeutralBackground: ["#DBE1E1", "#353F3F"],
-  themeSkeleton: ["#E8ECEC", "#1E2424"],
-  themeSkeletonGrid: ["#EEF1F1", "#1A1F1F"],
-  themeSkeletonSpark: ["#FFFFFF", "#FFFFFF"],
+  themeLabelColor: themeColors("text"),
+  themeAxisLabelColor: themeColors("textLite"),
+  themeBackground: themeColors("cardBackground"),
+  themeNeutralBackground: themeColors("progressBg"),
+  themeSkeleton: themeColors("progressBg"),
+  themeSkeletonGrid: themeColors("borderSecondary"),
+  themeSkeletonSpark: themeColors("bright"),
   themeWarningBackground: ["#FFCC26", "#FFCC26"],
   themeErrorBackground: ["#F95251", "#F95251"],
 
   themeAnomalyScaleColor: ["#9F75F9", "#9F75F9"],
   themeAnomalyRampLow: ["#D6CAFF", "#4A3A8C"],
   themeAnomalyRampHigh: ["#6234D6", "#C4A0FF"],
-  themeAnomalySpotlightDim: ["rgba(255, 255, 255, 0.55)", "rgba(21, 24, 24, 0.55)"],
+  themeAnomalySpotlightDim: themeColors("cardBackground").map(color => withAlpha(color, 0.55)),
 
   themeAlertWarning: ["#C98A00", "#E0A526"],
   themeAlertCritical: ["#D63F3F", "#E5484D"],
@@ -261,7 +269,7 @@ export default {
   themeLoadingStart: ["#BFE5C6", "#2f5446"],
   themeNetdata: ["#00AB44", "#00AB44"],
 
-  themeShadow: ["rgba(9, 30, 66, 0.15)", "rgba(0, 0, 0, 0.4)"],
+  themeShadow: themeColors("dropdownShadow"),
 
   designFlavour: "default",
 

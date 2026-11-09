@@ -150,6 +150,7 @@ export const drawLabels = (chartUI, id) => {
 
   const { chart, ctx, labels } = layout
   const background = chart.getThemeAttribute("themeBackground")
+  const ink = chart.getThemeAttribute("themeLabelColor")
 
   ctx.save()
   ctx.font = labelFont
@@ -175,6 +176,7 @@ export const drawLabels = (chartUI, id) => {
     ctx.stroke()
 
     ctx.globalAlpha = 1
+    ctx.fillStyle = ink
     ctx.fillText(text, pillLeft + pillPadding, lineY)
   })
 

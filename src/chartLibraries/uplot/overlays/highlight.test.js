@@ -18,13 +18,12 @@ const withLoadedPayload = chart => {
   chart.getVisibleDimensionIds = () => ["load1", "load5", "load15"]
   chart.isDimensionVisible = () => true
   chart.selectDimensionColor = () => "#3366CC"
-  chart.getThemeAttribute = () => "#E4E8E8"
   chart.getConvertedValueWithUnit = value => `${value}`
 }
 
 const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve))
 
-const mountUplot = async overlays => {
+const mountUplot = async (overlays, attributes = {}) => {
   const { sdk, chart } = makeTestChart({
     attributes: {
       loaded: true,
@@ -34,6 +33,7 @@ const mountUplot = async overlays => {
       before,
       staticValueRange: [5, 40],
       overlays,
+      ...attributes,
     },
   })
   withLoadedPayload(chart)
@@ -131,6 +131,25 @@ describe("uplot highlight overlay", () => {
 
     expect(called).toBe(false)
 
+    teardown()
+  })
+  it("uses the same overrideable neutral edge and translucent fill", async () => {
+    const { instance, teardown } = await mountUplot(
+      {
+        highlight: { type: "highlight", range: [after + 60, after + 300] },
+      },
+      { themeHighlightColor: ["#123456", "#abcdef"] }
+    )
+    const ctx = instance.getUPlot().ctx
+    ctx.__clearEvents()
+    highlight(instance, "highlight")
+    const events = ctx.__getEvents()
+    expect(
+      events.filter(event => event.type === "strokeStyle").map(event => event.props.value)
+    ).toContain("#123456")
+    expect(
+      events.filter(event => event.type === "fillStyle").map(event => event.props.value)
+    ).toContain("rgba(18, 52, 86, 0.12)")
     teardown()
   })
 })

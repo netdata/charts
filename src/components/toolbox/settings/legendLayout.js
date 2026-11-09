@@ -52,6 +52,7 @@ const LegendLayout = () => {
 
   const select = (
     <Select
+      selectionStyle="quiet"
       value={value}
       options={chartOptions}
       isDisabled={locked}

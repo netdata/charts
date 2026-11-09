@@ -1,12 +1,21 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react"
-import styled from "styled-components"
-import { Flex, TextSmall, Table, Button, Checkbox, getColor } from "@netdata/netdata-ui"
+import styled, { ThemeProvider, useTheme } from "styled-components"
+import {
+  Flex,
+  TextSmall,
+  Table,
+  Button,
+  Checkbox,
+  getColor,
+  getDropdownOptionColors,
+} from "@netdata/netdata-ui"
 import { useChart, useAttributeValue } from "@/components/provider"
 import { radius } from "@/components/modern/tokens"
 import { uppercase } from "@/helpers/objectTransform"
 import deepEqual from "@/helpers/deepEqual"
 import Totals from "../totals"
 import { modernizeColumns, columnNames, defaultHiddenColumns } from "./columns"
+import { getPopoverSurface } from "./popoverColors"
 
 const Container = styled(Flex)`
   box-shadow: 0 18px 28px ${getColor("dropdownShadow")};
@@ -20,13 +29,24 @@ const Container = styled(Flex)`
   [data-testid^="netdata-table-row"] {
     border-bottom-color: ${getColor("borderSecondary")};
   }
-  [data-testid^="netdata-table-row"]:hover .row-content {
-    background: ${getColor("mainChartTboxHover")};
-  }
   [data-testid="styled-checkbox"] {
     background-color: transparent;
   }
 `
+
+const getFilterTableTheme = theme => ({
+  ...theme,
+  colors: {
+    ...theme.colors,
+    tableRowBgHover: getDropdownOptionColors(theme, "quiet", getPopoverSurface(theme)).hover,
+  },
+})
+
+const FilterTable = props => (
+  <ThemeProvider theme={getFilterTableTheme}>
+    <Table {...props} />
+  </ThemeProvider>
+)
 
 export const modernMeta = (row, cell, index) => ({
   cellStyles: {
@@ -138,6 +158,7 @@ const ModernDropdown = ({
   ...rest
 }) => {
   const chart = useChart()
+  const surface = getPopoverSurface(useTheme())
   const items = useMemo(getOptions, [getOptions])
   const [rowSelection, setRowSelection] = useState(() => buildSelections(items, {}))
   const [showColumns, setShowColumns] = useState(false)
@@ -176,7 +197,6 @@ const ModernDropdown = ({
       ...modernMeta(row, cell, index),
       searchStyles: { autoFocus: true, placeholder },
       bulkActionsStyles: {
-        background: "mainBackground",
         border: { side: "bottom", color: "borderSecondary" },
       },
     })
@@ -185,7 +205,7 @@ const ModernDropdown = ({
   return (
     <Container
       role="listbox"
-      background="mainBackground"
+      background={surface}
       padding={[0]}
       margin={[1, 0]}
       column
@@ -195,7 +215,8 @@ const ModernDropdown = ({
       {...omitMenuProps(rest)}
     >
       <Flex overflow="hidden">
-        <Table
+        <FilterTable
+          surface={surface}
           enableResizing
           enableSorting
           enableSelection

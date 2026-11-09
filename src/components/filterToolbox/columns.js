@@ -162,21 +162,18 @@ export const rangeColumn = () => ({
   sortingFn: "basic",
 })
 
-export const instancesColumn = () => ({
-  id: "instances",
-  header: <TextMicro strong>Instances</TextMicro>,
-  size: 60,
-  minSize: 30,
-  maxSize: 300,
-  fullWidth: true,
-  cell: ({ getValue, row }) => {
-    if (!row.original.info?.is) return <TextSmall color="textLite">{getValue()}</TextSmall>
+const queryCountsCell =
+  key =>
+  ({ getValue, row, column }) => {
+    const countColor = column?.columnDef?.countColor
+    const counts = row.original.info?.[key]
+    if (!counts) return <TextSmall color={countColor ?? "textLite"}>{getValue()}</TextSmall>
 
-    const { qr = 0, sl = 0, ex = 0 } = row.original.info.is
+    const { qr = 0, sl = 0, ex = 0 } = counts
     return (
       <Flex flex column gap={0.5}>
-        <TextSmall color="textLite">
-          <TextSmall color="primary">{qr}</TextSmall> of {sl + ex}
+        <TextSmall color={countColor ?? "textLite"}>
+          <TextSmall color={countColor ?? "primary"}>{qr}</TextSmall> of {sl + ex}
         </TextSmall>
         <ProgressBar
           background="progressBg"
@@ -188,7 +185,16 @@ export const instancesColumn = () => ({
         />
       </Flex>
     )
-  },
+  }
+
+export const instancesColumn = () => ({
+  id: "instances",
+  header: <TextMicro strong>Instances</TextMicro>,
+  size: 60,
+  minSize: 30,
+  maxSize: 300,
+  fullWidth: true,
+  cell: queryCountsCell("is"),
   sortingFn: "basic",
 })
 
@@ -199,26 +205,7 @@ export const metricsColumn = () => ({
   minSize: 30,
   maxSize: 300,
   fullWidth: true,
-  cell: ({ row, getValue }) => {
-    if (!row.original.info?.ds) return <TextSmall color="textLite">{getValue()}</TextSmall>
-
-    const { qr = 0, sl = 0, ex = 0 } = row.original.info.ds
-    return (
-      <Flex flex column gap={0.5}>
-        <TextSmall color="textLite">
-          <TextSmall color="primary">{qr}</TextSmall> of {sl + ex}
-        </TextSmall>
-        <ProgressBar
-          background="progressBg"
-          color={["green", "deyork"]}
-          height={2}
-          width={`${(qr / (sl + ex)) * 100}%`}
-          containerWidth="100%"
-          border="none"
-        />
-      </Flex>
-    )
-  },
+  cell: queryCountsCell("ds"),
   sortingFn: "basic",
 })
 

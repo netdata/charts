@@ -1,6 +1,7 @@
 import React from "react"
 import { act, fireEvent, screen, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
+import { DefaultTheme } from "@netdata/netdata-ui/dist/theme"
 import { makeTestChart, renderWithChart } from "@jest/testUtilities"
 import { makePayload, makeWave } from "../../../../fixtures/makeWavePayload"
 import { Line } from "@/components/line"
@@ -256,7 +257,15 @@ describe("modern line legend", () => {
       "modernLegend-label"
     )
     expect(labels).toHaveLength(3)
-    labels.forEach(label => expect(label.style.top).toMatch(/px$/))
+    labels.forEach(label => {
+      expect(label.style.top).toMatch(/px$/)
+      const swatch = within(label).getByTestId("modernLegend-swatch")
+      const name = within(label).getByText(label.title)
+      expect(name).toHaveStyle({ color: DefaultTheme.colors.text })
+      expect(swatch).toHaveStyle({
+        backgroundColor: chart.selectDimensionColor(label.dataset.dimension),
+      })
+    })
     labels.forEach(label =>
       expect(within(label).getByTestId("modernLegend-directUnit")).toHaveTextContent(
         chart.getUnitSign({ dimensionId: label.getAttribute("data-dimension") })
@@ -281,18 +290,25 @@ describe("modern line legend", () => {
     expect(screen.getByTestId("chartExpander")).toHaveTextContent("Collapse")
   })
 
-  it("keeps the highlight range and its zoom action", async () => {
+  it.each([false, true])("zooms to the range with window metadata %s", async hasPreviousWindow => {
     const { chart } = await renderLine({ designFlavour: "modern", legendLayout: "below" })
     const after = Math.floor(Date.now() / 1000) - 600
     const before = after + 120
+    const previousWindow = { after: after - 120, before: before + 120 }
 
-    await act(async () =>
+    await act(async () => {
+      chart.moveX(previousWindow.after, previousWindow.before)
       chart.updateAttribute("overlays", {
         ...chart.getAttribute("overlays"),
-        highlight: { type: "highlight", range: [after, before], moveX: { after, before } },
+        highlight: {
+          type: "highlight",
+          range: [after, before],
+          ...(hasPreviousWindow && { moveX: previousWindow }),
+        },
       })
-    )
+    })
 
+    expect(chart.getAttribute("after")).toBe(previousWindow.after)
     fireEvent.click(screen.getByTestId("modernFooter-highlight"))
     expect(chart.getAttribute("after")).toBe(after)
     expect(chart.getAttribute("before")).toBe(before)

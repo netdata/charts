@@ -52,7 +52,7 @@ const Fade = styled(Box).attrs({
   height: 9,
 })`
   pointer-events: none;
-  background: linear-gradient(transparent, ${getColor("mainChartBg")});
+  background: linear-gradient(transparent, ${getColor("cardBackground")});
 `
 
 const Table = styled(Box).attrs({ as: "table", width: "100%" })`
@@ -66,7 +66,7 @@ const HeaderCell = styled(Box).attrs(({ isSortable }) => ({
   position: "sticky",
   top: 0,
   zIndex: 1,
-  background: "mainChartBg",
+  background: "cardBackground",
   cursor: isSortable ? "pointer" : "default",
 }))`
   padding: 3px 0 3px 12px;

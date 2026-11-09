@@ -25,7 +25,7 @@ const Totals = ({
 
   return (
     <TextMicro color="textLite">
-      <TextMicro color={teaser ? "text" : "primary"}>{queriedSelectedCount}</TextMicro>
+      <TextMicro>{queriedSelectedCount}</TextMicro>
       <span>{!teaser ? " queried" : " "}</span>
       {!teaser && (
         <Icon
@@ -38,14 +38,14 @@ const Totals = ({
       )}
       {!!fl && (
         <>
-          {!teaser ? <span>+ </span> : <TextMicro color="errorLite"> +</TextMicro>}
-          <TextMicro color="errorLite">{fl}</TextMicro>
+          <span>{teaser ? " +" : "+ "}</span>
+          <TextMicro>{fl}</TextMicro>
           <span>{!teaser ? "failed " : " "}</span>
           <Icon
             margin={[-0.5, 1, -0.5, 0]}
             width="14px"
             height="14px"
-            color="errorLite"
+            color="statusErrorText"
             svg={warning_triangle_hollow}
           />
         </>

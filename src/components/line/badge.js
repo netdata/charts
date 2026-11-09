@@ -1,5 +1,6 @@
 import React from "react"
-import { TextMicro, Flex } from "@netdata/netdata-ui"
+import { useTheme } from "styled-components"
+import { TextMicro, Flex, getReadableColor } from "@netdata/netdata-ui"
 
 const types = {
   error: { background: "errorBackground", color: "errorText" },
@@ -14,14 +15,17 @@ const types = {
 export const getColors = type => types[type] ?? types.error
 
 const Badge = ({ type, children, noBorder, title, ...rest }) => {
-  const { background, color } = getColors(type)
+  const theme = useTheme()
+  const { background, color: borderColor } = getColors(type)
+  const color = type === "neutral" ? "text" : getReadableColor(background)({ theme })
 
   return (
     <Flex
       padding={[0.2, 1]}
       background={background}
       round={3}
-      border={noBorder ? undefined : { color, size: "1px", side: "all" }}
+      color={color}
+      border={noBorder ? undefined : { color: borderColor, size: "1px", side: "all" }}
       alignItems="center"
       data-testid="badge"
       {...rest}

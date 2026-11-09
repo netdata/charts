@@ -243,8 +243,7 @@ export const DeltaPill = ({ children, ...rest }) => (
     as="span"
     padding={[0.25, 1.5]}
     round={radius.pill}
-    background="text"
-    backgroundOpacity={0.1}
+    background="controlPressedBackground"
     {...rest}
   >
     <SmallNumeral color="text" fontSize="11px" lineHeight="14px" strong whiteSpace="nowrap">

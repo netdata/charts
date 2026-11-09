@@ -9,7 +9,7 @@ import { getPopoverDimensionColumnWidth, getPopoverWidth, popoverGridColumns } f
 
 const Container = styled(Flex).attrs({
   round: true,
-  background: "dropdown",
+  background: "popoverBackground",
   column: true,
   padding: [4],
   gap: 1,

@@ -166,7 +166,7 @@ const Legend = props => {
           height="100%"
           position="absolute"
           left={0}
-          background="mainChartBg"
+          background="cardBackground"
           alignItems="center"
         >
           <Icon svg={navLeft} color="key" size="8px" />
@@ -188,7 +188,7 @@ const Legend = props => {
           height="100%"
           position="absolute"
           right={0}
-          background="mainChartBg"
+          background="cardBackground"
           alignItems="center"
         >
           <Icon svg={navRight} color="key" size="8px" />

@@ -4,6 +4,7 @@ import { Box, Flex, getColor } from "@netdata/netdata-ui"
 import { useChart, usePlotArea } from "@/components/provider"
 import { Flags, Unit, Value, onToggle } from "./parts"
 import { Numeral } from "@/components/modern/numerals"
+import { LineSwatch } from "@/components/modern/swatch"
 import { focusDimension, useClearFocusOnUnmount } from "./mode"
 import { useLegendRows } from "./useLegendRows"
 
@@ -81,14 +82,14 @@ const Label = styled(Flex).attrs(({ isOff }) => ({
 `
 
 const Name = styled(Box).attrs({ as: "span", width: { min: "0px" }, overflow: "hidden" })`
-  color: ${({ labelColor }) => labelColor || "inherit"};
+  color: ${getColor("text")};
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 `
 
 const Anomaly = styled(Numeral)`
-  color: ${getColor("anomalyText")};
+  color: ${getColor("text")};
   font-size: 11px;
 `
 
@@ -137,7 +138,8 @@ const DirectLabels = ({ uiName = "default" }) => {
       data-dimension={row.id}
       title={row.name}
     >
-      <Name labelColor={row.color}>{row.name}</Name>
+      <LineSwatch swatchColor={row.color} />
+      <Name>{row.name}</Name>
       {row.visible && <Value>{row.display}</Value>}
       {row.visible && !!row.unit && <Unit data-testid="modernLegend-directUnit">{row.unit}</Unit>}
       {row.visible && !!row.anomaly && <Anomaly>{row.anomaly}</Anomaly>}

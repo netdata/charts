@@ -222,6 +222,7 @@ const Treemap = ({ uiName, width, height, fit = false }) => {
       {shown && anchor && (
         <Drop
           {...dropProps}
+          background="popoverBackground"
           target={anchor}
           align={{ top: "bottom", left: "left" }}
           stretch={false}

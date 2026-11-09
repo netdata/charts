@@ -45,7 +45,7 @@ export const GroupBoxesContainer = ({ uiName, ref, ...rest }) => {
         <GroupBoxes uiName={uiName} fit={rest.height === undefined} />
       </ChartContainer>
 
-      {!showingInfo && <Footer />}
+      {!showingInfo && <Footer uiName={uiName} />}
     </Container>
   )
 }

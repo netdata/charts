@@ -1,3 +1,4 @@
+import { withAlpha } from "@/chartLibraries/helpers/color"
 import { applyHighlightOpacity } from "@/chartLibraries/helpers/highlightOpacity"
 import { trigger, getArea } from "./helpers"
 
@@ -25,7 +26,8 @@ export default (chartUI, id) => {
   ctx.beginPath()
 
   ctx.rect(from, top, width, h - 1)
-  ctx.fillStyle = "rgba(207, 213, 218, 0.12)"
+  const color = chartUI.chart.getThemeAttribute("themeHighlightColor")
+  ctx.fillStyle = withAlpha(color, 0.12)
   ctx.fill()
 
   ctx.beginPath()
@@ -34,7 +36,7 @@ export default (chartUI, id) => {
   ctx.fill()
   ctx.setLineDash([2, 7])
   ctx.lineWidth = 1
-  ctx.strokeStyle = "#CFD5DA"
+  ctx.strokeStyle = color
   ctx.stroke()
 
   ctx.stroke()

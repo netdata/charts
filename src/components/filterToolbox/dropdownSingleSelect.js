@@ -2,23 +2,14 @@ import React, { memo } from "react"
 import styled from "styled-components"
 import { useAttributeValue, useIsModern } from "@/components/provider"
 import { radius } from "@/components/modern/tokens"
-import { Menu, Text, TextMicro, Flex, getColor, getRgbColor } from "@netdata/netdata-ui"
-import checkmark_s from "@netdata/netdata-ui/dist/components/icon/assets/checkmark_s.svg"
+import { DropdownSelectionCheck, Menu, Text, TextMicro, Flex, getColor } from "@netdata/netdata-ui"
 import information from "@netdata/netdata-ui/dist/components/icon/assets/information.svg"
 import Icon from "@/components/icon"
 import Tooltip from "@/components/tooltip"
 import Label from "./label"
 import ModernItem from "./modern/item"
 import usePrefersReducedMotion from "@/components/helpers/usePrefersReducedMotion"
-
-const getBackground = ({ theme }) => {
-  const { name } = theme
-
-  const background =
-    name === "Dark" ? getRgbColor(["green", "netdata"], 0.3) : getRgbColor(["green", "frostee"])
-
-  return background({ theme })
-}
+import { menuItemStates } from "@/components/modern/menu"
 
 export const ItemContainer = styled(Flex).attrs(props => ({
   as: "li",
@@ -31,18 +22,7 @@ export const ItemContainer = styled(Flex).attrs(props => ({
   cursor: ${({ disabled }) => (disabled ? "default" : "pointer")};
   opacity: ${({ disabled, stale, selected }) => (!selected && (stale || disabled) ? 0.7 : 1)};
   align-items: ${({ alignItems }) => alignItems || "center"};
-  ${({ selected, theme }) =>
-    selected &&
-    `
-    background-color: ${getBackground({ theme })};
-  `}
-  ${({ selected, theme }) =>
-    !selected &&
-    `
-    &:hover {
-      background-color: ${getColor("borderSecondary")({ theme })};
-    }
-  `}
+  ${menuItemStates()}
   ${({ justDesc, theme }) =>
     justDesc &&
     `
@@ -60,6 +40,9 @@ export const Item = ({ value: selectedValue, item, onItemClick, itemProps }) => 
       {...itemProps}
       disabled={selected}
       selected={selected}
+      aria-selected={justDesc ? undefined : selected}
+      aria-disabled={selected || undefined}
+      data-selected={selected || undefined}
       onClick={() => onItemClick(value)}
       justDesc={justDesc}
     >
@@ -70,20 +53,7 @@ export const Item = ({ value: selectedValue, item, onItemClick, itemProps }) => 
         width="100%"
         justifyContent="between"
       >
-        {!!label && (
-          <Text>
-            {label}
-            {selected && (
-              <Icon
-                margin={[-0.5, 2, -0.5, 0]}
-                width="14px"
-                height="14px"
-                color="primary"
-                svg={checkmark_s}
-              />
-            )}
-          </Text>
-        )}
+        {!!label && <Text>{label}</Text>}
         {!!description &&
           (justDesc ? (
             <TextMicro color="textLite">{description}</TextMicro>
@@ -95,6 +65,7 @@ export const Item = ({ value: selectedValue, item, onItemClick, itemProps }) => 
             </Tooltip>
           ))}
       </Flex>
+      {selected && !justDesc && <DropdownSelectionCheck />}
     </ItemContainer>
   )
 }

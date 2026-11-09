@@ -427,8 +427,16 @@ describe("Modern More menu", () => {
     const { user, chart } = await renderModern({ focused: true, legendMode: "below" })
     await openMenu(user)
 
-    await user.click(screen.getByTestId("chartMore-anomalies"))
+    const anomalyToggle = screen.getByRole("menuitemcheckbox", { name: "Anomaly rate" })
+    expect(anomalyToggle).toHaveAttribute("aria-checked", "true")
+    expect(anomalyToggle.lastElementChild).toHaveAttribute("aria-hidden", "true")
+    expect(screen.getByRole("menuitem", { name: "Reload data" })).not.toHaveAttribute(
+      "aria-checked"
+    )
+
+    await user.click(anomalyToggle)
     expect(chart.getAttribute("showAnomalies")).toBe(false)
+    expect(anomalyToggle).toHaveAttribute("aria-checked", "false")
 
     await user.click(screen.getByTestId("chartMore-annotations"))
     expect(chart.getAttribute("showAnnotations")).toBe(false)

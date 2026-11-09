@@ -101,6 +101,7 @@ const CorrelationTable = ({ data }) => {
       ref={containerRef}
     >
       <Table
+        surface="cardBackground"
         key={searching ? "search" : "browse"}
         title={`Found ${dimensionCount} correlated dimensions across ${contextCount} contexts`}
         headerChildren={

@@ -6,6 +6,7 @@ import {
   makeTestChart,
 } from "@jest/testUtilities"
 import {
+  useLoadingColor,
   useChart,
   useAttributeValue,
   useForceUpdate,
@@ -435,5 +436,28 @@ describe("Chart Provider Selectors", () => {
       expect(result.current.convertedUnit).toBe("°F")
       expect(result.current.convertedValue).toBe("212")
     })
+  })
+})
+
+describe("loading colors across theme changes", () => {
+  it("uses the new theme during the same fetch", () => {
+    jest.useFakeTimers()
+    const startedAt = Date.now()
+    const { result, chart, unmount } = renderHookWithChart(() => useLoadingColor(), {
+      attributes: {
+        theme: "default",
+        loading: true,
+        fetchStartedAt: startedAt,
+        themeNeutralBackground: ["#102030", "#c0d0e0"],
+      },
+    })
+    act(() => jest.advanceTimersByTime(500))
+    expect(result.current).toBe("rgb(16, 32, 48)")
+    act(() => chart.updateAttribute("theme", "dark"))
+    act(() => jest.advanceTimersByTime(500))
+    expect(result.current).toBe("rgb(192, 208, 224)")
+    expect(chart.getAttribute("fetchStartedAt")).toBe(startedAt)
+    unmount()
+    jest.useRealTimers()
   })
 })

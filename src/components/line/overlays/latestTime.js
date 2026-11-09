@@ -52,7 +52,7 @@ const LatestTime = ({ textProps, ...rest }) => {
   if (!timestamp) return null
 
   return (
-    <StyledFlex round={5} background="mainBackground" padding={[0.5, 4]} {...rest}>
+    <StyledFlex round={5} background="popoverBackground" padding={[0.5, 4]} {...rest}>
       <Timestamp timestamp={timestamp} {...textProps} />
     </StyledFlex>
   )

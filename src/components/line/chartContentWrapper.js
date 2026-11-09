@@ -1,7 +1,7 @@
 import React from "react"
 import styled, { css } from "styled-components"
 import { Flex } from "@netdata/netdata-ui"
-import { useInitialLoading, useAttributeValue, useIsModern } from "@/components/provider"
+import { useInitialLoading, useAttributeValue, useIsModern, useColor } from "@/components/provider"
 import { useHovered } from "@/components/useHover"
 import ChartContainer from "@/components/chartContainer"
 import ZoomChip from "@/components/modern/header/zoomChip"
@@ -13,16 +13,13 @@ import Overlays from "./overlays"
 import { Processing } from "./overlays/proceeded"
 import cursorStyle from "@/components/helpers/cursorStyle"
 import { useInModernTile } from "@/components/modern/tile/context"
+import { withAlpha } from "@/chartLibraries/helpers/color"
 
 const chartLibraries = {
   dygraph: css`
     & {
-      .default .dygraph-axis-label {
-        color: #35414a;
-      }
-
-      .dark .dygraph-axis-label {
-        color: #fff;
+      .dygraph-axis-label {
+        color: ${({ axisColor }) => axisColor};
       }
 
       .dygraph-label-rotate-right {
@@ -80,7 +77,7 @@ const chartLibraries = {
       }
 
       .u-select {
-        background: rgba(128, 128, 128, 0.3);
+        background: ${({ selectionColor }) => withAlpha(selectionColor, 0.3)};
         position: absolute;
         pointer-events: none;
       }
@@ -97,13 +94,13 @@ const chartLibraries = {
       .u-hz .u-cursor-x,
       .u-vt .u-cursor-y {
         height: 100%;
-        border-right: 1px dashed #607d8b;
+        border-right: 1px dashed ${({ crosshairColor }) => crosshairColor};
       }
 
       .u-hz .u-cursor-y,
       .u-vt .u-cursor-x {
         width: 100%;
-        border-bottom: 1px dashed #607d8b;
+        border-bottom: 1px dashed ${({ crosshairColor }) => crosshairColor};
       }
 
       .u-cursor-pt {
@@ -141,10 +138,16 @@ export const ContentWrapper = props => (
 export const Container = props => {
   const chartLibrary = useAttributeValue("chartLibrary")
   const navigation = useAttributeValue("navigation")
+  const axisColor = useColor("themeAxisLabelColor")
+  const selectionColor = useColor("themeSelectionColor")
+  const crosshairColor = useColor("themeCrosshair")
 
   return (
     <StyledContainer
       chartLibrary={chartLibrary}
+      axisColor={axisColor}
+      selectionColor={selectionColor}
+      crosshairColor={crosshairColor}
       position="relative"
       flex
       data-testid="chartContentWrapper"

@@ -89,9 +89,7 @@ const AnnotationsValue = ({ children: annotations, showFull, ...rest }) => (
         flex={false}
         padding={[0, 0.5]}
       >
-        <ValuePart {...rest} color={annotations[ann]}>
-          {showFull ? annotationLabels[ann] || ann : ann}
-        </ValuePart>
+        <ValuePart {...rest}>{showFull ? annotationLabels[ann] || ann : ann}</ValuePart>
       </Flex>
     ))}
   </Flex>
@@ -133,7 +131,7 @@ const Dimension = ({ id, strong, rowFlavour }) => {
         valueKey="arp"
         Component={PlainValue}
         fractionDigits={2}
-        color={rowFlavour === rowFlavours.ANOMALY_RATE ? "anomalyTextFocus" : "anomalyText"}
+        color={rowFlavour === rowFlavours.ANOMALY_RATE && strong ? "textFocus" : "text"}
       />
       <Value
         textAlign="right"

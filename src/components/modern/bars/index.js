@@ -1,6 +1,6 @@
 import React, { memo, useMemo } from "react"
 import styled from "styled-components"
-import { Box, Flex, TextMicro, TextSmall } from "@netdata/netdata-ui"
+import { Box, Flex, TextMicro, TextSmall, getReadableColor } from "@netdata/netdata-ui"
 import reducedMotion from "@/components/helpers/reducedMotion"
 import {
   useChart,
@@ -18,6 +18,7 @@ import { radius } from "@/components/modern/tokens"
 import { SmallNumeral } from "@/components/modern/numerals"
 import { formatReadout, formatReadoutUnit } from "@/components/modern/format"
 import { useInModernTile } from "@/components/modern/tile/context"
+import { DefaultTheme } from "@netdata/netdata-ui/dist/theme"
 
 const rowHeight = 24
 const emptyArray = [null, null]
@@ -100,18 +101,18 @@ const AnomalyValue = ({ children, ...rest }) =>
     </Tooltip>
   ) : null
 
-export const pillInk = "#1C1E22"
+export const pillInk = DefaultTheme.colors.onColorDark
 
 const Pill = styled(Box).attrs({ as: "span", padding: [0, 1.5], round: radius.pill })`
   font-size: 10px;
   font-weight: 600;
   line-height: 14px;
-  color: ${pillInk};
+  color: ${({ pillColor, ...props }) => getReadableColor(pillColor)(props)};
   background: ${({ pillColor }) => pillColor};
 `
 
 const Annotations = ({ children: annotations }) =>
-  annotations && Object.keys(annotations).length ? (
+  annotations && typeof annotations === "object" && Object.keys(annotations).length ? (
     <Flex gap={0.5}>
       {Object.keys(annotations).map(ann => (
         <Tooltip key={ann} content={annotationLabels[ann] || ann}>

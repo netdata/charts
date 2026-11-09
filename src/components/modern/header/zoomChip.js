@@ -49,13 +49,21 @@ const ResetButton = styled(Box).attrs({
   as: "button",
   round: radius.pill,
   cursor: "pointer",
-  background: "text",
+  background: "buttonNeutralFill",
 })`
   border: 0;
   padding: 3px 10px;
   font-size: 12px;
   font-family: inherit;
-  color: ${getColor("mainChartBg")};
+  color: ${getColor("buttonNeutralText")};
+
+  &:hover {
+    background: ${getColor("buttonNeutralFillHover")};
+  }
+
+  &:active {
+    background: ${getColor("buttonNeutralFillPressed")};
+  }
 
   ${({ isInline }) =>
     isInline &&
@@ -67,8 +75,10 @@ const ResetButton = styled(Box).attrs({
       text-underline-offset: 2px;
 
       &:hover,
+      &:active,
       &:focus-visible {
         color: ${getColor("text")};
+        background: transparent;
       }
     `}
 `

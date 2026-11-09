@@ -1,12 +1,3 @@
-const getMove = node => {
-  const ancestor = node.getAncestor({ syncHighlight: true }) || node
-  const after = ancestor.getAttribute("after")
-  if (after > 0) return null
-
-  const now = Math.floor(Date.now() / 1000)
-  return { after: now + after, before: now }
-}
-
 const getOverlays = (node, range) => {
   const { overlays, after, before } = node.getAttributes()
 
@@ -38,16 +29,19 @@ export default sdk => {
   const offEnd = sdk.on("highlightEnd", (chart, range) => {
     if (chart.getAttribute("navigation") !== "highlight") return
 
-    const move = getMove(chart)
+    const isLive = chart.getAttribute("after") < 0
+    const now = Math.floor(Date.now() / 1000)
 
     chart.getApplicableNodes({ syncHighlight: true }).forEach(node => {
       const overlays = getOverlays(node, range)
+      const after = node.getAttribute("after")
+      const freeze = isLive && after < 0
 
       node.updateAttributes({
         enabledHover: true,
         highlighting: false,
         overlays,
-        ...move,
+        ...(freeze && { after: now + after, before: now }),
       })
     })
   })

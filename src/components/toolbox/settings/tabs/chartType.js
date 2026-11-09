@@ -128,15 +128,6 @@ const formatOptionLabel = option => (
   </Flex>
 )
 
-const selectStyles = {
-  option: (styles, state) => ({
-    ...styles,
-    opacity: state.isDisabled ? 0.4 : 1,
-    cursor: state.isDisabled ? "not-allowed" : "pointer",
-    pointerEvents: state.isDisabled ? "none" : "auto",
-  }),
-}
-
 const ChartType = () => {
   const chart = useChart()
   const chartLibrary = useAttributeValue("chartLibrary") || "dygraph"
@@ -158,11 +149,11 @@ const ChartType = () => {
         Chart type
       </TextSmall>
       <Select
+        selectionStyle="quiet"
         value={current}
         options={grouped}
         onChange={handleChange}
         formatOptionLabel={formatOptionLabel}
-        styles={selectStyles}
         data-testid="chartSettings-chartType"
       />
     </Flex>

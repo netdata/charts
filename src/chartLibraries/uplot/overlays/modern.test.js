@@ -1,3 +1,4 @@
+import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui/dist/theme"
 import { makeTestChart } from "@jest/testUtilities"
 import { makePayload, makeWave } from "../../../../fixtures/makeWavePayload"
 import uplotChart from "../index"
@@ -189,15 +190,20 @@ describe("threshold overlay", () => {
     teardown()
   })
 
-  it("labels each threshold with its value", async () => {
-    const { u, instance, teardown } = await mountUplot({ overlays, designFlavour: "modern" })
+  it.each(["default", "dark"])("labels thresholds with theme ink in %s mode", async theme => {
+    const { chart, u, instance, teardown } = await mountUplot({
+      overlays,
+      designFlavour: "modern",
+      theme,
+    })
     const calls = record(u.ctx)
 
     drawThreshold(instance, "alert")
 
     const texts = only(calls, "fillText")
     expect(texts.map(call => call.args[0])).toEqual(["Warning at 60 %", "Critical at 70 %"])
-    expect(texts.map(call => call.fillStyle)).toEqual([light.warning, light.critical])
+    const ink = chart.getThemeAttribute("themeLabelColor").toLowerCase()
+    expect(texts.map(call => call.fillStyle)).toEqual([ink, ink])
     expect(texts.every(call => call.globalAlpha === 1)).toBe(true)
 
     teardown()
@@ -265,11 +271,12 @@ describe("threshold overlay", () => {
 
     drawLabels(instance, "alert")
 
+    const background = DefaultTheme.colors.cardBackground.toLowerCase()
     const fills = only(calls, "fill")
     expect(fills.map(call => call.fillStyle)).toEqual([
-      "#ffffff",
+      background,
       light.warning,
-      "#ffffff",
+      background,
       light.critical,
     ])
     expect(fills[0].globalAlpha).toBe(1)
@@ -289,7 +296,7 @@ describe("threshold overlay", () => {
 
     drawLabels(instance, "alert")
 
-    expect(only(calls, "fill")[0].fillStyle).toBe("#282c34")
+    expect(only(calls, "fill")[0].fillStyle).toBe(DarkTheme.colors.cardBackground.toLowerCase())
 
     teardown()
   })
@@ -417,7 +424,7 @@ describe("threshold overlay", () => {
     teardown()
   })
 
-  it("uses the dark theme colours", async () => {
+  it("keeps the dark severity colors in the pill fill", async () => {
     const { u, instance, teardown } = await mountUplot({
       overlays,
       designFlavour: "modern",
@@ -427,10 +434,8 @@ describe("threshold overlay", () => {
 
     drawThreshold(instance, "alert")
 
-    expect(only(calls, "fillText").map(call => call.fillStyle)).toEqual([
-      dark.warning,
-      dark.critical,
-    ])
+    const tints = only(calls, "fill").filter(call => call.globalAlpha < 1)
+    expect(tints.map(call => call.fillStyle)).toEqual([dark.warning, dark.critical])
 
     teardown()
   })
@@ -621,7 +626,9 @@ describe("annotation overlay flavours", () => {
     expect(only(calls, "fill")).toHaveLength(0)
     const strokes = only(calls, "stroke")
     expect(strokes).toHaveLength(2)
-    strokes.forEach(call => expect(call.strokeStyle).toBe("#5c6c77"))
+    strokes.forEach(call =>
+      expect(call.strokeStyle).toBe(DefaultTheme.colors.textLite.toLowerCase())
+    )
 
     teardown()
   })
@@ -672,7 +679,7 @@ describe("annotation overlay flavours", () => {
     teardown()
   })
 
-  it("keeps the grey half circle for the draft in the default flavour", async () => {
+  it("keeps the muted half circle for the draft in the default flavour", async () => {
     const { chart, u, instance, teardown } = await mountUplot()
     chart.updateAttribute("draftAnnotation", { timestamp: middle })
     const calls = record(u.ctx)
@@ -680,7 +687,9 @@ describe("annotation overlay flavours", () => {
     annotation(instance, "draftAnnotation")
 
     expect(only(calls, "arc")).toHaveLength(1)
-    only(calls, "stroke").forEach(call => expect(call.strokeStyle).toBe("#888888"))
+    only(calls, "stroke").forEach(call =>
+      expect(call.strokeStyle).toBe(DefaultTheme.colors.textLite.toLowerCase())
+    )
 
     teardown()
   })

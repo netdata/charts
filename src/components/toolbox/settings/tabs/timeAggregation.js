@@ -187,6 +187,7 @@ const TimeAggregation = () => {
       </TextSmall>
       <Flex column gap={1}>
         <Select
+          selectionStyle="quiet"
           value={currentMethodItem}
           onChange={handleMethodChange}
           options={selectableMethodItems}
@@ -195,6 +196,7 @@ const TimeAggregation = () => {
         />
         {alias && (
           <Select
+            selectionStyle="quiet"
             value={currentAliasItem}
             onChange={handleAliasChange}
             options={selectableAliasItems}

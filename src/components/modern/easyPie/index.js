@@ -21,7 +21,7 @@ const resolve = color => props => getColor(color)(props)
 
 const Track = styled.circle`
   fill: none;
-  stroke: ${resolve("borderSecondary")};
+  stroke: ${resolve("progressBg")};
 `
 
 const Arc = styled.circle`

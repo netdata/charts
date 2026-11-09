@@ -31,7 +31,7 @@ const Drawer = () => {
       flex={false}
       column
       data-testid="drawer"
-      background="mainChartBg"
+      background="cardBackground"
     >
       <Header padding={[0, 2, 2, 2]} />
       <Flex

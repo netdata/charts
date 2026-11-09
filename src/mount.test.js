@@ -1,90 +1,61 @@
-import React from "react"
-import { createRoot } from "react-dom/client"
+import "@testing-library/jest-dom"
+import { act, within } from "@testing-library/react"
+import { DarkTheme, DefaultTheme } from "@netdata/netdata-ui"
+import { makeTestChart } from "@jest/testUtilities"
+import makeDefaultSDK from "./makeDefaultSDK"
 import mount from "./mount"
-import Line from "./components/line"
+import parseDOM from "./sdk/parseDOM"
 
-jest.mock("react-dom/client")
-jest.mock("./components/line")
-
-describe("mount", () => {
-  let mockRoot
-  let mockChart
-  let mockElement
+describe("standalone chart themes", () => {
+  let element
+  let root
 
   beforeEach(() => {
-    mockRoot = {
-      render: jest.fn(),
-    }
-    createRoot.mockReturnValue(mockRoot)
-
-    mockChart = {
-      getId: jest.fn(() => "test-chart-id"),
-      getAttribute: jest.fn(),
-    }
-
-    mockElement = document.createElement("div")
-
-    Line.mockReturnValue(<div>Mocked Line Component</div>)
+    element = document.createElement("div")
+    document.body.appendChild(element)
   })
 
   afterEach(() => {
-    jest.clearAllMocks()
+    act(() => root?.unmount())
+    root = undefined
+    element.remove()
   })
 
-  it("creates React root with provided element", () => {
-    mount(mockChart, mockElement)
+  it("passes a chart's data-theme to the SDK canvas palette", () => {
+    element.setAttribute("data-netdata", "")
+    element.setAttribute("data-theme", "dark")
 
-    expect(createRoot).toHaveBeenCalledWith(mockElement)
+    const { nodeByElement } = parseDOM(makeDefaultSDK())
+    const chart = nodeByElement.get(element)
+
+    expect(chart.getThemeAttribute("themeBackground")).toBe(DarkTheme.colors.cardBackground)
   })
 
-  it("renders Line component with chart prop wrapped in ThemeProvider", () => {
-    mount(mockChart, mockElement)
+  it.each(["constructor", "__proto__"])("uses the default theme for unsupported name %s", theme => {
+    const { chart } = makeTestChart({ attributes: { theme } })
 
-    expect(mockRoot.render).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: expect.any(Function),
-        props: expect.objectContaining({
-          theme: expect.any(Object),
-          children: expect.objectContaining({
-            type: Line,
-            props: { chart: mockChart },
-          }),
-        }),
-      })
-    )
+    act(() => {
+      root = mount(chart, element)
+    })
+
+    expect(within(element).getByTestId("chart")).toHaveStyle({
+      background: DefaultTheme.colors.cardBackground,
+    })
+    expect(chart.getThemeAttribute("themeBackground")).toBe(DefaultTheme.colors.cardBackground)
   })
 
-  it("uses DefaultTheme from netdata-ui", () => {
-    mount(mockChart, mockElement)
+  it("keeps the mounted chart surface in sync with the SDK canvas palette", () => {
+    const { chart } = makeTestChart({ attributes: { theme: "dark" } })
 
-    const renderCall = mockRoot.render.mock.calls[0][0]
-    expect(renderCall.props.theme).toBeDefined()
-  })
+    act(() => {
+      root = mount(chart, element)
+    })
 
-  it("handles different chart instances", () => {
-    const anotherChart = {
-      getId: jest.fn(() => "another-chart"),
-      getAttribute: jest.fn(),
-    }
+    const surface = within(element).getByTestId("chart")
+    expect(surface).toHaveStyle({ background: DarkTheme.colors.cardBackground })
 
-    mount(anotherChart, mockElement)
+    act(() => chart.updateAttribute("theme", "default"))
 
-    expect(mockRoot.render).toHaveBeenCalledWith(
-      expect.objectContaining({
-        props: expect.objectContaining({
-          children: expect.objectContaining({
-            props: { chart: anotherChart },
-          }),
-        }),
-      })
-    )
-  })
-
-  it("handles different DOM elements", () => {
-    const anotherElement = document.createElement("section")
-
-    mount(mockChart, anotherElement)
-
-    expect(createRoot).toHaveBeenCalledWith(anotherElement)
+    expect(surface).toHaveStyle({ background: DefaultTheme.colors.cardBackground })
   })
 })
