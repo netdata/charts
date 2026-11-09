@@ -1,7 +1,6 @@
 import React from "react"
 import styled from "styled-components"
-import { Flex, TextSmall, TextMicro, getColor } from "@netdata/netdata-ui"
-import checkmark_s from "@netdata/netdata-ui/dist/components/icon/assets/checkmark_s.svg"
+import { DropdownSelectionCheck, Flex, TextSmall, TextMicro, getColor } from "@netdata/netdata-ui"
 import information from "@netdata/netdata-ui/dist/components/icon/assets/information.svg"
 import Icon from "@/components/icon"
 import Tooltip from "@/components/tooltip"
@@ -67,7 +66,7 @@ const ModernItem = ({ value: selectedValue, item, onItemClick, itemProps }) => {
           </Tooltip>
         )}
       </Flex>
-      {selected && <Icon width="14px" height="14px" color="currentColor" svg={checkmark_s} />}
+      {selected && <DropdownSelectionCheck />}
     </ItemContainer>
   )
 }

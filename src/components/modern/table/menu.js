@@ -1,9 +1,8 @@
 import React, { useState } from "react"
-import { Flex } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart } from "@/components/provider"
 import Settings from "@/components/toolbox/settings"
 import { getConsumerElements } from "@/components/modern/tile/menu"
-import { Divider, Item, MenuElements, Panel } from "@/components/modern/menu"
+import { Divider, Item, MenuElements, MenuScroll, Panel } from "@/components/modern/menu"
 import { FocusItem } from "@/components/modern/focus"
 
 export const getColumnOptions = (columns = []) =>
@@ -38,7 +37,7 @@ const Columns = ({ columns, columnVisibility, onColumnVisibilityChange }) => {
         Columns
       </Item>
       {open && (
-        <Flex column overflow={{ vertical: "auto" }} height={{ max: "240px" }}>
+        <MenuScroll height={{ max: "240px" }}>
           {options.map(({ id, label }) => (
             <Item
               key={id}
@@ -55,7 +54,7 @@ const Columns = ({ columns, columnVisibility, onColumnVisibilityChange }) => {
               {label}
             </Item>
           ))}
-        </Flex>
+        </MenuScroll>
       )}
     </>
   )

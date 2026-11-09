@@ -26,6 +26,7 @@ const NullHandling = () => {
         Null handling
       </TextSmall>
       <Select
+        selectionStyle="quiet"
         value={current}
         onChange={handleChange}
         options={nullHandlingOptions}

@@ -11,7 +11,12 @@ const RadioButtonIcon = props => <Icon svg={dot} {...props} />
 const iconProps = { as: RadioButtonIcon, size: "16px" }
 
 const Item = ({ item: { value, label }, value: selectedValue, onItemClick }) => (
-  <MenuItemContainer data-testid={`chartDimensionFilter-${value}`}>
+  <MenuItemContainer
+    selectionStyle="quiet"
+    selected={value === selectedValue}
+    aria-selected={value === selectedValue}
+    data-testid={`chartDimensionFilter-${value}`}
+  >
     <RadioButton
       label={<TextSmall data-testid="chartDimensionFilter-label">{label}</TextSmall>}
       checked={value === selectedValue}

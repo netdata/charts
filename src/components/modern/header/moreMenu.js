@@ -15,31 +15,17 @@ import makeLog from "@/sdk/makeLog"
 import { radius } from "@/components/modern/tokens"
 import { onToggle } from "@/components/modern/legend/parts"
 import { LineSwatch } from "@/components/modern/swatch"
-import { Divider, Item, MenuHeading, Panel, useMenuNavigation } from "@/components/modern/menu"
+import {
+  Divider,
+  Item,
+  MenuHeading,
+  MenuScroll,
+  Panel,
+  useMenuNavigation,
+} from "@/components/modern/menu"
 import { focusMenuItem } from "@/components/modern/focus"
+import NavigationModes from "@/components/modern/navigationModes"
 import { showAllDimensions, useHiddenDimensionsCount } from "./hiddenDimensions"
-
-export const navigationModes = [
-  { value: "pan", label: "Pan", title: "Drag to pan", track: "pan" },
-  {
-    value: "select",
-    label: "Select",
-    title: "Drag to zoom (Shift+drag)",
-    track: "selectHorizontal",
-  },
-  {
-    value: "highlight",
-    label: "Highlight",
-    title: "Drag to highlight (Alt+drag)",
-    track: "highlight",
-  },
-  {
-    value: "selectVertical",
-    label: "Vertical",
-    title: "Drag to zoom vertically (Alt+Shift+drag)",
-    track: "selectVertical",
-  },
-]
 
 export const dimensionSorts = [
   { value: "default", label: "Default" },
@@ -58,21 +44,6 @@ const tabLabels = {
   download: "Download…",
 }
 
-const Segment = styled(Box).attrs(({ isActive }) => ({
-  as: "button",
-  border: { side: "all", color: isActive ? "segmentedBorder" : "inputBorder" },
-  round: radius.control,
-  padding: [1, 0],
-  cursor: "pointer",
-}))`
-  flex: 1;
-  background: ${({ isActive, theme }) =>
-    isActive ? getColor("controlPressedBackground")({ theme }) : "transparent"};
-  font-family: inherit;
-  font-size: 11.5px;
-  color: ${getColor("text")};
-`
-
 const SearchInput = styled(Box).attrs({
   as: "input",
   width: "100%",
@@ -90,34 +61,6 @@ const DimensionName = styled(Box).attrs({ as: "span", margin: [0, 0, 0, 1.5], ov
   text-overflow: ellipsis;
   white-space: nowrap;
 `
-
-const NavigationModes = () => {
-  const chart = useChart()
-  const log = makeLog(chart)
-  const [navigation, setNavigation] = useAttribute("navigation")
-
-  return (
-    <Flex gap={1} padding={[0.5, 2.5, 1.5]} role="group" aria-label="Navigation">
-      {navigationModes.map(({ value, label, title, track }) => (
-        <Segment
-          key={value}
-          type="button"
-          title={title}
-          isActive={navigation === value}
-          aria-pressed={navigation === value}
-          data-testid={`chartMore-navigation-${value}`}
-          data-track={chart.track(track)}
-          onClick={() => {
-            setNavigation(value)
-            log({ chartAction: `chart-toolbox-${value}` })
-          }}
-        >
-          {label}
-        </Segment>
-      ))}
-    </Flex>
-  )
-}
 
 export const menuGroups = [
   { id: "navigate", label: "Navigate" },
@@ -219,7 +162,7 @@ const DimensionsPanel = () => {
           />
         </Flex>
       )}
-      <Flex column overflow={{ vertical: "auto" }} height={{ max: "240px" }}>
+      <MenuScroll height={{ max: "240px" }}>
         {shown.map(id => (
           <Item
             key={id}
@@ -236,7 +179,7 @@ const DimensionsPanel = () => {
             <DimensionName>{chart.getDimensionName(id) || id}</DimensionName>
           </Item>
         ))}
-      </Flex>
+      </MenuScroll>
       {more > 0 && (
         <TextMicro color="textLite" padding={[1, 2.5]} data-testid="chartMore-dimensions-more">
           {`${more} more, refine the search`}
@@ -445,13 +388,25 @@ const MenuRow = ({ descriptor, menuProps, onDrill }) => {
 
   if (!item || item.hidden) return null
 
-  const { label, icon, hint, check, disabled, onClick, Panel: ItemPanel, testId, track } = item
+  const {
+    label,
+    icon,
+    hint,
+    check,
+    selectionStyle,
+    disabled,
+    onClick,
+    Panel: ItemPanel,
+    testId,
+    track,
+  } = item
 
   return (
     <Item
       icon={icon}
       hint={hint}
       check={check}
+      selectionStyle={selectionStyle}
       disabled={disabled}
       drill={!!ItemPanel}
       aria-haspopup={ItemPanel ? "menu" : undefined}

@@ -290,18 +290,25 @@ describe("modern line legend", () => {
     expect(screen.getByTestId("chartExpander")).toHaveTextContent("Collapse")
   })
 
-  it("keeps the highlight range and its zoom action", async () => {
+  it.each([false, true])("zooms to the range with window metadata %s", async hasPreviousWindow => {
     const { chart } = await renderLine({ designFlavour: "modern", legendLayout: "below" })
     const after = Math.floor(Date.now() / 1000) - 600
     const before = after + 120
+    const previousWindow = { after: after - 120, before: before + 120 }
 
-    await act(async () =>
+    await act(async () => {
+      chart.moveX(previousWindow.after, previousWindow.before)
       chart.updateAttribute("overlays", {
         ...chart.getAttribute("overlays"),
-        highlight: { type: "highlight", range: [after, before], moveX: { after, before } },
+        highlight: {
+          type: "highlight",
+          range: [after, before],
+          ...(hasPreviousWindow && { moveX: previousWindow }),
+        },
       })
-    )
+    })
 
+    expect(chart.getAttribute("after")).toBe(previousWindow.after)
     fireEvent.click(screen.getByTestId("modernFooter-highlight"))
     expect(chart.getAttribute("after")).toBe(after)
     expect(chart.getAttribute("before")).toBe(before)

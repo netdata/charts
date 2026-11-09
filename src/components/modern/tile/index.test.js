@@ -395,6 +395,17 @@ describe("modern tile revealed", () => {
 })
 
 describe("modern tile More menu", () => {
+  it("offers separate highlight and drag-to-zoom modes on a time-series tile", async () => {
+    const { user, chart } = await renderModern({ chartLibrary: "uplot", navigation: "pan" })
+    const menu = await openMenu(user, chart)
+
+    await user.click(within(menu).getByRole("button", { name: "Highlight" }))
+    expect(chart.getAttribute("navigation")).toBe("highlight")
+
+    await user.click(within(menu).getByRole("button", { name: "Zoom" }))
+    expect(chart.getAttribute("navigation")).toBe("select")
+  })
+
   it("tells consumer elements they are in the menu, so a duplicate handle can step aside", async () => {
     const DragLike = () => (useInModernTileMenu() ? null : <button type="button">Drag</button>)
     const { user, chart } = await renderModern({

@@ -5,7 +5,7 @@ import { Flex, TextSmall, Icon, Checkbox } from "@netdata/netdata-ui"
 import { SmallNumeral } from "@/components/modern/numerals"
 import { radius } from "@/components/modern/tokens"
 import { menuItemStates } from "@/components/modern/menu"
-import { popoverItemColors } from "./popoverColors"
+import { getPopoverSurface } from "./popoverColors"
 
 const capitalize = s => (s ? s[0].toUpperCase() + s.slice(1) : "Unknown")
 
@@ -28,7 +28,7 @@ export const ItemContainer = styled(Flex).attrs(({ disabled, stale, selected, ..
   opacity: (stale || disabled) && !selected ? 0.6 : 1,
   ...props,
 }))`
-  ${menuItemStates(popoverItemColors)}
+  ${props => menuItemStates({ surface: getPopoverSurface(props.theme) })(props)}
 
   &:is(:hover, :focus-within, [data-selected="true"]) [data-option-label] {
     color: inherit;
@@ -102,7 +102,7 @@ const ModernCheckboxItem = ({ item, onItemClick, itemProps, ...rest }) => {
             disabled={isDisabled}
             indeterminate={indeterminate}
             onChange={onSelect}
-            iconProps={{ color: selected ? "menuItemSelectedText" : "text" }}
+            iconProps={{ color: "text" }}
             overflow="hidden"
             label={
               <Flex gap={1} alignItems="center" overflow="hidden">

@@ -7,6 +7,8 @@ import { formatCompactRange } from "./compactRange"
 
 const HighlightChip = styled(Flex).attrs({
   "data-testid": "modernFooter-highlight",
+  as: "button",
+  type: "button",
   alignItems: "center",
   flex: "shrink",
   gap: 1,
@@ -17,6 +19,7 @@ const HighlightChip = styled(Flex).attrs({
   round: radius.pill,
   cursor: "pointer",
 })`
+  background: transparent;
   white-space: nowrap;
 
   &:hover {
@@ -50,18 +53,20 @@ export const Highlight = () => {
   const chart = useChart()
   const { highlight } = useAttributeValue("overlays")
   const range = highlight?.range
-  const { after, before } = highlight?.moveX ?? {}
   useAttributeValue("timezone")
   useAttributeValue("locale")
 
   if (!range) return null
 
-  const text = formatCompactRange(chart, range[0], range[1])
+  const [after, before] = range
+  const text = formatCompactRange(chart, after, before)
+  const zoomLabel = `Zoom to the highlighted range: ${text}`
 
   return (
     <HighlightChip
-      onClick={() => after && before && chart.moveX(after, before)}
-      title={`Zoom to the highlighted range: ${text}`}
+      onClick={() => chart.moveX(after, before)}
+      aria-label={zoomLabel}
+      title={zoomLabel}
     >
       <HighlightLabel>Highlight</HighlightLabel>
       <HighlightRange>{text}</HighlightRange>

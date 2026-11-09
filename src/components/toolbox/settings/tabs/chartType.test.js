@@ -5,14 +5,15 @@ import { renderWithChart, makeTestChart } from "@jest/testUtilities"
 import ChartType from "./chartType"
 
 describe("settings ChartType", () => {
-  it("shows the chart type as the selected value for the dygraph renderer", () => {
-    const { chart } = makeTestChart({
+  it("uses quiet selection for the current chart type", async () => {
+    const { user } = renderWithChart(<ChartType />, {
       attributes: { chartLibrary: "dygraph", chartType: "area" },
     })
 
-    renderWithChart(<ChartType />, { chart })
+    await user.click(screen.getByRole("combobox"))
 
-    expect(screen.getByText("Area")).toBeInTheDocument()
+    const selected = screen.getByRole("option", { name: "Area", selected: true })
+    expect(getComputedStyle(selected).boxShadow).toBe("none")
   })
 
   it("resolves to the chart type when the time-series renderer is non-dygraph", () => {

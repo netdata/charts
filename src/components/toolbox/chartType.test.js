@@ -22,7 +22,7 @@ describe("ChartType component", () => {
     expect(screen.getByText("Stacked")).toBeInTheDocument()
   })
 
-  it("shows current chart type as selected for dygraph library", () => {
+  it("uses quiet selection for the current chart type", () => {
     renderWithChart(<ChartType disabled={false} />, {
       attributes: {
         chartLibrary: "dygraph",
@@ -30,8 +30,10 @@ describe("ChartType component", () => {
       },
     })
 
-    const button = screen.getByTestId("chartHeaderToolbox-chartType")
-    expect(button).toBeInTheDocument()
+    fireEvent.click(screen.getByTestId("chartHeaderToolbox-chartType"))
+
+    const selected = screen.getByRole("option", { name: "Area", selected: true })
+    expect(getComputedStyle(selected).boxShadow).not.toContain("inset")
   })
 
   it("triggers chart type change when dygraph option is selected", () => {

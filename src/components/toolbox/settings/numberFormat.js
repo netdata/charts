@@ -114,6 +114,7 @@ const NumberFormat = () => {
           <Flex column gap={1}>
             <TextSmall strong>Unit</TextSmall>
             <Select
+              selectionStyle="quiet"
               value={unitOptions.find(option => option.value === selectedUnitIndex)}
               onChange={({ value }) => setSelectedUnitIndex(value)}
               options={unitOptions}
@@ -123,6 +124,7 @@ const NumberFormat = () => {
         <Flex column gap={1}>
           <TextSmall strong>Scale</TextSmall>
           <Select
+            selectionStyle="quiet"
             value={scaleOptions.find(option => option.value === desiredUnits)}
             onChange={handleDesiredUnitsChange}
             options={scaleOptions}

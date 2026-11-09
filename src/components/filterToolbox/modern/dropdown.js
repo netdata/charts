@@ -1,13 +1,21 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react"
 import styled, { ThemeProvider, useTheme } from "styled-components"
-import { Flex, TextSmall, Table, Button, Checkbox, getColor } from "@netdata/netdata-ui"
+import {
+  Flex,
+  TextSmall,
+  Table,
+  Button,
+  Checkbox,
+  getColor,
+  getDropdownOptionColors,
+} from "@netdata/netdata-ui"
 import { useChart, useAttributeValue } from "@/components/provider"
 import { radius } from "@/components/modern/tokens"
 import { uppercase } from "@/helpers/objectTransform"
 import deepEqual from "@/helpers/deepEqual"
 import Totals from "../totals"
 import { modernizeColumns, columnNames, defaultHiddenColumns } from "./columns"
-import { getPopoverSurface, popoverItemColors } from "./popoverColors"
+import { getPopoverSurface } from "./popoverColors"
 
 const Container = styled(Flex)`
   box-shadow: 0 18px 28px ${getColor("dropdownShadow")};
@@ -28,7 +36,10 @@ const Container = styled(Flex)`
 
 const getFilterTableTheme = theme => ({
   ...theme,
-  colors: { ...theme.colors, tableRowBgHover: popoverItemColors.hover({ theme }) },
+  colors: {
+    ...theme.colors,
+    tableRowBgHover: getDropdownOptionColors(theme, "quiet", getPopoverSurface(theme)).hover,
+  },
 })
 
 const FilterTable = props => (

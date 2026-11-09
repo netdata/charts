@@ -137,10 +137,11 @@ const ChartType = ({ disabled }) => {
 
   return (
     <Menu
+      selectionStyle="quiet"
       value={value}
       items={items}
       dropProps={{ align: { top: "bottom", right: "right" }, "data-toolbox": chart.getId() }}
-      dropdownProps={{ width: "130px" }}
+      dropdownProps={{ width: 44 }}
       onChange={chart.updateChartTypeAttribute}
       data-track={chart.track("chartType")}
     >
