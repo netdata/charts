@@ -24,6 +24,7 @@ Information.menu = {
   id: "info",
   group: "show",
   order: 30,
+  pin: { icon: information, testId: "chartHeaderToolbox-information", order: 10 },
   useItem: ({ onClose }) => {
     const [showingInfo, setShowingInfo] = useAttribute("showingInfo")
 

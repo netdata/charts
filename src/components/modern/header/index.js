@@ -79,7 +79,6 @@ const ModernHeader = ({ hasFilters = false }) => {
           alignItems="center"
           gap={2}
           height={{ min: "24px" }}
-          position="relative"
           flex="shrink"
           overflow="hidden"
           width={{ min: "0px" }}
