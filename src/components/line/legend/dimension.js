@@ -1,5 +1,5 @@
 import React from "react"
-import { useTheme } from "styled-components"
+import styled, { useTheme } from "styled-components"
 import { TextBig, TextSmall, Flex, ProgressBar, getColor } from "@netdata/netdata-ui"
 import Color, { Color as ColorContainer } from "@/components/line/dimensions/color"
 import Name, { Name as NameContainer } from "@/components/line/dimensions/name"
@@ -15,16 +15,16 @@ import {
 } from "@/components/provider"
 import Tooltip from "@/components/tooltip"
 import { useIsHeatmap } from "@/helpers/heatmap"
+import notSelectable from "@/components/helpers/notSelectable"
 
-const DimensionContainer = props => (
-  <Flex
-    width={{ min: 22, max: 50 }}
-    flex={false}
-    gap={0.5}
-    data-testid="chartLegendDimension"
-    {...props}
-  />
-)
+const DimensionContainer = styled(Flex).attrs({
+  width: { min: 22, max: 50 },
+  flex: false,
+  gap: 0.5,
+  "data-testid": "chartLegendDimension",
+})`
+  ${notSelectable}
+`
 
 export const SkeletonDimension = () => {
   const theme = useTheme()

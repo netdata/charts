@@ -28,6 +28,28 @@ describe("ChartContainer", () => {
     chart.destroy()
   })
 
+  it("mounts the replacement renderer when a chart type change switches it", async () => {
+    const { chart } = makeTestChart({
+      attributes: { autoPlay: false, timeSeriesRenderer: "uplot" },
+    })
+    await chart.fetch()
+    await waitFor(() => expect(chart.getAttribute("loaded")).toBe(true))
+    const { unmount } = renderWithChart(<ChartContainer />, { chart })
+    const element = screen.getByTestId("chartContent")
+    const dygraph = chart.getUI()
+    expect(chart.getAttribute("chartLibrary")).toBe("dygraph")
+    expect(dygraph.getElement()).toBe(element)
+    act(() => chart.updateChartTypeAttribute("line"))
+    const uplot = chart.getUI()
+    expect(chart.getAttribute("chartLibrary")).toBe("uplot")
+    await waitFor(() => expect(uplot.getElement()).toBe(element))
+    await waitFor(() => expect(uplot.getUPlot()).not.toBeNull())
+    expect(dygraph.getElement()).toBeNull()
+    unmount()
+    expect(uplot.getElement()).toBeNull()
+    chart.destroy()
+  })
+
   it("renders container with data-testid", () => {
     renderWithChart(<ChartContainer uiName="default" />)
 

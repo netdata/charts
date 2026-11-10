@@ -1,4 +1,5 @@
 import { isVisibleDimension } from "@/chartLibraries/helpers/dimensionVisibility"
+import { hasAnomalyAt, hasAnnotationAt } from "@/chartLibraries/helpers/rowMarks"
 import { getSeriesStackBounds, getStackBounds } from "./stacking"
 
 const anomalyBand = 15
@@ -91,15 +92,25 @@ export default chart => self => {
   const { top, idx } = self.cursor
   if (idx == null) return chart.getVisibleDimensionIds()?.[0]
 
+  const chartType = chart.getAttribute("chartType")
+  const heatmap = chartType === "heatmap"
+
   if (top != null) {
-    if (chart.getAttribute("showAnnotations") && top > self.over.clientHeight - annotationBand)
+    if (
+      chart.getAttribute("showAnnotations") &&
+      top > self.over.clientHeight - annotationBand &&
+      (!heatmap || hasAnnotationAt(chart, idx))
+    )
       return "ANNOTATIONS"
-    if (chart.getAttribute("showAnomalies") && top < anomalyBand) return "ANOMALY_RATE"
+    if (
+      chart.getAttribute("showAnomalies") &&
+      top < anomalyBand &&
+      (!heatmap || hasAnomalyAt(chart, idx))
+    )
+      return "ANOMALY_RATE"
   }
 
-  const chartType = chart.getAttribute("chartType")
-
-  if (chartType === "heatmap") return getNearestHeatmapBucket(chart, self, top)
+  if (heatmap) return getNearestHeatmapBucket(chart, self, top)
   if (chartType === "stacked")
     return getNearestBandSeries(chart, self, top, idx, getStackedBounds(chart))
   if (chartType === "stackedBar")

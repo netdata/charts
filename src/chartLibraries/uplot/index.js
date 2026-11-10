@@ -6,11 +6,21 @@ import convert from "@/helpers/units"
 import { unregister } from "@/helpers/makeListeners"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
 import limitRange from "@/helpers/limitRange"
-import { makeGetColor, withoutPrefix } from "@/helpers/heatmap"
+import {
+  isHeatmap,
+  findHeatmapCell,
+  getMarkedHeatmapCell,
+  makeGetColor,
+  withoutPrefix,
+  getHeatmapRowsRange,
+  snapHeatmapRange,
+  getHeatmapLabelOffset,
+} from "@/helpers/heatmap"
 import { darkenColor, withAlpha } from "@/chartLibraries/helpers/color"
 import { isVisibleDimension } from "@/chartLibraries/helpers/dimensionVisibility"
 import { areAnnotationsDisabled } from "@/chartLibraries/helpers/annotations"
 import { formatHeatmapLabel } from "@/helpers/heatmapScale"
+import makeHeatmapCell from "./heatmapCell"
 import {
   getSeriesStackBounds,
   getRowStackEnds,
@@ -70,7 +80,9 @@ const rightPad = 0
 const xTickSpace = 80
 const secondsPerMinute = 60
 const heatmapPixelsPerLabel = 15
-const heatmapRowPad = 0.5
+const markedCellLineWidth = 2
+const hoverCellLineWidth = 1.5
+const hoverCellLineDash = [3, 3]
 
 const lineWidth = 2
 const areaLineWidth = 2
@@ -355,10 +367,10 @@ export default (sdk, chart) => {
 
   const getHeatmapValueRange = () => {
     const staticValueRange = chart.getAttribute("staticValueRange")
-    if (staticValueRange) return [Math.ceil(staticValueRange[0]), Math.ceil(staticValueRange[1])]
+    const count = chart.getVisibleHeatmapIds().length
+    if (staticValueRange) return snapHeatmapRange(staticValueRange, count)
 
-    const count = chart.getVisibleHeatmapIds().length || 1
-    return [-heatmapRowPad, count - heatmapRowPad]
+    return getHeatmapRowsRange(count)
   }
 
   const getEmptyValueRange = () => {
@@ -462,14 +474,18 @@ export default (sdk, chart) => {
       const maxTicks = Math.max(1, Math.floor(heightPx / heatmapPixelsPerLabel))
       const step = Math.max(1, Math.ceil(count / Math.max(1, maxTicks - 1)))
 
+      const offset = getHeatmapLabelOffset(chart)
       const splits = []
-      for (let i = 0; i < count; i++) if (i % step === 0) splits.push(i)
+      for (let i = 0; i < count; i++) if (i % step === 0) splits.push(i + offset)
       return splits
     },
     values: (self, splits) => {
       const ids = chart.getVisibleHeatmapIds()
       const scale = chart.getHeatmapScale()
-      return splits.map(index => formatHeatmapLabel(withoutPrefix(ids[index]), scale))
+      const offset = getHeatmapLabelOffset(chart)
+      return splits.map(split =>
+        formatHeatmapLabel(withoutPrefix(ids[Math.round(split - offset)]), scale)
+      )
     },
   })
 
@@ -594,14 +610,13 @@ export default (sdk, chart) => {
     return [xAxis, yAxis]
   }
 
-  const isInWindow = (self, timestamp) => {
+  const getXRangeMs = self => {
     const { min, max } = self.scales.x
-    return isInXRange(
-      timestamp,
-      min == null || max == null ? null : [min * 1000, max * 1000],
-      chart.getAttribute("viewUpdateEvery")
-    )
+    return min == null || max == null ? null : [min * 1000, max * 1000]
   }
+
+  const isInWindow = (self, timestamp) =>
+    isInXRange(timestamp, getXRangeMs(self), chart.getAttribute("viewUpdateEvery"))
 
   const drawVerticalLine = (self, ctx, dimensions, color, dash) => {
     if (!Array.isArray(dimensions)) return
@@ -700,15 +715,7 @@ export default (sdk, chart) => {
 
     const { ctx } = self
     const getColor = makeGetColor(chart)
-
-    let minWidthSep = Infinity
-    for (let i = 1; i < xs.length; i++) {
-      const sep = self.valToPos(xs[i], "x", true) - self.valToPos(xs[i - 1], "x", true)
-      if (sep < minWidthSep) minWidthSep = sep
-    }
-
-    const barWidth = Number.isFinite(minWidthSep) ? Math.floor(minWidthSep) : self.bbox.width
-    const rowHeight = Math.abs(self.valToPos(1, "y", true) - self.valToPos(0, "y", true))
+    const getCell = makeHeatmapCell(self, { gap: chart.getAttribute("heatmapCellGap") })
     const { all } = chart.getPayload()
     if (!all) return
 
@@ -724,8 +731,6 @@ export default (sdk, chart) => {
       const yIndex = chart.getHeatmapYIndex(id)
       if (yIndex === -1) return
 
-      const yTop = self.valToPos(yIndex, "y", true) - rowHeight / 2
-
       for (let row = 0; row < xs.length; row++) {
         const x = xs[row]
         if (clipToWindow && (x < xMin || x > xMax)) continue
@@ -734,8 +739,9 @@ export default (sdk, chart) => {
         const color = getColor(value)
         if (color === "transparent") continue
 
+        const cell = getCell(x, yIndex)
         ctx.fillStyle = color
-        ctx.fillRect(self.valToPos(x, "x", true) - barWidth / 2, yTop, barWidth, rowHeight)
+        ctx.fillRect(cell.x, cell.y, cell.width, cell.height)
       }
     })
 
@@ -1003,6 +1009,56 @@ export default (sdk, chart) => {
     ctx.restore()
   }
 
+  const strokeHeatmapCell = (self, ctx, x, yIndex, { color, lineWidth, dash = [] }) => {
+    const pxRatio = getPxRatio()
+    const cell = makeHeatmapCell(self, { gap: chart.getAttribute("heatmapCellGap") })(x, yIndex)
+    const width = lineWidth * pxRatio
+
+    ctx.save()
+    ctx.beginPath()
+    ctx.rect(self.bbox.left, self.bbox.top, self.bbox.width, self.bbox.height)
+    ctx.clip()
+    ctx.setLineDash(dash.map(length => length * pxRatio))
+    ctx.strokeStyle = color
+    ctx.lineWidth = width
+    ctx.strokeRect(
+      cell.x + width / 2,
+      cell.y + width / 2,
+      Math.max(0, cell.width - width),
+      Math.max(0, cell.height - width)
+    )
+    ctx.restore()
+  }
+
+  const drawMarkedCell = (self, ctx) => {
+    if (!isHeatmap(chart)) return
+
+    const marked = getMarkedHeatmapCell(chart, () => getXRangeMs(self))
+    const x = marked && self.data[0]?.[marked.row]
+    if (x == null) return
+
+    strokeHeatmapCell(self, ctx, x, marked.yIndex, {
+      color: chart.getThemeAttribute("themeHeatmapMarkedCell"),
+      lineWidth: markedCellLineWidth,
+    })
+  }
+
+  const drawHoverCell = (self, ctx, hoverX) => {
+    if (!isHeatmap(chart) || !chart.getAttribute("heatmapHoverCell")) return
+    if (!Array.isArray(hoverX)) return
+
+    const [timestamp, id] = hoverX
+    const cell = findHeatmapCell(chart, timestamp, id, () => getXRangeMs(self))
+    const x = cell && self.data[0]?.[cell.row]
+    if (x == null) return
+
+    strokeHeatmapCell(self, ctx, x, cell.yIndex, {
+      color: chart.getAttribute("heatmapHoverColor") || chart.getThemeAttribute("themeCrosshair"),
+      lineWidth: hoverCellLineWidth,
+      dash: hoverCellLineDash,
+    })
+  }
+
   const renderCrosshair = () => {
     if (!u || !overlayCtx) return
 
@@ -1011,6 +1067,8 @@ export default (sdk, chart) => {
     const hoverX = chart.getAttribute("hoverX")
     const clickX = chart.getAttribute("clickX")
 
+    drawMarkedCell(u, overlayCtx)
+    drawHoverCell(u, overlayCtx, hoverX)
     drawVerticalLine(u, overlayCtx, hoverX, chart.getThemeAttribute("themeCrosshair"), [5, 5])
     drawVerticalLine(u, overlayCtx, clickX, chart.getThemeAttribute("themeNetdata"), [2, 2])
     drawHoverDots(u, overlayCtx, hoverX)
@@ -1395,13 +1453,21 @@ export default (sdk, chart) => {
       const row = chart.getClosestRow(rawMs)
       const snappedX = row === -1 ? null : u.data[0]?.[row]
       const xMs = snappedX == null ? rawMs : snappedX * 1000
+      const dimensionId = getHoverDimension(u)
+
+      if (isHeatmap(chart) && chart.getAttribute("heatmapCellClick")) {
+        if (chart.getHeatmapYIndex(dimensionId) === -1) return
+
+        emitNav("heatmapCellClick", xMs, dimensionId)
+        chart.trigger("heatmapCellClick", xMs, dimensionId)
+        return
+      }
 
       chartUI.trigger("click", event, xMs, [])
       if (areAnnotationsDisabled(chart)) return
 
       annotate(offsetX, xMs)
 
-      const dimensionId = getHoverDimension(u)
       emitNav("highlightClick", xMs, dimensionId)
       chart.trigger("highlightClick", xMs, dimensionId)
     }
@@ -1827,7 +1893,19 @@ export default (sdk, chart) => {
         u.setData(u.data, true)
         renderCrosshair()
       }),
+      chart.onAttributeChange("heatmapKeepEmptyRows", () => {
+        if (!u) return
+        u.setData(u.data, true)
+        renderCrosshair()
+      }),
       chart.onAttributeChange("timezone", () => u && u.redraw()),
+      chart.onAttributeChange("heatmapBucketUnit", () => u && u.redraw(false, true)),
+      chart.onAttributeChange("heatmapCellGap", () => u && u.redraw(false, false)),
+      chart.onAttributeChange("heatmapPalette", () => u && u.redraw(false, false)),
+      chart.onAttributeChange("heatmapMarkedCell", () => renderCrosshair()),
+      chart.onAttributeChange("heatmapHoverCell", () => renderCrosshair()),
+      chart.onAttributeChange("heatmapHoverColor", () => renderCrosshair()),
+      chart.onAttributeChange("heatmapColorScale", () => u && u.redraw(false, false)),
       chart.onAttributeChange("anomalySpotlight", () => u && u.redraw(false, false)),
       chart.onAttributeChange("barFillStyle", () => u && u.redraw(false, false)),
       chart.onAttributeChange("barGlowDimensionIds", () => u && u.redraw(false, false)),

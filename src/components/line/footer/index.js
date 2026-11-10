@@ -30,6 +30,8 @@ const ClassicFooter = () => {
   usePayload()
   const isHeatmap = useIsHeatmap()
   const isMinimal = useIsMinimal()
+  const heatmapLegend = useAttributeValue("heatmapLegend")
+  const colorsOnly = isHeatmap && heatmapLegend === "colors"
 
   return (
     <Container data-testid="chartFooter">
@@ -37,10 +39,12 @@ const ClassicFooter = () => {
       {!showingInfo && legend && (
         <>
           {isHeatmap && <HeatmapColors />}
-          <Flex alignItems="center" height={isMinimal ? "20px" : "36px"}>
-            {!isMinimal && !isHeatmap && <DimensionSort />}
-            <Legend padding={isHeatmap ? [0, 2] : undefined} />
-          </Flex>
+          {!colorsOnly && (
+            <Flex alignItems="center" height={isMinimal ? "20px" : "36px"}>
+              {!isMinimal && !isHeatmap && <DimensionSort />}
+              <Legend padding={isHeatmap ? [0, 2] : undefined} />
+            </Flex>
+          )}
         </>
       )}
       {expandable && expanded && (

@@ -3,7 +3,7 @@ import { act, screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { renderWithChart, makeTestChart } from "@jest/testUtilities"
 import { TileContext } from "@/components/modern/tile/context"
-import ChartContentWrapper from "./chartContentWrapper"
+import ChartContentWrapper, { Container } from "./chartContentWrapper"
 
 const zoom = chart => {
   const now = Math.floor(Date.now() / 1000)
@@ -60,5 +60,34 @@ describe("ChartContentWrapper", () => {
 
     zoom(chart)
     expect(screen.queryByTestId("chartZoomChip")).not.toBeInTheDocument()
+  })
+
+  describe("heatmap cell click cursor", () => {
+    const cursorOf = attributes => {
+      const { chart } = makeTestChart({
+        attributes: {
+          chartType: "heatmap",
+          heatmapCellClick: true,
+          enabledNavigation: true,
+          ...attributes,
+        },
+      })
+      const { container, unmount } = renderWithChart(<Container />, { chart })
+      const { cursor } = window.getComputedStyle(
+        container.querySelector('[data-testid="chartContentWrapper"]')
+      )
+      unmount()
+      return cursor
+    }
+
+    it("shows a pointer where a cell click fires", () => {
+      expect(cursorOf({ navigation: "pan" })).toBe("pointer")
+    })
+
+    it("keeps the navigation cursor where a cell click cannot fire", () => {
+      expect(cursorOf({ navigation: "select" })).toBe("col-resize")
+      expect(cursorOf({ navigation: "pan", enabledNavigation: false })).not.toBe("pointer")
+      expect(cursorOf({ navigation: "pan", heatmapCellClick: false })).not.toBe("pointer")
+    })
   })
 })

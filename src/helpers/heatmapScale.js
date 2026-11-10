@@ -1,3 +1,5 @@
+import { getAlias, getUnitConfig } from "@/helpers/units"
+import { durationUnitsInSeconds } from "@/helpers/units/durations"
 import scalableUnits, { keys as scalableUnitKeys } from "@/helpers/units/scalableUnits"
 
 const heatmapValueRegex = /^-?\d*\.?\d+$/
@@ -82,6 +84,27 @@ export const formatScaledValue = (value, scale) => {
   return `${formatNumber(value / entry.divider)}${entry.prefix}`
 }
 
+const durationSteps = Object.entries(durationUnitsInSeconds).sort(([, a], [, b]) => b - a)
+
+export const formatDurationValue = (value, unit) => {
+  if (!value) return "0"
+
+  const seconds = value * durationUnitsInSeconds[unit]
+  const magnitude = Math.abs(seconds)
+  const [stepUnit, stepSeconds] =
+    durationSteps.find(([, step]) => step <= magnitude) || durationSteps[durationSteps.length - 1]
+
+  return `${formatNumber(seconds / stepSeconds)} ${getUnitConfig(stepUnit).print_symbol}`
+}
+
+export const resolveHeatmapScale = (scale, bucketUnit) => {
+  if (!bucketUnit) return scale
+
+  const unit = getAlias(bucketUnit)
+
+  return durationUnitsInSeconds[unit] ? { duration: unit } : scale
+}
+
 export const formatHeatmapLabel = (value, scale) => {
   const label = getHeatmapValueLabel(value)
 
@@ -92,6 +115,7 @@ export const formatHeatmapLabel = (value, scale) => {
   const parsed = parseHeatmapValue(label)
 
   if (isNaN(parsed)) return label
+  if (scale.duration) return formatDurationValue(parsed, scale.duration)
 
   return formatScaledValue(parsed, scale)
 }

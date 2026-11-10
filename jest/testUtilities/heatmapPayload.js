@@ -49,7 +49,7 @@ export const makeHeatmapPayload = (ids, rows, { timestamp = 1000 } = {}) => {
       point: { value: 0, arp: 1, pa: 2 },
       data: rows.map((values, index) => [
         timestamp + index * 1000,
-        ...values.map(value => [value, 0, 0]),
+        ...values.map(value => (Array.isArray(value) ? value : [value, 0, 0])),
       ]),
     },
   }

@@ -4,6 +4,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { Box, Drop, Flex, getColor } from "@netdata/netdata-ui"
 import { useChart } from "@/components/provider"
 import { useIsHeatmap } from "@/helpers/heatmap"
+import notSelectable from "@/components/helpers/notSelectable"
 import { AnomalyBar, Flags, Unit, Value, onToggle } from "./parts"
 import { LineSwatch } from "@/components/modern/swatch"
 import { Panel, dropProps } from "@/components/modern/menu"
@@ -30,6 +31,7 @@ const Entry = styled(Flex).attrs(({ isOff }) => ({
   background: transparent;
   font-size: 12px;
   line-height: 18px;
+  ${notSelectable}
 `
 
 const Name = styled(Box).attrs({ as: "span", width: { max: 45 }, overflow: "hidden" })`

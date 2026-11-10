@@ -22,6 +22,7 @@ export const BaseColorBar = ({
   valueKey,
   bg,
   styleDimension = "width",
+  highlightColor,
   ...rest
 }) => {
   const ref = useRef()
@@ -48,7 +49,7 @@ export const BaseColorBar = ({
       ref={ref}
       width={{ min: 1 }}
       bg={bg}
-      sx={{ background: isHeatmap ? getHeatmapColor(value) : undefined }}
+      sx={{ background: isHeatmap ? highlightColor || getHeatmapColor(value) : undefined }}
       {...rest}
     />
   )

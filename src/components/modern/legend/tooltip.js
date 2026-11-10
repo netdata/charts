@@ -1,5 +1,6 @@
 import React from "react"
 import styled from "styled-components"
+import getTooltipDimensionIds from "@/helpers/getTooltipDimensionIds"
 import { Box, getColor } from "@netdata/netdata-ui"
 import {
   useAttributeValue,
@@ -57,7 +58,7 @@ const Grid = styled(Box)`
 `
 
 const Name = styled(Box).attrs({ as: "span", width: { min: "0px" }, overflow: "hidden" })`
-  color: ${getColor("text")};
+  color: ${props => props.$hoverColor || getColor("text")(props)};
   font-weight: ${({ isStrong }) => (isStrong ? 600 : 400)};
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -102,17 +103,18 @@ const Tooltip = () => {
   const chart = useChart()
   const isHeatmap = useIsHeatmap()
   const [, hoveredId] = useAttributeValue("hoverX") || []
+  const hoverColor = useAttributeValue("heatmapHoverColor")
+  const valueOnly = useAttributeValue("heatmapTooltipValueOnly")
   const { index, timestamp, getRow } = useLegendRows({ withRows: false })
 
   if (index === -1) return null
 
-  let ids = chart.onHoverSortDimensions(index, sortByRow[hoveredId] || "valueDesc") || []
-  if (chart.getAttribute("selectedDimensions").length > 0)
-    ids = ids.filter(id => chart.isDimensionVisible(id))
+  const ids = getTooltipDimensionIds(chart, index, sortByRow[hoveredId] || "valueDesc")
   const shown = (isHeatmap ? ids : pickShown(ids, hoveredId)).map(getRow)
   const more = ids.length - shown.length
-  const withAnomaly = shown.some(row => !!row.anomaly)
-  const withFlags = shown.some(row => !!row.flags)
+  const valuesOnly = isHeatmap && valueOnly
+  const withAnomaly = !valuesOnly && shown.some(row => !!row.anomaly)
+  const withFlags = !valuesOnly && shown.some(row => !!row.flags)
 
   const columns = [
     isHeatmap ? null : "10px",
@@ -132,7 +134,11 @@ const Tooltip = () => {
         {shown.map(row => (
           <React.Fragment key={row.id}>
             {!isHeatmap && <LineSwatch swatchColor={row.color} />}
-            <Name isStrong={row.id === hoveredId} data-testid="modernTooltip-name">
+            <Name
+              isStrong={row.id === hoveredId}
+              $hoverColor={isHeatmap && row.id === hoveredId ? hoverColor : null}
+              data-testid="modernTooltip-name"
+            >
               {row.name}
             </Name>
             <Value>{row.display}</Value>

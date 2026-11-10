@@ -10,6 +10,7 @@ import {
 } from "@/components/provider"
 import { Bone } from "@/components/skeleton"
 import { useIsHeatmap } from "@/helpers/heatmap"
+import notSelectable from "@/components/helpers/notSelectable"
 import { tabularNumbers } from "@/components/modern/tokens"
 import { AnomalyBar, Flags, Unit as BaseUnit, onToggle } from "./parts"
 import { Numeral } from "@/components/modern/numerals"
@@ -95,6 +96,7 @@ const Row = styled(Box).attrs(({ isOff }) => ({
   opacity: isOff ? 0.4 : 1,
 }))`
   height: ${tableRowHeight}px;
+  ${notSelectable}
 `
 
 const NameCell = styled(Box).attrs({ as: "td", width: "100%" })`

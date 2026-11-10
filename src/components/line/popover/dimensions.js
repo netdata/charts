@@ -6,6 +6,7 @@ import getWindowRange from "@/helpers/getWindowRange"
 import Header from "./header"
 import Dimension from "./dimension"
 import { getPopoverDimensionColumnWidth, getPopoverWidth, popoverGridColumns } from "./layout"
+import getTooltipDimensionIds from "@/helpers/getTooltipDimensionIds"
 
 const Container = styled(Flex).attrs({
   round: true,
@@ -25,8 +26,10 @@ const Grid = styled.div`
   display: grid;
   width: 100%;
   max-width: 100%;
-  grid-template-columns: ${({ $dimensionColumnWidth, $infoColumn }) =>
-    `${$dimensionColumnWidth}px ${popoverGridColumns.value} ${popoverGridColumns.unit} ${popoverGridColumns.anomaly} ${$infoColumn}`};
+  grid-template-columns: ${({ $dimensionColumnWidth, $infoColumn, $valueOnly }) =>
+    $valueOnly
+      ? `${$dimensionColumnWidth}px ${popoverGridColumns.value} ${popoverGridColumns.unit}`
+      : `${$dimensionColumnWidth}px ${popoverGridColumns.value} ${popoverGridColumns.unit} ${popoverGridColumns.anomaly} ${$infoColumn}`};
   align-items: center;
 `
 
@@ -58,16 +61,14 @@ const Dimensions = () => {
   const chart = useChart()
   const [x, row] = useAttributeValue("hoverX") || emptyArray
   const isHeatmap = chart.getAttribute("chartType") === "heatmap"
+  const hoverColor = useAttributeValue("heatmapHoverColor")
+  const heatmapValueOnly = useAttributeValue("heatmapTooltipValueOnly")
+  const valueOnly = isHeatmap && !!heatmapValueOnly
 
   const [from, to, total, ids] = useMemo(() => {
     const index = chart.getClosestRow(x)
 
-    let dimensionIds =
-      chart.onHoverSortDimensions(index, rowSorting[row] || rowSorting.default) || []
-
-    if (chart.getAttribute("selectedDimensions").length > 0) {
-      dimensionIds = dimensionIds.filter(id => chart.isDimensionVisible(id))
-    }
+    const dimensionIds = getTooltipDimensionIds(chart, index, rowSorting[row] || rowSorting.default)
 
     const rowIndex = dimensionIds.findIndex(id => id === row)
 
@@ -94,10 +95,10 @@ const Dimensions = () => {
     [chart, ids]
   )
   const dimensionColumnWidth = useMemo(
-    () => getPopoverDimensionColumnWidth(dimensionNames, { infoColumn }),
-    [dimensionNames, infoColumn]
+    () => getPopoverDimensionColumnWidth(dimensionNames, { infoColumn, valueOnly }),
+    [dimensionNames, infoColumn, valueOnly]
   )
-  const popoverWidth = getPopoverWidth(dimensionColumnWidth, infoColumn)
+  const popoverWidth = getPopoverWidth(dimensionColumnWidth, infoColumn, { valueOnly })
 
   return (
     <Container
@@ -114,6 +115,7 @@ const Dimensions = () => {
         data-testid="chartPopover-grid"
         $dimensionColumnWidth={dimensionColumnWidth}
         $infoColumn={infoColumn}
+        $valueOnly={valueOnly}
       >
         <GridHeader>
           <TextMicro strong>Dimension</TextMicro>
@@ -124,23 +126,34 @@ const Dimensions = () => {
             Value
           </TextMicro>
           <span aria-hidden="true" />
-          <TextMicro
-            strong={rowFlavour === rowFlavours.ANOMALY_RATE}
-            color={rowFlavour === rowFlavours.ANOMALY_RATE ? "text" : "textLite"}
-            textAlign="right"
-          >
-            Anomaly%
-          </TextMicro>
-          <TextMicro
-            strong={rowFlavour === rowFlavours.ANNOTATIONS}
-            color={rowFlavour === rowFlavours.ANNOTATIONS ? "text" : "textLite"}
-            textAlign="right"
-          >
-            Info
-          </TextMicro>
+          {!valueOnly && (
+            <>
+              <TextMicro
+                strong={rowFlavour === rowFlavours.ANOMALY_RATE}
+                color={rowFlavour === rowFlavours.ANOMALY_RATE ? "text" : "textLite"}
+                textAlign="right"
+              >
+                Anomaly%
+              </TextMicro>
+              <TextMicro
+                strong={rowFlavour === rowFlavours.ANNOTATIONS}
+                color={rowFlavour === rowFlavours.ANNOTATIONS ? "text" : "textLite"}
+                textAlign="right"
+              >
+                Info
+              </TextMicro>
+            </>
+          )}
         </GridHeader>
         {ids.map(id => (
-          <Dimension key={id} id={id} strong={row === id} rowFlavour={rowFlavour} />
+          <Dimension
+            key={id}
+            id={id}
+            strong={row === id}
+            hoverColor={isHeatmap ? hoverColor : undefined}
+            valueOnly={valueOnly}
+            rowFlavour={rowFlavour}
+          />
         ))}
       </Grid>
       <Flex flex={false} height={3}>
