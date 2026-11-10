@@ -1,3 +1,5 @@
+import { getSearchableNodeName } from "@/helpers/nodeDisplayName"
+
 const sanitizeValue = value => {
   if (value === Infinity || value === -Infinity || !Number.isFinite(value)) {
     return null
@@ -29,7 +31,12 @@ export const transformWeightsData = (weightsResponse, groupByOrder, chart) => {
 
     const groupedByNames = groupByOrder.reduce((acc, field, index) => {
       acc[field] = groupedNames[index] || groupedValues[index] || ""
-      if (field === "node") acc[field] = nodes[acc[field]]?.nm || acc[field]
+      if (field === "node")
+        acc[field] = getSearchableNodeName(
+          chart,
+          groupedValues[index],
+          nodes[acc[field]]?.nm || acc[field]
+        )
 
       return acc
     }, {})

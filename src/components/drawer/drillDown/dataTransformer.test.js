@@ -547,4 +547,18 @@ describe("dataTransformer", () => {
       expect(node.children[0].label).toBe("dimension-1")
     })
   })
+
+  it("shows the node alias in labels and keeps the raw node name", () => {
+    chart.updateAttribute("nodesById", {
+      [firstNodeId]: { name: "Billing", labels: {} },
+    })
+
+    const [item] = transformWeightsData(weightsResponse, ["dimension", "context", "node"], chart)
+
+    expect(item.groupedByNames.node).toBe("Billing (Production node)")
+    expect(item.groupedBy.node).toBe(firstNodeId)
+    expect(item.nm).toBe("load1,system.load,lab-cloud-unpaid")
+
+    chart.updateAttribute("nodesById", undefined)
+  })
 })

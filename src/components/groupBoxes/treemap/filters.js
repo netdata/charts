@@ -2,7 +2,7 @@ import { getLevels, findNode } from "./tree"
 
 const unsetValue = "[unset]"
 
-const toFilter = (level, value, nodes) => {
+const toFilter = (level, value, nodes, nodesById) => {
   if (level.kind === "label" && value !== unsetValue)
     return {
       kind: "label",
@@ -16,19 +16,21 @@ const toFilter = (level, value, nodes) => {
       return {
         kind: "node",
         selector: found.key,
-        label: `Filter to node ${found.node.nm || value}`,
+        label: `Filter to node ${nodesById?.[found.key]?.name || found.node.nm || value}`,
       }
   }
 
   return null
 }
 
-export const getDrillFilters = (boxId, grouped, nodes) => {
+export const getDrillFilters = (boxId, grouped, nodes, nodesById) => {
   const levels = getLevels(grouped)
   const parts = boxId.split(",")
   if (!levels.length || parts.length !== levels.length) return []
 
-  return parts.map((value, index) => toFilter(levels[index], value, nodes)).filter(Boolean)
+  return parts
+    .map((value, index) => toFilter(levels[index], value, nodes, nodesById))
+    .filter(Boolean)
 }
 
 const asSelected = values => values.map(value => ({ value }))

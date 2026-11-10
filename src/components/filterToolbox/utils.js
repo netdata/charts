@@ -1,3 +1,5 @@
+import { getSearchableNodeName } from "@/helpers/nodeDisplayName"
+
 const getValueOrZero = (obj, attr) => (obj ? obj?.[attr] || 0 : 0)
 
 const getMetricsCount = obj => {
@@ -13,6 +15,21 @@ const getAlertsCount = obj => {
   if (!obj) return "-"
 
   return getValueOrZero(obj, "cr") * 3 + getValueOrZero(obj, "wr") * 2 + getValueOrZero(obj, "cl")
+}
+
+export const getNodeLabel = (chart, nodeId, node) => {
+  const label = getSearchableNodeName(chart, nodeId, node.nm)
+
+  return label !== node.nm ? label : undefined
+}
+
+export const getInstanceLabel = (chart, nodeId, node, instance) => {
+  const suffix = `@${node.nm}`
+  if (!node.nm || !instance.nm?.endsWith(suffix)) return undefined
+
+  const label = getSearchableNodeName(chart, nodeId, node.nm)
+
+  return label !== node.nm ? `${instance.nm.slice(0, -suffix.length)}@${label}` : undefined
 }
 
 export const getStats = (

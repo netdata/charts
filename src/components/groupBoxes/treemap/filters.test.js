@@ -55,4 +55,10 @@ describe("group boxes filters", () => {
     expect(chart.getAttribute("selectedNodes")).toEqual(["n1"])
     expect(chart.getAttribute("selectedInstances")).toEqual(["cpu@n1"])
   })
+
+  it("labels the node filter with the alias and selects the raw node id", () => {
+    expect(
+      getDrillFilters("mg-1", ["node"], nodes, { n1: { name: "Storefront", labels: {} } })
+    ).toEqual([{ kind: "node", selector: "n1", label: "Filter to node Storefront" }])
+  })
 })

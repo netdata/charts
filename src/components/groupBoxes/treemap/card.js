@@ -95,6 +95,7 @@ const BoxCard = ({
   const max = useAttributeValue("max")
   const grouped = useAttributeValue("viewDimensions")?.grouped
   const nodes = useAttributeValue("nodes")
+  const nodesById = useAttributeValue("nodesById")
   const units = useUnitSign()
   const details = getBoxDetails(chart, id, rowData)
   const { convertedValue, convertedUnit } = useValueWithUnit(details.value, {
@@ -102,7 +103,7 @@ const BoxCard = ({
     scaleByValue: true,
   })
   const color = makeModernColor(chart)(min, max)(Math.abs(details.value ?? 0))
-  const filters = pinned ? getDrillFilters(id, grouped, nodes) : []
+  const filters = pinned ? getDrillFilters(id, grouped, nodes, nodesById) : []
   const stats =
     details.min === null
       ? null

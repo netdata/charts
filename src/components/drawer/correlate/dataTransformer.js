@@ -1,3 +1,5 @@
+import { getSearchableNodeName } from "@/helpers/nodeDisplayName"
+
 const requiredGroupFields = ["dimension", "context", "node"]
 
 const getGroupBy = response => response?.request?.aggregations?.metrics?.[0]?.group_by || []
@@ -12,7 +14,7 @@ const getCorrelationStrength = weight => {
   return "Very Weak"
 }
 
-const transformItem = (item, indexes) => {
+const transformItem = (item, indexes, chart) => {
   const ids = splitGroupedValue(item?.id)
   const names = splitGroupedValue(item?.nm)
   const [weight, timeframe, baseline] = item?.v || []
@@ -41,7 +43,9 @@ const transformItem = (item, indexes) => {
     context,
     contextName: names[indexes.context],
     nodeId,
-    nodeName: names[indexes.node],
+    nodeName: chart
+      ? getSearchableNodeName(chart, nodeId, names[indexes.node])
+      : names[indexes.node],
     correlationWeight,
     weightMin: weight[0],
     weightMax: weight[2],
@@ -54,7 +58,7 @@ const transformItem = (item, indexes) => {
   }
 }
 
-export const transformCorrelationData = (response, threshold = 0.01, scopeContexts = []) => {
+export const transformCorrelationData = (response, threshold = 0.01, scopeContexts = [], chart) => {
   if (!Array.isArray(response?.result) || !response?.v_schema) return []
 
   const groupBy = getGroupBy(response)
@@ -68,7 +72,7 @@ export const transformCorrelationData = (response, threshold = 0.01, scopeContex
   const excludedContexts = new Set(scopeContexts)
 
   return response.result
-    .map(item => transformItem(item, indexes))
+    .map(item => transformItem(item, indexes, chart))
     .filter(
       item =>
         item && Math.abs(item.correlationWeight) < threshold && !excludedContexts.has(item.context)

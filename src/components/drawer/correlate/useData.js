@@ -39,6 +39,7 @@ const useData = () => {
   const aggregation = useAttributeValue("correlate.aggregation", "average")
   const dataType = useAttributeValue("correlate.dataType", "")
   const threshold = useAttributeValue("correlate.threshold", 0.01)
+  const nodesById = useAttributeValue("nodesById")
 
   const getTimeRange = () => {
     if (tab === "selectedArea" && overlays?.highlight?.range) {
@@ -96,9 +97,9 @@ const useData = () => {
     if (!data) return []
 
     const scopeContexts = chart.getAttribute("contextScope", [])
-    const correlationData = transformCorrelationData(data, threshold, scopeContexts)
+    const correlationData = transformCorrelationData(data, threshold, scopeContexts, chart)
     return groupByContext(correlationData)
-  }, [data, threshold, chart])
+  }, [data, threshold, chart, nodesById])
 
   useEffect(() => {
     const shouldFetch = tab === "window" || (tab === "selectedArea" && overlays?.highlight?.range)

@@ -6,7 +6,7 @@ import {
   useFilteredNodeIds,
 } from "@/components/provider"
 import DropdownTable from "../dropdownTable"
-import { getStats } from "../utils"
+import { getStats, getNodeLabel, getInstanceLabel } from "../utils"
 import {
   labelColumn,
   instancesColumn,
@@ -47,6 +47,7 @@ const NodesTable = ({ labelProps, ...rest }) => {
   const nodes = useAttributeValue("nodes")
   const instances = useAttributeValue("instances")
   const nodesTotals = useAttributeValue("nodesTotals")
+  const nodesById = useAttributeValue("nodesById")
 
   const selectedInstances = useAttributeValue("selectedInstances")
 
@@ -59,9 +60,10 @@ const NodesTable = ({ labelProps, ...rest }) => {
           id,
           key: "nodes",
           childrenKey: "instances",
-          props: { selected },
+          props: { selected, getLabel: () => getNodeLabel(chart, id, nodes[id]) },
           childProps: {
             isInstance: true,
+            getLabel: instance => getInstanceLabel(chart, id, nodes[id], instance),
             getValue: instance => `${instance.id}@${id}`,
             getIsSelected: instance => selectedInstances.includes(`${instance.id}@${id}`),
           },
@@ -72,14 +74,13 @@ const NodesTable = ({ labelProps, ...rest }) => {
           ),
         })
       }),
-    [nodes, value, selectedInstances]
+    [nodes, value, selectedInstances, nodesById]
   )
 
   const [sortBy, onSortByChange] = useAttribute("nodesSortBy")
   const [expanded, onExpandedChange] = useAttribute("nodesExpanded")
 
   const filterSelectedCount = useCallback(values => values.filter(val => !val.isInstance), [])
-  const nodesById = useAttributeValue("nodesById")
 
   return (
     <DropdownTable

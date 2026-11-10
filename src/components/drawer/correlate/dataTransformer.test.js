@@ -1,3 +1,4 @@
+import { makeTestChart } from "@jest/testUtilities"
 import { groupByContext, transformCorrelationData } from "./dataTransformer"
 
 const schema = {
@@ -79,6 +80,16 @@ describe("transformCorrelationData", () => {
     response.result.push({ id: "invalid", nm: "invalid", v: [] })
 
     expect(transformCorrelationData(response, 0.01)).toHaveLength(1)
+  })
+
+  it("shows the node alias with the hostname and keeps the node id", () => {
+    const { chart } = makeTestChart({
+      attributes: { nodesById: { "node-id": { name: "Billing", labels: {} } } },
+    })
+
+    const [result] = transformCorrelationData(makeResponse([makeItem()]), 0.01, [], chart)
+
+    expect(result).toMatchObject({ nodeId: "node-id", nodeName: "Billing (Node name)" })
   })
 })
 
