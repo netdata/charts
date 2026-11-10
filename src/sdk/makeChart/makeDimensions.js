@@ -11,6 +11,7 @@ import { detectHeatmapScale, formatHeatmapLabel, sortHeatmapValues } from "@/hel
 import { getConversionAttributes } from "@/helpers/unitConversion/getConversionUnits"
 import groupBy from "lodash/groupBy"
 import isEmpty from "lodash/isEmpty"
+import { getNodeDisplayName } from "@/helpers/nodeDisplayName"
 import { getPointValue } from "./getPointValue"
 
 const dimensionNameCollator = new Intl.Collator(undefined, {
@@ -158,7 +159,7 @@ export default (chart, sdk) => {
     const selectedLegendDimensions = chart.getAttribute("selectedLegendDimensions")
     const matchesSelectedLegendDimension = id =>
       selectedLegendDimensions.includes(id) ||
-      selectedLegendDimensions.includes(chart.getDimensionName(id)) ||
+      selectedLegendDimensions.includes(chart.getRawDimensionName(id)) ||
       (isHeatmap(chart) && selectedLegendDimensions.includes(withoutPrefix(id)))
 
     visibleDimensionIds = selectedLegendDimensions.length
@@ -347,12 +348,40 @@ export default (chart, sdk) => {
     return typeof color === "string" ? color : color[index]
   }
 
-  chart.getDimensionName = (id, partIndex) => {
+  const aliasNodePart = (grouping, idPart, namePart) => {
+    if (grouping === "node") return getNodeDisplayName(chart, idPart, namePart)
+    if (grouping !== "instance") return namePart
+
+    const nodeId = idPart.slice(idPart.lastIndexOf("@") + 1)
+    const rawNodeName = chart.getAttribute("nodes")?.[nodeId]?.nm
+    const suffix = `@${rawNodeName}`
+    if (!rawNodeName || !namePart.endsWith(suffix)) return namePart
+
+    return `${namePart.slice(0, -suffix.length)}@${getNodeDisplayName(chart, nodeId, rawNodeName)}`
+  }
+
+  const aliasNodeNames = (id, rawName) => {
+    if (!chart.getAttribute("nodesById")) return rawName
+
+    const grouped = chart.getAttribute("viewDimensions")?.grouped
+    if (!grouped?.some(grouping => grouping === "node" || grouping === "instance")) return rawName
+
+    const idParts = id.split(",")
+    const nameParts = rawName.split(",")
+    if (idParts.length !== grouped.length || nameParts.length !== grouped.length) return rawName
+
+    return nameParts
+      .map((namePart, index) => aliasNodePart(grouped[index], idParts[index], namePart))
+      .join(",")
+  }
+
+  const getName = (id, partIndex, alias) => {
     const viewDimensions = chart.getAttribute("viewDimensions")
 
     if (!viewDimensions?.names) return ""
 
-    let dimName = viewDimensions.names[dimensionsById[id]] || id
+    const rawName = viewDimensions.names[dimensionsById[id]] || id
+    let dimName = alias ? aliasNodeNames(id, rawName) : rawName
 
     if (!isNaN(partIndex)) dimName = dimName.split(",")?.[partIndex] ?? dimName
 
@@ -360,6 +389,10 @@ export default (chart, sdk) => {
 
     return dimName
   }
+
+  chart.getRawDimensionName = (id, partIndex) => getName(id, partIndex, false)
+
+  chart.getDimensionName = (id, partIndex) => getName(id, partIndex, true)
 
   chart.getDimensionPriority = id => {
     const viewDimensions = chart.getAttribute("viewDimensions")
@@ -635,6 +668,12 @@ export default (chart, sdk) => {
 
   chart.onAttributeChange("dimensionsSort", chart.sortDimensions)
   chart.onAttributeChange("selectedLegendDimensions", updateVisibleDimensions)
+  chart.onAttributeChange("nodesById", (nodesById, prevNodesById) => {
+    const ids = new Set([...Object.keys(nodesById || {}), ...Object.keys(prevNodesById || {})])
+    const aliasesChanged = [...ids].some(id => nodesById?.[id]?.name !== prevNodesById?.[id]?.name)
+
+    if (aliasesChanged) chart.sortDimensions()
+  })
 
   chart.updateColors = () => {
     let dimensionIds = chart.getAttribute("dimensionIds")
