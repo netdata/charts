@@ -75,6 +75,36 @@ describe("makePristine", () => {
     })
   })
 
+  describe("keys that start undefined", () => {
+    it("keeps the first original across repeated changes", () => {
+      const target = makePristine("pristine", ["staticZones"])
+      const resource = { pristine: {} }
+
+      target.updatePristine(resource, "staticZones", ["a"])
+      resource.staticZones = ["a"]
+      target.updatePristine(resource, "staticZones", ["b"])
+      resource.staticZones = ["b"]
+
+      expect(resource.pristine).toHaveProperty("staticZones", undefined)
+
+      target.resetPristine(resource)
+
+      expect(resource.staticZones).toBeUndefined()
+      expect(resource.pristine).toEqual({})
+    })
+
+    it("clears the entry when the value changes back to undefined", () => {
+      const target = makePristine("pristine", ["staticZones"])
+      const resource = { pristine: {} }
+
+      target.updatePristine(resource, "staticZones", ["a"])
+      resource.staticZones = ["a"]
+      target.updatePristine(resource, "staticZones", undefined)
+
+      expect(resource.pristine).toEqual({})
+    })
+  })
+
   describe("resetPristine", () => {
     it("resets resource to pristine state and clears pristine", () => {
       resource.pristine = { name: "Original", age: 25 }

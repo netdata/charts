@@ -14,7 +14,7 @@ export default (pristineKey, keys, dispatch = defaultDispatch) => {
     const currentValue = getValue(key, undefined, resource)
     const pristineValue = getValue(key, undefined, resource[pristineKey])
 
-    if (pristineValue === undefined && !deepEqual(currentValue, value)) {
+    if (!(key in resource[pristineKey]) && !deepEqual(currentValue, value)) {
       const prev = resource[pristineKey]
       const newPristine = { ...resource[pristineKey] }
       setValue(key, currentValue, newPristine)
