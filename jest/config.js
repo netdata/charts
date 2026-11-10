@@ -12,6 +12,9 @@ module.exports = {
   setupFiles: ["<rootDir>/jest/setup.js"],
   setupFilesAfterEnv: ["<rootDir>/jest/setupForEach.js"],
   verbose: true,
+  transform: {
+    "^.+\\.m?jsx?$": "babel-jest",
+  },
   transformIgnorePatterns: [
     "node_modules/(?!d3|d3-array|internmap|delaunator|robust-predicates|.?netdata|dygraphs|uuid)",
   ],
