@@ -132,7 +132,9 @@ const DimensionsPanel = () => {
     const query = search.trim().toLowerCase()
     if (!query) return dimensionIds
     return dimensionIds.filter(id =>
-      `${chart.getDimensionName(id) || id}`.toLowerCase().includes(query)
+      [chart.getDimensionName(id) || id, chart.getRawDimensionName(id)].some(name =>
+        `${name}`.toLowerCase().includes(query)
+      )
     )
   }, [chart, dimensionIds, search])
 

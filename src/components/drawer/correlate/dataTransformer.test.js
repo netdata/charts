@@ -93,6 +93,40 @@ describe("transformCorrelationData", () => {
   })
 })
 
+describe("transformCorrelationData with machine guid node ids", () => {
+  const nodes = { "nd-1": { mg: "mg-1", nd: "nd-1", nm: "Node name" } }
+
+  it("shows the alias when nodesById is keyed by the node id", () => {
+    const { chart } = makeTestChart({
+      attributes: { nodes, nodesById: { "nd-1": { name: "Billing", labels: {} } } },
+    })
+
+    const [result] = transformCorrelationData(
+      makeResponse([makeItem({ node: "mg-1" })]),
+      0.01,
+      [],
+      chart
+    )
+
+    expect(result).toMatchObject({ nodeId: "mg-1", nodeName: "Billing (Node name)" })
+  })
+
+  it("keeps the hostname when the entry has no alias", () => {
+    const { chart } = makeTestChart({
+      attributes: { nodes, nodesById: { "nd-1": { labels: {} } } },
+    })
+
+    const [result] = transformCorrelationData(
+      makeResponse([makeItem({ node: "mg-1" })]),
+      0.01,
+      [],
+      chart
+    )
+
+    expect(result.nodeName).toBe("Node name")
+  })
+})
+
 describe("groupByContext", () => {
   it("builds stable hierarchical rows ordered by strongest correlation", () => {
     const response = makeResponse([

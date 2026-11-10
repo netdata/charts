@@ -11,7 +11,7 @@ import { detectHeatmapScale, formatHeatmapLabel, sortHeatmapValues } from "@/hel
 import { getConversionAttributes } from "@/helpers/unitConversion/getConversionUnits"
 import groupBy from "lodash/groupBy"
 import isEmpty from "lodash/isEmpty"
-import { getNodeDisplayName } from "@/helpers/nodeDisplayName"
+import { getNodeDisplayName, getNodeRawName } from "@/helpers/nodeDisplayName"
 import { getPointValue } from "./getPointValue"
 
 const dimensionNameCollator = new Intl.Collator(undefined, {
@@ -353,7 +353,7 @@ export default (chart, sdk) => {
     if (grouping !== "instance") return namePart
 
     const nodeId = idPart.slice(idPart.lastIndexOf("@") + 1)
-    const rawNodeName = chart.getAttribute("nodes")?.[nodeId]?.nm
+    const rawNodeName = getNodeRawName(chart, nodeId)
     const suffix = `@${rawNodeName}`
     if (!rawNodeName || !namePart.endsWith(suffix)) return namePart
 

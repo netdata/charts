@@ -1121,6 +1121,44 @@ describe("Modern dimensions", () => {
     expect(chart.isDimensionVisible(first)).toBe(false)
   })
 
+  describe("dimension search with a node alias", () => {
+    const renderAliased = async nodesById => {
+      const { user, chart } = await renderLoaded({ focused: true }, manyPayload(12))
+      const viewDimensions = chart.getAttribute("viewDimensions")
+      act(() => {
+        chart.updateAttribute("viewDimensions", {
+          ...viewDimensions,
+          grouped: ["node"],
+          names: viewDimensions.ids.map((id, index) =>
+            id === "dim1" ? "web-host" : viewDimensions.names[index]
+          ),
+        })
+        chart.updateAttribute("nodes", { "nd-1": { mg: "dim1", nd: "nd-1", nm: "web-host" } })
+        chart.updateAttribute("nodesById", nodesById)
+      })
+      await openDimensions(user)
+      return user
+    }
+
+    it.each(["billing", "web-host"])("finds the aliased dimension by %s", async query => {
+      const user = await renderAliased({ "nd-1": { name: "Billing", labels: {} } })
+
+      await user.type(screen.getByTestId("chartMore-dimensions-search"), query)
+
+      const rows = screen.getAllByTestId("chartMore-dimension")
+      expect(rows.map(row => row.dataset.dimension)).toEqual(["dim1"])
+      expect(rows[0]).toHaveTextContent("Billing")
+    })
+
+    it("finds the hostname when there is no alias", async () => {
+      const user = await renderAliased({ "nd-1": { labels: {} } })
+
+      await user.type(screen.getByTestId("chartMore-dimensions-search"), "web-host")
+
+      expect(screen.getAllByTestId("chartMore-dimension")).toHaveLength(1)
+    })
+  })
+
   it("caps the list and narrows it with a search on high cardinality", async () => {
     const count = 120
     const { user } = await renderLoaded({ focused: true }, manyPayload(count))

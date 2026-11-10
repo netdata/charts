@@ -222,4 +222,62 @@ describe("node alias in dimension names", () => {
     expect(chart.getDimensionName("cpu0@nd-1")).toBe("cpu0@Zulu")
     expect(chart.getDimensionName("cpu0@nd-2")).toBe("cpu0@Alpha")
   })
+
+  describe("dimension ids built from the machine guid", () => {
+    const claimedNodes = {
+      "nd-1": { mg: "mg-1", nd: "nd-1", nm: "host-1" },
+      "nd-2": { mg: "mg-2", nd: "nd-2", nm: "host-2" },
+    }
+
+    it("aliases a node group when nodesById is keyed by the node id", () => {
+      const chart = setup({
+        grouped: ["node"],
+        ids: ["mg-1", "mg-2"],
+        names: ["host-1", "host-2"],
+        nodesById: aliases,
+        attributes: { nodes: claimedNodes },
+      })
+
+      expect(chart.getDimensionName("mg-1")).toBe("Zulu")
+      expect(chart.getDimensionName("mg-2")).toBe("Alpha")
+      expect(chart.getRawDimensionName("mg-1")).toBe("host-1")
+    })
+
+    it("aliases the @host suffix of an instance name", () => {
+      const chart = setup({
+        grouped: ["instance", "dimension"],
+        ids: ["cpu0@mg-1,user"],
+        names: ["cpu0@host-1,user"],
+        nodesById: aliases,
+        attributes: { nodes: claimedNodes },
+      })
+
+      expect(chart.getDimensionName("cpu0@mg-1,user")).toBe("cpu0@Zulu,user")
+      expect(chart.getDimensionName("cpu0@mg-1,user", 0)).toBe("cpu0@Zulu")
+    })
+
+    it("aliases when nodesById is keyed by the machine guid as well", () => {
+      const chart = setup({
+        grouped: ["node"],
+        ids: ["mg-1"],
+        names: ["host-1"],
+        nodesById: { "mg-1": { name: "Zulu", labels: {} } },
+        attributes: { nodes: { "mg-1": { mg: "mg-1", nm: "host-1" } } },
+      })
+
+      expect(chart.getDimensionName("mg-1")).toBe("Zulu")
+    })
+
+    it("keeps the raw names when no alias is set", () => {
+      const chart = setup({
+        grouped: ["instance"],
+        ids: ["cpu0@mg-1"],
+        names: ["cpu0@host-1"],
+        nodesById: { "nd-1": { labels: {} } },
+        attributes: { nodes: claimedNodes },
+      })
+
+      expect(chart.getDimensionName("cpu0@mg-1")).toBe("cpu0@host-1")
+    })
+  })
 })
