@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef } from "react"
+import { useEffect, useState, useMemo, useRef } from "react"
 import styled from "styled-components"
 import { Flex, TextSmall, Menu, Table, Button, getColor } from "@netdata/netdata-ui"
 import { useAttributeValue, useIsModern } from "@/components/provider"

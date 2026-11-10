@@ -1,4 +1,4 @@
-import React, { useRef } from "react"
+import { useRef } from "react"
 import styled from "styled-components"
 import { Flex, getColor } from "@netdata/netdata-ui"
 import { useChart, useAttributeValue } from "@/components/provider"

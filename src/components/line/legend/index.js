@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react"
+import { useRef, useEffect, useState } from "react"
 import styled from "styled-components"
 import { debounce } from "throttle-debounce"
 import { useVirtualizer } from "@tanstack/react-virtual"

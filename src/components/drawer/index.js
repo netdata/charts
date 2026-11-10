@@ -1,4 +1,4 @@
-import React, { useMemo } from "react"
+import { useMemo } from "react"
 import { Flex } from "@netdata/netdata-ui"
 import { useAttributeValue } from "@/components/provider"
 import Header from "./header"

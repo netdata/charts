@@ -1,4 +1,3 @@
-import React from "react"
 import ChartContainer from "@/components/chartContainer"
 import { useOnResize, useIsModern, useInitialLoading } from "@/components/provider"
 import withChart from "@/components/hocs/withChart"

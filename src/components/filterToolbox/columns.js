@@ -1,4 +1,4 @@
-import React, { useMemo } from "react"
+import { useMemo } from "react"
 import { Flex, ProgressBar, TextSmall, TextMicro, MasterCard } from "@netdata/netdata-ui"
 import Color from "@/components/line/dimensions/color"
 import Units from "@/components/line/dimensions/units"

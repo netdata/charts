@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import { ThemeProvider } from "styled-components"
 import { Flex, TextSmall, DefaultTheme, DarkTheme } from "@netdata/netdata-ui"
 import ChartProvider, { useAttributeValue } from "@/components/provider"

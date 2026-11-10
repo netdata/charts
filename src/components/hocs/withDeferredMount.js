@@ -1,4 +1,3 @@
-import React from "react"
 import { useChart, useImmediateListener } from "@/components/provider"
 
 export default Component => {

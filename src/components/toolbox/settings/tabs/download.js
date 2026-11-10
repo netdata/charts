@@ -1,4 +1,3 @@
-import React from "react"
 import styled from "styled-components"
 import { Flex, TextSmall, getColor } from "@netdata/netdata-ui"
 import downloadSVG from "@netdata/netdata-ui/dist/components/icon/assets/download.svg"

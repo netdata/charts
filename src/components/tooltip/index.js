@@ -1,4 +1,3 @@
-import React from "react"
 import { Tooltip as BaseTooltip } from "@netdata/netdata-ui"
 import { useAttributeValue } from "@/components/provider"
 

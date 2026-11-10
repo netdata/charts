@@ -1,4 +1,4 @@
-import React, { memo } from "react"
+import { memo } from "react"
 import { TextSmall } from "@netdata/netdata-ui"
 import { useAttributeValue, useIsModern } from "@/components/provider"
 import Badge from "@/components/line/badge"

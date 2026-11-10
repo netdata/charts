@@ -1,4 +1,3 @@
-import React from "react"
 import styled from "styled-components"
 import { Box, Flex, TextSmall, CopyToClipboard, getColor } from "@netdata/netdata-ui"
 import { useAttributeValue, useName, useTitle, useUnitSign } from "@/components/provider"

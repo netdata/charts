@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import { useAttributeValue, useChart } from "@/components/provider"
 import Settings from "@/components/toolbox/settings"
 import { getConsumerElements } from "@/components/modern/tile/menu"

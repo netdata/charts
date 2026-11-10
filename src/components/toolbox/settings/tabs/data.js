@@ -1,4 +1,3 @@
-import React from "react"
 import { Flex, TextSmall, Select } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart } from "@/components/provider"
 import TimeAggregation from "./timeAggregation"

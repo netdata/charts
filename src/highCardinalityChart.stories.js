@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import Line from "@/components/line"
 import makeDefaultSDK from "./makeDefaultSDK"
 

@@ -1,7 +1,6 @@
 import { DefaultTheme } from "@netdata/netdata-ui/dist/theme"
 import Header from "./header"
 import { radius } from "./modern/tokens"
-import React from "react"
 import { screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { renderWithChart } from "@jest/testUtilities"

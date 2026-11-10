@@ -1,4 +1,3 @@
-import React from "react"
 import { Text } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"
 import {

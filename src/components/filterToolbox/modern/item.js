@@ -1,4 +1,3 @@
-import React from "react"
 import styled from "styled-components"
 import { DropdownSelectionCheck, Flex, TextSmall, TextMicro, getColor } from "@netdata/netdata-ui"
 import information from "@netdata/netdata-ui/dist/components/icon/assets/information.svg"

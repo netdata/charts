@@ -1,4 +1,3 @@
-import React from "react"
 import styled from "styled-components"
 import { Box, Flex, TextSmall, getColor } from "@netdata/netdata-ui"
 import Tooltip from "@/components/tooltip"

@@ -1,4 +1,3 @@
-import React from "react"
 import { FontLink } from "./primitives"
 import { GroupBoxesMockups } from "./groupBoxes"
 

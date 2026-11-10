@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { mergeRefs } from "@netdata/netdata-ui"
 import { shortenToWidth } from "@/helpers/shorten"
 import makeResizeObserver from "@/helpers/makeResizeObserver"

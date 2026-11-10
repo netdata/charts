@@ -1,4 +1,3 @@
-import React from "react"
 import { Flex, Box, TextSmall, TextMicro } from "@netdata/netdata-ui"
 import Units from "@/components/line/dimensions/units"
 import { useChart, useConverted } from "@/components/provider"

@@ -1,4 +1,3 @@
-import React from "react"
 import styled from "styled-components"
 import { Flex, TextNano } from "@netdata/netdata-ui"
 import correlationsIcon from "@netdata/netdata-ui/dist/components/icon/assets/correlations.svg"

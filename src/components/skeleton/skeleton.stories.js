@@ -1,4 +1,3 @@
-import React from "react"
 import { ThemeProvider } from "styled-components"
 import { Flex, DefaultTheme, DarkTheme } from "@netdata/netdata-ui"
 import Line from "@/components/line"

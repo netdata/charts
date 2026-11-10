@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react"
+import { useRef, useState } from "react"
 import { Drop } from "@netdata/netdata-ui"
 import settings from "@netdata/netdata-ui/dist/components/icon/assets/settings.svg"
 import Icon, { Button } from "@/components/icon"

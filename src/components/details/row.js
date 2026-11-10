@@ -1,4 +1,3 @@
-import React from "react"
 import { Text, Flex } from "@netdata/netdata-ui"
 
 const Row = ({ icon, title, children, ...rest }) => {

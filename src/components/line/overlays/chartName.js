@@ -1,4 +1,3 @@
-import React from "react"
 import styled from "styled-components"
 import { TextSmall, getColor } from "@netdata/netdata-ui"
 import { useChart, useAttributeValue } from "@/components/provider"

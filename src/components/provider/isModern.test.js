@@ -1,4 +1,3 @@
-import React from "react"
 import { renderHook } from "@testing-library/react"
 import { makeTestChart } from "@jest/testUtilities"
 import ChartProvider, { useIsMinimal, useIsModern } from "./index"

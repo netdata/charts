@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react"
+import { useCallback, useMemo } from "react"
 import difference from "lodash/difference"
 import { useAttributeValue, useChart, useIsModern } from "@/components/provider"
 import useUpdateEffect from "@netdata/netdata-ui/dist/hooks/useUpdateEffect"

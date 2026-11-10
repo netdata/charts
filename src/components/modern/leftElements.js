@@ -1,4 +1,3 @@
-import React from "react"
 import { useAttributeValue } from "@/components/provider"
 import Status from "@/components/status"
 

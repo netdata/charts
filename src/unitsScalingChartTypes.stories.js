@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import styled from "styled-components"
 import { Flex, TextMicro, TextSmall, getSizeBy } from "@netdata/netdata-ui"
 import Bars from "@/components/bars"

@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import Icon, { Button } from "@/components/icon"
 import { Flex, TextInput } from "@netdata/netdata-ui"
 import xIcon from "@netdata/netdata-ui/dist/components/icon/assets/x.svg"

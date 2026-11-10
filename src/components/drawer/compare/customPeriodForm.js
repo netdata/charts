@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import styled from "styled-components"
 import { Flex, TextSmall, TextMicro, Button, getColor } from "@netdata/netdata-ui"
 import { useAttributeValue } from "@/components/provider"

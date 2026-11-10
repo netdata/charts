@@ -1,4 +1,3 @@
-import React from "react"
 import { TextMicro } from "@netdata/netdata-ui"
 import { useAttribute, useAttributeValue, useChart } from "@/components/provider"
 import FilterToolbox from "@/components/filterToolbox"

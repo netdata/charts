@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react"
+import { useCallback, useMemo } from "react"
 import { Flex, Table, TextSmall, downloadCsvAction } from "@netdata/netdata-ui"
 import { uppercase } from "@/helpers/objectTransform"
 import { useChart, useDimensionIds, useAttributeValue } from "@/components/provider/selectors"

@@ -1,4 +1,3 @@
-import React from "react"
 import { act, screen, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { makeTestChart, renderWithChart } from "@jest/testUtilities"

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import { ThemeProvider } from "styled-components"
 import { Flex, DefaultTheme, DarkTheme, TextSmall } from "@netdata/netdata-ui"
 import dashboardIcon from "@netdata/netdata-ui/dist/components/icon/assets/dashboard_add.svg"

@@ -1,4 +1,3 @@
-import React from "react"
 import styled from "styled-components"
 import { Flex, TextMicro } from "@netdata/netdata-ui"
 import Color, { ColorBar } from "@/components/line/dimensions/color"

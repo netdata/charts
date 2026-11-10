@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import { act, screen, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { makeTestChart, renderWithChart, renderHookWithChart } from "@jest/testUtilities"

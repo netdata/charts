@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { snapshot, reset } from "@/sdk/plugins/perfMonitor/registry"
 
 const boxStyle = {

@@ -1,4 +1,3 @@
-import React from "react"
 import { TextSmall, Flex } from "@netdata/netdata-ui"
 
 const Info = ({ title, children }) => (

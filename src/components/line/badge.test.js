@@ -1,4 +1,3 @@
-import React from "react"
 import { render, within } from "@testing-library/react"
 import { ThemeProvider } from "styled-components"
 import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui/dist/theme"

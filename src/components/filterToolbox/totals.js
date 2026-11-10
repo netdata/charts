@@ -1,4 +1,3 @@
-import React from "react"
 import { TextMicro } from "@netdata/netdata-ui"
 import checkmark_s from "@netdata/netdata-ui/dist/components/icon/assets/checkmark_s.svg"
 import warning_triangle_hollow from "@netdata/netdata-ui/dist/components/icon/assets/warning_triangle_hollow.svg"
