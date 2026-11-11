@@ -1,4 +1,3 @@
-import React from "react"
 import Icon, { Button } from "@/components/icon"
 import { useMenuItems } from "./moreMenu"
 
