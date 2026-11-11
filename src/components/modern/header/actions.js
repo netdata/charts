@@ -21,6 +21,8 @@ export const MenuEffects = () => {
 const Actions = ({ hasFilters, filtersOpen, onToggleFilters }) => {
   const chart = useChart()
   const moreRef = useRef()
+  const focused = useAttributeValue("focused")
+  const showingInfo = useAttributeValue("showingInfo")
   const settingsTabs = useAttributeValue("settingsTabs") || []
   const [moreMenu, setMoreMenu] = useAttribute("moreMenu")
   const [tabIndex, setTabIndex] = useState(null)
@@ -50,6 +52,7 @@ const Actions = ({ hasFilters, filtersOpen, onToggleFilters }) => {
   }
 
   const tabOpen = tabIndex !== null
+  const visible = focused || menuOpen || tabOpen || filtersOpen || !!showingInfo
   const menuProps = {
     chart,
     onClose: closeMenu,
@@ -60,7 +63,13 @@ const Actions = ({ hasFilters, filtersOpen, onToggleFilters }) => {
   }
 
   return (
-    <Toolbar data-noprint data-testid="chartHeaderToolbox" flex={false}>
+    <Toolbar
+      data-noprint
+      data-testid="chartHeaderToolbox"
+      data-hidden={!visible}
+      opacity={visible ? 1 : 0}
+      flex={false}
+    >
       <MenuEffects />
       <PinnedActions menuProps={menuProps} />
       <Button

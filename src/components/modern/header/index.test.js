@@ -174,14 +174,62 @@ describe("Modern header", () => {
     )
   })
 
-  it("keeps the toolbox visible and reachable without hover or focus", async () => {
-    const { user } = await renderModern({ focused: false })
+  it("hides the toolbox at rest while keeping its space and blocking pointer clicks", async () => {
+    await renderModern({ focused: false })
 
     const toolbox = screen.getByTestId("chartHeaderToolbox")
-    expect(toolbox).not.toHaveAttribute("data-hidden", "true")
-    expect(getComputedStyle(toolbox).opacity).not.toBe("0")
+    expect(toolbox).toHaveAttribute("data-hidden", "true")
+    expect(toolbox).toHaveStyle({ opacity: "0" })
+    expect(toolbox).not.toHaveStyle({ display: "none" })
+    expect(getComputedStyle(toolbox).pointerEvents).toBe("none")
+    expect(within(toolbox).getByTestId("chartHeaderToolbox-more")).toBeInTheDocument()
+  })
+
+  it("reveals the toolbox while the chart is hovered", async () => {
+    const { chart } = await renderModern({ focused: false })
+    const toolbox = screen.getByTestId("chartHeaderToolbox")
+
+    act(() => chart.updateAttribute("focused", true))
+
+    expect(toolbox).toHaveAttribute("data-hidden", "false")
+    expect(toolbox).toHaveStyle({ opacity: "1" })
     expect(getComputedStyle(toolbox).pointerEvents).not.toBe("none")
-    expect(await openMenu(user)).toBeInTheDocument()
+  })
+
+  it("keeps the toolbox visible while the more menu is open", async () => {
+    const { user, chart } = await renderModern({ focused: true })
+    const toolbox = screen.getByTestId("chartHeaderToolbox")
+    await openMenu(user)
+
+    act(() => chart.updateAttribute("focused", false))
+
+    expect(toolbox).toHaveAttribute("data-hidden", "false")
+    expect(toolbox).toHaveStyle({ opacity: "1" })
+  })
+
+  it("keeps the toolbox visible while the filters row is open", async () => {
+    const { user, chart } = await renderModern({ focused: true })
+    const toolbox = screen.getByTestId("chartHeaderToolbox")
+    await user.click(screen.getByTestId("chartHeaderToolbox-filters"))
+
+    act(() => chart.updateAttribute("focused", false))
+    expect(toolbox).toHaveAttribute("data-hidden", "false")
+
+    await user.click(screen.getByTestId("chartHeaderToolbox-filters"))
+    await waitFor(() => expect(toolbox).toHaveAttribute("data-hidden", "true"))
+  })
+
+  it("keeps the toolbox visible while the chart info panel is showing", async () => {
+    const { chart } = await renderModern({
+      focused: false,
+      showingInfo: true,
+      toolboxElements: [Information],
+    })
+
+    expect(screen.getByTestId("chartHeaderToolbox")).toHaveAttribute("data-hidden", "false")
+
+    act(() => chart.updateAttribute("showingInfo", false))
+    expect(screen.getByTestId("chartHeaderToolbox")).toHaveAttribute("data-hidden", "true")
   })
 
   it("leaves toolbox elements without a menu descriptor out of the header and the menu", async () => {
