@@ -1,4 +1,3 @@
-import React from "react"
 import styled from "styled-components"
 import { Flex, TextSmall, getColor } from "@netdata/netdata-ui"
 import chevronExpand from "@netdata/netdata-ui/dist/components/icon/assets/chevron_expand.svg"

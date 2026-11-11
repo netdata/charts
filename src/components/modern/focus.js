@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import { Flex, TextMicro } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart } from "@/components/provider"
 import { Item } from "@/components/modern/menu"

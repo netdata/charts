@@ -1,4 +1,3 @@
-import React from "react"
 import { Flex } from "@netdata/netdata-ui"
 import Line from "@/components/line"
 import GaugeComponent from "@/components/gauge"

@@ -1,4 +1,3 @@
-import React from "react"
 import { TextSmall, Flex, Button, Pill } from "@netdata/netdata-ui"
 import { useAttributeValue } from "@/components/provider"
 

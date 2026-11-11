@@ -1,4 +1,3 @@
-import React from "react"
 import styled from "styled-components"
 import LayerContainer from "@netdata/netdata-ui/dist/components/templates/layer/container"
 import Container, { alignment } from "./container"

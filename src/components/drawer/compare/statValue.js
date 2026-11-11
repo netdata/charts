@@ -1,4 +1,3 @@
-import React from "react"
 import { Flex, Text, TextMicro, TextSmall } from "@netdata/netdata-ui"
 import { stripRateUnit } from "@/helpers/units"
 import { useValueWithUnit } from "@/components/provider"

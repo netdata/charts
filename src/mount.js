@@ -1,4 +1,4 @@
-import React, { useCallback, useSyncExternalStore } from "react"
+import { useCallback, useSyncExternalStore } from "react"
 import { createRoot } from "react-dom/client"
 import { ThemeProvider } from "styled-components"
 import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui"

@@ -1,4 +1,3 @@
-import React from "react"
 import { withChartProvider } from "@/components/provider"
 import withChartTrack from "./withChartTrack"
 import withFullscreen from "./withFullscreen"

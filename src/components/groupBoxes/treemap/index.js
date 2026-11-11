@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import styled from "styled-components"
 import { Box, Drop, Flex } from "@netdata/netdata-ui"
 import { useChart, useAttribute, useAttributeValue } from "@/components/provider"

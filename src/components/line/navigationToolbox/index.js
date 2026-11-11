@@ -1,4 +1,3 @@
-import React from "react"
 import styled from "styled-components"
 import { Flex, getColor, getRgbColor } from "@netdata/netdata-ui"
 import panTool from "@netdata/netdata-ui/dist/components/icon/assets/pan_tool.svg"

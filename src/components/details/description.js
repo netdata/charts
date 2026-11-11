@@ -1,4 +1,3 @@
-import React from "react"
 import { TextSmall } from "@netdata/netdata-ui"
 import { useChart, useAttributeValue, useTitle } from "@/components/provider"
 import Row from "./row"

@@ -1,4 +1,4 @@
-import React, { Fragment } from "react"
+import { Fragment } from "react"
 import { Flex, TextMicro } from "@netdata/netdata-ui"
 import { useAttributeValue } from "@/components/provider"
 

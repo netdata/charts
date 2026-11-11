@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from "react"
+import { memo, useMemo } from "react"
 import { TextMicro } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart, useIsMinimal } from "@/components/provider"
 import AggrAvg from "@netdata/netdata-ui/dist/components/icon/assets/aggregation_avg.svg"

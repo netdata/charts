@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useMemo, useRef } from "react"
+import { useLayoutEffect, useMemo, useRef } from "react"
 import ChartProvider from "@/components/provider"
 import makeDefaultSDK from "@/makeDefaultSDK"
 import deepEqual from "@/helpers/deepEqual"

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react"
+import { useMemo } from "react"
 import { useChart, usePayload } from "@/components/provider"
 import { isWindowActive } from "@/helpers/valueFocus"
 

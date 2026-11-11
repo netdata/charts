@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import { Sparkline, arcPath, polar, wave, format } from "./primitives"
 import { themes, font, Icon, icons } from "./chartCard"
 

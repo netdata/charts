@@ -1,5 +1,4 @@
 import uPlot from "uplot"
-import React from "react"
 import { render, screen, act } from "@testing-library/react"
 import { ThemeProvider } from "styled-components"
 import { Flex, DefaultTheme } from "@netdata/netdata-ui"
@@ -5397,11 +5396,13 @@ describe("uplotChart bar fill styles", () => {
     const quadratic = jest.fn()
     const quadraticCurveTo = u.ctx.quadraticCurveTo
     u.ctx.quadraticCurveTo = quadratic
+    u.ctx.roundRect = undefined
     await redraw(u)
 
     expect(quadratic).toHaveBeenCalledTimes(rows.length * 2)
     expect(calls.gradientFills()).toHaveLength(rows.length * 2)
 
+    delete u.ctx.roundRect
     u.ctx.quadraticCurveTo = quadraticCurveTo
     calls.restore()
     teardown()

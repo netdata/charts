@@ -1,4 +1,3 @@
-import React from "react"
 import FiltersContainer from "./filtersContainer"
 import Filters from "./filters"
 import withLoader from "./withLoader"

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef } from "react"
 import ReactDOM from "react-dom"
 import { useAttributeValue } from "@/components/provider"
 import DropContainer from "@netdata/netdata-ui/dist/components/drops/drop/container"

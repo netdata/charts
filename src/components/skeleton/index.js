@@ -1,4 +1,4 @@
-import React, { useId } from "react"
+import { useId } from "react"
 import styled, { keyframes } from "styled-components"
 import { Box, Flex } from "@netdata/netdata-ui"
 import reducedMotion from "@/components/helpers/reducedMotion"

@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from "react"
+import { memo, useMemo } from "react"
 import { Flex, Menu } from "@netdata/netdata-ui"
 import dragHorizontalIcon from "@netdata/netdata-ui/dist/components/icon/assets/drag_horizontal.svg"
 import dragVerticalIcon from "@netdata/netdata-ui/dist/components/icon/assets/drag_vertical.svg"

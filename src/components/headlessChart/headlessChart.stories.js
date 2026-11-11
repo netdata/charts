@@ -1,4 +1,3 @@
-import React from "react"
 import { Flex, Text, Table } from "@netdata/netdata-ui"
 import { uppercase } from "@/helpers/objectTransform"
 import useHeadlessChart from "./useHeadlessChart"

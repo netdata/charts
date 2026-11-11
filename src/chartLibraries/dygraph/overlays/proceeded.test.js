@@ -1,4 +1,3 @@
-import React from "react"
 import { renderWithChart } from "@jest/testUtilities"
 import proceeded from "./proceeded"
 

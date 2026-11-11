@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useLayoutEffect, useRef } from "react"
+import { memo, useCallback, useLayoutEffect, useRef } from "react"
 import { Box } from "@netdata/netdata-ui"
 
 const defaultWidth = 120

@@ -1,4 +1,3 @@
-import React from "react"
 import { Flex, TextMicro } from "@netdata/netdata-ui"
 
 const ChangeIndicator = ({ change }) => {

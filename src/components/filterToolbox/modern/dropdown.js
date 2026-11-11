@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react"
+import { useEffect, useState, useMemo, useCallback } from "react"
 import styled, { ThemeProvider, useTheme } from "styled-components"
 import {
   Flex,

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import styled from "styled-components"
 import { Flex, TextMicro } from "@netdata/netdata-ui"
 import { useAttributeValue, useUnitSign } from "@/components/provider"

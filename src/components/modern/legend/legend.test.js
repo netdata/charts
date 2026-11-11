@@ -1,4 +1,3 @@
-import React from "react"
 import { act, fireEvent, screen, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { DefaultTheme } from "@netdata/netdata-ui/dist/theme"

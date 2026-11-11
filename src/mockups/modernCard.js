@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { format, points, stats } from "./primitives"
 import {
   Icon,

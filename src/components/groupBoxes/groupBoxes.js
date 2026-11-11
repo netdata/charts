@@ -1,4 +1,4 @@
-import React, { memo, useRef } from "react"
+import { memo, useRef } from "react"
 import { Box, Flex, TextMicro } from "@netdata/netdata-ui"
 import { useAttributeValue, useColor, useIsModern } from "@/components/provider"
 import Details from "@/components/details"

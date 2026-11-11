@@ -1,4 +1,4 @@
-import React, { Fragment } from "react"
+import { Fragment } from "react"
 import { Flex } from "@netdata/netdata-ui"
 import { useAttributeValue, useIsMinimal, useIsModern } from "@/components/provider"
 import Toolbox from "@/components/toolbox"

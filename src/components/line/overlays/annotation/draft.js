@@ -1,4 +1,4 @@
-import React, { memo } from "react"
+import { memo } from "react"
 import Icon, { Button } from "@/components/icon"
 import { useAttributeValue, useChart, useIsModern } from "@/components/provider"
 import Tooltip from "@/components/tooltip"

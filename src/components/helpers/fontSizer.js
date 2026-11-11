@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef } from "react"
 
 export const findFittedFontSize = ({ minFontSize, maxFontSize, fits }) => {
   if (maxFontSize <= minFontSize || fits(maxFontSize)) return maxFontSize

@@ -1,4 +1,3 @@
-import React from "react"
 import { act, render, screen, waitFor } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { Dark, Light } from "./legend.stories"

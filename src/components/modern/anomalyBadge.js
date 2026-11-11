@@ -1,4 +1,4 @@
-import React, { useEffect } from "react"
+import { useEffect } from "react"
 import styled from "styled-components"
 import { Flex, TextMicro, TextSmall } from "@netdata/netdata-ui"
 import anomalyBadgeIcon from "@netdata/netdata-ui/dist/components/icon/assets/anomaly_badge.svg"
