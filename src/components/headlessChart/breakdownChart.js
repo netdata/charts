@@ -1,4 +1,3 @@
-import React from "react"
 import { Flex, TextSmall } from "@netdata/netdata-ui"
 import HeadlessChart from "."
 import useGroupedChart from "./useGroupedChart"

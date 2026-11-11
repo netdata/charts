@@ -1,4 +1,4 @@
-import React, { useMemo } from "react"
+import { useMemo } from "react"
 import { Flex } from "@netdata/netdata-ui"
 import { useInitialLoading, useEmpty, useChartError } from "@/components/provider"
 import Badge from "@/components/line/badge"

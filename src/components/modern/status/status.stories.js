@@ -1,4 +1,3 @@
-import React from "react"
 import { ThemeProvider } from "styled-components"
 import { Flex, DefaultTheme, DarkTheme, TextSmall } from "@netdata/netdata-ui"
 import StatusIndicator, { getClearDescription } from "./index"

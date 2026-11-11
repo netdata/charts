@@ -1,4 +1,3 @@
-import React from "react"
 import styled from "styled-components"
 import { Box, Flex, TextMicro, getColor } from "@netdata/netdata-ui"
 import { labels as annotationLabels } from "@/helpers/annotations"

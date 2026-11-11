@@ -1,4 +1,4 @@
-import React, { memo } from "react"
+import { memo } from "react"
 import Icon, { Button } from "@/components/icon"
 import zoomInIcon from "@netdata/netdata-ui/dist/components/icon/assets/zoom_in.svg"
 import { useChart } from "@/components/provider"

@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, memo } from "react"
+import { useRef, useCallback, memo } from "react"
 import styled, { keyframes } from "styled-components"
 import { Flex } from "@netdata/netdata-ui"
 import { useHeadlessChart } from "@/components/headlessChart"

@@ -1,4 +1,3 @@
-import React from "react"
 import { act, renderHook, waitFor } from "@testing-library/react"
 import useData from "./useData"
 import { makeTestChart } from "@jest/testUtilities"

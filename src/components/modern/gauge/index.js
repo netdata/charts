@@ -1,4 +1,3 @@
-import React from "react"
 import { useTheme } from "styled-components"
 import { Flex, getColor } from "@netdata/netdata-ui"
 import ChartContainer from "@/components/chartContainer"

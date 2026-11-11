@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef, useState } from "react"
+import { useLayoutEffect, useRef, useState } from "react"
 import { Flex } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart, useImmediateListener } from "@/components/provider"
 import { unregister } from "@/helpers/makeListeners"

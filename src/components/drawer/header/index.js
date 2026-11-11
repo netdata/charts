@@ -1,4 +1,3 @@
-import React from "react"
 import { Flex, Button, IconButton } from "@netdata/netdata-ui"
 import Tooltip from "@/components/tooltip"
 import { useChart, useAttributeValue } from "@/components/provider"

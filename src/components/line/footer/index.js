@@ -1,4 +1,3 @@
-import React from "react"
 import { Flex } from "@netdata/netdata-ui"
 import Legend from "@/components/line/legend"
 import HeatmapColors from "@/components/line/legend/heatmapColors"

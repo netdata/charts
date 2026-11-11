@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { ThemeProvider } from "styled-components"
 import { Button, Flex, DefaultTheme, DarkTheme } from "@netdata/netdata-ui"
 import Line from "@/components/line"

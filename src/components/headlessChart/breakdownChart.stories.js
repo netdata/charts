@@ -1,4 +1,3 @@
-import React from "react"
 import { Flex, Text } from "@netdata/netdata-ui"
 import makeDefaultSDK from "../../makeDefaultSDK"
 import useGroupedChart from "./useGroupedChart"

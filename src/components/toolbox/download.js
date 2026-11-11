@@ -1,4 +1,4 @@
-import React, { memo } from "react"
+import { memo } from "react"
 import { Menu } from "@netdata/netdata-ui"
 import downloadSVG from "@netdata/netdata-ui/dist/components/icon/assets/download.svg"
 import Icon, { Button } from "@/components/icon"

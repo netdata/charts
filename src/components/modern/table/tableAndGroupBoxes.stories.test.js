@@ -1,4 +1,3 @@
-import React from "react"
 import { act, render, screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import stories, { Light, Dark, DefaultFlavourForComparison } from "./tableAndGroupBoxes.stories"

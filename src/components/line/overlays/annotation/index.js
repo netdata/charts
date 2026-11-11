@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState } from "react"
+import { memo, useEffect, useState } from "react"
 import Icon, { Button } from "@/components/icon"
 import { useAttributeValue, useChart, useChartUI } from "@/components/provider"
 import Tooltip from "@/components/tooltip"

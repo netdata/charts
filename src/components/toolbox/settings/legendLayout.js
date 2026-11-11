@@ -1,4 +1,3 @@
-import React from "react"
 import { Flex, TextSmall, TextMicro, Select } from "@netdata/netdata-ui"
 import Tooltip from "@/components/tooltip"
 import { useAttribute, useAttributeValue, useIsModern } from "@/components/provider"

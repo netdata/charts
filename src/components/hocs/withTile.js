@@ -1,4 +1,3 @@
-import React from "react"
 import styled from "styled-components"
 import { Box, Flex, Text } from "@netdata/netdata-ui"
 import anomalyBadge from "@netdata/netdata-ui/dist/components/icon/assets/anomaly_badge.svg"

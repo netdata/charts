@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from "react"
+import { memo, useMemo } from "react"
 import styled from "styled-components"
 import { Box, Flex, TextMicro, TextSmall, getReadableColor } from "@netdata/netdata-ui"
 import reducedMotion from "@/components/helpers/reducedMotion"

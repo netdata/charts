@@ -1,4 +1,4 @@
-import React, { memo } from "react"
+import { memo } from "react"
 import { useAttributeValue, useChart } from "@/components/provider"
 import Dropdown from "./dropdownSingleSelect"
 

@@ -1,4 +1,3 @@
-import React from "react"
 import { screen, act } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { DarkTheme, DefaultTheme } from "@netdata/netdata-ui"

@@ -1,5 +1,3 @@
-import React from "react"
-
 export const points = 120
 
 export const wave = ({ center, amplitude, cycles = 2, phase = 0, noise = 0.12, seed = 1 }) =>

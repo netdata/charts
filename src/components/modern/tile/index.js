@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import styled, { css } from "styled-components"
 import { Box, Flex, getColor } from "@netdata/netdata-ui"
 import {

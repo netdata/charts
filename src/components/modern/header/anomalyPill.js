@@ -1,4 +1,3 @@
-import React from "react"
 import styled from "styled-components"
 import { Flex, getReadableColor } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart, usePayload } from "@/components/provider"

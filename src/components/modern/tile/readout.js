@@ -1,4 +1,4 @@
-import React, { useRef } from "react"
+import { useRef } from "react"
 import styled from "styled-components"
 import { Box, Flex, TextSmall, getColor } from "@netdata/netdata-ui"
 import {

@@ -1,4 +1,3 @@
-import React from "react"
 import { FontLink } from "./primitives"
 import { themes } from "./chartCard"
 import { ModernCard } from "./modernCard"

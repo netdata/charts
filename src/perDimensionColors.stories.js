@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { Flex, Text, TextSmall, Button } from "@netdata/netdata-ui"
 import { Color } from "@/components/line/dimensions/color"
 import makeDefaultSDK from "./makeDefaultSDK"

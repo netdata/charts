@@ -1,4 +1,3 @@
-import React from "react"
 import styled from "styled-components"
 import { Flex, TextMicro, TextSmall } from "@netdata/netdata-ui"
 import { useValueWithUnit } from "@/components/provider"

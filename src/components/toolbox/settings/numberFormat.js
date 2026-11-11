@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { Flex, TextSmall, TextInput, Select } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart } from "@/components/provider"
 import { getScales, getUnitConfig, isScalable } from "@/helpers/units"

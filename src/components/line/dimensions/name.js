@@ -1,4 +1,4 @@
-import React, { memo } from "react"
+import { memo } from "react"
 import { TextSmall } from "@netdata/netdata-ui"
 import { useChart } from "@/components/provider"
 import Shortener from "@/components/helpers/shortener"

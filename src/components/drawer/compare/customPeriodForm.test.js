@@ -1,5 +1,4 @@
 import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui/dist/theme"
-import React from "react"
 import { screen, fireEvent } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { renderWithChart } from "@jest/testUtilities"

@@ -1,4 +1,3 @@
-import React from "react"
 import styled, { keyframes, css } from "styled-components"
 import { getColor } from "@netdata/netdata-ui"
 import loading from "@netdata/netdata-ui/dist/components/icon/assets/loading.svg"

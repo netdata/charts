@@ -1,4 +1,3 @@
-import React from "react"
 import useForwardRef from "@netdata/netdata-ui/dist/hooks/useForwardRef"
 import useHover from "@/components/useHover"
 import withChart from "@/components/hocs/withChart"

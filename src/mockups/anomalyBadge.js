@@ -1,4 +1,3 @@
-import React from "react"
 import { format } from "./primitives"
 import { themes, font, timeAt } from "./chartCard"
 import { AnomalyCard, anomalyRates, rateColor } from "./anomalyRibbon"

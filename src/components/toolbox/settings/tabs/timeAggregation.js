@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from "react"
+import { memo, useMemo } from "react"
 import { Flex, TextSmall, Select } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart } from "@/components/provider"
 import { useMenuItems } from "@/components/filterToolbox/timeAggregation"

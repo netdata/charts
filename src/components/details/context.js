@@ -1,4 +1,3 @@
-import React from "react"
 import { useAttributeValue } from "@/components/provider"
 import Row from "./row"
 import Info from "./info"

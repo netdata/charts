@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef } from "react"
+import { useLayoutEffect, useRef } from "react"
 import styled from "styled-components"
 import { Flex } from "@netdata/netdata-ui"
 import { useChart, useLatestValue } from "@/components/provider"

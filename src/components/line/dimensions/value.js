@@ -1,4 +1,3 @@
-import React from "react"
 import { TextSmall } from "@netdata/netdata-ui"
 import { useDisplayConvertedValue } from "@/components/provider"
 

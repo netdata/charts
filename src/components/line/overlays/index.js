@@ -1,4 +1,4 @@
-import React, { memo } from "react"
+import { memo } from "react"
 import { useAttributeValue } from "@/components/provider"
 import { Fragment } from "react"
 import types from "./types"

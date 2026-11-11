@@ -1,4 +1,4 @@
-import React, { useCallback, useLayoutEffect, useMemo, useRef } from "react"
+import { useCallback, useLayoutEffect, useMemo, useRef } from "react"
 import { Flex, Table, Text, TextBig } from "@netdata/netdata-ui"
 import { useChart, useAttributeValue } from "@/components/provider/selectors"
 import useData from "./useData"

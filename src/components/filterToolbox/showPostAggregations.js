@@ -1,4 +1,3 @@
-import React from "react"
 import { useChart, useAttributeValue } from "@/components/provider/selectors"
 import Label from "./label"
 

@@ -1,4 +1,4 @@
-import React, { memo } from "react"
+import { memo } from "react"
 import { TextMicro } from "@netdata/netdata-ui"
 import { useUnitSign, useValueUnitAttributes } from "@/components/provider"
 

@@ -1,4 +1,3 @@
-import React from "react"
 import { Flex, Layer } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart } from "@/components/provider"
 

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react"
+import { useMemo } from "react"
 import styled from "styled-components"
 import { TextMicro } from "@netdata/netdata-ui"
 import { useChart } from "@/components/provider"

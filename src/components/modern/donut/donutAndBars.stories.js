@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import { ThemeProvider } from "styled-components"
 import { Flex, DefaultTheme, DarkTheme, TextSmall, TextMicro } from "@netdata/netdata-ui"
 import D3pie from "@/components/d3pie"

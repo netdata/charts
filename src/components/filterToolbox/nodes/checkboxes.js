@@ -1,4 +1,3 @@
-import React from "react"
 import noop from "lodash/noop"
 import styled from "styled-components"
 import {

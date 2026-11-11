@@ -1,10 +1,10 @@
-const globals = require("globals")
-const pluginJs = require("@eslint/js")
-const pluginReact = require("eslint-plugin-react")
-const storybook = require("eslint-plugin-storybook")
-const translationSafeText = require("./eslint/rules/translationSafeText")
+import globals from "globals"
+import pluginJs from "@eslint/js"
+import eslintReact from "@eslint-react/eslint-plugin"
+import storybook from "eslint-plugin-storybook"
+import translationSafeText from "./eslint/rules/translationSafeText.js"
 
-module.exports = [
+export default [
   { files: ["**/*.{js,mjs,cjs,jsx}"] },
   {
     languageOptions: {
@@ -18,15 +18,9 @@ module.exports = [
     },
   },
   pluginJs.configs.recommended,
-  pluginReact.configs.flat.recommended,
+  eslintReact.configs.recommended,
   ...storybook.configs["flat/recommended"],
-  {
-    rules: {
-      "react/jsx-filename-extension": [1, { extensions: [".js", ".jsx"] }],
-      "react/prop-types": "off",
-      "react/display-name": "off",
-    },
-  },
+  { rules: { "@eslint-react/exhaustive-deps": "off" } },
   {
     files: ["src/**/*.{js,jsx}"],
     ignores: ["**/*.test.js", "**/*.stories.js"],

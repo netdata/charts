@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from "react"
+import { memo, useMemo } from "react"
 import { Flex, TextSmall, Select } from "@netdata/netdata-ui"
 import lineChart from "@netdata/netdata-ui/dist/components/icon/assets/line_chart2.svg"
 import stackedChart from "@netdata/netdata-ui/dist/components/icon/assets/stacked_chart.svg"

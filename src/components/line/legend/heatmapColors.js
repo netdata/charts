@@ -1,4 +1,3 @@
-import React from "react"
 import styled from "styled-components"
 import { TextNano, Flex } from "@netdata/netdata-ui"
 import { useChart, useAttributeValue, useUnitSign } from "@/components/provider"

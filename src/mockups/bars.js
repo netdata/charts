@@ -1,4 +1,3 @@
-import React from "react"
 import { themes, font } from "./chartCard"
 
 const numerals = "'IBM Plex Sans Condensed', 'IBM Plex Sans', system-ui, sans-serif"

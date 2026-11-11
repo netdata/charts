@@ -1,4 +1,3 @@
-import React from "react"
 import { Flex, Text } from "@netdata/netdata-ui"
 import Controls from "./controls"
 import Table from "./table"

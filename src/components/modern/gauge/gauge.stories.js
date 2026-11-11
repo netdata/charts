@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import { ThemeProvider } from "styled-components"
 import { Flex, DefaultTheme, DarkTheme, TextSmall } from "@netdata/netdata-ui"
 import GaugeComponent from "@/components/gauge"
