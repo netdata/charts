@@ -1,4 +1,4 @@
-import { getSearchableNodeName } from "@/helpers/nodeDisplayName"
+import { getNodeDisplayName } from "@/helpers/nodeDisplayName"
 
 const requiredGroupFields = ["dimension", "context", "node"]
 
@@ -43,9 +43,8 @@ const transformItem = (item, indexes, chart) => {
     context,
     contextName: names[indexes.context],
     nodeId,
-    nodeName: chart
-      ? getSearchableNodeName(chart, nodeId, names[indexes.node])
-      : names[indexes.node],
+    nodeName: chart ? getNodeDisplayName(chart, nodeId, names[indexes.node]) : names[indexes.node],
+    nodeRawName: names[indexes.node],
     correlationWeight,
     weightMin: weight[0],
     weightMax: weight[2],

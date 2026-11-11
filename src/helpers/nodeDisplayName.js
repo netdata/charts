@@ -32,9 +32,3 @@ export const getNodeDisplayName = (chart, nodeId, fallback) => {
 
   return nodesById?.[nodeId]?.name || nodesById?.[resolveNodeKey(chart, nodeId)]?.name || fallback
 }
-
-export const getSearchableNodeName = (chart, nodeId, hostname) => {
-  const alias = getNodeDisplayName(chart, nodeId)
-
-  return alias && hostname && alias !== hostname ? `${alias} (${hostname})` : hostname
-}

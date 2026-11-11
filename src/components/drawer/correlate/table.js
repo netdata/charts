@@ -41,7 +41,7 @@ const CorrelationTable = ({ data }) => {
             matchesSearch(
               row.kind === "context"
                 ? [row.contextName]
-                : [row.dimensionName, row.nodeName, row.context],
+                : [row.dimensionName, row.nodeName, row.nodeRawName, row.context],
               search
             )
           )

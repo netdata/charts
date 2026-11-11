@@ -22,10 +22,10 @@ const openDropdown = async (Component, attributes) => {
 }
 
 describe("node alias in the filter dropdowns", () => {
-  it("shows the alias with the hostname in the nodes table and keeps selection ids", async () => {
+  it("shows only the alias in the nodes table and keeps selection ids", async () => {
     const chart = await openDropdown(Nodes, { nodesById: aliases })
 
-    fireEvent.click(screen.getByText("Billing DB (prod-db-1)"))
+    fireEvent.click(screen.getByText("Billing DB"))
     await act(async () => fireEvent.click(screen.getByTestId("modern-filter-apply")))
 
     expect(chart.getAttribute("selectedNodes")).toEqual(["nd-prod-db-1"])
@@ -37,11 +37,26 @@ describe("node alias in the filter dropdowns", () => {
 
     fireEvent.change(search, { target: { value: "billing" } })
     await waitFor(() => expect(screen.queryByText("prod-edge-1")).not.toBeInTheDocument())
-    expect(screen.getByText("Billing DB (prod-db-1)")).toBeInTheDocument()
+    expect(screen.getByText("Billing DB")).toBeInTheDocument()
+    expect(screen.queryByText("prod-db-1")).not.toBeInTheDocument()
 
     fireEvent.change(search, { target: { value: "prod-db" } })
     await waitFor(() => expect(screen.queryByText("prod-edge-1")).not.toBeInTheDocument())
-    expect(screen.getByText("Billing DB (prod-db-1)")).toBeInTheDocument()
+    expect(screen.getByText("Billing DB")).toBeInTheDocument()
+    expect(screen.queryByText("prod-db-1")).not.toBeInTheDocument()
+  })
+
+  it("keeps a node row when only one of its instances matches the search", async () => {
+    await openDropdown(Nodes, { nodesById: aliases })
+    const search = screen.getByPlaceholderText("Search 6 nodes")
+
+    fireEvent.change(search, { target: { value: "system.load@Billing" } })
+    await waitFor(() => expect(screen.queryByText("prod-edge-1")).not.toBeInTheDocument())
+    expect(screen.getByText("Billing DB")).toBeInTheDocument()
+
+    fireEvent.change(search, { target: { value: "system.load@prod-db" } })
+    await waitFor(() => expect(screen.queryByText("prod-edge-1")).not.toBeInTheDocument())
+    expect(screen.getByText("Billing DB")).toBeInTheDocument()
   })
 
   it("keeps hostnames when no node has an alias", async () => {
@@ -50,12 +65,20 @@ describe("node alias in the filter dropdowns", () => {
     expect(screen.getByText("prod-db-1")).toBeInTheDocument()
   })
 
-  it("shows the alias on the instance rows of a node and in the instances table", async () => {
+  it("shows only the alias on instance rows and finds them by hostname", async () => {
     await openDropdown(Instances, { nodesById: aliases })
     const dropdown = screen.getByTestId("modern-filter-dropdown")
 
-    expect(within(dropdown).getByText("system.load@Billing DB (prod-db-1)")).toBeInTheDocument()
+    expect(within(dropdown).getByText("system.load@Billing DB")).toBeInTheDocument()
     expect(within(dropdown).getByText("system.load@prod-edge-1")).toBeInTheDocument()
+
+    fireEvent.change(screen.getByPlaceholderText(/^Search \d+ instances$/), {
+      target: { value: "prod-db" },
+    })
+    await waitFor(() =>
+      expect(within(dropdown).queryByText("system.load@prod-edge-1")).not.toBeInTheDocument()
+    )
+    expect(within(dropdown).getByText("system.load@Billing DB")).toBeInTheDocument()
   })
 
   it("shows a changed alias without a refetch", async () => {
@@ -65,6 +88,6 @@ describe("node alias in the filter dropdowns", () => {
       chart.updateAttribute("nodesById", { "nd-prod-db-1": { name: "Ledger DB", labels: {} } })
     )
 
-    expect(await screen.findByText("Ledger DB (prod-db-1)")).toBeInTheDocument()
+    expect(await screen.findByText("Ledger DB")).toBeInTheDocument()
   })
 })

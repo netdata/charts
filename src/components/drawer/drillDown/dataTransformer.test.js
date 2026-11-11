@@ -555,7 +555,8 @@ describe("dataTransformer", () => {
 
     const [item] = transformWeightsData(weightsResponse, ["dimension", "context", "node"], chart)
 
-    expect(item.groupedByNames.node).toBe("Billing (Production node)")
+    expect(item.groupedByNames.node).toBe("Billing")
+    expect(item.groupedByRawNames.node).toBe("Production node")
     expect(item.groupedBy.node).toBe(firstNodeId)
     expect(item.nm).toBe("load1,system.load,lab-cloud-unpaid")
 
@@ -582,7 +583,8 @@ describe("dataTransformer", () => {
 
     const [item] = transformWeightsData(response, ["dimension", "context", "node"], claimedChart)
 
-    expect(item.groupedByNames.node).toBe("Billing (host-1)")
+    expect(item.groupedByNames.node).toBe("Billing")
+    expect(item.groupedByRawNames.node).toBe("host-1")
     expect(item.groupedBy.node).toBe("mg-1")
   })
 

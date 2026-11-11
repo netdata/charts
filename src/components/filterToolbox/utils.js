@@ -1,4 +1,4 @@
-import { getSearchableNodeName } from "@/helpers/nodeDisplayName"
+import { getNodeDisplayName } from "@/helpers/nodeDisplayName"
 
 const getValueOrZero = (obj, attr) => (obj ? obj?.[attr] || 0 : 0)
 
@@ -18,7 +18,7 @@ const getAlertsCount = obj => {
 }
 
 export const getNodeLabel = (chart, nodeId, node) => {
-  const label = getSearchableNodeName(chart, nodeId, node.nm)
+  const label = getNodeDisplayName(chart, nodeId, node.nm)
 
   return label !== node.nm ? label : undefined
 }
@@ -27,9 +27,27 @@ export const getInstanceLabel = (chart, nodeId, node, instance) => {
   const suffix = `@${node.nm}`
   if (!node.nm || !instance.nm?.endsWith(suffix)) return undefined
 
-  const label = getSearchableNodeName(chart, nodeId, node.nm)
+  const label = getNodeDisplayName(chart, nodeId, node.nm)
 
   return label !== node.nm ? `${instance.nm.slice(0, -suffix.length)}@${label}` : undefined
+}
+
+const includesSearch = (value, search) => {
+  const text = value?.toString?.()
+  if (typeof text !== "string") return false
+
+  return text.toLowerCase().includes(search)
+}
+
+export const matchesRowLabel = (row, columnId, query) => {
+  const search = query ? query.toLowerCase() : ""
+  const rawLabel = columnId === "label" ? row.original?.rawLabel : undefined
+  const found = includesSearch(row.getValue(columnId), search) || includesSearch(rawLabel, search)
+
+  if (!found && row.subRows.length)
+    return row.subRows.some(subRow => matchesRowLabel(subRow, columnId, query))
+
+  return found
 }
 
 export const getStats = (
@@ -39,8 +57,11 @@ export const getStats = (
 ) => {
   const { getValue, getLabel, getIsSelected, ...rest } = props
 
+  const aliasLabel = getLabel?.(obj)
+
   return {
-    label: getLabel?.(obj) || obj.nm || id || obj.id,
+    label: aliasLabel || obj.nm || id || obj.id,
+    rawLabel: aliasLabel && !aliasLabel.includes(obj.nm) ? obj.nm : undefined,
     value: getValue?.(obj) || id || obj.id,
     "data-track": chart.track(`${key}-${id || obj.id || obj.nm}`),
     unique: children.length,

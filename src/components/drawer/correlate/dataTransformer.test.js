@@ -82,14 +82,18 @@ describe("transformCorrelationData", () => {
     expect(transformCorrelationData(response, 0.01)).toHaveLength(1)
   })
 
-  it("shows the node alias with the hostname and keeps the node id", () => {
+  it("shows only the node alias and keeps the node id and hostname", () => {
     const { chart } = makeTestChart({
       attributes: { nodesById: { "node-id": { name: "Billing", labels: {} } } },
     })
 
     const [result] = transformCorrelationData(makeResponse([makeItem()]), 0.01, [], chart)
 
-    expect(result).toMatchObject({ nodeId: "node-id", nodeName: "Billing (Node name)" })
+    expect(result).toMatchObject({
+      nodeId: "node-id",
+      nodeName: "Billing",
+      nodeRawName: "Node name",
+    })
   })
 })
 
@@ -108,7 +112,7 @@ describe("transformCorrelationData with machine guid node ids", () => {
       chart
     )
 
-    expect(result).toMatchObject({ nodeId: "mg-1", nodeName: "Billing (Node name)" })
+    expect(result).toMatchObject({ nodeId: "mg-1", nodeName: "Billing", nodeRawName: "Node name" })
   })
 
   it("keeps the hostname when the entry has no alias", () => {

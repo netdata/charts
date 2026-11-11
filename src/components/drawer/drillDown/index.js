@@ -75,7 +75,7 @@ const DrillDown = () => {
   const displayData = useMemo(
     () =>
       searching
-        ? searchableData.filter(row => matchesSearch([row.label], search))
+        ? searchableData.filter(row => matchesSearch([row.label, row.rawLabel], search))
         : hierarchicalData,
     [hierarchicalData, search, searchableData, searching]
   )
