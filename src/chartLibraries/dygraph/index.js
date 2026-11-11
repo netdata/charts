@@ -2,7 +2,12 @@ import Dygraph from "dygraphs"
 import makeChartUI from "@/sdk/makeChartUI"
 import makeResizeObserver from "@/helpers/makeResizeObserver"
 import makeExecuteLatest from "@/helpers/makeExecuteLatest"
-import { isHeatmap } from "@/helpers/heatmap"
+import {
+  isHeatmap,
+  getHeatmapRowsRange,
+  snapHeatmapRange,
+  getHeatmapLabelOffset,
+} from "@/helpers/heatmap"
 import {
   makeLinePlotter,
   makeStackedAreaPlotter,
@@ -16,7 +21,7 @@ import { numericTicker, heatmapTicker } from "./tickers"
 import makeNavigation from "./navigation"
 import makeHoverX from "./hoverX"
 import makeOverlays from "./overlays"
-import crosshair from "./crosshair"
+import crosshair, { drawCrosshairLine, clearInteractionLayer, drawHoverCell } from "./crosshair"
 import { makeDivergingStackedDataHandler } from "./divergingStack"
 import makeDygraphWithoutLegend from "./makeDygraph"
 import { makeReusableLineDataHandler } from "./reusableLineDataHandler"
@@ -164,21 +169,42 @@ export default (sdk, chart) => {
             : chart.getAttribute("unitsConversionFractionDigits")[0],
       })
 
+    const getClickRow = dimensions =>
+      Array.isArray(dimensions) &&
+      isInXRange(dimensions[0], dygraph.xAxisRange(), chart.getAttribute("viewUpdateEvery"))
+        ? chart.getClosestRow(dimensions[0])
+        : -1
+
+    const hasHoverCell = () => isHeatmap(chart) && !!chart.getAttribute("heatmapHoverCell")
+
+    const redrawInteraction = () => {
+      clearInteractionLayer(instance)
+
+      const hoverX = chart.getAttribute("hoverX")
+      const row = Array.isArray(hoverX) ? chart.getClosestRow(hoverX[0]) : -1
+
+      if (row === -1) dygraph.setSelection()
+      else crosshair(instance, row)
+
+      const clickRow = getClickRow(chart.getAttribute("clickX"))
+      if (clickRow !== -1) drawCrosshairLine(instance, clickRow, "click")
+      if (row !== -1 && hasHoverCell()) drawHoverCell(instance, hoverX[0], hoverX[1])
+    }
+
     listeners = [
       chartUI.on("resize", () => dygraph.resize()),
       chart.onAttributeChange("hoverX", dimensions => {
-        const row = Array.isArray(dimensions) ? chart.getClosestRow(dimensions[0]) : -1
+        if (hasHoverCell()) return redrawInteraction()
 
+        const row = Array.isArray(dimensions) ? chart.getClosestRow(dimensions[0]) : -1
         if (row === -1) return dygraph.setSelection()
 
         crosshair(instance, row)
       }),
       chart.onAttributeChange("clickX", dimensions => {
-        const row =
-          Array.isArray(dimensions) &&
-          isInXRange(dimensions[0], dygraph.xAxisRange(), chart.getAttribute("viewUpdateEvery"))
-            ? chart.getClosestRow(dimensions[0])
-            : -1
+        if (hasHoverCell()) return redrawInteraction()
+
+        const row = getClickRow(dimensions)
 
         if (row === -1) return dygraph.setSelection()
 
@@ -197,6 +223,11 @@ export default (sdk, chart) => {
         updateOptions(makeThemingOptions())
       }),
       chart.onAttributeChange("chartType", () => {
+        if (chart.getAttribute("processing")) return
+
+        updateOptions(makeChartTypeOptions())
+      }),
+      chart.onAttributeChange("heatmapBucketUnit", () => {
         if (chart.getAttribute("processing")) return
 
         updateOptions(makeChartTypeOptions())
@@ -229,11 +260,25 @@ export default (sdk, chart) => {
         const [min, max] = staticValueRange
         updateOptions({
           valueRange: isHeatmap(attributes.chartType)
-            ? [Math.ceil(min), Math.ceil(max)]
+            ? snapHeatmapRange([min, max], chart.getVisibleHeatmapIds().length)
             : attributes.getValueRange(chart, { dygraph: true }),
         })
       }),
       chart.onAttributeChange("timezone", () => updateOptions({})),
+      chart.onAttributeChange("heatmapCellGap", () => updateOptions({})),
+      chart.onAttributeChange("heatmapPalette", () => updateOptions({})),
+      chart.onAttributeChange("heatmapMarkedCell", () => {
+        updateOptions({})
+        redrawInteraction()
+      }),
+      chart.onAttributeChange("heatmapHoverCell", redrawInteraction),
+      chart.onAttributeChange("heatmapHoverColor", redrawInteraction),
+      chart.onAttributeChange("heatmapColorScale", () => updateOptions({})),
+      chart.onAttributeChange("heatmapKeepEmptyRows", () => {
+        if (chart.getAttribute("processing")) return
+
+        updateOptions({ ...makeDataOptions(), ...makeChartTypeOptions() })
+      }),
     ].filter(Boolean)
 
     overlays.toggle()
@@ -377,6 +422,7 @@ export default (sdk, chart) => {
       ? makeYTicker({
           labels: chart.getVisibleHeatmapIds?.() || chart.getVisibleDimensionIds(),
           scale: chart.getHeatmapScale?.(),
+          labelOffset: getHeatmapLabelOffset(chart),
           secondsAsTime: chart.getAttribute("secondsAsTime"),
           units: chart.getVisibleDimensionIds().map(id => chart.getDimensionUnit(id)),
         })
@@ -463,11 +509,11 @@ export default (sdk, chart) => {
       file: isEmpty ? [[0]] : data,
       labels: isEmpty ? ["X"] : labels,
       dateWindow,
-      valueRange: staticValueRange
+      valueRange: isHeatmap(chartType)
         ? staticValueRange
-        : isHeatmap(chartType)
-          ? [0, heatmapIds.length]
-          : getValueRange(chart, { dygraph: true }),
+          ? snapHeatmapRange(staticValueRange, heatmapIds.length)
+          : getHeatmapRowsRange(heatmapIds.length)
+        : staticValueRange || getValueRange(chart, { dygraph: true }),
     }
   }
 

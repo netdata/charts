@@ -213,12 +213,124 @@ describe("hoverX", () => {
     )
 
     expect(findClosestPoint).not.toHaveBeenCalled()
+    expect(chartUI.sdk.trigger).toHaveBeenCalledWith("highlightHover", chart, 1640995200000, "mid")
+  })
+
+  it("reports a heatmap cell click instead of a chart click when heatmapCellClick is set", () => {
+    const visibleHeatmapIds = ["low", "mid", "high"]
+
+    chart.getAttribute = jest.fn(key => {
+      if (key === "chartType") return "heatmap"
+      if (key === "overlays") return {}
+      if (key === "heatmapCellClick") return true
+      return null
+    })
+    chart.getVisibleHeatmapIds = jest.fn(() => visibleHeatmapIds)
+    chart.getHeatmapYIndex = jest.fn(id => visibleHeatmapIds.indexOf(id))
+
+    chartUI.getDygraph = jest.fn(() => ({
+      getArea: jest.fn(() => ({ h: 200 })),
+      toDomYCoord: jest.fn(index => [150, 100, 50][index]),
+    }))
+
+    hoverXInstance.toggle(true)
+    const clickHandler = chartUI.on.mock.calls.find(call => call[0] === "click")[1]
+    const event = {
+      clientX: 100,
+      clientY: 100,
+      target: { getBoundingClientRect: () => ({ left: 0, top: 0 }) },
+    }
+
+    clickHandler(event, 1640995200000, [])
+    clickHandler(event, 1640995200000, [])
+
+    const cellClicks = chartUI.sdk.trigger.mock.calls.filter(
+      ([name]) => name === "heatmapCellClick"
+    )
+    expect(cellClicks).toEqual([
+      ["heatmapCellClick", chart, 1640995200000, "mid"],
+      ["heatmapCellClick", chart, 1640995200000, "mid"],
+    ])
+    expect(chart.trigger).toHaveBeenCalledWith("heatmapCellClick", 1640995200000, "mid")
+    expect(chartUI.sdk.trigger).not.toHaveBeenCalledWith(
+      "highlightClick",
+      expect.anything(),
+      expect.anything(),
+      expect.anything()
+    )
+    expect(chart.updateAttribute).not.toHaveBeenCalledWith("draftAnnotation", expect.anything())
+  })
+
+  it("reports a cell click that arrives after a pan turned hover off and on again", () => {
+    const visibleHeatmapIds = ["low", "mid", "high"]
+
+    chart.getAttribute = jest.fn(key => {
+      if (key === "chartType") return "heatmap"
+      if (key === "overlays") return {}
+      if (key === "heatmapCellClick") return true
+      return null
+    })
+    chart.getVisibleHeatmapIds = jest.fn(() => visibleHeatmapIds)
+    chart.getHeatmapYIndex = jest.fn(id => visibleHeatmapIds.indexOf(id))
+    chart.getPayload = jest.fn(() => ({ all: [], point: {} }))
+    chartUI.getDygraph = jest.fn(() => ({
+      getArea: jest.fn(() => ({ h: 200 })),
+      toDomYCoord: jest.fn(index => [150, 100, 50][index]),
+    }))
+
+    hoverXInstance.toggle(true)
+    const highlightHandler = chartUI.on.mock.calls.find(call => call[0] === "highlightCallback")[1]
+    const event = {
+      clientX: 100,
+      clientY: 100,
+      target: { getBoundingClientRect: () => ({ left: 0, top: 0 }) },
+    }
+    highlightHandler(event, 1640995200000, [])
+
+    hoverXInstance.toggle(false)
+    hoverXInstance.toggle(true)
+    const clickHandler = chartUI.on.mock.calls.filter(call => call[0] === "click").at(-1)[1]
+    clickHandler(event, 1640995200000, [])
+
     expect(chartUI.sdk.trigger).toHaveBeenCalledWith(
-      "highlightHover",
+      "heatmapCellClick",
       chart,
       1640995200000,
       "mid"
     )
+  })
+
+  it("gives the heatmap row, not the empty anomaly band, at the top of a heatmap", () => {
+    const visibleHeatmapIds = ["low", "mid", "high"]
+
+    chart.getAttribute = jest.fn(key => {
+      if (key === "chartType") return "heatmap"
+      if (key === "overlays") return {}
+      return null
+    })
+    chart.getVisibleHeatmapIds = jest.fn(() => visibleHeatmapIds)
+    chart.getPayload = jest.fn(() => ({
+      all: [[0, [1, 0, 0]]],
+      point: { value: 0, arp: 1, pa: 2 },
+    }))
+    chart.getPayloadDimensionIds = jest.fn(() => ["low"])
+    chart.isDimensionVisible = jest.fn(() => true)
+
+    chartUI.getDygraph = jest.fn(() => ({
+      getArea: jest.fn(() => ({ h: 200 })),
+      toDomYCoord: jest.fn(index => [190, 100, 10][index]),
+    }))
+
+    hoverXInstance.toggle(true)
+    const highlightHandler = chartUI.on.mock.calls.find(call => call[0] === "highlightCallback")[1]
+
+    highlightHandler(
+      { clientX: 100, clientY: 5, target: { getBoundingClientRect: () => ({ left: 0, top: 0 }) } },
+      1640995200000,
+      [{ idx: 0 }]
+    )
+
+    expect(chartUI.sdk.trigger).toHaveBeenCalledWith("highlightHover", chart, 1640995200000, "high")
   })
 
   it("handles destroy method", () => {

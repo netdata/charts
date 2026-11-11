@@ -364,6 +364,233 @@ describe("dygraphChart", () => {
     expect(formatter("0.005")).toBe(0.005)
   })
 
+  it("labels the heatmap y-axis in the bucket unit and follows a unit change", async () => {
+    const ids = ["duration_1024", "duration_4194304", "duration_+Inf"]
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        chartType: "heatmap",
+        groupBy: ["dimension"],
+        selectedLegendDimensions: [],
+        heatmapBucketUnit: "ns",
+        viewDimensions: {
+          ids,
+          names: ids,
+          priorities: ids.map((_, index) => index),
+          units: ids.map(() => ""),
+          contexts: ids.map(() => ""),
+          grouped: ["dimension"],
+        },
+      },
+    })
+
+    await loadHeatmapPayload(chart, ids, [[1, 2, 3]], { timestamp: 1617946860000 })
+    chart.getDateWindow = () => [1617946860000, 1617947750000]
+    chart.formatXAxis = x => x.toString()
+    chart.getThemeAttribute = () => "#333"
+    chart.getUnitSign = () => ""
+
+    const instance = dygraphChart(sdk, chart)
+    instance.mount(document.createElement("div"))
+
+    const opts = key => ({ pixelsPerLabel: 10, axisLabelFormatter: label => label })[key]
+    const axis = { yAxisRange: () => [0, 3], getArea: () => ({ h: 300 }) }
+    const yLabels = options =>
+      options.axes.y
+        .ticker(0, 3, 300, opts, axis)
+        .filter(tick => tick.label)
+        .map(tick => tick.label)
+
+    const Dygraph = require("dygraphs")
+    expect(yLabels(Dygraph.mock.calls[Dygraph.mock.calls.length - 1][2])).toEqual([
+      "1.02 µs",
+      "4.19 ms",
+      "+Inf",
+    ])
+
+    chart.updateAttribute("heatmapBucketUnit", null)
+
+    const { calls } = mockDygraph.updateOptions.mock
+    expect(yLabels(calls[calls.length - 1][0])).toEqual(["1Ki", "4Mi", "+Inf"])
+  })
+
+  it("frames whole heatmap rows and snaps a y-zoom to row edges", async () => {
+    const ids = ["0", "1", "2", "3", "4", "5", "6"]
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        chartType: "heatmap",
+        chartLibrary: "dygraph",
+        context: "prometheus.test.histogram",
+        groupBy: ["dimension"],
+        selectedLegendDimensions: [],
+        viewDimensions: {
+          ids,
+          names: ids,
+          priorities: ids.map((_, index) => index),
+          units: ids.map(() => ""),
+          contexts: ids.map(() => ""),
+          grouped: ["dimension"],
+        },
+      },
+    })
+
+    await loadHeatmapPayload(chart, ids, [[1, 2, 1, 3, 2, 1, 1]], { timestamp: 1617946860000 })
+    chart.getDateWindow = () => [1617946860000, 1617947750000]
+    chart.formatXAxis = x => x.toString()
+    chart.getThemeAttribute = () => "#333"
+    chart.getUnitSign = () => ""
+
+    const instance = dygraphChart(sdk, chart)
+    instance.mount(document.createElement("div"))
+
+    const Dygraph = require("dygraphs")
+    expect(Dygraph.mock.calls[Dygraph.mock.calls.length - 1][2].valueRange).toEqual([-0.5, 6.5])
+
+    chart.updateAttribute("staticValueRange", [1.3, 3.7])
+
+    const { calls } = mockDygraph.updateOptions.mock
+    expect(calls[calls.length - 1][0].valueRange).toEqual([0.5, 4.5])
+
+    const before = calls.length
+    chart.updateAttribute("heatmapCellGap", 1)
+    chart.updateAttribute("heatmapPalette", ["#000", "#fff"])
+    chart.updateAttribute("heatmapColorScale", "log")
+    expect(calls.length).toBe(before + 3)
+  })
+
+  it("outlines the hovered heatmap cell and leaves no trail behind", async () => {
+    const ids = ["0", "1", "2", "3", "4", "5", "6"]
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        chartType: "heatmap",
+        chartLibrary: "dygraph",
+        context: "prometheus.test.histogram",
+        groupBy: ["dimension"],
+        selectedLegendDimensions: [],
+        heatmapHoverCell: true,
+        heatmapKeepEmptyRows: true,
+        viewDimensions: {
+          ids,
+          names: ids,
+          priorities: ids.map((_, index) => index),
+          units: ids.map(() => ""),
+          contexts: ids.map(() => ""),
+          grouped: ["dimension"],
+        },
+      },
+    })
+
+    await loadHeatmapPayload(chart, ids, [[1, 2, 1, 3, 2, 1, 1]], { timestamp: 1617946860000 })
+    chart.getDateWindow = () => [1617946860000, 1617947750000]
+    chart.formatXAxis = x => x.toString()
+    chart.getThemeAttribute = () => "#333"
+    chart.getUnitSign = () => ""
+
+    const calls = []
+    const record = name => jest.fn((...args) => calls.push([name, ...args]))
+    mockDygraph.canvas_ctx_ = {
+      canvas: { width: 800, height: 400 },
+      save: jest.fn(),
+      restore: jest.fn(),
+      beginPath: jest.fn(),
+      closePath: jest.fn(),
+      moveTo: jest.fn(),
+      lineTo: jest.fn(),
+      stroke: jest.fn(),
+      setLineDash: jest.fn(),
+      setTransform: jest.fn(),
+      clearRect: record("clearRect"),
+      strokeRect: record("strokeRect"),
+    }
+    mockDygraph.layout_ = { points: [[{ canvasx: 100 }, { canvasx: 120 }]] }
+    mockDygraph.toDomYCoord = index => 300 - index * 40
+
+    const instance = dygraphChart(sdk, chart)
+    instance.mount(document.createElement("div"))
+
+    chart.updateAttribute("hoverX", [1617946860000, "2"])
+    chart.updateAttribute("hoverX", [1617946860000, "4"])
+    chart.updateAttribute("hoverX", null)
+
+    expect(calls.map(([name]) => name)).toEqual([
+      "clearRect",
+      "strokeRect",
+      "clearRect",
+      "strokeRect",
+      "clearRect",
+    ])
+    expect(calls[0]).toEqual(["clearRect", 0, 0, 800, 400])
+    expect(calls[3][2]).toBeLessThan(calls[1][2])
+
+    calls.length = 0
+    chart.updateAttribute("hoverX", [1617946860000, "2"])
+    chart.updateAttribute("heatmapMarkedCell", { x: 1617946860000, id: "3" })
+    expect(calls.map(([name]) => name)).toEqual([
+      "clearRect",
+      "strokeRect",
+      "clearRect",
+      "strokeRect",
+    ])
+
+    const { setLineDash } = mockDygraph.canvas_ctx_
+    calls.length = 0
+    setLineDash.mockClear()
+    chart.updateAttribute("clickX", [1617946860000, null])
+    expect(calls.map(([name]) => name)).toEqual(["clearRect", "strokeRect"])
+    expect(setLineDash).toHaveBeenCalledWith([2, 2])
+
+    calls.length = 0
+    setLineDash.mockClear()
+    chart.updateAttribute("clickX", [null, null])
+    expect(calls.map(([name]) => name)).toEqual(["clearRect", "strokeRect"])
+    expect(setLineDash).not.toHaveBeenCalledWith([2, 2])
+
+    calls.length = 0
+    chart.updateAttribute("heatmapHoverCell", false)
+    expect(calls.map(([name]) => name)).toEqual(["clearRect"])
+
+    delete mockDygraph.canvas_ctx_
+    delete mockDygraph.layout_
+    delete mockDygraph.toDomYCoord
+  })
+
+  it("re-ranges the y axis over every row when empty rows are kept", async () => {
+    const ids = ["0", "1", "2", "3", "4", "5", "6"]
+    const { sdk, chart } = makeTestChart({
+      attributes: {
+        chartType: "heatmap",
+        chartLibrary: "dygraph",
+        context: "prometheus.test.histogram",
+        groupBy: ["dimension"],
+        selectedLegendDimensions: [],
+        viewDimensions: {
+          ids,
+          names: ids,
+          priorities: ids.map((_, index) => index),
+          units: ids.map(() => ""),
+          contexts: ids.map(() => ""),
+          grouped: ["dimension"],
+        },
+      },
+    })
+
+    await loadHeatmapPayload(chart, ids, [[0, 0, 1, 0, 2, 0, 0]], { timestamp: 1617946860000 })
+    chart.getDateWindow = () => [1617946860000, 1617947750000]
+    chart.formatXAxis = x => x.toString()
+    chart.getThemeAttribute = () => "#333"
+    chart.getUnitSign = () => ""
+
+    const instance = dygraphChart(sdk, chart)
+    instance.mount(document.createElement("div"))
+
+    const Dygraph = require("dygraphs")
+    expect(Dygraph.mock.calls[Dygraph.mock.calls.length - 1][2].valueRange).toEqual([-0.5, 4.5])
+
+    chart.updateAttribute("heatmapKeepEmptyRows", true)
+
+    const { calls } = mockDygraph.updateOptions.mock
+    expect(calls[calls.length - 1][0].valueRange).toEqual([-0.5, 6.5])
+  })
+
   it("uses cropped heatmap bucket count for y-axis range", async () => {
     const ids = ["0", "1", "2", "3", "4", "5", "6"]
     const { sdk, chart } = makeTestChart({
@@ -396,7 +623,7 @@ describe("dygraphChart", () => {
     const Dygraph = require("dygraphs")
     const options = Dygraph.mock.calls[Dygraph.mock.calls.length - 1][2]
 
-    expect(options.valueRange).toEqual([0, 5])
+    expect(options.valueRange).toEqual([-0.5, 4.5])
   })
 
   it("returns axis range from dygraph", () => {

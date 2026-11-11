@@ -1,6 +1,7 @@
 import getOffsets from "@/helpers/eventOffset"
 import { areAnnotationsDisabled } from "@/chartLibraries/helpers/annotations"
 import { isHeatmap } from "@/helpers/heatmap"
+import { hasAnomalyAt, hasAnnotationAt } from "@/chartLibraries/helpers/rowMarks"
 import { findDivergingStackedPoint } from "./divergingStack"
 
 const shouldFindMaxValue = {
@@ -38,10 +39,15 @@ export default chartUI => {
 
     const { offsetX, offsetY } = getOffsets(event)
 
-    if (offsetY > _dygraph.getArea().h - 10) return { seriesName: "ANNOTATIONS" }
-    if (offsetY < 15) return { seriesName: "ANOMALY_RATE" }
+    const heatmap = isHeatmap(chartUI.chart)
+    const row = points[0]?.idx
 
-    if (isHeatmap(chartUI.chart)) {
+    if (offsetY > _dygraph.getArea().h - 10 && (!heatmap || hasAnnotationAt(chartUI.chart, row)))
+      return { seriesName: "ANNOTATIONS" }
+    if (offsetY < 15 && (!heatmap || hasAnomalyAt(chartUI.chart, row)))
+      return { seriesName: "ANOMALY_RATE" }
+
+    if (heatmap) {
       const dimensionId = getClosestHeatmapDimension(offsetY)
       return dimensionId ? { dimensionId } : {}
     }
@@ -130,7 +136,17 @@ export default chartUI => {
     chartUI.chart.trigger("annotationCreate", x / 1000)
   }
 
+  const clickCell = (event, x, points) => {
+    const dimensionId = getDimension(event, points)
+    if (chartUI.chart.getHeatmapYIndex(dimensionId) === -1) return
+
+    chartUI.sdk.trigger("heatmapCellClick", chartUI.chart, x, dimensionId)
+    chartUI.chart.trigger("heatmapCellClick", x, dimensionId)
+  }
+
   const click = (event, x, points) => {
+    if (isHeatmap(chartUI.chart) && chartUI.chart.getAttribute("heatmapCellClick"))
+      return clickCell(event, x, points)
     if (areAnnotationsDisabled(chartUI.chart)) return
     if (lastTimestamp === x) return
 

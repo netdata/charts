@@ -29,6 +29,7 @@ const Footer = () => {
   const legend = useAttributeValue("legend")
   const mode = useLegendMode()
   const isHeatmap = useIsHeatmap()
+  const colorsOnly = useAttributeValue("heatmapLegend") === "colors"
 
   const readout = !showingInfo && legend
   const below = readout && mode === "below"
@@ -36,7 +37,7 @@ const Footer = () => {
   return (
     <Flex column gap={1} padding={[1, 2, 1]} data-testid="chartFooter" data-legend={mode}>
       {readout && isHeatmap && <HeatmapColors />}
-      {below && <LegendLine />}
+      {below && !(isHeatmap && colorsOnly) && <LegendLine />}
       <Flex alignItems="center" justifyContent="between" gap={2} data-testid="modernFooter-actions">
         <Flex alignItems="center" gap={2} flex overflow="hidden">
           <Highlight />

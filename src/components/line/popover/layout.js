@@ -31,26 +31,27 @@ const measureDimensionName = text => {
   return width === null ? Array.from(value).length * popoverLayout.fallbackCharacterWidth : width
 }
 
-export const getPopoverFixedWidth = infoColumn =>
+export const getPopoverFixedWidth = (infoColumn, { valueOnly = false } = {}) =>
   popoverLayout.paddingX +
   toPixels(popoverGridColumns.value) +
   toPixels(popoverGridColumns.unit) +
-  toPixels(popoverGridColumns.anomaly) +
-  toPixels(infoColumn)
+  (valueOnly ? 0 : toPixels(popoverGridColumns.anomaly) + toPixels(infoColumn))
 
-export const getPopoverDimensionColumnWidth = (names, { infoColumn, viewportWidth } = {}) => {
+export const getPopoverDimensionColumnWidth = (
+  names,
+  { infoColumn, viewportWidth, valueOnly } = {}
+) => {
   const minWidth = toPixels(popoverGridColumns.dimensionMin)
-  const fixedWidth = getPopoverFixedWidth(infoColumn || popoverGridColumns.info)
+  const fixedWidth = getPopoverFixedWidth(infoColumn || popoverGridColumns.info, { valueOnly })
   const maxWidth = Math.max(
     minWidth,
     Math.floor((viewportWidth || getViewportWidth()) * popoverLayout.maxWidthRatio - fixedWidth)
   )
   const contentWidth =
-    Math.ceil(Math.max(0, ...names.map(measureDimensionName))) +
-    popoverLayout.dimensionNamePaddingX
+    Math.ceil(Math.max(0, ...names.map(measureDimensionName))) + popoverLayout.dimensionNamePaddingX
 
   return Math.min(Math.max(minWidth, contentWidth), maxWidth)
 }
 
-export const getPopoverWidth = (dimensionColumnWidth, infoColumn) =>
-  dimensionColumnWidth + getPopoverFixedWidth(infoColumn || popoverGridColumns.info)
+export const getPopoverWidth = (dimensionColumnWidth, infoColumn, { valueOnly } = {}) =>
+  dimensionColumnWidth + getPopoverFixedWidth(infoColumn || popoverGridColumns.info, { valueOnly })

@@ -1,10 +1,12 @@
 import {
   detectHeatmapScale,
+  formatDurationValue,
   formatHeatmapLabel,
   formatScaledValue,
   isHeatmapBinary,
   isHeatmapNumeric,
   parseHeatmapValue,
+  resolveHeatmapScale,
   sortHeatmapValues,
 } from "./heatmapScale"
 
@@ -186,6 +188,64 @@ describe("heatmapScale", () => {
     it("passes through fallback labels", () => {
       expect(formatHeatmapLabel("5ms", "num")).toBe("5ms")
       expect(formatHeatmapLabel("0.005", null)).toBe("0.005")
+    })
+
+    it("formats numeric labels as durations with a duration scale", () => {
+      expect(formatHeatmapLabel("duration_1024", { duration: "ns" })).toBe("1.02 µs")
+      expect(formatHeatmapLabel("0.004194304", { duration: "s" })).toBe("4.19 ms")
+      expect(formatHeatmapLabel("duration_+Inf", { duration: "ns" })).toBe("+Inf")
+      expect(formatHeatmapLabel("slow", { duration: "s" })).toBe("slow")
+    })
+  })
+
+  describe("formatDurationValue", () => {
+    it("scales each value to the largest duration unit not above it", () => {
+      expect(formatDurationValue(500, "ns")).toBe("500 ns")
+      expect(formatDurationValue(65536, "ns")).toBe("65.54 µs")
+      expect(formatDurationValue(4194304, "ns")).toBe("4.19 ms")
+      expect(formatDurationValue(1.1, "s")).toBe("1.1 s")
+      expect(formatDurationValue(1099.511627776, "s")).toBe("18.33 min")
+      expect(formatDurationValue(90, "min")).toBe("1.5 h")
+      expect(formatDurationValue(36, "h")).toBe("1.5 d")
+      expect(formatDurationValue(14, "d")).toBe("2 wk")
+      expect(formatDurationValue(60, "d")).toBe("2 Mo")
+      expect(formatDurationValue(730, "d")).toBe("2 yr")
+    })
+
+    it("moves to the next unit at its exact edge", () => {
+      expect(formatDurationValue(1000, "ns")).toBe("1 µs")
+      expect(formatDurationValue(60e9, "ns")).toBe("1 min")
+    })
+
+    it("keeps zero, sub-nanosecond and negative values readable", () => {
+      expect(formatDurationValue(0, "s")).toBe("0")
+      expect(formatDurationValue(0.5, "ns")).toBe("0.5 ns")
+      expect(formatDurationValue(-0.002, "s")).toBe("-2 ms")
+    })
+  })
+
+  describe("resolveHeatmapScale", () => {
+    it("keeps the detected scale without a bucket unit", () => {
+      expect(resolveHeatmapScale("num", null)).toBe("num")
+      expect(resolveHeatmapScale("binary", undefined)).toBe("binary")
+      expect(resolveHeatmapScale(null, null)).toBe(null)
+    })
+
+    it("resolves duration units and their aliases", () => {
+      expect(resolveHeatmapScale("num", "s")).toEqual({ duration: "s" })
+      expect(resolveHeatmapScale("num", "seconds")).toEqual({ duration: "s" })
+      expect(resolveHeatmapScale("binary", "µs")).toEqual({ duration: "us" })
+      expect(resolveHeatmapScale(null, "min")).toEqual({ duration: "min" })
+      expect(resolveHeatmapScale(null, "mo")).toEqual({ duration: "mo" })
+      expect(resolveHeatmapScale(null, "years")).toEqual({ duration: "a" })
+    })
+
+    it("ignores units that are not durations", () => {
+      expect(resolveHeatmapScale("num", "m")).toBe("num")
+      expect(resolveHeatmapScale("binary", "By")).toBe("binary")
+      expect(resolveHeatmapScale("num", "mins")).toBe("num")
+      expect(resolveHeatmapScale("num", "yr")).toBe("num")
+      expect(resolveHeatmapScale("num", "Mo")).toBe("num")
     })
   })
 })

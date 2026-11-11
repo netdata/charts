@@ -879,6 +879,50 @@ describe("makeDimensions heatmap bucket ordering", () => {
     expect(chart.getDimensionIndex("bucket_1024")).toBe(1)
   })
 
+  it("labels bucket bounds in the heatmap bucket unit", () => {
+    const chart = makeHeatmapChart(["duration_1024", "duration_4194304", "duration_+Inf"], {
+      heatmapBucketUnit: "ns",
+    })
+
+    expect(chart.getHeatmapScale()).toEqual({ duration: "ns" })
+    expect(chart.getDimensionIds().map(id => chart.getDimensionName(id))).toEqual([
+      "1.02 µs",
+      "4.19 ms",
+      "+Inf",
+    ])
+  })
+
+  it("follows a heatmap bucket unit set after the buckets", () => {
+    const chart = makeHeatmapChart(["duration_1024", "duration_4194304", "duration_+Inf"])
+    const onDimensionChanged = jest.fn()
+    chart.on("dimensionChanged", onDimensionChanged)
+
+    expect(chart.getHeatmapScale()).toBe("binary")
+    expect(chart.getDimensionName("duration_1024")).toBe("1Ki")
+
+    chart.updateAttribute("heatmapBucketUnit", "ns")
+
+    expect(onDimensionChanged).toHaveBeenCalledTimes(1)
+    expect(chart.getDimensionName("duration_1024")).toBe("1.02 µs")
+
+    chart.updateAttribute("heatmapBucketUnit", null)
+
+    expect(chart.getHeatmapScale()).toBe("binary")
+    expect(chart.getDimensionName("duration_1024")).toBe("1Ki")
+  })
+
+  it("matches a legend selection by name again when the bucket unit changes", () => {
+    const chart = makeHeatmapChart(["duration_1024", "duration_4194304", "duration_+Inf"], {
+      selectedLegendDimensions: ["1.02 µs"],
+    })
+
+    expect(chart.getVisibleDimensionIds()).toEqual([])
+
+    chart.updateAttribute("heatmapBucketUnit", "ns")
+
+    expect(chart.getVisibleDimensionIds()).toEqual(["duration_1024"])
+  })
+
   it("falls back to payload order for non-numeric heatmaps", () => {
     const chart = makeHeatmapChart(["low", "high", "+Inf"])
 
@@ -904,6 +948,22 @@ describe("makeDimensions heatmap bucket ordering", () => {
 
     expect(chart.getDimensionName("bucket_1024")).toBe("1Ki")
     expect(chart.getVisibleDimensionIds()).toEqual(["bucket_1024"])
+  })
+
+  it("keeps every bucket when heatmapKeepEmptyRows is set, and crops again when cleared", async () => {
+    const ids = ["0", "1", "2", "3", "4", "5", "6"]
+    const chart = makeHeatmapChart(ids)
+
+    await loadHeatmapPayload(chart, ids, [[0, 0, 1, 0, 2, 0, 0]])
+    expect(chart.getVisibleHeatmapIds()).toEqual(["1", "2", "3", "4", "5"])
+
+    chart.updateAttribute("heatmapKeepEmptyRows", true)
+    expect(chart.getVisibleHeatmapIds()).toEqual(ids)
+    expect(chart.getHeatmapYIndex("0")).toBe(0)
+    expect(chart.getHeatmapYIndex("6")).toBe(6)
+
+    chart.updateAttribute("heatmapKeepEmptyRows", false)
+    expect(chart.getVisibleHeatmapIds()).toEqual(["1", "2", "3", "4", "5"])
   })
 
   it("crops zero-only buckets from heatmap edges without changing dimension visibility", async () => {
