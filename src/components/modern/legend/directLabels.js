@@ -1,4 +1,3 @@
-import React from "react"
 import styled from "styled-components"
 import { Box, Flex, getColor } from "@netdata/netdata-ui"
 import { useChart, usePlotArea } from "@/components/provider"

@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useState, useRef } from "react"
+import { useEffect, useLayoutEffect, useState, useRef } from "react"
 import ReactDOM from "react-dom"
 import DropContainer from "@netdata/netdata-ui/dist/components/drops/drop/container"
 import useDropElement from "@netdata/netdata-ui/dist/hooks/useDropElement"

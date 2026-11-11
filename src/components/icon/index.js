@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import md5 from "md5"
 import { StyledIcon } from "@netdata/netdata-ui/dist/components/icon/styled"
 

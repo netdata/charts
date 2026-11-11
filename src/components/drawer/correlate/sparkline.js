@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo, useState } from "react"
+import { memo, useEffect, useMemo, useState } from "react"
 import { Flex } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart } from "@/components/provider"
 import { getConversionAttributes } from "@/helpers/unitConversion/getConversionUnits"

@@ -1,4 +1,3 @@
-import React from "react"
 import { Flex } from "@netdata/netdata-ui"
 import ChartType from "./chartType"
 import ChartElements from "../chartElements"

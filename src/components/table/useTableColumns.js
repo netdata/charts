@@ -1,4 +1,4 @@
-import React, { useMemo } from "react"
+import { useMemo } from "react"
 import isEmpty from "lodash/isEmpty"
 import difference from "lodash/difference"
 import { useChart, useAttributeValue, useIsModern } from "@/components/provider"

@@ -1,4 +1,3 @@
-import React from "react"
 import { screen } from "@testing-library/react"
 import { renderWithChart } from "@jest/testUtilities"
 import HeatmapColorsLegend from "./heatmapColors"

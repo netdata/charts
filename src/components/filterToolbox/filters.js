@@ -1,4 +1,3 @@
-import React from "react"
 import { Flex, TextSmall } from "@netdata/netdata-ui"
 import { useIsHeatmap } from "@/helpers/heatmap"
 import { useAttributeValue, useIsMinimal } from "@/components/provider"

@@ -1,4 +1,3 @@
-import React from "react"
 import styled from "styled-components"
 import { Box, Flex, TextSmall } from "@netdata/netdata-ui"
 import Name from "@/components/line/dimensions/name"

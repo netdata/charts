@@ -1,4 +1,3 @@
-import React from "react"
 import { Dot } from "@/components/modern/dot"
 
 export const statusColors = { critical: "error", warning: "warning", clear: "success" }

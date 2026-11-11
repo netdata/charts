@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo } from "react"
+import { memo, useCallback, useMemo } from "react"
 import { useChart, useAttribute, useAttributeValue } from "@/components/provider"
 import { uppercase } from "@/helpers/objectTransform"
 import DropdownTable from "./dropdownTable"

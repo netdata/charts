@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import styled from "styled-components"
 import { Box, Drop, Flex, TextMicro } from "@netdata/netdata-ui"
 import Search from "@netdata/netdata-ui/dist/components/search"

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { Flex, Menu, MenuItemContainer, RadioButton, TextSmall } from "@netdata/netdata-ui"
 import dot from "@netdata/netdata-ui/dist/components/icon/assets/dot.svg"
 import sortAscending from "@netdata/netdata-ui/dist/components/icon/assets/sort_ascending.svg"

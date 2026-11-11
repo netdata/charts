@@ -1,4 +1,3 @@
-import React from "react"
 import { Flex } from "@netdata/netdata-ui"
 import { useAttributeValue } from "@/components/provider"
 import Separator from "@/components/line/separator"

@@ -1,4 +1,3 @@
-import React from "react"
 import { Flex, TextSmall } from "@netdata/netdata-ui"
 import Color, { ColorBar } from "@/components/line/dimensions/color"
 import Name from "@/components/line/dimensions/name"

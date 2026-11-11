@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef, useState } from "react"
+import { useLayoutEffect, useRef, useState } from "react"
 import styled from "styled-components"
 import { useVirtualizer } from "@tanstack/react-virtual"
 import { Box, Flex, getColor } from "@netdata/netdata-ui"

@@ -1,4 +1,3 @@
-import React from "react"
 import { act, screen, waitFor, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { DefaultTheme } from "@netdata/netdata-ui"

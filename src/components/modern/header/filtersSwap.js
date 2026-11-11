@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react"
+import { useEffect, useRef } from "react"
 import styled, { keyframes } from "styled-components"
 import { Animation, Box, Flex } from "@netdata/netdata-ui"
 import xIcon from "@netdata/netdata-ui/dist/components/icon/assets/x.svg"

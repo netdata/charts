@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import { ThemeProvider } from "styled-components"
 import { DarkTheme, DefaultTheme, Flex } from "@netdata/netdata-ui"
 import GroupBoxes from "@/components/groupBoxes"

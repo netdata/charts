@@ -1,4 +1,3 @@
-import React from "react"
 import { makeHeatmapPayload, renderWithChart } from "@jest/testUtilities"
 import getInitialOptions, { updateThemeOptions } from "./getInitialOptions"
 

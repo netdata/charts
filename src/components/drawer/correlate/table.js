@@ -1,4 +1,4 @@
-import React, { useCallback, useLayoutEffect, useMemo, useRef } from "react"
+import { useCallback, useLayoutEffect, useMemo, useRef } from "react"
 import { Button, Flex, Table } from "@netdata/netdata-ui"
 import { useAttribute } from "@/components/provider"
 import { matchesSearch, normalizeSearch } from "@/components/drawer/search"

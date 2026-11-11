@@ -1,4 +1,3 @@
-import React from "react"
 import { makeTestChart, renderWithChart } from "@jest/testUtilities"
 import systemLoadLine from "../../../fixtures/systemLoadLine"
 import easyPieChart from "./index"

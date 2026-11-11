@@ -1,4 +1,3 @@
-import React from "react"
 import { Flex, TextSmall, Button } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart } from "@/components/provider"
 import ThresholdRow, { PALETTE } from "./thresholdRow"

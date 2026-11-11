@@ -1,4 +1,3 @@
-import React from "react"
 import styled from "styled-components"
 import { Box, getColor } from "@netdata/netdata-ui"
 import { radius } from "@/components/modern/tokens"

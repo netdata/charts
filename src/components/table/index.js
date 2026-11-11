@@ -1,4 +1,4 @@
-import React, { useMemo } from "react"
+import { useMemo } from "react"
 import { Flex, Table } from "@netdata/netdata-ui"
 import useHover from "@/components/useHover"
 import ChartContainer from "@/components/chartContainer"

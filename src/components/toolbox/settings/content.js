@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useMemo } from "react"
+import { useCallback, useState, useMemo } from "react"
 import { Flex, Button as UIButton, Tabs, Tab } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart } from "@/components/provider"
 

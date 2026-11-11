@@ -1,4 +1,3 @@
-import React from "react"
 import { act, screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { makeHeatmapPayload, makeTestChart, renderWithChart } from "@jest/testUtilities"

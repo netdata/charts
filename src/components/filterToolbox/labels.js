@@ -1,4 +1,4 @@
-import React, { useCallback, memo } from "react"
+import { useCallback, memo } from "react"
 import { useChart, useAttribute, useAttributeValue } from "@/components/provider"
 import DropdownTable from "./dropdownTable"
 import { getStats } from "./utils"

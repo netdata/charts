@@ -1,4 +1,3 @@
-import React from "react"
 import { Flex, TextSmall, CopyToClipboard } from "@netdata/netdata-ui"
 import {
   useTitle,

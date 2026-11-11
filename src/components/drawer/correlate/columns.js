@@ -1,4 +1,3 @@
-import React from "react"
 import { Flex, Icon, TextMicro, TextSmall } from "@netdata/netdata-ui"
 import Sparkline from "./sparkline"
 import { ValueUnitGrid, ValueUnitHeader } from "@/components/line/dimensions/valueWithUnit"

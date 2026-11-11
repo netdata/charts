@@ -1,4 +1,3 @@
-import React from "react"
 import styled, { useTheme } from "styled-components"
 import { TextBig, TextSmall, Flex, ProgressBar, getColor } from "@netdata/netdata-ui"
 import Color, { Color as ColorContainer } from "@/components/line/dimensions/color"

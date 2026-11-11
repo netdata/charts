@@ -1,4 +1,4 @@
-import React, { useMemo } from "react"
+import { useMemo } from "react"
 import styled from "styled-components"
 import { Flex, Text } from "@netdata/netdata-ui"
 import arrowIcon from "@netdata/netdata-ui/dist/components/icon/assets/long_arrow_up.svg"
