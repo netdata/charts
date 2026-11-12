@@ -12,6 +12,8 @@ import makeDefaultSDK from "../../makeDefaultSDK"
 import systemLoadLine from "../../../fixtures/systemLoadLine"
 import initialAttributes from "@/sdk/initialAttributes"
 import makeGetClosestRow from "@/sdk/makeChart/makeGetClosestRow"
+import { withoutPrefix } from "@/helpers/heatmap"
+import { formatHeatmapLabel } from "@/helpers/heatmapScale"
 import uplotChart from "./index"
 import { getStackBounds, getStackValueRange } from "./stacking"
 import { anomalyBadgeHeight } from "@/components/modern/anomaly"
@@ -678,6 +680,145 @@ describe("uplotChart heatmap", () => {
     cleanup(instance, element)
   })
 
+  it("re-ranges the y axis over every row when empty rows are kept", async () => {
+    const { chart, instance, element } = await mountHeatmap()
+
+    instance.mount(element)
+    const u = instance.getUPlot()
+    const cropped = chart.getVisibleHeatmapIds().length
+
+    const setData = jest.spyOn(u, "setData")
+    chart.updateAttribute("heatmapKeepEmptyRows", true)
+    expect(setData).toHaveBeenCalledWith(u.data, true)
+    expect(u.scales.y.range(u, 0, 100)).toEqual([-0.5, heatmapIds.length - 0.5])
+    setData.mockRestore()
+    expect(cropped).toBeLessThan(heatmapIds.length)
+
+    cleanup(instance, element)
+  })
+
+  it("reports a clicked cell instead of a chart click when heatmapCellClick is set", async () => {
+    const { sdk, chart, instance, element } = await mountHeatmap({
+      navigation: "pan",
+      heatmapCellClick: true,
+    })
+
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+    const u = instance.getUPlot()
+    u.over.getBoundingClientRect = () => ({
+      left: 0,
+      top: 0,
+      width: 800,
+      height: 300,
+      right: 800,
+      bottom: 300,
+    })
+
+    const cellClicks = []
+    const chartClicks = []
+    sdk.on("heatmapCellClick", (target, x, id) => cellClicks.push([target, x, id]))
+    sdk.on("highlightClick", () => chartClicks.push(true))
+
+    const id = chart.getVisibleHeatmapIds()[2]
+    const clientY = u.valToPos(chart.getHeatmapYIndex(id), "y")
+    u.over.dispatchEvent(new MouseEvent("mousedown", { clientX: 100, clientY, button: 0 }))
+    u.cursor.top = clientY
+    u.cursor.idx = 0
+    document.dispatchEvent(new MouseEvent("mouseup", { clientX: 100, clientY }))
+
+    expect(cellClicks).toEqual([[chart, expect.any(Number), id]])
+    expect(chartClicks).toEqual([])
+    expect(chart.getAttribute("draftAnnotation")).toBeFalsy()
+
+    cleanup(instance, element)
+  })
+
+  it("outlines the marked cell on the overlay and clears it with null", async () => {
+    const { chart, instance, element } = await mountHeatmap()
+
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    const overlay = element.querySelector(".netdata-crosshair-overlay").getContext("2d")
+    const strokes = []
+    const strokeRect = jest.spyOn(overlay, "strokeRect").mockImplementation(function () {
+      strokes.push(this.lineWidth)
+    })
+    const [x] = chart.getPayload().data[1]
+    const id = chart.getVisibleHeatmapIds()[2]
+
+    chart.updateAttribute("heatmapMarkedCell", { x, id })
+    expect(strokes).toEqual([2])
+
+    strokeRect.mockClear()
+    chart.updateAttribute("heatmapMarkedCell", null)
+    expect(strokeRect).not.toHaveBeenCalled()
+
+    strokeRect.mockRestore()
+    cleanup(instance, element)
+  })
+
+  it("outlines the hovered cell with a dashed line, and ignores rows of other charts", async () => {
+    const { chart, instance, element } = await mountHeatmap({ heatmapHoverCell: true })
+
+    instance.mount(element)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    const overlay = element.querySelector(".netdata-crosshair-overlay").getContext("2d")
+    const strokes = []
+    const strokeRect = jest.spyOn(overlay, "strokeRect").mockImplementation(function () {
+      strokes.push([this.lineWidth, this.getLineDash()])
+    })
+    const [x] = chart.getPayload().data[1]
+
+    chart.updateAttribute("hoverX", [x, chart.getVisibleHeatmapIds()[2]])
+    expect(strokes).toEqual([[1.5, [3, 3]]])
+
+    strokes.length = 0
+    chart.updateAttribute("hoverX", [x, "series-from-another-chart"])
+    expect(strokes).toEqual([])
+
+    strokeRect.mockRestore()
+    cleanup(instance, element)
+  })
+
+  it("redraws when the cell gap or the colours change", async () => {
+    const { chart, instance, element } = await mountHeatmap()
+
+    instance.mount(element)
+    const redraw = jest.spyOn(instance.getUPlot(), "redraw")
+
+    chart.updateAttribute("heatmapCellGap", 1)
+    expect(redraw).toHaveBeenCalledWith(false, false)
+
+    redraw.mockClear()
+    chart.updateAttribute("heatmapPalette", ["#000", "#fff"])
+    chart.updateAttribute("heatmapColorScale", "log")
+    expect(redraw).toHaveBeenCalledTimes(2)
+
+    redraw.mockRestore()
+    cleanup(instance, element)
+  })
+
+  it("snaps a y-zoom to the edges of whole rows", async () => {
+    const { chart, instance, element } = await mountHeatmap()
+
+    instance.mount(element)
+    const u = instance.getUPlot()
+
+    const setData = jest.spyOn(u, "setData")
+    chart.updateAttribute("staticValueRange", [1.3, 3.7])
+    expect(setData).toHaveBeenCalledWith(u.data, true)
+    expect(u.scales.y.range(u, 0, 100)).toEqual([0.5, 4.5])
+    setData.mockRestore()
+
+    cleanup(instance, element)
+  })
+
   it("exercises the shared heatmap accessors while rendering", async () => {
     const { chart, instance, element } = await mountHeatmap()
 
@@ -718,15 +859,39 @@ describe("uplotChart heatmap", () => {
 
     expect(splits.length).toBeGreaterThan(0)
     splits.forEach(split => {
-      expect(Number.isInteger(split)).toBe(true)
-      expect(split).toBeGreaterThanOrEqual(0)
+      expect(Number.isInteger(split - 0.5)).toBe(true)
+      expect(split).toBeGreaterThanOrEqual(0.5)
       expect(split).toBeLessThan(numBuckets)
     })
 
+    const ids = chart.getVisibleHeatmapIds()
     const values = u.axes[1].values(u, splits)
-    expect(values).toHaveLength(splits.length)
-    values.forEach(value => expect(typeof value).toBe("string"))
+    expect(values).toEqual(
+      splits.map(split =>
+        formatHeatmapLabel(withoutPrefix(ids[split - 0.5]), chart.getHeatmapScale())
+      )
+    )
 
+    cleanup(instance, element)
+  })
+
+  it("labels the y-axis in the bucket unit and redraws on a unit change", async () => {
+    const { chart, instance, element } = await mountHeatmap({ heatmapBucketUnit: "ms" })
+
+    instance.mount(element)
+    const u = instance.getUPlot()
+    const redraw = jest.spyOn(u, "redraw")
+    const labels = () => u.axes[1].values(u, [0, 1, 2, 3, 4])
+
+    expect(chart.getVisibleHeatmapIds()).toEqual(["1", "2", "3", "4", "5"])
+    expect(labels()).toEqual(["1 ms", "2 ms", "3 ms", "4 ms", "5 ms"])
+
+    chart.updateAttribute("heatmapBucketUnit", "s")
+
+    expect(redraw).toHaveBeenCalledWith(false, true)
+    expect(labels()).toEqual(["1 s", "2 s", "3 s", "4 s", "5 s"])
+
+    redraw.mockRestore()
     cleanup(instance, element)
   })
 })

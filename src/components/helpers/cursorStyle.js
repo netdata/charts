@@ -12,8 +12,11 @@ const activeCursorByNavigation = {
   pan: "grabbing",
 }
 
+const getCursor = ({ navigation, $cellClick }) =>
+  $cellClick ? "pointer" : cursorByNavigation[navigation] || cursorByNavigation.default
+
 export default css`
-  cursor: ${props => cursorByNavigation[props.navigation] || cursorByNavigation.default};
+  cursor: ${getCursor};
 
   ${props => {
     const activeCursor = activeCursorByNavigation[props.navigation]

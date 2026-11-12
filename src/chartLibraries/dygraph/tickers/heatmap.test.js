@@ -29,6 +29,17 @@ describe("heatmapTicker", () => {
     expect(ticks[ticks.length - 1]).toHaveProperty("label_v")
   })
 
+  it("places ticks on row centres, or shifted by the label offset", () => {
+    const labels = ["b_1", "b_2", "b_3"]
+    const at = options =>
+      heatmapTicker(0, 100, 200, mockOpts, mockDygraph, null, { labels, ...options })
+        .filter(tick => tick.v !== undefined)
+        .map(tick => tick.v)
+
+    expect(at({})).toEqual([0, 1, 2])
+    expect(at({ labelOffset: 0.5 })).toEqual([0.5, 1.5, 2.5])
+  })
+
   it("removes prefix from labels", () => {
     const defaultLabels = ["system_cpu", "system_memory", "system_disk"]
     const ticks = heatmapTicker(0, 100, 200, mockOpts, mockDygraph, null, { labels: defaultLabels })

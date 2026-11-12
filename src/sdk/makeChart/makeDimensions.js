@@ -7,7 +7,12 @@ import {
   isIncremental,
   withoutPrefix,
 } from "@/helpers/heatmap"
-import { detectHeatmapScale, formatHeatmapLabel, sortHeatmapValues } from "@/helpers/heatmapScale"
+import {
+  detectHeatmapScale,
+  formatHeatmapLabel,
+  resolveHeatmapScale,
+  sortHeatmapValues,
+} from "@/helpers/heatmapScale"
 import { getConversionAttributes } from "@/helpers/unitConversion/getConversionUnits"
 import groupBy from "lodash/groupBy"
 import isEmpty from "lodash/isEmpty"
@@ -282,7 +287,7 @@ export default (chart, sdk) => {
 
   chart.getVisibleHeatmapIds = () => {
     const ids = getBaseVisibleHeatmapIds()
-    if (!isHeatmap(chart)) return ids
+    if (!isHeatmap(chart) || chart.getAttribute("heatmapKeepEmptyRows")) return ids
 
     const payload = chart.getPayload()
     const key = ids.join("\u0000")
@@ -296,7 +301,8 @@ export default (chart, sdk) => {
     return heatmapVisibleIds
   }
 
-  chart.getHeatmapScale = () => heatmapScale
+  chart.getHeatmapScale = () =>
+    resolveHeatmapScale(heatmapScale, chart.getAttribute("heatmapBucketUnit"))
 
   chart.getHeatmapYIndex = id => {
     const visibleHeatmapIds = chart.getVisibleHeatmapIds()
@@ -385,7 +391,7 @@ export default (chart, sdk) => {
 
     if (!isNaN(partIndex)) dimName = dimName.split(",")?.[partIndex] ?? dimName
 
-    if (isHeatmap(chart)) return formatHeatmapLabel(withoutPrefix(dimName), heatmapScale)
+    if (isHeatmap(chart)) return formatHeatmapLabel(withoutPrefix(dimName), chart.getHeatmapScale())
 
     return dimName
   }
@@ -674,6 +680,7 @@ export default (chart, sdk) => {
 
     if (aliasesChanged) chart.sortDimensions()
   })
+  chart.onAttributeChange("heatmapBucketUnit", chart.sortDimensions)
 
   chart.updateColors = () => {
     let dimensionIds = chart.getAttribute("dimensionIds")

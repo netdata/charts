@@ -151,7 +151,7 @@ describe("uplot hover dimension resolution — heatmap", () => {
     [0, 0, 2, 0, 0, 0, 0],
   ]
 
-  it("resolves the heatmap bucket nearest the cursor Y", async () => {
+  const mountHeatmap = async (attributes = {}, rows = heatmapRows) => {
     const { sdk, chart } = makeTestChart({
       attributes: {
         loaded: true,
@@ -160,8 +160,6 @@ describe("uplot hover dimension resolution — heatmap", () => {
         context: "prometheus.test.histogram",
         groupBy: ["dimension"],
         selectedLegendDimensions: [],
-        showAnomalies: false,
-        showAnnotations: false,
         viewDimensions: {
           ids: heatmapIds,
           names: heatmapIds,
@@ -170,10 +168,11 @@ describe("uplot hover dimension resolution — heatmap", () => {
           contexts: heatmapIds.map(() => ""),
           grouped: ["dimension"],
         },
+        ...attributes,
       },
     })
 
-    await loadHeatmapPayload(chart, heatmapIds, heatmapRows, { timestamp: 1617946860000 })
+    await loadHeatmapPayload(chart, heatmapIds, rows, { timestamp: 1617946860000 })
     chart.getDateWindow = () => [1617946860000, 1617947750000]
     chart.formatXAxis = x => x.toString()
     chart.getThemeAttribute = () => "#333"
@@ -189,7 +188,60 @@ describe("uplot hover dimension resolution — heatmap", () => {
     await Promise.resolve()
     await Promise.resolve()
 
-    const u = instance.getUPlot()
+    return {
+      chart,
+      instance,
+      u: instance.getUPlot(),
+      teardown: () => (instance.unmount(), document.body.removeChild(element)),
+    }
+  }
+
+  const edgeIds = chart => {
+    const ids = chart.getVisibleHeatmapIds()
+    const byIndex = [...ids].sort((a, b) => chart.getHeatmapYIndex(a) - chart.getHeatmapYIndex(b))
+    return { bottom: byIndex[0], top: byIndex[byIndex.length - 1] }
+  }
+
+  it("resolves the edge rows under empty anomaly and annotation bands", async () => {
+    const { chart, u, teardown } = await mountHeatmap()
+    const getDim = makeGetHoverDimension(chart)
+    const { bottom, top } = edgeIds(chart)
+
+    u.cursor = { left: 100, top: 2, idx: 0 }
+    expect(getDim(u)).toBe(top)
+
+    u.cursor = { left: 100, top: u.over.clientHeight - 2, idx: 0 }
+    expect(getDim(u)).toBe(bottom)
+
+    teardown()
+  })
+
+  it("keeps the anomaly and annotation bands in a column that has them", async () => {
+    const rows = [[0, 0, [1, 50, 1], 0, 2, 0, 0], ...heatmapRows.slice(1)]
+    const { chart, u, teardown } = await mountHeatmap({}, rows)
+    const getDim = makeGetHoverDimension(chart)
+    const { bottom, top } = edgeIds(chart)
+
+    u.cursor = { left: 100, top: 2, idx: 0 }
+    expect(getDim(u)).toBe("ANOMALY_RATE")
+
+    u.cursor = { left: 100, top: u.over.clientHeight - 2, idx: 0 }
+    expect(getDim(u)).toBe("ANNOTATIONS")
+
+    u.cursor = { left: 100, top: 2, idx: 1 }
+    expect(getDim(u)).toBe(top)
+
+    u.cursor = { left: 100, top: u.over.clientHeight - 2, idx: 1 }
+    expect(getDim(u)).toBe(bottom)
+
+    teardown()
+  })
+
+  it("resolves the heatmap bucket nearest the cursor Y", async () => {
+    const { chart, u, teardown } = await mountHeatmap({
+      showAnomalies: false,
+      showAnnotations: false,
+    })
     const getDim = makeGetHoverDimension(chart)
     const visibleIds = chart.getVisibleHeatmapIds()
 
@@ -199,7 +251,6 @@ describe("uplot hover dimension resolution — heatmap", () => {
       expect(getDim(u)).toBe(id)
     })
 
-    instance.unmount()
-    document.body.removeChild(element)
+    teardown()
   })
 })

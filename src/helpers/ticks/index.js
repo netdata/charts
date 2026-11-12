@@ -1,19 +1,8 @@
 import { isBinary } from "@/helpers/units"
+import { durationUnitsInSeconds } from "@/helpers/units/durations"
 
 const decimalMultipliers = [1, 2, 2.5, 5, 10]
 const binaryMultipliers = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]
-const durationUnitsInSeconds = {
-  ns: 1e-9,
-  us: 1e-6,
-  ms: 1e-3,
-  s: 1,
-  min: 60,
-  h: 3600,
-  d: 86400,
-  wk: 604800,
-  mo: 2592000,
-  a: 31536000,
-}
 
 const durationStepsInSeconds = [
   1e-9,

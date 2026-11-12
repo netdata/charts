@@ -11,6 +11,7 @@ import Skeleton from "./skeleton"
 import Overlays from "./overlays"
 import { Processing } from "./overlays/proceeded"
 import cursorStyle from "@/components/helpers/cursorStyle"
+import { useIsHeatmap } from "@/helpers/heatmap"
 import { useInModernTile } from "@/components/modern/tile/context"
 import { withAlpha } from "@/chartLibraries/helpers/color"
 
@@ -140,6 +141,9 @@ export const Container = props => {
   const axisColor = useColor("themeAxisLabelColor")
   const selectionColor = useColor("themeSelectionColor")
   const crosshairColor = useColor("themeCrosshair")
+  const heatmap = useIsHeatmap()
+  const cellClick = useAttributeValue("heatmapCellClick")
+  const enabledNavigation = useAttributeValue("enabledNavigation")
 
   return (
     <StyledContainer
@@ -154,6 +158,7 @@ export const Container = props => {
       width="100%"
       overflow="hidden"
       navigation={navigation}
+      $cellClick={heatmap && !!cellClick && !!enabledNavigation && navigation === "pan"}
       {...props}
     />
   )
