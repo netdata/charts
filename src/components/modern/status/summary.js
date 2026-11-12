@@ -1,5 +1,7 @@
 export const listedNamesLimit = 5
 
+export const openAlertsLabelSuffix = ", open alerts"
+
 const sumBy = (list, key) => list.reduce((sum, alert) => sum + (alert[key] || 0), 0)
 
 const namesWith = (list, key) =>

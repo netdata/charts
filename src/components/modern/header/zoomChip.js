@@ -63,23 +63,6 @@ const ResetButton = styled(Box).attrs({
   &:active {
     background: ${getColor("buttonNeutralFillPressed")};
   }
-
-  ${({ isInline }) =>
-    isInline &&
-    css`
-      padding: 0;
-      color: ${getColor("textLite")};
-      background: transparent;
-      text-decoration: underline;
-      text-underline-offset: 2px;
-
-      &:hover,
-      &:active,
-      &:focus-visible {
-        color: ${getColor("text")};
-        background: transparent;
-      }
-    `}
 `
 
 const ZoomChip = ({ inline = false }) => {
@@ -113,16 +96,17 @@ const ZoomChip = ({ inline = false }) => {
       <TextSmall color={inline ? "textLite" : "text"} whiteSpace="nowrap">
         {label}
       </TextSmall>
-      <ResetButton
-        type="button"
-        isInline={inline}
-        onClick={onReset}
-        title="Reset zoom (Alt+Shift+R)"
-        data-testid="chartZoomChip-reset"
-        data-track={chart.track("zoomReset")}
-      >
-        Reset
-      </ResetButton>
+      {!inline && (
+        <ResetButton
+          type="button"
+          onClick={onReset}
+          title="Reset zoom (Alt+Shift+R)"
+          data-testid="chartZoomChip-reset"
+          data-track={chart.track("zoomReset")}
+        >
+          Reset
+        </ResetButton>
+      )}
     </Chip>
   )
 }

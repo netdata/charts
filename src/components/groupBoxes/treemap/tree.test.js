@@ -73,4 +73,13 @@ describe("group boxes tree", () => {
     expect(findGroup(root, ["mon"]).name).toBe("mon")
     expect(findGroup(root, ["gone"])).toBeNull()
   })
+
+  it("names node groups and leaves by their alias while keeping the raw value", () => {
+    const nodes = { n1: { mg: "mg-1", nd: "n1", nm: "web-1" } }
+    const root = buildBoxTree(["mg-1,p1", "mg-1,p2"], ["node", "label:pod"], nodes, {
+      n1: { name: "Storefront", labels: {} },
+    })
+
+    expect(root.children[0]).toMatchObject({ name: "Storefront", value: "mg-1" })
+  })
 })

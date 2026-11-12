@@ -4,6 +4,7 @@ import { Flex, TextSmall, Menu, Table, Button, getColor } from "@netdata/netdata
 import { useAttributeValue, useIsModern } from "@/components/provider"
 import deepEqual from "@/helpers/deepEqual"
 import Label from "./label"
+import { matchesRowLabel } from "./utils"
 import Totals from "./totals"
 import ModernDropdown from "./modern/dropdown"
 import usePrefersReducedMotion from "@/components/helpers/usePrefersReducedMotion"
@@ -90,6 +91,7 @@ const Dropdown = ({
           data={items}
           onRowSelected={onItemClick}
           onSearch={noop}
+          globalFilterFn={matchesRowLabel}
           meta={tableMeta}
           sortBy={sortBy}
           rowSelection={rowSelection}

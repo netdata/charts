@@ -134,4 +134,38 @@ describe("DrillDown", () => {
     await waitFor(() => expect(screen.queryByText("Target node")).not.toBeInTheDocument())
     expect(screen.queryByText("Other node")).not.toBeInTheDocument()
   })
+
+  it("shows only the node alias and still finds the node by its hostname", async () => {
+    const { user } = renderWithChart(
+      <Box height={100}>
+        <DrillDown />
+      </Box>,
+      {
+        attributes: {
+          nodesById: { "target-node": { name: "Billing", labels: {} } },
+          drawer: { action: "compare", tab: "window" },
+          drilldown: {
+            groupBy: ["node", "instance", "dimension"],
+            groupByLabel: [],
+            data: makeSearchWeightsResponse(),
+            loading: false,
+            error: null,
+            sortBy: [],
+            expanded: {},
+            search: "",
+            groupBySortBy: [],
+            groupByExpanded: {},
+          },
+        },
+      }
+    )
+
+    expect(screen.getByText("Billing")).toBeInTheDocument()
+    expect(screen.queryByText("Target node")).not.toBeInTheDocument()
+
+    await user.type(screen.getByPlaceholderText("Search"), "target node")
+
+    await waitFor(() => expect(screen.queryByText("Other node")).not.toBeInTheDocument())
+    expect(screen.getByText("Billing")).toBeInTheDocument()
+  })
 })

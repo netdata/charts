@@ -4,7 +4,7 @@ const getDimensionStats = (chart, result, dimensionId) => {
   const byDimension = result?.byDimension
   if (!byDimension) return null
 
-  const dimensionName = chart.getDimensionName(dimensionId)
+  const dimensionName = chart.getRawDimensionName(dimensionId)
 
   return byDimension[dimensionId] || byDimension[dimensionName] || null
 }

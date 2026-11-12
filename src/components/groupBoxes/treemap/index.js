@@ -59,6 +59,7 @@ const Treemap = ({ uiName, width, height, fit = false }) => {
   const rowData = useGroupBoxRowData(uiName)
   const grouped = useAttributeValue("viewDimensions")?.grouped
   const nodes = useAttributeValue("nodes")
+  const nodesById = useAttributeValue("nodesById")
   const theme = useAttributeValue("theme")
   const min = useAttributeValue("min")
   const max = useAttributeValue("max")
@@ -78,8 +79,8 @@ const Treemap = ({ uiName, width, height, fit = false }) => {
   const size = useSize(areaRef, fixed)
 
   const root = useMemo(
-    () => buildBoxTree(payload.labels.length ? getBoxIds(payload) : [], grouped, nodes),
-    [payload, grouped, nodes]
+    () => buildBoxTree(payload.labels.length ? getBoxIds(payload) : [], grouped, nodes, nodesById),
+    [payload, grouped, nodes, nodesById]
   )
   const focus = findGroup(root, focusPath || []) ? focusPath : []
   const layout = useMemo(

@@ -2,7 +2,7 @@ import { memo, useCallback, useMemo } from "react"
 import { useChart, useAttribute, useAttributeValue } from "@/components/provider"
 import { uppercase } from "@/helpers/objectTransform"
 import DropdownTable from "./dropdownTable"
-import { getStats } from "./utils"
+import { getStats, getInstanceLabel } from "./utils"
 import {
   labelColumn,
   metricsColumn,
@@ -42,23 +42,35 @@ const columns = [
   rangeColumn(),
 ]
 
+const hasAlias = nodesById => !!nodesById && Object.values(nodesById).some(node => node?.name)
+
 const Instances = ({ labelProps, ...rest }) => {
   const chart = useChart()
   const value = useAttributeValue("selectedInstances")
   const instances = useAttributeValue("instances")
   const instancesTotals = useAttributeValue("instancesTotals")
+  const nodes = useAttributeValue("nodes")
+  const nodesById = useAttributeValue("nodesById")
 
-  const getOptions = useCallback(
-    () =>
-      Object.keys(instances).map(id =>
-        getStats(chart, instances[id], {
-          id,
-          key: "instances",
-          props: { selected: value.includes(id) },
-        })
-      ),
-    [instances, value]
-  )
+  const getOptions = useCallback(() => {
+    const nodeIdsByIndex = {}
+    if (hasAlias(nodesById)) Object.keys(nodes).forEach(id => (nodeIdsByIndex[nodes[id].ni] = id))
+
+    return Object.keys(instances).map(id =>
+      getStats(chart, instances[id], {
+        id,
+        key: "instances",
+        props: {
+          selected: value.includes(id),
+          getLabel: instance => {
+            const nodeId = nodeIdsByIndex[instance.ni]
+
+            return nodeId && getInstanceLabel(chart, nodeId, nodes[nodeId], instance)
+          },
+        },
+      })
+    )
+  }, [instances, value, nodes, nodesById])
 
   const [sortBy, onSortByChange] = useAttribute("instancesSortBy")
   const tooltipProps = useTooltipProps(chart)

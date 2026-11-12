@@ -57,6 +57,43 @@ describe("Dimensions", () => {
     })
   })
 
+  describe("with a node alias", () => {
+    const setupAliased = async nodesById => {
+      const { chart } = makeTestChart()
+      chart.doneFetch(systemLoadLine[0])
+      await new Promise(resolve => setTimeout(resolve, 0))
+      const viewDimensions = chart.getAttribute("viewDimensions")
+      chart.updateAttribute("viewDimensions", {
+        ...viewDimensions,
+        grouped: ["node"],
+        names: viewDimensions.ids.map((id, index) =>
+          id === "load5" ? "web-host" : viewDimensions.names[index]
+        ),
+      })
+      chart.updateAttribute("nodes", { "nd-1": { mg: "load5", nd: "nd-1", nm: "web-host" } })
+      chart.updateAttribute("nodesById", nodesById)
+      return renderWithChart(<Dimensions />, { chart })
+    }
+
+    it.each(["billing", "web-host"])("finds the aliased dimension by %s", async query => {
+      const { user } = await setupAliased({ "nd-1": { name: "Billing", labels: {} } })
+
+      await user.type(screen.getByPlaceholderText("Search"), query)
+
+      await waitFor(() => expect(screen.queryAllByTestId("netdata-table-row")).toHaveLength(1))
+      expect(screen.getByText("Billing")).toBeInTheDocument()
+    })
+
+    it("keeps the hostname searchable when there is no alias", async () => {
+      const { user } = await setupAliased({ "nd-1": { labels: {} } })
+
+      await user.type(screen.getByPlaceholderText("Search"), "web-host")
+
+      await waitFor(() => expect(screen.queryAllByTestId("netdata-table-row")).toHaveLength(1))
+      expect(screen.getByText("web-host")).toBeInTheDocument()
+    })
+  })
+
   it("searches displayed dimension names without matching numeric values", async () => {
     const { chart } = makeTestChart()
     chart.doneFetch(systemLoadLine[0])

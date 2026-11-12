@@ -182,4 +182,44 @@ describe("CorrelationTable", () => {
 
     await waitFor(() => expect(screen.queryByText("Shared context")).not.toBeInTheDocument())
   })
+
+  it("finds an aliased node by its hostname while showing only the alias", async () => {
+    const data = [
+      {
+        rowId: JSON.stringify(["context", "shared"]),
+        kind: "context",
+        context: "shared.context",
+        contextName: "Shared context",
+        minWeight: 0.005,
+        count: 2,
+        children: [
+          makeDimension(0, 0, {
+            dimensionName: "Target metric",
+            context: "target.context",
+            nodeName: "Billing",
+            nodeRawName: "Target node",
+          }),
+          makeDimension(0, 1, {
+            dimensionName: "Other metric",
+            context: "other.context",
+            nodeName: "Other node",
+            nodeRawName: "Other node",
+          }),
+        ],
+      },
+    ]
+    const { user } = renderWithChart(
+      <Box height="400px">
+        <CorrelationTable data={data} />
+      </Box>,
+      { attributes: { correlate: { expanded: {}, search: "" } } }
+    )
+
+    await user.type(screen.getByPlaceholderText("Search"), "target node")
+
+    await waitFor(() => expect(screen.getByText("Target metric")).toBeInTheDocument())
+    expect(screen.queryByText("Other metric")).not.toBeInTheDocument()
+    expect(screen.getByText(/Billing • target\.context/)).toBeInTheDocument()
+    expect(screen.queryByText(/Target node/)).not.toBeInTheDocument()
+  })
 })

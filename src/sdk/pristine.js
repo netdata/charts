@@ -24,7 +24,6 @@ const { updatePristine, resetPristine } = makePristine(pristineKey, [
 
   "sparkline",
   "selectedLegendDimensions",
-  "showingInfo",
 
   "dimensionsSortBy",
   "instancesSortBy",
@@ -34,11 +33,6 @@ const { updatePristine, resetPristine } = makePristine(pristineKey, [
   "dimensionsSort",
   "valueFocus",
 
-  "nodesExpanded",
-  "groupByExpanded",
-  "labelsExpanded",
-
-  "expanded",
   "staticZones",
 
   "gaugeLineWidth",

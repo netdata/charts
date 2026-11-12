@@ -11,7 +11,7 @@ const makeChart = attributes =>
   makeTestChart({ attributes: { designFlavour: "modern", ...attributes } }).chart
 
 const DrillingMoreMenu = () => {
-  const [drill, setDrill] = useState(null)
+  const [drill, setDrill] = useState([])
   const [returnTo, setReturnTo] = useState(null)
 
   return (
@@ -20,10 +20,10 @@ const DrillingMoreMenu = () => {
       onOpenTab={() => {}}
       drill={drill}
       returnTo={returnTo}
-      onDrill={id => setDrill(id)}
+      onDrill={id => setDrill(prev => [...prev, id])}
       onBack={() => {
-        setReturnTo(drill)
-        setDrill(null)
+        setReturnTo(drill.at(-1))
+        setDrill(prev => prev.slice(0, -1))
       }}
     />
   )
@@ -71,9 +71,8 @@ describe("Focus in the More menu", () => {
     const chart = makeChart({ chartLibrary: "table" })
     const { user } = renderWithChart(<DrillingMoreMenu />, { chart })
 
-    const item = within(screen.getByTestId("chartMore-group-show")).getByTestId(
-      "chartMore-valueFocus"
-    )
+    await user.click(screen.getByTestId("chartMore-group-show"))
+    const item = screen.getByTestId("chartMore-valueFocus")
     expect(item).toHaveTextContent("Focus")
     expect(item).toHaveTextContent("Trends")
 
@@ -98,6 +97,7 @@ describe("Focus in the More menu", () => {
     const chart = makeChart({ chartLibrary: "gauge" })
     const { user } = renderWithChart(<DrillingMoreMenu />, { chart })
 
+    await user.click(screen.getByTestId("chartMore-group-show"))
     screen.getByTestId("chartMore-valueFocus").focus()
     await user.keyboard("{Enter}")
     await user.keyboard("{ArrowDown}")
@@ -107,9 +107,10 @@ describe("Focus in the More menu", () => {
     expect(chart.getAttribute("valueFocus")).toBe("totals")
   })
 
-  it.each(["dygraph", "uplot", "bars"])("is not offered on %s", chartLibrary => {
+  it.each(["dygraph", "uplot", "bars"])("is not offered on %s", async chartLibrary => {
     const chart = makeChart({ chartLibrary })
-    renderWithChart(<DrillingMoreMenu />, { chart })
+    const { user } = renderWithChart(<DrillingMoreMenu />, { chart })
+    await user.click(screen.getByTestId("chartMore-group-show"))
 
     expect(screen.queryByTestId("chartMore-valueFocus")).not.toBeInTheDocument()
   })

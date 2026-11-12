@@ -14,6 +14,7 @@ import { radius } from "@/components/modern/tokens"
 import { uppercase } from "@/helpers/objectTransform"
 import deepEqual from "@/helpers/deepEqual"
 import Totals from "../totals"
+import { matchesRowLabel } from "../utils"
 import { modernizeColumns, columnNames, defaultHiddenColumns } from "./columns"
 import { getPopoverSurface } from "./popoverColors"
 
@@ -224,6 +225,7 @@ const ModernDropdown = ({
           data={items}
           onRowSelected={onItemClick}
           onSearch={noop}
+          globalFilterFn={matchesRowLabel}
           headerChildren={
             !!toggleable.length && (
               <>

@@ -126,6 +126,34 @@ describe("makeControllers", () => {
     expect(spy).toHaveBeenCalledWith("pristine", {})
   })
 
+  describe("pristine scope", () => {
+    it("ignores layout toggles", () => {
+      chart.updateAttribute("expanded", true)
+      chart.updateAttribute("showingInfo", true)
+
+      expect(chart.getAttribute("pristine")).toEqual({})
+    })
+
+    it("restores data attributes on reset and leaves layout as it is", () => {
+      chart.updateAttribute("groupBy", ["node"])
+      chart.updateAttribute("expanded", true)
+
+      controllers.resetPristine()
+
+      expect(chart.getAttribute("groupBy")).toEqual(["dimension"])
+      expect(chart.getAttribute("expanded")).toBe(true)
+    })
+
+    it("restores an attribute that started undefined after repeated changes", () => {
+      chart.updateAttribute("staticZones", [{ from: 0, to: 1 }])
+      chart.updateAttribute("staticZones", [{ from: 0, to: 2 }])
+
+      controllers.resetPristine()
+
+      expect(chart.getAttribute("staticZones")).toBeUndefined()
+    })
+  })
+
   describe("updateGroupByAttribute", () => {
     beforeEach(() => {
       chart.fetch = jest.fn(() => Promise.resolve())

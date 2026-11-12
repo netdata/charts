@@ -547,4 +547,67 @@ describe("dataTransformer", () => {
       expect(node.children[0].label).toBe("dimension-1")
     })
   })
+
+  it("shows the node alias in labels and keeps the raw node name", () => {
+    chart.updateAttribute("nodesById", {
+      [firstNodeId]: { name: "Billing", labels: {} },
+    })
+
+    const [item] = transformWeightsData(weightsResponse, ["dimension", "context", "node"], chart)
+
+    expect(item.groupedByNames.node).toBe("Billing")
+    expect(item.groupedByRawNames.node).toBe("Production node")
+    expect(item.groupedBy.node).toBe(firstNodeId)
+    expect(item.nm).toBe("load1,system.load,lab-cloud-unpaid")
+
+    chart.updateAttribute("nodesById", undefined)
+  })
+
+  it("resolves the alias for a weights node id built from the machine guid", () => {
+    const { chart: claimedChart } = makeTestChart({
+      attributes: {
+        nodes: { "nd-1": { mg: "mg-1", nd: "nd-1", nm: "host-1" } },
+        nodesById: { "nd-1": { name: "Billing", labels: {} } },
+      },
+    })
+    const response = {
+      result: [
+        {
+          id: "load1,system.load,mg-1",
+          nm: "load1,system.load,host-1",
+          v: [[1, 1, 1, 1, 1], [0, 0, 0, 0, 1, 0]],
+        },
+      ],
+      v_schema: weightsResponse.v_schema,
+    }
+
+    const [item] = transformWeightsData(response, ["dimension", "context", "node"], claimedChart)
+
+    expect(item.groupedByNames.node).toBe("Billing")
+    expect(item.groupedByRawNames.node).toBe("host-1")
+    expect(item.groupedBy.node).toBe("mg-1")
+  })
+
+  it("keeps the hostname when the entry has no alias", () => {
+    const { chart: plainChart } = makeTestChart({
+      attributes: {
+        nodes: { "nd-1": { mg: "mg-1", nd: "nd-1", nm: "host-1" } },
+        nodesById: { "nd-1": { labels: {} } },
+      },
+    })
+    const response = {
+      result: [
+        {
+          id: "load1,system.load,mg-1",
+          nm: "load1,system.load,host-1",
+          v: [[1, 1, 1, 1, 1], [0, 0, 0, 0, 1, 0]],
+        },
+      ],
+      v_schema: weightsResponse.v_schema,
+    }
+
+    const [item] = transformWeightsData(response, ["dimension", "context", "node"], plainChart)
+
+    expect(item.groupedByNames.node).toBe("host-1")
+  })
 })

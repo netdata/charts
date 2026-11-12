@@ -1,3 +1,5 @@
+import { getNodeDisplayName } from "@/helpers/nodeDisplayName"
+
 const sanitizeValue = value => {
   if (value === Infinity || value === -Infinity || !Number.isFinite(value)) {
     return null
@@ -27,9 +29,18 @@ export const transformWeightsData = (weightsResponse, groupByOrder, chart) => {
       return acc
     }, {})
 
-    const groupedByNames = groupByOrder.reduce((acc, field, index) => {
+    const groupedByRawNames = groupByOrder.reduce((acc, field, index) => {
       acc[field] = groupedNames[index] || groupedValues[index] || ""
       if (field === "node") acc[field] = nodes[acc[field]]?.nm || acc[field]
+
+      return acc
+    }, {})
+
+    const groupedByNames = groupByOrder.reduce((acc, field, index) => {
+      acc[field] =
+        field === "node"
+          ? getNodeDisplayName(chart, groupedValues[index], groupedByRawNames[field])
+          : groupedByRawNames[field]
 
       return acc
     }, {})
@@ -40,6 +51,7 @@ export const transformWeightsData = (weightsResponse, groupByOrder, chart) => {
       label: groupedByNames[groupByOrder[0]] || nm,
       groupedBy: groupedByFields,
       groupedByNames,
+      groupedByRawNames,
       weight: {
         min: weightStats[0],
         avg: weightStats[1],
@@ -96,7 +108,7 @@ export const buildHierarchicalTree = (flatData, groupByOrder) => {
   const lastLevel = groupByOrder.length - 1
 
   flatData.forEach(item => {
-    const { groupedBy, groupedByNames } = item
+    const { groupedBy, groupedByNames, groupedByRawNames } = item
     const pathGroupedBy = {}
     const pathGroupedByNames = {}
     let childrenByValue = groupPathIndex
@@ -133,6 +145,7 @@ export const buildHierarchicalTree = (flatData, groupByOrder) => {
           id: nodeKey,
           nm: nodeKey,
           label: groupedByNames[field],
+          rawLabel: groupedByRawNames?.[field],
           level,
           parentId: parentKey,
           children: [],
@@ -150,6 +163,7 @@ export const buildHierarchicalTree = (flatData, groupByOrder) => {
       ...item,
       id: nodeKey,
       label: item.groupedByNames[groupByOrder[lastLevel]] || item.label,
+      rawLabel: item.groupedByRawNames?.[groupByOrder[lastLevel]],
       level: lastLevel,
       parentId: lastLevel > 0 ? parentKey : null,
       isGroupNode: false,

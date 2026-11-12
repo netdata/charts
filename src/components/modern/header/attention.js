@@ -1,11 +1,12 @@
 import { useMemo } from "react"
 import styled from "styled-components"
 import { Box, Flex, TextMicro, getColor } from "@netdata/netdata-ui"
-import { useAttributeValue, useChart, useUnitSign } from "@/components/provider"
+import { useAttribute, useAttributeValue, useChart, useUnitSign } from "@/components/provider"
 import { numeralsFont } from "@/components/modern/tokens"
 import { numerals } from "@/components/modern/numerals"
 import StatusIndicator, { getClearDescription, summarizeAlerts } from "@/components/modern/status"
 import { getAttention } from "./getAttention"
+import { useMenuItems } from "./moreMenu"
 
 const toneColor = { critical: "error", warning: "warning" }
 
@@ -43,11 +44,21 @@ const useDetail = ({ names, when }) => {
   return `${first}${more} raised${since}`
 }
 
+const useStatusAction = () => {
+  const hasToolbox = useAttributeValue("hasToolbox")
+  const items = useMenuItems()
+  const [, setMoreMenu] = useAttribute("moreMenu")
+  const target = hasToolbox ? items.find(item => item.statusTarget) : null
+
+  return target ? { onActivate: () => setMoreMenu({ drill: [target.id] }) } : {}
+}
+
 const Raised = ({ status, count, value, names, when }) => {
   const units = useUnitSign({ withoutConversion: true })
   const locale = useAttributeValue("locale")
   const tone = toneColor[status]
   const detail = useDetail({ names, when })
+  const statusAction = useStatusAction()
 
   return (
     <Flex column alignItems="end" gap={0.5} data-testid="chartAttention" data-status={status}>
@@ -57,6 +68,7 @@ const Raised = ({ status, count, value, names, when }) => {
           count={count}
           names={names}
           data-testid="chartAttention-status"
+          {...statusAction}
         />
         {value !== null && value !== undefined && (
           <Flex alignItems="baseline" gap={1}>
@@ -77,6 +89,7 @@ const Raised = ({ status, count, value, names, when }) => {
 const Attention = () => {
   const overlays = useAttributeValue("overlays")
   const alerts = useAttributeValue("alerts")
+  const statusAction = useStatusAction()
 
   const attention = useMemo(() => getAttention({ overlays, alerts }), [overlays, alerts])
 
@@ -91,6 +104,7 @@ const Attention = () => {
           status="clear"
           description={getClearDescription(summary.watching)}
           data-testid="chartAttention-status"
+          {...statusAction}
         />
       </Flex>
     )

@@ -1,4 +1,5 @@
 import { fireEvent, screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import "@testing-library/jest-dom"
 import { DefaultTheme, DarkTheme } from "@netdata/netdata-ui"
 import { renderWithProviders } from "@jest/testUtilities"
@@ -137,6 +138,35 @@ describe("StatusIndicator", () => {
       "e",
     ])
     expect(screen.getByTestId("modernStatus-more")).toHaveTextContent("3 more")
+  })
+
+  it("stays a plain status without an activate handler", () => {
+    renderWithProviders(<StatusIndicator status="warning" count={1} />)
+
+    const status = screen.getByTestId("modernStatus")
+    expect(status).toHaveAttribute("role", "status")
+    expect(status).not.toHaveAttribute("aria-haspopup")
+  })
+
+  it("becomes a button that announces it opens the alerts and activates by click, Enter and Space", async () => {
+    const onActivate = jest.fn()
+    const user = userEvent.setup()
+    renderWithProviders(
+      <StatusIndicator status="warning" count={2} names={["load_15"]} onActivate={onActivate} />
+    )
+
+    const status = screen.getByRole("button", { name: "2 warning, load_15, open alerts" })
+    expect(status).toHaveAttribute("aria-haspopup", "menu")
+
+    await user.click(status)
+    expect(onActivate).toHaveBeenCalledTimes(1)
+
+    status.focus()
+    await user.keyboard("{Enter}")
+    expect(onActivate).toHaveBeenCalledTimes(2)
+
+    await user.keyboard(" ")
+    expect(onActivate).toHaveBeenCalledTimes(3)
   })
 
   it("keeps the given test id for callers", () => {

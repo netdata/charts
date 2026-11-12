@@ -168,6 +168,42 @@ describe("unitConversion", () => {
     cleanup()
   })
 
+  it("finds byDimension stats by the raw name when a node alias is displayed", () => {
+    chart.updateAttributes({
+      units: ["By"],
+      nodes: { "nd-1": { nd: "nd-1", nm: "host-1" }, "nd-2": { nd: "nd-2", nm: "host-2" } },
+      nodesById: { "nd-1": { name: "Zulu" }, "nd-2": { name: "Alpha" } },
+      viewDimensions: {
+        ids: ["nd-1", "nd-2"],
+        names: ["host-1", "host-2"],
+        grouped: ["node"],
+        units: ["By", "By"],
+        contexts: ["a", "b"],
+      },
+      dimensionIds: ["nd-1", "nd-2"],
+      visibleDimensionIds: ["nd-1", "nd-2"],
+    })
+
+    chart.getPayload = () => ({
+      byDimension: {
+        "host-1": { min: 1, max: 512 },
+        "host-2": { min: 1024 ** 3, max: 2 * 1024 ** 3 },
+      },
+    })
+    chart.updateDimensions()
+
+    const cleanup = unitConversion(chart)
+
+    chart.trigger("visibleDimensionsChanged")
+
+    const unitsByDimension = chart.getAttribute("unitsByDimension")
+
+    expect(unitsByDimension["nd-1"].prefix).toBe("")
+    expect(unitsByDimension["nd-2"].prefix).toBe("Gi")
+
+    cleanup()
+  })
+
   it("handles context-specific units", () => {
     chart.updateAttribute("unitsStsByContext", {
       ctxPercent: { units: "%", min: 0, max: 100 },

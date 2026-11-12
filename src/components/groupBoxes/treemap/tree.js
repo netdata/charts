@@ -16,8 +16,11 @@ export const findNode = (nodes, value) => {
 
 export const getBoxIds = payload => payload.labels.slice(1, payload.labels.length - 2)
 
-const displayName = (level, value, nodes) =>
-  level.kind === "node" ? findNode(nodes, value)?.node.nm || value : value
+const nodeName = (found, value, nodesById) =>
+  nodesById?.[found?.key]?.name || found?.node.nm || value
+
+const displayName = (level, value, nodes, nodesById) =>
+  level.kind === "node" ? nodeName(findNode(nodes, value), value, nodesById) : value
 
 const countLeaves = group => {
   group.count = group.children.reduce(
@@ -27,7 +30,7 @@ const countLeaves = group => {
   return group.count
 }
 
-export const buildBoxTree = (ids, grouped, nodes) => {
+export const buildBoxTree = (ids, grouped, nodes, nodesById) => {
   const levels = getLevels(grouped)
   const groupDepth = Math.max(levels.length - 1, 0)
   const root = {
@@ -52,7 +55,7 @@ export const buildBoxTree = (ids, grouped, nodes) => {
         const level = levels[depth] || unknownLevel
         groups[key] = {
           id: key,
-          name: displayName(level, value, nodes),
+          name: displayName(level, value, nodes, nodesById),
           value,
           level,
           path,
@@ -71,7 +74,7 @@ export const buildBoxTree = (ids, grouped, nodes) => {
     const level = levels[depth] || unknownLevel
     parent.children.push({
       id,
-      name: displayName(level, leafValue, nodes),
+      name: displayName(level, leafValue, nodes, nodesById),
       value: leafValue,
       level,
       path: [...parent.path, leafValue],

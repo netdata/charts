@@ -1,3 +1,4 @@
+import { makeTestChart } from "@jest/testUtilities"
 import { groupByContext, transformCorrelationData } from "./dataTransformer"
 
 const schema = {
@@ -79,6 +80,54 @@ describe("transformCorrelationData", () => {
     response.result.push({ id: "invalid", nm: "invalid", v: [] })
 
     expect(transformCorrelationData(response, 0.01)).toHaveLength(1)
+  })
+
+  it("shows only the node alias and keeps the node id and hostname", () => {
+    const { chart } = makeTestChart({
+      attributes: { nodesById: { "node-id": { name: "Billing", labels: {} } } },
+    })
+
+    const [result] = transformCorrelationData(makeResponse([makeItem()]), 0.01, [], chart)
+
+    expect(result).toMatchObject({
+      nodeId: "node-id",
+      nodeName: "Billing",
+      nodeRawName: "Node name",
+    })
+  })
+})
+
+describe("transformCorrelationData with machine guid node ids", () => {
+  const nodes = { "nd-1": { mg: "mg-1", nd: "nd-1", nm: "Node name" } }
+
+  it("shows the alias when nodesById is keyed by the node id", () => {
+    const { chart } = makeTestChart({
+      attributes: { nodes, nodesById: { "nd-1": { name: "Billing", labels: {} } } },
+    })
+
+    const [result] = transformCorrelationData(
+      makeResponse([makeItem({ node: "mg-1" })]),
+      0.01,
+      [],
+      chart
+    )
+
+    expect(result).toMatchObject({ nodeId: "mg-1", nodeName: "Billing", nodeRawName: "Node name" })
+  })
+
+  it("keeps the hostname when the entry has no alias", () => {
+    const { chart } = makeTestChart({
+      attributes: { nodes, nodesById: { "nd-1": { labels: {} } } },
+    })
+
+    const [result] = transformCorrelationData(
+      makeResponse([makeItem({ node: "mg-1" })]),
+      0.01,
+      [],
+      chart
+    )
+
+    expect(result.nodeName).toBe("Node name")
   })
 })
 

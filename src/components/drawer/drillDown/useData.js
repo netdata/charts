@@ -43,6 +43,7 @@ export default () => {
   const after = useAttributeValue("after")
   const before = useAttributeValue("before")
   const overlays = useAttributeValue("overlays")
+  const nodesById = useAttributeValue("nodesById")
 
   const { hierarchicalData, groupedBy } = useMemo(() => {
     if (!rawData?.result) return { hierarchicalData: [], groupedBy: groupBy }
@@ -53,7 +54,7 @@ export default () => {
     const flatData = transformWeightsData(rawData, responseGroupBy, chart)
     const hierarchicalData = buildHierarchicalTree(flatData, groupedBy)
     return { hierarchicalData, groupedBy }
-  }, [rawData, groupBy, chart])
+  }, [rawData, groupBy, chart, nodesById])
 
   useEffect(() => {
     if (drawerAction !== "drillDown") return

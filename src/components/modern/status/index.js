@@ -3,7 +3,7 @@ import { Box, Flex, TextSmall, getColor } from "@netdata/netdata-ui"
 import Tooltip from "@/components/tooltip"
 import { radius } from "@/components/modern/tokens"
 import { Dot } from "@/components/modern/dot"
-import { capNames, getClearDescription, getStatusLabel } from "./summary"
+import { capNames, getClearDescription, getStatusLabel, openAlertsLabelSuffix } from "./summary"
 
 export * from "./summary"
 
@@ -11,7 +11,10 @@ const dotColors = { clear: "success", warning: "warning", critical: "bright" }
 
 export const statusInk = { warning: "text", critical: "bright" }
 
-const Holder = styled(Flex).attrs({ round: radius.pill, cursor: "default" })`
+const Holder = styled(Flex).attrs(({ onClick }) => ({
+  round: radius.pill,
+  cursor: onClick ? "pointer" : "default",
+}))`
   outline: none;
 
   &:focus-visible {
@@ -59,6 +62,7 @@ const StatusIndicator = ({
   count,
   names = [],
   description: givenDescription,
+  onActivate,
   "data-testid": testId = "modernStatus",
   ...rest
 }) => {
@@ -70,6 +74,18 @@ const StatusIndicator = ({
       : givenDescription
   const isCritical = status === "critical"
   const label = status === "clear" ? null : getStatusLabel({ status, count })
+  const activation = onActivate
+    ? {
+        role: "button",
+        "aria-haspopup": "menu",
+        onClick: onActivate,
+        onKeyDown: event => {
+          if (event.key !== "Enter" && event.key !== " ") return
+          event.preventDefault()
+          onActivate()
+        },
+      }
+    : { role: "status" }
 
   return (
     <Tooltip content={<StatusDetails description={description} names={names} />} align="bottom">
@@ -77,13 +93,13 @@ const StatusIndicator = ({
         alignItems="center"
         flex={false}
         tabIndex={0}
-        role="status"
-        aria-label={describe({ status, count, description, names })}
+        aria-label={`${describe({ status, count, description, names })}${onActivate ? openAlertsLabelSuffix : ""}`}
         gap={1.5}
         padding={isCritical ? [0.5, 2] : [0.5, 0]}
         background={isCritical ? "error" : undefined}
         data-testid={testId}
         data-status={status}
+        {...activation}
         {...rest}
       >
         <Dot background={dotColors[status]} data-testid="modernStatus-dot" />

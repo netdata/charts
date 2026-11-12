@@ -8,6 +8,8 @@ import {
   useDimensionIds,
   useVisibleDimensionIds,
 } from "@/components/provider"
+import filterIcon from "@netdata/netdata-ui/dist/components/icon/assets/filter.svg"
+import zoomResetIcon from "@netdata/netdata-ui/dist/components/icon/assets/zoom_reset.svg"
 import Information from "@/components/toolbox/information"
 import { useIsHeatmap } from "@/helpers/heatmap"
 import { useLegendMode } from "@/components/modern/legend/mode"
@@ -15,14 +17,7 @@ import makeLog from "@/sdk/makeLog"
 import { radius } from "@/components/modern/tokens"
 import { onToggle } from "@/components/modern/legend/parts"
 import { LineSwatch } from "@/components/modern/swatch"
-import {
-  Divider,
-  Item,
-  MenuHeading,
-  MenuScroll,
-  Panel,
-  useMenuNavigation,
-} from "@/components/modern/menu"
+import { Divider, Item, MenuScroll, Panel, useMenuNavigation } from "@/components/modern/menu"
 import { focusMenuItem } from "@/components/modern/focus"
 import NavigationModes from "@/components/modern/navigationModes"
 import { showAllDimensions, useHiddenDimensionsCount } from "./hiddenDimensions"
@@ -61,6 +56,10 @@ const DimensionName = styled(Box).attrs({ as: "span", margin: [0, 0, 0, 1.5], ov
   text-overflow: ellipsis;
   white-space: nowrap;
 `
+
+export const rootGroupId = "root"
+
+const groupDrillPrefix = "group:"
 
 export const menuGroups = [
   { id: "navigate", label: "Navigate" },
@@ -133,7 +132,9 @@ const DimensionsPanel = () => {
     const query = search.trim().toLowerCase()
     if (!query) return dimensionIds
     return dimensionIds.filter(id =>
-      `${chart.getDimensionName(id) || id}`.toLowerCase().includes(query)
+      [chart.getDimensionName(id) || id, chart.getRawDimensionName(id)].some(name =>
+        `${name}`.toLowerCase().includes(query)
+      )
     )
   }, [chart, dimensionIds, search])
 
@@ -190,7 +191,7 @@ const DimensionsPanel = () => {
 }
 
 const builtInItems = [
-  { id: "navigation", group: "navigate", order: 0, Component: NavigationModes },
+  { id: "navigation", group: rootGroupId, order: 0, Component: NavigationModes },
   {
     id: "zoomIn",
     group: "navigate",
@@ -224,6 +225,7 @@ const builtInItems = [
     id: "zoomReset",
     group: "navigate",
     order: 30,
+    pin: { icon: zoomResetIcon, testId: "chartHeaderToolbox-zoomReset", order: 30 },
     useItem: ({ chart, onClose }) => {
       const after = useAttributeValue("after")
       const liveAfter = useAttributeValue("liveAfter")
@@ -281,10 +283,12 @@ const builtInItems = [
     id: "filters",
     group: "data",
     order: 10,
+    pin: { icon: filterIcon, testId: "chartHeaderToolbox-filters", order: 20 },
     useItem: ({ hasFilters, filtersOpen, onToggleFilters, onClose }) =>
       hasFilters
         ? {
             label: filtersOpen ? "Hide filters" : "Show filters",
+            check: !!filtersOpen,
             testId: "chartMore-filters",
             track: "filters",
             onClick: () => {
@@ -296,8 +300,8 @@ const builtInItems = [
   },
   {
     id: "dimensions",
-    group: "data",
-    order: 20,
+    group: rootGroupId,
+    order: 900,
     useItem: () => {
       const dimensionIds = useDimensionIds() || []
       const visibleIds = useVisibleDimensionIds() || []
@@ -441,10 +445,49 @@ const DrilledPanel = ({ descriptor, menuProps, onBack }) => {
   )
 }
 
+const MenuEntries = ({ descriptors, menuProps, onDrill }) =>
+  descriptors.map(descriptor =>
+    descriptor.Component ? (
+      <descriptor.Component key={descriptor.id} />
+    ) : (
+      <MenuRow
+        key={descriptor.id}
+        descriptor={descriptor}
+        menuProps={menuProps}
+        onDrill={onDrill}
+      />
+    )
+  )
+
+const GroupPanel = ({ group, descriptors, menuProps, onDrill, onBack }) => (
+  <Flex column width="260px" data-testid="chartMore-drilled">
+    <Item data-testid="chartMore-back" onClick={onBack}>
+      {`← ${group.label}`}
+    </Item>
+    <Divider />
+    <MenuEntries descriptors={descriptors} menuProps={menuProps} onDrill={onDrill} />
+  </Flex>
+)
+
+const GroupRow = ({ group, onDrill }) => (
+  <Item
+    drill
+    aria-haspopup="menu"
+    data-menu-id={`${groupDrillPrefix}${group.id}`}
+    data-testid={`chartMore-group-${group.id}`}
+    onClick={() => onDrill(`${groupDrillPrefix}${group.id}`)}
+  >
+    {group.label}
+  </Item>
+)
+
+const getGroupItems = (items, id) =>
+  items.filter(item => item.group === id && !item.pin).sort(byOrder)
+
 const MoreMenu = ({
   onClose,
   onOpenTab,
-  drill = null,
+  drill = [],
   returnTo = null,
   onDrill,
   onBack,
@@ -454,13 +497,17 @@ const MoreMenu = ({
 }) => {
   const chart = useChart()
   const items = useMenuItems()
+  const current = drill[drill.length - 1] ?? null
   const { ref, onKeyDown } = useMenuNavigation(
-    `${drill}|${returnTo}`,
-    !drill && returnTo ? `[data-menu-id="${returnTo}"]` : null
+    `${drill.join(">")}|${returnTo}`,
+    returnTo ? `[data-menu-id="${returnTo}"]` : null
   )
 
   const menuProps = { chart, onClose, onOpenTab, hasFilters, filtersOpen, onToggleFilters }
-  const drilled = drill && items.find(item => item.id === drill)
+  const drilledGroup =
+    current?.startsWith(groupDrillPrefix) &&
+    menuGroups.find(({ id }) => `${groupDrillPrefix}${id}` === current)
+  const drilled = current && !drilledGroup && items.find(item => item.id === current)
 
   return (
     <Panel
@@ -468,40 +515,34 @@ const MoreMenu = ({
       role="menu"
       data-testid="chartMoreMenu"
       onKeyDown={onKeyDown}
-      {...(drilled && { width: "auto" })}
+      {...(current && { width: "auto" })}
     >
-      {drilled ? (
+      {drilledGroup && (
+        <GroupPanel
+          key={drilledGroup.id}
+          group={drilledGroup}
+          descriptors={getGroupItems(items, drilledGroup.id)}
+          menuProps={menuProps}
+          onDrill={onDrill}
+          onBack={onBack}
+        />
+      )}
+      {drilled && (
         <DrilledPanel key={drilled.id} descriptor={drilled} menuProps={menuProps} onBack={onBack} />
-      ) : (
-        menuGroups.map(({ id, label }, index) => {
-          const groupItems = items.filter(item => item.group === id).sort(byOrder)
-          if (!groupItems.length) return null
-
-          return (
-            <Flex
-              column
-              key={id}
-              role="group"
-              aria-label={label}
-              data-testid={`chartMore-group-${id}`}
-            >
-              {index > 0 && <Divider />}
-              <MenuHeading>{label}</MenuHeading>
-              {groupItems.map(descriptor =>
-                descriptor.Component ? (
-                  <descriptor.Component key={descriptor.id} />
-                ) : (
-                  <MenuRow
-                    key={descriptor.id}
-                    descriptor={descriptor}
-                    menuProps={menuProps}
-                    onDrill={onDrill}
-                  />
-                )
-              )}
-            </Flex>
-          )
-        })
+      )}
+      {!current && (
+        <MenuScroll height={{ max: "360px" }} data-testid="chartMoreRoot">
+          <MenuEntries
+            descriptors={getGroupItems(items, rootGroupId)}
+            menuProps={menuProps}
+            onDrill={onDrill}
+          />
+          {menuGroups
+            .filter(({ id }) => getGroupItems(items, id).length > 0)
+            .map(group => (
+              <GroupRow key={group.id} group={group} onDrill={onDrill} />
+            ))}
+        </MenuScroll>
       )}
     </Panel>
   )

@@ -99,7 +99,9 @@ const Dimensions = () => {
   )
   const filteredDimensionIds = useMemo(
     () =>
-      dimensionIds.filter(id => matchesSearch([chart.getDimensionName(id)], search)),
+      dimensionIds.filter(id =>
+        matchesSearch([chart.getDimensionName(id), chart.getRawDimensionName(id)], search)
+      ),
     [chart, dimensionIds, search]
   )
   useMemo(() => chart.makeChartUI("custom", "bars"), [])
