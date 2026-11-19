@@ -94,9 +94,7 @@ const Column = styled(Box).attrs({
   height: { min: "0px" },
   overflow: "hidden",
 })`
-  flex: 0 0 ${({ $fitWidth }) => $fitWidth}px;
-  min-width: ${directColumnWidth}px;
-  max-width: ${directColumnMaxShare};
+  flex: none;
 `
 
 const Label = styled(Flex).attrs(({ isOff }) => ({
@@ -191,7 +189,11 @@ const DirectLabels = ({ uiName = "default" }) => {
   )
 
   return (
-    <Column ref={columnRef} $fitWidth={fitWidth} data-track={chart.track("legend")}>
+    <Column
+      ref={columnRef}
+      width={{ base: `${fitWidth}px`, min: `${directColumnWidth}px`, max: directColumnMaxShare }}
+      data-track={chart.track("legend")}
+    >
       {placed.map(row => renderLabel(row, { top: `${row.top}px` }))}
       {!!hidden.length && (
         <Box position="absolute" left={0} right={0} bottom={0}>
