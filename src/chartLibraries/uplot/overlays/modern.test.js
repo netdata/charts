@@ -394,10 +394,11 @@ describe("threshold overlay", () => {
     teardown()
   })
 
-  it("skips the line and label of a threshold above the visible range", async () => {
+  it("skips the line and label of a threshold above a fixed value range", async () => {
     const { u, instance, teardown } = await mountUplot({
       overlays: { alert: { type: "threshold", warning: 80, critical: 500 } },
       designFlavour: "modern",
+      valueRange: [0, 100],
     })
     const calls = record(u.ctx)
 

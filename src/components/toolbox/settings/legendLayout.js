@@ -23,15 +23,12 @@ const formatOptionLabel = option =>
     option.label
   )
 
-const LegendLayout = () => {
-  const isModern = useIsModern()
+export const useLegendLayoutChoices = () => {
   const legendLayout = useAttributeValue("legendLayout")
   const [chartLegendLayout, setChartLegendLayout] = useAttribute("chartLegendLayout")
   const chartType = useAttributeValue("chartType") || "line"
   const chartLibrary = useAttributeValue("chartLibrary")
   const { visibleCount } = useDimensionCounts()
-
-  if (!isModern) return null
 
   const liveAvailable = canShowLabels({
     chartType,
@@ -48,6 +45,21 @@ const LegendLayout = () => {
     value: selected,
     label: selected,
   }
+
+  return { chartOptions, liveAvailable, locked, selected, value, setChartLegendLayout }
+}
+
+export const lockedReason = label =>
+  `Your personal settings show every legend as "${label}". Choose Automatic there to pick a layout per chart.`
+
+export { liveReason }
+
+const LegendLayout = () => {
+  const isModern = useIsModern()
+  const { chartOptions, liveAvailable, locked, selected, value, setChartLegendLayout } =
+    useLegendLayoutChoices()
+
+  if (!isModern) return null
 
   const select = (
     <Select
@@ -71,9 +83,7 @@ const LegendLayout = () => {
         Legend
       </TextSmall>
       {locked ? (
-        <Tooltip
-          content={`Your personal settings show every legend as "${value.label}". Choose Automatic there to pick a layout per chart.`}
-        >
+        <Tooltip content={lockedReason(value.label)}>
           <Flex column data-testid="chartSettings-legendLayout-locked">
             {select}
           </Flex>

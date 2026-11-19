@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from "react"
 import styled from "styled-components"
 import { Box, Flex, getColor } from "@netdata/netdata-ui"
 import { useChart, usePlotArea } from "@/components/provider"
@@ -8,7 +9,42 @@ import { focusDimension, useClearFocusOnUnmount } from "./mode"
 import { useLegendRows } from "./useLegendRows"
 
 export const directColumnWidth = 128
+const directColumnMaxShare = "35%"
 const labelHeight = 16
+
+export const labelContentWidth = ({ padding, gap, widths }) =>
+  Math.max(
+    directColumnWidth,
+    Math.ceil(
+      padding + widths.reduce((sum, width) => sum + width, 0) + gap * Math.max(0, widths.length - 1)
+    )
+  )
+
+const measureLabel = label => {
+  const style = window.getComputedStyle(label)
+  return labelContentWidth({
+    padding: parseFloat(style.paddingLeft) + parseFloat(style.paddingRight),
+    gap: parseFloat(style.columnGap) || 0,
+    widths: Array.from(label.children, child =>
+      child.dataset.labelName ? child.scrollWidth : child.getBoundingClientRect().width
+    ),
+  })
+}
+
+const useFitWidth = seriesKey => {
+  const columnRef = useRef(null)
+  const [fit, setFit] = useState({ seriesKey, width: directColumnWidth })
+  const width = fit.seriesKey === seriesKey ? fit.width : directColumnWidth
+
+  useLayoutEffect(() => {
+    const labels = columnRef.current?.querySelectorAll("[data-testid=modernLegend-label]") || []
+    const measured = Array.from(labels, measureLabel)
+    const next = Math.max(width, ...measured)
+    if (next !== fit.width || fit.seriesKey !== seriesKey) setFit({ seriesKey, width: next })
+  })
+
+  return [columnRef, width]
+}
 
 export const getYCoord = (ui, value) => {
   if (!ui || typeof value !== "number" || !isFinite(value)) return null
@@ -58,7 +94,7 @@ const Column = styled(Box).attrs({
   height: { min: "0px" },
   overflow: "hidden",
 })`
-  flex: 0 0 ${directColumnWidth}px;
+  flex: none;
 `
 
 const Label = styled(Flex).attrs(({ isOff }) => ({
@@ -80,7 +116,12 @@ const Label = styled(Flex).attrs(({ isOff }) => ({
   font-size: 12px;
 `
 
-const Name = styled(Box).attrs({ as: "span", width: { min: "0px" }, overflow: "hidden" })`
+const Name = styled(Box).attrs({
+  as: "span",
+  "data-label-name": true,
+  width: { min: "0px" },
+  overflow: "hidden",
+})`
   color: ${getColor("text")};
   font-weight: 600;
   text-overflow: ellipsis;
@@ -116,6 +157,7 @@ const DirectLabels = ({ uiName = "default" }) => {
   const hiddenSlots = Math.max(0, Math.floor(columnHeight / labelHeight) - visibleIds.length)
   const hidden = hiddenIds.slice(0, hiddenSlots).map(getRow)
   const height = area ? columnHeight - hidden.length * labelHeight : 0
+  const [columnRef, fitWidth] = useFitWidth(ids.join(","))
 
   const placed = layoutLabels(
     visibleIds
@@ -147,7 +189,11 @@ const DirectLabels = ({ uiName = "default" }) => {
   )
 
   return (
-    <Column data-track={chart.track("legend")}>
+    <Column
+      ref={columnRef}
+      width={{ base: `${fitWidth}px`, min: `${directColumnWidth}px`, max: directColumnMaxShare }}
+      data-track={chart.track("legend")}
+    >
       {placed.map(row => renderLabel(row, { top: `${row.top}px` }))}
       {!!hidden.length && (
         <Box position="absolute" left={0} right={0} bottom={0}>

@@ -90,6 +90,7 @@ const PointsToFetch = () => {
           onChange={handleChange}
           placeholder={placeholder}
           min="1"
+          data-testid="chartSettings-points"
         />
         {exceedsMax && (
           <TextMicro color="warningText">

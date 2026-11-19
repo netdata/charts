@@ -5,7 +5,7 @@ import rearrange from "@netdata/netdata-ui/dist/components/icon/assets/rearrange
 import Icon, { Button } from "@/components/icon"
 import { useAttributeValue, useChart } from "@/components/provider"
 import Fullscreen from "@/components/toolbox/fullscreen"
-import SettingsContent from "@/components/toolbox/settings/content"
+import SettingsMenu from "@/components/modern/header/settingsMenu"
 import { dropProps } from "@/components/modern/menu"
 import TileMenu from "./menu"
 
@@ -80,7 +80,7 @@ const TileActions = ({ hasFilters, onOpenChange }) => {
           {...dropProps}
           background="modalBackground"
         >
-          <SettingsContent chart={chart} onClose={closeSettings} />
+          <SettingsMenu hasFilters={hasFilters} onClose={closeSettings} />
         </Drop>
       )}
     </Flex>

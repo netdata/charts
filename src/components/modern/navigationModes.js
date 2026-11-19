@@ -1,5 +1,8 @@
 import styled from "styled-components"
 import { Box, Flex, getColor } from "@netdata/netdata-ui"
+import zoomInIcon from "@netdata/netdata-ui/dist/components/icon/assets/zoom_in.svg"
+import zoomOutIcon from "@netdata/netdata-ui/dist/components/icon/assets/zoom_out.svg"
+import Icon, { Button } from "@/components/icon"
 import { useAttribute, useAttributeValue, useChart } from "@/components/provider"
 import makeLog from "@/sdk/makeLog"
 import { radius } from "./tokens"
@@ -26,6 +29,23 @@ const modes = [
   },
 ]
 
+const zooms = [
+  {
+    id: "zoomIn",
+    icon: zoomInIcon,
+    title: "Zoom in (Shift+wheel)",
+    action: "chart-toolbox-zoom-in",
+    zoom: chart => chart.zoomIn(),
+  },
+  {
+    id: "zoomOut",
+    icon: zoomOutIcon,
+    title: "Zoom out",
+    action: "chart-toolbox-zoom-out",
+    zoom: chart => chart.zoomOut(),
+  },
+]
+
 const Segment = styled(Box).attrs(({ isActive }) => ({
   as: "button",
   border: { side: "all", color: isActive ? "segmentedBorder" : "inputBorder" },
@@ -49,7 +69,13 @@ const NavigationModes = () => {
   if (!enabled) return null
 
   return (
-    <Flex gap={1} padding={[0.5, 2.5, 1.5]} role="group" aria-label="Navigation">
+    <Flex
+      alignItems="center"
+      gap={1}
+      padding={[0.5, 2.5, 1.5]}
+      role="group"
+      aria-label="Navigation"
+    >
       {modes.map(({ value, label, title, track }) => (
         <Segment
           key={value}
@@ -66,6 +92,19 @@ const NavigationModes = () => {
         >
           {label}
         </Segment>
+      ))}
+      {zooms.map(({ id, icon, title, action, zoom }) => (
+        <Button
+          key={id}
+          icon={<Icon svg={icon} size="16px" />}
+          title={title}
+          data-testid={`chartMore-${id}`}
+          data-track={chart.track(id)}
+          onClick={() => {
+            zoom(chart)
+            makeLog(chart)({ chartAction: action })
+          }}
+        />
       ))}
     </Flex>
   )

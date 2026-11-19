@@ -1,44 +1,12 @@
-import { useCallback, useState, useMemo } from "react"
+import { useCallback, useState } from "react"
 import { Flex, Button as UIButton, Tabs, Tab } from "@netdata/netdata-ui"
 import { useAttributeValue, useChart } from "@/components/provider"
-
-const RESET_DEFAULTS = {
-  chartType: "line",
-  chartLibrary: "dygraph",
-  groupingMethod: "average",
-  enabledYAxis: true,
-  enabledXAxis: true,
-  legend: true,
-  staticValueRange: null,
-  desiredUnits: ["auto"],
-  staticFractionDigits: null,
-  points: null,
-  nulls2zero: false,
-  gaugeThresholds: null,
-}
-
-const FETCH_KEYS = new Set(["points", "nulls2zero", "groupingMethod"])
+import { resetSettings, useIsPristine } from "./reset"
 
 const tabsHasFooter = id => id === "display" || id === "data"
 
-const useCurrentValues = keys => {
-  const values = {}
-  keys.forEach(key => {
-    values[key] = useAttributeValue(key)
-  })
-  return values
-}
-
 const ResetFooter = ({ resetKeys, onReset }) => {
-  const current = useCurrentValues(resetKeys)
-  const pristine = useAttributeValue("pristine") || {}
-
-  const disabled = useMemo(() => {
-    return resetKeys.every(key => {
-      const target = key in pristine ? pristine[key] : RESET_DEFAULTS[key]
-      return JSON.stringify(current[key]) === JSON.stringify(target)
-    })
-  }, [resetKeys, current, pristine])
+  const disabled = useIsPristine(resetKeys)
 
   return (
     <Flex
@@ -75,36 +43,7 @@ const SettingsContent = ({ onClose, initialTab, initialIndex = 0 }) => {
   const resetKeys = activeTab?.resetKeys || []
 
   const handleReset = useCallback(() => {
-    const pristine = chart.getAttribute("pristine") || {}
-    const targets = {}
-    resetKeys.forEach(key => {
-      targets[key] = key in pristine ? pristine[key] : RESET_DEFAULTS[key]
-    })
-
-    const hasChartTypeReset = "chartType" in targets || "chartLibrary" in targets
-    let triggerFetch = false
-    let triggerYAxis = false
-    const plainUpdates = {}
-
-    resetKeys.forEach(key => {
-      if (key === "chartType" || key === "chartLibrary") return
-      plainUpdates[key] = targets[key]
-      if (FETCH_KEYS.has(key)) triggerFetch = true
-      else triggerYAxis = true
-    })
-
-    if (Object.keys(plainUpdates).length) chart.updateAttributes(plainUpdates)
-    if (triggerYAxis) chart.trigger("yAxisChange")
-    if (triggerFetch) chart.trigger("fetch", { processing: true })
-
-    if (hasChartTypeReset) {
-      const library =
-        "chartLibrary" in targets ? targets.chartLibrary : chart.getAttribute("chartLibrary")
-      const type = "chartType" in targets ? targets.chartType : chart.getAttribute("chartType")
-      const selected = library === "dygraph" ? type : library
-      chart.updateChartTypeAttribute(selected)
-    }
-
+    resetSettings(chart, resetKeys)
     onClose()
   }, [chart, resetKeys, onClose])
 

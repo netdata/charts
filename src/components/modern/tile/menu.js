@@ -34,11 +34,13 @@ const TileMenu = ({ hasFilters, onClose, onOpenSettings }) => {
       )}
       {settingsTabs.length > 0 && (
         <Item
+          drill
+          aria-haspopup="menu"
           data-testid="modernTileMenu-settings"
           data-track={chart.track("settings")}
           onClick={onOpenSettings}
         >
-          Chart settings…
+          Chart settings
         </Item>
       )}
       <FocusItem />

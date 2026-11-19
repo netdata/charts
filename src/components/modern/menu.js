@@ -192,6 +192,7 @@ export const useMenuNavigation = (focusKey, focusSelector) => {
     const getNext = nextIndexByKey[event.key]
     if (!getNext) return
     if (event.target.tagName === "INPUT" && !event.key.startsWith("Arrow")) return
+    if (event.defaultPrevented || event.target.type === "number") return
     const items = getMenuItems(ref.current)
     if (!items.length) return
     event.preventDefault()

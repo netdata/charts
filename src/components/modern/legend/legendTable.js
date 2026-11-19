@@ -20,6 +20,12 @@ import { useLegendRows } from "./useLegendRows"
 
 export const tableRowHeight = 23
 export const tableOverscan = 8
+export const minNameWidth = 100
+
+export const showStatColumns = ({ shown, nameWidth, statsWidth }) => {
+  if (!nameWidth) return shown
+  return shown ? nameWidth >= minNameWidth : nameWidth - statsWidth >= minNameWidth
+}
 
 const Wrapper = styled(Flex).attrs({
   "data-testid": "modernLegend-table",
@@ -27,7 +33,7 @@ const Wrapper = styled(Flex).attrs({
   position: "relative",
   flex: false,
   basis: "40%",
-  width: { min: 60, max: 105 },
+  width: { min: 60, max: "50%" },
   height: { min: "0px" },
   overflow: "hidden",
   color: "inherit",
@@ -131,7 +137,7 @@ const SkeletonRow = styled(Box).attrs({
 
 const skeletonNames = ["64%", "48%", "56%", "40%", "52%"]
 
-const LegendRowsSkeleton = () => (
+const LegendRowsSkeleton = ({ columns }) => (
   <tbody data-testid="legendTableSkeleton">
     {skeletonNames.map(width => (
       <SkeletonRow key={width}>
@@ -141,7 +147,7 @@ const LegendRowsSkeleton = () => (
             <Bone width={width} height={2} />
           </Flex>
         </NameCell>
-        {[0, 1, 2, 3].map(column => (
+        {Array.from({ length: columns }, (_, column) => (
           <Cell key={column}>
             <Flex justifyContent="end">
               <Bone width={8} height={2} />
@@ -213,6 +219,43 @@ const useScrollFade = deps => {
   return [ref, fade, update]
 }
 
+const useStatColumns = () => {
+  const headRef = useRef(null)
+  const statsWidthRef = useRef(0)
+  const [shown, setShown] = useState(true)
+
+  useLayoutEffect(() => {
+    const row = headRef.current
+    if (!row) return
+
+    const measure = () => {
+      const [nameCell] = row.cells
+      const statCells = row.querySelectorAll("[data-stat-column]")
+      if (statCells.length)
+        statsWidthRef.current = Array.from(statCells).reduce(
+          (sum, cell) => sum + cell.getBoundingClientRect().width,
+          0
+        )
+      setShown(current =>
+        showStatColumns({
+          shown: current,
+          nameWidth: nameCell.getBoundingClientRect().width,
+          statsWidth: statsWidthRef.current,
+        })
+      )
+    }
+    measure()
+
+    if (typeof ResizeObserver === "undefined") return
+
+    const observer = new ResizeObserver(measure)
+    observer.observe(row.cells[0])
+    return () => observer.disconnect()
+  }, [])
+
+  return [headRef, shown]
+}
+
 const LegendTable = () => {
   const chart = useChart()
   const sort = useAttributeValue("dimensionsSort")
@@ -226,6 +269,7 @@ const LegendTable = () => {
   const time = useFormatTime(timestamp)
   const readout = hovering || pinned
   const [scrollRef, fade, onScroll] = useScrollFade([ids.length])
+  const [headRef, showStats] = useStatColumns()
   const onSort = value => chart.updateAttribute("dimensionsSort", value)
 
   const virtualizer = useVirtualizer({
@@ -244,7 +288,7 @@ const LegendTable = () => {
         <Scroller ref={scrollRef} onScroll={onScroll}>
           <Table>
             <thead>
-              <tr>
+              <tr ref={headRef}>
                 <SortHeader
                   column="name"
                   sort={sort}
@@ -257,15 +301,15 @@ const LegendTable = () => {
                 <SortHeader column="value" sort={sort} onSort={onSort}>
                   {hovering ? "At cursor" : pinned ? "Pinned" : "Last"}
                 </SortHeader>
-                <HeaderCell>Mean</HeaderCell>
-                <HeaderCell>Max</HeaderCell>
+                {showStats && <HeaderCell data-stat-column>Mean</HeaderCell>}
+                {showStats && <HeaderCell data-stat-column>Max</HeaderCell>}
                 <SortHeader column="anomaly" sort={sort} onSort={onSort} title="Anomaly rate">
                   Anomaly
                 </SortHeader>
               </tr>
             </thead>
             {initialLoading ? (
-              <LegendRowsSkeleton />
+              <LegendRowsSkeleton columns={showStats ? 4 : 2} />
             ) : (
               <tbody>
                 <Spacer height={before} />
@@ -300,14 +344,18 @@ const LegendTable = () => {
                         <Numeral>{row.visible ? row.display : "-"}</Numeral>
                         {row.visible && !!row.unit && <Unit>{row.unit}</Unit>}
                       </Cell>
-                      <Cell>
-                        <Numeral>{row.mean}</Numeral>
-                        {row.mean !== "-" && !!row.meanUnit && <Unit>{row.meanUnit}</Unit>}
-                      </Cell>
-                      <Cell>
-                        <Numeral>{row.max}</Numeral>
-                        {row.max !== "-" && !!row.maxUnit && <Unit>{row.maxUnit}</Unit>}
-                      </Cell>
+                      {showStats && (
+                        <Cell>
+                          <Numeral>{row.mean}</Numeral>
+                          {row.mean !== "-" && !!row.meanUnit && <Unit>{row.meanUnit}</Unit>}
+                        </Cell>
+                      )}
+                      {showStats && (
+                        <Cell>
+                          <Numeral>{row.max}</Numeral>
+                          {row.max !== "-" && !!row.maxUnit && <Unit>{row.maxUnit}</Unit>}
+                        </Cell>
+                      )}
                       <Cell>
                         <Numeral>{row.visible ? row.anomaly || "-" : "-"}</Numeral>
                       </Cell>

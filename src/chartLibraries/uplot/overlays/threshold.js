@@ -37,6 +37,15 @@ export const getLevels = (overlay = {}) => {
   })
 }
 
+export const getThresholdExtent = (overlays = {}) => {
+  const values = Object.values(overlays || {})
+    .filter(overlay => overlay?.type === "threshold")
+    .flatMap(overlay => [overlay.warning, overlay.critical])
+    .filter(Number.isFinite)
+
+  return values.length ? [Math.min(...values), Math.max(...values)] : null
+}
+
 export const formatThreshold = (chart, value) => {
   const dimensionId = (chart.getVisibleDimensionIds() || [])[0]
   const unitAttributes = chart.getUnitAttributesForValue(value, { dimensionId })

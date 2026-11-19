@@ -21,8 +21,8 @@ const Fullscreen = props => {
 
 Fullscreen.menu = {
   id: "fullscreen",
-  group: "navigate",
-  order: 40,
+  group: "root",
+  order: 950,
   useItem: ({ chart, onClose }) => {
     const fullscreen = useAttributeValue("fullscreen")
 

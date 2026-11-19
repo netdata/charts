@@ -28,6 +28,34 @@ const makeSeries = (context, title, count) =>
 const fivePayload = makeSeries("modern.disk.five", "Disk utilization", 5)
 const manyPayload = makeSeries("modern.disk.many", "Disk utilization per device", 14)
 const hugePayload = makeSeries("modern.disk.huge", "Disk utilization, 2000 devices", 2000)
+const makeLongNames = count =>
+  makePayload({
+    context: `modern.net.long${count}`,
+    title: "Network traffic per interface",
+    unit: "kilobits/s",
+    dimensions: Array.from({ length: count }, (_, index) => ({
+      id: `veth${index}a7f3c9e1-kubernetes-pod-network-interface-${index}`,
+      values: makeWave({
+        center: 1234567 + index * 98765,
+        amplitude: 345678,
+        cycles: 1.6 + (index % 5) * 0.4,
+        phase: index * 0.7,
+      }),
+    })),
+  })
+
+const longNamesPayload = makeLongNames(10)
+const longDirectPayload = makeLongNames(3)
+
+const directPayload = makePayload({
+  context: "modern.disk.ops",
+  title: "Disk operations",
+  unit: "operations/s",
+  dimensions: ["reads_completed", "writes_completed", "discards_completed"].map((id, index) => ({
+    id,
+    values: makeWave({ center: 1200 + index * 900, amplitude: 300, phase: index * 0.7 }),
+  })),
+})
 
 const cards = [
   { label: "Tile (360px): no legend, compact tooltip", payload: loadPayload, width: "360px" },
@@ -63,6 +91,32 @@ const cards = [
     payload: hugePayload,
     width: "640px",
     legendLayout: "below",
+  },
+  {
+    label: "Long names and values (640px): side table drops mean and max",
+    payload: longNamesPayload,
+    width: "640px",
+  },
+  {
+    label: "Long names and values (1000px): side table",
+    payload: longNamesPayload,
+    width: "1000px",
+  },
+  {
+    label: "Long names and values (1800px): side table grows with the chart",
+    payload: longNamesPayload,
+    width: "1800px",
+  },
+  {
+    label: "Direct labels, medium names (640px): the column fits the labels",
+    payload: directPayload,
+    width: "640px",
+  },
+  {
+    label: "Direct labels, long names (1400px): the column caps at 35% of the chart",
+    payload: longDirectPayload,
+    width: "1400px",
+    legendLayout: "direct",
   },
 ]
 
