@@ -46,7 +46,7 @@ const NameCell = ({ getValue, row, column }) => {
       width="100%"
     >
       <Flex gap={1} alignItems="center" overflow="hidden">
-        {showColor && <LineSwatch swatchColor={chart.selectDimensionColor(name)} />}
+        {showColor && <LineSwatch swatchColor={chart.selectDimensionColor(row.original.value)} />}
         <TextSmall
           title={typeof name === "string" ? name : undefined}
           onClick={

@@ -1,4 +1,5 @@
 import dimensionColors from "./theme/dimensionColors"
+import { expandShortHex } from "@/chartLibraries/helpers/color"
 import deepEqual, { setsAreEqual } from "@/helpers/deepEqual"
 import {
   cropHeatmapZeroEdges,
@@ -357,11 +358,16 @@ export default (chart, sdk) => {
   chart.selectDimensionColor = (id = "selected", partIndex) => {
     const defaultColor = chart.selectDefaultDimensionColor(id, partIndex)
     const colorOverrides = chart.getAttribute("colorOverrides") || {}
+    const seriesId =
+      !id || id === "selected"
+        ? "selected"
+        : isNaN(partIndex)
+          ? id
+          : id.split(",")?.[partIndex] || id
 
-    if (!id || id === "selected") return colorOverrides.selected ?? defaultColor
+    if (!Object.hasOwn(colorOverrides, seriesId)) return defaultColor
 
-    const seriesId = isNaN(partIndex) ? id : id.split(",")?.[partIndex] || id
-    return colorOverrides[seriesId] ?? defaultColor
+    return expandShortHex(colorOverrides[seriesId]) ?? defaultColor
   }
 
   const aliasNodePart = (grouping, idPart, namePart) => {

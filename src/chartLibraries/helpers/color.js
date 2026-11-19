@@ -40,3 +40,8 @@ export const withAlpha = (colorStr, alpha) => {
   const { r, g, b } = parseColor(colorStr)
   return `rgba(${r},${g},${b},${alpha})`
 }
+
+export const expandShortHex = color =>
+  typeof color === "string"
+    ? color.replace(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i, "#$1$1$2$2$3$3")
+    : color

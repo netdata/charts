@@ -38,7 +38,7 @@ export const labelColumn = fallbackExpandKey => ({
         width="100%"
       >
         <Flex gap={1}>
-          <Color id={getValue()} />
+          <Color id={row.original.value} />
           <TextSmall
             strong
             onClick={

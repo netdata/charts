@@ -153,6 +153,26 @@ describe("colorOverrides", () => {
     expect(chart.selectDimensionColor()).toBe(chart.selectDefaultDimensionColor())
     expect(chart.selectDimensionColor()).not.toBe("#111111")
   })
+
+  it("expands shorthand hex overrides so renderers can append alpha", () => {
+    const { chart } = makeTestChart({
+      attributes: { colorOverrides: { a: "#f00", selected: "#0F0" } },
+    })
+
+    expect(chart.selectDimensionColor("a")).toBe("#ff0000")
+    expect(chart.selectDimensionColor()).toBe("#00FF00")
+  })
+
+  it.each(["constructor", "toString", "hasOwnProperty"])(
+    "ignores inherited object keys such as %s",
+    id => {
+      const { chart } = makeTestChart({
+        attributes: { sparkline: true, colors: ["#112233"], colorOverrides: {} },
+      })
+
+      expect(chart.selectDimensionColor(id)).toBe("#112233")
+    }
+  )
 })
 
 describe("renderer palettes", () => {

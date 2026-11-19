@@ -226,6 +226,7 @@ export default (sdk, chart) => {
         if (chart.getAttribute("processing")) return
 
         updateOptions(makeColorOptions())
+        redrawInteraction()
       }),
       chart.onAttributeChange("chartType", () => {
         if (chart.getAttribute("processing")) return

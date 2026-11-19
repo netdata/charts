@@ -698,6 +698,26 @@ describe("dygraphChart x-axis labels", () => {
 })
 
 describe("dygraphChart colorOverrides", () => {
+  beforeEach(() => {
+    mockDygraph.canvas_ctx_ = {
+      canvas: { width: 800, height: 400 },
+      save: jest.fn(),
+      restore: jest.fn(),
+      beginPath: jest.fn(),
+      closePath: jest.fn(),
+      moveTo: jest.fn(),
+      lineTo: jest.fn(),
+      stroke: jest.fn(),
+      setLineDash: jest.fn(),
+      setTransform: jest.fn(),
+      clearRect: jest.fn(),
+    }
+  })
+
+  afterEach(() => {
+    delete mockDygraph.canvas_ctx_
+  })
+
   const mountWithColors = () => {
     const { sdk, chart } = makeTestChart({
       attributes: { theme: "dark", outOfLimits: false, loaded: true },
@@ -746,5 +766,18 @@ describe("dygraphChart colorOverrides", () => {
     chart.updateAttribute("colorOverrides", {})
 
     expect(lastColors()).toEqual(defaults)
+  })
+
+  it("keeps a pinned crosshair after repainting", () => {
+    const { chart } = mountWithColors()
+    const { setLineDash } = mockDygraph.canvas_ctx_
+    chart.getClosestRow = () => 0
+
+    chart.updateAttribute("clickX", [1617946860000, "load1"])
+    setLineDash.mockClear()
+
+    chart.updateAttribute("colorOverrides", { load1: "#FFD400" })
+
+    expect(setLineDash).toHaveBeenCalledWith([2, 2])
   })
 })
