@@ -120,6 +120,10 @@ export default (sdk, chart) => {
       chart.onAttributeChange("hoverX", render),
       !loaded && chart.onceAttributeChange("loaded", render),
       chart.onAttributeChange("gaugeThresholds", applyThresholds),
+      chart.onAttributeChange("colorOverrides", () => {
+        gauge.setOptions({ colorStart: chart.selectDimensionColor() })
+        applyThresholds()
+      }),
       chart.onAttributeChange("theme", () => {
         const { color, strokeColor } = makeThemingOptions()
         const updatedDimensionColor = chart.selectDimensionColor()

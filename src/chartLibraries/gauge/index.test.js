@@ -194,3 +194,57 @@ describe("gaugeChart", () => {
     expect(result).toEqual([20, 80])
   })
 })
+
+describe("gaugeChart colorOverrides", () => {
+  const mountGauge = (attributes = {}) => {
+    const { sdk, chart } = makeTestChart({ attributes: { loaded: false, ...attributes } })
+    const instance = gaugeChart(sdk, chart)
+    const element = document.createElement("div")
+    element.appendChild(document.createElement("canvas"))
+    instance.mount(element)
+    mockGauge.setOptions.mockClear()
+
+    return { chart }
+  }
+
+  const lastOptions = key => {
+    const calls = mockGauge.setOptions.mock.calls.filter(([options]) => key in options)
+    return calls[calls.length - 1][0]
+  }
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it("repaints with the override when colorOverrides changes", () => {
+    const { chart } = mountGauge()
+    const defaultColor = chart.selectDimensionColor()
+
+    chart.updateAttribute("colorOverrides", { selected: "#FFD400" })
+
+    expect(defaultColor).not.toBe("#FFD400")
+    expect(lastOptions("colorStart").colorStart).toBe("#FFD400")
+  })
+
+  it("repaints back to the default when it is cleared", () => {
+    const { chart } = mountGauge()
+    const defaultColor = chart.selectDimensionColor()
+
+    chart.updateAttribute("colorOverrides", { selected: "#FFD400" })
+    chart.updateAttribute("colorOverrides", {})
+
+    expect(lastOptions("colorStart").colorStart).toBe(defaultColor)
+  })
+
+  it("repaints the gradient fill with the override and back", () => {
+    const { chart } = mountGauge({ gaugeGradient: true })
+    const defaultColor = chart.selectDimensionColor()
+    const noConicGradient = { ctx: {} }
+
+    chart.updateAttribute("colorOverrides", { selected: "#FFD400" })
+    expect(lastOptions("customFillStyle").customFillStyle(noConicGradient)).toBe("#FFD400")
+
+    chart.updateAttribute("colorOverrides", {})
+    expect(lastOptions("customFillStyle").customFillStyle(noConicGradient)).toBe(defaultColor)
+  })
+})

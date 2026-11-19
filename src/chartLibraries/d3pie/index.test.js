@@ -95,4 +95,78 @@ describe("d3pieChart", () => {
       expect(() => instance.mount(element)).toThrow("getBBox")
     })
   })
+
+  describe("colorOverrides", () => {
+    const originalGetBBox = SVGElement.prototype.getBBox
+    const originalRaf = window.requestAnimationFrame
+
+    beforeEach(() => {
+      SVGElement.prototype.getBBox = () => ({ x: 0, y: 0, width: 10, height: 10 })
+      window.requestAnimationFrame = callback => callback()
+    })
+
+    afterEach(() => {
+      SVGElement.prototype.getBBox = originalGetBBox
+      window.requestAnimationFrame = originalRaf
+    })
+
+    const mountPie = () => {
+      const { sdk, chart } = makeTestChart({ attributes: { loaded: true } })
+      chart.getPayload = () => ({ data: [[1, 50, 30]] })
+      chart.getVisibleDimensionIds = () => ["cpu", "memory"]
+      chart.getDimensionValue = (id, index) => (id === "cpu" ? 50 : 30)
+      chart.getClosestRow = () => 0
+
+      const instance = d3pieChart(sdk, chart)
+      const parent = document.createElement("div")
+      const element = document.createElement("div")
+      parent.appendChild(element)
+      document.body.appendChild(parent)
+      instance.mount(element)
+
+      return { chart, instance, element, parent }
+    }
+
+    const flush = () => new Promise(resolve => setTimeout(resolve, 0))
+
+    const sliceFills = element =>
+      Array.from(element.querySelectorAll("path"))
+        .map(path => path.getAttribute("fill"))
+        .filter(fill => fill && fill.startsWith("#"))
+        .map(fill => fill.toLowerCase())
+
+    it("repaints with the override when colorOverrides changes", async () => {
+      const { chart, instance, element, parent } = mountPie()
+      const cpuColor = chart.selectDimensionColor("cpu").toLowerCase()
+      const memoryColor = chart.selectDimensionColor("memory").toLowerCase()
+
+      expect(sliceFills(element)).toContain(cpuColor)
+
+      chart.updateAttribute("colorOverrides", { cpu: "#FFD400" })
+      await flush()
+
+      expect(sliceFills(element)).toContain("#ffd400")
+      expect(sliceFills(element)).not.toContain(cpuColor)
+      expect(sliceFills(element)).toContain(memoryColor)
+      instance.unmount()
+      document.body.removeChild(parent)
+    })
+
+    it("repaints back to the default when it is cleared", async () => {
+      const { chart, instance, element, parent } = mountPie()
+      const cpuColor = chart.selectDimensionColor("cpu").toLowerCase()
+
+      chart.updateAttribute("colorOverrides", { cpu: "#FFD400" })
+      await flush()
+      expect(sliceFills(element)).toContain("#ffd400")
+
+      chart.updateAttribute("colorOverrides", {})
+      await flush()
+
+      expect(sliceFills(element)).toContain(cpuColor)
+      expect(sliceFills(element)).not.toContain("#ffd400")
+      instance.unmount()
+      document.body.removeChild(parent)
+    })
+  })
 })

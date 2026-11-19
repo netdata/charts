@@ -222,6 +222,11 @@ export default (sdk, chart) => {
         element.classList.add(nextTheme)
         updateOptions(makeThemingOptions())
       }),
+      chart.onAttributeChange("colorOverrides", () => {
+        if (chart.getAttribute("processing")) return
+
+        updateOptions(makeColorOptions())
+      }),
       chart.onAttributeChange("chartType", () => {
         if (chart.getAttribute("processing")) return
 

@@ -65,6 +65,7 @@ export default (sdk, chart) => {
       chart.onAttributeChange("hoverX", latestRender),
       !loaded && chart.onceAttributeChange("loaded", latestRender),
       chart.onAttributeChange("theme", latestRender),
+      chart.onAttributeChange("colorOverrides", latestRender),
       chart.on("visibleDimensionsChanged", latestRender)
     )
 
