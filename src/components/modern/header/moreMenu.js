@@ -21,6 +21,7 @@ import { Divider, Item, MenuScroll, Panel, useMenuNavigation } from "@/component
 import { focusMenuItem } from "@/components/modern/focus"
 import NavigationModes from "@/components/modern/navigationModes"
 import { showAllDimensions, useHiddenDimensionsCount } from "./hiddenDimensions"
+import { builtInTabIds, settingsItems } from "./settingsItems"
 
 export const dimensionSorts = [
   { value: "default", label: "Default" },
@@ -31,13 +32,6 @@ export const dimensionSorts = [
   { value: "anomalyAsc", label: "Anomaly Min→Max" },
   { value: "anomalyDesc", label: "Anomaly Max→Min" },
 ]
-
-const tabLabels = {
-  display: "Chart type and display…",
-  data: "Data and aggregation…",
-  info: "Chart details…",
-  download: "Download…",
-}
 
 const SearchInput = styled(Box).attrs({
   as: "input",
@@ -61,19 +55,26 @@ export const rootGroupId = "root"
 
 const groupDrillPrefix = "group:"
 
+export const panelDrillPrefix = "panel:"
+
+const isPanelEntry = entry => entry.startsWith(panelDrillPrefix)
+
+const splitDrill = drill => {
+  const panelStart = drill.findIndex(isPanelEntry)
+  const levels = panelStart === -1 ? drill : drill.slice(0, panelStart)
+  const path = panelStart === -1 ? [] : drill.slice(panelStart).filter(isPanelEntry)
+
+  return {
+    current: levels.at(-1) ?? null,
+    path: path.map(entry => entry.slice(panelDrillPrefix.length)),
+  }
+}
+
 export const menuGroups = [
-  { id: "navigate", label: "Navigate" },
-  { id: "show", label: "Show" },
+  { id: "show", label: "Display" },
   { id: "data", label: "Data" },
   { id: "actions", label: "Actions" },
 ]
-
-const tabPlacement = {
-  data: { group: "data", order: 40 },
-  display: { group: "data", order: 50 },
-  download: { group: "actions", order: 900 },
-  info: { group: "actions", order: 910 },
-}
 
 const sortableLegendModes = { below: true, table: true }
 
@@ -194,37 +195,8 @@ const DimensionsPanel = () => {
 const builtInItems = [
   { id: "navigation", group: rootGroupId, order: 0, Component: NavigationModes },
   {
-    id: "zoomIn",
-    group: "navigate",
-    order: 10,
-    useItem: ({ chart }) => ({
-      label: "Zoom in",
-      hint: "Shift+wheel",
-      testId: "chartMore-zoomIn",
-      track: "zoomIn",
-      onClick: () => {
-        chart.zoomIn()
-        makeLog(chart)({ chartAction: "chart-toolbox-zoom-in" })
-      },
-    }),
-  },
-  {
-    id: "zoomOut",
-    group: "navigate",
-    order: 20,
-    useItem: ({ chart }) => ({
-      label: "Zoom out",
-      testId: "chartMore-zoomOut",
-      track: "zoomOut",
-      onClick: () => {
-        chart.zoomOut()
-        makeLog(chart)({ chartAction: "chart-toolbox-zoom-out" })
-      },
-    }),
-  },
-  {
     id: "zoomReset",
-    group: "navigate",
+    group: rootGroupId,
     order: 30,
     pin: { icon: zoomResetIcon, testId: "chartHeaderToolbox-zoomReset", order: 30 },
     useItem: ({ chart, onClose }) => {
@@ -354,15 +326,17 @@ const builtInItems = [
 ]
 
 const makeTabItems = settingsTabs =>
-  settingsTabs.map((tab, index) => {
+  settingsTabs.flatMap((tab, index) => {
+    if (builtInTabIds.includes(tab.id)) return []
+
     const key = tab.id || index
-    const placement = tabPlacement[tab.id] || { group: "actions", order: 920 + index }
 
     return {
       id: `tab-${key}`,
-      ...placement,
+      group: "actions",
+      order: 920 + index,
       useItem: ({ onOpenTab }) => ({
-        label: tabLabels[tab.id] || `${tab.label}…`,
+        label: `${tab.label}…`,
         testId: `chartMore-tab-${key}`,
         track: `settings-${key}`,
         onClick: () => onOpenTab(index),
@@ -380,7 +354,7 @@ export const useMenuItems = () => {
   const settingsTabs = useAttributeValue("settingsTabs") || []
 
   return useMemo(() => {
-    const builtIn = [...builtInItems, ...makeTabItems(settingsTabs)]
+    const builtIn = [...builtInItems, ...settingsItems, ...makeTabItems(settingsTabs)]
     const ids = new Set(builtIn.map(item => item.id))
     const consumer = getConsumerMenuItems(toolboxElements).filter(item => !ids.has(item.id))
 
@@ -425,8 +399,8 @@ const MenuRow = ({ descriptor, menuProps, onDrill }) => {
   )
 }
 
-const DrilledPanel = ({ descriptor, menuProps, onBack }) => {
-  const item = descriptor.useItem(menuProps)
+const DrilledPanel = ({ descriptor, menuProps, path, onDrill, onBack }) => {
+  const item = descriptor.useItem({ ...menuProps, path })
   const ItemPanel = !item || item.hidden ? null : item.Panel
 
   useEffect(() => {
@@ -438,10 +412,15 @@ const DrilledPanel = ({ descriptor, menuProps, onBack }) => {
   return (
     <Flex column width={item.panelWidth || "260px"} data-testid="chartMore-drilled">
       <Item data-testid="chartMore-back" onClick={onBack}>
-        {`← ${item.label}`}
+        {`← ${item.panelLabel || item.label}`}
       </Item>
       <Divider />
-      <ItemPanel onBack={onBack} onClose={menuProps.onClose} />
+      <ItemPanel
+        onBack={onBack}
+        onClose={menuProps.onClose}
+        path={path}
+        onDrill={sub => onDrill?.(`${panelDrillPrefix}${sub}`)}
+      />
     </Flex>
   )
 }
@@ -495,10 +474,12 @@ const MoreMenu = ({
   hasFilters = false,
   filtersOpen = false,
   onToggleFilters,
+  itemFilter,
 }) => {
   const chart = useChart()
-  const items = useMenuItems()
-  const current = drill[drill.length - 1] ?? null
+  const allItems = useMenuItems()
+  const items = itemFilter ? allItems.filter(itemFilter) : allItems
+  const { current, path } = splitDrill(drill)
   const { ref, onKeyDown } = useMenuNavigation(
     `${drill.join(">")}|${returnTo}`,
     returnTo ? `[data-menu-id="${returnTo}"]` : null
@@ -516,7 +497,7 @@ const MoreMenu = ({
       role="menu"
       data-testid="chartMoreMenu"
       onKeyDown={onKeyDown}
-      {...(current && { width: "auto" })}
+      width={current ? "auto" : "280px"}
     >
       {drilledGroup && (
         <GroupPanel
@@ -529,7 +510,14 @@ const MoreMenu = ({
         />
       )}
       {drilled && (
-        <DrilledPanel key={drilled.id} descriptor={drilled} menuProps={menuProps} onBack={onBack} />
+        <DrilledPanel
+          key={drilled.id}
+          descriptor={drilled}
+          menuProps={menuProps}
+          path={path}
+          onDrill={onDrill}
+          onBack={onBack}
+        />
       )}
       {!current && (
         <MenuScroll height={{ max: "360px" }} data-testid="chartMoreRoot">

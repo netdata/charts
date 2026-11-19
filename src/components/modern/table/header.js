@@ -7,7 +7,7 @@ import moreIcon from "@netdata/netdata-ui/dist/components/icon/assets/more.svg"
 import Icon, { Button } from "@/components/icon"
 import { useAttribute, useAttributeValue, useChart, usePayload } from "@/components/provider"
 import Fullscreen from "@/components/toolbox/fullscreen"
-import SettingsContent from "@/components/toolbox/settings/content"
+import SettingsMenu from "@/components/modern/header/settingsMenu"
 import ModernTitle from "@/components/modern/header/title"
 import FiltersSwap from "@/components/modern/header/filtersSwap"
 import StatusIndicator, { getClearDescription, summarizeAlerts } from "@/components/modern/status"
@@ -207,7 +207,7 @@ const ModernTableHeader = ({
               {...dropProps}
               background="modalBackground"
             >
-              <SettingsContent chart={chart} onClose={closeSettings} />
+              <SettingsMenu hasFilters={hasFilters} onClose={closeSettings} />
             </Drop>
           )}
         </Toolbar>

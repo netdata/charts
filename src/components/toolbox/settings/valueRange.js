@@ -47,6 +47,7 @@ const ValueRange = () => {
           value={minValue}
           onChange={handleMinChange}
           placeholder="Auto"
+          data-testid="chartSettings-valueRange-min"
         />
         <TextInput
           label={`Max value (${units || "units"})`}
@@ -54,6 +55,7 @@ const ValueRange = () => {
           value={maxValue}
           onChange={handleMaxChange}
           placeholder="Auto"
+          data-testid="chartSettings-valueRange-max"
         />
       </Flex>
     </Flex>

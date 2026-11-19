@@ -467,7 +467,8 @@ describe("modern table chrome", () => {
     await user.click(within(menu).getByTestId("modernTableMenu-settings"))
 
     expect(screen.queryByTestId("modernTableMenu")).not.toBeInTheDocument()
-    expect(screen.getByTestId("chartSettings")).toBeInTheDocument()
+    expect(await screen.findByTestId("chartMore-chartType")).toBeInTheDocument()
+    expect(screen.queryByTestId("chartSettings")).not.toBeInTheDocument()
   })
 
   it("hides settings and fullscreen when the consumer leaves them out", async () => {

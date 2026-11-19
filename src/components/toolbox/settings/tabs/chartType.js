@@ -16,7 +16,7 @@ import groupBoxesChart from "@netdata/netdata-ui/dist/components/icon/assets/con
 import Icon from "@/components/icon"
 import { useChart, useAttributeValue } from "@/components/provider"
 
-const useOptions = chart =>
+export const useChartTypeOptions = chart =>
   useMemo(
     () =>
       [
@@ -134,7 +134,7 @@ const ChartType = () => {
   const chartType = useAttributeValue("chartType") || "line"
   const value = chart.isTimeSeriesRenderer(chartLibrary) ? chartType : chartLibrary
 
-  const options = useOptions(chart)
+  const options = useChartTypeOptions(chart)
   const grouped = useMemo(() => groupedOptions(options), [options])
   const current = options.find(o => o.value === value) || options[0]
 

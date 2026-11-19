@@ -86,11 +86,13 @@ const TableMenu = ({
       <Divider />
       {hasSettings && (
         <Item
+          drill
+          aria-haspopup="menu"
           data-testid="modernTableMenu-settings"
           data-track={chart.track("settings")}
           onClick={onOpenSettings}
         >
-          Chart settings…
+          Chart settings
         </Item>
       )}
       <Item

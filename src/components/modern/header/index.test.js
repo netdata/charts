@@ -489,7 +489,7 @@ describe("Modern More menu", () => {
     const { user, chart } = await renderModern({ focused: true })
     expect(screen.queryByTestId("chartHeaderToolbox-zoomReset")).not.toBeInTheDocument()
 
-    await openGroup(user, "navigate")
+    await openMenu(user)
     await user.click(screen.getByTestId("chartMore-zoomIn"))
     await waitFor(() => expect(chart.getAttribute("after")).toBeGreaterThan(0))
 
@@ -556,7 +556,7 @@ describe("Modern More menu", () => {
     const anomalyToggle = screen.getByRole("menuitemcheckbox", { name: "Anomaly rate" })
     expect(anomalyToggle).toHaveAttribute("aria-checked", "true")
     expect(anomalyToggle.lastElementChild).toHaveAttribute("aria-hidden", "true")
-    expect(screen.getByRole("menuitem", { name: "← Show" })).not.toHaveAttribute("aria-checked")
+    expect(screen.getByRole("menuitem", { name: "← Display" })).not.toHaveAttribute("aria-checked")
 
     await user.click(anomalyToggle)
     expect(chart.getAttribute("showAnomalies")).toBe(false)
@@ -587,36 +587,52 @@ describe("Modern More menu", () => {
         [
           '[data-testid="chartMore-navigation-pan"]',
           '[data-testid="consumer-rootAlerts"]',
+          '[data-testid="chartMore-zoomIn"]',
+          '[data-testid="chartMore-zoomOut"]',
           '[data-testid="chartMore-dimensions"]',
+          '[data-testid="chartMore-fullscreen"]',
           '[data-testid^="chartMore-group-"]',
         ].join(",")
       )
     ).map(node => node.dataset.testid)
     expect(rootIds).toEqual([
       "chartMore-navigation-pan",
+      "chartMore-zoomIn",
+      "chartMore-zoomOut",
       "consumer-rootAlerts",
       "chartMore-dimensions",
-      "chartMore-group-navigate",
+      "chartMore-fullscreen",
       "chartMore-group-show",
       "chartMore-group-data",
       "chartMore-group-actions",
     ])
-    ;["navigate", "show", "data", "actions"].forEach(id =>
+    expect(screen.queryByTestId("chartMore-group-navigate")).not.toBeInTheDocument()
+    ;["show", "data", "actions"].forEach(id =>
       expect(screen.getByTestId(`chartMore-group-${id}`)).toHaveAttribute("aria-haspopup", "menu")
     )
-    expect(screen.queryByTestId("chartMore-zoomIn")).not.toBeInTheDocument()
+    expect(screen.getByTestId("chartMore-zoomIn")).toHaveAttribute("aria-label", "Zoom in (Shift+wheel)")
     expect(screen.queryByTestId("consumer-alerts")).not.toBeInTheDocument()
     expect(screen.getByTestId("chartMore-dimensions")).toHaveTextContent("›")
   })
 
   it.each([
-    ["navigate", "Navigate", ["chartMore-zoomIn", "chartMore-zoomOut", "chartMore-fullscreen"]],
-    ["show", "Show", ["chartMore-anomalies", "chartMore-annotations"]],
-    ["data", "Data", ["chartMore-sort", "chartMore-tab-data", "chartMore-tab-display"]],
+    [
+      "show",
+      "Display",
+      [
+        "chartMore-anomalies",
+        "chartMore-annotations",
+        "chartMore-xAxis",
+        "chartMore-yAxis",
+        "chartMore-legend",
+        "chartMore-units",
+      ],
+    ],
+    ["data", "Data", ["chartMore-sort", "chartMore-nulls2zero", "chartMore-points"]],
     [
       "actions",
       "Actions",
-      ["consumer-alerts", "chartMore-tab-download", "chartMore-tab-info", "chartMore-reload"],
+      ["consumer-alerts", "chartMore-download", "chartMore-resetSettings", "chartMore-reload"],
     ],
   ])("drills into the %s group and lists its items by order", async (id, label, expected) => {
     const { user } = await renderModern({
@@ -711,8 +727,8 @@ describe("Modern More menu", () => {
     expect(actions).toEqual([
       "consumer-askAi",
       "consumer-alerts",
-      "chartMore-tab-download",
-      "chartMore-tab-info",
+      "chartMore-download",
+      "chartMore-resetSettings",
       "chartMore-reload",
     ])
     expect(screen.getByTestId("consumer-alerts")).toHaveTextContent("2")
@@ -725,16 +741,16 @@ describe("Modern More menu", () => {
 
   it("drops Full screen from the menu when the consumer leaves the element out", async () => {
     const { user } = await renderModern({ focused: true, toolboxElements: [Settings] })
-    await openGroup(user, "navigate")
+    await openMenu(user)
 
     expect(screen.queryByTestId("chartMore-fullscreen")).not.toBeInTheDocument()
   })
 
-  it("toggles full screen from the Navigate group", async () => {
+  it("toggles full screen from the root of the menu", async () => {
     const { user, chart } = await renderModern({ focused: true })
     let toggles = 0
     chart.toggleFullscreen = () => (toggles += 1)
-    await openGroup(user, "navigate")
+    await openMenu(user)
 
     expect(screen.getByTestId("chartMore-fullscreen")).toHaveTextContent("Full screen")
     await user.click(screen.getByTestId("chartMore-fullscreen"))
@@ -796,37 +812,20 @@ describe("Modern More menu", () => {
     const { user } = await renderModern({ focused: true })
     await openMenu(user)
 
-    const first = screen.getByTestId("chartMore-dimensions")
+    const first = screen.getByTestId("chartMore-chartType")
     expect(first).toHaveFocus()
 
     await user.keyboard("{ArrowDown}")
-    expect(screen.getByTestId("chartMore-group-navigate")).toHaveFocus()
+    expect(screen.getByTestId("chartMore-dimensions")).toHaveFocus()
 
-    await user.keyboard("{ArrowUp}{ArrowUp}")
+    await user.keyboard("{ArrowDown}")
+    expect(screen.getByTestId("chartMore-fullscreen")).toHaveFocus()
+
+    await user.keyboard("{ArrowUp}{ArrowUp}{ArrowUp}")
     expect(screen.getByTestId("chartMore-group-actions")).toHaveFocus()
 
     await user.keyboard("{Home}")
     expect(first).toHaveFocus()
-  })
-
-  it("opens the existing settings on the chosen tab", async () => {
-    const { user } = await renderModern({ focused: true })
-    await openGroup(user, "data")
-
-    expect(screen.getByTestId("chartMore-tab-display")).toBeInTheDocument()
-    expect(screen.getByTestId("chartMore-tab-data")).toBeInTheDocument()
-
-    await user.click(screen.getByTestId("chartMore-back"))
-    await user.click(screen.getByTestId("chartMore-group-actions"))
-    expect(screen.getByTestId("chartMore-tab-info")).toBeInTheDocument()
-    expect(screen.getByTestId("chartMore-tab-download")).toBeInTheDocument()
-
-    await user.click(screen.getByTestId("chartMore-tab-download"))
-
-    const settings = await screen.findByTestId("chartSettings")
-    expect(within(settings).getByTestId("chartSettings-download-download-as-csv")).toBeVisible()
-    expect(within(settings).queryByTestId("chartSettings-chartType")).not.toBeInTheDocument()
-    expect(screen.queryByTestId("chartMoreMenu")).not.toBeInTheDocument()
   })
 
   it("opens a custom settings tab that has no id", async () => {
