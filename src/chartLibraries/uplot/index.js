@@ -30,6 +30,7 @@ import {
   selectStackRows,
 } from "./stacking"
 import makeOverlays from "./overlays"
+import { getThresholdExtent } from "./overlays/threshold"
 import makeAnomaly, { makeAnomalyShade, makeAnomalySpotlight } from "./plotters/anomaly"
 import makeAnomalyBadge from "./plotters/anomalyBadge"
 import makeAnnotations from "./plotters/annotations"
@@ -408,6 +409,19 @@ export default (sdk, chart) => {
     return dimensionIds.length > 1 && selectedLegendDimensions.length > 1
   }
 
+  const getLevelsExtent = () =>
+    isModern() && !chart.isSparkline() ? getThresholdExtent(chart.getAttribute("overlays")) : null
+
+  const withLevels = (min, max, [fixedMin, fixedMax] = []) => {
+    const extent = getLevelsExtent()
+    if (!extent) return [min, max]
+
+    return [
+      fixedMin == null ? Math.min(min, extent[0]) : min,
+      fixedMax == null ? Math.max(max, extent[1]) : max,
+    ]
+  }
+
   const getScales = () => ({
     x: {
       time: true,
@@ -430,7 +444,11 @@ export default (sdk, chart) => {
 
         if (isBarType(chartType)) {
           const [barMin, barMax] = getBarValueRange(self, chartType, dataMin, dataMax)
-          return [rangeMin == null ? barMin : rangeMin, rangeMax == null ? barMax : rangeMax]
+          return withLevels(
+            rangeMin == null ? barMin : rangeMin,
+            rangeMax == null ? barMax : rangeMax,
+            [rangeMin, rangeMax]
+          )
         }
 
         let min
@@ -450,9 +468,10 @@ export default (sdk, chart) => {
           max = Math.max(0, max)
         }
 
-        const padded = padYRange(self, min, max)
+        const [low, high] = withLevels(min, max, [rangeMin, rangeMax])
+        const padded = padYRange(self, low, high)
 
-        if (min >= 0 && padded[0] < 0) padded[0] = 0
+        if (low >= 0 && padded[0] < 0) padded[0] = 0
 
         return padded
       },
