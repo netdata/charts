@@ -9,8 +9,8 @@ import { formatReadout } from "@/components/modern/format"
 import systemLoadLine from "../../../../fixtures/systemLoadLine"
 import { resolveLegendMode } from "./mode"
 import { getWindowStats } from "./useLegendRows"
-import { layoutLabels } from "./directLabels"
-import { nextSort } from "./legendTable"
+import { directColumnWidth, labelContentWidth, layoutLabels } from "./directLabels"
+import { minNameWidth, nextSort, showStatColumns } from "./legendTable"
 import { pickShown } from "./tooltip"
 
 const tick = () => new Promise(resolve => setTimeout(resolve, 0))
@@ -78,6 +78,24 @@ describe("legend helpers", () => {
     expect(nextSort("name", "nameAsc")).toBe("nameDesc")
     expect(nextSort("value", "valueDesc")).toBe("valueAsc")
     expect(nextSort("anomaly", "valueAsc")).toBe("anomalyDesc")
+  })
+
+  it("drops mean and max only while names would get less than the minimum width", () => {
+    const statsWidth = 120
+    expect(showStatColumns({ shown: true, nameWidth: 0, statsWidth })).toBe(true)
+    expect(showStatColumns({ shown: true, nameWidth: minNameWidth, statsWidth })).toBe(true)
+    expect(showStatColumns({ shown: true, nameWidth: minNameWidth - 1, statsWidth })).toBe(false)
+    expect(showStatColumns({ shown: false, nameWidth: minNameWidth + 50, statsWidth })).toBe(false)
+    expect(
+      showStatColumns({ shown: false, nameWidth: minNameWidth + statsWidth, statsWidth })
+    ).toBe(true)
+  })
+
+  it("sizes a direct label to its full content, never below the base column", () => {
+    expect(labelContentWidth({ padding: 8, gap: 6, widths: [10, 20, 30, 40] })).toBe(
+      directColumnWidth
+    )
+    expect(labelContentWidth({ padding: 8, gap: 6, widths: [10, 120.2, 30, 40] })).toBe(227)
   })
 
   it("keeps direct labels apart and inside the plot", () => {

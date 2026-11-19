@@ -13,7 +13,7 @@ describe("Modern/Legend and hover story", () => {
     await act(tick)
 
     const bodies = screen.getAllByTestId("modernBody")
-    expect(bodies).toHaveLength(10)
+    expect(bodies).toHaveLength(15)
     expect(bodies[2]).toHaveAttribute("data-legend", "live")
     await waitFor(() => expect(bodies[7]).toHaveAttribute("data-legend", "table"))
   })
