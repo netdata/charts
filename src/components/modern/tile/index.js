@@ -10,10 +10,11 @@ import {
   useUnitSign,
 } from "@/components/provider"
 import useHover from "@/components/useHover"
-import FiltersSwap from "@/components/modern/header/filtersSwap"
+import ScopeLine from "@/components/modern/header/scopeLine"
 import { radius } from "@/components/modern/tokens"
 import { TileContext } from "./context"
-import AlertDot, { ErrorDot, useTileAlert } from "./alertDot"
+import { ErrorDot, useTileAlert } from "./alertDot"
+import TileStatus from "./status"
 import TileActions from "./actions"
 import TileReadout from "./readout"
 import AnomalyIndicator from "./anomaly"
@@ -37,14 +38,6 @@ const focusRevealed = css`
   &:focus-within [data-tile-actions] {
     opacity: 1;
     pointer-events: auto;
-  }
-
-  &:focus-within [data-tile-scope] {
-    visibility: visible;
-  }
-
-  &:focus-within [data-tile-alert] {
-    display: none;
   }
 `
 
@@ -96,10 +89,10 @@ const Reveal = styled(Flex).attrs({
   gap: 0.5,
   position: "absolute",
   top: 0,
-  right: 0,
   bottom: 0,
-  padding: [0, 0, 0, 2],
+  padding: [0, 1, 0, 2],
   background: "cardBackground",
+  right: "100%",
 })`
   opacity: ${({ isVisible }) => (isVisible ? 1 : 0)};
   pointer-events: ${({ isVisible }) => (isVisible ? "auto" : "none")};
@@ -115,7 +108,7 @@ const HeadArea = styled(Box).attrs({ position: "relative", width: { min: "0px" }
   flex-shrink: 0;
 `
 
-const ScopeRow = styled(Box).attrs({
+const scopeRowProps = {
   position: "absolute",
   top: "100%",
   left: 0,
@@ -125,14 +118,7 @@ const ScopeRow = styled(Box).attrs({
   height: { min: 4 },
   padding: [0, 0, 0.5],
   background: "cardBackground",
-})`
-  visibility: ${({ isVisible }) => (isVisible ? "visible" : "hidden")};
-
-  ${HeadArea}:hover > &,
-  &:focus-within {
-    visibility: visible;
-  }
-`
+}
 
 const bleedProps = { margin: [0.5, -3, -2.5], round: { side: "bottom", size: radius.card } }
 
@@ -173,7 +159,6 @@ const ModernTile = ({ children, customChildren, hasFilters = true, height, width
   const tileAlert = useTileAlert()
   const alert = ownStatus ? null : tileAlert
   const [menuActive, setMenuActive] = useState(false)
-  const [filtersOpen, setFiltersOpen] = useState(false)
 
   const hoverRef = useHover(
     {
@@ -187,9 +172,8 @@ const ModernTile = ({ children, customChildren, hasFilters = true, height, width
     [chart]
   )
 
-  const revealed = !!focused || menuActive || filtersOpen
+  const revealed = !!focused || menuActive
   const readout = getLatestValueOverlay(overlays)
-  const closeFilters = () => setFiltersOpen(false)
 
   return (
     <Root
@@ -204,39 +188,32 @@ const ModernTile = ({ children, customChildren, hasFilters = true, height, width
       <HeadArea>
         <Header>
           {!hideTitle && <TileTitle />}
-          {alert && !revealed && (
-            <span data-tile-alert>
-              <AlertDot alert={alert} />
-            </span>
-          )}
-          {quietError && !revealed && (
-            <span data-tile-alert>
-              <ErrorDot error={error} />
-            </span>
-          )}
-          {(hasToolbox || leftElements.length > 0) && (
-            <Reveal data-tile-actions isVisible={revealed} data-testid="modernTile-reveal">
-              {leftElements.map((Element, index) => (
-                <Element key={index} plain />
-              ))}
-              {hasToolbox && <TileActions hasFilters={hasFilters} onOpenChange={setMenuActive} />}
-            </Reveal>
-          )}
+          <Flex alignItems="center" alignSelf="stretch" flex={false} gap={1.5} position="relative">
+            {(hasToolbox || leftElements.length > 0) && (
+              <Reveal data-tile-actions isVisible={revealed} data-testid="modernTile-reveal">
+                {leftElements.map((Element, index) => (
+                  <Element key={index} plain />
+                ))}
+                {hasToolbox && <TileActions hasFilters={hasFilters} onOpenChange={setMenuActive} />}
+              </Reveal>
+            )}
+            {alert && (
+              <span data-tile-alert>
+                <TileStatus alert={alert} />
+              </span>
+            )}
+            {quietError && (
+              <span data-tile-alert>
+                <ErrorDot error={error} />
+              </span>
+            )}
+          </Flex>
         </Header>
-        <ScopeRow
-          data-tile-scope
-          isVisible={menuActive || filtersOpen || (!!error && empty)}
-          data-testid="modernTile-scope"
-        >
-          <FiltersSwap
-            hasFilters={hasFilters}
-            open={filtersOpen}
-            onToggle={() => setFiltersOpen(prev => !prev)}
-            onClose={closeFilters}
-            closeOnClickOutside
-            quietError
-          />
-        </ScopeRow>
+        {!!error && empty && (
+          <Box {...scopeRowProps} data-tile-scope data-testid="modernTile-scope">
+            <ScopeLine hasFilters={false} />
+          </Box>
+        )}
       </HeadArea>
       {!!readout && <TileReadout dimensionId={readout.dimensionId} />}
       <TileContext.Provider value>

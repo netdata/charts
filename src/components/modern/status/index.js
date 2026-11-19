@@ -57,6 +57,20 @@ const describe = ({ status, count, description, names }) => {
   return lines.join(", ")
 }
 
+export const getActivationProps = onActivate =>
+  onActivate
+    ? {
+        role: "button",
+        "aria-haspopup": "menu",
+        onClick: onActivate,
+        onKeyDown: event => {
+          if (event.key !== "Enter" && event.key !== " ") return
+          event.preventDefault()
+          onActivate()
+        },
+      }
+    : { role: "status" }
+
 const StatusIndicator = ({
   status,
   count,
@@ -74,18 +88,7 @@ const StatusIndicator = ({
       : givenDescription
   const isCritical = status === "critical"
   const label = status === "clear" ? null : getStatusLabel({ status, count })
-  const activation = onActivate
-    ? {
-        role: "button",
-        "aria-haspopup": "menu",
-        onClick: onActivate,
-        onKeyDown: event => {
-          if (event.key !== "Enter" && event.key !== " ") return
-          event.preventDefault()
-          onActivate()
-        },
-      }
-    : { role: "status" }
+  const activation = getActivationProps(onActivate)
 
   return (
     <Tooltip content={<StatusDetails description={description} names={names} />} align="bottom">
