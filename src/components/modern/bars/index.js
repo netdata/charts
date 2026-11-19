@@ -57,6 +57,7 @@ const Bar = ({ id }) => {
   const value = useLatestValue(id) || 0
   const min = useAttributeValue("min")
   const max = useAttributeValue("max")
+  useAttributeValue("colorOverrides")
 
   return (
     <Fill

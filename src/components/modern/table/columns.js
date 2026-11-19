@@ -323,6 +323,7 @@ const ModernValue = ({ id, table, context, dimension }) => {
   const percent = isPercentUnit(chart.getDimensionUnit(id))
   const hot = percent && isHotPercent(value)
   const share = getShare(value, scale.columns[dimension])
+  useAttributeValue("colorOverrides")
   const color = chart.selectDimensionColor(id)
 
   const change =

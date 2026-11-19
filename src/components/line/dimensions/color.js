@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef } from "react"
 import styled from "styled-components"
 import { Flex } from "@netdata/netdata-ui"
-import { useChart, useLatestValue } from "@/components/provider"
+import { useChart, useLatestValue, useAttributeValue } from "@/components/provider"
 import { useIsHeatmap, useGetColor } from "@/helpers/heatmap"
 
 export const Color = styled(Flex).attrs(({ bg, ...rest }) => ({
@@ -57,6 +57,7 @@ export const BaseColorBar = ({
 
 export const ColorBar = ({ id, partIndex, valueKey, ...rest }) => {
   const chart = useChart()
+  useAttributeValue("colorOverrides")
   const bg = valueKey === "arp" ? "anomalyTextLite" : chart.selectDimensionColor(id, partIndex)
 
   const min = valueKey === "arp" ? 0 : chart.getAttribute("min")
@@ -83,6 +84,7 @@ export const ColorBar = ({ id, partIndex, valueKey, ...rest }) => {
 
 const ColorValue = ({ id, partIndex, ...rest }) => {
   const chart = useChart()
+  useAttributeValue("colorOverrides")
   const bg = chart.selectDimensionColor(id, partIndex)
 
   if (!bg) return null

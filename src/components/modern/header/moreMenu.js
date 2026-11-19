@@ -126,6 +126,7 @@ const DimensionsPanel = () => {
   const chart = useChart()
   const [search, setSearch] = useState("")
   const dimensionIds = useDimensionIds() || []
+  useAttributeValue("colorOverrides")
   const hidden = useHiddenDimensionsCount()
 
   const matches = useMemo(() => {

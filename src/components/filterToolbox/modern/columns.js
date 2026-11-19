@@ -1,6 +1,6 @@
 import { Flex, Box, TextSmall, TextMicro } from "@netdata/netdata-ui"
 import Units from "@/components/line/dimensions/units"
-import { useChart, useConverted } from "@/components/provider"
+import { useChart, useConverted, useAttributeValue } from "@/components/provider"
 import { LineSwatch } from "@/components/modern/swatch"
 import { SmallNumeral } from "@/components/modern/numerals"
 import { Dot } from "@/components/modern/dot"
@@ -33,6 +33,7 @@ const hasStats = row => !!row.original.info?.sts
 const NameCell = ({ getValue, row, column }) => {
   const chart = useChart()
   const metricsByValue = useMetricsByValue(chart)
+  useAttributeValue("colorOverrides")
   const name = getValue()
   const { fallbackExpandKey, showColor } = column.columnDef
 
