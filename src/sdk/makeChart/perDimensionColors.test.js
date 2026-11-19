@@ -56,6 +56,125 @@ describe("per-dimension custom colors", () => {
   })
 })
 
+describe("colorOverrides", () => {
+  it("without overrides, colors and palette slots are unchanged", () => {
+    const { sdk, chart } = makeTestChart({ attributes: { colors: { a: "#111111" } } })
+
+    expect(chart.selectDimensionColor("a")).toBe("#111111")
+    expect(chart.selectDimensionColor("b")).toBe(dimensionColors[0][0])
+
+    const second = sdk.makeChart({ attributes: { colors: { a: "#111111" } } })
+    sdk.appendChild(second)
+    expect(second.selectDimensionColor("c")).toBe(dimensionColors[0][0])
+
+    const positional = makeTestChart({ attributes: { colors: ["#111111", "#222222"] } }).chart
+    expect(positional.selectDimensionColor()).toBe("#111111")
+    expect(positional.selectDimensionColor("selected")).toBe("#111111")
+
+    const sparkline = makeTestChart({
+      attributes: { sparkline: true, colors: ["#333333", "#444444"] },
+    }).chart
+    expect(sparkline.selectDimensionColor("a")).toBe("#333333")
+  })
+
+  it("colorOverrides wins over a positional colors palette", () => {
+    const { chart } = makeTestChart({
+      attributes: { colors: ["#111111", "#222222"], colorOverrides: { b: "#FFD400" } },
+    })
+
+    expect(chart.selectDimensionColor("a")).toBe("#111111")
+    expect(chart.selectDimensionColor("b")).toBe("#FFD400")
+  })
+
+  it("clearing colorOverrides restores the positional palette", () => {
+    const { chart } = makeTestChart({
+      attributes: { colors: ["#111111", "#222222"], colorOverrides: { b: "#FFD400" } },
+    })
+
+    expect(chart.selectDimensionColor("a")).toBe("#111111")
+    expect(chart.selectDimensionColor("b")).toBe("#FFD400")
+
+    chart.updateAttribute("colorOverrides", {})
+
+    expect(chart.selectDimensionColor("b")).toBe("#222222")
+  })
+
+  it("an override does not shift other series' default colors on a fresh container", () => {
+    const a = makeTestChart({ attributes: { colorOverrides: {} } }).chart
+    const [aA, aB, aC] = ["a", "b", "c"].map(id => a.selectDimensionColor(id))
+
+    const b = makeTestChart({ attributes: { colorOverrides: { a: "#FFD400" } } }).chart
+    const [bA, bB, bC] = ["a", "b", "c"].map(id => b.selectDimensionColor(id))
+
+    expect(aA).not.toBe("#FFD400")
+    expect(bA).toBe("#FFD400")
+    expect(bB).toBe(aB)
+    expect(bC).toBe(aC)
+  })
+
+  it("exposes the non-overridden color through selectDefaultDimensionColor", () => {
+    const { chart } = makeTestChart({
+      attributes: { colors: ["#111111", "#222222"], colorOverrides: { b: "#FFD400" } },
+    })
+
+    chart.selectDimensionColor("a")
+
+    expect(chart.selectDimensionColor("b")).toBe("#FFD400")
+    expect(chart.selectDefaultDimensionColor("b")).toBe("#222222")
+  })
+
+  it("the selected key colors the aggregate", () => {
+    const { chart } = makeTestChart({
+      attributes: { selectedDimensions: [], colorOverrides: { selected: "#FFD400" } },
+    })
+    const seriesColor = chart.selectDimensionColor("a")
+
+    expect(chart.selectDimensionColor()).toBe("#FFD400")
+
+    chart.updateAttribute("selectedDimensions", ["b"])
+
+    expect(chart.selectDimensionColor()).toBe("#FFD400")
+    expect(chart.selectDimensionColor("a")).toBe(seriesColor)
+    expect(seriesColor).not.toBe("#FFD400")
+  })
+
+  it("the aggregate ignores per-series overrides", () => {
+    const { chart } = makeTestChart({
+      attributes: {
+        selectedDimensions: ["a"],
+        colorOverrides: { a: "#111111", selected: "#FFD400" },
+      },
+    })
+
+    expect(chart.selectDimensionColor()).toBe("#FFD400")
+
+    chart.updateAttribute("colorOverrides", { a: "#111111" })
+
+    expect(chart.selectDimensionColor()).toBe(chart.selectDefaultDimensionColor())
+    expect(chart.selectDimensionColor()).not.toBe("#111111")
+  })
+
+  it("expands shorthand hex overrides so renderers can append alpha", () => {
+    const { chart } = makeTestChart({
+      attributes: { colorOverrides: { a: "#f00", selected: "#0F0" } },
+    })
+
+    expect(chart.selectDimensionColor("a")).toBe("#ff0000")
+    expect(chart.selectDimensionColor()).toBe("#00FF00")
+  })
+
+  it.each(["constructor", "toString", "hasOwnProperty"])(
+    "ignores inherited object keys such as %s",
+    id => {
+      const { chart } = makeTestChart({
+        attributes: { sparkline: true, colors: ["#112233"], colorOverrides: {} },
+      })
+
+      expect(chart.selectDimensionColor(id)).toBe("#112233")
+    }
+  )
+})
+
 describe("renderer palettes", () => {
   it("gives dygraph and uPlot charts the same palette", () => {
     const uplot = makeTestChart({ attributes: { chartLibrary: "uplot" } }).chart

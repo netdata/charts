@@ -696,3 +696,88 @@ describe("dygraphChart x-axis labels", () => {
     expect(format(date, minutely)).toBe("short")
   })
 })
+
+describe("dygraphChart colorOverrides", () => {
+  beforeEach(() => {
+    mockDygraph.canvas_ctx_ = {
+      canvas: { width: 800, height: 400 },
+      save: jest.fn(),
+      restore: jest.fn(),
+      beginPath: jest.fn(),
+      closePath: jest.fn(),
+      moveTo: jest.fn(),
+      lineTo: jest.fn(),
+      stroke: jest.fn(),
+      setLineDash: jest.fn(),
+      setTransform: jest.fn(),
+      clearRect: jest.fn(),
+    }
+  })
+
+  afterEach(() => {
+    delete mockDygraph.canvas_ctx_
+  })
+
+  const mountWithColors = () => {
+    const { sdk, chart } = makeTestChart({
+      attributes: { theme: "dark", outOfLimits: false, loaded: true },
+    })
+
+    chart.getPayload = () => ({
+      data: [[1617946860000, 10, 20]],
+      labels: ["time", "load1", "load5"],
+    })
+    chart.getPayloadDimensionIds = () => ["load1", "load5"]
+    chart.getDateWindow = () => [1617946860000, 1617947750000]
+    chart.formatXAxis = x => x.toString()
+    chart.getThemeAttribute = () => "#333"
+    chart.getUnitSign = () => ""
+
+    const instance = dygraphChart(sdk, chart)
+    instance.mount(document.createElement("div"))
+    mockDygraph.updateOptions.mockClear()
+
+    return { chart, instance }
+  }
+
+  const lastColors = () => {
+    const calls = mockDygraph.updateOptions.mock.calls.filter(([options]) => options.colors)
+    return calls.length ? calls[calls.length - 1][0].colors : undefined
+  }
+
+  it("repaints with the override when colorOverrides changes", () => {
+    const { chart } = mountWithColors()
+
+    const defaults = chart.getPayloadDimensionIds().map(id => chart.selectDimensionColor(id))
+
+    chart.updateAttribute("colorOverrides", { load1: "#FFD400" })
+
+    expect(lastColors()).toEqual(["#FFD400", defaults[1]])
+  })
+
+  it("repaints back to the default when it is cleared", () => {
+    const { chart } = mountWithColors()
+
+    const defaults = chart.getPayloadDimensionIds().map(id => chart.selectDimensionColor(id))
+
+    chart.updateAttribute("colorOverrides", { load1: "#FFD400" })
+    expect(lastColors()[0]).toBe("#FFD400")
+
+    chart.updateAttribute("colorOverrides", {})
+
+    expect(lastColors()).toEqual(defaults)
+  })
+
+  it("keeps a pinned crosshair after repainting", () => {
+    const { chart } = mountWithColors()
+    const { setLineDash } = mockDygraph.canvas_ctx_
+    chart.getClosestRow = () => 0
+
+    chart.updateAttribute("clickX", [1617946860000, "load1"])
+    setLineDash.mockClear()
+
+    chart.updateAttribute("colorOverrides", { load1: "#FFD400" })
+
+    expect(setLineDash).toHaveBeenCalledWith([2, 2])
+  })
+})

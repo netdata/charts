@@ -318,6 +318,7 @@ export const Dial = ({ uiName }) => {
   const latest = useLatestDisplayValue(dimensionId, { allowNull: true })
   const themeName = useAttributeValue("theme")
   useAttributeValue("staticFractionDigits")
+  useAttributeValue("colorOverrides")
 
   const { min, max, data, rowIndex, value, zones, zone, zoneSeverity } = useDialState(uiName)
   const focus = useValueFocus("gauge")

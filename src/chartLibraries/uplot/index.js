@@ -1884,6 +1884,7 @@ export default (sdk, chart) => {
       chart.onAttributeChange("selectedLegendDimensions", rebuild),
       chart.onAttributeChange("chartType", rebuild),
       chart.onAttributeChange("stepPlot", rebuild),
+      chart.onAttributeChange("colorOverrides", rebuild),
       chart.onAttributeChange("navigation", updateCursorDrag),
       chart.onAttributeChange("enabledNavigation", rebuild),
       chart.onAttributeChange("enabledXAxis", rebuild),

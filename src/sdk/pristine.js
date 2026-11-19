@@ -52,6 +52,7 @@ const { updatePristine, resetPristine } = makePristine(pristineKey, [
 
   "nulls2zero",
   "points",
+  "colorOverrides",
 ])
 
 export default { update: updatePristine, reset: resetPristine }

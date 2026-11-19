@@ -14,6 +14,7 @@ export const useHeadlessChart = () => {
   const dimensionIds = useDimensionIds()
 
   const hover = useAttributeValue("hoverX")
+  const colorOverrides = useAttributeValue("colorOverrides")
 
   const helpers = useMemo(
     () => ({
@@ -73,7 +74,7 @@ export const useHeadlessChart = () => {
         rowIndex,
       }
     })
-  }, [payload, hover, chart])
+  }, [payload, hover, chart, colorOverrides])
 
   const currentRow = useMemo(() => {
     if (!data.length) return null

@@ -66,6 +66,10 @@ export default (sdk, chart) => {
       }),
       !loaded && chart.onceAttributeChange("loaded", render),
       chart.onAttributeChange("theme", reMake),
+      chart.onAttributeChange("colorOverrides", () => {
+        reMake()
+        render()
+      }),
       chart.onAttributeChange("designFlavour", () => {
         if (isModernFlavour(chart) !== Boolean(easyPie)) return
         reMake()

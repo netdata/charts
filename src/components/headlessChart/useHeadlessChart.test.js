@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react"
+import { act, screen, waitFor } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { renderWithChart, makeTestChart, renderWithProviders } from "@jest/testUtilities"
 import makeMockPayload from "@/helpers/makeMockPayload"
@@ -91,6 +91,37 @@ describe("useHeadlessChart", () => {
 
     expect(screen.getByTestId("data-available")).toHaveTextContent(/^(has data|no data)$/)
     expect(screen.getByTestId("dimensions-count")).toHaveTextContent(/^\d+$/)
+  })
+
+  it("headless state colors follow a colorOverrides change", async () => {
+    const { chart } = makeTestChart()
+    await act(async () => {
+      chart.doneFetch(systemLoadLine[0])
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
+
+    const Colors = () => {
+      const { data, currentRow } = useHeadlessChart()
+      return (
+        <div>
+          <div data-testid="row-color">{data[0]?.dimensions[0]?.color}</div>
+          <div data-testid="current-color">{currentRow?.dimensions[0]?.color}</div>
+        </div>
+      )
+    }
+
+    renderWithChart(<Colors />, { chart })
+    const [id] = chart.getVisibleDimensionIds()
+    const original = chart.selectDimensionColor(id)
+
+    expect(screen.getByTestId("row-color")).toHaveTextContent(original)
+
+    act(() => chart.updateAttribute("colorOverrides", { [id]: "#123456" }))
+    expect(screen.getByTestId("row-color")).toHaveTextContent("#123456")
+    expect(screen.getByTestId("current-color")).toHaveTextContent("#123456")
+
+    act(() => chart.updateAttribute("colorOverrides", {}))
+    expect(screen.getByTestId("row-color")).toHaveTextContent(original)
   })
 
   it("preserves signs in render-ready dimension values", async () => {

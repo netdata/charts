@@ -492,6 +492,7 @@ export const useLatestRowValue = (options = {}) => {
 
     return unregister(
       chart.onAttributeChange("hoverX", () => setState(getValue())),
+      chart.onAttributeChange("colorOverrides", () => setState(getValue())),
       chart.on("dimensionChanged", () => setState(getValue())),
       chart.on("successFetch", () => setState(getValue()))
     )

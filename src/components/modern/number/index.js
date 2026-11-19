@@ -156,6 +156,7 @@ const ModernNumber = ({ uiName }) => {
   const { width, height } = useOnResize(uiName)
   const [dimensionId] = useVisibleDimensionIds()
   const hoverX = useAttributeValue("hoverX")
+  useAttributeValue("colorOverrides")
   const inTile = useInModernTile()
   const focus = useValueFocus("number")
 

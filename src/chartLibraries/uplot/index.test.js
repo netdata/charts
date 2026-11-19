@@ -5674,3 +5674,55 @@ describe("uplotChart modern anomaly badge clearance", () => {
     expect(topPad).toBe(labelHalf)
   })
 })
+
+describe("uplotChart colorOverrides", () => {
+  const mountLine = () => {
+    const { sdk, chart } = makeTestChart({ attributes: { loaded: true, chartType: "line" } })
+    const selectDimensionColor = chart.selectDimensionColor
+    withLoadedPayload(chart)
+    chart.selectDimensionColor = selectDimensionColor
+
+    const instance = uplotChart(sdk, chart)
+    const element = document.createElement("div")
+    element.style.width = "800px"
+    element.style.height = "300px"
+    document.body.appendChild(element)
+    instance.mount(element)
+
+    return { chart, instance, element }
+  }
+
+  const strokeOf = (instance, index) => {
+    const { stroke } = instance.getUPlot().series[index]
+    return typeof stroke === "function" ? stroke() : stroke
+  }
+
+  it("repaints with the override when colorOverrides changes", () => {
+    const { chart, instance, element } = mountLine()
+    const defaultStroke = strokeOf(instance, 1)
+
+    chart.updateAttribute("colorOverrides", { load1: "#FFD400" })
+
+    expect(defaultStroke).not.toBe("#FFD400")
+    expect(strokeOf(instance, 1)).toBe("#FFD400")
+    expect(strokeOf(instance, 2)).not.toBe("#FFD400")
+
+    instance.unmount()
+    document.body.removeChild(element)
+  })
+
+  it("repaints back to the default when it is cleared", () => {
+    const { chart, instance, element } = mountLine()
+    const defaultStroke = strokeOf(instance, 1)
+
+    chart.updateAttribute("colorOverrides", { load1: "#FFD400" })
+    expect(strokeOf(instance, 1)).toBe("#FFD400")
+
+    chart.updateAttribute("colorOverrides", {})
+
+    expect(strokeOf(instance, 1)).toBe(defaultStroke)
+
+    instance.unmount()
+    document.body.removeChild(element)
+  })
+})

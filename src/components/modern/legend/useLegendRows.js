@@ -107,6 +107,7 @@ const attributes = [
   "unitsByDimension",
   "viewDimensions",
   "theme",
+  "colorOverrides",
 ]
 
 const cacheAttributes = [

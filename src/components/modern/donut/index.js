@@ -150,6 +150,7 @@ const ModernDonut = ({ uiName }) => {
 
   useAttributeValue("hoverX")
   useAttributeValue("theme")
+  useAttributeValue("colorOverrides")
   useVisibleDimensionIds()
   usePayload()
   const unit = useUnitSign()

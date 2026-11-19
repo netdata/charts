@@ -1,4 +1,5 @@
 import dimensionColors from "./theme/dimensionColors"
+import { expandShortHex } from "@/chartLibraries/helpers/color"
 import deepEqual, { setsAreEqual } from "@/helpers/deepEqual"
 import {
   cropHeatmapZeroEdges,
@@ -326,7 +327,7 @@ export default (chart, sdk) => {
     return memKey
   }
 
-  chart.selectDimensionColor = (id = "selected", partIndex) => {
+  chart.selectDefaultDimensionColor = (id = "selected", partIndex) => {
     const key = getMemKey()
     const colorsAttr = chart.getAttribute("colors")
     const sparkline = chart.isSparkline()
@@ -352,6 +353,21 @@ export default (chart, sdk) => {
 
     const index = chart.getThemeIndex()
     return typeof color === "string" ? color : color[index]
+  }
+
+  chart.selectDimensionColor = (id = "selected", partIndex) => {
+    const defaultColor = chart.selectDefaultDimensionColor(id, partIndex)
+    const colorOverrides = chart.getAttribute("colorOverrides") || {}
+    const seriesId =
+      !id || id === "selected"
+        ? "selected"
+        : isNaN(partIndex)
+          ? id
+          : id.split(",")?.[partIndex] || id
+
+    if (!Object.hasOwn(colorOverrides, seriesId)) return defaultColor
+
+    return expandShortHex(colorOverrides[seriesId]) ?? defaultColor
   }
 
   const aliasNodePart = (grouping, idPart, namePart) => {

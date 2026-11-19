@@ -126,4 +126,46 @@ describe("easyPieChart", () => {
     expect(instance.render()).toBe(true)
     instance.unmount()
   })
+
+  describe("colorOverrides", () => {
+    const strokeColors = element =>
+      element
+        .querySelector("canvas")
+        .getContext("2d")
+        .__getEvents()
+        .filter(event => event.type === "strokeStyle")
+        .map(event => String(event.props.value).toLowerCase())
+
+    const drawnArcs = element =>
+      element.querySelector("canvas").getContext("2d").__getDrawCalls().length
+
+    it("repaints with the override when colorOverrides changes", async () => {
+      const chart = await loadChart()
+      const { instance, element } = mountOn(chart)
+      const defaultColor = chart.selectDimensionColor().toLowerCase()
+
+      chart.updateAttribute("colorOverrides", { selected: "#FFD400" })
+
+      expect(strokeColors(element)).toContain("#ffd400")
+      expect(strokeColors(element)).not.toContain(defaultColor)
+      expect(drawnArcs(element)).toBeGreaterThan(0)
+      instance.unmount()
+    })
+
+    it("repaints back to the default when it is cleared", async () => {
+      const chart = await loadChart()
+      const { instance, element } = mountOn(chart)
+      const defaultColor = chart.selectDimensionColor().toLowerCase()
+
+      chart.updateAttribute("colorOverrides", { selected: "#FFD400" })
+      expect(strokeColors(element)).toContain("#ffd400")
+
+      chart.updateAttribute("colorOverrides", {})
+
+      expect(strokeColors(element)).toContain(defaultColor)
+      expect(strokeColors(element)).not.toContain("#ffd400")
+      expect(drawnArcs(element)).toBeGreaterThan(0)
+      instance.unmount()
+    })
+  })
 })

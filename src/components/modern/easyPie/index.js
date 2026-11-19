@@ -46,6 +46,7 @@ const ModernEasyPie = ({ uiName, size }) => {
   const chart = useChart()
   useOnResize(uiName)
   useAttributeValue("hoverX")
+  useAttributeValue("colorOverrides")
 
   const [dimensionId] = useVisibleDimensionIds()
   const { value, convertedUnit: unit, unitAttributes } = useLatestDisplayValueWithUnit(dimensionId)
