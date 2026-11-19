@@ -156,6 +156,7 @@ export default {
 
   showingInfo: false,
   colors: [],
+  colorOverrides: {},
 
   height: "",
   enabledYAxis: true,

@@ -326,7 +326,7 @@ export default (chart, sdk) => {
     return memKey
   }
 
-  chart.selectDimensionColor = (id = "selected", partIndex) => {
+  chart.selectDefaultDimensionColor = (id = "selected", partIndex) => {
     const key = getMemKey()
     const colorsAttr = chart.getAttribute("colors")
     const sparkline = chart.isSparkline()
@@ -352,6 +352,16 @@ export default (chart, sdk) => {
 
     const index = chart.getThemeIndex()
     return typeof color === "string" ? color : color[index]
+  }
+
+  chart.selectDimensionColor = (id = "selected", partIndex) => {
+    const defaultColor = chart.selectDefaultDimensionColor(id, partIndex)
+    const colorOverrides = chart.getAttribute("colorOverrides") || {}
+
+    if (!id || id === "selected") return colorOverrides.selected ?? defaultColor
+
+    const seriesId = isNaN(partIndex) ? id : id.split(",")?.[partIndex] || id
+    return colorOverrides[seriesId] ?? defaultColor
   }
 
   const aliasNodePart = (grouping, idPart, namePart) => {
