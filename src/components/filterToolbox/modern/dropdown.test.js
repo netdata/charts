@@ -404,11 +404,24 @@ describe("filter dropdowns, row action", () => {
 
     fireEvent.click(action)
     fireEvent.keyDown(action, { key: "Enter" })
+    fireEvent.keyDown(action, { key: " " })
     document.removeEventListener("keydown", onKeyDown)
 
     expect(onKeyDown).not.toHaveBeenCalled()
     expect(screen.getByTestId("modern-filter-selected")).toHaveTextContent(selected)
     expect(screen.getByTestId("modern-filter-reset")).toBeDisabled()
+  })
+
+  it.each(["Escape", "Tab", "ArrowDown"])("lets %s bubble from the action", async key => {
+    await openDropdown(Labels, { ...withAction, labelsExpanded: true })
+    const [action] = screen.getAllByTestId("row-action")
+    const onKeyDown = jest.fn()
+    document.addEventListener("keydown", onKeyDown)
+
+    fireEvent.keyDown(action, { key })
+    document.removeEventListener("keydown", onKeyDown)
+
+    expect(onKeyDown).toHaveBeenCalledTimes(1)
   })
 
   it("renders nothing without the attribute", async () => {

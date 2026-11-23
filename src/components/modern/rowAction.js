@@ -4,13 +4,17 @@ import { useAttributeValue, useChart } from "@/components/provider"
 
 const stopPropagation = event => event.stopPropagation()
 
+const stopActivationKeys = event => {
+  if (event.key === "Enter" || event.key === " ") event.stopPropagation()
+}
+
 const Slot = styled(Flex).attrs({
   as: "span",
   flex: false,
   alignItems: "center",
   margin: [0, 0, 0, 1],
   onClick: stopPropagation,
-  onKeyDown: stopPropagation,
+  onKeyDown: stopActivationKeys,
   "data-testid": "chartRowAction",
 })`
   display: inline-flex;
