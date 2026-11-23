@@ -151,6 +151,14 @@ describe("Modern header", () => {
     expect(scope).toHaveTextContent("3 dimensions")
   })
 
+  it("renders a custom scopeLine in place of the default summary when the chart has one", async () => {
+    const CustomScope = () => <span data-testid="customScope">Only reads</span>
+    await renderModern({ focused: true, scopeLine: CustomScope })
+
+    expect(screen.getByTestId("customScope")).toHaveTextContent("Only reads")
+    expect(screen.queryByTestId("chartScope")).not.toBeInTheDocument()
+  })
+
   it("renders the scope line as its own line below the title row", async () => {
     await renderModern({ focused: true })
 

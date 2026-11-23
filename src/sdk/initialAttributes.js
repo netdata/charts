@@ -173,6 +173,7 @@ export default {
 
   hasToolbox: true,
   hideTitle: false,
+  scopeLine: null,
   hideName: false,
   hideUnits: null,
   hasHoverPopover: true,

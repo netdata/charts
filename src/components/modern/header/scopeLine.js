@@ -142,6 +142,7 @@ const ScopeLine = ({ hasFilters = true, open = false, onToggle, quietError = fal
   const initialLoading = useInitialLoading()
   const empty = useEmpty()
   const error = useAttributeValue("error")
+  const CustomScopeLine = useAttributeValue("scopeLine")
   const text = useScopeText()
   const hidden = useHiddenDimensionsCount()
   const statusProps = { hasFilters, open, onToggle }
@@ -166,6 +167,8 @@ const ScopeLine = ({ hasFilters = true, open = false, onToggle, quietError = fal
         No data
       </Status>
     )
+
+  if (CustomScopeLine) return <CustomScopeLine />
 
   if (!text && !hidden) return null
 
