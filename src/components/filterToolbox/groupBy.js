@@ -109,7 +109,11 @@ const GroupBy = ({
             isLabel: true,
             selected: groupByLabel.includes(id),
           },
-          childProps: { unique: "-", disabled: "hidden" },
+          childProps: {
+            unique: "-",
+            disabled: "hidden",
+            rowTarget: { kind: "label", labelKey: id },
+          },
           children: attributes.labels[id].vl,
         })
       ),

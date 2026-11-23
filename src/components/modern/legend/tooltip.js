@@ -14,6 +14,7 @@ import { radius, tabularNumbers } from "@/components/modern/tokens"
 import { Flags, Unit, Value as BaseValue } from "./parts"
 import { Numeral } from "@/components/modern/numerals"
 import { LineSwatch } from "@/components/modern/swatch"
+import { LegendRowAction } from "@/components/modern/rowAction"
 import { useLegendRows } from "./useLegendRows"
 
 export const maxTooltipRows = 6
@@ -140,6 +141,7 @@ const Tooltip = () => {
               data-testid="modernTooltip-name"
             >
               {row.name}
+              <LegendRowAction row={row} />
             </Name>
             <Value>{row.display}</Value>
             <Unit>{row.unit}</Unit>

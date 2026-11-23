@@ -54,7 +54,8 @@ const Instances = ({ labelProps, ...rest }) => {
 
   const getOptions = useCallback(() => {
     const nodeIdsByIndex = {}
-    if (hasAlias(nodesById)) Object.keys(nodes).forEach(id => (nodeIdsByIndex[nodes[id].ni] = id))
+    Object.keys(nodes).forEach(id => (nodeIdsByIndex[nodes[id].ni] = id))
+    const aliased = hasAlias(nodesById)
 
     return Object.keys(instances).map(id =>
       getStats(chart, instances[id], {
@@ -62,10 +63,11 @@ const Instances = ({ labelProps, ...rest }) => {
         key: "instances",
         props: {
           selected: value.includes(id),
+          rowTarget: { kind: "instance", nodeId: nodeIdsByIndex[instances[id].ni] },
           getLabel: instance => {
             const nodeId = nodeIdsByIndex[instance.ni]
 
-            return nodeId && getInstanceLabel(chart, nodeId, nodes[nodeId], instance)
+            return aliased && nodeId && getInstanceLabel(chart, nodeId, nodes[nodeId], instance)
           },
         },
       })

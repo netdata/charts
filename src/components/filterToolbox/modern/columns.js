@@ -2,6 +2,7 @@ import { Flex, Box, TextSmall, TextMicro } from "@netdata/netdata-ui"
 import Units from "@/components/line/dimensions/units"
 import { useChart, useConverted, useAttributeValue } from "@/components/provider"
 import { LineSwatch } from "@/components/modern/swatch"
+import RowAction from "@/components/modern/rowAction"
 import { SmallNumeral } from "@/components/modern/numerals"
 import { Dot } from "@/components/modern/dot"
 import { radius } from "@/components/modern/tokens"
@@ -64,6 +65,16 @@ const NameCell = ({ getValue, row, column }) => {
         >
           {name}
         </TextSmall>
+        {!!row.original.rowTarget && (
+          <RowAction
+            row={{
+              ...row.original.rowTarget,
+              id: row.original.value,
+              name: row.original.label,
+              ...(row.original.rowTarget.kind === "label" && { value: row.original.info?.id }),
+            }}
+          />
+        )}
       </Flex>
       {row.getCanExpand() && (
         <Label

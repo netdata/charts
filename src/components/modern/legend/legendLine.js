@@ -7,6 +7,7 @@ import { useIsHeatmap } from "@/helpers/heatmap"
 import notSelectable from "@/components/helpers/notSelectable"
 import { AnomalyBar, Flags, Unit, Value, onToggle } from "./parts"
 import { LineSwatch } from "@/components/modern/swatch"
+import { LegendRowAction } from "@/components/modern/rowAction"
 import { Panel, dropProps } from "@/components/modern/menu"
 import { focusDimension, useClearFocusOnUnmount } from "./mode"
 import { useLegendRows } from "./useLegendRows"
@@ -72,6 +73,7 @@ const LegendEntry = ({ chart, row, isHeatmap, ...rest }) => (
   >
     {!isHeatmap && <LineSwatch swatchColor={row.color} />}
     <Name>{row.name}</Name>
+    <LegendRowAction row={row} />
     {row.visible && <Value>{row.display}</Value>}
     {row.visible && !!row.unit && <Unit>{row.unit}</Unit>}
     {row.visible && <Flags flags={row.flags} />}

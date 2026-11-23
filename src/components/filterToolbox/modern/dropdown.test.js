@@ -6,6 +6,7 @@ import { filterDropdownsPayload } from "../../../../fixtures/filterDropdowns"
 import Nodes from "../nodes"
 import Dimensions from "../dimensions"
 import Labels from "../labels"
+import Instances from "../instances"
 import GroupBy from "../groupBy"
 import Aggregate from "../aggregate"
 import TimeAggregation from "../timeAggregation"
@@ -358,5 +359,37 @@ describe("filter dropdowns, modern flavour", () => {
     expect(screen.getByTestId("modern-filter-item-description")).toHaveTextContent("Section note")
     expect(screen.getByText("Average").closest("li")).toHaveAttribute("aria-selected", "true")
     expect(screen.getByText("Sum").closest("li")).toHaveAttribute("aria-selected", "false")
+  })
+})
+
+describe("filter dropdowns, row action", () => {
+  const RowAction = ({ row }) => (
+    <span data-testid="row-action">
+      {`${row.kind}|${row.labelKey || row.id}|${row.value || row.nodeId}`}
+    </span>
+  )
+  const withAction = { designFlavour: "modern", rowAction: RowAction }
+
+  it("describes an instance row by its node", async () => {
+    const { chart } = await openDropdown(Instances, withAction)
+
+    const instances = chart.getAttribute("instances")
+    const nodes = chart.getAttribute("nodes")
+    const [id] = Object.keys(instances)
+    const nodeId = Object.keys(nodes).find(key => nodes[key].ni === instances[id].ni)
+    expect(screen.getAllByTestId("row-action")[0]).toHaveTextContent(`instance|${id}|${nodeId}`)
+  })
+
+  it("describes a label value row by its label key", async () => {
+    await openDropdown(Labels, { ...withAction, labelsExpanded: true })
+
+    const texts = screen.getAllByTestId("row-action").map(node => node.textContent)
+    expect(texts.some(text => text.startsWith("label|_collect_plugin|"))).toBe(true)
+  })
+
+  it("renders nothing without the attribute", async () => {
+    await openDropdown(Instances, { designFlavour: "modern" })
+
+    expect(screen.queryByTestId("row-action")).not.toBeInTheDocument()
   })
 })
