@@ -175,6 +175,8 @@ export default {
   hideTitle: false,
   scopeLine: null,
   rowAction: null,
+  anomalyPillClick: false,
+  attentionClick: false,
   hideName: false,
   hideUnits: null,
   hasHoverPopover: true,

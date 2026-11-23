@@ -45,10 +45,21 @@ const useDetail = ({ names, when }) => {
 }
 
 const useStatusAction = () => {
+  const chart = useChart()
   const hasToolbox = useAttributeValue("hasToolbox")
+  const attentionClick = useAttributeValue("attentionClick")
   const items = useMenuItems()
   const [, setMoreMenu] = useAttribute("moreMenu")
   const target = hasToolbox ? items.find(item => item.statusTarget) : null
+
+  if (attentionClick)
+    return {
+      onActivate: () => {
+        const summary = summarizeAlerts(chart.getAttribute("alerts"))
+        chart.trigger("attentionClick", summary)
+        chart.sdk.trigger("attentionClick", chart, summary)
+      },
+    }
 
   return target ? { onActivate: () => setMoreMenu({ drill: [target.id] }) } : {}
 }

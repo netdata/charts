@@ -9,6 +9,8 @@ import Information from "@/components/toolbox/information"
 import Settings from "@/components/toolbox/settings"
 import { Line } from "@/components/line"
 import ChartContentWrapper from "@/components/line/chartContentWrapper"
+import { getAnomalySummary } from "@/components/modern/anomaly"
+import { summarizeAlerts } from "@/components/modern/status"
 import { getScopeParts } from "./scopeSummary"
 import { dimensionsLimit } from "./moreMenu"
 
@@ -924,6 +926,38 @@ describe("Modern alerts pill opening the menu", () => {
     expect(screen.queryByRole("button", { name: /open alerts$/ })).not.toBeInTheDocument()
   })
 
+  it("triggers attentionClick instead of drilling the menu when the attribute is on", async () => {
+    const { user, chart } = await renderModern({
+      focused: true,
+      toolboxElements: [StatusAlerts],
+      attentionClick: true,
+    })
+    raiseAlert(chart)
+    const onChart = jest.fn()
+    const onSdk = jest.fn()
+    chart.on("attentionClick", onChart)
+    chart.sdk.on("attentionClick", onSdk)
+
+    await user.click(screen.getByRole("button", { name: /open alerts$/ }))
+
+    const summary = summarizeAlerts(chart.getAttribute("alerts"))
+    expect(onChart).toHaveBeenCalledWith(summary, "attentionClick")
+    expect(onSdk).toHaveBeenCalledWith(chart, summary, "attentionClick")
+    expect(chart.getAttribute("moreMenu")).not.toEqual({ drill: ["statusAlerts"] })
+    expect(screen.queryByTestId("chartMore-back")).not.toBeInTheDocument()
+  })
+
+  it("triggers attentionClick without a toolbox", async () => {
+    const { user, chart } = await renderModern({ hasToolbox: false, attentionClick: true })
+    raiseAlert(chart)
+    const onChart = jest.fn()
+    chart.on("attentionClick", onChart)
+
+    await user.click(screen.getByTestId("chartAttention-status"))
+
+    expect(onChart).toHaveBeenCalledTimes(1)
+  })
+
   it("stays a plain status when the chart has no toolbox", async () => {
     const { chart } = await renderModern({ hasToolbox: false, toolboxElements: [StatusAlerts] })
     raiseAlert(chart)
@@ -1418,6 +1452,36 @@ describe("Modern anomaly pill", () => {
     await renderWithPayload(anomalyPayload(index => (index === 40 ? 0.5 : 0)))
 
     expect(screen.getByTestId("chartAnomalyPill")).toHaveTextContent("Anomalous, peak 0.5%")
+  })
+
+  it("stays a plain label while anomalyPillClick is off", async () => {
+    await renderWithPayload(anomalyPayload(index => (index === 40 ? 42 : 0)))
+
+    const pill = screen.getByTestId("chartAnomalyPill")
+    expect(pill).not.toHaveAttribute("role")
+    expect(pill).not.toHaveAttribute("tabindex")
+  })
+
+  it("triggers anomalyPillClick on the chart and the sdk from a click and from Enter", async () => {
+    const chart = await renderWithPayload(anomalyPayload(index => (index === 40 ? 42 : 0)), {
+      anomalyPillClick: true,
+    })
+    const onChart = jest.fn()
+    const onSdk = jest.fn()
+    chart.on("anomalyPillClick", onChart)
+    chart.sdk.on("anomalyPillClick", onSdk)
+
+    const pill = screen.getByRole("button", { name: "Show which part is anomalous" })
+    expect(pill).toHaveAttribute("tabindex", "0")
+    fireEvent.click(pill)
+    fireEvent.keyDown(pill, { key: "Enter" })
+    fireEvent.keyDown(pill, { key: " " })
+
+    const summary = getAnomalySummary(chart)
+    expect(onChart).toHaveBeenCalledTimes(3)
+    expect(onChart).toHaveBeenCalledWith(summary, "anomalyPillClick")
+    expect(onSdk).toHaveBeenCalledTimes(3)
+    expect(onSdk).toHaveBeenCalledWith(chart, summary, "anomalyPillClick")
   })
 
   it("stays out of the header when the window has no anomalies", async () => {
