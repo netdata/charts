@@ -10,6 +10,7 @@ const Slot = styled(Flex).attrs({
   alignItems: "center",
   margin: [0, 0, 0, 1],
   onClick: stopPropagation,
+  onKeyDown: stopPropagation,
   "data-testid": "chartRowAction",
 })`
   display: inline-flex;
@@ -42,6 +43,9 @@ const RowAction = ({ row }) => {
 
 export const LegendRowAction = ({ row }) => {
   const chart = useChart()
+  const Action = useAttributeValue("rowAction")
+
+  if (!Action) return null
 
   return (
     <RowAction row={{ ...getLegendRowTarget(chart), id: row.id, name: row.name, value: row.id }} />

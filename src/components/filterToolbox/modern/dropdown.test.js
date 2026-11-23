@@ -364,9 +364,9 @@ describe("filter dropdowns, modern flavour", () => {
 
 describe("filter dropdowns, row action", () => {
   const RowAction = ({ row }) => (
-    <span data-testid="row-action">
-      {`${row.kind}|${row.labelKey || row.id}|${row.value || row.nodeId}`}
-    </span>
+    <button type="button" data-testid="row-action">
+      {`${row.kind}|${row.labelKey || row.id}|${row.value ?? row.nodeId}`}
+    </button>
   )
   const withAction = { designFlavour: "modern", rowAction: RowAction }
 
@@ -384,7 +384,31 @@ describe("filter dropdowns, row action", () => {
     await openDropdown(Labels, { ...withAction, labelsExpanded: true })
 
     const texts = screen.getAllByTestId("row-action").map(node => node.textContent)
-    expect(texts.some(text => text.startsWith("label|_collect_plugin|"))).toBe(true)
+    expect(texts).toContain("label|_collect_plugin|proc.plugin")
+  })
+
+  it("describes a group by label value row by its label key", async () => {
+    await openDropdown(GroupBy, { ...withAction, groupByExpanded: { 3: true } })
+
+    const texts = screen.getAllByTestId("row-action").map(node => node.textContent)
+    expect(texts).toContain("label|_collect_plugin|proc.plugin")
+  })
+
+  it("does not select the row when the action is clicked or activated by key", async () => {
+    await openDropdown(Labels, { ...withAction, labelsExpanded: true })
+    const selected = screen.getByTestId("modern-filter-selected").textContent
+    const [action] = screen.getAllByTestId("row-action")
+
+    const onKeyDown = jest.fn()
+    document.addEventListener("keydown", onKeyDown)
+
+    fireEvent.click(action)
+    fireEvent.keyDown(action, { key: "Enter" })
+    document.removeEventListener("keydown", onKeyDown)
+
+    expect(onKeyDown).not.toHaveBeenCalled()
+    expect(screen.getByTestId("modern-filter-selected")).toHaveTextContent(selected)
+    expect(screen.getByTestId("modern-filter-reset")).toBeDisabled()
   })
 
   it("renders nothing without the attribute", async () => {
