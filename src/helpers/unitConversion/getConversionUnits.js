@@ -84,11 +84,8 @@ const scalable = (chart, units, min, max, desiredUnits, maxDecimals) => {
   const prefix = config.prefix_symbol
   const prefixScale = selfOrExponent(prefix, scaleByKey)
 
-  if (desiredUnits && desiredUnits !== "auto" && desiredUnits !== "original") {
-    if (scaleByKey[desiredUnits] !== undefined) {
-      return makeScalableCandidate(desiredUnits, scaleByKey, prefixScale, base)
-    }
-  }
+  if (scaleKeys.includes(desiredUnits))
+    return makeScalableCandidate(desiredUnits, scaleByKey, prefixScale, base)
 
   const delta = getRangeDelta(min, max) * prefixScale
   const scale = [...scaleKeys].reverse().find(scale => delta >= selfOrExponent(scale, scaleByKey))
