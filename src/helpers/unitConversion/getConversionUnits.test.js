@@ -105,6 +105,18 @@ describe("getConversionUnits", () => {
       expect(result.prefix).toContain("Ki")
     })
 
+    it.each([["unknown"], ["By"], ["m"]])(
+      "keeps %s unscaled when the base scale is chosen",
+      units => {
+        chart.updateAttributes({ units: [units], desiredUnits: ["1"] })
+
+        const result = getConversionAttributes(chart, units, { min: 0, max: 12000 })
+
+        expect(result.prefix).toBe("")
+        expect(chart.getConvertedValue(12000, { unitAttributes: result })).toBe("12,000")
+      }
+    )
+
     it("uses a smaller conversable scale before excessive fractional digits", () => {
       chart.updateAttributes({
         units: ["s"],
