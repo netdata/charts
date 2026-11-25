@@ -69,8 +69,9 @@ const partOf = ({ all, selected, labelForValue, prefix = "" }) => {
   const included = describe(selected, true)
   if (!included) return null
 
+  const selectedSet = new Set(selected)
   const hidden = describe(
-    all.filter(value => !selected.includes(value)),
+    all.filter(value => !selectedSet.has(value)),
     false
   )
   const text = `${prefix}${included.allExcept ? included.text : `only ${included.text}`}`
@@ -98,28 +99,36 @@ export const dimensionPartsOf = ({ dimensions, selectedDimensions }) => {
 
 export const labelKeyOf = value => value.slice(0, value.indexOf(":"))
 
-export const labelPartsOf = ({ labels, selectedLabels }) =>
-  [...new Set(selectedLabels.map(labelKeyOf))].flatMap(key => {
+const selectedByKeyOf = selectedLabels =>
+  selectedLabels.reduce((byKey, value) => {
+    const key = labelKeyOf(value)
+    const values = byKey.get(key)
+    if (values) values.push(value)
+    else byKey.set(key, [value])
+    return byKey
+  }, new Map())
+
+export const labelPartsOf = ({ labels, selectedLabels }) => {
+  const selectedSet = new Set(selectedLabels)
+
+  return [...selectedByKeyOf(selectedLabels)].flatMap(([key, keySelections]) => {
     const all = (labels?.[key]?.vl || noValues).map(({ id }) => id)
-    const selected = all.filter(id => selectedLabels.includes(`${key}:${id}`))
+    const selected = all.filter(id => selectedSet.has(`${key}:${id}`))
     const part = partOf({ all, selected, prefix: `${key}: ` })
     if (!part) return noValues
 
     const values = describeSelection({ selected, all, allowAllExcept: false })
-    const filters = filtersOf(
-      "labels",
-      selectedLabels.filter(value => labelKeyOf(value) === key)
-    )
 
     return [
       {
         key: `label-${key}`,
         ...part,
         inline: { text: values.text, label: `${key}: ${values.text}`, more: values.more },
-        filters,
+        filters: filtersOf("labels", keySelections),
       },
     ]
   })
+}
 
 const isDimensionGrouping = groupBy => !groupBy?.length || groupBy.every(by => by === "dimension")
 
