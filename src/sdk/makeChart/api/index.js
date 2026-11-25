@@ -5,6 +5,7 @@ import fetchCloudWeights from "./fetchCloudWeights"
 import { withDataRequestAuth } from "../../dataQuery/request"
 
 export * from "./helpers"
+export { default as fetchInstanceLabels, parseInstanceLabels } from "./fetchInstanceLabels"
 
 export const fetchChartData = (chart, options) => {
   const { agent } = chart.getAttributes()

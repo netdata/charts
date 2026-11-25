@@ -63,6 +63,8 @@ export const modernMeta = (row, cell, index) => ({
 
 const noop = () => {}
 
+const defaultTableWidth = { min: 100, max: "80vw" }
+
 const menuOnlyProps = [
   "title",
   "dropTitle",
@@ -155,6 +157,7 @@ const ModernDropdown = ({
   totalSelected,
   resourceName,
   defaultMeta,
+  tableWidth = defaultTableWidth,
   close,
   ...rest
 }) => {
@@ -253,7 +256,7 @@ const ModernDropdown = ({
           enableSubRowSelection={enableSubRowSelection}
           columnVisibility={visibility}
           coloredSortedColumn={false}
-          width={{ min: 100, max: "80vw" }}
+          width={tableWidth}
         />
         {!!sidebar && (
           <Flex column flex={false} width={{ min: 50, max: 70 }} overflow={{ vertical: "auto" }}>

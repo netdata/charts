@@ -1,6 +1,8 @@
 import { useCallback, useMemo, memo } from "react"
 import { useChart, useAttribute, useAttributeValue } from "@/components/provider"
 import { TextBig } from "@netdata/netdata-ui"
+import useInstanceLabels from "@/components/instanceIdentity/useInstanceLabels"
+import useInstanceIdentities from "@/components/instanceIdentity/useInstanceIdentities"
 import DropdownTable from "./dropdownTable"
 import { getStats } from "./utils"
 import {
@@ -26,12 +28,14 @@ const useDefaultItems = (chart, { groupByKey, contextScope, showPostAggregations
         }`,
         id: "instance",
         key: "instances",
+        expandKey: "instance",
       },
       { nm: "dimension", id: "dimension", key: "dimensions" },
       (showPostAggregations || "drilldown.groupBy" === groupByKey) && {
         nm: `percentage of ${chart.intl("instance")}`,
         id: "percentage-of-instance",
         key: "instances",
+        expandKey: "instance",
       },
       hasMultipleContexts && { nm: "context", id: "context", key: "contexts" },
     ].filter(Boolean)
@@ -73,10 +77,20 @@ const GroupBy = ({
 
   let label = "everything"
 
+  const getIdentityProps = useInstanceIdentities()
+  const loadInstanceLabels = useInstanceLabels()
   const defaultItems = useDefaultItems(chart, { groupByKey, contextScope, showPostAggregations })
 
   const getOptions = useCallback(() => {
     const attributes = chart.getAttributes()
+    const instanceKeys = new Map(
+      Object.entries(attributes.instances || {}).map(([key, instance]) => [instance, key])
+    )
+    const childProps = { unique: "-", disabled: "hidden" }
+    const instanceChildProps = {
+      ...childProps,
+      getProps: instance => getIdentityProps(instanceKeys.get(instance)),
+    }
 
     const defaultOptions = defaultItems.map(item => {
       const selected = groupBy.includes(item.id)
@@ -92,8 +106,9 @@ const GroupBy = ({
           avg: "-",
           max: "-",
           selected,
+          expandKey: item.expandKey,
         },
-        childProps: { unique: "-", disabled: "hidden" },
+        childProps: item.key === "instances" ? instanceChildProps : childProps,
         ...(item.key && { children: Object.values(attributes[item.key]) }),
       })
     })
@@ -114,7 +129,7 @@ const GroupBy = ({
         })
       ),
     ]
-  }, [groupBy, groupByLabel])
+  }, [groupBy, groupByLabel, getIdentityProps])
 
   label = useMemo(() => {
     const withoutNodes = groupBy.filter(v => v !== "node")
@@ -149,6 +164,7 @@ const GroupBy = ({
       labelProps={labelProps}
       onChange={onChange || defaultOnChange}
       getOptions={getOptions}
+      onOpen={loadInstanceLabels}
       secondaryLabel="Group by"
       tooltipProps={tooltipProps}
       value={value}

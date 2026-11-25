@@ -5,6 +5,8 @@ import {
   useAttributeValue,
   useFilteredNodeIds,
 } from "@/components/provider"
+import useInstanceLabels from "@/components/instanceIdentity/useInstanceLabels"
+import useInstanceIdentities from "@/components/instanceIdentity/useInstanceIdentities"
 import DropdownTable from "../dropdownTable"
 import { getStats, getNodeLabel, getInstanceLabel } from "../utils"
 import {
@@ -50,6 +52,8 @@ const NodesTable = ({ labelProps, ...rest }) => {
   const nodesById = useAttributeValue("nodesById")
 
   const selectedInstances = useAttributeValue("selectedInstances")
+  const getIdentityProps = useInstanceIdentities()
+  const loadInstanceLabels = useInstanceLabels()
 
   const getOptions = useCallback(
     () =>
@@ -66,6 +70,7 @@ const NodesTable = ({ labelProps, ...rest }) => {
             getLabel: instance => getInstanceLabel(chart, id, nodes[id], instance),
             getValue: instance => `${instance.id}@${id}`,
             getIsSelected: instance => selectedInstances.includes(`${instance.id}@${id}`),
+            getProps: instance => getIdentityProps(`${instance.id}@${id}`),
           },
           children: Object.keys(instances).reduce(
             (h, instanceId) =>
@@ -74,7 +79,7 @@ const NodesTable = ({ labelProps, ...rest }) => {
           ),
         })
       }),
-    [nodes, value, selectedInstances, nodesById]
+    [nodes, value, selectedInstances, nodesById, getIdentityProps]
   )
 
   const [sortBy, onSortByChange] = useAttribute("nodesSortBy")
@@ -98,6 +103,7 @@ const NodesTable = ({ labelProps, ...rest }) => {
       expanded={expanded}
       onExpandedChange={onExpandedChange}
       enableSubRowSelection={false}
+      onOpen={loadInstanceLabels}
       totals={nodesTotals}
       filterSelectedCount={filterSelectedCount}
       totalSelected={totalSelected}
