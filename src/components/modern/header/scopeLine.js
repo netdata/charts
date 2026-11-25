@@ -1,9 +1,7 @@
-import { useMemo } from "react"
 import styled from "styled-components"
-import { Box, Flex, TextSmall, getColor } from "@netdata/netdata-ui"
-import { useAttributeValue, useChart, useEmpty, useInitialLoading } from "@/components/provider"
-import { getScopeParts } from "./scopeSummary"
-import { showAllDimensions, useHiddenDimensionsCount } from "./hiddenDimensions"
+import { Box, TextSmall, getColor } from "@netdata/netdata-ui"
+import { useAttributeValue, useEmpty, useInitialLoading } from "@/components/provider"
+import ScopeSentence from "./scopeSentenceLine"
 
 const ScopeButton = styled(Box).attrs(({ disabled }) => ({
   as: "button",
@@ -28,74 +26,6 @@ const ScopeButton = styled(Box).attrs(({ disabled }) => ({
   }
 `
 
-const HiddenText = styled(Box).attrs({ as: "span" })`
-  flex-shrink: 0;
-  font-size: 12px;
-  line-height: 16px;
-  white-space: nowrap;
-  color: ${getColor("warning")};
-`
-
-const ShowAllButton = styled(Box).attrs({
-  as: "button",
-  margin: [0, 0, 0, 1],
-  padding: [0],
-  cursor: "pointer",
-})`
-  flex-shrink: 0;
-  border: 0;
-  background: transparent;
-  font-family: inherit;
-  font-size: 12px;
-  line-height: 16px;
-  white-space: nowrap;
-  text-decoration: underline;
-  color: ${getColor("warning")};
-`
-
-const useScopeText = () => {
-  const chart = useChart()
-  const groupBy = useAttributeValue("groupBy")
-  const groupByLabel = useAttributeValue("groupByLabel")
-  const aggregationMethod = useAttributeValue("aggregationMethod")
-  const nodesTotals = useAttributeValue("nodesTotals")
-  const instancesTotals = useAttributeValue("instancesTotals")
-  const dimensionsTotals = useAttributeValue("dimensionsTotals")
-  const labelsTotals = useAttributeValue("labelsTotals")
-  const groupingMethod = useAttributeValue("groupingMethod")
-  const viewUpdateEvery = useAttributeValue("viewUpdateEvery")
-
-  return useMemo(
-    () =>
-      getScopeParts(
-        {
-          groupBy,
-          groupByLabel,
-          aggregationMethod,
-          nodesTotals,
-          instancesTotals,
-          dimensionsTotals,
-          labelsTotals,
-          groupingMethod,
-          viewUpdateEvery,
-        },
-        chart.intl
-      ).join(", "),
-    [
-      chart,
-      groupBy,
-      groupByLabel,
-      aggregationMethod,
-      nodesTotals,
-      instancesTotals,
-      dimensionsTotals,
-      labelsTotals,
-      groupingMethod,
-      viewUpdateEvery,
-    ]
-  )
-}
-
 const Status = ({ status, color, hasFilters, open, onToggle, children }) => {
   if (!hasFilters)
     return (
@@ -118,33 +48,11 @@ const Status = ({ status, color, hasFilters, open, onToggle, children }) => {
   )
 }
 
-const Hidden = ({ count, leading }) => {
-  const chart = useChart()
-
-  return (
-    <>
-      <HiddenText data-testid="chartScope-hidden">
-        {leading ? `, ${count} hidden,` : `${count} hidden,`}
-      </HiddenText>
-      <ShowAllButton
-        type="button"
-        onClick={() => showAllDimensions(chart)}
-        data-testid="chartScope-showAll"
-        data-track={chart.track("showAllDimensions")}
-      >
-        Show all
-      </ShowAllButton>
-    </>
-  )
-}
-
 const ScopeLine = ({ hasFilters = true, open = false, onToggle, quietError = false }) => {
   const initialLoading = useInitialLoading()
   const empty = useEmpty()
   const error = useAttributeValue("error")
   const CustomScopeLine = useAttributeValue("scopeLine")
-  const text = useScopeText()
-  const hidden = useHiddenDimensionsCount()
   const statusProps = { hasFilters, open, onToggle }
 
   if (error)
@@ -170,25 +78,7 @@ const ScopeLine = ({ hasFilters = true, open = false, onToggle, quietError = fal
 
   if (CustomScopeLine) return <CustomScopeLine />
 
-  if (!text && !hidden) return null
-
-  return (
-    <Flex alignItems="baseline" width={{ min: "0px" }} overflow="hidden">
-      {!!text && (
-        <ScopeButton
-          type="button"
-          onClick={onToggle}
-          disabled={!hasFilters}
-          title={hasFilters ? `${text} (click to ${open ? "hide" : "edit"} filters)` : text}
-          aria-expanded={hasFilters ? open : undefined}
-          data-testid="chartScope"
-        >
-          {text}
-        </ScopeButton>
-      )}
-      {hidden > 0 && <Hidden count={hidden} leading={!!text} />}
-    </Flex>
-  )
+  return <ScopeSentence hasFilters={hasFilters} open={open} onToggle={onToggle} />
 }
 
 export default ScopeLine

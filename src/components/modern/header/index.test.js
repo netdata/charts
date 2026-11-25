@@ -11,7 +11,6 @@ import { Line } from "@/components/line"
 import ChartContentWrapper from "@/components/line/chartContentWrapper"
 import { getAnomalySummary } from "@/components/modern/anomaly"
 import { summarizeAlerts } from "@/components/modern/status"
-import { getScopeParts } from "./scopeSummary"
 import { dimensionsLimit } from "./moreMenu"
 
 const AddToDashboard = ({ disabled }) => (
@@ -147,10 +146,9 @@ describe("Modern header", () => {
       screen.getByTestId("chartHeaderToolbox-more"),
     ])
 
-    const scope = screen.getByTestId("chartScope")
-    expect(scope).toHaveTextContent("Group by dimension")
-    expect(scope).toHaveTextContent("1 node")
-    expect(scope).toHaveTextContent("3 dimensions")
+    expect(screen.getByTestId("chartScopeLine")).toHaveTextContent(
+      /^Load1, load5 and load15, one line each$/
+    )
   })
 
   it("renders a custom scopeLine in place of the default summary when the chart has one", async () => {
@@ -1382,17 +1380,6 @@ describe("Modern filters in place of the scope line", () => {
     }
 
     expect(errors.filter(message => /hooks/i.test(message))).toEqual([])
-  })
-})
-
-describe("Modern scope summary", () => {
-  it("separates the parts with commas", async () => {
-    const { chart } = await renderModern()
-
-    const parts = getScopeParts(chart.getAttributes(), chart.intl)
-    expect(parts.length).toBeGreaterThan(1)
-    expect(screen.getByTestId("chartScope")).toHaveTextContent(parts.join(", "))
-    expect(screen.getByTestId("chartScope").textContent).not.toContain("·")
   })
 })
 
