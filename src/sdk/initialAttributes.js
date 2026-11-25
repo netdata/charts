@@ -342,6 +342,9 @@ export default {
   instances: {},
   alerts: {},
 
+  instanceLabels: null,
+  instanceLabelsLoading: false,
+
   drawer: {
     action: "compare",
     tab: "window",

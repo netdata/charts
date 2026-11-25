@@ -55,9 +55,10 @@ export const getStats = (
   obj,
   { id, key, childrenKey, children = [], childProps, props } = {}
 ) => {
-  const { getValue, getLabel, getIsSelected, ...rest } = props
+  const { getValue, getLabel, getIsSelected, getProps, ...rest } = props
+  const { identityLabel, ...extraProps } = getProps?.(obj) || {}
 
-  const aliasLabel = getLabel?.(obj)
+  const aliasLabel = identityLabel || getLabel?.(obj)
 
   return {
     label: aliasLabel || obj.nm || id || obj.id,
@@ -77,6 +78,7 @@ export const getStats = (
     info: obj,
     selected: getIsSelected?.(obj) || false,
     ...rest,
+    ...extraProps,
     children: children.map(dim =>
       getStats(chart, dim, { key: `${key}-${childrenKey}`, props: childProps })
     ),
