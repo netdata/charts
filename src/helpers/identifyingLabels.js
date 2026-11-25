@@ -106,17 +106,11 @@ const findWinner = (unique, separating, max) => {
 
 const noAmbiguousIds = new Set()
 
-const getDisplayedIndices = (rows, names, max) => {
-  const topIndices = { displayed: names.map((name, index) => index).slice(0, max) }
-  if (rows.length < 2) return { ...topIndices, ambiguousIds: noAmbiguousIds }
-
-  const { encoded, separating } = encodeRows(rows, names)
-  if (!separating.length) return { ...topIndices, ambiguousIds: noAmbiguousIds }
-
-  const { unique, ambiguousIds } = markDuplicates(encoded, separating)
+const chooseDisplayed = (encoded, separating, max) => {
+  const { unique } = markDuplicates(encoded, separating)
   const winner = findWinner(unique, separating, max)
 
-  if (!winner) return { displayed: separating.slice(0, max), ambiguousIds }
+  if (!winner) return separating.slice(0, max)
 
   const winnerPositions = new Set(winner)
   const fill = separating
@@ -124,10 +118,17 @@ const getDisplayedIndices = (rows, names, max) => {
     .filter(position => !winnerPositions.has(position))
     .slice(0, max - winner.length)
 
-  return {
-    displayed: [...winner, ...fill].sort((a, b) => a - b).map(position => separating[position]),
-    ambiguousIds,
-  }
+  return [...winner, ...fill].sort((a, b) => a - b).map(position => separating[position])
+}
+
+const getDisplayedIndices = (rows, names, max) => {
+  const topIndices = names.map((name, index) => index).slice(0, max)
+  if (rows.length < 2) return { displayed: topIndices, ambiguousIds: noAmbiguousIds }
+
+  const { encoded, separating } = encodeRows(rows, names)
+  const displayed = separating.length ? chooseDisplayed(encoded, separating, max) : topIndices
+
+  return { displayed, ambiguousIds: markDuplicates(encoded, displayed).ambiguousIds }
 }
 
 const identifyGroup = (rows, compare, max, result) => {

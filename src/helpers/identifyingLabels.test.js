@@ -133,7 +133,8 @@ describe("getIdentifyingLabels", () => {
 
     const result = getIdentifyingLabels(rows, { max: 1 })
 
-    expect(result.a).toEqual({ pairs: [["disk", "sda"]], rest: [["part", "1"]], ambiguous: false })
+    expect(result.a).toEqual({ pairs: [["disk", "sda"]], rest: [["part", "1"]], ambiguous: true })
+    expect(result.b.ambiguous).toBe(true)
     expect(result.c).toEqual({ pairs: [["disk", "sdb"]], rest: [], ambiguous: false })
   })
 
@@ -216,6 +217,15 @@ describe("getIdentifyingLabels", () => {
     expect(result.d.ambiguous).toBe(false)
   })
 
+  it("marks rows with identical labels on the same node as ambiguous", () => {
+    const row = (id, node) => ({ id, context: "app.cpu", node, labels: { image: "x" } })
+    const result = getIdentifyingLabels([row("a", "n1"), row("b", "n1"), row("c", "n2")])
+
+    expect(result.a).toEqual({ pairs: [["image", "x"]], rest: [], ambiguous: true })
+    expect(result.b.ambiguous).toBe(true)
+    expect(result.c.ambiguous).toBe(false)
+  })
+
   it("shows the top labels of a single instance and keeps the remainder in rest", () => {
     const rows = [
       {
@@ -237,7 +247,7 @@ describe("getIdentifyingLabels", () => {
     })
   })
 
-  it("falls back to the first labels by priority when no set within max identifies", () => {
+  it("falls back to the first labels by priority when no set within max identifies, marking rows the shown labels cannot tell apart", () => {
     const rows = Array.from({ length: 16 }, (_, index) => ({
       id: `r${index}`,
       context: "bits",
@@ -257,8 +267,9 @@ describe("getIdentifyingLabels", () => {
         ["y", "1"],
       ],
       rest: [["z", "0"]],
-      ambiguous: false,
+      ambiguous: true,
     })
+    expect(getIdentifyingLabels(rows).r13).toMatchObject({ rest: [["z", "1"]], ambiguous: true })
   })
 
   it("identifies each context independently", () => {
