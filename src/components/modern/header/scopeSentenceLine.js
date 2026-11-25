@@ -247,20 +247,19 @@ const ScopeSentence = ({ hasFilters, open, onToggle }) => {
   const instancesTotals = useAttributeValue("instancesTotals")
   const nodesTotals = useAttributeValue("nodesTotals")
   const nodes = useAttributeValue("nodes")
-  const groupBy = useAttributeValue("groupBy")
-  const groupByLabel = useAttributeValue("groupByLabel")
   const aggregationMethod = useAttributeValue("aggregationMethod")
   const scopeCombines = useAttributeValue("scopeCombines")
   const lock = useAttributeValue("scopeLock")?.label
   const hidden = useHiddenDimensionsCount()
   const onRemove = useRemoveFilters()
   const names = viewDimensions.names || noValues
+  const grouped = viewDimensions.grouped
 
   const combined = useMemo(
     () =>
       combinedOf({
         names,
-        groupBy,
+        grouped,
         aggregationMethod,
         instancesTotals,
         nodesTotals,
@@ -271,7 +270,7 @@ const ScopeSentence = ({ hasFilters, open, onToggle }) => {
       }),
     [
       names,
-      groupBy,
+      grouped,
       aggregationMethod,
       instancesTotals,
       nodesTotals,
@@ -291,7 +290,7 @@ const ScopeSentence = ({ hasFilters, open, onToggle }) => {
 
   if (!names.length) return hidden > 0 ? <Hidden count={hidden} /> : null
 
-  const lines = linesOf({ names, groupBy, groupByLabel, scopeCombines })
+  const lines = linesOf({ names, grouped, scopeCombines })
   const belowZero = belowZeroOf({ names, sts: viewDimensions.sts })
   const inlineParts = combined?.count ? labelParts : noValues
   const trailingParts = combined?.count ? dimensionParts : [...dimensionParts, ...labelParts]

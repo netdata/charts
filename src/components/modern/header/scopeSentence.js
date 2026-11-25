@@ -1,3 +1,5 @@
+import { uppercase } from "@/helpers/objectTransform"
+
 const maxListed = 3
 const previewCount = 2
 const noValues = []
@@ -20,12 +22,8 @@ const eachVerbs = {
   percentage: "shows its share of",
 }
 
-const groupKeysOf = {
-  label: groupByLabel => groupByLabel,
-  "percentage-of-instance": () => ["instance"],
-}
-
-export const capitaliseFirst = text => text.charAt(0).toUpperCase() + text.slice(1)
+const labelGroupPrefix = "label:"
+const instanceGroupings = new Set(["instance", "percentage-of-instance"])
 
 export const joinList = names =>
   names.length < 2 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`
@@ -87,9 +85,8 @@ export const dimensionPartsOf = ({ dimensions, selectedDimensions }) => {
 
   const ids = Object.keys(dimensions || {})
   const nameOf = id => dimensions[id].nm || id
-  const selected = ids.filter(
-    id => selectedDimensions.includes(id) || selectedDimensions.includes(nameOf(id))
-  )
+  const selectedSet = new Set(selectedDimensions)
+  const selected = ids.filter(id => selectedSet.has(id) || selectedSet.has(nameOf(id)))
   const part = partOf({ all: ids, selected, labelForValue: nameOf })
 
   return part
@@ -130,23 +127,21 @@ export const labelPartsOf = ({ labels, selectedLabels }) => {
   })
 }
 
-const isDimensionGrouping = groupBy => !groupBy?.length || groupBy.every(by => by === "dimension")
+const isDimensionGrouping = grouped => !grouped?.length || grouped.every(by => by === "dimension")
 
-export const isGrouped = groupBy => !isDimensionGrouping(groupBy)
+export const isGrouped = grouped => !isDimensionGrouping(grouped)
 
-export const linesOf = ({ names, groupBy, groupByLabel = noValues, scopeCombines }) => {
+const groupKeyOf = (by, instanceName) => {
+  if (by.startsWith(labelGroupPrefix)) return by.slice(labelGroupPrefix.length)
+  return instanceGroupings.has(by) ? instanceName : by
+}
+
+export const linesOf = ({ names, grouped, scopeCombines }) => {
   const listed = listOrCount(names)
-  if (isDimensionGrouping(groupBy)) return { ...listed, text: capitaliseFirst(listed.text) }
+  if (isDimensionGrouping(grouped)) return { ...listed, text: uppercase(listed.text) }
 
   const instanceName = scopeCombines?.nounSingular || "instance"
-  const keys = [
-    ...new Set(
-      groupBy
-        .flatMap(by => groupKeysOf[by]?.(groupByLabel) || [by])
-        .filter(Boolean)
-        .map(key => (key === "instance" ? instanceName : key))
-    ),
-  ]
+  const keys = [...new Set(grouped.map(by => groupKeyOf(by, instanceName)))]
   const members = names.length <= maxListed ? names.join(", ") : listed.text
 
   return { ...listed, text: `Per ${joinList(keys)}: ${members}` }
@@ -162,25 +157,33 @@ const nounOf = ({ count, nodesTotals, scopeCombines }) => {
   return nodesTotals?.qr === count ? "nodes" : "instances"
 }
 
-const sameCount = counts =>
-  counts.length && counts.every(count => count === counts[0]) ? counts[0] : null
+const sameCount = counts => (counts.every(count => count === counts[0]) ? counts[0] : null)
 
-const instancesPerSeriesOf = ({ groupBy, aggregated, dimensions, nodes }) => {
-  if (groupBy.length === 1 && groupBy[0] === "node")
-    return sameCount(
-      Object.values(nodes || {})
-        .map(node => node.is?.qr)
-        .filter(count => count > 0)
-    )
+const instancesPerSeriesOf = ({ grouped, aggregated, dimensions, nodes }) => {
+  if (grouped.length === 1 && grouped[0] === "node") {
+    const counts = Object.values(nodes || {})
+      .map(node => node.is?.qr)
+      .filter(count => count > 0)
+    return counts.length ? counts : null
+  }
 
   const metricsAreInstances =
-    groupBy.includes("dimension") || Object.keys(dimensions || {}).length === 1
-  return metricsAreInstances && Array.isArray(aggregated) ? sameCount(aggregated) : null
+    grouped.includes("dimension") || Object.keys(dimensions || {}).length === 1
+  return metricsAreInstances && aggregated?.length ? aggregated : null
+}
+
+const groupedCombinedOf = ({ names, count, grouped, aggregated, dimensions, nodes }) => {
+  const perSeries = instancesPerSeriesOf({ grouped, aggregated, dimensions, nodes })
+  if (!perSeries) return count > names.length ? { quantity: "its" } : null
+  if (!perSeries.some(instances => instances > 1)) return null
+
+  const sharedCount = sameCount(perSeries)
+  return sharedCount ? { count: sharedCount } : { quantity: "its" }
 }
 
 export const combinedOf = ({
   names,
-  groupBy,
+  grouped,
   aggregationMethod,
   instancesTotals,
   nodesTotals,
@@ -189,24 +192,23 @@ export const combinedOf = ({
   dimensions,
   nodes,
 }) => {
-  const grouped = isGrouped(groupBy)
+  const perGroup = isGrouped(grouped)
 
   if (scopeCombines?.upstream)
-    return grouped
-      ? { noun: scopeCombines.noun, grouped, quantity: "all", verb: eachVerbs.sum }
+    return perGroup
+      ? { noun: scopeCombines.noun, grouped: perGroup, quantity: "all", verb: eachVerbs.sum }
       : { noun: scopeCombines.noun, verb: combinedVerbs.sum }
 
   const count = instancesTotals?.qr
-  const seriesFed = grouped ? names.length : 1
-  if (!(count > seriesFed) || groupBy?.includes("instance")) return null
-
   const noun = nounOf({ count, nodesTotals, scopeCombines })
 
-  if (!grouped) return { noun, count, verb: combinedVerbs[aggregationMethod] || "combined" }
+  if (!perGroup)
+    return count > 1 ? { noun, count, verb: combinedVerbs[aggregationMethod] || "combined" } : null
 
-  const verb = eachVerbs[aggregationMethod] || "combines"
-  const perSeries = instancesPerSeriesOf({ groupBy, aggregated, dimensions, nodes })
-  return perSeries
-    ? { noun, grouped, count: perSeries, verb }
-    : { noun, grouped, quantity: "its", verb }
+  if (grouped.includes("instance")) return null
+
+  const each = groupedCombinedOf({ names, count, grouped, aggregated, dimensions, nodes })
+  return each
+    ? { noun, grouped: perGroup, verb: eachVerbs[aggregationMethod] || "combines", ...each }
+    : null
 }

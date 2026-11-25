@@ -18,14 +18,20 @@ const payloadOf = ({
   instances = 1,
   instancesPerNode,
   aggregated,
+  groupedBy,
 }) => {
   const payload = makePayload({ context, title: context, unit: "KiB/s", dimensions })
 
   return {
     ...payload,
-    ...(aggregated && {
-      view: { ...payload.view, dimensions: { ...payload.view.dimensions, aggregated } },
-    }),
+    view: {
+      ...payload.view,
+      dimensions: {
+        ...payload.view.dimensions,
+        ...(aggregated && { aggregated }),
+        ...(groupedBy && { grouped_by: groupedBy }),
+      },
+    },
     summary: {
       ...payload.summary,
       ...(instancesPerNode && {
@@ -100,6 +106,7 @@ describe("Modern scope line sentence", () => {
         nodes: 3,
         instances: 6,
         instancesPerNode: [2, 2, 2],
+        groupedBy: ["node"],
       }),
     })
 
@@ -118,6 +125,7 @@ describe("Modern scope line sentence", () => {
         instances: 6,
         instancesPerNode: [5, 1],
         aggregated: [10, 2],
+        groupedBy: ["node"],
       }),
     })
 
@@ -140,10 +148,56 @@ describe("Modern scope line sentence", () => {
         instances: 8,
         instancesPerNode: [4, 4],
         aggregated: [4, 4, 4, 4],
+        groupedBy: ["dimension", "node"],
       }),
     })
 
     expect(line()).toHaveTextContent(/· each adds up 4 instances$/)
+  })
+
+  it("names the grouping the server applied after a post group by node", async () => {
+    await renderLine({
+      attributes: {
+        contextScope: ["disk.io"],
+        groupBy: ["label"],
+        groupByLabel: ["device"],
+        showPostAggregations: true,
+        postGroupBy: ["node"],
+        aggregationMethod: "sum",
+      },
+      payload: payloadOf({
+        dimensions: ["host1", "host2"].map(id => dimension(id, positive(50))),
+        summaryDimensions: ["reads", "writes"],
+        nodes: 2,
+        instances: 4,
+        instancesPerNode: [2, 2],
+        groupedBy: ["node"],
+      }),
+    })
+
+    expect(line()).toHaveTextContent(/^Per node: host1, host2 · each adds up 2 instances$/)
+  })
+
+  it("counts the instances behind each series even when they match the series count", async () => {
+    await renderLine({
+      attributes: {
+        contextScope: ["disk.io"],
+        groupBy: ["dimension", "label"],
+        groupByLabel: ["device_type"],
+        aggregationMethod: "sum",
+      },
+      payload: payloadOf({
+        dimensions: ["reads,physical", "reads,virtual", "writes,physical", "writes,virtual"].map(
+          id => dimension(id, positive(50))
+        ),
+        summaryDimensions: ["reads", "writes"],
+        instances: 4,
+        aggregated: [2, 2, 2, 2],
+        groupedBy: ["dimension", "label:device_type"],
+      }),
+    })
+
+    expect(line()).toHaveTextContent(/· each adds up 2 instances$/)
   })
 
   it("does not count metrics as instances when a label groups several dimensions", async () => {
@@ -154,6 +208,7 @@ describe("Modern scope line sentence", () => {
         summaryDimensions: ["reads", "writes"],
         instances: 4,
         aggregated: [4, 4],
+        groupedBy: ["label:device_type"],
       }),
     })
 
@@ -174,6 +229,7 @@ describe("Modern scope line sentence", () => {
         nodes: 3,
         instances: 6,
         instancesPerNode: [2, 2, 2],
+        groupedBy: ["node"],
       }),
     })
 
@@ -186,6 +242,7 @@ describe("Modern scope line sentence", () => {
       payload: payloadOf({
         dimensions: ["sda", "sdb", "sdc", "sdd", "sde"].map(id => dimension(id, positive(50))),
         instances: 5,
+        groupedBy: ["label:device"],
       }),
     })
 
@@ -203,6 +260,7 @@ describe("Modern scope line sentence", () => {
       payload: payloadOf({
         dimensions: ["sda", "sdb", "sdc", "sdd", "sde"].map(id => dimension(id, positive(50))),
         instances: 5,
+        groupedBy: ["instance"],
       }),
     })
 
@@ -217,6 +275,7 @@ describe("Modern scope line sentence", () => {
       payload: payloadOf({
         dimensions: ["sda", "sdb"].map(id => dimension(id, positive(50))),
         instances: 2,
+        groupedBy: ["instance"],
       }),
     })
 
@@ -229,6 +288,7 @@ describe("Modern scope line sentence", () => {
       payload: payloadOf({
         dimensions: ["physical", "virtual"].map(id => dimension(id, positive(50))),
         instances: 2,
+        groupedBy: ["label:device_type"],
       }),
     })
 
