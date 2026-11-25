@@ -38,29 +38,18 @@ const ChipSurface = styled(Flex).attrs({
   border: 1px solid color-mix(in srgb, ${getColor("primary")} 45%, transparent);
 `
 
-const HiddenText = styled(Box).attrs({ as: "span" })`
-  flex-shrink: 0;
-  font-size: 12px;
-  line-height: 16px;
-  white-space: nowrap;
-  color: ${getColor("warning")};
-`
-
-const ShowAllButton = styled(Box).attrs({
+const ShowAllButton = styled(TextSmall).attrs({
   as: "button",
-  margin: [0, 0, 0, 1],
-  padding: [0],
+  type: "button",
+  color: "warning",
+  textDecoration: "underline",
   cursor: "pointer",
+  whiteSpace: "nowrap",
+  margin: [0, 0, 0, 1],
 })`
-  flex-shrink: 0;
   border: 0;
   background: transparent;
-  font-family: inherit;
-  font-size: 12px;
-  line-height: 16px;
-  white-space: nowrap;
-  text-decoration: underline;
-  color: ${getColor("warning")};
+  padding: 0;
 `
 
 const Piece = ({ color = "textLite", children, ...rest }) => (
@@ -186,12 +175,11 @@ const Hidden = ({ count, leading }) => {
   const chart = useChart()
 
   return (
-    <>
-      <HiddenText data-testid="chartScope-hidden">
+    <Flex flex={false} alignItems="center">
+      <TextSmall color="warning" whiteSpace="nowrap" data-testid="chartScope-hidden">
         {leading ? `, ${count} hidden,` : `${count} hidden,`}
-      </HiddenText>
+      </TextSmall>
       <ShowAllButton
-        type="button"
         onClick={event => {
           event.stopPropagation()
           showAllDimensions(chart)
@@ -201,7 +189,7 @@ const Hidden = ({ count, leading }) => {
       >
         Show all
       </ShowAllButton>
-    </>
+    </Flex>
   )
 }
 
