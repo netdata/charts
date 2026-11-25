@@ -44,7 +44,7 @@ const buildTree = (h, keys, id) => {
   return h
 }
 
-const splitGroupKeys = (id, depth) => {
+export const splitGroupKeys = (id, depth) => {
   const keys = id.split(",")
   if (!depth || keys.length <= depth) return keys
 

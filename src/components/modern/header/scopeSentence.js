@@ -1,4 +1,5 @@
 import { uppercase } from "@/helpers/objectTransform"
+import { splitGroupKeys } from "@/sdk/makeChart/camelizePayload"
 
 const maxListed = 3
 const previewCount = 2
@@ -127,7 +128,10 @@ export const labelPartsOf = ({ labels, selectedLabels }) => {
   })
 }
 
-const isDimensionGrouping = grouped => !grouped?.length || grouped.every(by => by === "dimension")
+const dimensionGrouping = "dimension"
+
+const isDimensionGrouping = grouped =>
+  !grouped?.length || grouped.every(by => by === dimensionGrouping)
 
 export const isGrouped = grouped => !isDimensionGrouping(grouped)
 
@@ -136,19 +140,115 @@ const groupKeyOf = (by, instanceName) => {
   return instanceGroupings.has(by) ? instanceName : by
 }
 
-export const linesOf = ({ names, grouped, scopeCombines }) => {
-  const listed = listOrCount(names)
-  if (isDimensionGrouping(grouped)) return { ...listed, text: uppercase(listed.text) }
+const nameAsIs = (_, name) => name
 
-  const instanceName = scopeCombines?.nounSingular || "instance"
-  const keys = [...new Set(grouped.map(by => groupKeyOf(by, instanceName)))]
-  const members = names.length <= maxListed ? names.join(", ") : listed.text
+const isBelowZero = (sts, index) => sts?.max?.[index] <= 0 && sts?.min?.[index] < 0
 
-  return { ...listed, text: `Per ${joinList(keys)}: ${members}` }
+const unknownPriority = Infinity
+
+const membersOf = values => [...values.values()].map(({ name }) => name)
+
+const addMember = (values, id, name, index) => {
+  const member = values.get(id)
+  if (member) member.series.push(index)
+  else values.set(id, { name, series: [index] })
 }
 
-export const belowZeroOf = ({ names, sts }) => {
-  const below = names.filter((_, index) => sts?.max?.[index] <= 0 && sts?.min?.[index] < 0)
+const groupsOf = ({ ids, names, grouped, scopeCombines, dimensions, nodeNameOf }) => {
+  const instanceName = scopeCombines?.nounSingular || "instance"
+  const dimensionValues = new Map()
+  const keyValues = new Map()
+
+  ids.forEach((id, index) => {
+    const idParts = splitGroupKeys(id, grouped.length)
+    const nameParts = splitGroupKeys(names[index] ?? id, grouped.length)
+
+    grouped.forEach((by, part) => {
+      const idPart = idParts[part] ?? id
+      const namePart = nameParts[part] ?? idPart
+
+      if (by === dimensionGrouping) return addMember(dimensionValues, idPart, namePart, index)
+
+      const key = groupKeyOf(by, instanceName)
+      if (!keyValues.has(key)) keyValues.set(key, new Map())
+      const name = by === "node" ? nodeNameOf(idPart, namePart) : namePart
+      addMember(keyValues.get(key), idPart, name, index)
+    })
+  })
+
+  const priorityOf = id => dimensions?.[id]?.pri ?? unknownPriority
+  const orderedDimensions = [...dimensionValues].sort(
+    ([left], [right]) => priorityOf(left) - priorityOf(right)
+  )
+
+  return { dimensionValues: orderedDimensions.map(([, member]) => member), keyValues }
+}
+
+const membersText = members =>
+  members.length <= maxListed ? members.join(", ") : listOrCount(members).text
+
+const headingOf = ({ dimensionValues, keyValues }, subjectOf) => {
+  const keys = [...keyValues.keys()]
+  if (!dimensionValues.length && keys.length === 1) return `Per ${keys[0]}: `
+
+  const counts = [...keyValues.values()].map(values => values.size).join(" × ")
+  const per = `per ${joinList(keys)} (${counts}): `
+  if (!dimensionValues.length) return uppercase(per)
+
+  return `${uppercase(subjectOf(dimensionValues.map(({ name }) => name)))} ${per}`
+}
+
+export const linesOf = ({
+  ids,
+  names,
+  grouped,
+  scopeCombines,
+  dimensions,
+  nodeNameOf = nameAsIs,
+}) => {
+  if (isDimensionGrouping(grouped))
+    return {
+      heading: "",
+      members: uppercase(listOrCount(names).text),
+      full: uppercase(joinList(names)),
+    }
+
+  const groups = groupsOf({
+    ids: ids || names,
+    names,
+    grouped,
+    scopeCombines,
+    dimensions,
+    nodeNameOf,
+  })
+  const members = membersOf(groups.keyValues.values().next().value)
+
+  return {
+    heading: headingOf(groups, values => listOrCount(values).text),
+    members: membersText(members),
+    full: `${headingOf(groups, joinList)}${members.join(", ")}`,
+  }
+}
+
+export const belowZeroOf = ({ ids, names, grouped, sts, dimensions }) => {
+  if (isDimensionGrouping(grouped) || grouped.length === 1) {
+    const below = names.filter((_, index) => isBelowZero(sts, index))
+    return below.length ? joinList(below) : null
+  }
+
+  if (!grouped.includes(dimensionGrouping)) return null
+
+  const { dimensionValues } = groupsOf({
+    ids: ids || names,
+    names,
+    grouped,
+    dimensions,
+    nodeNameOf: nameAsIs,
+  })
+  const below = dimensionValues
+    .filter(({ series }) => series.every(index => isBelowZero(sts, index)))
+    .map(({ name }) => name)
+
   return below.length ? joinList(below) : null
 }
 

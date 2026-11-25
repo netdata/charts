@@ -1,19 +1,29 @@
 import { useCallback, useMemo } from "react"
 import styled from "styled-components"
-import { Box, Flex, TextSmall, getColor } from "@netdata/netdata-ui"
+import { Flex, TextSmall, getColor } from "@netdata/netdata-ui"
 import padlockIcon from "@netdata/netdata-ui/dist/components/icon/assets/padlock.svg"
 import xIcon from "@netdata/netdata-ui/dist/components/icon/assets/x.svg"
 import Icon, { Button } from "@/components/icon"
 import Tooltip from "@/components/tooltip"
 import { useAttributeValue, useChart } from "@/components/provider"
 import { radius } from "@/components/modern/tokens"
+import { getNodeDisplayName } from "@/helpers/nodeDisplayName"
 import { showAllDimensions, useHiddenDimensionsCount } from "./hiddenDimensions"
 import { belowZeroOf, combinedOf, dimensionPartsOf, labelPartsOf, linesOf } from "./scopeSentence"
 
 const noValues = []
 const noSummary = {}
+const shrinksFirst = 100
 
-const LinesButton = styled(Box).attrs({ as: "button", type: "button", padding: [0] })`
+const LinesButton = styled(Flex).attrs({
+  as: "button",
+  type: "button",
+  padding: [0],
+  alignItems: "center",
+  flex: { grow: 0, shrink: shrinksFirst },
+  width: { min: "0px" },
+  overflow: "hidden",
+})`
   border: 0;
   background: transparent;
   font: inherit;
@@ -52,11 +62,12 @@ const ShowAllButton = styled(TextSmall).attrs({
   padding: 0;
 `
 
-const Piece = ({ color = "textLite", children, ...rest }) => (
-  <TextSmall color={color} whiteSpace="pre" {...rest}>
-    {children}
-  </TextSmall>
-)
+const Piece = styled(TextSmall).attrs(({ color = "textLite" }) => ({
+  color,
+  whiteSpace: "pre-wrap",
+}))`
+  flex-shrink: 0;
+`
 
 const WithMore = ({ more, children }) =>
   more.length ? (
@@ -226,17 +237,37 @@ const useRemoveFilters = () => {
   )
 }
 
-const LinesPiece = ({ lines, hasFilters, open }) => (
-  <WithMore more={lines.more}>
+const LinesPiece = ({ lines, sentence, hasFilters, open }) => (
+  <Tooltip content={sentence} align="bottom">
     <LinesButton
       disabled={!hasFilters}
       aria-expanded={hasFilters ? open : undefined}
       data-testid="chartScope"
     >
-      <Piece color="text">{lines.text}</Piece>
+      {lines.heading ? (
+        <Piece color="text" data-testid="chartScope-heading">
+          {lines.heading}
+        </Piece>
+      ) : null}
+      <TextSmall color="text" truncate data-testid="chartScope-members">
+        {lines.members}
+      </TextSmall>
     </LinesButton>
-  </WithMore>
+  </Tooltip>
 )
+
+const BelowZero = ({ names }) => (
+  <>
+    <Piece>{" · "}</Piece>
+    <TextSmall color="textLite" truncate data-testid="chartScope-belowZero">
+      <TextSmall color="text">{names}</TextSmall>
+      <TextSmall color="textLite">{" below zero"}</TextSmall>
+    </TextSmall>
+  </>
+)
+
+const sentenceOf = (lines, belowZero) =>
+  belowZero ? `${lines.full} · ${belowZero} below zero` : lines.full
 
 const ScopeSentence = ({ hasFilters, open, onToggle }) => {
   const viewDimensions = useAttributeValue("viewDimensions") || noSummary
@@ -250,8 +281,14 @@ const ScopeSentence = ({ hasFilters, open, onToggle }) => {
   const aggregationMethod = useAttributeValue("aggregationMethod")
   const scopeCombines = useAttributeValue("scopeCombines")
   const lock = useAttributeValue("scopeLock")?.label
+  const nodesById = useAttributeValue("nodesById")
   const hidden = useHiddenDimensionsCount()
   const onRemove = useRemoveFilters()
+  const chart = useChart()
+  const nodeNameOf = useCallback(
+    (nodeId, fallback) => (nodesById ? getNodeDisplayName(chart, nodeId, fallback) : fallback),
+    [chart, nodesById]
+  )
   const names = viewDimensions.names || noValues
   const grouped = viewDimensions.grouped
 
@@ -288,35 +325,54 @@ const ScopeSentence = ({ hasFilters, open, onToggle }) => {
     [dimensions, selectedDimensions, labels, selectedLabels]
   )
 
+  const { lines, belowZero } = useMemo(() => {
+    if (!names.length) return {}
+
+    const series = {
+      ids: viewDimensions.ids,
+      names,
+      grouped,
+      dimensions,
+    }
+    return {
+      lines: linesOf({ ...series, scopeCombines, nodeNameOf }),
+      belowZero: belowZeroOf({ ...series, sts: viewDimensions.sts }),
+    }
+  }, [
+    viewDimensions.ids,
+    viewDimensions.sts,
+    names,
+    grouped,
+    dimensions,
+    scopeCombines,
+    nodeNameOf,
+  ])
+
   if (!names.length) return hidden > 0 ? <Hidden count={hidden} /> : null
 
-  const lines = linesOf({ names, grouped, scopeCombines })
-  const belowZero = belowZeroOf({ names, sts: viewDimensions.sts })
   const inlineParts = combined?.count ? labelParts : noValues
   const trailingParts = combined?.count ? dimensionParts : [...dimensionParts, ...labelParts]
 
   return (
     <Flex
       alignItems="center"
-      flexWrap
       width={{ min: "0px" }}
       cursor={hasFilters ? "pointer" : "default"}
       onClick={hasFilters ? onToggle : undefined}
       data-testid="chartScopeLine"
     >
-      <LinesPiece lines={lines} hasFilters={hasFilters} open={open} />
+      <LinesPiece
+        lines={lines}
+        sentence={sentenceOf(lines, belowZero)}
+        hasFilters={hasFilters}
+        open={open}
+      />
       {combined ? (
         <Combined combined={combined} inlineParts={inlineParts} lock={lock} onRemove={onRemove} />
       ) : (
         <OnLock lock={lock} />
       )}
-      {belowZero ? (
-        <>
-          <Piece>{" · "}</Piece>
-          <Piece color="text">{belowZero}</Piece>
-          <Piece>{" below zero"}</Piece>
-        </>
-      ) : null}
+      {belowZero ? <BelowZero names={belowZero} /> : null}
       {trailingParts.map(({ key, chip, hides, filters }) => (
         <FilterPart
           key={key}

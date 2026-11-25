@@ -1,4 +1,4 @@
-import { act, screen, waitFor } from "@testing-library/react"
+import { act, screen, waitFor, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { renderWithChart, makeTestChart, simulateTranslate } from "@jest/testUtilities"
 import { makePayload, makeWave } from "../../../../fixtures/makeWavePayload"
@@ -44,7 +44,11 @@ const payloadOf = ({
         })),
       }),
       ...(summaryDimensions && {
-        dimensions: summaryDimensions.map(id => ({ id, sts: { min: 0, max: 1, avg: 1, con: 0 } })),
+        dimensions: summaryDimensions.map((id, pri) => ({
+          id,
+          pri,
+          sts: { min: 0, max: 1, avg: 1, con: 0 },
+        })),
       }),
       labels,
     },
@@ -55,6 +59,21 @@ const payloadOf = ({
 const readsAndWrites = [dimension("reads", positive(80)), dimension("writes", negative(40))]
 
 const cpuDimensions = ["user", "system", "nice", "iowait", "irq"]
+
+const groupedSeries = (dimensionIds, members, valuesOf = () => positive(50)) =>
+  dimensionIds.flatMap(dimensionId =>
+    members.map(({ id, name }) => ({
+      id: `${dimensionId},${id}`,
+      name: `${dimensionId},${name}`,
+      values: valuesOf(dimensionId, id),
+    }))
+  )
+
+const nodeMembers = names => names.map((name, index) => ({ id: `node-${index}`, name }))
+
+const sameMembers = names => names.map(name => ({ id: name, name }))
+
+const writesBelowZero = dimensionId => (dimensionId === "writes" ? negative(40) : positive(80))
 
 const renderLine = async ({ attributes = {}, payload, hasFilters = true } = {}) => {
   const { aggregationMethod, ...sdkAttributes } = attributes
@@ -138,11 +157,10 @@ describe("Modern scope line sentence", () => {
         contextScope: ["disk.io"],
         groupBy: ["node", "dimension"],
         aggregationMethod: "sum",
+        nodesById: { "node-0": { name: "db primary" } },
       },
       payload: payloadOf({
-        dimensions: ["web-01 reads", "web-01 writes", "web-02 reads", "web-02 writes"].map(id =>
-          dimension(id, positive(50))
-        ),
+        dimensions: groupedSeries(["reads", "writes"], nodeMembers(["web-01", "web-02"])),
         summaryDimensions: ["reads", "writes"],
         nodes: 2,
         instances: 8,
@@ -152,7 +170,9 @@ describe("Modern scope line sentence", () => {
       }),
     })
 
-    expect(line()).toHaveTextContent(/· each adds up 4 instances$/)
+    expect(line()).toHaveTextContent(
+      /^Reads and writes per node \(2\): db primary, web-02 · each adds up 4 instances$/
+    )
   })
 
   it("names the grouping the server applied after a post group by node", async () => {
@@ -178,6 +198,166 @@ describe("Modern scope line sentence", () => {
     expect(line()).toHaveTextContent(/^Per node: host1, host2 · each adds up 2 instances$/)
   })
 
+  describe("when grouped by dimension and other keys", () => {
+    const nodeNames = Array.from({ length: 24 }, (_, index) => `ip-10-200-${index}-1.ec2.internal`)
+
+    const renderPerNode = valuesOf =>
+      renderLine({
+        attributes: { groupBy: ["dimension", "node"], aggregationMethod: "sum" },
+        payload: payloadOf({
+          dimensions: groupedSeries(["writes", "reads"], nodeMembers(nodeNames), valuesOf),
+          summaryDimensions: ["reads", "writes"],
+          nodes: 24,
+          instances: 24,
+          instancesPerNode: nodeNames.map(() => 1),
+          groupedBy: ["dimension", "node"],
+        }),
+      })
+
+    it("makes the dimensions the subject and names each node once", async () => {
+      await renderPerNode(writesBelowZero)
+
+      expect(line()).toHaveTextContent(
+        /^Reads and writes per node \(24\): ip-10-200-0-1\.ec2\.internal, ip-10-200-1-1\.ec2\.internal and 22 more · writes below zero$/
+      )
+    })
+
+    it("offers the whole sentence with every node on hover", async () => {
+      const { user } = await renderPerNode(writesBelowZero)
+
+      await user.hover(screen.getByTestId("chartScope"))
+
+      expect(
+        await screen.findByText(
+          `Reads and writes per node (24): ${nodeNames.join(", ")} · writes below zero`
+        )
+      ).toBeInTheDocument()
+    })
+
+    it("does not call a dimension below zero when one of its series is not", async () => {
+      await renderPerNode((dimensionId, nodeId) =>
+        dimensionId === "writes" && nodeId !== "node-3" ? negative(40) : positive(80)
+      )
+
+      expect(line()).not.toHaveTextContent(/below zero/)
+    })
+
+    it("keeps the line on one row and lets only the node list give way", async () => {
+      await renderPerNode(writesBelowZero)
+
+      expect(getComputedStyle(line()).flexWrap).not.toBe("wrap")
+      expect(getComputedStyle(screen.getByTestId("chartScope-members"))).toMatchObject({
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+      })
+      expect(getComputedStyle(screen.getByTestId("chartScope")).minWidth).toBe("0px")
+      expect(getComputedStyle(screen.getByTestId("chartScope-heading")).overflow).not.toBe("hidden")
+      expect(getComputedStyle(screen.getByTestId("chartScope-belowZero")).textOverflow).toBe(
+        "ellipsis"
+      )
+      expect(Number(getComputedStyle(screen.getByTestId("chartScope")).flexShrink)).toBeGreaterThan(
+        Number(getComputedStyle(screen.getByTestId("chartScope-belowZero")).flexShrink)
+      )
+    })
+
+    it("keeps the spaces around each separator", async () => {
+      await renderPerNode(writesBelowZero)
+
+      const separator = within(line()).getByText("·")
+      expect(separator.textContent).toBe(" · ")
+      expect(getComputedStyle(separator).whiteSpace).toBe("pre-wrap")
+    })
+
+    it("names the label values once when grouped by dimension and a label", async () => {
+      await renderLine({
+        attributes: { groupBy: ["dimension", "label"], groupByLabel: ["device"] },
+        payload: payloadOf({
+          dimensions: groupedSeries(
+            ["reads", "writes"],
+            sameMembers(["sda", "sdb", "sdc", "sdd", "sde", "sdf"])
+          ),
+          summaryDimensions: ["reads", "writes"],
+          instances: 6,
+          groupedBy: ["dimension", "label:device"],
+        }),
+      })
+
+      expect(line()).toHaveTextContent(/^Reads and writes per device \(6\): sda, sdb and 4 more$/)
+    })
+
+    it("names the consumer's singular noun when grouped by dimension and instance", async () => {
+      await renderLine({
+        attributes: {
+          groupBy: ["dimension", "instance"],
+          scopeCombines: { noun: "disks", nounSingular: "disk" },
+        },
+        payload: payloadOf({
+          dimensions: groupedSeries(
+            ["reads", "writes"],
+            [
+              { id: "sda@node-0", name: "sda@web-01" },
+              { id: "sdb@node-0", name: "sdb@web-01" },
+            ],
+            writesBelowZero
+          ),
+          summaryDimensions: ["reads", "writes"],
+          instances: 2,
+          groupedBy: ["dimension", "instance"],
+        }),
+      })
+
+      expect(line()).toHaveTextContent(
+        /^Reads and writes per disk \(2\): sda@web-01, sdb@web-01 · writes below zero$/
+      )
+    })
+  })
+
+  describe("when grouped by several keys without the dimension", () => {
+    it("counts each key and names the nodes once when grouped by node and a label", async () => {
+      await renderLine({
+        attributes: { groupBy: ["node", "label"], groupByLabel: ["device_type"] },
+        payload: payloadOf({
+          dimensions: ["physical", "virtual"].flatMap(type =>
+            ["web-01", "web-02"].map((name, index) => ({
+              id: `node-${index},${type}`,
+              name: `${name},${type}`,
+              values: negative(40),
+            }))
+          ),
+          summaryDimensions: ["reads", "writes"],
+          nodes: 2,
+          instances: 4,
+          groupedBy: ["node", "label:device_type"],
+        }),
+      })
+
+      expect(line()).toHaveTextContent(/^Per node and device_type \(2 × 2\): web-01, web-02$/)
+    })
+
+    it("counts each key and names the first key's values once when grouped by two labels", async () => {
+      await renderLine({
+        attributes: { groupBy: ["label"], groupByLabel: ["device", "device_type"] },
+        payload: payloadOf({
+          dimensions: [
+            ["sda", "physical"],
+            ["sdb", "physical"],
+            ["sdc", "virtual"],
+            ["sdd", "virtual"],
+            ["sda", "virtual"],
+          ].map(([device, type]) => dimension(`${device},${type}`, positive(50))),
+          summaryDimensions: ["reads", "writes"],
+          instances: 5,
+          groupedBy: ["label:device", "label:device_type"],
+        }),
+      })
+
+      expect(line()).toHaveTextContent(
+        /^Per device and device_type \(4 × 2\): sda, sdb and 2 more$/
+      )
+    })
+  })
+
   it("counts the instances behind each series even when they match the series count", async () => {
     await renderLine({
       attributes: {
@@ -197,7 +377,9 @@ describe("Modern scope line sentence", () => {
       }),
     })
 
-    expect(line()).toHaveTextContent(/· each adds up 2 instances$/)
+    expect(line()).toHaveTextContent(
+      /^Reads and writes per device_type \(2\): physical, virtual · each adds up 2 instances$/
+    )
   })
 
   it("does not count metrics as instances when a label groups several dimensions", async () => {
@@ -236,7 +418,7 @@ describe("Modern scope line sentence", () => {
     expect(line()).toHaveTextContent(/^Per node: web-01, web-02, web-03 · each averages 2 disks$/)
   })
 
-  it("names the first two values of a label and offers the rest on hover", async () => {
+  it("names the first two values of a label and offers them all on hover", async () => {
     const { user } = await renderLine({
       attributes: { groupBy: ["label"], groupByLabel: ["device"] },
       payload: payloadOf({
@@ -248,7 +430,7 @@ describe("Modern scope line sentence", () => {
 
     expect(line()).toHaveTextContent(/^Per device: sda, sdb and 3 more$/)
     await user.hover(screen.getByTestId("chartScope"))
-    expect(await screen.findByText("sdc, sdd, sde")).toBeInTheDocument()
+    expect(await screen.findByText("Per device: sda, sdb, sdc, sdd, sde")).toBeInTheDocument()
   })
 
   it("names the consumer's singular noun when grouped by instance", async () => {
@@ -266,7 +448,7 @@ describe("Modern scope line sentence", () => {
 
     expect(line()).toHaveTextContent(/^Per disk: sda, sdb and 3 more$/)
     await user.hover(screen.getByTestId("chartScope"))
-    expect(await screen.findByText("sdc, sdd, sde")).toBeInTheDocument()
+    expect(await screen.findByText("Per disk: sda, sdb, sdc, sdd, sde")).toBeInTheDocument()
   })
 
   it("falls back to instance when grouped by instance without a noun", async () => {
@@ -309,7 +491,7 @@ describe("Modern scope line sentence", () => {
     expect(line()).toHaveTextContent(/^User and system of 3 nodes, averaged$/)
   })
 
-  it("names the first two dimensions and offers the rest on hover when there are four or more", async () => {
+  it("names the first two dimensions and offers them all on hover when there are four or more", async () => {
     const { user } = await renderLine({
       payload: payloadOf({
         context: "system.cpu",
@@ -319,7 +501,7 @@ describe("Modern scope line sentence", () => {
 
     expect(line()).toHaveTextContent(/^User, system and 3 more$/)
     await user.hover(screen.getByTestId("chartScope"))
-    expect(await screen.findByText("nice, iowait, irq")).toBeInTheDocument()
+    expect(await screen.findByText("User, system, nice, iowait and irq")).toBeInTheDocument()
   })
 
   it("uses the chart's noun and lock, with a label filter inside the combined phrase", async () => {
