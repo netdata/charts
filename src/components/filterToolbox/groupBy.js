@@ -2,9 +2,8 @@ import { useCallback, useMemo, memo } from "react"
 import { useChart, useAttribute, useAttributeValue } from "@/components/provider"
 import { TextBig } from "@netdata/netdata-ui"
 import useInstanceLabels from "@/components/instanceIdentity/useInstanceLabels"
-import useInstanceIdentities from "@/components/instanceIdentity/useInstanceIdentities"
 import DropdownTable from "./dropdownTable"
-import { getStats } from "./utils"
+import useGroupByOptions from "./useGroupByOptions"
 import {
   labelColumn,
   uniqueColumn,
@@ -77,63 +76,10 @@ const GroupBy = ({
 
   let label = "everything"
 
-  const getIdentityProps = useInstanceIdentities()
   const loadInstanceLabels = useInstanceLabels()
   const defaultItems = useDefaultItems(chart, { groupByKey, contextScope, showPostAggregations })
 
-  const getOptions = useCallback(() => {
-    const attributes = chart.getAttributes()
-    const instanceKeys = new Map(
-      Object.entries(attributes.instances || {}).map(([key, instance]) => [instance, key])
-    )
-    const childProps = { unique: "-", disabled: "hidden" }
-    const instanceChildProps = {
-      ...childProps,
-      getProps: instance => getIdentityProps(instanceKeys.get(instance)),
-    }
-
-    const defaultOptions = defaultItems.map(item => {
-      const selected = groupBy.includes(item.id)
-
-      return getStats(chart, item, {
-        key: "group-by",
-        childrenKey: "label",
-        props: {
-          contribution: "-",
-          anomalyRate: "-",
-          alerts: "-",
-          min: "-",
-          avg: "-",
-          max: "-",
-          selected,
-          expandKey: item.expandKey,
-        },
-        childProps: item.key === "instances" ? instanceChildProps : childProps,
-        ...(item.key && { children: Object.values(attributes[item.key]) }),
-      })
-    })
-
-    return [
-      ...defaultOptions,
-      ...Object.keys(attributes.labels).map(id =>
-        getStats(chart, attributes.labels[id], {
-          key: "group-by",
-          childrenKey: "label",
-          props: {
-            getLabel: obj => `label: ${obj.nm || id || obj.id}`,
-            isLabel: true,
-            selected: groupByLabel.includes(id),
-          },
-          childProps: {
-            unique: "-",
-            disabled: "hidden",
-            rowTarget: { kind: "label", labelKey: id },
-          },
-          children: attributes.labels[id].vl,
-        })
-      ),
-    ]
-  }, [groupBy, groupByLabel, getIdentityProps])
+  const getOptions = useGroupByOptions(chart, { defaultItems, groupBy, groupByLabel })
 
   label = useMemo(() => {
     const withoutNodes = groupBy.filter(v => v !== "node")

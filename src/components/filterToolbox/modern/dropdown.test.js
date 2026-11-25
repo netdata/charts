@@ -8,6 +8,7 @@ import Dimensions from "../dimensions"
 import Labels from "../labels"
 import Instances from "../instances"
 import GroupBy from "../groupBy"
+import PostGroupBy from "../postGroupBy"
 import Aggregate from "../aggregate"
 import TimeAggregation from "../timeAggregation"
 import ModernItem from "./item"
@@ -389,6 +390,13 @@ describe("filter dropdowns, row action", () => {
 
   it("describes a group by label value row by its label key", async () => {
     await openDropdown(GroupBy, { ...withAction, groupByExpanded: { 3: true } })
+
+    const texts = screen.getAllByTestId("row-action").map(node => node.textContent)
+    expect(texts).toContain("label|_collect_plugin|proc.plugin")
+  })
+
+  it("describes a post group by label value row by its label key", async () => {
+    await openDropdown(PostGroupBy, { ...withAction, groupByExpanded: { 5: true } })
 
     const texts = screen.getAllByTestId("row-action").map(node => node.textContent)
     expect(texts).toContain("label|_collect_plugin|proc.plugin")
