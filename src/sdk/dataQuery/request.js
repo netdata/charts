@@ -21,11 +21,20 @@ const selectedValues = values => (Array.isArray(values) && values.length ? value
 
 const scopedContexts = values => (Array.isArray(values) && values.length ? values : wildcardArray)
 
-const scopedLabels = values =>
+export const scopedLabels = values =>
   Array.isArray(values) && values.length ? { labels: values } : {}
 
-const scopedDimensions = values =>
+export const scopedDimensions = values =>
   Array.isArray(values) && values.length ? { dimensions: values } : {}
+
+export const agentScopeParams = ({ dimensionsScope, labelsScope }) => ({
+  ...(Array.isArray(dimensionsScope) && dimensionsScope.length
+    ? { scope_dimensions: dimensionsScope.join("|") }
+    : {}),
+  ...(Array.isArray(labelsScope) && labelsScope.length
+    ? { scope_labels: labelsScope.join("|") }
+    : {}),
+})
 
 const getTimeGroupOptions = attributes =>
   attributes.timeGroupOptions ?? attributes.time_group_options
@@ -161,12 +170,7 @@ export const buildAgentDataPayload = attributes => {
     contexts: (Array.isArray(contexts) ? contexts.join("|") : "") || context || wildcard,
     scope_contexts: (Array.isArray(contextScope) ? contextScope.join("|") : "") || wildcard,
     scope_nodes: (Array.isArray(nodesScope) ? nodesScope.join("|") : "") || wildcard,
-    ...(Array.isArray(dimensionsScope) && dimensionsScope.length
-      ? { scope_dimensions: dimensionsScope.join("|") }
-      : {}),
-    ...(Array.isArray(labelsScope) && labelsScope.length
-      ? { scope_labels: labelsScope.join("|") }
-      : {}),
+    ...agentScopeParams({ dimensionsScope, labelsScope }),
     nodes: (Array.isArray(selectedNodes) ? selectedNodes.join("|") : "") || wildcard,
     instances: (Array.isArray(selectedInstances) ? selectedInstances.join("|") : "") || wildcard,
     dimensions: (Array.isArray(selectedDimensions) ? selectedDimensions.join("|") : "") || wildcard,
