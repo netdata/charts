@@ -111,6 +111,38 @@ describe("camelizePayload", () => {
     expect(() => camelizePayload(payload)).not.toThrow()
   })
 
+  it("keeps a grouped value containing a comma as one tree key", () => {
+    const payload = {
+      view: { dimensions: { grouped_by: ["label:mount_point"] } },
+      result: {
+        data: [[1000, 1, 2]],
+        labels: ["time", "/data", "/data,archive"],
+        point: { value: 0 },
+      },
+    }
+
+    expect(camelizePayload(payload).result.tree).toEqual({
+      "/data": "/data",
+      "/data,archive": "/data,archive",
+    })
+  })
+
+  it("nests the tree by each grouped level", () => {
+    const payload = {
+      view: { dimensions: { grouped_by: ["dimension", "node"] } },
+      result: {
+        data: [[1000, 1, 2, 3]],
+        labels: ["time", "user,n1", "user,n2", "system,n1"],
+        point: { value: 0 },
+      },
+    }
+
+    expect(camelizePayload(payload).result.tree).toEqual({
+      user: { n1: "user,n1", n2: "user,n2" },
+      system: { n1: "system,n1" },
+    })
+  })
+
   it("processes chart metadata", () => {
     const payload = {
       view: {

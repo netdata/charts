@@ -44,7 +44,14 @@ const buildTree = (h, keys, id) => {
   return h
 }
 
-const transformResult = result => {
+const splitGroupKeys = (id, depth) => {
+  const keys = id.split(",")
+  if (!depth || keys.length <= depth) return keys
+
+  return [...keys.slice(0, depth - 1), keys.slice(depth - 1).join(",")]
+}
+
+const transformResult = (result, groupedBy) => {
   const all = result.data
   const byDimension = {}
   const statsByIndex = new Array(result.labels.length)
@@ -55,9 +62,7 @@ const transformResult = result => {
   const tree = result.labels.reduce((h, id, i) => {
     if (i === 0) return h
 
-    const keys = id.split(",")
-
-    return buildTree(h, keys, id)
+    return buildTree(h, splitGroupKeys(id, groupedBy?.length), id)
   }, {})
 
   return {
@@ -274,7 +279,7 @@ export default (payload, chart) => {
   return {
     ...rest,
     ...details,
-    result: transformResult(result),
+    result: transformResult(result, grouped),
     updateEvery,
     viewUpdateEvery,
     firstEntry,
