@@ -147,7 +147,7 @@ describe("Modern header", () => {
     ])
 
     expect(screen.getByTestId("chartScopeLine")).toHaveTextContent(
-      /^Load1, load5 and load15, one line each$/
+      /^Load1, load5 and load15$/
     )
   })
 

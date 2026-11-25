@@ -127,9 +127,14 @@ const FilterChip = ({ chip, filters, testId, onRemove }) => {
   )
 }
 
-const Combined = ({ combined, leading, inlineParts, lock, onRemove }) => (
+const Combined = ({ combined, inlineParts, lock, onRemove }) => (
   <>
-    <Piece>{combined.count ? `${leading} of ` : `${leading} of all `}</Piece>
+    {combined.grouped ? (
+      <Piece>{` · each ${combined.verb} `}</Piece>
+    ) : (
+      <Piece>{combined.count ? " of " : " of all "}</Piece>
+    )}
+    {combined.quantity ? <Piece>{`${combined.quantity} `}</Piece> : null}
     {combined.count ? <Piece color="text">{`${combined.count}`}</Piece> : null}
     {inlineParts.map(({ key, inline, filters }) => (
       <Flex key={key} flex={false} alignItems="center">
@@ -145,8 +150,12 @@ const Combined = ({ combined, leading, inlineParts, lock, onRemove }) => (
     {combined.count ? <Piece> </Piece> : null}
     <Piece>{combined.noun}</Piece>
     <OnLock lock={lock} />
-    <Piece>{", "}</Piece>
-    <Piece>{combined.verb}</Piece>
+    {combined.grouped ? null : (
+      <>
+        <Piece>{", "}</Piece>
+        <Piece>{combined.verb}</Piece>
+      </>
+    )}
   </>
 )
 
@@ -280,7 +289,7 @@ const ScopeSentence = ({ hasFilters, open, onToggle }) => {
 
   if (!names.length) return hidden > 0 ? <Hidden count={hidden} /> : null
 
-  const lines = linesOf({ names, groupBy, groupByLabel })
+  const lines = linesOf({ names, groupBy, groupByLabel, scopeCombines })
   const belowZero = belowZeroOf({ names, sts: viewDimensions.sts })
   const inlineParts = combined?.count ? labelParts : noValues
   const trailingParts = combined?.count ? dimensionParts : [...dimensionParts, ...labelParts]
@@ -295,25 +304,10 @@ const ScopeSentence = ({ hasFilters, open, onToggle }) => {
       data-testid="chartScopeLine"
     >
       <LinesPiece lines={lines} hasFilters={hasFilters} open={open} />
-      {lines.perGroup ? (
-        <>
-          <Piece>{", one line per "}</Piece>
-          <Piece color="text">{lines.perGroup}</Piece>
-        </>
-      ) : null}
       {combined ? (
-        <Combined
-          combined={combined}
-          leading={lines.perGroup ? "," : ""}
-          inlineParts={inlineParts}
-          lock={lock}
-          onRemove={onRemove}
-        />
+        <Combined combined={combined} inlineParts={inlineParts} lock={lock} onRemove={onRemove} />
       ) : (
-        <>
-          <OnLock lock={lock} />
-          {!lines.perGroup && names.length > 1 ? <Piece>{", one line each"}</Piece> : null}
-        </>
+        <OnLock lock={lock} />
       )}
       {belowZero ? (
         <>

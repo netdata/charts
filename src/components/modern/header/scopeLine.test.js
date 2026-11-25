@@ -51,18 +51,22 @@ const renderLine = async ({ attributes = {}, payload, hasFilters = true } = {}) 
   return { ...result, chart, sdk }
 }
 
-const line = () => screen.getByTestId("chartScopeLine")
+const line = () => {
+  const element = screen.getByTestId("chartScopeLine")
+  expect(element.textContent).not.toMatch(/\bline/i)
+  return element
+}
 
 describe("Modern scope line sentence", () => {
-  it("says what the lines are, one line each, with no lock and no query summary", async () => {
+  it("says what the chart shows, with no lock and no query summary", async () => {
     await renderLine()
 
-    expect(line()).toHaveTextContent(/^Load1, load5 and load15, one line each$/)
+    expect(line()).toHaveTextContent(/^Load1, load5 and load15$/)
     expect(screen.queryByTestId("chartScopeLine-lock")).not.toBeInTheDocument()
     expect(screen.queryByText(/Group by/)).not.toBeInTheDocument()
   })
 
-  it("says how many instances each dimension line adds up and which stays below zero", async () => {
+  it("says how many instances the dimensions add up and which stays below zero", async () => {
     await renderLine({
       attributes: { contextScope: ["disk.io"], groupBy: ["dimension"], aggregationMethod: "sum" },
       payload: payloadOf({ dimensions: readsAndWrites, nodes: 3, instances: 6 }),
@@ -73,7 +77,7 @@ describe("Modern scope line sentence", () => {
     )
   })
 
-  it("says one line per node when grouped by node", async () => {
+  it("names the nodes and how many instances each adds up when grouped by node", async () => {
     await renderLine({
       attributes: { contextScope: ["disk.io"], groupBy: ["node"], aggregationMethod: "sum" },
       payload: payloadOf({
@@ -84,12 +88,70 @@ describe("Modern scope line sentence", () => {
       }),
     })
 
-    expect(line()).toHaveTextContent(
-      /^web-01, web-02 and web-03, one line per node, of 6 instances, added up$/
-    )
+    expect(line()).toHaveTextContent(/^Per node: web-01, web-02, web-03 · each adds up 2 instances$/)
   })
 
-  it("says one line per label key when grouped by a label", async () => {
+  it("uses the chart's noun and the aggregation verb for each grouped member", async () => {
+    await renderLine({
+      attributes: {
+        groupBy: ["node"],
+        aggregationMethod: "avg",
+        scopeCombines: { noun: "disks" },
+      },
+      payload: payloadOf({
+        dimensions: ["web-01", "web-02", "web-03"].map(id => dimension(id, positive(50))),
+        nodes: 3,
+        instances: 6,
+      }),
+    })
+
+    expect(line()).toHaveTextContent(/^Per node: web-01, web-02, web-03 · each averages 2 disks$/)
+  })
+
+  it("names the first two values of a label and offers the rest on hover", async () => {
+    const { user } = await renderLine({
+      attributes: { groupBy: ["label"], groupByLabel: ["device"] },
+      payload: payloadOf({
+        dimensions: ["sda", "sdb", "sdc", "sdd", "sde"].map(id => dimension(id, positive(50))),
+        instances: 5,
+      }),
+    })
+
+    expect(line()).toHaveTextContent(/^Per device: sda, sdb and 3 more$/)
+    await user.hover(screen.getByTestId("chartScope"))
+    expect(await screen.findByText("sdc, sdd, sde")).toBeInTheDocument()
+  })
+
+  it("names the consumer's singular noun when grouped by instance", async () => {
+    const { user } = await renderLine({
+      attributes: {
+        groupBy: ["instance"],
+        scopeCombines: { noun: "disks", nounSingular: "disk" },
+      },
+      payload: payloadOf({
+        dimensions: ["sda", "sdb", "sdc", "sdd", "sde"].map(id => dimension(id, positive(50))),
+        instances: 5,
+      }),
+    })
+
+    expect(line()).toHaveTextContent(/^Per disk: sda, sdb and 3 more$/)
+    await user.hover(screen.getByTestId("chartScope"))
+    expect(await screen.findByText("sdc, sdd, sde")).toBeInTheDocument()
+  })
+
+  it("falls back to instance when grouped by instance without a noun", async () => {
+    await renderLine({
+      attributes: { groupBy: ["instance"] },
+      payload: payloadOf({
+        dimensions: ["sda", "sdb"].map(id => dimension(id, positive(50))),
+        instances: 2,
+      }),
+    })
+
+    expect(line()).toHaveTextContent(/^Per instance: sda, sdb$/)
+  })
+
+  it("names the label key when grouped by a label", async () => {
     await renderLine({
       attributes: { groupBy: ["label"], groupByLabel: ["device_type"] },
       payload: payloadOf({
@@ -98,7 +160,7 @@ describe("Modern scope line sentence", () => {
       }),
     })
 
-    expect(line()).toHaveTextContent(/^physical and virtual, one line per device_type$/)
+    expect(line()).toHaveTextContent(/^Per device_type: physical, virtual$/)
   })
 
   it("counts nodes when every node has one instance", async () => {
@@ -115,7 +177,7 @@ describe("Modern scope line sentence", () => {
     expect(line()).toHaveTextContent(/^User and system of 3 nodes, averaged$/)
   })
 
-  it("names the first two lines and offers the rest on hover when there are four or more", async () => {
+  it("names the first two dimensions and offers the rest on hover when there are four or more", async () => {
     const { user } = await renderLine({
       payload: payloadOf({
         context: "system.cpu",
@@ -123,7 +185,7 @@ describe("Modern scope line sentence", () => {
       }),
     })
 
-    expect(line()).toHaveTextContent(/^User, system and 3 more, one line each$/)
+    expect(line()).toHaveTextContent(/^User, system and 3 more$/)
     await user.hover(screen.getByTestId("chartScope"))
     expect(await screen.findByText("nice, iowait, irq")).toBeInTheDocument()
   })
@@ -153,10 +215,10 @@ describe("Modern scope line sentence", () => {
     ).toBeInTheDocument()
   })
 
-  it("shows the lock on a chart whose lines are not combined", async () => {
+  it("shows the lock on a chart whose dimensions are not combined", async () => {
     await renderLine({ attributes: { scopeLock: { label: "sda" } } })
 
-    expect(line()).toHaveTextContent(/^Load1, load5 and load15 on sda, one line each$/)
+    expect(line()).toHaveTextContent(/^Load1, load5 and load15 on sda$/)
   })
 
   it("says an upstream group adds up all its members, without a count", async () => {
@@ -226,7 +288,7 @@ describe("Modern scope line sentence", () => {
       await labelled()
 
       expect(line()).toHaveTextContent(
-        /^Reads and writes, one line each · writes below zero · device_type: only physical hides virtual · mount_point: only \/ hides \/boot$/
+        /^Reads and writes · writes below zero · device_type: only physical hides virtual · mount_point: only \/ hides \/boot$/
       )
     })
 
@@ -264,7 +326,7 @@ describe("Modern scope line sentence", () => {
   it("opens the filters from the sentence", async () => {
     const { user, chart } = await renderLine()
 
-    await user.click(screen.getByText("one line each", { exact: false }))
+    await user.click(screen.getByTestId("chartScope"))
 
     expect(chart.getAttribute("filtersOpen")).toBe(true)
   })
@@ -277,6 +339,6 @@ describe("Modern scope line sentence", () => {
     simulateTranslate(container)
     act(() => chart.updateAttributes({ selectedDimensions: [], scopeLock: null }))
 
-    await waitFor(() => expect(line()).toHaveTextContent(/one line each$/))
+    await waitFor(() => expect(line()).toHaveTextContent(/^Load1, load5 and load15$/))
   })
 })

@@ -12,6 +12,14 @@ const combinedVerbs = {
   percentage: "as a share of the total",
 }
 
+const eachVerbs = {
+  sum: "adds up",
+  avg: "averages",
+  min: "takes the lowest of",
+  max: "takes the highest of",
+  percentage: "shows its share of",
+}
+
 const groupKeysOf = {
   label: groupByLabel => groupByLabel,
   "percentage-of-instance": () => ["instance"],
@@ -115,15 +123,24 @@ export const labelPartsOf = ({ labels, selectedLabels }) =>
 
 const isDimensionGrouping = groupBy => !groupBy?.length || groupBy.every(by => by === "dimension")
 
-export const linesOf = ({ names, groupBy, groupByLabel = noValues }) => {
+export const isGrouped = groupBy => !isDimensionGrouping(groupBy)
+
+export const linesOf = ({ names, groupBy, groupByLabel = noValues, scopeCombines }) => {
   const listed = listOrCount(names)
   if (isDimensionGrouping(groupBy)) return { ...listed, text: capitaliseFirst(listed.text) }
 
+  const instanceName = scopeCombines?.nounSingular || "instance"
   const keys = [
-    ...new Set(groupBy.flatMap(by => groupKeysOf[by]?.(groupByLabel) || [by]).filter(Boolean)),
+    ...new Set(
+      groupBy
+        .flatMap(by => groupKeysOf[by]?.(groupByLabel) || [by])
+        .filter(Boolean)
+        .map(key => (key === "instance" ? instanceName : key))
+    ),
   ]
+  const members = names.length <= maxListed ? names.join(", ") : listed.text
 
-  return { ...listed, perGroup: joinList(keys) }
+  return { ...listed, text: `Per ${joinList(keys)}: ${members}` }
 }
 
 export const belowZeroOf = ({ names, sts }) => {
@@ -144,15 +161,23 @@ export const combinedOf = ({
   nodesTotals,
   scopeCombines,
 }) => {
-  if (scopeCombines?.upstream) return { noun: scopeCombines.noun, verb: combinedVerbs.sum }
+  const grouped = isGrouped(groupBy)
+
+  if (scopeCombines?.upstream)
+    return grouped
+      ? { noun: scopeCombines.noun, grouped, quantity: "all", verb: eachVerbs.sum }
+      : { noun: scopeCombines.noun, verb: combinedVerbs.sum }
 
   const count = instancesTotals?.qr
-  const linesFed = isDimensionGrouping(groupBy) ? 1 : names.length
-  if (!(count > linesFed) || groupBy?.includes("instance")) return null
+  const seriesFed = grouped ? names.length : 1
+  if (!(count > seriesFed) || groupBy?.includes("instance")) return null
 
-  return {
-    noun: nounOf({ count, nodesTotals, scopeCombines }),
-    count,
-    verb: combinedVerbs[aggregationMethod] || "combined",
-  }
+  const noun = nounOf({ count, nodesTotals, scopeCombines })
+
+  if (!grouped) return { noun, count, verb: combinedVerbs[aggregationMethod] || "combined" }
+
+  const verb = eachVerbs[aggregationMethod] || "combines"
+  return count % seriesFed
+    ? { noun, grouped, quantity: "its", verb }
+    : { noun, grouped, count: count / seriesFed, verb }
 }
