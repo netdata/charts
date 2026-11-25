@@ -97,6 +97,21 @@ describe("API helpers", () => {
       expect(result).toContain("group-by-labels")
     })
 
+    it("requests group-by-labels once when display labels are configured", () => {
+      const display = { groupByLabelDisplay: { interface: ["if_alias"] } }
+      const { chart: table } = makeTestChart({ attributes: { chartLibrary: "table", ...display } })
+      const { chart: boxes } = makeTestChart({
+        attributes: { chartLibrary: "groupBoxes", ...display },
+      })
+      const { chart: plain } = makeTestChart({ attributes: { chartLibrary: "table" } })
+
+      expect(getChartURLOptions(table)).toContain("group-by-labels")
+      expect(getChartURLOptions(boxes).filter(option => option === "group-by-labels")).toHaveLength(
+        1
+      )
+      expect(getChartURLOptions(plain)).not.toContain("group-by-labels")
+    })
+
     it("uses default options when attributes are not specified", () => {
       const { chart } = makeTestChart({
         attributes: {
