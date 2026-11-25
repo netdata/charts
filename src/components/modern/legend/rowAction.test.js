@@ -13,10 +13,21 @@ const RowAction = ({ row }) => (
   </button>
 )
 
-const renderLine = async attributes => {
+const groupedPayload = groupedBy =>
+  groupedBy
+    ? {
+        ...systemLoadLine[0],
+        view: {
+          ...systemLoadLine[0].view,
+          dimensions: { ...systemLoadLine[0].view.dimensions, grouped_by: groupedBy },
+        },
+      }
+    : systemLoadLine[0]
+
+const renderLine = async ({ groupedBy, ...attributes }) => {
   const { chart } = makeTestChart({ attributes: { designFlavour: "modern", ...attributes } })
   await act(async () => {
-    chart.doneFetch(systemLoadLine[0])
+    chart.doneFetch(groupedPayload(groupedBy))
     await tick()
   })
   renderWithChart(<Line />, { chart })
@@ -31,6 +42,7 @@ describe("rowAction on legend rows", () => {
       rowAction: RowAction,
       groupBy: ["label"],
       groupByLabel: ["device"],
+      groupedBy: ["label:device"],
     })
 
     const actions = screen.getAllByTestId("row-action")
@@ -42,10 +54,52 @@ describe("rowAction on legend rows", () => {
     [["instance"], "instance"],
     [["node"], "node"],
     [["dimension"], "dimension"],
-  ])("describes %j rows as %s", async (groupBy, kind) => {
-    await renderLine({ legendLayout: "table", rowAction: RowAction, groupBy })
+  ])("describes %j rows as %s", async (groupedBy, kind) => {
+    await renderLine({ legendLayout: "table", rowAction: RowAction, groupBy: groupedBy, groupedBy })
 
     expect(screen.getAllByTestId("row-action")[0].textContent.startsWith(`${kind}|`)).toBe(true)
+  })
+
+  it("describes the rows by the grouping the server applied, not the one requested", async () => {
+    await renderLine({
+      legendLayout: "table",
+      rowAction: RowAction,
+      groupBy: ["label"],
+      groupByLabel: ["device"],
+      groupedBy: ["node"],
+    })
+
+    expect(screen.getAllByTestId("row-action")[0]).toHaveTextContent(/^node\|/)
+  })
+
+  it.each([
+    ["several label keys", ["label:device", "label:mount"]],
+    ["a label and the node", ["label:device", "node"]],
+    ["the selected series", ["selected"]],
+  ])("offers no action when rows are grouped by %s", async (_, groupedBy) => {
+    await renderLine({
+      legendLayout: "table",
+      rowAction: RowAction,
+      groupBy: ["label"],
+      groupByLabel: ["device"],
+      groupedBy,
+    })
+
+    expect(screen.queryByTestId("row-action")).not.toBeInTheDocument()
+  })
+
+  it("offers no action when the rows are aggregated again after grouping", async () => {
+    await renderLine({
+      legendLayout: "table",
+      rowAction: RowAction,
+      groupBy: ["label"],
+      groupByLabel: ["device"],
+      groupedBy: ["label:device"],
+      showPostAggregations: true,
+      postGroupBy: ["node"],
+    })
+
+    expect(screen.queryByTestId("row-action")).not.toBeInTheDocument()
   })
 
   it("does not toggle the dimension when the action is clicked", async () => {

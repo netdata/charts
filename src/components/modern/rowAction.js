@@ -21,15 +21,26 @@ const Slot = styled(Flex).attrs({
   vertical-align: middle;
 `
 
+const labelGroupPrefix = "label:"
+
+const targetsByGroup = {
+  dimension: { kind: "dimension" },
+  instance: { kind: "instance" },
+  node: { kind: "node" },
+}
+
+const isPostAggregated = chart =>
+  !!chart.getAttribute("showPostAggregations") && !!chart.getAttribute("postGroupBy")?.length
+
 export const getLegendRowTarget = chart => {
-  const groupBy = chart.getAttribute("groupBy") || []
-  if (groupBy.length !== 1) return { kind: "dimension" }
+  const groups = chart.getDimensionGroups()
+  if (groups.length !== 1 || isPostAggregated(chart)) return null
 
-  const [only] = groupBy
-  if (only === "label") return { kind: "label", labelKey: chart.getAttribute("groupByLabel")?.[0] }
-  if (only === "instance" || only === "node") return { kind: only }
+  const [only] = groups
+  if (only.startsWith(labelGroupPrefix))
+    return { kind: "label", labelKey: only.slice(labelGroupPrefix.length) }
 
-  return { kind: "dimension" }
+  return targetsByGroup[only] || null
 }
 
 const RowAction = ({ row }) => {
@@ -49,11 +60,10 @@ export const LegendRowAction = ({ row }) => {
   const chart = useChart()
   const Action = useAttributeValue("rowAction")
 
-  if (!Action) return null
+  const target = Action && getLegendRowTarget(chart)
+  if (!target) return null
 
-  return (
-    <RowAction row={{ ...getLegendRowTarget(chart), id: row.id, name: row.name, value: row.id }} />
-  )
+  return <RowAction row={{ ...target, id: row.id, name: row.name, value: row.id }} />
 }
 
 export default RowAction
