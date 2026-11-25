@@ -35,6 +35,10 @@ const Entry = styled(Flex).attrs(({ isOff }) => ({
   ${notSelectable}
 `
 
+const EntryRow = styled(Flex).attrs({ as: "span", flex: false, alignItems: "center" })`
+  display: inline-flex;
+`
+
 const Name = styled(Box).attrs({ as: "span", width: { max: 45 }, overflow: "hidden" })`
   color: ${getColor("textLite")};
   white-space: nowrap;
@@ -61,24 +65,26 @@ const More = styled(Box).attrs({
 `
 
 const LegendEntry = ({ chart, row, isHeatmap, ...rest }) => (
-  <Entry
-    isOff={!row.visible}
-    onClick={onToggle(chart, row.id)}
-    onMouseEnter={() => row.visible && focusDimension(chart, row.id)}
-    onMouseLeave={() => focusDimension(chart, null)}
-    data-track={chart.track(`dimension-${row.name}`)}
-    data-dimension={row.id}
-    title={row.name}
-    {...rest}
-  >
-    {!isHeatmap && <LineSwatch swatchColor={row.color} />}
-    <Name>{row.name}</Name>
+  <EntryRow>
+    <Entry
+      isOff={!row.visible}
+      onClick={onToggle(chart, row.id)}
+      onMouseEnter={() => row.visible && focusDimension(chart, row.id)}
+      onMouseLeave={() => focusDimension(chart, null)}
+      data-track={chart.track(`dimension-${row.name}`)}
+      data-dimension={row.id}
+      title={row.name}
+      {...rest}
+    >
+      {!isHeatmap && <LineSwatch swatchColor={row.color} />}
+      <Name>{row.name}</Name>
+      {row.visible && <Value>{row.display}</Value>}
+      {row.visible && !!row.unit && <Unit>{row.unit}</Unit>}
+      {row.visible && <Flags flags={row.flags} />}
+      {row.visible && row.arp > 0 && <AnomalyBar rate={row.arp} />}
+    </Entry>
     <LegendRowAction row={row} />
-    {row.visible && <Value>{row.display}</Value>}
-    {row.visible && !!row.unit && <Unit>{row.unit}</Unit>}
-    {row.visible && <Flags flags={row.flags} />}
-    {row.visible && row.arp > 0 && <AnomalyBar rate={row.arp} />}
-  </Entry>
+  </EntryRow>
 )
 
 const MoreDimensions = ({ chart, target, ids, getRow, isHeatmap, onClose }) => {

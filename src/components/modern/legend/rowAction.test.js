@@ -110,7 +110,7 @@ describe("rowAction on legend rows", () => {
     expect(chart.getAttribute("selectedLegendDimensions")).toEqual([])
   })
 
-  it("renders on the tooltip rows", async () => {
+  it("keeps the action out of the hover tooltip, which the pointer cannot reach", async () => {
     const { chart } = makeTestChart({
       attributes: { designFlavour: "modern", rowAction: RowAction },
     })
@@ -123,7 +123,26 @@ describe("rowAction on legend rows", () => {
     renderWithChart(<Tooltip />, { chart })
 
     const tooltip = screen.getByTestId("modernTooltip")
-    expect(within(tooltip).getAllByTestId("row-action").length).toBeGreaterThan(0)
+    expect(within(tooltip).getAllByTestId("modernTooltip-name").length).toBeGreaterThan(0)
+    expect(within(tooltip).queryByTestId("row-action")).not.toBeInTheDocument()
+  })
+
+  it("places the inline legend action beside the toggle, not inside it", async () => {
+    const consoleError = jest.spyOn(console, "error")
+    try {
+      await renderLine({ legendLayout: "below", rowAction: RowAction, groupedBy: ["node"] })
+
+      const [action] = screen.getAllByTestId("row-action")
+      const nestingErrors = consoleError.mock.calls.filter(([message]) =>
+        /cannot (be a descendant of|contain a nested)/.test(String(message))
+      )
+      expect(nestingErrors).toEqual([])
+
+      fireEvent.click(action)
+      expect(screen.getAllByTestId("modernLegend-entry")[0]).toHaveStyle({ opacity: "1" })
+    } finally {
+      consoleError.mockRestore()
+    }
   })
 
   it("renders nothing without the attribute", async () => {
