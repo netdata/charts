@@ -258,6 +258,7 @@ const ScopeSentence = ({ hasFilters, open, onToggle }) => {
   const selectedLabels = useAttributeValue("selectedLabels") || noValues
   const instancesTotals = useAttributeValue("instancesTotals")
   const nodesTotals = useAttributeValue("nodesTotals")
+  const nodes = useAttributeValue("nodes")
   const groupBy = useAttributeValue("groupBy")
   const groupByLabel = useAttributeValue("groupByLabel")
   const aggregationMethod = useAttributeValue("aggregationMethod")
@@ -276,8 +277,21 @@ const ScopeSentence = ({ hasFilters, open, onToggle }) => {
         instancesTotals,
         nodesTotals,
         scopeCombines,
+        aggregated: viewDimensions.aggregated,
+        dimensions,
+        nodes,
       }),
-    [names, groupBy, aggregationMethod, instancesTotals, nodesTotals, scopeCombines]
+    [
+      names,
+      groupBy,
+      aggregationMethod,
+      instancesTotals,
+      nodesTotals,
+      scopeCombines,
+      viewDimensions.aggregated,
+      dimensions,
+      nodes,
+    ]
   )
   const { dimensionParts, labelParts } = useMemo(
     () => ({

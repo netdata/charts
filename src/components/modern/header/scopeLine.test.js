@@ -16,13 +16,27 @@ const payloadOf = ({
   labels = [],
   nodes = 1,
   instances = 1,
+  instancesPerNode,
+  aggregated,
 }) => {
   const payload = makePayload({ context, title: context, unit: "KiB/s", dimensions })
 
   return {
     ...payload,
+    ...(aggregated && {
+      view: { ...payload.view, dimensions: { ...payload.view.dimensions, aggregated } },
+    }),
     summary: {
       ...payload.summary,
+      ...(instancesPerNode && {
+        nodes: instancesPerNode.map((count, index) => ({
+          ni: index,
+          nd: `node-${index}`,
+          mg: `machine-${index}`,
+          nm: `web-0${index + 1}`,
+          is: { sl: count, qr: count },
+        })),
+      }),
       ...(summaryDimensions && {
         dimensions: summaryDimensions.map(id => ({ id, sts: { min: 0, max: 1, avg: 1, con: 0 } })),
       }),
@@ -85,10 +99,67 @@ describe("Modern scope line sentence", () => {
         summaryDimensions: ["reads", "writes"],
         nodes: 3,
         instances: 6,
+        instancesPerNode: [2, 2, 2],
       }),
     })
 
-    expect(line()).toHaveTextContent(/^Per node: web-01, web-02, web-03 · each adds up 2 instances$/)
+    expect(line()).toHaveTextContent(
+      /^Per node: web-01, web-02, web-03 · each adds up 2 instances$/
+    )
+  })
+
+  it("does not average the instances over nodes that hold different counts", async () => {
+    await renderLine({
+      attributes: { contextScope: ["disk.io"], groupBy: ["node"], aggregationMethod: "sum" },
+      payload: payloadOf({
+        dimensions: ["web-01", "web-02"].map(id => dimension(id, positive(50))),
+        summaryDimensions: ["reads", "writes"],
+        nodes: 2,
+        instances: 6,
+        instancesPerNode: [5, 1],
+        aggregated: [10, 2],
+      }),
+    })
+
+    expect(line()).toHaveTextContent(/^Per node: web-01, web-02 · each adds up its instances$/)
+  })
+
+  it("counts the instances behind each series when grouped by node and dimension", async () => {
+    await renderLine({
+      attributes: {
+        contextScope: ["disk.io"],
+        groupBy: ["node", "dimension"],
+        aggregationMethod: "sum",
+      },
+      payload: payloadOf({
+        dimensions: ["web-01 reads", "web-01 writes", "web-02 reads", "web-02 writes"].map(id =>
+          dimension(id, positive(50))
+        ),
+        summaryDimensions: ["reads", "writes"],
+        nodes: 2,
+        instances: 8,
+        instancesPerNode: [4, 4],
+        aggregated: [4, 4, 4, 4],
+      }),
+    })
+
+    expect(line()).toHaveTextContent(/· each adds up 4 instances$/)
+  })
+
+  it("does not count metrics as instances when a label groups several dimensions", async () => {
+    await renderLine({
+      attributes: { groupBy: ["label"], groupByLabel: ["device_type"], aggregationMethod: "sum" },
+      payload: payloadOf({
+        dimensions: ["physical", "virtual"].map(id => dimension(id, positive(50))),
+        summaryDimensions: ["reads", "writes"],
+        instances: 4,
+        aggregated: [4, 4],
+      }),
+    })
+
+    expect(line()).toHaveTextContent(
+      /^Per device_type: physical, virtual · each adds up its instances$/
+    )
   })
 
   it("uses the chart's noun and the aggregation verb for each grouped member", async () => {
@@ -102,6 +173,7 @@ describe("Modern scope line sentence", () => {
         dimensions: ["web-01", "web-02", "web-03"].map(id => dimension(id, positive(50))),
         nodes: 3,
         instances: 6,
+        instancesPerNode: [2, 2, 2],
       }),
     })
 

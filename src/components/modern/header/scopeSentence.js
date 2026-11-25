@@ -153,6 +153,22 @@ const nounOf = ({ count, nodesTotals, scopeCombines }) => {
   return nodesTotals?.qr === count ? "nodes" : "instances"
 }
 
+const sameCount = counts =>
+  counts.length && counts.every(count => count === counts[0]) ? counts[0] : null
+
+const instancesPerSeriesOf = ({ groupBy, aggregated, dimensions, nodes }) => {
+  if (groupBy.length === 1 && groupBy[0] === "node")
+    return sameCount(
+      Object.values(nodes || {})
+        .map(node => node.is?.qr)
+        .filter(count => count > 0)
+    )
+
+  const metricsAreInstances =
+    groupBy.includes("dimension") || Object.keys(dimensions || {}).length === 1
+  return metricsAreInstances && Array.isArray(aggregated) ? sameCount(aggregated) : null
+}
+
 export const combinedOf = ({
   names,
   groupBy,
@@ -160,6 +176,9 @@ export const combinedOf = ({
   instancesTotals,
   nodesTotals,
   scopeCombines,
+  aggregated,
+  dimensions,
+  nodes,
 }) => {
   const grouped = isGrouped(groupBy)
 
@@ -177,7 +196,8 @@ export const combinedOf = ({
   if (!grouped) return { noun, count, verb: combinedVerbs[aggregationMethod] || "combined" }
 
   const verb = eachVerbs[aggregationMethod] || "combines"
-  return count % seriesFed
-    ? { noun, grouped, quantity: "its", verb }
-    : { noun, grouped, count: count / seriesFed, verb }
+  const perSeries = instancesPerSeriesOf({ groupBy, aggregated, dimensions, nodes })
+  return perSeries
+    ? { noun, grouped, count: perSeries, verb }
+    : { noun, grouped, quantity: "its", verb }
 }
