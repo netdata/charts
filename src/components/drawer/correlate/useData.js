@@ -23,6 +23,7 @@ export const getCorrelationQueryAttributes = ({
   selectedInstances: [],
   selectedDimensions: [],
   selectedLabels: [],
+  dimensionsScope: [],
 })
 
 const useData = () => {

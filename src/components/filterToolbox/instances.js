@@ -1,6 +1,8 @@
 import { memo, useCallback, useMemo } from "react"
 import { useChart, useAttribute, useAttributeValue } from "@/components/provider"
 import { uppercase } from "@/helpers/objectTransform"
+import useInstanceLabels from "@/components/instanceIdentity/useInstanceLabels"
+import useInstanceIdentities from "@/components/instanceIdentity/useInstanceIdentities"
 import DropdownTable from "./dropdownTable"
 import { getStats, getInstanceLabel } from "./utils"
 import {
@@ -30,6 +32,8 @@ const useTooltipProps = chart =>
     []
   )
 
+const tableWidth = { min: 150, max: "80vw" }
+
 const columns = [
   labelColumn(),
   metricsColumn(),
@@ -51,10 +55,13 @@ const Instances = ({ labelProps, ...rest }) => {
   const instancesTotals = useAttributeValue("instancesTotals")
   const nodes = useAttributeValue("nodes")
   const nodesById = useAttributeValue("nodesById")
+  const getIdentityProps = useInstanceIdentities()
+  const loadInstanceLabels = useInstanceLabels()
 
   const getOptions = useCallback(() => {
     const nodeIdsByIndex = {}
-    if (hasAlias(nodesById)) Object.keys(nodes).forEach(id => (nodeIdsByIndex[nodes[id].ni] = id))
+    Object.keys(nodes).forEach(id => (nodeIdsByIndex[nodes[id].ni] = id))
+    const aliased = hasAlias(nodesById)
 
     return Object.keys(instances).map(id =>
       getStats(chart, instances[id], {
@@ -62,15 +69,17 @@ const Instances = ({ labelProps, ...rest }) => {
         key: "instances",
         props: {
           selected: value.includes(id),
+          rowTarget: { kind: "instance", nodeId: nodeIdsByIndex[instances[id].ni] },
           getLabel: instance => {
             const nodeId = nodeIdsByIndex[instance.ni]
 
-            return nodeId && getInstanceLabel(chart, nodeId, nodes[nodeId], instance)
+            return aliased && nodeId && getInstanceLabel(chart, nodeId, nodes[nodeId], instance)
           },
+          getProps: () => getIdentityProps(id),
         },
       })
     )
-  }, [instances, value, nodes, nodesById])
+  }, [instances, value, nodes, nodesById, getIdentityProps])
 
   const [sortBy, onSortByChange] = useAttribute("instancesSortBy")
   const tooltipProps = useTooltipProps(chart)
@@ -89,6 +98,8 @@ const Instances = ({ labelProps, ...rest }) => {
       sortBy={sortBy}
       onSortByChange={onSortByChange}
       totals={instancesTotals}
+      onOpen={loadInstanceLabels}
+      tableWidth={tableWidth}
       {...rest}
     />
   )

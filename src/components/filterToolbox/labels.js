@@ -48,6 +48,7 @@ const Labels = ({ labelProps, ...rest }) => {
           childProps: {
             unique: "-",
             parentId: id,
+            rowTarget: { kind: "label", labelKey: id },
             getIsSelected: val => value.includes(`${id}:${val.id}`),
             getValue: val => `${id}:${val.id}`,
           },

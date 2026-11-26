@@ -190,6 +190,8 @@ const DropdownTable = ({
   filterSelectedCount,
   sidebar,
   totalSelected,
+  onOpen,
+  tableWidth,
   ...rest
 }) => {
   const [isOpen, setIsOpen] = useState(false)
@@ -248,10 +250,13 @@ const DropdownTable = ({
         filterSelectedCount,
         sidebar,
         totalSelected,
-        ...(isModern && { resourceName, defaultMeta: meta }),
+        ...(isModern && { resourceName, defaultMeta: meta, tableWidth }),
       }}
       value={value}
-      onOpen={() => setIsOpen(true)}
+      onOpen={() => {
+        setIsOpen(true)
+        onOpen?.()
+      }}
       onClose={() => setIsOpen(false)}
       {...rest}
     >

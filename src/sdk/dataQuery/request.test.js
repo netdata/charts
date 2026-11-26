@@ -129,6 +129,21 @@ describe("data query requests", () => {
     expect(agent.options.split("|").filter(option => option === "unaligned")).toHaveLength(1)
   })
 
+  it("sends labelsScope as scope.labels", () => {
+    const payload = buildCloudDataPayload({ ...attributes, labelsScope: ["device:sda"] })
+    expect(payload.scope.labels).toEqual(["device:sda"])
+  })
+
+  it("omits scope.labels when labelsScope is empty", () => {
+    expect("labels" in buildCloudDataPayload({ ...attributes, labelsScope: [] }).scope).toBe(false)
+  })
+
+  it("sends scope_labels on GET", () => {
+    const params = buildAgentDataPayload({ ...attributes, labelsScope: ["device:sda", "id:abc"] })
+    expect(params.scope_labels).toBe("device:sda|id:abc")
+    expect("scope_labels" in buildAgentDataPayload({ ...attributes, labelsScope: [] })).toBe(false)
+  })
+
   it("builds POST and GET requests from the same attributes", () => {
     const cloud = buildDataRequest({ ...attributes, agent: false })
     expect(cloud.url).toBe("https://example.test/data")

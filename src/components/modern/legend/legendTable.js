@@ -15,6 +15,7 @@ import { tabularNumbers } from "@/components/modern/tokens"
 import { AnomalyBar, Flags, Unit as BaseUnit, onToggle } from "./parts"
 import { Numeral } from "@/components/modern/numerals"
 import { LineSwatch } from "@/components/modern/swatch"
+import { LegendRowAction } from "@/components/modern/rowAction"
 import { focusDimension, useClearFocusOnUnmount } from "./mode"
 import { useLegendRows } from "./useLegendRows"
 
@@ -336,6 +337,7 @@ const LegendTable = () => {
                         >
                           {!isHeatmap && <LineSwatch swatchColor={row.color} />}
                           <NameText>{row.name}</NameText>
+                          <LegendRowAction row={row} />
                           {row.visible && <Flags flags={row.flags} />}
                           {row.visible && row.arp > 0 && <AnomalyBar rate={row.arp} />}
                         </Flex>

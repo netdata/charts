@@ -1,5 +1,6 @@
 import { getChartURLOptions, getChartPayload, getWeightsWindow } from "./helpers"
 import { getWeightsBaseline } from "@/sdk/correlationBaseline"
+import { agentScopeParams } from "@/sdk/dataQuery/request"
 
 const wildcard = "*"
 
@@ -14,6 +15,8 @@ const getPayload = (chart, attrs = {}) => {
     context,
     nodesScope,
     contextScope,
+    dimensionsScope,
+    labelsScope,
     selectedNodes = chart.getFilteredNodeIds(),
     selectedInstances,
     selectedDimensions,
@@ -41,6 +44,7 @@ const getPayload = (chart, attrs = {}) => {
       (Array.isArray(selectedContexts) ? selectedContexts.join("|") : "") || context || wildcard,
     scope_contexts: (Array.isArray(contextScope) ? contextScope.join("|") : "") || wildcard,
     scope_nodes: (Array.isArray(nodesScope) ? nodesScope.join("|") : "") || wildcard,
+    ...agentScopeParams({ dimensionsScope, labelsScope }),
     nodes: (Array.isArray(selectedNodes) ? selectedNodes.join("|") : "") || wildcard,
     instances: (Array.isArray(selectedInstances) ? selectedInstances.join("|") : "") || wildcard,
     dimensions: (Array.isArray(selectedDimensions) ? selectedDimensions.join("|") : "") || wildcard,

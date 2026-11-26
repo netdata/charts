@@ -1,5 +1,6 @@
 import { getChartURLOptions, getChartPayload, getWeightsWindow } from "./helpers"
 import { getWeightsBaseline } from "@/sdk/correlationBaseline"
+import { scopedDimensions, scopedLabels } from "@/sdk/dataQuery/request"
 
 const wildcardArray = ["*"]
 
@@ -14,6 +15,8 @@ const getPayload = (chart, attrs = {}) => {
     context,
     nodesScope,
     contextScope,
+    dimensionsScope,
+    labelsScope,
     selectedNodes = chart.getFilteredNodeIds(),
     selectedInstances,
     selectedDimensions,
@@ -74,6 +77,8 @@ const getPayload = (chart, attrs = {}) => {
     scope: {
       nodes: Array.isArray(nodesScope) && nodesScope.length ? nodesScope : [],
       contexts: Array.isArray(contextScope) && contextScope.length ? contextScope : wildcardArray,
+      ...scopedDimensions(dimensionsScope),
+      ...scopedLabels(labelsScope),
     },
     method: method || "volume",
     options: [

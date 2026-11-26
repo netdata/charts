@@ -79,6 +79,7 @@ export default {
   contextItems: [],
   contextScope: [],
   nodesScope: [],
+  labelsScope: [],
   selectedContexts: [],
   selectedDimensions: [],
   selectedLabels: [],
@@ -172,6 +173,13 @@ export default {
 
   hasToolbox: true,
   hideTitle: false,
+  scopeLine: null,
+  scopeLock: null,
+  scopeCombines: null,
+  scopeFilterRemove: false,
+  rowAction: null,
+  anomalyPillClick: false,
+  attentionClick: false,
   hideName: false,
   hideUnits: null,
   hasHoverPopover: true,
@@ -336,6 +344,9 @@ export default {
   nodes: {},
   instances: {},
   alerts: {},
+
+  instanceLabels: null,
+  instanceLabelsLoading: false,
 
   drawer: {
     action: "compare",

@@ -176,4 +176,24 @@ describe("fetchCloudWeights", () => {
       })
     )
   })
+
+  it("keeps the chart's label and dimension scope", async () => {
+    chart.updateAttributes({ labelsScope: ["device:sda"], dimensionsScope: ["reads"] })
+
+    await fetchCloudWeights(chart)
+
+    const payload = JSON.parse(global.fetch.mock.calls[0][1].body)
+
+    expect(payload.scope.labels).toEqual(["device:sda"])
+    expect(payload.scope.dimensions).toEqual(["reads"])
+  })
+
+  it("leaves the label and dimension scope out when the chart has none", async () => {
+    await fetchCloudWeights(chart)
+
+    const payload = JSON.parse(global.fetch.mock.calls[0][1].body)
+
+    expect(payload.scope).not.toHaveProperty("labels")
+    expect(payload.scope).not.toHaveProperty("dimensions")
+  })
 })

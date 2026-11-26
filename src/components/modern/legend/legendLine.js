@@ -7,6 +7,7 @@ import { useIsHeatmap } from "@/helpers/heatmap"
 import notSelectable from "@/components/helpers/notSelectable"
 import { AnomalyBar, Flags, Unit, Value, onToggle } from "./parts"
 import { LineSwatch } from "@/components/modern/swatch"
+import { LegendRowAction } from "@/components/modern/rowAction"
 import { Panel, dropProps } from "@/components/modern/menu"
 import { focusDimension, useClearFocusOnUnmount } from "./mode"
 import { useLegendRows } from "./useLegendRows"
@@ -32,6 +33,10 @@ const Entry = styled(Flex).attrs(({ isOff }) => ({
   font-size: 12px;
   line-height: 18px;
   ${notSelectable}
+`
+
+const EntryRow = styled(Flex).attrs({ as: "span", flex: false, alignItems: "center" })`
+  display: inline-flex;
 `
 
 const Name = styled(Box).attrs({ as: "span", width: { max: 45 }, overflow: "hidden" })`
@@ -60,23 +65,26 @@ const More = styled(Box).attrs({
 `
 
 const LegendEntry = ({ chart, row, isHeatmap, ...rest }) => (
-  <Entry
-    isOff={!row.visible}
-    onClick={onToggle(chart, row.id)}
-    onMouseEnter={() => row.visible && focusDimension(chart, row.id)}
-    onMouseLeave={() => focusDimension(chart, null)}
-    data-track={chart.track(`dimension-${row.name}`)}
-    data-dimension={row.id}
-    title={row.name}
-    {...rest}
-  >
-    {!isHeatmap && <LineSwatch swatchColor={row.color} />}
-    <Name>{row.name}</Name>
-    {row.visible && <Value>{row.display}</Value>}
-    {row.visible && !!row.unit && <Unit>{row.unit}</Unit>}
-    {row.visible && <Flags flags={row.flags} />}
-    {row.visible && row.arp > 0 && <AnomalyBar rate={row.arp} />}
-  </Entry>
+  <EntryRow>
+    <Entry
+      isOff={!row.visible}
+      onClick={onToggle(chart, row.id)}
+      onMouseEnter={() => row.visible && focusDimension(chart, row.id)}
+      onMouseLeave={() => focusDimension(chart, null)}
+      data-track={chart.track(`dimension-${row.name}`)}
+      data-dimension={row.id}
+      title={row.name}
+      {...rest}
+    >
+      {!isHeatmap && <LineSwatch swatchColor={row.color} />}
+      <Name>{row.name}</Name>
+      {row.visible && <Value>{row.display}</Value>}
+      {row.visible && !!row.unit && <Unit>{row.unit}</Unit>}
+      {row.visible && <Flags flags={row.flags} />}
+      {row.visible && row.arp > 0 && <AnomalyBar rate={row.arp} />}
+    </Entry>
+    <LegendRowAction row={row} />
+  </EntryRow>
 )
 
 const MoreDimensions = ({ chart, target, ids, getRow, isHeatmap, onClose }) => {

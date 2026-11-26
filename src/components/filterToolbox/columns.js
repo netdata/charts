@@ -4,6 +4,7 @@ import Color from "@/components/line/dimensions/color"
 import Units from "@/components/line/dimensions/units"
 import { useChart, useConverted } from "@/components/provider"
 import Label from "./label"
+import InstanceIdentity, { hasIdentity } from "@/components/instanceIdentity"
 
 export const useMetricsByValue = chart =>
   useMemo(
@@ -18,6 +19,17 @@ export const useMetricsByValue = chart =>
     }),
     []
   )
+
+export const getSelectProps = row => ({
+  onClick: !row.original.disabled
+    ? e => {
+        e.preventDefault()
+        e.stopPropagation()
+        row.getToggleSelectedHandler()(e)
+      }
+    : undefined,
+  cursor: row.original.disabled ? "default" : "pointer",
+})
 
 export const labelColumn = fallbackExpandKey => ({
   id: "label",
@@ -39,27 +51,18 @@ export const labelColumn = fallbackExpandKey => ({
       >
         <Flex gap={1}>
           <Color id={row.original.value} />
-          <TextSmall
-            strong
-            onClick={
-              !row.original.disabled
-                ? e => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    row.getToggleSelectedHandler()(e)
-                  }
-                : undefined
-            }
-            cursor={row.original.disabled ? "default" : "pointer"}
-            whiteSpace="normal"
-            wordBreak="break-word"
-          >
-            {getValue()}
-          </TextSmall>
+          {hasIdentity(row) ? (
+            <InstanceIdentity row={row} {...getSelectProps(row)} />
+          ) : (
+            <TextSmall strong {...getSelectProps(row)} whiteSpace="normal" wordBreak="break-word">
+              {getValue()}
+            </TextSmall>
+          )}
         </Flex>
         {row.getCanExpand() && (
           <Label
             label={
+              metricsByValue[row.original.expandKey] ||
               metricsByValue[getValue()] ||
               metricsByValue[fallbackExpandKey] ||
               metricsByValue.default

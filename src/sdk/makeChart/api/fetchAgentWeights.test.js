@@ -145,4 +145,24 @@ describe("fetchAgentWeights", () => {
       })
     )
   })
+
+  it("keeps the chart's label and dimension scope", async () => {
+    chart.updateAttributes({ labelsScope: ["device:sda", "mount:/"], dimensionsScope: ["reads"] })
+
+    await fetchAgentWeights(chart)
+
+    const urlParams = new URLSearchParams(global.fetch.mock.calls[0][0].split("?")[1])
+
+    expect(urlParams.get("scope_labels")).toBe("device:sda|mount:/")
+    expect(urlParams.get("scope_dimensions")).toBe("reads")
+  })
+
+  it("leaves the label and dimension scope out when the chart has none", async () => {
+    await fetchAgentWeights(chart)
+
+    const urlParams = new URLSearchParams(global.fetch.mock.calls[0][0].split("?")[1])
+
+    expect(urlParams.has("scope_labels")).toBe(false)
+    expect(urlParams.has("scope_dimensions")).toBe(false)
+  })
 })

@@ -2,11 +2,13 @@ import { Flex, Box, TextSmall, TextMicro } from "@netdata/netdata-ui"
 import Units from "@/components/line/dimensions/units"
 import { useChart, useConverted, useAttributeValue } from "@/components/provider"
 import { LineSwatch } from "@/components/modern/swatch"
+import RowAction from "@/components/modern/rowAction"
 import { SmallNumeral } from "@/components/modern/numerals"
 import { Dot } from "@/components/modern/dot"
 import { radius } from "@/components/modern/tokens"
 import Label from "../label"
-import { useMetricsByValue } from "../columns"
+import InstanceIdentity, { hasIdentity } from "@/components/instanceIdentity"
+import { useMetricsByValue, getSelectProps } from "../columns"
 import { formatPercent, clampPercent } from "./format"
 
 const Head = ({ children, align = "start" }) => (
@@ -36,6 +38,7 @@ const NameCell = ({ getValue, row, column }) => {
   useAttributeValue("colorOverrides")
   const name = getValue()
   const { fallbackExpandKey, showColor } = column.columnDef
+  const selectProps = getSelectProps(row)
 
   return (
     <Flex
@@ -47,28 +50,36 @@ const NameCell = ({ getValue, row, column }) => {
     >
       <Flex gap={1} alignItems="center" overflow="hidden">
         {showColor && <LineSwatch swatchColor={chart.selectDimensionColor(row.original.value)} />}
-        <TextSmall
-          title={typeof name === "string" ? name : undefined}
-          onClick={
-            !row.original.disabled
-              ? e => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  row.getToggleSelectedHandler()(e)
-                }
-              : undefined
-          }
-          cursor={row.original.disabled ? "default" : "pointer"}
-          whiteSpace="nowrap"
-          truncate
-        >
-          {name}
-        </TextSmall>
+        {hasIdentity(row) ? (
+          <InstanceIdentity row={row} {...selectProps} />
+        ) : (
+          <TextSmall
+            title={typeof name === "string" ? name : undefined}
+            {...selectProps}
+            whiteSpace="nowrap"
+            truncate
+          >
+            {name}
+          </TextSmall>
+        )}
+        {!!row.original.rowTarget && (
+          <RowAction
+            row={{
+              ...row.original.rowTarget,
+              id: row.original.value,
+              name: row.original.label,
+              ...(row.original.rowTarget.kind === "label" && { value: row.original.info?.id }),
+            }}
+          />
+        )}
       </Flex>
       {row.getCanExpand() && (
         <Label
           label={
-            metricsByValue[name] || metricsByValue[fallbackExpandKey] || metricsByValue.default
+            metricsByValue[row.original.expandKey] ||
+            metricsByValue[name] ||
+            metricsByValue[fallbackExpandKey] ||
+            metricsByValue.default
           }
           onClick={e => {
             e.preventDefault()

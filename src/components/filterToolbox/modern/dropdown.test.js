@@ -6,7 +6,9 @@ import { filterDropdownsPayload } from "../../../../fixtures/filterDropdowns"
 import Nodes from "../nodes"
 import Dimensions from "../dimensions"
 import Labels from "../labels"
+import Instances from "../instances"
 import GroupBy from "../groupBy"
+import PostGroupBy from "../postGroupBy"
 import Aggregate from "../aggregate"
 import TimeAggregation from "../timeAggregation"
 import ModernItem from "./item"
@@ -358,5 +360,81 @@ describe("filter dropdowns, modern flavour", () => {
     expect(screen.getByTestId("modern-filter-item-description")).toHaveTextContent("Section note")
     expect(screen.getByText("Average").closest("li")).toHaveAttribute("aria-selected", "true")
     expect(screen.getByText("Sum").closest("li")).toHaveAttribute("aria-selected", "false")
+  })
+})
+
+describe("filter dropdowns, row action", () => {
+  const RowAction = ({ row }) => (
+    <button type="button" data-testid="row-action">
+      {`${row.kind}|${row.labelKey || row.id}|${row.value ?? row.nodeId}`}
+    </button>
+  )
+  const withAction = { designFlavour: "modern", rowAction: RowAction }
+
+  it("describes an instance row by its node", async () => {
+    const { chart } = await openDropdown(Instances, withAction)
+
+    const instances = chart.getAttribute("instances")
+    const nodes = chart.getAttribute("nodes")
+    const [id] = Object.keys(instances)
+    const nodeId = Object.keys(nodes).find(key => nodes[key].ni === instances[id].ni)
+    expect(screen.getAllByTestId("row-action")[0]).toHaveTextContent(`instance|${id}|${nodeId}`)
+  })
+
+  it("describes a label value row by its label key", async () => {
+    await openDropdown(Labels, { ...withAction, labelsExpanded: true })
+
+    const texts = screen.getAllByTestId("row-action").map(node => node.textContent)
+    expect(texts).toContain("label|_collect_plugin|proc.plugin")
+  })
+
+  it("describes a group by label value row by its label key", async () => {
+    await openDropdown(GroupBy, { ...withAction, groupByExpanded: { 3: true } })
+
+    const texts = screen.getAllByTestId("row-action").map(node => node.textContent)
+    expect(texts).toContain("label|_collect_plugin|proc.plugin")
+  })
+
+  it("describes a post group by label value row by its label key", async () => {
+    await openDropdown(PostGroupBy, { ...withAction, groupByExpanded: { 5: true } })
+
+    const texts = screen.getAllByTestId("row-action").map(node => node.textContent)
+    expect(texts).toContain("label|_collect_plugin|proc.plugin")
+  })
+
+  it("does not select the row when the action is clicked or activated by key", async () => {
+    await openDropdown(Labels, { ...withAction, labelsExpanded: true })
+    const selected = screen.getByTestId("modern-filter-selected").textContent
+    const [action] = screen.getAllByTestId("row-action")
+
+    const onKeyDown = jest.fn()
+    document.addEventListener("keydown", onKeyDown)
+
+    fireEvent.click(action)
+    fireEvent.keyDown(action, { key: "Enter" })
+    fireEvent.keyDown(action, { key: " " })
+    document.removeEventListener("keydown", onKeyDown)
+
+    expect(onKeyDown).not.toHaveBeenCalled()
+    expect(screen.getByTestId("modern-filter-selected")).toHaveTextContent(selected)
+    expect(screen.getByTestId("modern-filter-reset")).toBeDisabled()
+  })
+
+  it.each(["Escape", "Tab", "ArrowDown"])("lets %s bubble from the action", async key => {
+    await openDropdown(Labels, { ...withAction, labelsExpanded: true })
+    const [action] = screen.getAllByTestId("row-action")
+    const onKeyDown = jest.fn()
+    document.addEventListener("keydown", onKeyDown)
+
+    fireEvent.keyDown(action, { key })
+    document.removeEventListener("keydown", onKeyDown)
+
+    expect(onKeyDown).toHaveBeenCalledTimes(1)
+  })
+
+  it("renders nothing without the attribute", async () => {
+    await openDropdown(Instances, { designFlavour: "modern" })
+
+    expect(screen.queryByTestId("row-action")).not.toBeInTheDocument()
   })
 })

@@ -6,7 +6,7 @@ const aggregationLabels = {
   max: "Maximum",
 }
 
-const timeAggregationLabels = {
+export const timeAggregationLabels = {
   average: "Average",
   avg: "Average",
   min: "Minimum",
