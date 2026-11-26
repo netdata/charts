@@ -19,6 +19,10 @@ const payloadOf = ({
   instancesPerNode,
   aggregated,
   groupedBy,
+  instancesTotal = instances,
+  nodesTotal = nodes,
+  instanceRows,
+  viewUpdateEvery,
 }) => {
   const payload = makePayload({ context, title: context, unit: "KiB/s", dimensions })
 
@@ -26,6 +30,7 @@ const payloadOf = ({
     ...payload,
     view: {
       ...payload.view,
+      ...(viewUpdateEvery && { update_every: viewUpdateEvery }),
       dimensions: {
         ...payload.view.dimensions,
         ...(aggregated && { aggregated }),
@@ -50,9 +55,13 @@ const payloadOf = ({
           sts: { min: 0, max: 1, avg: 1, con: 0 },
         })),
       }),
+      ...(instanceRows && { instances: instanceRows }),
       labels,
     },
-    totals: { nodes: { sl: nodes, qr: nodes }, instances: { sl: instances, qr: instances } },
+    totals: {
+      nodes: { sl: nodes, ex: nodesTotal - nodes, qr: nodes },
+      instances: { sl: instances, ex: instancesTotal - instances, qr: instances },
+    },
   }
 }
 
@@ -72,8 +81,6 @@ const groupedSeries = (dimensionIds, members, valuesOf = () => positive(50)) =>
 const nodeMembers = names => names.map((name, index) => ({ id: `node-${index}`, name }))
 
 const sameMembers = names => names.map(name => ({ id: name, name }))
-
-const writesBelowZero = dimensionId => (dimensionId === "writes" ? negative(40) : positive(80))
 
 const renderLine = async ({ attributes = {}, payload, hasFilters = true } = {}) => {
   const { aggregationMethod, ...sdkAttributes } = attributes
@@ -100,19 +107,19 @@ describe("Modern scope line sentence", () => {
   it("says what the chart shows, with no lock and no query summary", async () => {
     await renderLine()
 
-    expect(line()).toHaveTextContent(/^Load1, load5 and load15$/)
+    expect(line()).toHaveTextContent(/^Load1, load5 and load15 on beast · per 4 s average$/)
     expect(screen.queryByTestId("chartScopeLine-lock")).not.toBeInTheDocument()
     expect(screen.queryByText(/Group by/)).not.toBeInTheDocument()
   })
 
-  it("says how many instances the dimensions add up and which stays below zero", async () => {
+  it("says how many instances on how many nodes the dimensions add up", async () => {
     await renderLine({
       attributes: { contextScope: ["disk.io"], groupBy: ["dimension"], aggregationMethod: "sum" },
       payload: payloadOf({ dimensions: readsAndWrites, nodes: 3, instances: 6 }),
     })
 
     expect(line()).toHaveTextContent(
-      /^Reads and writes of 6 instances, added up · writes below zero$/
+      /^Reads and writes, added up across 6 instances on 3 nodes · per 5 s average$/
     )
   })
 
@@ -130,7 +137,7 @@ describe("Modern scope line sentence", () => {
     })
 
     expect(line()).toHaveTextContent(
-      /^Per node: web-01, web-02, web-03 · each adds up 2 instances$/
+      /^Per node: web-01, web-02, web-03 · each adds up 2 instances · per 5 s average$/
     )
   })
 
@@ -148,7 +155,9 @@ describe("Modern scope line sentence", () => {
       }),
     })
 
-    expect(line()).toHaveTextContent(/^Per node: web-01, web-02 · each adds up its instances$/)
+    expect(line()).toHaveTextContent(
+      /^Per node: web-01, web-02 · each adds up its instances · per 5 s average$/
+    )
   })
 
   it("counts the instances behind each series when grouped by node and dimension", async () => {
@@ -171,7 +180,7 @@ describe("Modern scope line sentence", () => {
     })
 
     expect(line()).toHaveTextContent(
-      /^Reads and writes per node \(2\): db primary, web-02 · each adds up 4 instances$/
+      /^Reads and writes per node \(2\): db primary, web-02 · each adds up 4 instances · per 5 s average$/
     )
   })
 
@@ -195,19 +204,22 @@ describe("Modern scope line sentence", () => {
       }),
     })
 
-    expect(line()).toHaveTextContent(/^Per node: host1, host2 · each adds up 2 instances$/)
+    expect(line()).toHaveTextContent(
+      /^Per node: host1, host2 · each adds up 2 instances · per 5 s average$/
+    )
   })
 
   describe("when grouped by dimension and other keys", () => {
     const nodeNames = Array.from({ length: 24 }, (_, index) => `ip-10-200-${index}-1.ec2.internal`)
 
-    const renderPerNode = valuesOf =>
+    const renderPerNode = ({ nodesTotal = 24 } = {}) =>
       renderLine({
         attributes: { groupBy: ["dimension", "node"], aggregationMethod: "sum" },
         payload: payloadOf({
-          dimensions: groupedSeries(["writes", "reads"], nodeMembers(nodeNames), valuesOf),
+          dimensions: groupedSeries(["writes", "reads"], nodeMembers(nodeNames)),
           summaryDimensions: ["reads", "writes"],
           nodes: 24,
+          nodesTotal,
           instances: 24,
           instancesPerNode: nodeNames.map(() => 1),
           groupedBy: ["dimension", "node"],
@@ -215,35 +227,33 @@ describe("Modern scope line sentence", () => {
       })
 
     it("makes the dimensions the subject and names each node once", async () => {
-      await renderPerNode(writesBelowZero)
+      await renderPerNode()
 
       expect(line()).toHaveTextContent(
-        /^Reads and writes per node \(24\): ip-10-200-0-1\.ec2\.internal, ip-10-200-1-1\.ec2\.internal and 22 more · writes below zero$/
+        /^Reads and writes per node \(24\): ip-10-200-0-1\.ec2\.internal, ip-10-200-1-1\.ec2\.internal and 22 more · per 5 s average$/
       )
     })
 
+    it("counts the nodes the filters leave out", async () => {
+      await renderPerNode({ nodesTotal: 30 })
+
+      expect(line()).toHaveTextContent(/^Reads and writes per node \(24 of 30\): /)
+    })
+
     it("offers the whole sentence with every node on hover", async () => {
-      const { user } = await renderPerNode(writesBelowZero)
+      const { user } = await renderPerNode()
 
       await user.hover(screen.getByTestId("chartScope"))
 
       expect(
         await screen.findByText(
-          `Reads and writes per node (24): ${nodeNames.join(", ")} · writes below zero`
+          `Reads and writes per node (24): ${nodeNames.join(", ")} · per 5 s average`
         )
       ).toBeInTheDocument()
     })
 
-    it("does not call a dimension below zero when one of its series is not", async () => {
-      await renderPerNode((dimensionId, nodeId) =>
-        dimensionId === "writes" && nodeId !== "node-3" ? negative(40) : positive(80)
-      )
-
-      expect(line()).not.toHaveTextContent(/below zero/)
-    })
-
-    it("keeps the line on one row and lets only the node list give way", async () => {
-      await renderPerNode(writesBelowZero)
+    it("keeps the line on one row and lets the node list give way before the time", async () => {
+      await renderPerNode()
 
       expect(getComputedStyle(line()).flexWrap).not.toBe("wrap")
       expect(getComputedStyle(screen.getByTestId("chartScope-members"))).toMatchObject({
@@ -253,18 +263,16 @@ describe("Modern scope line sentence", () => {
       })
       expect(getComputedStyle(screen.getByTestId("chartScope")).minWidth).toBe("0px")
       expect(getComputedStyle(screen.getByTestId("chartScope-heading")).overflow).not.toBe("hidden")
-      expect(getComputedStyle(screen.getByTestId("chartScope-belowZero")).textOverflow).toBe(
-        "ellipsis"
-      )
+      expect(getComputedStyle(screen.getByTestId("chartScope-time")).textOverflow).toBe("ellipsis")
       expect(Number(getComputedStyle(screen.getByTestId("chartScope")).flexShrink)).toBeGreaterThan(
-        Number(getComputedStyle(screen.getByTestId("chartScope-belowZero")).flexShrink)
+        Number(getComputedStyle(screen.getByTestId("chartScope-time")).flexShrink)
       )
     })
 
     it("keeps the spaces around each separator", async () => {
-      await renderPerNode(writesBelowZero)
+      await renderPerNode()
 
-      const separator = within(line()).getByText("·")
+      const [separator] = within(line()).getAllByText("·")
       expect(separator.textContent).toBe(" · ")
       expect(getComputedStyle(separator).whiteSpace).toBe("pre-wrap")
     })
@@ -283,7 +291,9 @@ describe("Modern scope line sentence", () => {
         }),
       })
 
-      expect(line()).toHaveTextContent(/^Reads and writes per device \(6\): sda, sdb and 4 more$/)
+      expect(line()).toHaveTextContent(
+        /^Reads and writes per device \(6\): sda, sdb and 4 more · per 5 s average$/
+      )
     })
 
     it("names the consumer's singular noun when grouped by dimension and instance", async () => {
@@ -298,8 +308,7 @@ describe("Modern scope line sentence", () => {
             [
               { id: "sda@node-0", name: "sda@web-01" },
               { id: "sdb@node-0", name: "sdb@web-01" },
-            ],
-            writesBelowZero
+            ]
           ),
           summaryDimensions: ["reads", "writes"],
           instances: 2,
@@ -308,7 +317,7 @@ describe("Modern scope line sentence", () => {
       })
 
       expect(line()).toHaveTextContent(
-        /^Reads and writes per disk \(2\): sda@web-01, sdb@web-01 · writes below zero$/
+        /^Reads and writes per disk \(2\): sda@web-01, sdb@web-01 · per 5 s average$/
       )
     })
   })
@@ -332,7 +341,9 @@ describe("Modern scope line sentence", () => {
         }),
       })
 
-      expect(line()).toHaveTextContent(/^Per node and device_type \(2 × 2\): web-01, web-02$/)
+      expect(line()).toHaveTextContent(
+        /^Per node and device_type \(2 × 2\): web-01, web-02 · per 5 s average$/
+      )
     })
 
     it("counts each key and names the first key's values once when grouped by two labels", async () => {
@@ -353,7 +364,7 @@ describe("Modern scope line sentence", () => {
       })
 
       expect(line()).toHaveTextContent(
-        /^Per device and device_type \(4 × 2\): sda, sdb and 2 more$/
+        /^Per device and device_type \(4 × 2\): sda, sdb and 2 more · per 5 s average$/
       )
     })
   })
@@ -378,7 +389,7 @@ describe("Modern scope line sentence", () => {
     })
 
     expect(line()).toHaveTextContent(
-      /^Reads and writes per device_type \(2\): physical, virtual · each adds up 2 instances$/
+      /^Reads and writes per device_type \(2\): physical, virtual · each adds up 2 instances · per 5 s average$/
     )
   })
 
@@ -395,7 +406,7 @@ describe("Modern scope line sentence", () => {
     })
 
     expect(line()).toHaveTextContent(
-      /^Per device_type: physical, virtual · each adds up its instances$/
+      /^Per device_type: physical, virtual · each adds up its instances · per 5 s average$/
     )
   })
 
@@ -415,7 +426,9 @@ describe("Modern scope line sentence", () => {
       }),
     })
 
-    expect(line()).toHaveTextContent(/^Per node: web-01, web-02, web-03 · each averages 2 disks$/)
+    expect(line()).toHaveTextContent(
+      /^Per node: web-01, web-02, web-03 · each averages 2 disks · per 5 s average$/
+    )
   })
 
   it("names the first two values of a label and offers them all on hover", async () => {
@@ -428,9 +441,11 @@ describe("Modern scope line sentence", () => {
       }),
     })
 
-    expect(line()).toHaveTextContent(/^Per device: sda, sdb and 3 more$/)
+    expect(line()).toHaveTextContent(/^Per device: sda, sdb and 3 more · per 5 s average$/)
     await user.hover(screen.getByTestId("chartScope"))
-    expect(await screen.findByText("Per device: sda, sdb, sdc, sdd, sde")).toBeInTheDocument()
+    expect(
+      await screen.findByText("Per device: sda, sdb, sdc, sdd, sde · per 5 s average")
+    ).toBeInTheDocument()
   })
 
   it("names the consumer's singular noun when grouped by instance", async () => {
@@ -446,9 +461,11 @@ describe("Modern scope line sentence", () => {
       }),
     })
 
-    expect(line()).toHaveTextContent(/^Per disk: sda, sdb and 3 more$/)
+    expect(line()).toHaveTextContent(/^Per disk: sda, sdb and 3 more · per 5 s average$/)
     await user.hover(screen.getByTestId("chartScope"))
-    expect(await screen.findByText("Per disk: sda, sdb, sdc, sdd, sde")).toBeInTheDocument()
+    expect(
+      await screen.findByText("Per disk: sda, sdb, sdc, sdd, sde · per 5 s average")
+    ).toBeInTheDocument()
   })
 
   it("falls back to instance when grouped by instance without a noun", async () => {
@@ -461,7 +478,7 @@ describe("Modern scope line sentence", () => {
       }),
     })
 
-    expect(line()).toHaveTextContent(/^Per instance: sda, sdb$/)
+    expect(line()).toHaveTextContent(/^Per instance: sda, sdb · per 5 s average$/)
   })
 
   it("names the label key when grouped by a label", async () => {
@@ -474,7 +491,7 @@ describe("Modern scope line sentence", () => {
       }),
     })
 
-    expect(line()).toHaveTextContent(/^Per device_type: physical, virtual$/)
+    expect(line()).toHaveTextContent(/^Per device_type: physical, virtual · per 5 s average$/)
   })
 
   it("counts nodes when every node has one instance", async () => {
@@ -488,7 +505,94 @@ describe("Modern scope line sentence", () => {
       }),
     })
 
-    expect(line()).toHaveTextContent(/^User and system of 3 nodes, averaged$/)
+    expect(line()).toHaveTextContent(/^User and system, averaged across 3 nodes · per 5 s average$/)
+  })
+
+  it("counts the instances and nodes the filters leave out", async () => {
+    await renderLine({
+      attributes: { aggregationMethod: "avg" },
+      payload: payloadOf({
+        context: "postgres.connections_utilization",
+        dimensions: [dimension("used", positive(40))],
+        nodes: 2,
+        nodesTotal: 4,
+        instances: 3,
+        instancesTotal: 5,
+      }),
+    })
+
+    expect(line()).toHaveTextContent(
+      /^Used, averaged across 3 of 5 instances on 2 of 4 nodes · per 5 s average$/
+    )
+  })
+
+  it("names the one node every instance runs on", async () => {
+    await renderLine({
+      attributes: { aggregationMethod: "sum" },
+      payload: payloadOf({
+        dimensions: readsAndWrites,
+        nodes: 1,
+        instances: 6,
+        instancesPerNode: [6],
+      }),
+    })
+
+    expect(line()).toHaveTextContent(
+      /^Reads and writes, added up across 6 instances on web-01 · per 5 s average$/
+    )
+  })
+
+  describe("when one instance is queried", () => {
+    const instanceRow = (id, queried) => ({ id, ni: 0, ds: { sl: 1, qr: queried ? 1 : 0 } })
+    const labelsOf = (database, cluster) => ({
+      context: "postgres.connections_utilization",
+      node: "node-0",
+      labels: { database, cluster },
+    })
+
+    const renderOne = ({ instanceLabels } = {}) =>
+      renderLine({
+        attributes: instanceLabels ? { instanceLabels } : {},
+        payload: payloadOf({
+          context: "postgres.connections_utilization",
+          dimensions: [dimension("used", positive(40))],
+          instances: 1,
+          instancesTotal: 2,
+          instancesPerNode: [1],
+          instanceRows: [
+            instanceRow("postgres_main", true),
+            instanceRow("postgres_replica", false),
+          ],
+        }),
+      })
+
+    it("names it by the labels that tell it apart from its siblings", async () => {
+      await renderOne({
+        instanceLabels: {
+          "postgres_main@node-0": labelsOf("postgres-main", "prod"),
+          "postgres_replica@node-0": labelsOf("postgres-replica", "staging"),
+        },
+      })
+
+      expect(line()).toHaveTextContent(
+        /^Used on web-01 · cluster prod, database postgres-main · per 5 s average$/
+      )
+    })
+
+    it("names it by its instance name while its labels are unknown", async () => {
+      await renderOne({ instanceLabels: {} })
+
+      expect(line()).toHaveTextContent(/^Used on web-01 · postgres_main · per 5 s average$/)
+    })
+  })
+
+  it("says how the points are grouped over time", async () => {
+    await renderLine({
+      attributes: { groupingMethod: "max" },
+      payload: payloadOf({ dimensions: readsAndWrites, viewUpdateEvery: 120 }),
+    })
+
+    expect(line()).toHaveTextContent(/^Reads and writes · per 2 min max$/)
   })
 
   it("names the first two dimensions and offers them all on hover when there are four or more", async () => {
@@ -499,9 +603,11 @@ describe("Modern scope line sentence", () => {
       }),
     })
 
-    expect(line()).toHaveTextContent(/^User, system and 3 more$/)
+    expect(line()).toHaveTextContent(/^User, system and 3 more · per 5 s average$/)
     await user.hover(screen.getByTestId("chartScope"))
-    expect(await screen.findByText("User, system, nice, iowait and irq")).toBeInTheDocument()
+    expect(
+      await screen.findByText("User, system, nice, iowait and irq · per 5 s average")
+    ).toBeInTheDocument()
   })
 
   it("uses the chart's noun and lock, with a label filter inside the combined phrase", async () => {
@@ -521,7 +627,7 @@ describe("Modern scope line sentence", () => {
     })
 
     expect(line()).toHaveTextContent(
-      /^Reads and writes of 3 physical disks on web-03, added up · writes below zero$/
+      /^Reads and writes, added up across 3 physical disks on web-03 · per 5 s average$/
     )
     expect(screen.getByTestId("chartScopeLine-lock")).toHaveTextContent(/^web-03$/)
     expect(
@@ -532,7 +638,7 @@ describe("Modern scope line sentence", () => {
   it("shows the lock on a chart whose dimensions are not combined", async () => {
     await renderLine({ attributes: { scopeLock: { label: "sda" } } })
 
-    expect(line()).toHaveTextContent(/^Load1, load5 and load15 on sda$/)
+    expect(line()).toHaveTextContent(/^Load1, load5 and load15 on sda · per 4 s average$/)
   })
 
   it("says an upstream group adds up all its members, without a count", async () => {
@@ -544,7 +650,9 @@ describe("Modern scope line sentence", () => {
       }),
     })
 
-    expect(line()).toHaveTextContent(/^User and system of all processes, added up$/)
+    expect(line()).toHaveTextContent(
+      /^User and system, added up across all processes · per 5 s average$/
+    )
   })
 
   describe("filters", () => {
@@ -561,7 +669,9 @@ describe("Modern scope line sentence", () => {
     it("says what a dimension filter keeps and hides", async () => {
       await filteredCpu(["user"])
 
-      expect(line()).toHaveTextContent(/^User · only user hides system, nice and 2 more$/)
+      expect(line()).toHaveTextContent(
+        /^User · only user hides system, nice and 2 more · per 5 s average$/
+      )
     })
 
     it("says all except the hidden dimension when most are kept", async () => {
@@ -602,7 +712,7 @@ describe("Modern scope line sentence", () => {
       await labelled()
 
       expect(line()).toHaveTextContent(
-        /^Reads and writes · writes below zero · device_type: only physical hides virtual · mount_point: only \/ hides \/boot$/
+        /^Reads and writes · device_type: only physical hides virtual · mount_point: only \/ hides \/boot · per 5 s average$/
       )
     })
 
@@ -653,6 +763,8 @@ describe("Modern scope line sentence", () => {
     simulateTranslate(container)
     act(() => chart.updateAttributes({ selectedDimensions: [], scopeLock: null }))
 
-    await waitFor(() => expect(line()).toHaveTextContent(/^Load1, load5 and load15$/))
+    await waitFor(() =>
+      expect(line()).toHaveTextContent(/^Load1, load5 and load15 on beast · per 4 s average$/)
+    )
   })
 })

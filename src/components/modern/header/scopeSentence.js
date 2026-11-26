@@ -1,5 +1,7 @@
 import { uppercase } from "@/helpers/objectTransform"
+import { getIdentifyingLabels } from "@/helpers/identifyingLabels"
 import { splitGroupKeys } from "@/sdk/makeChart/camelizePayload"
+import { timeAggregationLabels } from "./scopeSummary"
 
 const maxListed = 3
 const previewCount = 2
@@ -10,8 +12,8 @@ const identity = value => value
 const combinedVerbs = {
   sum: "added up",
   avg: "averaged",
-  min: "lowest of them",
-  max: "highest of them",
+  min: "lowest",
+  max: "highest",
   percentage: "as a share of the total",
 }
 
@@ -142,7 +144,15 @@ const groupKeyOf = (by, instanceName) => {
 
 const nameAsIs = (_, name) => name
 
-const isBelowZero = (sts, index) => sts?.max?.[index] <= 0 && sts?.min?.[index] < 0
+const totalOf = totals => (totals?.sl || 0) + (totals?.ex || 0)
+
+export const countOf = (count, totals) =>
+  totalOf(totals) > count ? `${count} of ${totalOf(totals)}` : `${count}`
+
+const totalsOfGrouping = (by, { nodesTotals, instancesTotals } = {}) => {
+  if (by === "node") return nodesTotals
+  return instanceGroupings.has(by) ? instancesTotals : null
+}
 
 const unknownPriority = Infinity
 
@@ -158,6 +168,7 @@ const groupsOf = ({ ids, names, grouped, scopeCombines, dimensions, nodeNameOf }
   const instanceName = scopeCombines?.nounSingular || "instance"
   const dimensionValues = new Map()
   const keyValues = new Map()
+  const keyGroupings = new Map()
 
   ids.forEach((id, index) => {
     const idParts = splitGroupKeys(id, grouped.length)
@@ -171,6 +182,7 @@ const groupsOf = ({ ids, names, grouped, scopeCombines, dimensions, nodeNameOf }
 
       const key = groupKeyOf(by, instanceName)
       if (!keyValues.has(key)) keyValues.set(key, new Map())
+      keyGroupings.set(key, by)
       const name = by === "node" ? nodeNameOf(idPart, namePart) : namePart
       addMember(keyValues.get(key), idPart, name, index)
     })
@@ -181,18 +193,25 @@ const groupsOf = ({ ids, names, grouped, scopeCombines, dimensions, nodeNameOf }
     ([left], [right]) => priorityOf(left) - priorityOf(right)
   )
 
-  return { dimensionValues: orderedDimensions.map(([, member]) => member), keyValues }
+  return {
+    dimensionValues: orderedDimensions.map(([, member]) => member),
+    keyValues,
+    keyGroupings,
+  }
 }
 
 const membersText = members =>
   members.length <= maxListed ? members.join(", ") : listOrCount(members).text
 
-const headingOf = ({ dimensionValues, keyValues }, subjectOf) => {
+const headingOf = ({ dimensionValues, keyValues, keyGroupings }, subjectOf, totals) => {
   const keys = [...keyValues.keys()]
-  if (!dimensionValues.length && keys.length === 1) return `Per ${keys[0]}: `
+  const counts = keys.map(key =>
+    countOf(keyValues.get(key).size, totalsOfGrouping(keyGroupings.get(key), totals))
+  )
+  const excludes = counts.some(count => count.includes(" of "))
+  if (!dimensionValues.length && keys.length === 1 && !excludes) return `Per ${keys[0]}: `
 
-  const counts = [...keyValues.values()].map(values => values.size).join(" × ")
-  const per = `per ${joinList(keys)} (${counts}): `
+  const per = `per ${joinList(keys)} (${counts.join(" × ")}): `
   if (!dimensionValues.length) return uppercase(per)
 
   return `${uppercase(subjectOf(dimensionValues.map(({ name }) => name)))} ${per}`
@@ -205,6 +224,7 @@ export const linesOf = ({
   scopeCombines,
   dimensions,
   nodeNameOf = nameAsIs,
+  totals,
 }) => {
   if (isDimensionGrouping(grouped))
     return {
@@ -224,32 +244,66 @@ export const linesOf = ({
   const members = membersOf(groups.keyValues.values().next().value)
 
   return {
-    heading: headingOf(groups, values => listOrCount(values).text),
+    heading: headingOf(groups, values => listOrCount(values).text, totals),
     members: membersText(members),
-    full: `${headingOf(groups, joinList)}${members.join(", ")}`,
+    full: `${headingOf(groups, joinList, totals)}${members.join(", ")}`,
   }
 }
 
-export const belowZeroOf = ({ ids, names, grouped, sts, dimensions }) => {
-  if (isDimensionGrouping(grouped) || grouped.length === 1) {
-    const below = names.filter((_, index) => isBelowZero(sts, index))
-    return below.length ? joinList(below) : null
-  }
+const durations = [
+  [86400, "d"],
+  [3600, "h"],
+  [60, "min"],
+]
 
-  if (!grouped.includes(dimensionGrouping)) return null
+const durationOf = seconds => {
+  const [unit, name] = durations.find(([unit]) => seconds % unit === 0) || [1, "s"]
+  return `${seconds / unit} ${name}`
+}
 
-  const { dimensionValues } = groupsOf({
-    ids: ids || names,
-    names,
-    grouped,
-    dimensions,
-    nodeNameOf: nameAsIs,
-  })
-  const below = dimensionValues
-    .filter(({ series }) => series.every(index => isBelowZero(sts, index)))
-    .map(({ name }) => name)
+const shortTimeMethods = { min: "min", max: "max" }
 
-  return below.length ? joinList(below) : null
+export const timeOf = ({ groupingMethod = "", viewUpdateEvery }) => {
+  if (!viewUpdateEvery) return null
+
+  const [method = "", alias = ""] = groupingMethod.match(/[\d.]+|\D+/g) || []
+  const label = shortTimeMethods[method] || timeAggregationLabels[method]?.toLowerCase() || method
+  const named = alias ? `${label} ${alias}` : label
+
+  return `per ${durationOf(viewUpdateEvery)} ${named}`.trim()
+}
+
+export const placeOf = ({ nodesTotals, nodes, nodeNameOf = nameAsIs }) => {
+  const count = nodesTotals?.qr
+  if (!count) return null
+  if (count > 1) return `${countOf(count, nodesTotals)} nodes`
+
+  const queried = Object.keys(nodes || {}).filter(id => nodes[id].is?.qr > 0)
+  return queried.length === 1 ? nodeNameOf(queried[0], nodes[queried[0]].nm || queried[0]) : null
+}
+
+export const singleInstanceOf = ({ instances, instancesTotals }) => {
+  if (instancesTotals?.qr !== 1) return null
+
+  const keys = Object.keys(instances || {})
+  const queried = keys.filter(key => instances[key].ds?.qr > 0)
+  return queried.length === 1 ? { key: queried[0], siblings: keys.length > 1 } : null
+}
+
+const instanceNameOf = (key, instance) => {
+  const name = instance?.nm || key
+  const at = name.lastIndexOf("@")
+  return at > 0 ? name.slice(0, at) : name
+}
+
+export const identityOf = ({ key, instances, instanceLabels }) => {
+  const rows = Object.keys(instances)
+    .filter(id => instanceLabels?.[id])
+    .map(id => ({ id, ...instanceLabels[id] }))
+  const identity = getIdentifyingLabels(rows)[key]
+
+  if (!identity?.pairs.length || identity.ambiguous) return instanceNameOf(key, instances[key])
+  return identity.pairs.map(([name, value]) => `${name} ${value}`).join(", ")
 }
 
 const nounOf = ({ count, nodesTotals, scopeCombines }) => {
@@ -297,13 +351,19 @@ export const combinedOf = ({
   if (scopeCombines?.upstream)
     return perGroup
       ? { noun: scopeCombines.noun, grouped: perGroup, quantity: "all", verb: eachVerbs.sum }
-      : { noun: scopeCombines.noun, verb: combinedVerbs.sum }
+      : { noun: scopeCombines.noun, quantity: "all", verb: combinedVerbs.sum }
 
   const count = instancesTotals?.qr
   const noun = nounOf({ count, nodesTotals, scopeCombines })
 
   if (!perGroup)
-    return count > 1 ? { noun, count, verb: combinedVerbs[aggregationMethod] || "combined" } : null
+    return count > 1
+      ? {
+          noun,
+          count: countOf(count, noun === "nodes" ? nodesTotals : instancesTotals),
+          verb: combinedVerbs[aggregationMethod] || "combined",
+        }
+      : null
 
   if (grouped.includes("instance")) return null
 

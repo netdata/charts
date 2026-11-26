@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react"
+import { useCallback, useEffect, useMemo } from "react"
 import styled from "styled-components"
 import { Flex, TextSmall, getColor } from "@netdata/netdata-ui"
 import padlockIcon from "@netdata/netdata-ui/dist/components/icon/assets/padlock.svg"
@@ -8,12 +8,24 @@ import Tooltip from "@/components/tooltip"
 import { useAttributeValue, useChart } from "@/components/provider"
 import { radius } from "@/components/modern/tokens"
 import { getNodeDisplayName } from "@/helpers/nodeDisplayName"
+import useInstanceLabels from "@/components/instanceIdentity/useInstanceLabels"
 import { showAllDimensions, useHiddenDimensionsCount } from "./hiddenDimensions"
-import { belowZeroOf, combinedOf, dimensionPartsOf, labelPartsOf, linesOf } from "./scopeSentence"
+import {
+  combinedOf,
+  dimensionPartsOf,
+  identityOf,
+  isGrouped,
+  labelPartsOf,
+  linesOf,
+  placeOf,
+  singleInstanceOf,
+  timeOf,
+} from "./scopeSentence"
 
 const noValues = []
 const noSummary = {}
 const shrinksFirst = 100
+const shrinksLast = 1
 
 const LinesButton = styled(Flex).attrs({
   as: "button",
@@ -99,14 +111,6 @@ const Lock = ({ label }) => (
   </Flex>
 )
 
-const OnLock = ({ lock }) =>
-  lock ? (
-    <>
-      <Piece>{" on "}</Piece>
-      <Lock label={lock} />
-    </>
-  ) : null
-
 const FilterChip = ({ chip, filters, testId, onRemove }) => {
   const chart = useChart()
 
@@ -127,37 +131,65 @@ const FilterChip = ({ chip, filters, testId, onRemove }) => {
   )
 }
 
-const Combined = ({ combined, inlineParts, lock, onRemove }) => (
-  <>
-    {combined.grouped ? (
-      <Piece>{` · each ${combined.verb} `}</Piece>
-    ) : (
-      <Piece>{combined.count ? " of " : " of all "}</Piece>
-    )}
-    {combined.quantity ? <Piece>{`${combined.quantity} `}</Piece> : null}
-    {combined.count ? <Piece color="text">{`${combined.count}`}</Piece> : null}
-    {inlineParts.map(({ key, inline, filters }) => (
-      <Flex key={key} flex={false} alignItems="center">
-        <Piece> </Piece>
-        <FilterChip
-          chip={inline}
-          filters={filters}
-          testId={`chartScopeLine-${key}`}
-          onRemove={onRemove}
-        />
-      </Flex>
-    ))}
-    {combined.count ? <Piece> </Piece> : null}
-    <Piece>{combined.noun}</Piece>
-    <OnLock lock={lock} />
-    {combined.grouped ? null : (
-      <>
-        <Piece>{", "}</Piece>
-        <Piece>{combined.verb}</Piece>
-      </>
-    )}
-  </>
+const textSegment = (key, text, color = "textLite") => ({ key, text, color })
+
+const placeSegments = ({ lock, place }) => {
+  if (lock) return [textSegment("on", " on "), { key: "lock", lock, text: lock }]
+  return place ? [textSegment("on", " on "), textSegment("place", place, "text")] : noValues
+}
+
+const combinedSegments = ({ combined, inlineParts, where }) => [
+  textSegment(
+    "verb",
+    combined.grouped ? ` · each ${combined.verb} ` : `, ${combined.verb} across `
+  ),
+  ...(combined.quantity ? [textSegment("quantity", `${combined.quantity} `)] : noValues),
+  ...(combined.count ? [textSegment("count", `${combined.count}`, "text")] : noValues),
+  ...inlineParts.flatMap(part => [
+    textSegment(`${part.key}-space`, " "),
+    { key: part.key, part, text: part.inline.text },
+  ]),
+  ...(combined.count ? [textSegment("noun-space", " ")] : noValues),
+  textSegment("noun", combined.noun),
+  ...where,
+]
+
+const segmentsOf = ({ combined, inlineParts, lock, place, identity }) => {
+  if (combined)
+    return combinedSegments({ combined, inlineParts, where: placeSegments({ lock, place }) })
+
+  const where = placeSegments({ lock, place })
+  if (lock || !identity) return where
+  return [
+    ...where,
+    textSegment("identity-separator", " · "),
+    { key: "identity", identity, text: identity },
+  ]
+}
+
+const Shrinking = ({ shrink, text, color = "text", testId }) => (
+  <Flex flex={{ grow: 0, shrink }} width={{ min: "0px" }} overflow="hidden">
+    <TextSmall color={color} truncate data-testid={testId}>
+      {text}
+    </TextSmall>
+  </Flex>
 )
+
+const Segment = ({ segment, onRemove }) => {
+  if (segment.lock) return <Lock label={segment.lock} />
+  if (segment.identity)
+    return <Shrinking shrink={shrinksFirst} text={segment.identity} testId="chartScope-identity" />
+  if (segment.part)
+    return (
+      <FilterChip
+        chip={segment.part.inline}
+        filters={segment.part.filters}
+        testId={`chartScopeLine-${segment.part.key}`}
+        onRemove={onRemove}
+      />
+    )
+  return <Piece color={segment.color}>{segment.text}</Piece>
+}
 
 const FilterPart = ({ partKey, chip, hides, filters, onRemove }) => (
   <Flex flex={false} alignItems="center">
@@ -256,18 +288,10 @@ const LinesPiece = ({ lines, sentence, hasFilters, open }) => (
   </Tooltip>
 )
 
-const BelowZero = ({ names }) => (
-  <>
-    <Piece>{" · "}</Piece>
-    <TextSmall color="textLite" truncate data-testid="chartScope-belowZero">
-      <TextSmall color="text">{names}</TextSmall>
-      <TextSmall color="textLite">{" below zero"}</TextSmall>
-    </TextSmall>
-  </>
-)
-
-const sentenceOf = (lines, belowZero) =>
-  belowZero ? `${lines.full} · ${belowZero} below zero` : lines.full
+const sentenceOf = (lines, segments, time) => {
+  const sentence = `${lines.full}${segments.map(({ text }) => text).join("")}`
+  return time ? `${sentence} · ${time}` : sentence
+}
 
 const ScopeSentence = ({ hasFilters, open, onToggle }) => {
   const viewDimensions = useAttributeValue("viewDimensions") || noSummary
@@ -282,6 +306,11 @@ const ScopeSentence = ({ hasFilters, open, onToggle }) => {
   const scopeCombines = useAttributeValue("scopeCombines")
   const lock = useAttributeValue("scopeLock")?.label
   const nodesById = useAttributeValue("nodesById")
+  const instances = useAttributeValue("instances")
+  const instanceLabels = useAttributeValue("instanceLabels")
+  const groupingMethod = useAttributeValue("groupingMethod")
+  const viewUpdateEvery = useAttributeValue("viewUpdateEvery")
+  const loadInstanceLabels = useInstanceLabels()
   const hidden = useHiddenDimensionsCount()
   const onRemove = useRemoveFilters()
   const chart = useChart()
@@ -325,33 +354,60 @@ const ScopeSentence = ({ hasFilters, open, onToggle }) => {
     [dimensions, selectedDimensions, labels, selectedLabels]
   )
 
-  const { lines, belowZero } = useMemo(() => {
-    if (!names.length) return {}
-
-    const series = {
-      ids: viewDimensions.ids,
+  const lines = useMemo(
+    () =>
+      names.length
+        ? linesOf({
+            ids: viewDimensions.ids,
+            names,
+            grouped,
+            dimensions,
+            scopeCombines,
+            nodeNameOf,
+            totals: { nodesTotals, instancesTotals },
+          })
+        : null,
+    [
+      viewDimensions.ids,
       names,
       grouped,
       dimensions,
-    }
-    return {
-      lines: linesOf({ ...series, scopeCombines, nodeNameOf }),
-      belowZero: belowZeroOf({ ...series, sts: viewDimensions.sts }),
-    }
-  }, [
-    viewDimensions.ids,
-    viewDimensions.sts,
-    names,
-    grouped,
-    dimensions,
-    scopeCombines,
-    nodeNameOf,
-  ])
+      scopeCombines,
+      nodeNameOf,
+      nodesTotals,
+      instancesTotals,
+    ]
+  )
+
+  const single = useMemo(
+    () =>
+      combined || isGrouped(grouped) ? null : singleInstanceOf({ instances, instancesTotals }),
+    [combined, grouped, instances, instancesTotals]
+  )
+  const singleKey = single?.siblings ? single.key : null
+
+  useEffect(() => {
+    if (singleKey) loadInstanceLabels()
+  }, [singleKey, loadInstanceLabels])
+
+  const place = useMemo(
+    () =>
+      isGrouped(grouped) || combined?.noun === "nodes"
+        ? null
+        : placeOf({ nodesTotals, nodes, nodeNameOf }),
+    [grouped, combined, nodesTotals, nodes, nodeNameOf]
+  )
+  const identity = useMemo(
+    () => (singleKey ? identityOf({ key: singleKey, instances, instanceLabels }) : null),
+    [singleKey, instances, instanceLabels]
+  )
 
   if (!names.length) return hidden > 0 ? <Hidden count={hidden} /> : null
 
   const inlineParts = combined?.count ? labelParts : noValues
   const trailingParts = combined?.count ? dimensionParts : [...dimensionParts, ...labelParts]
+  const segments = segmentsOf({ combined, inlineParts, lock, place, identity })
+  const time = timeOf({ groupingMethod, viewUpdateEvery })
 
   return (
     <Flex
@@ -363,16 +419,13 @@ const ScopeSentence = ({ hasFilters, open, onToggle }) => {
     >
       <LinesPiece
         lines={lines}
-        sentence={sentenceOf(lines, belowZero)}
+        sentence={sentenceOf(lines, segments, time)}
         hasFilters={hasFilters}
         open={open}
       />
-      {combined ? (
-        <Combined combined={combined} inlineParts={inlineParts} lock={lock} onRemove={onRemove} />
-      ) : (
-        <OnLock lock={lock} />
-      )}
-      {belowZero ? <BelowZero names={belowZero} /> : null}
+      {segments.map(segment => (
+        <Segment key={segment.key} segment={segment} onRemove={onRemove} />
+      ))}
       {trailingParts.map(({ key, chip, hides, filters }) => (
         <FilterPart
           key={key}
@@ -383,6 +436,12 @@ const ScopeSentence = ({ hasFilters, open, onToggle }) => {
           onRemove={onRemove}
         />
       ))}
+      {time ? (
+        <>
+          <Piece>{" · "}</Piece>
+          <Shrinking shrink={shrinksLast} text={time} color="textLite" testId="chartScope-time" />
+        </>
+      ) : null}
       {hidden > 0 && <Hidden count={hidden} leading />}
     </Flex>
   )
