@@ -18,6 +18,7 @@ import { getConversionAttributes } from "@/helpers/unitConversion/getConversionU
 import groupBy from "lodash/groupBy"
 import isEmpty from "lodash/isEmpty"
 import { getNodeDisplayName, getNodeRawName } from "@/helpers/nodeDisplayName"
+import { getGroupLabelDisplay } from "@/helpers/groupLabelDisplay"
 import { getPointValue } from "./getPointValue"
 
 const dimensionNameCollator = new Intl.Collator(undefined, {
@@ -405,7 +406,16 @@ export default (chart, sdk) => {
     const rawName = viewDimensions.names[dimensionsById[id]] || id
     let dimName = alias ? aliasNodeNames(id, rawName) : rawName
 
-    if (!isNaN(partIndex)) dimName = dimName.split(",")?.[partIndex] ?? dimName
+    if (!isNaN(partIndex))
+      dimName =
+        (alias &&
+          getGroupLabelDisplay(
+            chart.getAttribute("groupByLabelDisplay"),
+            viewDimensions,
+            dimensionsById[id],
+            partIndex
+          )) ||
+        (dimName.split(",")?.[partIndex] ?? dimName)
 
     if (isHeatmap(chart)) return formatHeatmapLabel(withoutPrefix(dimName), chart.getHeatmapScale())
 

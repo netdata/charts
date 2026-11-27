@@ -187,6 +187,7 @@ export default {
 
   groupBy: ["dimension"],
   groupByLabel: [],
+  groupByLabelDisplay: {},
   postGroupBy: ["selected"],
   postGroupByLabel: [],
 
